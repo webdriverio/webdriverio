@@ -62,135 +62,17 @@ jobs:
     uses: ./.github/workflows/test-cloud.yml
     secrets: inherit
 
-# permissions:
-#   contents: read # to fetch code (actions/checkout)
+  testrunner_tests:
+    name: Launch Tests
+    needs: [smoke_tests, component_tests]
+    uses: ./.github/workflows/test-testrunner.yml
 
-# jobs:
-#   linux:
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         node-version: [18.x, 20.x, 22.x]
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: pnpm/action-setup@v4
-#       - uses: actions/setup-node@v4
-#         with:
-#           node-version: ${{ matrix.node-version }}
-#           cache: 'pnpm'
-#       - name: Install Dependencies
-#         run: pnpm install
-#       - name: Bootstrap Packages
-#         run: pnpm run setup
-#         env:
-#           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
-#       - name: Dependency Check
-#         run: pnpm run test:depcheck
-#       - name: Lint / Typings / Unit / Smoke / Component Tests
-#         run: pnpm run test
-#       - name: Interop Tests
-#         run: pnpm run test:e2e:cjs
-#       - name: E2E Launch Tests
-#         run: pnpm run test:e2e:webdriver
-#       # - name: 🐛 Debug Build
-#       #   uses: stateful/vscode-server-action@v1
-#       #   if: failure()
-#       #   with:
-#       #     timeout: '30000'
-#       - uses: actions/upload-artifact@v4
-#         if: failure()
-#         with:
-#           name: ubuntu-logs-${{ matrix.node-version }}
-#           path: |
-#             e2e/wdio/*.log
-#             e2e/*.log
-#             e2e/browser-runner/logs
-#   e2e-windows:
-#     runs-on: windows-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: pnpm/action-setup@v4
-#       - uses: actions/setup-node@v4
-#         with:
-#           node-version-file: '.nvmrc'
-#           cache: 'pnpm'
-#       - name: Install Dependencies
-#         run: pnpm install
-#       - name: Bootstrap Packages
-#         run: pnpm run setup
-#         env:
-#           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
-#       - name: Lint / Typings / Unit / Smoke / Component Tests
-#         run: pnpm run test
-#       - name: E2E Protocol Tests
-#         uses: nick-fields/retry@v3
-#         with:
-#           timeout_minutes: 20
-#           max_attempts: 3
-#           command: npm run test:e2e
-#       - name: E2E Launch Tests
-#         run: |
-#           npm run test:e2e:webdriver
-#       # - name: 🐛 Debug Build
-#       #   uses: stateful/vscode-server-action@v1
-#       #   if: failure()
-#       #   with:
-#       #     timeout: '30000'
-#       - uses: actions/upload-artifact@v4
-#         if: failure()
-#         with:
-#           name: windows-logs
-#           path: |
-#             e2e/wdio/*.log
-#             e2e/*.log
-#             e2e/browser-runner/logs
-#   e2e-mac:
-#     runs-on: macos-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: pnpm/action-setup@v4
-#       - uses: actions/setup-node@v4
-#         with:
-#           node-version-file: '.nvmrc'
-#           cache: 'pnpm'
-#       - name: Install Dependencies
-#         run: pnpm install
-#       - name: Bootstrap Packages
-#         run: pnpm run setup
-#         env:
-#           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
-#       - name: E2E Protocol Tests
-#         uses: nick-fields/retry@v3
-#         with:
-#           timeout_minutes: 20
-#           max_attempts: 3
-#           command: npm run test:e2e
-#       - name: Safari Component Tests
-#         run: pnpm run test:component
-#       - name: E2E Launch Tests
-#         run: pnpm run test:e2e:webdriver
-#       - name: E2E Connection Test
-#         run: pnpm run test:e2e:cloud
-#         if: github.ref == 'refs/heads/main'
-#         env:
-#           SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
-#           SAUCE_ACCESS_KEY: ${{secrets.SAUCE_ACCESS_KEY}}
-#       - name: E2E Connection Test w/ Params
-#         run: pnpm run test:e2e:cloud --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
-#         if: github.ref == 'refs/heads/main'
-#         env:
-#           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
-#           SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}
-#       - uses: actions/upload-artifact@v4
-#         if: failure()
-#         with:
-#           name: macos-logs
-#           path: |
-#             e2e/wdio/*.log
-#             e2e/*.log
-#             e2e/browser-runner/logs
-#       - name: 🐛 Debug Build
-#         uses: stateful/vscode-server-action@v1
-#         if: failure()
-#         with:
-#           timeout: '30000'
+  multiremote_tests:
+    name: Launch Tests
+    needs: [smoke_tests, component_tests]
+    uses: ./.github/workflows/test-multiremote.yml
+
+  standalone_tests:
+    name: Launch Tests
+    needs: [smoke_tests, component_tests]
+    uses: ./.github/workflows/test-standalone.yml
