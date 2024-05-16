@@ -39,6 +39,7 @@ jobs:
   authorize:
     name: Authorize Actor
     uses: ./.github/workflows/authorize.yml
+    secrets: inherit
   expense:
     permissions:
       contents: write
