@@ -28,7 +28,9 @@ import {
     TESTOPS_JWT_ENV,
     TESTOPS_BUILD_ID_ENV,
     TESTOPS_SCREENSHOT_ENV,
-    PERF_MEASUREMENT_ENV, RERUN_ENV
+    PERF_MEASUREMENT_ENV, RERUN_ENV,
+    MAX_GIT_META_DATA_SIZE_IN_KB,
+    GIT_META_DATA_TRUNCATED
 } from './constants'
 
 import PerformanceTester from './performance-tester'
@@ -583,7 +585,7 @@ export async function getGitMetaData () {
     if (!info.commonGitDir) return {}
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = remote ? Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] })) : []
-    return {
+    const gitMetaData = {
         name: 'git',
         sha: info.sha,
         short_sha: info.abbreviatedSha,
@@ -601,6 +603,16 @@ export async function getGitMetaData () {
         commits_since_last_tag: info.commitsSinceLastTag,
         remotes: remotes
     }
+
+    const gitMetaDataSizeInKb = getSizeOfJsonObjectInKb(gitMetaData)
+
+    if (gitMetaDataSizeInKb && gitMetaDataSizeInKb > 0 && gitMetaDataSizeInKb > MAX_GIT_META_DATA_SIZE_IN_KB) {
+        const truncateSize = gitMetaDataSizeInKb - MAX_GIT_META_DATA_SIZE_IN_KB
+        const truncatedCommitMessage = truncateString(gitMetaData.commit_message, truncateSize)
+        gitMetaData.commit_message = truncatedCommitMessage
+        log.debug('The commit has been truncated')
+    }
+    return gitMetaData
 }
 
 export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): string {
@@ -1183,4 +1195,35 @@ export const getErrorString = (err: unknown) => {
     } else if (err instanceof Error) {
         return err.message // works, `e` narrowed to Error
     }
+}
+
+export function truncateString(field: string, truncateSizeInKb: number) {
+    try {
+        const bufferSizeInBytes = Buffer.from(GIT_META_DATA_TRUNCATED).length
+
+        const fieldBufferObj = Buffer.from(field)
+        const lenOfFieldBufferObj = fieldBufferObj.length
+        const finalLen = Math.round(lenOfFieldBufferObj - (truncateSizeInKb * 1024) - (bufferSizeInBytes))
+        if (finalLen > 0) {
+            const truncatedString = fieldBufferObj.subarray(0, finalLen).toString() + GIT_META_DATA_TRUNCATED
+            return truncatedString
+        }
+    } catch (error) {
+        log.debug(`Error while truncating field, nothing was truncated here: ${error}`)
+    }
+    return field
+}
+
+export function getSizeOfJsonObjectInKb(jsonData: Object) {
+    try {
+        if (jsonData) {
+            const buffer = Buffer.from(JSON.stringify(jsonData))
+
+            return Math.floor(buffer.length/1024)
+        }
+    } catch (error) {
+        log.debug(`Something went wrong while calculating size of JSON object: ${error}`)
+    }
+
+    return -1
 }
