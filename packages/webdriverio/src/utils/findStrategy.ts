@@ -177,8 +177,8 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             `.//textarea[@id = (//label[normalize-space() = "${label}"]/@for)]`,
             // input and textarea with a label as parent
             // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//input[//ancestor::label[normalize-space(text()) = "${label}"]]`,
-            `.//textarea[//ancestor::label[normalize-space(text()) = "${label}"]]`,
+            `.//input[ancestor::label[normalize-space(text()) = "${label}"]]`,
+            `.//textarea[ancestor::label[normalize-space(text()) = "${label}"]]`,
             // aria label is received by a placeholder
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//input[@placeholder="${label}"]`,
