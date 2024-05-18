@@ -1,18 +1,6 @@
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
 
-export interface SessionResponse {
-    // eslint-disable-next-line camelcase
-    automation_session: {
-        // eslint-disable-next-line camelcase
-        browser_url: string
-    }
-}
-
-export interface TurboScaleSessionResponse {
-    url: string
-}
-
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<any>;
 
 export type AppConfig = {
@@ -236,18 +224,26 @@ export interface UserConfig {
 export interface UploadType {
     event_type: string,
     hook_run?: TestData,
-    test_run?: TestData,
-    logs?: any[]
+    test_run?: TestData|CBTData,
+    logs?: LogData[]
 }
 
-export interface StdLog {
-    timestamp: string,
-    kind: string
-    level?: string,
-    message?: string,
-    http_response?: any,
-    test_run_uuid?: string,
+export interface LogData {
+    timestamp: string
+    kind: 'TEST_LOG'|'TEST_STEP'|'HTTP'|'TEST_SCREENSHOT'
+    test_run_uuid?: string
     hook_run_uuid?: string
+    message?: string
+    level?: string
+    http_response?: any
+}
+
+export interface StdLog extends LogData {
+    kind: 'TEST_LOG'
+}
+
+export interface ScreenshotLog extends LogData {
+    kind: 'TEST_SCREENSHOT'
 }
 
 export interface LaunchResponse {
@@ -300,5 +296,23 @@ interface StepData {
 
 interface Failure {
     backtrace: string[]
+}
+
+export interface FeatureStatsOverview {
+    triggeredCount: number
+    sentCount: number
+    failedCount: number
+}
+
+export interface CBTData {
+    uuid: string
+    integrations: IntegrationObject
+}
+
+export interface TOUsageStats {
+    enabled: boolean
+    manuallySet: boolean
+    buildHashedId?: string
+    events?: any
 }
 

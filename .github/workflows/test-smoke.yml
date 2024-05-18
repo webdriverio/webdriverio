@@ -1,0 +1,47 @@
+name: Smoke Tests
+
+on:
+  workflow_call:
+    # Make this a reusable workflow, no value needed
+    # https://docs.github.com/en/actions/using-workflows/reusing-workflows
+
+jobs:
+  check:
+    name: Smoke Test (${{ matrix.os }}.${{ matrix.node }})
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['18', '20', '22']
+        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4.1.5
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'pnpm'
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      - name: Link Packages
+        run: pnpm run link
+        shell: bash
+
+      - name: Smoke Tests
+        run: pnpm run test:smoke
+        shell: bash
+
+      - name: Check Git Context
+        if: matrix.os != 'windows-latest'
+        uses: ./.github/workflows/actions/check-git-context

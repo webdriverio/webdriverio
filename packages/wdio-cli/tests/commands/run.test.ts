@@ -16,7 +16,8 @@ vi.mock('node:child_process', () => ({
     },
     exec: vi.fn()
 }))
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', async (orig) => ({
+    ...(await orig()) as any,
     default: {
         access: vi.fn().mockResolvedValue(true),
         readFile: vi.fn()
@@ -105,9 +106,11 @@ describe('Command: run', () => {
     })
 
     describe('launch', () => {
+        const originalProcess = globalThis.process
+
         afterEach(() => {
             vi.mocked(execa).mockClear()
-            delete process.env.NODE_OPTIONS
+            globalThis.process = originalProcess
         })
 
         it('should restart process if esm loader is needed', async () => {
@@ -116,35 +119,73 @@ describe('Command: run', () => {
             vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(1)
+            const moduleLoaderFlag = (
+                (runCmd.nodeVersion('major') >= 20 && runCmd.nodeVersion('minor') >= 6) ||
+                (runCmd.nodeVersion('major') === 18 && runCmd.nodeVersion('minor') >= 19)
+            )
+                ? '--import'
+                : '--loader'
             expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--loader ts-node/esm/transpile-only')
+                .toContain(moduleLoaderFlag)
+        })
+
+        it('should use the import flag for tsx for Node >= 20.6.0', async () => {
+            globalThis.process = { ...originalProcess, versions: { node: '20.6.0' } }
+            vi.mocked(fs.access).mockResolvedValue()
+            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
+                .toContain('--import tsx')
+        })
+
+        it('should use the import flag for tsx for Node >= 18.19.0', async () => {
+            globalThis.process = { ...originalProcess, versions: { node: '18.19.0' } }
+            vi.mocked(fs.access).mockResolvedValue()
+            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
+                .toContain('--import tsx')
+        })
+
+        it('should use the loader flag for tsx for Node < 20.6.0', async () => {
+            globalThis.process = { ...originalProcess, versions: { node: '20.5.1' } }
+            vi.mocked(fs.access).mockResolvedValue()
+            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
+                .toContain('--loader tsx')
+        })
+
+        it('should use the loader flag for tsx for Node < 18.19.0', async () => {
+            globalThis.process = { ...originalProcess, versions: { node: '18.18.1' } }
+            vi.mocked(fs.access).mockResolvedValue()
+            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
+                .toContain('--loader tsx')
         })
 
         it('should load custom tsconfig', async () => {
             vi.mocked(fs.access).mockResolvedValueOnce().mockRejectedValueOnce({}).mockResolvedValue()
             expect(execa).toBeCalledTimes(0)
             vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-            process.env.TS_NODE_PROJECT = './config/tsconfig.e2e.json'
+            process.env.TSX_PROJECT = `${path.sep}config${path.sep}tsconfig.e2e.json`
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(1)
-            expect(vi.mocked(execa).mock.calls[0][2]!.env.TS_NODE_PROJECT)
+            expect(vi.mocked(execa).mock.calls[0][2]!.env.TSX_PROJECT)
                 .toContain(`${path.sep}config${path.sep}tsconfig.e2e.json`)
         })
 
-        it('should load custom ts-node options', async () => {
-            vi.mocked(fs.access).mockResolvedValueOnce().mockRejectedValueOnce({}).mockResolvedValue()
+        it('should not restart if loader is already provided via --loader', async () => {
             expect(execa).toBeCalledTimes(0)
-            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-            process.env.TS_NODE_TYPE_CHECK = 'true'
+            process.env.NODE_OPTIONS = '--loader tsx'
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(execa).toBeCalledTimes(1)
-            expect(vi.mocked(execa).mock.calls[0][2]!.env.TS_NODE_TYPE_CHECK)
-                .toContain('true')
+            expect(execa).toBeCalledTimes(0)
         })
 
-        it('should not restart if loader is already provided', async () => {
+        it('should not restart if loader is already provided via --import', async () => {
             expect(execa).toBeCalledTimes(0)
-            process.env.NODE_OPTIONS = '--loader ts-node/esm'
+            process.env.NODE_OPTIONS = '--import tsx'
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(0)
         })

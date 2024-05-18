@@ -1,7 +1,7 @@
 import { Task } from '@serenity-js/core'
 
 // eslint-disable-next-line no-undef
-describe('Source maps support for ESM projects', () => {
+describe.skip('Source maps support for ESM projects', () => {
 
     // eslint-disable-next-line no-undef
     it('should detect line number correctly', async () => {

@@ -59,17 +59,5 @@ export async function setTimeout(
     const script = timeouts.script as number
     const setTimeouts: any = this.setTimeouts.bind(this)
 
-    /**
-     * JsonWireProtocol action
-     */
-    if (!this.isW3C) {
-        await Promise.all([
-            isFinite(implicit) && setTimeouts('implicit', implicit),
-            isFinite(pageLoad) && setTimeouts('page load', pageLoad),
-            isFinite(script) && setTimeouts('script', script),
-        ].filter(Boolean))
-        return
-    }
-
     return setTimeouts(implicit, pageLoad, script)
 }

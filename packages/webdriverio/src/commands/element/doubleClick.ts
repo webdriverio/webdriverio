@@ -1,4 +1,4 @@
-import { getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
 
 /**
  *
@@ -24,14 +24,6 @@ import { getBrowserObject } from '../../utils/index.js'
  *
  */
 export async function doubleClick (this: WebdriverIO.Element) {
-    /**
-     * move to element
-     */
-    if (!this.isW3C) {
-        await this.moveTo()
-        return this.positionDoubleClick()
-    }
-
     /**
      * W3C way of handle the double click actions
      */

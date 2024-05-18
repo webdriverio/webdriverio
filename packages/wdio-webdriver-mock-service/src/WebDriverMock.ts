@@ -2,14 +2,14 @@ import nock from 'nock'
 import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 
 import {
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 } from '@wdio/protocols'
 
 const REGEXP_SESSION_ID = /\/[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/
 const SESSION_ID = 'XXX'
 const protocols: Protocol[] = [
-    JsonWProtocol, WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 ]
 

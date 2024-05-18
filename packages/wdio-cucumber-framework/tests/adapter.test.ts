@@ -1,5 +1,4 @@
 import path from 'node:path'
-import got from 'got'
 import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
@@ -11,6 +10,11 @@ import { setUserHookNames } from '../src/utils.js'
 import CucumberAdapter, { publishCucumberReport } from '../src/index.js'
 import { DEFAULT_TIMEOUT } from '../src/constants.js'
 
+vi.mock('fs/promises', async (orig) => ({
+    ...(await orig()) as any,
+    readdir: vi.fn().mockResolvedValue(['file1.ndjson', 'file2.ndjson']),
+    readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
+}))
 vi.mock('@wdio/utils')
 vi.mock('@wdio/utils/node')
 vi.mock('expect-webdriverio')
@@ -136,7 +140,7 @@ describe('CucumberAdapter', () => {
     it('can run without errors', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: { format: [] }
-        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        }, ['/foo/bar'], {}, {}, {}, false, 'progress')
         adapter.registerRequiredModules = vi.fn()
         adapter.addWdioHooks = vi.fn()
         adapter.loadFiles = vi.fn()
@@ -218,7 +222,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
         adapter.addWdioHooks(
             {
@@ -326,7 +330,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -354,7 +358,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -382,7 +386,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -410,7 +414,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -438,7 +442,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(0)
@@ -466,7 +470,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -494,7 +498,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -521,7 +525,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter.gherkinParser.tokenMatcher.dialect.name).toBe('Danish')
@@ -539,7 +543,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(2)
@@ -567,7 +571,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             false,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(1)
@@ -594,7 +598,7 @@ describe('CucumberAdapter', () => {
             {},
             {},
             true,
-            ['progress']
+            'progress'
         )
 
         expect(adapter._specs).toHaveLength(0)
@@ -662,38 +666,38 @@ describe('CucumberAdapter', () => {
 
 describe('publishCucumberReport', () => {
     beforeAll(() => {
-        vi.mock('fs/promises', () => ({
-            readdir: vi.fn().mockResolvedValue(['file1.ndjson', 'file2.ndjson']),
-            readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
-        }))
-        vi.mock('got')
+        vi.spyOn(global, 'fetch').mockImplementation((url: string | URL | globalThis.Request) => {
+            if (/\/api\/reports/.test(url as string)) {
+                return Promise.resolve(Response.json({}, {
+                    headers: {
+                        location: 'https://example.com/reports/12345'
+                    }
+                }))
+            }
+            return Promise.resolve(Response.json({}))
+        })
     })
 
     it('should not publish report if CUCUMBER_PUBLISH_REPORT_TOKEN is not set', async () => {
         await publishCucumberReport('/some/directory')
-        expect(got).not.toHaveBeenCalled()
+        expect(fetch).not.toHaveBeenCalled()
     })
 
     it('should publish report successfully', async () => {
         process.env.CUCUMBER_PUBLISH_REPORT_TOKEN = 'some-token'
         process.env.CUCUMBER_PUBLISH_REPORT_URL = 'https://example.com/api/reports'
 
-        // @ts-expect-error mock feature
-        got.customResponseFor(/\/api\/reports/, {
-            headers: {
-                location: 'https://example.com/reports/12345'
-            }
-        })
-
         await publishCucumberReport('./')
 
-        expect(got).toHaveBeenCalledWith('https://example.com/api/reports', {
+        expect(fetch).toHaveBeenCalledWith('https://example.com/api/reports', {
+            method: 'get',
             headers: {
                 Authorization: 'Bearer some-token'
             }
         })
 
-        expect(got.put).toHaveBeenCalledWith('https://example.com/reports/12345', {
+        expect(fetch).toHaveBeenCalledWith('https://example.com/reports/12345', {
+            method: 'put',
             headers: {
                 'Content-Type': 'application/json'
             },

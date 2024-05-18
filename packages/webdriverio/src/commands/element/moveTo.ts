@@ -1,9 +1,9 @@
-import { getBrowserObject } from '../../utils/index.js'
+import logger from '@wdio/logger'
 
-type MoveToOptions = {
-    xOffset?: number,
-    yOffset?: number,
-}
+import { getBrowserObject } from '@wdio/utils'
+import type { MoveToOptions } from '../../types.js'
+
+const log = logger('webdriver')
 
 /**
  *
@@ -13,8 +13,8 @@ type MoveToOptions = {
  * is not visible, it will be scrolled into view.
  *
  * @param {MoveToOptions=} options          moveTo command options
- * @param {Number=}        options.xOffset  X offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.
- * @param {Number=}        options.yOffset  Y offset to move to, relative to the top-left corner of the element. If not specified, the mouse will move to the middle of the element.
+ * @param {Number=}        options.xOffset  X offset to move to, relative to the center of the element. If not specified, the mouse will move to the center of the element.
+ * @param {Number=}        options.yOffset  Y offset to move to, relative to the center of the element. If not specified, the mouse will move to the center of the element.
  *
  * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
  * @type protocol
@@ -23,9 +23,6 @@ export async function moveTo (
     this: WebdriverIO.Element,
     { xOffset, yOffset }: MoveToOptions = {},
 ) {
-    if (!this.isW3C) {
-        return this.moveToElement(this.elementId, xOffset, yOffset)
-    }
     /**
      * W3C way of handle the mouse move actions
      */
@@ -33,10 +30,10 @@ export async function moveTo (
     if (xOffset || yOffset) {
         const { width, height } = await browser.getElementRect(this.elementId)
         if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
-            throw new Error('xOffset would cause a out of bounds error as it goes outside of element')
+            log.warn('xOffset would cause a out of bounds error as it goes outside of element')
         }
         if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
-            throw new Error('yOffset would cause a out of bounds error as it goes outside of element')
+            log.warn('yOffset would cause a out of bounds error as it goes outside of element')
         }
     }
     const moveToNested = async () => {

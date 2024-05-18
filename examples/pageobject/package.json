@@ -1,5 +1,16 @@
 {
+  "name": "example-pageobject",
+  "version": "1.0.0",
+  "description": "An example project on how to use WebdriverIO with Page Objects",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "../../packages/wdio-cli/bin/wdio.js ./wdio.conf.js"
+    "test": "wdio run ./wdio.conf.js"
+  },
+  "dependencies": {
+    "@wdio/cli": "workspace:*",
+    "@wdio/spec-reporter": "workspace:*",
+    "@wdio/local-runner": "workspace:*",
+    "@wdio/mocha-framework": "workspace:*"
   }
 }

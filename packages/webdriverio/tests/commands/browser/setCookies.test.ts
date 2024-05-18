@@ -1,10 +1,9 @@
 import path from 'node:path'
 import { expect, describe, beforeAll, afterEach, it, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
+
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('setCookies', () => {
@@ -21,38 +20,42 @@ describe('setCookies', () => {
 
     it('should output the expected format', async () => {
         await browser.setCookies([{ name: 'cookie1', value: 'dummy-value-1' }])
-        expect(vi.mocked(got).mock.calls).toHaveLength(2!)
-        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls).toHaveLength(2!)
+        expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('POST')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/cookie')
-        expect(vi.mocked(got).mock.calls[1][1]!.json)
-            .toEqual({ 'cookie': { name: 'cookie1', value: 'dummy-value-1' } })
+        expect(vi.mocked(fetch).mock.calls[1][1]!.body)
+            .toEqual(JSON.stringify({ 'cookie': { name: 'cookie1', value: 'dummy-value-1' } }))
     })
 
     it('should support passing an object', async () => {
         await browser.setCookies({ name: 'cookie1', value: 'dummy-value-1' })
-        expect(vi.mocked(got).mock.calls).toHaveLength(1!)
-        expect(vi.mocked(got).mock.calls[0][1]!.method).toBe('POST')
-        expect(vi.mocked(got).mock.calls[0][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls).toHaveLength(1!)
+        expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('POST')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/cookie')
-        expect(vi.mocked(got).mock.calls[0][1]!.json)
-            .toEqual({ 'cookie': { name: 'cookie1', value: 'dummy-value-1' } })
+        expect(vi.mocked(fetch).mock.calls[0][1]!.body)
+            .toEqual(JSON.stringify({ 'cookie': { name: 'cookie1', value: 'dummy-value-1' } }))
     })
 
     it('can be called multiple times', async () => {
         await browser.setCookies({ name: 'cookie1', value: 'dummy-value-1' })
         await browser.setCookies({ name: 'cookie2', value: 'dummy-value-1' })
-        expect(vi.mocked(got).mock.calls).toHaveLength(2!)
-        expect(vi.mocked(got).mock.calls[0][1]!.method).toBe('POST')
-        expect(vi.mocked(got).mock.calls[0][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls).toHaveLength(2!)
+        expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('POST')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/cookie')
-        expect(vi.mocked(got).mock.calls[0][1]!.json)
-            .toEqual({ 'cookie': { name: 'cookie1', value: 'dummy-value-1' } })
-        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[0][1]!.body)
+            .toEqual(JSON.stringify({ 'cookie': { name: 'cookie1', value: 'dummy-value-1' } }))
+        expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('POST')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/cookie')
-        expect(vi.mocked(got).mock.calls[1][1]!.json)
-            .toEqual({ 'cookie': { name: 'cookie2', value: 'dummy-value-1' } })
+        expect(vi.mocked(fetch).mock.calls[1][1]!.body)
+            .toEqual(JSON.stringify({ 'cookie': { name: 'cookie2', value: 'dummy-value-1' } }))
     })
 
     it('should work with multiple objects passed', async () => {
@@ -65,11 +68,12 @@ describe('setCookies', () => {
         await browser.setCookies(cookies)
 
         cookies.forEach((cookie, i) => {
-            expect(vi.mocked(got).mock.calls[i][1]!.method).toBe('POST')
-            expect(vi.mocked(got).mock.calls[i][0]!.pathname)
+            expect(vi.mocked(fetch).mock.calls[i][1]!.method).toBe('POST')
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[i][0]!.pathname)
                 .toBe('/session/foobar-123/cookie')
-            expect(vi.mocked(got).mock.calls[i][1]!.json)
-                .toEqual({ 'cookie': cookie })
+            expect(vi.mocked(fetch).mock.calls[i][1]!.body)
+                .toEqual(JSON.stringify({ 'cookie': cookie }))
         })
     })
 
@@ -81,6 +85,6 @@ describe('setCookies', () => {
     })
 
     afterEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

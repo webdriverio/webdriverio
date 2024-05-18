@@ -26,16 +26,13 @@ export default function isElementClickable (elem: HTMLElement) {
     // applicable if element's text is multiline.
     function getOverlappingRects (elem: HTMLElement, context?: Document) {
         context = context || document
-        const elems = []
 
         const rects = elem.getClientRects()
         // webdriver clicks on center of the first element's rect (line of text), it might change in future
         const rect = rects[0]
         const x = rect.left + (rect.width / 2)
         const y = rect.top + (rect.height / 2)
-        elems.push(context.elementFromPoint(x, y))
-
-        return elems
+        return [context.elementFromPoint(x, y)]
     }
 
     // get overlapping elements
@@ -120,27 +117,35 @@ export default function isElementClickable (elem: HTMLElement) {
         return (vertInView && horInView)
     }
 
-    function isClickable (elem: any) {
-        return (
-            isElementInViewport(elem) && elem.disabled !== true &&
-            isOverlappingElementMatch(getOverlappingElements(elem) as any as HTMLElement[], elem)
-        )
+    function isEnabled(elem: HTMLFormElement) {
+        return elem.disabled !== true
     }
 
-    // scroll to the element if it's not clickable
-    if (!isClickable(elem)) {
-        // works well in dialogs, but the element may be still overlapped by some sticky header/footer
-        elem.scrollIntoView(scrollIntoViewFullSupport ? { block: 'nearest', inline: 'nearest' } : false)
+    function hasOverlaps(elem: HTMLElement) {
+        return !isOverlappingElementMatch(getOverlappingElements(elem) as any as HTMLElement[], elem)
+    }
 
-        // if element is still not clickable take another scroll attempt
-        if (!isClickable(elem)) {
-            // scroll to element, try put it in the screen center.
-            // Should definitely work even if element was covered with sticky header/footer
-            elem.scrollIntoView(scrollIntoViewFullSupport ? { block: 'center', inline: 'center' } : true)
+    function isFullyDisplayedInViewport(elem: HTMLElement) {
+        return isElementInViewport(elem) && !hasOverlaps(elem)
+    }
 
-            return isClickable(elem)
+    // scroll the element to the center of the viewport when
+    // it is not fully displayed in the viewport or is overlapped by another element
+    // to check if it still overlapped/not in the viewport
+    // afterwards we scroll back to the original position
+    let _isFullyDisplayedInViewport = isFullyDisplayedInViewport(elem)
+    if (!_isFullyDisplayedInViewport) {
+        const { x: originalX, y: originalY } = elem.getBoundingClientRect()
+
+        elem.scrollIntoView(scrollIntoViewFullSupport ? { block: 'center', inline: 'center' } : false)
+
+        _isFullyDisplayedInViewport = isFullyDisplayedInViewport(elem)
+
+        const { x, y } = elem.getBoundingClientRect()
+        if (x !== originalX || y !== originalY) {
+            elem.scroll(scrollX, scrollY)
         }
     }
 
-    return true
+    return _isFullyDisplayedInViewport && isEnabled(elem as HTMLFormElement)
 }

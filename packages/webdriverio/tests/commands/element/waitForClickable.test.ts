@@ -2,7 +2,7 @@ import path from 'node:path'
 import { expect, describe, it, vi, beforeEach } from 'vitest'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitForClickable', () => {

@@ -48,7 +48,12 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
          */
         if (typeof commandWrapper === 'function') {
             for (const [commandName, { value }] of Object.entries(propertiesObject)) {
-                if (typeof value !== 'function') {
+                /**
+                 * no need to apply a command wrapper if:
+                 * - there is no wrapper
+                 * - command is an event handler function
+                 */
+                if (typeof value !== 'function' || Object.keys(EVENTHANDLER_FUNCTIONS).includes(commandName)) {
                     continue
                 }
 

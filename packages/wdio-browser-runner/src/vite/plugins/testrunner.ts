@@ -3,16 +3,14 @@ import path from 'node:path'
 import { builtinModules } from 'node:module'
 
 import logger from '@wdio/logger'
-import { matchers } from 'expect-webdriverio'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
 import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
 import {
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
-    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
-    WebDriverBidiProtocol
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
 } from '@wdio/protocols'
 
 import { SESSIONS } from '../../constants.js'
@@ -22,9 +20,8 @@ const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 const commands = deepmerge(
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
-    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
-    WebDriverBidiProtocol
+    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
 )
 const protocolCommandList = Object.values(commands).map(
     (endpoint) => Object.values(endpoint).map(
@@ -42,7 +39,7 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
  * functionality
  */
 const MODULES_TO_MOCK = [
-    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'decamelize', 'got',
+    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'ws', 'decamelize',
     'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port',
     'lodash.isequal', '@wdio/repl'
 ]
@@ -116,7 +113,6 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     import { fn } from '@wdio/browser-runner'
                     export const commands = ${JSON.stringify(protocolCommandList)}
                     export const automationProtocolPath = ${JSON.stringify(automationProtocolPath)}
-                    export const matchers = ${JSON.stringify(Object.keys(matchers))}
                     export const wrappedFn = (...args) => fn()(...args)
                 `
             }

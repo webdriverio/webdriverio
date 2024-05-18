@@ -1,12 +1,10 @@
 import path from 'node:path'
 import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, beforeEach, it, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 vi.mock('../../../src/commands/element/$.js', () => ({
@@ -19,7 +17,7 @@ vi.mock('../../../src/commands/element/$.js', () => ({
  */
 describe('shadow$', () => {
     beforeEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 
     it('should call $ with a function selector', async () => {
@@ -34,9 +32,9 @@ describe('shadow$', () => {
         expect(subElem.elementId).toBe('some-shadow-sub-elem-321')
         expect(subElem[ELEMENT_KEY]).toBe('some-shadow-sub-elem-321')
 
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/shadow')
-        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[3][0]!.pathname)
             .toBe('/session/foobar-123/shadow/some-shadow-elem-123/element')
     })
 
@@ -65,7 +63,7 @@ describe('shadow$', () => {
         })
         const errorResponse = { error: 'ups' }
         const el = await browser.$('#foo')
-        got.setMockResponse([errorResponse, errorResponse, errorResponse, errorResponse])
+        fetch.setMockResponse([errorResponse, errorResponse, errorResponse, errorResponse])
         const mock: any = {
             $: vi.fn().mockReturnValue({ elem: 123 }),
             options: {},
@@ -76,7 +74,7 @@ describe('shadow$', () => {
         const elem = await el.shadow$.call(mock, '#shadowfoo')
         expect(elem).toEqual({ elem: 123 })
 
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')
     })
 })

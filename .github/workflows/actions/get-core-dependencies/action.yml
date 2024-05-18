@@ -1,0 +1,23 @@
+name: 'Get Core Dependencies'
+description: 'sets the node version & initializes core dependencies'
+permissions:
+  contents: read # to fetch code (actions/checkout)
+runs:
+  using: composite
+  steps:
+    - name: 📦 Setup pnpm
+      uses: pnpm/action-setup@v4
+
+    - name: 🐢 Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+        cache: 'pnpm'
+
+    - name: 🏗️ Install Dependencies
+      run: pnpm install
+      shell: bash
+
+    - name: 🔧 Git Config
+      run: git config --global core.autocrlf false
+      shell: bash

@@ -1,11 +1,9 @@
 import path from 'node:path'
 import { expect, describe, it, vi, beforeAll, beforeEach } from 'vitest'
 
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('touchAction element test', () => {
@@ -31,12 +29,13 @@ describe('touchAction element test', () => {
     describe('single touch', () => {
         it('should transform to array', async () => {
             await elem.touchAction('press')
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     { action: 'press', options: { element: 'some-elem-123' } }
                 ]
-            })
+            }))
         })
 
         it('should transform object into array', async () => {
@@ -45,22 +44,24 @@ describe('touchAction element test', () => {
                 x: 1,
                 y: 2
             })
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
-                    { action: 'press', options: { x: 1, y: 2, element: 'some-elem-123' } }
+                    { action: 'press', options: {  element: 'some-elem-123', x: 1, y: 2 } }
                 ]
-            })
+            }))
         })
 
         it('should transform object into array if no x and y options are given', async () => {
             await elem.touchAction({ action: 'press' })
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     { action: 'press', options: { element: 'some-elem-123' } }
                 ]
-            })
+            }))
         })
 
         it('should transform array correctly', async () => {
@@ -69,23 +70,25 @@ describe('touchAction element test', () => {
                 x: 1,
                 y: 2
             }])
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
-                    { action: 'press', options: { x: 1, y: 2, element: 'some-elem-123' } }
+                    { action: 'press', options: { element: 'some-elem-123', x: 1, y: 2 } }
                 ]
-            })
+            }))
         })
 
         it('should handle multiple actions as strings properly', async () => {
             await elem.touchAction(['wait', 'release'])
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     { action: 'wait' },
                     { action: 'release' }
                 ]
-            })
+            }))
         })
 
         it('should transform array correctly with selector', async () => {
@@ -100,8 +103,9 @@ describe('touchAction element test', () => {
                 x: 3,
                 y: 4
             }])
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [{
                     action: 'press',
                     options: {
@@ -122,7 +126,7 @@ describe('touchAction element test', () => {
                         y: 4
                     }
                 }]
-            })
+            }))
         })
 
         it('should not use element as first citizen if action contains element id', async () => {
@@ -130,12 +134,13 @@ describe('touchAction element test', () => {
                 action: 'press',
                 element: subElem
             })
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     { action: 'press', options: { element: 'some-sub-elem-321' } }
                 ]
-            })
+            }))
         })
 
         it('should replace multiple selector elements to web json element', async () => {
@@ -148,14 +153,14 @@ describe('touchAction element test', () => {
                 action: 'moveTo',
                 element: subSubElem
             }])
-
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     { action: 'press', options: { element: 'some-sub-elem-321', x: 1, y: 2 } },
                     { action: 'moveTo', options: { element: 'some-sub-sub-elem-231' } }
                 ]
-            })
+            }))
         })
 
         it('should throw an error if "release" has invalid params', () => {
@@ -181,13 +186,13 @@ describe('touchAction element test', () => {
                 foobar: true,
                 y: 2
             })
-
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
-                    { action: 'press', options: { x: 1, y: 2, element: 'some-elem-123' } }
+                    { action: 'press', options: { element: 'some-elem-123', x: 1, y: 2 } }
                 ]
-            })
+            }))
         })
 
         it('should not ignore 0 (zero) x or y options', async () => {
@@ -196,26 +201,27 @@ describe('touchAction element test', () => {
                 x: 0,
                 y: 0
             })
-
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
-                    { action: 'moveTo', options: { x: 0, y: 0, element: 'some-elem-123' } }
+                    { action: 'moveTo', options: { element: 'some-elem-123', x: 0, y: 0 } }
                 ]
-            })
+            }))
         })
     })
 
     describe('multi touch', () => {
         it('should transform to array using element as first citizen', async () => {
             await elem.touchAction([['press'], ['release']])
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/multi/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/multi/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     [{ action: 'press', options: { element: 'some-elem-123' } }],
                     [{ action: 'release' }]
                 ]
-            })
+            }))
         })
 
         it('should transform object into array', async () => {
@@ -228,12 +234,12 @@ describe('touchAction element test', () => {
                 x: 112,
                 y: 245
             }]])
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     [{ action: 'press', options: { element: 'some-elem-123', x: 1, y: 2 } }],
                     [{ action: 'tap', options: { element: 'some-elem-123', x: 112, y: 245 } }]
                 ]
-            })
+            }))
         })
 
         it('should transform object into array using element as first citizen', async () => {
@@ -245,12 +251,12 @@ describe('touchAction element test', () => {
                     y: 4
                 }]
             ])
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     [{ action: 'press', options: { element: 'some-elem-123' } }],
                     [{ action: 'tap', options: { element: 'some-elem-123', x: 3, y: 4 } }]
                 ]
-            })
+            }))
         })
 
         it('should transform array correctly', async () => {
@@ -270,7 +276,7 @@ describe('touchAction element test', () => {
                     y: 6
                 }]
             ])
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     [{ action: 'press', options: { element: 'some-elem-123', x: 1, y: 2 } }],
                     [
@@ -278,11 +284,11 @@ describe('touchAction element test', () => {
                         { action: 'tap', options: { element: 'some-elem-123', x: 5, y: 6 } }
                     ]
                 ]
-            })
+            }))
         })
     })
 
     beforeEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

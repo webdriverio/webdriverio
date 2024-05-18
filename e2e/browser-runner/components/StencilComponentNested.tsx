@@ -1,4 +1,4 @@
-import { Component as foo, Prop } from '@stencil/core'
+import { Component as foo, Prop, Host } from '@stencil/core'
 
 @foo({
     tag: 'nested-component',
@@ -9,9 +9,12 @@ export class NestedComponent {
 
     render() {
         return (
-            <i>
-                I am a {this.id || 'unknown'}!
-            </i>
+            <Host>
+                <i>
+                    I am a {this.id || 'unknown'}!
+                </i>
+                <a href="#">I am a link</a>
+            </Host>
         )
     }
 }

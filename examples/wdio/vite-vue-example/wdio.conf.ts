@@ -11,18 +11,6 @@ export const config: Options.Testrunner = {
     // Runner Configuration
     // ====================
     //
-    //
-    // =====================
-    // ts-node Configurations
-    // =====================
-    //
-    // You can write tests using TypeScript to get autocompletion and type safety.
-    // You will need typescript and ts-node installed as devDependencies.
-    // WebdriverIO will automatically detect if these dependencies are installed
-    // and will compile your config and tests for you.
-    // If you need to configure how ts-node runs please use the
-    // environment variables for ts-node or use wdio config's autoCompileOpts section.
-    //
     // ==================
     // Specify Test Files
     // ==================

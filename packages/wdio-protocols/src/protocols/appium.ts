@@ -1744,4 +1744,535 @@ export default {
             },
         },
     },
+    '/session/:sessionId/timeouts/implicit_wait': {
+        POST: {
+            command: 'implicitWait',
+            description:
+                'Set the amount of time the driver should wait when searching for elements. When searching for a single element, the driver should poll the page until an element is found or the timeout expires, whichever occurs first. When searching for multiple elements, the driver should poll the page until at least one element is found or the timeout expires, at which point it should return an empty list. If this command is never sent, the driver should default to an implicit wait of 0ms.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'ms',
+                    type: 'number',
+                    description:
+                        'The amount of time, in milliseconds, to wait on an element.',
+                    required: true,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/element/:elementId/location_in_view': {
+        GET: {
+            command: 'getLocationInView',
+            description:
+                "Determine an element's location on the screen once it has been scrolled into view.<br /><br />__Note:__ This is considered an internal command and should only be used to determine an element's location for correctly generating native events.",
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            variables: [
+                {
+                    name: 'elementId',
+                    description: 'ID of the element to route the command to',
+                },
+            ],
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'location',
+                description:
+                    'The X and Y coordinates for the element on the page.',
+            },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/keys': {
+        POST: {
+            command: 'sendKeys',
+            description: 'Send a sequence of key strokes to the active element',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'value',
+                    type: 'string[]',
+                    description:
+                        'The sequence of keys to type. An array must be provided.',
+                    required: true,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/ime/available_engines': {
+        GET: {
+            command: 'availableIMEEngines',
+            description: 'List all available engines on the machine. To use an engine, it has to be present in this list.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [],
+            returns: {
+                type: 'String[]',
+                name: 'engines',
+                description: 'A list of available engines',
+            },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/ime/active_engine': {
+        GET: {
+            command: 'getActiveIMEEngine',
+            description: 'Get the name of the active IME engine. The name string is platform specific.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [],
+            returns: {
+                type: 'String',
+                name: 'engine',
+                description: 'The name of the active IME engine',
+            },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/ime/activated': {
+        GET: {
+            command: 'isIMEActivated',
+            description: 'Indicates whether IME input is active at the moment',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [],
+            returns: {
+                type: 'Boolean',
+                name: 'isActive',
+                description:
+                    'true if IME input is available and currently active, false otherwise',
+            },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/ime/deactivate': {
+        POST: {
+            command: 'deactivateIMEEngine',
+            description: 'De-activates the currently-active IME engine.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/ime/activate': {
+        POST: {
+            command: 'activateIMEEngine',
+            description: 'Make an engines that is available',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'engine',
+                    type: 'string',
+                    description: 'name of the engine to activate',
+                    required: true,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/timeouts/async_script': {
+        POST: {
+            command: 'asyncScriptTimeout',
+            description:
+                'Set the amount of time, in milliseconds, that asynchronous scripts executed by `/session/:sessionId/execute_async` are permitted to run before they are aborted and a `Timeout` error is returned to the client.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'ms',
+                    type: 'number',
+                    description:
+                        'The amount of time, in milliseconds, that time-limited commands are permitted to run',
+                    required: true,
+                },
+            ],
+            support: {
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/element/:elementId/submit': {
+        POST: {
+            command: 'submit',
+            description: 'Submit a form element.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            variables: [
+                {
+                    name: 'elementId',
+                    description: 'ID of the form element to be submitted',
+                },
+            ],
+            parameters: [],
+            support: {
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/element/:elementId/size': {
+        GET: {
+            command: 'getElementSize',
+            description:
+                "Determine an element's size in pixels. The size will be returned as a JSON object with `width` and `height` properties.",
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            variables: [
+                {
+                    name: 'elementId',
+                    description: 'ID of the element to route the command to',
+                },
+            ],
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'size',
+                description: 'The width and height of the element, in pixels.',
+            },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/element/:elementId/location': {
+        GET: {
+            command: 'getElementLocation',
+            description:
+                "Determine an element's location on the page. The point `(0, 0)` refers to the upper-left corner of the page. The element's coordinates are returned as a JSON object with `x` and `y` properties.",
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            variables: [
+                {
+                    name: 'elementId',
+                    description: 'ID of the element to route the command to',
+                },
+            ],
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'location',
+                description:
+                    'The X and Y coordinates for the element on the page.',
+            },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/touch/click': {
+        POST: {
+            command: 'touchClick',
+            description: 'Single tap on the touch enabled device.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'element',
+                    type: 'string',
+                    description: 'ID of the element to single tap on.',
+                    required: true,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/touch/down': {
+        POST: {
+            command: 'touchDown',
+            description: 'Finger down on the screen.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'x',
+                    type: 'number',
+                    description: 'x coordinate on the screen',
+                    required: true,
+                },
+                {
+                    name: 'y',
+                    type: 'number',
+                    description: 'y coordinate on the screen',
+                    required: true,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/touch/up': {
+        POST: {
+            command: 'touchUp',
+            description: 'Finger up on the screen.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'x',
+                    type: 'number',
+                    description: 'x coordinate on the screen',
+                    required: true,
+                },
+                {
+                    name: 'y',
+                    type: 'number',
+                    description: 'y coordinate on the screen',
+                    required: true,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/touch/move': {
+        POST: {
+            command: 'touchMove',
+            description: 'Finger move on the screen.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'x',
+                    type: 'number',
+                    description: 'x coordinate on the screen',
+                    required: true,
+                },
+                {
+                    name: 'y',
+                    type: 'number',
+                    description: 'y coordinate on the screen',
+                    required: true,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/touch/longclick': {
+        POST: {
+            command: 'touchLongClick',
+            description:
+                'Long press on the touch screen using finger motion events.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'element',
+                    type: 'string',
+                    description: 'ID of the element to long press on',
+                    required: true,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/touch/flick': {
+        POST: {
+            command: 'touchFlick',
+            description:
+                'Flick on the touch screen using finger motion events. This flick command starts at a particular screen location.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'xoffset',
+                    type: 'number',
+                    description: 'the x offset in pixels to flick by',
+                    required: false,
+                },
+                {
+                    name: 'yoffset',
+                    type: 'number',
+                    description: 'the y offset in pixels to flick by',
+                    required: false,
+                },
+                {
+                    name: 'element',
+                    type: 'string',
+                    description: 'ID of the element where the flick starts',
+                    required: false,
+                },
+                {
+                    name: 'speed',
+                    type: 'number',
+                    description: 'the speed in pixels per seconds',
+                    required: false,
+                },
+                {
+                    name: 'xspeed',
+                    type: 'number',
+                    description: 'the x speed in pixels per second',
+                    required: false,
+                },
+                {
+                    name: 'yspeed',
+                    type: 'number',
+                    description: 'the y speed in pixels per second',
+                    required: false,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                }
+            },
+        },
+    },
+    '/session/:sessionId/orientation': {
+        GET: {
+            command: 'getOrientation',
+            description: 'Get the current device orientation.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [],
+            returns: {
+                type: 'String',
+                name: 'orientation',
+                description:
+                    'The current orientation corresponding to a value defined in ScreenOrientation: `LANDSCAPE|PORTRAIT`.',
+            },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+        POST: {
+            command: 'setOrientation',
+            description: 'Set the device orientation',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'orientation',
+                    type: 'string',
+                    description:
+                        'the new browser orientation as defined in ScreenOrientation: `LANDSCAPE|PORTRAIT`',
+                    required: true,
+                },
+            ],
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/log': {
+        POST: {
+            command: 'getLogs',
+            description:
+                'Get the log for a given log type. Log buffer is reset after each request.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'type',
+                    type: 'string',
+                    description: 'the log type',
+                    required: true,
+                },
+            ],
+            returns: {
+                type: 'Object[]',
+                name: 'logs',
+                description: 'The list of log entries.',
+            },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/log/types': {
+        GET: {
+            command: 'getLogTypes',
+            description: 'Get available log types.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [],
+            returns: {
+                type: 'String[]',
+                name: 'logTypes',
+                description: 'The list of available log types.',
+            },
+            support: {
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                ios: {
+                    XCUITest: '9.3+',
+                },
+            },
+        },
+    },
 }

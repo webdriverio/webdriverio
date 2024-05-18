@@ -1,17 +1,16 @@
 import url from 'node:url'
 import path from 'node:path'
+import { access } from 'node:fs/promises'
 
 import { resolve } from 'import-meta-resolve'
 
 import logger from '@wdio/logger'
-import type { Options } from '@wdio/types'
 
 import { objectToEnv } from '../utils.js'
-import type { ModuleImportService } from '../types.js'
 
 const log = logger('@wdio/config:utils')
 
-export async function loadTypeScriptCompiler (autoCompileConfig: Options.AutoCompileConfig) {
+export async function loadTypeScriptCompiler (tsConfigPath?: string) {
     /**
      * don't auto compile within worker as it already was spawn with a loader
      */
@@ -23,15 +22,16 @@ export async function loadTypeScriptCompiler (autoCompileConfig: Options.AutoCom
         /**
          * only for testing purposes
          */
-        if (process.env.VITEST_WORKER_ID && process.env.THROW_TSNODE_RESOLVE) {
+        if (process.env.VITEST_WORKER_ID && process.env.THROW_TSX_RESOLVE) {
             throw new Error('test fail')
         }
-        await resolve('ts-node', import.meta.url)
-        process.env.WDIO_LOAD_TS_NODE = '1'
-        objectToEnv(autoCompileConfig.tsNodeOpts)
+        const loaderPath = await resolve('tsx', import.meta.url)
+        await access(new URL(loaderPath))
+        process.env.WDIO_LOAD_TSX = '1'
+        objectToEnv({ tsConfigPath })
         return true
     } catch (err: any) {
-        log.debug(`Failed loading TS Node: ${err.message}`)
+        log.debug(`Failed loading TSX: ${err.message}`)
         return false
     }
 }
@@ -56,33 +56,3 @@ export function makeRelativeToCWD (files: (string | string[])[] = []): (string |
     return returnFiles
 }
 
-export async function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleImportService) {
-    if (!autoCompileConfig.autoCompile) {
-        return
-    }
-
-    return (
-        await loadTypeScriptCompiler(autoCompileConfig) ||
-        await loadBabelCompiler(
-            autoCompileConfig.babelOpts,
-            requireService
-        )
-    )
-}
-
-export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleImportService) {
-    try {
-        /**
-         * only for testing purposes
-         */
-        if (process.env.VITEST_WORKER_ID && process.env.THROW_BABEL_REGISTER) {
-            throw new Error('test fail')
-        }
-
-        (await requireService.import('@babel/register') as any)(babelOpts)
-        log.debug('Found \'@babel/register\' package, auto-compiling files with Babel')
-        return true
-    } catch (err: any) {
-        return false
-    }
-}

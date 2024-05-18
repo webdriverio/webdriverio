@@ -1,12 +1,11 @@
 import path from 'node:path'
 import { describe, it, beforeAll, expect, vi } from 'vitest'
-// @ts-expect-error
-import got from 'got'
+
 import { remote } from '../../src/index.js'
 import refetchElement from '../../src/utils/refetchElement.js'
 import { waitForExist } from '../../src/commands/element/waitForExist.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../src/commands/element/waitForExist', () => ({
     __esModule: true,
@@ -61,8 +60,8 @@ describe('refetchElement', () => {
 
     it('should successfully refetch an element that isn\'t immediately present', async () => {
         const elem = await browser.$('#foo')
-        // @ts-ignore mock feature
-        got.retryCnt = 0
+        // @ts-ignore
+        vi.mocked(fetch).retryCnt = 0
         const notFound = await browser.$('#slowRerender')
         const refetchedElement = await refetchElement(notFound, 'click')
         expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)

@@ -1,11 +1,9 @@
 import path from 'node:path'
 import { expect, describe, it, vi, beforeAll, afterEach } from 'vitest'
 
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitUntil', () => {
@@ -27,6 +25,6 @@ describe('waitUntil', () => {
     })
 
     afterEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

@@ -115,3 +115,21 @@ body .react-toggle-thumb {
     top: 4px;
     left: 3px;
 }
+
+
+@media (max-width: 1150px) {
+    .navbar__item {
+        font-size: .8em;
+    }
+
+    .header-github-link:before,
+    .header-twitter-link:before,
+    .header-youtube-link:before {
+        width: 15px;
+        height: 15px;
+    }
+
+    .header-discord-link:before {
+        transform: scale(0.65) translateY(3px);
+    }
+}

@@ -1,5 +1,3 @@
-import got from 'got'
-import type { OptionsOfJSONResponseBody } from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import PerformanceTester from './performance-tester.js'
 
@@ -11,15 +9,18 @@ import {
     isBrowserstackSession,
     patchConsoleLogs
 } from './util.js'
-import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types.js'
+import type { BrowserstackConfig, MultiRemoteAction } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
-import { DEFAULT_OPTIONS } from './constants.js'
+import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
 import PercyHandler from './Percy/Percy-Handler.js'
+import Listener from './testOps/listener.js'
+import { saveWorkerData } from './data-store.js'
+import UsageStats from './testOps/usageStats.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -56,7 +57,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 PerformanceTester.startMonitoring('performance-report-service.csv')
             }
         }
@@ -144,6 +145,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     await this._insightsHandler.before()
                 }
 
+                if (isBrowserstackSession(this._browser)) {
+                    try {
+                        this._accessibilityHandler = new AccessibilityHandler(
+                            this._browser,
+                            this._caps,
+                            this._isAppAutomate(),
+                            this._config.framework,
+                            this._accessibility,
+                            this._options.accessibilityOptions
+                        )
+                        await this._accessibilityHandler.before(sessionId)
+                    } catch (err) {
+                        BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
+                    }
+                }
+
                 /**
                  * register command event
                  */
@@ -180,22 +197,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 if (this._observability) {
                     CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
                 }
-            }
-        }
-
-        if (this._browser && isBrowserstackSession(this._browser)) {
-            try {
-                this._accessibilityHandler = new AccessibilityHandler(
-                    this._browser,
-                    this._caps,
-                    this._isAppAutomate(),
-                    this._config.framework,
-                    this._accessibility,
-                    this._options.accessibilityOptions
-                )
-                await this._accessibilityHandler.before()
-            } catch (err) {
-                BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
             }
         }
 
@@ -279,12 +280,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
             })
         }
 
-        await this._insightsHandler?.uploadPending()
-        await this._insightsHandler?.teardown()
-
+        await Listener.getInstance().onWorkerEnd()
         await this._percyHandler?.teardown()
+        this.saveWorkerData()
 
-        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+        if (process.env[PERF_MEASUREMENT_ENV]) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
                 'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
@@ -426,17 +426,24 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
         const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
         BStackLogger.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
+
+        const encodedAuth = Buffer.from(`${this._config.user}:${this._config.key}`, 'utf8').toString('base64')
+        const headers: any = {
+            'Content-Type': 'application/json; charset=utf-8',
+            Authorization: `Basic ${encodedAuth}`,
+        }
+
         if (this._turboScale) {
-            return got.patch(sessionUrl, {
-                json: requestBody,
-                username: this._config.user,
-                password: this._config.key
+            return fetch(sessionUrl, {
+                method: 'PATCH',
+                body: JSON.stringify(requestBody),
+                headers
             })
         }
-        return got.put(sessionUrl, {
-            json: requestBody,
-            username: this._config.user,
-            password: this._config.key
+        return fetch(sessionUrl, {
+            method: 'PUT',
+            body: JSON.stringify(requestBody),
+            headers
         })
     }
 
@@ -449,18 +456,27 @@ export default class BrowserstackService implements Services.ServiceInstance {
             BStackLogger.debug(`Requesting Browserstack session URL at ${sessionUrl}`)
 
             let browserUrl
-            const reqOpts: OptionsOfJSONResponseBody = {
-                username: this._config.user,
-                password: this._config.key,
-                responseType: 'json'
+
+            const encodedAuth = Buffer.from(`${this._config.user}:${this._config.key}`, 'utf8').toString('base64')
+            const headers: any = {
+                'Content-Type': 'application/json; charset=utf-8',
+                Authorization: `Basic ${encodedAuth}`,
             }
 
             if (this._turboScale) {
-                const response = await got<TurboScaleSessionResponse>(sessionUrl, reqOpts)
-                browserUrl = response.body.url
+                const response = await fetch(sessionUrl, {
+                    method: 'GET',
+                    headers
+                })
+                const res = response.clone()
+                browserUrl = (await res.json()).url
             } else {
-                const response = await got<SessionResponse>(sessionUrl, reqOpts)
-                browserUrl = response.body.automation_session.browser_url
+                const response = await fetch(sessionUrl, {
+                    method: 'GET',
+                    headers
+                })
+                const res = response.clone()
+                browserUrl = (await res.json()).automation_session.browser_url
             }
 
             if (!this._browser) {
@@ -525,5 +541,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         return (await this._browser.execute<T, []>(script))
+    }
+
+    private saveWorkerData() {
+        saveWorkerData({
+            usageStats: UsageStats.getInstance().getDataToSave()
+        })
     }
 }

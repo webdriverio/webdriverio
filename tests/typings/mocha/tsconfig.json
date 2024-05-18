@@ -2,12 +2,13 @@
   "compilerOptions": {
     "outDir": "dist",
     "noImplicitAny": true,
-    "lib": ["es2018", "dom"],
-    "esModuleInterop": true,
+    "lib": ["es2020"],
+    "module": "NodeNext",
+    "moduleResolution": "Node16",
+    "target": "ES2020",
     "types": [
       "@wdio/globals/types",
       "@wdio/mocha-framework"
-    ],
-    "typeRoots": ["./node_modules"]
+    ]
   }
 }

@@ -1,11 +1,9 @@
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, SevereServiceError } from 'webdriverio'
+import { remote, multiremote, SevereServiceError, Key } from 'webdriverio'
+import type { ClickOptions, TouchAction, Selector, Action } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
-import type { MockOverwriteFunction } from '../../../packages/webdriverio/src/utils/interception/types.ts'
-import type { ClickOptions, TouchAction, Selector, Action } from '../../../packages/webdriverio/build/types'
-import { Key } from 'webdriverio'
 
 declare global {
     namespace WebdriverIO {
@@ -347,7 +345,6 @@ async function bar() {
     expectType<boolean>(browser.isMobile)
     expectType<boolean>(browser.isAndroid)
     expectType<boolean>(browser.isIOS)
-    expectType<boolean>(browser.isDevTools)
     expectType<boolean>(browser.isMobile)
 
     // shadow$ shadow$$
@@ -420,25 +417,16 @@ async function bar() {
         method: 'get',
         headers: { foo: 'bar' }
     })
-    mock.abort('Aborted')
-    mock.abortOnce('AccessDenied')
+    mock.abort(true)
+    mock.abortOnce()
     mock.clear()
     mock.respond('/other/resource.jpg')
     mock.respond('/other/resource.jpg', {
         statusCode: 100,
         headers: { foo: 'bar' }
     })
-    const res: MockOverwriteFunction = async function (req, client) {
-        const url:string = req.url
-        await client.send('Console.clearMessages')
-        return url
-    }
-    mock.respond(res)
-    mock.respond(async (req, client) => {
-        const url:string = req.url
-        await client.send('Console.clearMessages')
-        return true
-    })
+    mock.respond(Buffer.from('foobar'))
+    mock.respond({ foo: 'bar' })
     mock.respondOnce('/other/resource.jpg')
     mock.respondOnce('/other/resource.jpg', {
         statusCode: 100,
@@ -446,8 +434,8 @@ async function bar() {
     })
     mock.restore()
     const match = mock.calls[0]
-    match.body
-    match.headers
+    match.isBlocked
+    match.response.content
 
     // async chain API
     expectType<WebdriverIO.Element>(

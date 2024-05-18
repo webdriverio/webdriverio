@@ -6,5 +6,8 @@
     "globals": {
         "browser": true,
         "expect": true
+    },
+    "rules": {
+        "no-undef": "off"
     }
 }

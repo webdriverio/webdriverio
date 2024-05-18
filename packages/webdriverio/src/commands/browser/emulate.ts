@@ -15,6 +15,12 @@ interface EmulationOptions {
  *
  * :::info
  *
+ * It is not possible to change the emulated value without reloading the page.
+ *
+ * :::
+ *
+ * :::info
+ *
  * This feature requires WebDriver Bidi support for the browser. While recent versions of Chrome, Edge
  * and Firefox have such support, Safari __does not__. For updates follow [wpt.fyi](https://wpt.fyi/results/webdriver/tests/bidi/script/add_preload_script/add_preload_script.py?label=experimental&label=master&aligned).
  * Furthermore if you use a cloud vendor for spawning browsers, make sure your vendor also supports WebDriver Bidi.

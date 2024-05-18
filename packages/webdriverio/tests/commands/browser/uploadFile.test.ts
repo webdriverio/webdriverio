@@ -10,9 +10,8 @@ vi.mock('node:fs', () => ({
         existsSync: vi.fn()
     }
 }))
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('archiver')
-vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('uploadFile', () => {

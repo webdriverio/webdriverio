@@ -1,23 +1,20 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import type { SpyInstance } from 'vitest'
+import type { MockInstance } from 'vitest'
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
-
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 
 vi.mocked(fs.access).mockResolvedValue()
 
 import { remote } from '../../../src/index.js'
 import * as utils from '../../../src/utils/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('fs/promises')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveScreenshot', () => {
-    let getAbsoluteFilepathSpy: SpyInstance
-    let assertDirectoryExistsSpy: SpyInstance
+    let getAbsoluteFilepathSpy: MockInstance
+    let assertDirectoryExistsSpy: MockInstance
     const writeFileSyncSpy = vi.spyOn(fs, 'writeFile')
 
     beforeEach(() => {
@@ -52,8 +49,9 @@ describe('saveScreenshot', () => {
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
 
         // request
-        expect(vi.mocked(got).mock.calls[2][1]!.method).toBe('GET')
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[2][1]!.method).toBe('GET')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/screenshot')
         expect(screenshot.toString()).toBe('some element screenshot')
 

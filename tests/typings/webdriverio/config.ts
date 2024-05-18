@@ -70,13 +70,6 @@ const config: WebdriverIO.Config = {
                 type: 'foo'
             }
         }],
-        // @ts-expect-error test wrong parameter
-        ['crossbrowsertesting', {
-            cbtTunnel: 'true',
-            cbtTunnelOpts: {
-                foo: 'bar'
-            }
-        }],
         ['firefox-profile', {
             extensions: [],
             profileDirectory: '/foo/bar',
@@ -164,10 +157,6 @@ const config: WebdriverIO.Config = {
                 deviceName: 'Apple iPhone XR',
                 orientation: 'portrait' as Capabilities.MoonMobileDeviceOrientation
             }
-        }
-    }, {
-        'wdio:devtoolsOptions': {
-            ignoreDefaultArgs: false
         }
     }, {
         'wdio:customCaps': {

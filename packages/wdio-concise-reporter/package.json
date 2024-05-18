@@ -1,12 +1,12 @@
 {
   "name": "@wdio/concise-reporter",
-  "version": "8.29.1",
+  "version": "9.0.0-alpha.0",
   "description": "A concise reporter for WebdriverIO",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-concise-reporter",
   "license": "MIT",
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
@@ -29,10 +29,10 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/reporter": "8.29.1",
-    "@wdio/types": "8.29.1",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
     "chalk": "^5.0.1",
-    "pretty-ms": "^7.0.1"
+    "pretty-ms": "^9.0.0"
   },
   "publishConfig": {
     "access": "public"

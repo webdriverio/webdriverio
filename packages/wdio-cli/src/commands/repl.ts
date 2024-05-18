@@ -9,7 +9,7 @@ import type { ReplCommandArguments } from '../types.js'
 
 const IGNORED_ARGS = [
     'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',
-    'mochaOpts', 'jasmineOpts', 'cucumberOpts', 'autoCompileOpts'
+    'mochaOpts', 'jasmineOpts', 'cucumberOpts'
 ]
 
 export const command = 'repl <option> [capabilities]'
@@ -43,7 +43,7 @@ export const builder = (yargs: Argv) => {
         .example('$0 repl "./path/to/wdio.config.js" 0 -p 9515', 'Run repl using the first capability from the capabilty array in wdio.config.js')
         .example('$0 repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515', 'Run repl using a named multiremote capabilities in wdio.config.js')
         .epilogue(CLI_EPILOGUE)
-        .help()
+        .help() as unknown
 }
 
 export const handler = async (argv: ReplCommandArguments) => {

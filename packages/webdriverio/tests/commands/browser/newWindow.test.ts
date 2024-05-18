@@ -3,13 +3,12 @@
  */
 import path from 'node:path'
 import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
+
 import { remote } from '../../../src/index.js'
 
 import type { Capabilities } from '@wdio/types'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('newWindow', () => {
@@ -18,7 +17,7 @@ describe('newWindow', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(fetch).mockClear()
         vi.mocked(global.window.open).mockRestore()
     })
 
@@ -30,7 +29,8 @@ describe('newWindow', () => {
             }
         })
 
-        got.setMockResponse([
+        // @ts-ignore mock feature
+        vi.mocked(fetch).setMockResponse([
             [],
             null,
             [],
@@ -45,10 +45,11 @@ describe('newWindow', () => {
             windowFeatures: 'some params'
         })
         expect(newHandle).toBe('new-window-handle')
-        expect(got.mock.calls).toHaveLength(8)
-        expect(got.mock.calls[2][1].json.args)
+        expect(vi.mocked(fetch).mock.calls).toHaveLength(8)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).args)
             .toEqual(['https://webdriver.io', 'some name', 'some params'])
-        expect(got.mock.calls[3][0].pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname)
             .toContain('/window/handles')
     })
 
@@ -60,7 +61,8 @@ describe('newWindow', () => {
             }
         })
 
-        got.setMockResponse([
+        // @ts-ignore mock feature
+        vi.mocked(fetch).setMockResponse([
             [],
             null,
             [],
@@ -69,8 +71,8 @@ describe('newWindow', () => {
         ])
 
         await browser.newWindow('https://webdriver.io')
-        expect(got.mock.calls).toHaveLength(6)
-        expect(got.mock.calls[2][1].json.args)
+        expect(vi.mocked(fetch).mock.calls).toHaveLength(6)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).args)
             .toEqual(['https://webdriver.io', '', ''])
     })
 

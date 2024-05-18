@@ -27,7 +27,6 @@ const PKG_TO_COMPILE_FIRST = [
     'wdio-utils',
     'wdio-config',
     'wdio-repl',
-    'devtools',
     'webdriver',
     'webdriverio'
 ]
@@ -54,7 +53,7 @@ const ESM_CJS_PACKAGES = [
 
 const CJS_PACKAGES = ['wdio-smoke-test-cjs-service']
 
-const ESM_PACKAGES_WITH_CJS_FOLDER = ['devtools', 'wdio-cli', 'webdriver', 'webdriverio']
+const ESM_PACKAGES_WITH_CJS_FOLDER = ['wdio-cli', 'webdriver', 'webdriverio']
 
 const packages = getSubPackages()
     /**

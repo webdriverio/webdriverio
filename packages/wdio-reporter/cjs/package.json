@@ -1,3 +1,5 @@
 {
-  "type": "commonjs"
+  "name": "@wdio/reporter-cjs",
+  "type": "commonjs",
+  "private": true
 }

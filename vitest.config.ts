@@ -16,17 +16,13 @@ export default defineConfig({
             WDIO_SKIP_DRIVER_SETUP: '1'
         },
         coverage: {
-            enabled: true,
+            enabled: false,
             provider: 'v8',
             exclude: [
                 '**/__mocks__/**',
                 '**/build/**',
                 '**/cjs/*.ts',
                 '**/*.test.ts',
-                // we are using e2e tests for ensuring the functionality works
-                // check out the ./e2e folder
-                'packages/devtools/src/commands',
-                'packages/devtools/src/scripts',
                 'packages/webdriver/src/bidi/handler.ts'
             ],
             watermarks: {
@@ -35,6 +31,9 @@ export default defineConfig({
                 branches: [85, 90],
                 lines: [85, 90]
             }
-        }
+        },
+        setupFiles: [
+            '__mocks__/fetch.ts'
+        ]
     }
 })

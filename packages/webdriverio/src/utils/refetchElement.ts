@@ -14,7 +14,9 @@ export default async function refetchElement (
         index: number
     }[] = []
 
-    //Crawl back to the browser object, and cache all selectors
+    /**
+     * Crawl back to the browser object, and cache all selectors
+     */
     while (currentElement.elementId && currentElement.parent) {
         selectors.push({ selector: currentElement.selector, index: currentElement.index || 0 })
         currentElement = currentElement.parent as WebdriverIO.Element
@@ -23,7 +25,9 @@ export default async function refetchElement (
 
     const length = selectors.length
 
-    // Beginning with the browser object, rechain
+    /**
+     * Beginning with the browser object, re-chain
+     */
     return selectors.reduce(async (elementPromise, { selector, index }, currentIndex) => {
         const resolvedElement = await elementPromise
         let nextElement = index > 0 ? (await resolvedElement.$$(selector as string))[index] : null

@@ -1,19 +1,20 @@
 import path from 'node:path'
 
 import logger from '@wdio/logger'
-import { deepmerge } from 'deepmerge-ts'
-import type { Capabilities, Options, Services } from '@wdio/types'
+import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
+import type { Capabilities, Options, Reporters, Services } from '@wdio/types'
 
-import RequireLibrary from './RequireLibrary.js'
 import FileSystemPathService from './FileSystemPathService.js'
-import { makeRelativeToCWD, loadAutoCompilers } from './utils.js'
+import { makeRelativeToCWD, loadTypeScriptCompiler } from './utils.js'
 import { removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
-import type { PathService, ModuleImportService } from '../types.js'
+import type { PathService } from '../types.js'
 
 const log = logger('@wdio/config:ConfigParser')
+const MERGE_DUPLICATION = ['services', 'reporters'] as const
 
+type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]
 type Spec = string | string[]
 type ESMImport = { config?: TestrunnerOptionsWithParameters }
 type DefaultImport = { default?: { config?: TestrunnerOptionsWithParameters } }
@@ -24,14 +25,17 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
     coverage?: boolean
     spec?: string[]
     suite?: string[]
-    multiRun?: number
+    repeat?: number
     capabilities?: Capabilities.RemoteCapabilities
     rootDir: string
+    tsConfigPath?: string
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
     specs?: Spec[]
+    'wdio:specs'?: Spec[]
     exclude?: string[]
+    'wdio:exclude'?: string[]
 }
 
 export default class ConfigParser {
@@ -47,8 +51,7 @@ export default class ConfigParser {
          * trying to compile config file
          */
         private _initialConfig: Partial<TestrunnerOptionsWithParameters> = {},
-        private _pathService: PathService = new FileSystemPathService(),
-        private _moduleRequireService: ModuleImportService = new RequireLibrary()
+        private _pathService: PathService = new FileSystemPathService()
     ) {
         this.#configFilePath = configFilePath
         this._config = Object.assign(
@@ -63,19 +66,20 @@ export default class ConfigParser {
         if (_initialConfig.spec) {
             _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
         }
+
         this.merge(_initialConfig, false)
     }
 
     /**
      * initializes the config object
      */
-    async initialize (object: MergeConfig = {}) {
+    async initialize(object: MergeConfig = {}) {
         /**
          * only run auto compile functionality once but allow the config parse to be initialized
          * multiple times, e.g. when used with the packages/wdio-cli/src/watcher.ts
          */
         if (!this.#isInitialised) {
-            await loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService)
+            await loadTypeScriptCompiler(this._config.tsConfigPath)
             await this.addConfigFile(this.#configFilePath)
         }
 
@@ -166,15 +170,33 @@ export default class ConfigParser {
     private merge(object: MergeConfig = {}, addPathToSpecs = true) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
-        this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
 
         /**
-         * overwrite config specs that got piped into the wdio command
+         * Add deepmergeCustom to remove array('services', 'reporters', 'capabilities') duplication in the config object
          */
-        if (object.specs && object.specs.length > 0) {
+        const customDeepMerge = deepmergeCustom({
+            mergeArrays: ([oldValue, newValue], utils, meta) => {
+                const key = meta?.key as KeyWithMergeDuplication
+                if (meta && MERGE_DUPLICATION.includes(key)) {
+                    const origWithoutObjectEntries = oldValue.filter((value: [Services.ServiceClass, WebdriverIO.ServiceOption] | [Reporters.ReporterClass, WebdriverIO.ReporterOption]) => typeof value !== 'object')
+                    return Array.from(new Set(deepmerge(newValue, origWithoutObjectEntries)))
+                }
+                return utils.actions.defaultMerge
+            }
+        })
+        this._config = customDeepMerge(this._config, object) as TestrunnerOptionsWithParameters
+        /**
+         * overwrite config specs that got piped into the wdio command,
+         * also adhering to the wdio-prefixes from a capability
+         */
+        if (object['wdio:specs'] && object['wdio:specs'].length > 0) {
+            this._config.specs = object['wdio:specs'] as Spec[]
+        } else if (object.specs && object.specs.length > 0) {
             this._config.specs = object.specs as string[]
         }
-        if (object.exclude && object.exclude.length > 0) {
+        if (object['wdio:exclude'] && object['wdio:exclude'].length > 0) {
+            this._config.exclude = object['wdio:exclude'] as string[]
+        } else if (object.exclude && object.exclude.length > 0) {
             this._config.exclude = object.exclude as string[]
         }
 
@@ -264,8 +286,8 @@ export default class ConfigParser {
      * attributes from CLI, config and capabilities
      */
     getSpecs(capSpecs?: Spec[], capExclude?: Spec[]) {
-        const isSpecParamPassed = Array.isArray(this._config.spec) && this._config.spec.length >= 1
-        const multiRun = this._config.multiRun
+        const isSpecParamPassed = Array.isArray(this._config.spec) && this._config.spec.length > 0
+        const repeat = this._config.repeat
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
         let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
@@ -275,12 +297,12 @@ export default class ConfigParser {
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         // only use capability excludes if (CLI) --exclude or config exclude are not defined
-        if (Array.isArray(capExclude) && exclude.length === 0){
+        if (Array.isArray(capExclude) && exclude.length === 0) {
             exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
         }
 
         // only use capability specs if (CLI) --spec is not defined
-        if (!isSpecParamPassed && Array.isArray(capSpecs)){
+        if (!isSpecParamPassed && Array.isArray(capSpecs)) {
             specs = ConfigParser.getFilePaths(capSpecs, this._config.rootDir, this._pathService)
         }
 
@@ -309,13 +331,13 @@ export default class ConfigParser {
         // Remove any duplicate tests from the final specs array
         specs = [...new Set(specs)]
 
-        // If the --multi-run flag is set, duplicate the specs array
-        // Ensure that when --multi-run is set that either --spec or --suite is also set
+        // If the --repeat flag is set, duplicate the specs array N times
+        // Ensure that when --repeat is used that either --spec or --suite is also used
         const hasSubsetOfSpecsDefined = isSpecParamPassed || suites.length > 0
-        if (multiRun && hasSubsetOfSpecsDefined) {
-            specs = specs.flatMap(i => Array.from({ length: multiRun }).fill(i)) as Spec[]
-        } else if (multiRun && !hasSubsetOfSpecsDefined) {
-            throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
+        if (repeat && hasSubsetOfSpecsDefined) {
+            specs = Array.from({ length: repeat }, () => specs).flat()
+        } else if (repeat && !hasSubsetOfSpecsDefined) {
+            throw new Error('The --repeat flag requires that either the --spec or --suite flag is also set')
         }
 
         return this.shard(
@@ -381,7 +403,7 @@ export default class ConfigParser {
     /**
      * return configs
      */
-    getConfig () {
+    getConfig() {
         if (!this.#isInitialised) {
             throw new Error('ConfigParser was not initialized, call "await config.initialize()" first!')
         }
@@ -494,7 +516,7 @@ export default class ConfigParser {
         }, [])
     }
 
-    shard (specs: Spec[]) {
+    shard(specs: Spec[]) {
         if (!this._config.shard || this._config.shard.total === 1) {
             return specs
         }

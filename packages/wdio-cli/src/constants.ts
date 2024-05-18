@@ -64,12 +64,6 @@ export const IOS_CONFIG = {
     deviceName: 'iPhone Simulator'
 }
 
-export enum CompilerOptions {
-    Babel = 'Babel (https://babeljs.io/)',
-    TS = 'TypeScript (https://www.typescriptlang.org/)',
-    Nil = 'No!'
-}
-
 /**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
  * objects as a `value` to be stored from the user's answers.
@@ -118,14 +112,13 @@ export const SUPPORTED_PACKAGES = {
     ],
     service: [
         // internal or community driver services
+        { name: 'visual', value: '@wdio/visual-service$--$visual' },
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
         { name: 'nuxt', value: 'wdio-nuxt-service$--$nuxt' },
-        { name: 'visual', value: '@wdio/visual-service$--$visual' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'gmail', value: 'wdio-gmail-service$--$gmail' },
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
-        { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
@@ -479,19 +472,19 @@ export const QUESTIONNAIRE = [{
         return SUPPORTED_PACKAGES.framework
     }
 }, {
-    type: 'list',
-    name: 'isUsingCompiler',
-    message: 'Do you want to use a compiler?',
-    choices: (answers: Questionnair) => {
+    type: 'confirm',
+    name: 'isUsingTypeScript',
+    message: 'Do you want to use Typescript to write tests?',
+    when: /* istanbul ignore next */ (answers: Questionnair) => {
         /**
-         * StencilJS only supports TypeScript
+         * StencilJS only supports TypeScript - use the default
          */
-        if (answers.preset && answers.preset.includes('stencil')) {
-            return [CompilerOptions.TS]
+        if (answers.preset?.includes('stencil')) {
+            return false
         }
-        return Object.values(CompilerOptions)
+        return true
     },
-    default: /* istanbul ignore next */ (answers: Questionnair) => detectCompiler(answers)
+    default: /* istanbul ignore next */ (answers: Questionnair) => answers.preset?.includes('stencil') || detectCompiler(answers)
 }, {
     type: 'confirm',
     name: 'generateTestFiles',
@@ -586,6 +579,17 @@ export const QUESTIONNAIRE = [{
     choices: SUPPORTED_PACKAGES.plugin,
     default: []
 }, {
+    type: 'confirm',
+    name: 'includeVisualTesting',
+    message: 'Would you like to include Visual Testing to your setup? For more information see https://webdriver.io/docs/visual-testing!',
+    default: false,
+    when: /* istanbul ignore next */ (answers: Questionnair) => {
+        /**
+         * visual testing mostly makes sense for e2e and component tests
+         */
+        return ['e2e', 'component'].includes(getTestingPurpose(answers))
+    }
+}, {
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
@@ -630,6 +634,9 @@ export const QUESTIONNAIRE = [{
         if (isNuxtProject) {
             defaultServices.push('nuxt')
         }
+        if (answers.includeVisualTesting) {
+            defaultServices.push('visual')
+        }
         return selectDefaultService(defaultServices)
     }
 }, {
@@ -650,22 +657,6 @@ export const QUESTIONNAIRE = [{
     message: 'In which directory should the mochawesome json reports get stored?',
     default: './',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.reporters.includes('mochawesome')
-}, {
-    type: 'input',
-    name: 'baseUrl',
-    message: 'What is the base url?',
-    default: 'http://localhost',
-    // no base url for:
-    when: /* istanbul ignore next */ (answers: Questionnair) => (
-        // unit and component testing in the browser
-        !isBrowserRunner(answers) &&
-        // mobile testing with Appium
-        answers.e2eEnvironment !== 'mobile' &&
-        // nor for VS Code, Electron or MacOS testing
-        !['vscode', 'electron', 'macos'].includes(getTestingPurpose(answers)) &&
-        // nor for Nuxt projects
-        !isNuxtProject
-    )
 }, {
     type: 'confirm',
     name: 'npmInstall',
@@ -894,6 +885,17 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
         validate: (param: Options.Testrunner['updateSnapshots']) => {
             if (param && !SUPPORTED_SNAPSHOTSTATE_OPTIONS.includes(param)) {
                 throw new Error(`the "updateSnapshots" options needs to be one of "${SUPPORTED_SNAPSHOTSTATE_OPTIONS.join('", "')}"`)
+            }
+        }
+    },
+    /**
+     * Overrides default snapshot path. For example, to store snapshots next to test files.
+     */
+    resolveSnapshotPath: {
+        type: 'function',
+        validate: (param: Options.Testrunner['resolveSnapshotPath']) => {
+            if (param && typeof param !== 'function') {
+                throw new Error('the "resolveSnapshotPath" options needs to be a function')
             }
         }
     },

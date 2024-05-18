@@ -41,13 +41,13 @@ Type: `Object`<br /> Default: `null`
 
 ### user
 
-Su nombre de usuario de servicio en la nube (solo funciona para [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) o [cuentas LambdaTest](https://www.lambdatest.com)). Si se establece, WebdriverIO automáticamente establecerá las opciones de conexión para usted. Si no utiliza un proveedor de nube esto se puede utilizar para autenticar cualquier otro backend de WebDriver.
+Su nombre de usuario de servicio en la nube (solo funciona para [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) o [cuentas LambdaTest](https://www.lambdatest.com)). Si se establece, WebdriverIO automáticamente establecerá las opciones de conexión para usted. Si no utiliza un proveedor de nube esto se puede utilizar para autenticar cualquier otro backend de WebDriver.
 
 Type: `String`<br /> Default: `null`
 
 ### key
 
-Su nombre de usuario de servicio en la nube (solo funciona para [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) o [cuentas LambdaTest](https://www.lambdatest.com)). Si se establece, WebdriverIO automáticamente establecerá las opciones de conexión para usted. Si no utiliza un proveedor de nube esto se puede utilizar para autenticar cualquier otro backend de WebDriver.
+Su nombre de usuario de servicio en la nube (solo funciona para [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) o [cuentas LambdaTest](https://www.lambdatest.com)). Si se establece, WebdriverIO automáticamente establecerá las opciones de conexión para usted. Si no utiliza un proveedor de nube esto se puede utilizar para autenticar cualquier otro backend de WebDriver.
 
 Type: `String`<br /> Default: `null`
 
@@ -189,7 +189,7 @@ Tiempo de espera predeterminado para todos los comandos `waitFor*`. (Tenga en cu
 
 Para aumentar el tiempo de espera de una _prueba_, por favor vea la documentación del framework.
 
-Type: `Number`<br /> Default: `3000`
+Type: `Number`<br /> Default: `5000`
 
 ### waitforInterval
 

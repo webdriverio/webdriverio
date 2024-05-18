@@ -1,11 +1,10 @@
 import path from 'node:path'
 import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
+
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('react$', () => {
@@ -39,8 +38,8 @@ describe('react$', () => {
         expect(elems[2].ELEMENT).toBe(undefined)
         expect(elems[2].selector).toBe('myComp')
         expect(elems[2].index).toBe(2)
-        expect(got).toBeCalledTimes(4)
-        expect(vi.mocked(got).mock.calls.pop()![1]!.json.args)
+        expect(fetch).toBeCalledTimes(4)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls.pop()![1]!.body as any).args)
             .toEqual(['myComp', { some: 'props' }, { some: 'state' }])
     })
 
@@ -53,7 +52,7 @@ describe('react$', () => {
         })
 
         await browser.react$$('myComp')
-        expect(vi.mocked(got).mock.calls.pop()![1]!.json.args).toEqual(['myComp', {}, {}])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls.pop()![1]!.body as any).args).toEqual(['myComp', {}, {}])
     })
 
     it('should call getElements with React flag true', async () => {

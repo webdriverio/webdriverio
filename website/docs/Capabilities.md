@@ -38,6 +38,40 @@ While the amount of fixed defined capabilities is very low, everyone can provide
 
 WebdriverIO manages installing and running browser driver for you. WebdriverIO uses a custom capability that allows you to pass in parameters to the driver.
 
+#### `wdio:chromedriverOptions`
+
+Specific options passed into Chromedriver when starting it.
+
+#### `wdio:geckodriverOptions`
+
+Specific options passed into Geckodriver when starting it.
+
+#### `wdio:edgedriverOptions`
+
+Specific options passed into Edgedriver when starting it.
+
+#### `wdio:safaridriverOptions`
+
+Specific options passed into Safari when starting it.
+
+#### `wdio:maxInstances`
+
+Maximum number of total parallel running workers for the specific browser/capability. Takes precedence over [maxInstances](#configuration#maxInstances) and [maxInstancesPerCapability](configuration/#maxinstancespercapability).
+
+Type: `number`
+
+#### `wdio:specs`
+
+Define specs for test execution for that browser/capability. Same as the [regular `specs` configuration option](configuration#specs), but specific to the browser/capability. Takes precedence over `specs`.
+
+Type: `(String | String[])[]`
+
+#### `wdio:exclude`
+
+Exclude specs from test execution for that browser/capability. Same as the [regular `exclude` configuration option](configuration#exclude), but specific to the browser/capability. Takes precedence over `exclude`.
+
+Type: `String[]`
+
 #### Common Driver Options
 
 While all driver offer different parameters for configuration, there are some common ones that WebdriverIO understand and uses for setting up your driver or browser:
@@ -52,6 +86,8 @@ Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 ##### `binary`
 
 Path to a custom driver binary. If set WebdriverIO won't attempt to download a driver but will use the one provided by this path. Make sure the driver is compatible with the browser you are using.
+
+You can provide this path via `CHROMEDRIVER_PATH`, `GECKODRIVER_PATH` or `EDGEDRIVER_PATH` environment variables.
 
 Type: `string`
 
@@ -191,7 +227,7 @@ Running a headless browser means to run a browser instance without window or UI.
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome',   // or 'chromium'
     'goog:chromeOptions': {
         args: ['headless', 'disable-gpu']
     }
@@ -245,7 +281,7 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome', // or 'chromium'
     browserVersion: '116' // or '116.0.5845.96', 'stable', 'latest', 'dev', 'canary', 'beta'
 }
 ```
@@ -254,7 +290,7 @@ If you like to test a manually downloaded browser, you can provide a binary path
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome',  // or 'chromium'
     'goog:chromeOptions': {
         binary: '/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary'
     }
@@ -265,7 +301,7 @@ Additionally, if you like to use a manually downloaded driver, you can provide a
 
 ```ts
 {
-    browserName: 'chrome',
+    browserName: 'chrome', // or 'chromium'
     'wdio:chromedriverOptions': {
         binary: '/path/to/chromdriver'
     }

@@ -1,0 +1,32 @@
+{
+  "name": "jasmine-type-tests",
+  "version": "0.0.1",
+  "description": "TypeScript tests for Jasmine types",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@types/jasmine": "^5.1.4",
+    "@wdio/globals": "workspace:*",
+    "@wdio/utils": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/browser-runner": "workspace:*",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/allure-reporter": "workspace:*",
+    "@wdio/appium-service": "workspace:*",
+    "@wdio/browserstack-service": "workspace:*",
+    "@wdio/cucumber-framework": "workspace:*",
+    "@wdio/devtools-service": "workspace:*",
+    "@wdio/firefox-profile-service": "workspace:*",
+    "@wdio/jasmine-framework": "workspace:*",
+    "@wdio/mocha-framework": "workspace:*",
+    "@wdio/protocols": "workspace:*",
+    "@wdio/sauce-service": "workspace:*",
+    "@wdio/shared-store-service": "workspace:*",
+    "@wdio/static-server-service": "workspace:*",
+    "@wdio/sumologic-reporter": "workspace:*",
+    "@wdio/testingbot-service": "workspace:*",
+    "expect-webdriverio": "^4.13.0",
+    "webdriver": "workspace:*",
+    "webdriverio": "workspace:*"
+  }
+}

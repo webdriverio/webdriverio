@@ -4,8 +4,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import { remote, multiremote } from '../src/index.js'
 
-vi.mock('got')
-vi.mock('devtools')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const remoteConfig: Options.WebdriverIO = {

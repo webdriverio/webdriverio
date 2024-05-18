@@ -10,6 +10,8 @@ Sponsorships can be done via [GitHub Sponsors](https://github.com/sponsors/webdr
 
 If you have questions regarding tiers, payment logistics, or sponsor exposure data, please reach out to [sponsor@webdriver.io](mailto:sponsor@webdriver.io).
 
+You can also head over to the WebdriverIO [Swag Store](https://shop.webdriver.io/) where all earnings on purchases will be going back to the project development.
+
 ## Sponsoring WebdriverIO as a Business​
 Sponsoring WebdriverIO gives you great exposure through our website (60k+ page views per month) and GitHub project READMEs. In addition, supporting OSS improves the reputation of your brand, which is an important asset for any company that interacts with developers.
 
@@ -53,6 +55,15 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     darkImageSrc="/img/sponsors/browserstack_white.svg"
     alt="BrowserStack"
     link="https://www.browserstack.com/automation-webdriverio"
+/>
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/saucelabs_black.svg"
+    darkImageSrc="/img/sponsors/saucelabs_white.svg"
+    alt="Sauce Labs"
+    link="https://www.saucelabs.com"
+    width={400}
+    style={{ marginLeft: '30px', position: 'relative', top: '-8px' }}
 />
 
 ### 🥇 Gold

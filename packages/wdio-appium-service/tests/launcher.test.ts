@@ -162,6 +162,28 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
+        test('should set correct config properties of mixed browser and device using multiremote', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar' }
+            }
+            const capabilities: Capabilities.MultiRemoteCapabilities = {
+                browserA: { port: 1234, capabilities: { browserName: 'chrome' } },
+                browserB: { capabilities: { deviceName: 'baz' } }
+            }
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+            expect(capabilities.browserA.protocol).toBeUndefined()
+            expect(capabilities.browserA.hostname).toBeUndefined()
+            expect(capabilities.browserA.port).toBe(1234)
+            expect(capabilities.browserA.path).toBeUndefined()
+            expect(capabilities.browserB.protocol).toBe('http')
+            expect(capabilities.browserB.hostname).toBe('127.0.0.1')
+            expect(capabilities.browserB.port).toBe(4723)
+            expect(capabilities.browserB.path).toBe('/')
+        })
+
         test('should set correct config properties using parallel multiremote', async () => {
             const options = {
                 logPath: './',

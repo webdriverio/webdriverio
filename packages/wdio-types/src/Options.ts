@@ -1,35 +1,11 @@
-import type http from 'node:http'
-import type https from 'node:https'
-import type { URL } from 'node:url'
-
 import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities.js'
 import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
-export type Agents = { http?: any, https?: any }
+export type SupportedProtocols = 'webdriver' | './protocol-stub.js'
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
-
-export interface RequestLibOptions {
-    agent?: Agents
-    followRedirect?: boolean
-    headers?: Record<string, string | string[] | undefined>
-    https?: Record<string, unknown>
-    json?: Record<string, unknown>
-    method?: Method
-    responseType?: 'json' | 'buffer' | 'text'
-    retry?: { limit: number, methods?: Method[], calculateDelay?: (retryOptions: { computedValue: number }) => number }
-    searchParams?: Record<string, string | number | boolean | null | undefined> | URLSearchParams
-    throwHttpErrors?: boolean
-    timeout?: { response: number }
-    url?: URL
-    path?: string
-    username?: string
-    password?: string
-    body?: any
-}
 
 export interface RequestLibResponse {
     statusCode: number
@@ -83,8 +59,7 @@ export interface Connection {
     }
     /**
      * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
-     * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
-     * [CrossBrowserTesting](https://crossbrowsertesting.com) or
+     * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or
      * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
      * automatically set connection options for you. If you don't use a cloud provider this
      * can be used to authenticate any other WebDriver backend.
@@ -93,10 +68,9 @@ export interface Connection {
     /**
      * Your cloud service access key or secret key (only works for
      * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
-     * [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)
-     * or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
-     * automatically set connection options for you. If you don't use a cloud provider this
-     * can be used to authenticate any other WebDriver backend.
+     * [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts).
+     * If set, WebdriverIO will automatically set connection options for you. If you don't use
+     * a cloud provider this can be used to authenticate any other WebDriver backend.
      */
     key?: string
 }
@@ -110,7 +84,7 @@ export interface WebDriver extends Connection {
      *
      * @example
      * ```js
-     * // WebDriver/DevTools session
+     * // WebDriver session
      * const browser = remote({
      *   capabilities: {
      *     browserName: 'chrome',
@@ -167,28 +141,13 @@ export interface WebDriver extends Connection {
         [name: string]: string
     }
     /**
-     * Allows you to use a custom http/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
-     *
-     * @default
-     * ```js
-     * {
-     *     http: new http.Agent({ keepAlive: true }),
-     *     https: new https.Agent({ keepAlive: true })
-     * }
-     * ```
-     */
-    agent?: {
-        http: http.Agent,
-        https: https.Agent
-    }
-    /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
      */
-    transformRequest?: (requestOptions: RequestLibOptions) => RequestLibOptions
+    transformRequest?: (requestOptions: RequestInit) => RequestInit
     /**
      * Function intercepting HTTP response objects after a WebDriver response has arrived.
      */
-    transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse
+    transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse
 
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
@@ -294,6 +253,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'>, Pick<Hooks
     /**
      * Default timeout for all `waitFor*` commands. (Note the lowercase f in the option name.)
      * This timeout only affects commands starting with `waitFor*` and their default wait time.
+     * @default 5000
      */
     waitforTimeout?: number
     /**
@@ -374,7 +334,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * An object describing various of suites, which you can then specify
      * with the --suite option on the wdio CLI.
      */
-    suites?: Record<string, string[] | string[][]>
+    suites?: Record<string, (string |string[])[] | string[][]>
     /**
      * Maximum number of total parallel running workers.
      */
@@ -409,6 +369,11 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * Set to true if you want to update your snapshots.
      */
     updateSnapshots?: 'all' | 'new' | 'none'
+    /**
+     * Overrides default snapshot path. For example, to store snapshots next to test files.
+     * @default __snapshots__ stores snapshot files in __snapshots__ directory next to the test file.
+     */
+    resolveSnapshotPath?: (testPath: string, snapExtension: string) => string
     /**
      * The number of retry attempts for an entire specfile when it fails as a whole.
      */
@@ -489,9 +454,9 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
     jasmineOpts?: WebdriverIO.JasmineOpts
     cucumberOpts?: WebdriverIO.CucumberOpts
     /**
-     * autocompile options
+     * TSX custom TSConfig path
      */
-    autoCompileOpts?: AutoCompileConfig
+    tsConfigPath?: string
 }
 
 export interface TSConfigPathsOptions {
@@ -499,92 +464,6 @@ export interface TSConfigPathsOptions {
     paths: Record<string, string[]>
     mainFields?: string[]
     addMatchAll?: boolean
-}
-
-export interface AutoCompileConfig {
-    autoCompile?: boolean
-    babelOpts?: Record<string, any>
-    tsNodeOpts?: TSNodeOptions
-}
-
-export interface TSNodeOptions {
-    /**
-     * Path to tsconfig file.
-     */
-    project?: string
-    /**
-     * Skip project config resolution and loading
-     */
-    skipProject?: boolean
-    /**
-     * JSON object to merge with compiler options
-     */
-    compilerOptions?: Record<string, any>
-    /**
-     * Use TypeScript's faster transpileModule
-     */
-    transpileOnly?: boolean
-    /**
-     * Opposite of --transpileOnly
-     */
-    typeCheck?: boolean
-    /**
-     * Use TypeScript's compiler host API
-     */
-    compilerHost?: boolean
-    /**
-     * Load files, include and exclude from tsconfig.json on startup.
-     * This may avoid certain typechecking failures. See Missing types for details.
-     */
-    files?: boolean
-    /**
-     * Ignore TypeScript warnings by diagnostic code
-     */
-    ignoreDiagnostics?: string[]
-    /**
-     * Override the path patterns to skip compilation
-     */
-    ignore?: RegExp
-    /**
-     * Skip ignore checks
-     */
-    skipIgnore?: boolean
-    /**
-     * Specify a custom TypeScript compiler
-     */
-    compiler?: string
-    /**
-     * Re-order file extensions so that TypeScript imports are preferred
-     */
-    preferTsExts?: boolean
-    /**
-     * Logs TypeScript errors to stderr instead of throwing exceptions
-     */
-    logError?: boolean
-    /**
-     * Use pretty diagnostic formatter
-     */
-    pretty?: boolean
-    /**
-     * Behave as if invoked in this working directory
-     */
-    cwd?: string
-    /**
-     * Emit output files into `.ts-node` directory. Requires `--compilerHost`
-     */
-    emit?: boolean
-    /**
-     * Scope compiler to files within `scopeDir`. Anything outside this directory is ignored.
-     */
-    scope?: boolean
-    /**
-     * Directory within which compiler is limited when `scope` is enabled.
-     */
-    scopeDir?: string
-    /**
-     * Disable top-level await in REPL. Equivalent to node's `--no-experimental-repl-await`
-     */
-    noExperimentalReplAwait?: boolean
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {

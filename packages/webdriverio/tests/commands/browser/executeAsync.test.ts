@@ -1,10 +1,8 @@
 import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isEnabled test', () => {
@@ -17,12 +15,13 @@ describe('isEnabled test', () => {
         })
 
         await browser.executeAsync(() => 'foobar', 1, 2, 3)
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/execute/async')
-        expect(vi.mocked(got).mock.calls[1][1]!.json.script)
-            .toBe('return (() => "foobar").apply(null, arguments)')
-        expect(vi.mocked(got).mock.calls[1][1]!.json.args)
-            .toEqual([1, 2, 3])
+        expect(vi.mocked(fetch).mock.calls[1][1]?.body).toMatchObject(JSON.stringify({
+            script: 'return (() => "foobar").apply(null, arguments)',
+            args: [1, 2, 3]
+        }))
     })
 
     it('should return correct value', async () => {

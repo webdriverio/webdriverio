@@ -5,7 +5,6 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 // @ts-expect-error mock feature
 import { Local, mockStart } from 'browserstack-local'
-import got from 'got'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 
@@ -13,6 +12,8 @@ import BrowserstackLauncher from '../src/launcher.js'
 import type { BrowserstackConfig } from '../src/types.js'
 import * as utils from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
+import * as FunnelInstrumentation from '../src/instrumentation/funnelInstrumentation.js'
+import { RERUN_TESTS_ENV, TESTOPS_BUILD_ID_ENV, RERUN_ENV } from '../src/constants.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('browserstack-local')
@@ -38,6 +39,8 @@ vi.spyOn(utils, 'uploadLogs').mockImplementation((_user, _key, _uuid) => new Pro
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
+vi.spyOn(FunnelInstrumentation, 'sendFinish').mockImplementation(async () => {})
+vi.spyOn(FunnelInstrumentation, 'sendStart').mockImplementation(async () => {})
 
 vi.spyOn(bstackLogger.BStackLogger, 'clearLogFile').mockImplementation(() => {})
 
@@ -61,26 +64,26 @@ describe('onPrepare', () => {
     vi.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
     vi.spyOn(utils, 'isBStackSession').mockImplementation(() => {return true})
 
-    it('should not try to upload app is app is undefined', () => {
+    it('should not try to upload app is app is undefined', async () => {
         const service = new BrowserstackLauncher({ testObservability: false } as any, caps, config)
-        service.onPrepare()
+        await service.onPrepare()
 
-        expect(log.info).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
+        expect(log.debug).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
     })
 
-    it('should not call local if browserstackLocal is undefined', () => {
+    it('should not call local if browserstackLocal is undefined', async () => {
         const service = new BrowserstackLauncher({ testObservability: false } as any, caps, {
             user: 'foobaruser',
             key: '12345',
             capabilities: []
         })
-        service.onPrepare()
+        await service.onPrepare()
 
-        expect(log.info).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
-    it('should not call local if browserstackLocal is false', () => {
+    it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
             testObservability: false
@@ -89,9 +92,9 @@ describe('onPrepare', () => {
             key: '12345',
             capabilities: []
         })
-        service.onPrepare()
+        await service.onPrepare()
 
-        expect(log.info).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
@@ -735,16 +738,16 @@ describe('constructor', () => {
     })
 
     it('update spec list if it is a rerun', async () => {
-        process.env.BROWSERSTACK_RERUN = 'true'
-        process.env.BROWSERSTACK_RERUN_TESTS = 'demo1.test.js,demo2.test.js'
+        process.env[RERUN_ENV] = 'true'
+        process.env[RERUN_TESTS_ENV] = 'demo1.test.js,demo2.test.js'
 
         const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
         new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
 
         expect(config.specs).toEqual(['demo1.test.js', 'demo2.test.js'])
 
-        delete process.env.BROWSERSTACK_RERUN
-        delete process.env.BROWSERSTACK_RERUN_TESTS
+        delete process.env[RERUN_ENV]
+        delete process.env[RERUN_TESTS_ENV]
     })
 
     describe('#non-bstack session', () => {
@@ -1022,24 +1025,20 @@ describe('_uploadApp', () => {
     }
 
     it('should upload the app and return app_url', async() => {
-        got.post = vi.fn().mockReturnValue({
-            json: () => Promise.resolve({ app_url: 'bs://<app-id>' })
-        })
+        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ app_url: 'bs://<app-id>' })))
         const service = new BrowserstackLauncher(options as any, caps, config)
         const res = await service._uploadApp(options.app as any)
         expect(res).toEqual({ app_url: 'bs://<app-id>' })
     })
 
     it('throw SevereServiceError if upload fails', async() => {
-        got.post = vi.fn().mockReturnValue({
-            json: () => Promise.reject({})
-        })
+        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({}, { status: 500 })))
         const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
 
         try {
             await service._uploadApp(options.app as any)
         } catch (e: any) {
-            expect(got.post).toHaveBeenCalled()
+            expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('POST')
             expect(e.name).toEqual('SevereServiceError')
         }
     })
@@ -1278,9 +1277,9 @@ describe('_uploadServiceLogs', () => {
     }]
 
     it('get observability build id', async() => {
-        process.env.BS_TESTOPS_BUILD_HASHED_ID = 'obs123'
+        process.env[TESTOPS_BUILD_ID_ENV] = 'obs123'
         expect(service._getClientBuildUuid()).toEqual('obs123')
-        delete process.env.BS_TESTOPS_BUILD_HASHED_ID
+        delete process.env[TESTOPS_BUILD_ID_ENV]
     })
 
     const service = new BrowserstackLauncher(options as any, caps, config)
@@ -1303,9 +1302,9 @@ describe('_getClientBuildUuid', () => {
     const service = new BrowserstackLauncher(options as any, caps, config)
 
     it('get observability build id', async() => {
-        process.env.BS_TESTOPS_BUILD_HASHED_ID = 'obs123'
+        process.env[TESTOPS_BUILD_ID_ENV] = 'obs123'
         expect(service._getClientBuildUuid()).toEqual('obs123')
-        delete process.env.BS_TESTOPS_BUILD_HASHED_ID
+        delete process.env[TESTOPS_BUILD_ID_ENV]
     })
 
     it('get randomly generated id if both the conditions fail', async() => {

@@ -27,21 +27,18 @@ import {
     hasPackage,
     specifyVersionIfNeeded,
     getProjectRoot,
-    detectCompiler,
     getAnswers,
     getProjectProps,
     runProgram,
     createPackageJSON,
     npmInstall,
     setupTypeScript,
-    setupBabel,
     createWDIOConfig,
     createWDIOScript,
     runAppiumInstaller,
     detectPackageManager
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
-import { CompilerOptions } from '../src/constants.js'
 import { installPackages } from '../src/install.js'
 import { hasBabelConfig } from '../build/utils.js'
 
@@ -748,13 +745,11 @@ describe('getPathForFileGeneration', () => {
 
 test('getDefaultFiles', async () => {
     const files = '/foo/bar'
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.Babel } as any, files))
-        .toBe(path.join('/bar', 'foo', 'bar.js'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.TS } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingTypeScript: true } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.ts'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.TS, preset: 'vite-plugin-solid$--$solid' } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingTypeScript: true, preset: 'vite-plugin-solid$--$solid' } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.tsx'))
-    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: CompilerOptions.Nil } as any, files))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingTypeScript: false } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.js'))
 })
 
@@ -785,20 +780,6 @@ test('hasBabelConfig', async () => {
     expect(await hasBabelConfig('/foo')).toBe(true)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
     expect(await hasBabelConfig('/foo')).toBe(false)
-})
-
-test('detectCompiler', async () => {
-    vi.mocked(fs.access).mockResolvedValue({} as any)
-    expect(await detectCompiler({} as any)).toBe(CompilerOptions.Babel)
-    vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
-    expect(await detectCompiler({} as any)).toBe(CompilerOptions.Nil)
-    vi.mocked(fs.access).mockImplementation((path) => {
-        if (path.toString().includes('tsconfig')) {
-            return Promise.resolve({} as any)
-        }
-        return Promise.reject(new Error('ouch'))
-    })
-    expect(await detectCompiler({} as any)).toBe(CompilerOptions.TS)
 })
 
 test('getAnswers', async () => {
@@ -867,7 +848,8 @@ test('npmInstall', async () => {
         framework: 'jasmine',
         installTestingLibrary: true,
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
-        npmInstall: true
+        npmInstall: true,
+        includeVisualTesting: true
     } as any
     await npmInstall(parsedAnswers, 'next')
     expect(installPackages).toBeCalledTimes(1)
@@ -907,26 +889,46 @@ test('setupTypeScript', async () => {
     } as any
     await setupTypeScript(parsedAnswers)
     expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toMatchSnapshot()
-    expect(parsedAnswers.packagesToInstall).toEqual(['ts-node', 'typescript'])
+    expect(parsedAnswers.packagesToInstall).toEqual(['tsx'])
 })
 
-test('setup Babel', async () => {
-    await setupBabel({} as any)
-    expect(fs.writeFile).toBeCalledTimes(0)
+test('setupTypeScript does not create tsconfig.json if TypeScript was not selected', async () => {
     const parsedAnswers = {
-        isUsingBabel: true,
+        isUsingTypeScript: false,
+        esmSupport: true,
         rawAnswers: {
             framework: 'foo',
-            services: []
+            services: [
+                'wdio-foobar-service$--$foobar',
+                'wdio-electron-service$--$electron'
+            ]
         },
         packagesToInstall: [],
-        projectRootDir: '/foobar'
+        tsConfigFilePath: '/foobar/tsconfig.json'
     } as any
-    vi.mocked(fs.access).mockRejectedValue(new Error('foo'))
-    await setupBabel(parsedAnswers)
-    expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toMatchSnapshot()
-    expect(parsedAnswers.packagesToInstall).toEqual(
-        ['@babel/register', '@babel/preset-env'])
+    await setupTypeScript(parsedAnswers)
+    expect(fs.writeFile).not.toBeCalled()
+    expect(parsedAnswers.packagesToInstall).toEqual([])
+})
+
+test('setupTypeScript does not create tsconfig.json if there is already one', async () => {
+    const parsedAnswers = {
+        isUsingTypeScript: true,
+        esmSupport: true,
+        rawAnswers: {
+            framework: 'foo',
+            services: [
+                'wdio-foobar-service$--$foobar',
+                'wdio-electron-service$--$electron'
+            ]
+        },
+        packagesToInstall: [],
+        tsConfigFilePath: '/foobar/tsconfig.json',
+        hasRootTSConfig: true
+    } as any
+    await setupTypeScript(parsedAnswers)
+    expect(fs.writeFile).not.toBeCalled()
+    expect(parsedAnswers.packagesToInstall).toEqual(['tsx'])
 })
 
 test('createWDIOConfig', async () => {

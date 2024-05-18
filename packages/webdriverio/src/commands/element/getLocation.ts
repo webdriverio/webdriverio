@@ -5,6 +5,7 @@ export type Location = Pick<RectReturn, 'x' | 'y'>;
 
 export function getLocation (this: WebdriverIO.Element): Promise<Location>
 export function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<number>
+export function getLocation (this: WebdriverIO.Element, prop?: keyof Location): Promise<Location & number>
 
 /**
  *
@@ -39,13 +40,9 @@ export async function getLocation (
 ): Promise<Location | number> {
     let location: Partial<RectReturn> = {}
 
-    if (this.isW3C) {
-        location = await getElementRect(this)
-        delete location.width
-        delete location.height
-    } else {
-        location = await this.getElementLocation(this.elementId)
-    }
+    location = await getElementRect(this)
+    delete location.width
+    delete location.height
 
     if (prop === 'x' || prop === 'y') {
         return location[prop] as number

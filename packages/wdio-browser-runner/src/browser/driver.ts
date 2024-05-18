@@ -1,8 +1,16 @@
+/// <reference types="@wdio/globals/types" />
 import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
-import { getEnvironmentVars } from 'webdriver'
+import { getEnvironmentVars, initiateBidi, parseBidiMessage } from 'webdriver'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { browser } from '@wdio/globals'
+import safeStringify from 'safe-stringify'
+
+/**
+ * this is a polyfill to use event emitter in browser
+ */
+// eslint-disable-next-line unicorn/prefer-node-protocol
+import EventEmitter from 'events'
 
 import { getCID, sanitizeConsoleArgs } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
@@ -22,17 +30,13 @@ let id = 0
 export default class ProxyDriver {
     static #commandMessages = new Map<number, CommandMessagePromise>()
 
-    static newSession (
+    static async newSession (
         params: any,
         modifier: never,
         userPrototype: Record<string, PropertyDescriptor>,
         commandWrapper: any
     ) {
         const cid = getCID()
-        if (!cid) {
-            throw new Error('"cid" query parameter is missing')
-        }
-
         /**
          * log all console events once connected
          */
@@ -41,10 +45,12 @@ export default class ProxyDriver {
         /**
          * listen on socket events from testrunner
          */
-        import.meta.hot?.on(WDIO_EVENT_NAME, this.#handleServerMessage.bind(this))
-        import.meta.hot?.send(WDIO_EVENT_NAME, {
-            type: MESSAGE_TYPES.initiateBrowserStateRequest,
-            value: { cid }
+        import.meta.hot?.on(WDIO_EVENT_NAME, (payload: Workers.SocketMessage) => {
+            try {
+                this.#handleServerMessage(payload)
+            } catch (err) {
+                console.error(`Error in handling message: ${(err as Error).stack}`)
+            }
         })
 
         const environment = sessionEnvironmentDetector({ capabilities: params.capabilities, requestedCapabilities: {} })
@@ -53,7 +59,7 @@ export default class ProxyDriver {
         const commandsProcessedInNodeWorld = [...commands, 'debug', 'saveScreenshot', 'savePDF']
         const protocolCommands = commandsProcessedInNodeWorld.reduce((prev, commandName) => {
             prev[commandName] = {
-                value: this.#getMockedCommand(cid, commandName)
+                value: this.#getMockedCommand(commandName)
             }
             return prev
         }, {} as Record<string, { value: Function }>)
@@ -64,6 +70,30 @@ export default class ProxyDriver {
         delete userPrototype.debug
         delete userPrototype.saveScreenshot
         delete userPrototype.savePDF
+
+        /**
+         * initiate WebDriver Bidi
+         */
+        const bidiPrototype: PropertyDescriptorMap = {}
+        const webSocketUrl = 'alwaysMatch' in params.capabilities!
+            ? params.capabilities.alwaysMatch?.webSocketUrl
+            : params.capabilities!.webSocketUrl
+        if (webSocketUrl) {
+            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as any as string))
+        }
+
+        /**
+         * event prototype polyfill for the browser
+         */
+        const ee = new EventEmitter()
+        const eventPrototype = {
+            emit: { value: ee.emit.bind(ee) },
+            on: { value: ee.on.bind(ee) },
+            once: { value: ee.once.bind(ee) },
+            removeListener: { value: ee.removeListener.bind(ee) },
+            removeAllListeners: { value: ee.removeAllListeners.bind(ee) },
+            off: { value: ee.off.bind(ee) }
+        }
 
         const prototype = {
             /**
@@ -77,16 +107,61 @@ export default class ProxyDriver {
             /**
              * unmodified WebdriverIO commands
              */
-            ...userPrototype
+            ...userPrototype,
+            /**
+             * Bidi commands
+             */
+            ...bidiPrototype,
+            /**
+             * event emitter commands
+             */
+            ...eventPrototype
         }
-        prototype.emit = { writable: true, value: () => {} }
-        prototype.on = { writable: true, value: () => {} }
+
+        /**
+         * register helper function to pass command execution into Node.js context
+         */
+        globalThis.wdio = {
+            execute: <CommandName>(commandName: CommandName, ...args: any[]) => {
+                return this.#getMockedCommand(commandName as string)(...args) as any
+            },
+            executeWithScope: <CommandName>(commandName: CommandName, scope: string, ...args: any[]) => {
+                return this.#getMockedCommand(commandName as string, scope)(...args) as any
+            }
+        }
 
         const monad = webdriverMonad(params, modifier, prototype)
-        return monad(window.__wdioEnv__.sessionId, commandWrapper)
+        const client = monad(window.__wdioEnv__.sessionId, commandWrapper)
+
+        /**
+         * parse and propagate all Bidi events to the browser instance
+         */
+        if (params.capabilities.webSocketUrl && client._bidiHandler) {
+            // make sure the Bidi connection is established before returning
+            await client._bidiHandler.connect()
+            client._bidiHandler.socket.on('message', parseBidiMessage.bind(client))
+        }
+
+        /**
+         * initiate browser state, e.g. register custom commands that were initiated
+         * in Node.js land to the browser instance in the browser
+         * Note: we only can do this after we have connected to above Bidi connection
+         * otherwise the browser instance will not be registered in `@wdio/globals` at
+         * the time we get a response for this message.
+         */
+        import.meta.hot?.send(WDIO_EVENT_NAME, {
+            type: MESSAGE_TYPES.initiateBrowserStateRequest,
+            value: { cid }
+        })
+
+        return client
     }
 
-    static #getMockedCommand (cid: string, commandName: string) {
+    /**
+     * @param commandName name of command to execute
+     * @param scope element id when command needs to be executed from an element scope
+     */
+    static #getMockedCommand (commandName: string, scope?: string) {
         const isDebugCommand = commandName === 'debug'
         return async (...args: unknown[]) => {
             if (!import.meta.hot) {
@@ -107,11 +182,13 @@ export default class ProxyDriver {
                 mochaFramework.setAttribute('style', 'display: none')
             }
 
+            const cid = getCID()
             import.meta.hot.send(WDIO_EVENT_NAME, this.#commandRequest({
                 commandName,
                 cid,
                 id,
-                args
+                args,
+                scope
             }))
             return new Promise((resolve, reject) => {
                 let commandTimeout
@@ -152,7 +229,8 @@ export default class ProxyDriver {
 
         if (value.error) {
             console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - ERROR: ${JSON.stringify(value.error.message)}`)
-            return commandMessage.reject(new Error(value.error.message || 'unknown error'))
+            value.error.message = value.error.message || 'unknown error'
+            return commandMessage.reject(value.error)
         }
         if (commandMessage.commandTimeout) {
             clearTimeout(commandMessage.commandTimeout)
@@ -174,7 +252,7 @@ export default class ProxyDriver {
             return
         }
         for (const commandName of value.customCommands) {
-            browser.addCommand(commandName, this.#getMockedCommand(cid, commandName))
+            browser.addCommand(commandName, this.#getMockedCommand(commandName))
         }
     }
 
@@ -185,7 +263,7 @@ export default class ProxyDriver {
                 import.meta.hot?.send(WDIO_EVENT_NAME, this.#consoleMessage({
                     name: 'consoleEvent',
                     type: method,
-                    args: sanitizeConsoleArgs(args),
+                    args: JSON.parse(safeStringify(sanitizeConsoleArgs(args))),
                     cid
                 }))
                 origCommand(...args)

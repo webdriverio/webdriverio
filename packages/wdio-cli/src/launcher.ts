@@ -1,11 +1,9 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
-import { initializePlugin, initializeLauncherService, sleep } from '@wdio/utils'
+import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
@@ -14,7 +12,6 @@ import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { HookError } from './utils.js'
 import type { RunCommandArguments } from './types.js'
-
 const log = logger('@wdio/cli:launcher')
 
 interface Schedule {
@@ -71,23 +68,13 @@ class Launcher {
         await this.configParser.initialize(this._args)
         const config = this.configParser.getConfig()
 
-        /**
-         * assign parsed autocompile options into args so it can be used within the worker
-         * without having to read the config again
-         */
-        this._args.autoCompileOpts = config.autoCompileOpts
-
         const capabilities = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
         this.isParallelMultiremote = Array.isArray(capabilities) &&
             capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities))
         this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
-        if (config.outputDir) {
-            await fs.mkdir(path.join(config.outputDir), { recursive: true })
-            process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
-        }
-
+        await enableFileLogging(config.outputDir)
         logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
         /**
@@ -188,7 +175,7 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    private _runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
+    private _runMode(config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
         /**
          * fail if no caps were found
          */
@@ -229,7 +216,7 @@ class Launcher {
                  */
                 const availableInstances = this.isParallelMultiremote ? config.maxInstances || 1 : config.runner === 'browser'
                     ? 1
-                    : (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability
+                    : (capabilities as Capabilities.DesiredCapabilities).maxInstances || (capabilities as WebdriverIO.Capabilities)['wdio:maxInstances'] || config.maxInstancesPerCapability
 
                 this._schedule.push({
                     cid: cid++,
@@ -271,9 +258,19 @@ class Launcher {
      * Format the specs into an array of objects with files and retries
      */
     private _formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
-        const files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
+        let caps: WebdriverIO.Capabilities
+        if ('alwaysMatch' in capabilities) {
+            caps = capabilities.alwaysMatch
+        } else if (typeof Object.keys(capabilities)[0] === 'object' && 'capabilities' in (capabilities as Capabilities.MultiRemoteCapabilities)[Object.keys(capabilities)[0]]) {
+            caps = {}
+        } else {
+            caps = capabilities as WebdriverIO.Capabilities
+        }
+        const specs = caps.specs || caps['wdio:specs']
+        const excludes = caps.exclude || caps['wdio:exclude']
+        const files = this.configParser.getSpecs(specs, excludes)
 
-        return files.map(file => {
+        return files.map((file: string | string[]) => {
             if (typeof file === 'string') {
                 return { files: [file], retries: specFileRetries }
             } else if (Array.isArray(file)) {
@@ -452,10 +449,6 @@ class Launcher {
             configFile: this._configFilePath,
             args: {
                 ...this._args,
-                ...(config?.autoCompileOpts
-                    ? { autoCompileOpts: config.autoCompileOpts }
-                    : {}
-                ),
                 /**
                  * Pass on user and key values to ensure they are available in the worker process when using
                  * environment variables that were locally exported but not part of the environment.
@@ -486,7 +479,7 @@ class Launcher {
         worker.on('exit', this._endHandler.bind(this))
     }
 
-    private _workerHookError (error: HookError) {
+    private _workerHookError(error: HookError) {
         if (!this.interface) {
             throw new Error('Internal Error: no interface initialized, call run() first')
         }
@@ -502,7 +495,7 @@ class Launcher {
      * @param  {number} cid capability id (unique identifier for a capability)
      * @return {String}     runner id (combination of cid and test id e.g. 0a, 0b, 1a, 1b ...)
      */
-    private _getRunnerId (cid: number): string {
+    private _getRunnerId(cid: number): string {
         if (!this._rid[cid]) {
             this._rid[cid] = 0
         }
@@ -580,7 +573,7 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    private _exitHandler (callback?: (value: boolean) => void): void | Promise<void> {
+    private _exitHandler(callback?: (value: boolean) => void): void | Promise<void> {
         if (!callback || !this.runner || !this.interface) {
             return
         }

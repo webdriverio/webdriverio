@@ -31,7 +31,7 @@ if (os.platform() !== 'win32') {
     describe('getTemplate', () => {
         it('fails if vue helpers are not installed', async () => {
             vi.mocked(resolve).mockRejectedValue(new Error('not there'))
-            await expect(getTemplate({ preset: 'vue' }, {} as any, ''))
+            await expect(getTemplate({ preset: 'vue' }, { config: {} } as any, ''))
                 .rejects.toThrow(/Fail to set-up Vue environment/)
         })
 
@@ -44,7 +44,7 @@ if (os.platform() !== 'win32') {
                 process.env.CI = '1'
             }
             const p: any = { env: { some: 'env' }, cwd: () => '/some/cwd' }
-            expect(await getTemplate({ preset: 'vue' }, {} as any, '/spec.js', p)).toMatchSnapshot()
+            expect(await getTemplate({ preset: 'vue' }, { config: {} } as any, '/spec.js', p)).toMatchSnapshot()
             expect(fs.readFile).toBeCalledTimes(2)
         })
     })

@@ -3,7 +3,7 @@ WebdriverIO
 
 > Next-gen browser and mobile automation test framework for Node.js
 
-This package provides an easy-to-manage API and a lot of syntactical sugar on top of the WebDriver specification. You can use WebdriverIO as a standalone package or via a test runner using [`@wdio/cli`](https://webdriver.io/docs/clioptions). WebdriverIO allows you to run tests locally using the WebDriver or Chrome DevTools protocol as well as remote user agents using cloud providers like [Sauce Labs](https://saucelabs.com/).
+This package provides an easy-to-manage API and a lot of syntactical sugar on top of the WebDriver specification. You can use WebdriverIO as a standalone package or via a test runner using [`@wdio/cli`](https://webdriver.io/docs/clioptions). WebdriverIO allows you to run tests locally using the WebDriver as well as remote user agents using cloud providers like [Sauce Labs](https://saucelabs.com/).
 
 ## Installation
 
@@ -46,6 +46,10 @@ For more information on [options](https://webdriver.io/docs/options#webdriver-op
 <center>Package Sponsors:</center>
 <p align="center">
     <a href="https://www.browserstack.com/automation-webdriverio">
-        <img src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png" alt="BrowserStack" width="300" />
+        <img src="https://webdriver.io/img/sponsors/browserstack_black.svg" alt="BrowserStack" width="300" />
+    </a>
+    &nbsp;
+    <a href="https://saucelabs.com">
+        <img src="https://webdriver.io/img/sponsors/saucelabs_black.svg" alt="Sauce Labs" width="300" />
     </a>
 </p>

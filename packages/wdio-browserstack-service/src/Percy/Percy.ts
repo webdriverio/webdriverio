@@ -37,7 +37,7 @@ class Percy {
     async #getBinaryPath(): Promise<string> {
         if (!this.#binaryPath) {
             const pb = new PercyBinary()
-            this.#binaryPath = await pb.getBinaryPath(this.#config)
+            this.#binaryPath = await pb.getBinaryPath()
         }
         return this.#binaryPath
     }

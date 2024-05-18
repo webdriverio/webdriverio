@@ -1,12 +1,12 @@
 {
   "name": "@wdio/sauce-service",
-  "version": "8.29.7",
+  "version": "9.0.0-alpha.0",
   "description": "WebdriverIO service that provides a better integration into Sauce Labs",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service",
   "license": "MIT",
   "engines": {
-    "node": "^16.13 || >=18"
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
@@ -30,16 +30,16 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/logger": "8.28.0",
-    "@wdio/types": "8.29.1",
-    "@wdio/utils": "8.29.3",
-    "ip": "^1.1.8",
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
+    "ip": "^2.0.1",
     "saucelabs": "7.5.0",
-    "webdriverio": "8.29.7"
+    "webdriverio": "workspace:*"
   },
   "devDependencies": {
     "@types/ip": "^1.1.0",
-    "@wdio/globals": "8.29.7"
+    "@wdio/globals": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

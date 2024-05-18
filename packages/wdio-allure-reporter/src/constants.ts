@@ -22,6 +22,6 @@ export const events = {
     addAllureStep: 'allure:addAllureStep'
 } as const
 
-export const mochaEachHooks = ['"before each" hook', '"after each" hook'] as const
-export const mochaAllHooks = ['"before all" hook', '"after all" hook'] as const
+export const eachHooks = ['"before each" hook', '"after each" hook'] as const
+export const allHooks = ['"before all" hook', '"after all" hook'] as const
 export const linkPlaceholder = '{}'

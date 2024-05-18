@@ -42,7 +42,7 @@ const ErrorExamplesW3C = {
     }
 }
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../src/commands/element/waitForExist', () => ({
     __esModule: true,

@@ -1,12 +1,10 @@
 import path from 'node:path'
 import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, vi } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 vi.mock('../../../src/commands/element/$$', () => ({
@@ -29,9 +27,9 @@ describe('shadow$$', () => {
         const elem = await browser.$('#foo')
         const elems = await elem.shadow$$('#subfoo')
 
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/shadow')
-        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[3][0]!.pathname)
             .toBe('/session/foobar-123/shadow/some-shadow-elem-123/elements')
 
         expect(elems[0].elementId).toBe('some-shadow-sub-elem-321')
@@ -60,7 +58,7 @@ describe('shadow$$', () => {
         })
         const errorResponse = { error: 'ups' }
         const el = await browser.$('#foo')
-        got.setMockResponse([errorResponse, errorResponse, errorResponse, errorResponse])
+        fetch.setMockResponse([errorResponse, errorResponse, errorResponse, errorResponse])
         const mock: any = {
             $$: vi.fn().mockReturnValue([{ elem: 123 }]),
             options: {},
@@ -71,7 +69,7 @@ describe('shadow$$', () => {
         const elem = await el.shadow$$.call(mock, '#shadowfoo')
         expect(elem).toEqual([{ elem: 123 }])
 
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')
     })
 })

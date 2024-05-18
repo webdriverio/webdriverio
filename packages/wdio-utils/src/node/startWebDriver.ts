@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
@@ -38,7 +37,7 @@ export async function startWebDriver (options: Options.WebDriver) {
      * in case we are running unit tests, just return
      */
     if (process.env.WDIO_SKIP_DRIVER_SETUP) {
-        options.hostname = '0.0.0.0'
+        options.hostname = 'localhost'
         options.port = 4321
         return
     }
@@ -70,10 +69,14 @@ export async function startWebDriver (options: Options.WebDriver) {
          * Chrome
          */
         const chromedriverOptions = caps['wdio:chromedriverOptions'] || ({} as WebdriverIO.ChromedriverOptions)
-
+        /**
+         * support for custom chromedriver path via environment variable like
+         * other drivers do as well
+         */
+        const chromedriverBinary = chromedriverOptions.binary || process.env.CHROMEDRIVER_PATH
         const { executablePath: chromeExecuteablePath, browserVersion } = await setupPuppeteerBrowser(cacheDir, caps)
-        const { executablePath: chromedriverExcecuteablePath } = chromedriverOptions.binary
-            ? { executablePath: chromedriverOptions.binary }
+        const { executablePath: chromedriverExcecuteablePath } = chromedriverBinary
+            ? { executablePath: chromedriverBinary }
             : await setupChromedriver(cacheDir, browserVersion)
 
         caps['goog:chromeOptions'] = deepmerge(
@@ -96,11 +99,6 @@ export async function startWebDriver (options: Options.WebDriver) {
             ...safaridriverOptions,
             port
         })
-
-        /**
-         * set "Host" header as it is required by Safaridriver
-         */
-        options.headers = deepmerge({ Host: 'localhost' }, (options.headers || {}))
     } else if (isFirefox(caps.browserName)) {
         /**
          * Firefox
@@ -122,7 +120,7 @@ export async function startWebDriver (options: Options.WebDriver) {
         }
 
         driver = 'GeckoDriver'
-        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port, allowHosts: ['0.0.0.0'] })
+        driverProcess = await startGeckodriver({ ...geckodriverOptions, cacheDir, port, allowHosts: ['localhost'] })
     } else if (isEdge(caps.browserName)) {
         /**
          * Microsoft Edge
@@ -146,9 +144,10 @@ export async function startWebDriver (options: Options.WebDriver) {
         /**
          * on Linux set the path to the Edge binary if not already set
          */
-        if (!caps['ms:edgeOptions']?.binary && os.platform() !== 'darwin' && os.platform() !== 'win32') {
+        if (!caps['ms:edgeOptions']?.binary) {
             caps['ms:edgeOptions'] = caps['ms:edgeOptions'] || {}
             caps['ms:edgeOptions'].binary = findEdgePath()
+            log.info(`Found Edge binary at ${caps['ms:edgeOptions'].binary}`)
         }
     } else {
         throw new Error(
@@ -175,7 +174,7 @@ export async function startWebDriver (options: Options.WebDriver) {
     await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
         .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
 
-    options.hostname = '0.0.0.0'
+    options.hostname = 'localhost'
     options.port = port
     log.info(`Started ${driver} in ${Date.now() - start}ms on port ${port}`)
     return driverProcess

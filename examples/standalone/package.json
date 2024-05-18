@@ -1,3 +1,10 @@
 {
-  "type": "module"
+  "name": "example-standalone",
+  "version": "1.0.0",
+  "description": "Example standalone script",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "webdriverio": "workspace:*"
+  }
 }

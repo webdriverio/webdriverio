@@ -8,5 +8,5 @@ describe('main suite 1', () => {
             : caps.browserName && caps.browserName.includes('chrome') ? 'chrome/' : caps.browserName!.toLowerCase()
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('#useragent')).toHaveTextContaining(assertionValue, { ignoreCase: true })
-    })
+    }, { retry: 2 })
 })

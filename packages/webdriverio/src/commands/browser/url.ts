@@ -52,7 +52,8 @@ export async function url (
         const context = await this.getWindowHandle()
         const res = await this.browsingContextNavigate({
             context,
-            url: path
+            url: path,
+            wait: 'interactive'
         })
         return res.url
     }

@@ -1,0 +1,10 @@
+{
+  "name": "example-appium",
+  "version": "1.0.0",
+  "description": "Example scripts how to use WebdriverIO with Appium",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "webdriverio": "workspace:*"
+  }
+}

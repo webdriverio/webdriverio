@@ -168,8 +168,8 @@ const config: Config = {
                     label: 'Sponsor',
                     to: 'docs/sponsor',
                 }, {
-                    label: 'Team',
-                    href: 'https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md',
+                    label: 'Swag Store',
+                    href: 'https://shop.webdriver.io',
                 }, {
                     label: 'YouTube',
                     href: youtubeUrl,
@@ -180,6 +180,11 @@ const config: Config = {
                     html: `
                       <a href="https://www.browserstack.com/automation-webdriverio" target="_blank" rel="noreferrer noopener" aria-label="Premium Sponsor BrowserStack">
                         <img src="/img/sponsors/browserstack_white.svg" alt="BrowserStack" />
+                      </a>`
+                }, {
+                    html: `
+                      <a href="https://saucelabs.com/" target="_blank" rel="noreferrer noopener" aria-label="Premium Sponsor Sauce Labs">
+                        <img src="/img/sponsors/saucelabs_white.svg" alt="Sauce Labs" />
                       </a>`
                 }]
             }],

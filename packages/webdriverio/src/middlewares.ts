@@ -1,8 +1,9 @@
 import { ELEMENT_KEY } from 'webdriver'
+import { getBrowserObject } from '@wdio/utils'
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { getBrowserObject, isStaleElementError } from './utils/index.js'
+import { isStaleElementError } from './utils/index.js'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -25,10 +26,7 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                  * as `stale element reference`
                  */
                 const caps = getBrowserObject(this).capabilities as WebdriverIO.Capabilities
-                if (
-                    caps && caps.browserName === 'safari' &&
-                    result && result.error === 'no such element'
-                ) {
+                if (caps?.browserName === 'safari' && result?.error === 'no such element') {
                     const errorName = 'stale element reference'
                     const err = new Error(errorName)
                     err.name = errorName
@@ -37,17 +35,22 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
 
                 return result
             } catch (err: any) {
+                if (err.name === 'element not interactable') {
+                    const elementHTML = await element.getHTML()
+                    err.message = `Element ${elementHTML} not interactable`
+                    err.stack = err.stack ?? Error.captureStackTrace(err)
+                }
+
                 if (err.name === 'stale element reference' || isStaleElementError(err)) {
                     const element = await refetchElement(this, commandName)
                     this.elementId = element.elementId
                     this.parent = element.parent
-
                     return await fn(commandName, commandFn).apply(this, args)
                 }
+
                 throw err
             }
         }).apply(this)
-
     }
 }
 

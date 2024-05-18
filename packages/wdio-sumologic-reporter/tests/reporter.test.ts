@@ -1,12 +1,11 @@
 import path from 'node:path'
-import got from 'got'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import SumoLogicReporter from '../src/index.js'
 
 import logger from '@wdio/logger'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -18,7 +17,7 @@ describe('wdio-sumologic-reporter', () => {
     let reporter: SumoLogicReporter
 
     beforeEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
         vi.mocked(logger('').error).mockClear()
         reporter = new SumoLogicReporter({})
     })
@@ -75,13 +74,13 @@ describe('wdio-sumologic-reporter', () => {
     describe('should not sync if it', () => {
         it('has no data to sync', async () => {
             await reporter.sync()
-            expect(vi.mocked(got).mock.calls).toHaveLength(0)
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(0)
         })
 
         it('has no source address set up', async () => {
             reporter.onRunnerStart('onRunnerStart' as any)
             await reporter.sync()
-            expect(vi.mocked(got).mock.calls).toHaveLength(0)
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(0)
         })
     })
 
@@ -90,10 +89,10 @@ describe('wdio-sumologic-reporter', () => {
         reporter.onRunnerStart('onRunnerStart' as any)
         await reporter.sync()
 
-        expect(vi.mocked(got).mock.calls).toHaveLength(1)
-        expect((vi.mocked(got).mock.calls[0][1 as any] as any).method).toBe('POST')
-        expect(vi.mocked(got).mock.calls[0][0]).toBe('http://localhost:1234')
-        expect((vi.mocked(got).mock.calls[0][1 as any] as any).json)
+        expect(vi.mocked(fetch).mock.calls).toHaveLength(1)
+        expect((vi.mocked(fetch).mock.calls[0][1 as any] as any).method).toBe('POST')
+        expect(vi.mocked(fetch).mock.calls[0][0]).toBe('http://localhost:1234')
+        expect(JSON.parse((vi.mocked(fetch).mock.calls[0][1 as any] as any).body))
             .toContain('"event":"runner:start","data":"onRunnerStart"')
 
         expect(reporter['_unsynced']).toHaveLength(0)

@@ -2,11 +2,9 @@ import path from 'node:path'
 import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, beforeAll, beforeEach, afterEach, vi } from 'vitest'
 
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isStable test', () => {
@@ -29,11 +27,12 @@ describe('isStable test', () => {
 
     it('should allow to check if element is stable', async () => {
         await elem.isStable()
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/execute/async')
-        expect(vi.mocked(got).mock.calls[2][1]!.json.script)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).script)
             .toEqual(expect.stringContaining('return (function isElementStable(elem, done) {'))
-        expect(vi.mocked(got).mock.calls[2][1]!.json.args)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).args)
             .toEqual([{
                 ELEMENT: elem.elementId,
                 [ELEMENT_KEY]: elem.elementId,
@@ -46,6 +45,6 @@ describe('isStable test', () => {
     })
 
     afterEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

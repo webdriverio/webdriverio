@@ -47,6 +47,21 @@ export function testFailedWithMultipleErrors() {
     return Object.assign(testState(), { errors, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 
+export function testFailedWithMultipleErrorsAndStacksNotContainingMessages() {
+    const errors =
+    [
+        {
+            message: 'ReferenceError: All is Dust',
+            stack: 'stack trace of ReferenceError'
+        },
+        {
+            message: 'InternalError: Abandon Hope',
+            stack: 'stack trace of InternalError'
+        }
+    ]
+    return Object.assign(testState(), { errors, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
+}
+
 export function testFailedWithAssertionErrorFromExpectWebdriverIO() {
     const errors =
     [

@@ -14,7 +14,7 @@ Feature: Example feature
 
   Rule: Business rule 2
     Scenario: Data Tables
-      Given I go on the website "http://todomvc.com/examples/react/#/"
+      Given I go on the website "http://todomvc.com/examples/react/dist/"
       When  I add the following groceries
           | Item       | Amount |
           | Milk       | 2      |

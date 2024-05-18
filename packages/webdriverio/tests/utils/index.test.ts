@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
-import { findElement, isStaleElementError } from '../../src/utils/index.js'
+import { findElement, isStaleElementError, elementPromiseHandler } from '../../src/utils/index.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -54,6 +54,58 @@ describe('findElement', () => {
     })
 })
 
+describe('elementPromiseHandler', () => {
+    it('should handle error', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager)
+        expect(handler(new Error('foobar'))).toBe(undefined)
+        expect(handler({ error: 'foobar' })).toBe(undefined)
+        expect(handler({ message: 'foobar' })).toBe(undefined)
+    })
+
+    it('should handle element', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager)
+        const elem = { foo: 'bar' }
+        expect(handler(elem)).toEqual(elem)
+        expect(shadowRootManager.deleteShadowRoot).toBeCalledTimes(0)
+    })
+
+    it('should handle element with shadow root', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager, 'shadow-root-id')
+        const elem = { foo: 'bar' }
+        expect(handler(elem)).toEqual(elem)
+        expect(shadowRootManager.deleteShadowRoot).toBeCalledTimes(0)
+    })
+
+    it('should handle stale element error', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager, 'shadow-root-id')
+        const error = new Error('stale element reference: element is not attached to the page document')
+        expect(handler(error)).toBe(undefined)
+        expect(shadowRootManager.deleteShadowRoot).toBeCalledTimes(0)
+    })
+
+    it('should handle detached shadow root error', () => {
+        const shadowRootManager: any = {
+            deleteShadowRoot: vi.fn()
+        }
+        const handler = elementPromiseHandler('foobar', shadowRootManager, 'shadow-root-id')
+        const error = new Error('detached shadow root')
+        expect(handler(error)).toBe(undefined)
+        expect(shadowRootManager.deleteShadowRoot).toBeCalledWith('shadow-root-id', 'foobar')
+    })
+})
+
 it('isStaleElementError', () => {
     const staleElementChromeError = new Error('stale element reference: element is not attached to the page document')
     expect(isStaleElementError(staleElementChromeError)).toBe(true)
@@ -61,6 +113,8 @@ it('isStaleElementError', () => {
     expect(isStaleElementError(staleElementFirefoxError)).toBe(true)
     const staleElementSafariError = new Error('A node reference could not be resolved: Stale element found when trying to create the node handle')
     expect(isStaleElementError(staleElementSafariError)).toBe(true)
+    const staleElementJSError = new Error('javascript error: {"status":10,"value":"stale element not found in the current frame"}')
+    expect(isStaleElementError(staleElementJSError)).toBe(true)
     const otherError = new Error('something else')
     expect(isStaleElementError(otherError)).toBe(false)
 })

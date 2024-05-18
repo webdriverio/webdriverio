@@ -1,7 +1,9 @@
 import type { ElementReference } from '@wdio/protocols'
 
 import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
-import { getElements } from '../../utils/getElementObject.js'
+import { getElements, getElement } from '../../utils/getElementObject.js'
+import { findDeepElements } from '../../utils/index.js'
+import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
 
 /**
@@ -16,7 +18,7 @@ import type { Selector } from '../../types.js'
  * to walk down the DOM tree, e.g.:
  *
  * ```js
- * const imageSrc = await $$('div')[1].nextElement().$$('img')[2].getAttribute('src)
+ * const imageSrc = await $$('div')[1].nextElement().$$('img')[2].getAttribute('src')
  * ```
  *
  * It is also possible to use async iterators to loop over the result of the query, e.g.:
@@ -47,7 +49,31 @@ import type { Selector } from '../../types.js'
 export async function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
-) {
+): Promise<WebdriverIO.ElementArray> {
+    /**
+     * do a deep lookup if
+     * - we are using Bidi
+     * - have a string selector
+     * - that is not a deep selector
+     */
+    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
+        /**
+         * run this in Node.js land if we are using browser runner
+         */
+        if (globalThis.wdio?.execute) {
+            const command = '$$' as const
+            const res = 'elementId' in this
+                ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as any as ElementReference[]
+                : await globalThis.wdio.execute(command, selector) as any as ElementReference[]
+            const elements = await getElements.call(this, selector as Selector, res)
+            return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+        }
+
+        const res = await findDeepElements.call(this, selector)
+        const elements = await getElements.call(this, selector as Selector, res)
+        return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+    }
+
     let res: (ElementReference | Error)[] = Array.isArray(selector)
         ? selector as ElementReference[]
         : await findElements.call(this, selector)
@@ -64,5 +90,23 @@ export async function $$ (
     }
 
     const elements = await getElements.call(this, selector as Selector, res)
-    return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+    return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+}
+
+function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: ElementReference[]) {
+    /**
+     * Define scope of element. In most cases it is `this` but if we pass through
+     * an element object from the browser runner we have to look into the parent
+     * provided by the selector object. Since these objects are passed through
+     * as raw objects without any prototype we have to check if the `$` or `$$`
+     * is defined on the object itself and if not, create a new element object.
+     */
+    let parent = res.length > 0 ? (res[0] as WebdriverIO.Element).parent || this : this
+    if (typeof parent.$ === 'undefined') {
+        parent = 'selector' in parent
+            ? getElement.call(this, parent.selector, parent)
+            : this
+    }
+
+    return parent
 }

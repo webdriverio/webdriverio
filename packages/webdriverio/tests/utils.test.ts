@@ -5,7 +5,6 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { ElementReference } from '@wdio/protocols'
 import {
     getElementFromResponse,
-    getBrowserObject,
     parseCSS,
     checkUnicode,
     findElement,
@@ -59,20 +58,6 @@ describe('utils', () => {
         it('should throw otherwise', () => {
             // @ts-ignore test invalid parameter
             expect(getElementFromResponse({ invalid: 'response ' })).toBe(null)
-        })
-    })
-
-    describe('getBrowserObject', () => {
-        it('should traverse up', () => {
-            expect(getBrowserObject({
-                parent: {
-                    parent: {
-                        parent: {
-                            foo: 'bar'
-                        }
-                    }
-                }
-            } as any)).toEqual({ foo: 'bar' })
         })
     })
 
@@ -151,14 +136,6 @@ describe('utils', () => {
             expect(Array.isArray(result)).toBe(true)
             expect(result).toHaveLength(1)
             expect(result[0]).toEqual('\uE011')
-        })
-
-        it('should not convert unicode if devtools is used', () => {
-            const result = checkUnicode('Home', true)
-
-            expect(Array.isArray(result)).toBe(true)
-            expect(result).toHaveLength(1)
-            expect(result[0]).toEqual('Home')
         })
 
         it('should return an array without unicode', () => {

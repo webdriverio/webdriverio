@@ -1,10 +1,9 @@
 import path from 'node:path'
 import { expect, describe, it, beforeEach, vi, beforeAll } from 'vitest'
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
+
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('touchAction test', () => {
@@ -36,12 +35,13 @@ describe('touchAction test', () => {
                 y: 2,
                 element: elem
             })
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
-                    { action: 'press', options: { x: 1, y: 2, element: 'some-elem-123' } }
+                    { action: 'press', options: {  element: 'some-elem-123', x: 1, y: 2 } }
                 ]
-            })
+            }))
         })
 
         it('should allow to press on x/y coordinates', async () => {
@@ -50,36 +50,39 @@ describe('touchAction test', () => {
                 x: 1,
                 y: 2
             })
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     { action: 'press', options: { x: 1, y: 2 } }
                 ]
-            })
+            }))
         })
 
         it('should handle multiple actions as strings properly', async () => {
             await browser.touchAction(['wait', 'release'])
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     { action: 'wait' },
                     { action: 'release' }
                 ]
-            })
+            }))
         })
     })
 
     describe('multi touch', () => {
         it('should transform to array using element as first citizen', async () => {
             await browser.touchAction([['press'], ['release']])
-            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/multi/perform')
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            // @ts-expect-error mock implementation
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname).toContain('/touch/multi/perform')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     [{ action: 'press' }],
                     [{ action: 'release' }]
                 ]
-            })
+            }))
         })
 
         it('should transform object into array', async () => {
@@ -92,12 +95,12 @@ describe('touchAction test', () => {
                 x: 112,
                 y: 245
             }]])
-            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body).toEqual(JSON.stringify({
                 actions: [
                     [{ action: 'press', options: { x: 1, y: 2 } }],
                     [{ action: 'tap', options: { x: 112, y: 245 } }]
                 ]
-            })
+            }))
         })
     })
 
@@ -113,6 +116,6 @@ describe('touchAction test', () => {
     })
 
     beforeEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

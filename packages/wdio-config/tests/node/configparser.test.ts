@@ -1,11 +1,7 @@
 import url from 'node:url'
 import path from 'node:path'
 
-import type { MockedFunction } from 'vitest'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
-// @ts-expect-error
-import babelRegister from '@babel/register'
-import logger from '@wdio/logger'
+import { vi, describe, it, expect,  } from 'vitest'
 
 import ConfigParser from '../../src/node/ConfigParser.js'
 import type { MockFileContent } from '../lib/MockFileContentBuilder.js'
@@ -14,7 +10,6 @@ import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } f
 import ConfigParserBuilder from '../lib/ConfigParserBuilder.js'
 import { FileNamed, realReadFilePair, realRequiredFilePair } from '../lib/FileNamed.js'
 
-const log = logger('')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const root = path.resolve(__dirname, '..', '..')
 
@@ -23,6 +18,7 @@ const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
 const FIXTURES_CONF_ARRAY = path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')
+const FIXTURES_PREFIX_CONF = path.resolve(FIXTURES_PATH, 'wdio.wdio-prefix.conf.ts')
 const FIXTURES_DEFAULT_CONF = path.resolve(FIXTURES_PATH, 'wdio.default.conf.ts')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
@@ -31,13 +27,7 @@ const INDEX_PATH = path.resolve(__dirname, '..', '..', 'src', 'index.ts')
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-vi.mock('ts-node', () => ({
-    default: { register: vi.fn() }
-}))
-
-vi.mock('@babel/register', () => ({
-    default: vi.fn()
-}))
+class CustomServiceOrReporter {}
 
 /**
  * Entirely in memory config structure to avoid reading the file system at all
@@ -68,7 +58,9 @@ const TestWdioConfig_AllInMemory = (): MockFileContent => ({
                 path.join(root, '/tests/validateConfig.test.ts'),
                 path.join(root, '/tests/..', 'src/index.ts')
             ]
-        }
+        },
+        services: ['appium', [CustomServiceOrReporter, { foo: 'bar' }]],
+        reporters: ['spec', [CustomServiceOrReporter, { foo: 'bar' }]],
     }
 })
 
@@ -88,12 +80,12 @@ async function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem(): Promise<File
         realReadFilePair(path.resolve(FIXTURES_PATH, '../utils.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../node/FileSystemPathService.test.ts')),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.cjs')).withContents('test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents( 'test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents( 'test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test.mjs')).withContents( 'test file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test-a.feature')).withContents( 'feature file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'test-b.feature')).withContents( 'feature file contents'),
-        FileNamed(path.resolve(FIXTURES_PATH, 'typescript.ts')).withContents( 'test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.mjs')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test-a.feature')).withContents('feature file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test-b.feature')).withContents('feature file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'typescript.ts')).withContents('test file contents'),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.ts')),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')),
@@ -127,10 +119,13 @@ function MockedFileSystem_OnlyLoadingConfig(baseDir: MockSystemFolderPath, confi
         FileNamed(path.join(baseDir, 'test-a.feature')).withContents('feature file contents'),
         FileNamed(path.join(baseDir, 'test-b.feature')).withContents('feature file contents'),
         FileNamed(path.join(baseDir, 'typescript.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'prefix-test-01.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'prefix-test-02.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'wdio.conf.multiremote.rdc.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, 'wdio.conf.rdc.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, 'wdio.conf.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, 'wdio.local.conf.ts')).withContents('config contents'),
+        FileNamed(path.join(baseDir, 'wdio.wdio-prefix.conf.ts')).withContents('config contents'),
         FileNamed(path.join(baseDir, '../app/src/index.ts')).withContents('source contents')]
 }
 
@@ -157,7 +152,7 @@ describe('ConfigParser', () => {
         const c1 = new ConfigParser('/wdio.conf.js', { coverage: true })
         c1['addConfigFile'] = vi.fn()
         c1['merge'] = vi.fn()
-        c1['_config'] = { runner: 'browser', autoCompileOpts: { autoCompile: false } } as any
+        c1['_config'] = { runner: 'browser' } as any
         await c1.initialize({})
         expect(c1['_config']).toMatchSnapshot()
 
@@ -167,8 +162,7 @@ describe('ConfigParser', () => {
         c2['_config'] = {
             runner: ['browser', {
                 coverage: { enabled: false, statements: 100 }
-            }],
-            autoCompileOpts: { autoCompile: false }
+            }]
         } as any
         await c2.initialize({})
         expect(c2['_config']).toMatchSnapshot()
@@ -178,7 +172,7 @@ describe('ConfigParser', () => {
         const c1 = new ConfigParser('/wdio.conf.js', { coverage: false })
         c1['addConfigFile'] = vi.fn()
         c1['merge'] = vi.fn()
-        c1['_config'] = { runner: 'browser', autoCompileOpts: { autoCompile: false } } as any
+        c1['_config'] = { runner: 'browser' } as any
         await c1.initialize({})
         expect(c1['_config']).toMatchSnapshot()
 
@@ -188,8 +182,7 @@ describe('ConfigParser', () => {
         c2['_config'] = {
             runner: ['browser', {
                 coverage: { enabled: true, statements: 100 }
-            }],
-            autoCompileOpts: { autoCompile: false }
+            }]
         } as any
         await c2.initialize({})
         expect(c2['_config']).toMatchSnapshot()
@@ -219,128 +212,6 @@ describe('ConfigParser', () => {
         it('should throw if config file is not a config file (relative path)', async () => {
             const configParser = await ConfigParserForTest()
             expect(() => configParser['addConfigFile']('test-a.feature')).rejects.toThrow()
-        })
-
-        describe('Babel integration', () => {
-            beforeEach(() => {
-                (log.debug as MockedFunction<any>).mockClear()
-                delete process.env.THROW_BABEL_REGISTER
-                delete process.env.THROW_TSNODE_RESOLVE
-                delete process.env.WDIO_WORKER_ID
-            })
-
-            it('when @babel/register package exists should initiate with @babel/register compiler', async () => {
-                process.env.THROW_TSNODE_RESOLVE = '1'
-                const configContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const babelRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC)
-                    .withFiles([
-                        FileNamed(FIXTURES_CONF_RDC).withContents(configContents)
-                    ]
-                    )
-                    .withBabelModule(babelRegister)
-                    .build()
-                await configParser.initialize()
-
-                expect(babelRegister).toHaveBeenCalledWith({})
-                expect(log.debug).toBeCalledTimes(2)
-                expect((log.debug as MockedFunction<any>).mock.calls[1][0])
-                    .toContain('auto-compiling files with Babel')
-            })
-
-            it('should not transpile via ts-node if we are within the worker', async function () {
-                process.env.WDIO_WORKER_ID = '0-0'
-                const configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const tsNodeRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(path.join(FIXTURES_PATH, '/here'), 'cool.conf')
-                    .withTsNodeModule(tsNodeRegister)
-                    .withFiles([
-                        ...(await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem()),
-                        FileNamed(path.join(FIXTURES_PATH, '/here/cool.conf')).withContents(configFileContents)
-                    ])
-                    .build()
-                await configParser.initialize()
-                expect(tsNodeRegister).toBeCalledTimes(0)
-            })
-
-            it('when @babel/register package exists should merge config, preferring config, if present', async function () {
-                process.env.THROW_TSNODE_RESOLVE = '1'
-                const configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const babelRegister = vi.fn()
-                const configParser = ConfigParserBuilder.withBaseDir(
-                    path.join(__dirname, '/tests/'),
-                    path.join(__dirname, '/tests/cool.conf'),
-                    {
-                        autoCompileOpts: {
-                            babelOpts: {
-                                'babel': 'do this',
-                                'and': 'that'
-                            }
-                        }
-                    }
-                ).withFiles([
-                    FileNamed(path.join(__dirname, '/tests/cool.conf')).withContents(JSON.stringify(configFileContents)),
-                    FileNamed(path.join(__dirname, '/tests/validateConfig.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/node/configparser.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/utils.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/node/FileSystemPathService.test.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test.cjs')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test.es6')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test.java')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test.mjs')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test-a.feature')).withContents('feature file contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/test-b.feature')).withContents('feature file contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/typescript.ts')).withContents('test contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.conf.multiremote.rdc.ts')).withContents('config contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.conf.rdc.ts')).withContents('config contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.conf.ts')).withContents('config contents'),
-                    FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.local.conf.ts')).withContents('config contents'),
-                    FileNamed(path.join(__dirname, '/app/src/index.ts')).withContents('source contents')
-                ]).withBabelModule(babelRegister).build()
-                await configParser.initialize()
-                expect(babelRegister).toBeCalledTimes(1)
-                expect(babelRegister).toHaveBeenCalledWith({
-                    'babel': 'do this',
-                    'and': 'that'
-                })
-            })
-
-            it('should just continue without initiation when autoCompile:false', async () => {
-                process.env.THROW_BABEL_REGISTER = '1'
-                const configParserBuilder = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC, {
-                        autoCompileOpts: {
-                            autoCompile: false
-                        }
-                    })
-                    .withBabelModule()
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(process.cwd(), FIXTURES_CONF_RDC)
-                    ])
-                const { requireMock } = configParserBuilder.getMocks().modules.getMocks()
-                const configParser = configParserBuilder.build()
-                await configParser.initialize()
-                expect(requireMock).not.toHaveBeenCalled()
-            })
-
-            it('should just continue without initiation if @babel/register does not exist', async () => {
-                process.env.THROW_BABEL_REGISTER = '1'
-                process.env.THROW_TSNODE_RESOLVE = '1'
-                const configParserBuilder = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC)
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(FIXTURES_PATH, FIXTURES_CONF_RDC)
-                    ])
-                    .withNoModules()
-                const configParser = configParserBuilder.build()
-                await configParser.initialize()
-                expect(babelRegister).not.toHaveBeenCalled()
-                expect(log.debug).toBeCalledTimes(1)
-                expect((log.debug as MockedFunction<any>).mock.calls[0][0])
-                    .toContain('Failed loading TS Node')
-            })
         })
     })
 
@@ -411,7 +282,7 @@ describe('ConfigParser', () => {
 
         it('should allow specifying mutliple single spec file', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : [INDEX_PATH, FIXTURES_CONF] })
+            await configParser.initialize({ spec: [INDEX_PATH, FIXTURES_CONF] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
@@ -421,7 +292,7 @@ describe('ConfigParser', () => {
 
         it('should allow to specify partial matching spec file', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : ['PathService'] })
+            await configParser.initialize({ spec: ['PathService'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
@@ -429,7 +300,7 @@ describe('ConfigParser', () => {
 
         it('should handle an array in the config_specs', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF_ARRAY)
-            await configParser.initialize({ spec : ['PathService'] })
+            await configParser.initialize({ spec: ['PathService'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
@@ -437,7 +308,7 @@ describe('ConfigParser', () => {
 
         it('should exclude duplicate spec files', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec : [INDEX_PATH, INDEX_PATH] })
+            await configParser.initialize({ spec: [INDEX_PATH, INDEX_PATH] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
@@ -519,7 +390,6 @@ describe('ConfigParser', () => {
             ]).build()
             await configParser.initialize()
             const config = configParser.getConfig()
-            // @ts-expect-error
             expect(config['foo']).toBe('bar')
         })
 
@@ -609,6 +479,25 @@ describe('ConfigParser', () => {
             expect(specs).toContain(configParserPath)
         })
 
+        it('should overwrite specs w/ wdio:specs files from capabilitoes', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_PREFIX_CONF)
+            const prefixedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-01.ts')
+            await configParser.initialize({ 'wdio:specs': [prefixedTestFile] })
+
+            const specs = configParser.getSpecs([prefixedTestFile])
+            expect(specs).toContain(prefixedTestFile)
+        })
+
+        it('should overwrite exclude w/ wdio:exclude files from capabilities', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_PREFIX_CONF)
+            const prefixedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-01.ts')
+            const excludedTestFile = path.resolve(FIXTURES_PATH, 'prefix-test-02.ts')
+            await configParser.initialize({ 'wdio:specs': [prefixedTestFile], 'wdio:exclude' : [excludedTestFile] })
+
+            const specs = configParser.getSpecs([prefixedTestFile, excludedTestFile])
+            expect(specs).not.toContain(excludedTestFile)
+        })
+
         it('should set hooks to empty arrays as default', async () => {
             const configParser = await ConfigParserForTest(FIXTURES_CONF)
             await configParser.initialize({})
@@ -643,6 +532,50 @@ describe('ConfigParser', () => {
             })
 
             expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'safari' }])
+        })
+
+        it('should ensure there we do not duplicate class entries', async () => {
+            const configParser = await ConfigParserForTest(FIXTURES_CONF)
+            await configParser.initialize({
+                services: [
+                    'appium',
+                    'sauce',
+                    [CustomServiceOrReporter, { foo: 'bar' }]
+                ],
+                reporters: [
+                    'dot',
+                    'spec',
+                    [CustomServiceOrReporter, { foo: 'bar' }] as any
+                ]
+            })
+            const { services, reporters } = configParser.getConfig()
+            expect(services).toHaveLength(3)
+            expect(services).toMatchInlineSnapshot(`
+              [
+                "appium",
+                "sauce",
+                [
+                  [Function],
+                  {
+                    "foo": "bar",
+                  },
+                ],
+              ]
+            `)
+            expect(reporters).toHaveLength(3)
+            expect(reporters).toMatchInlineSnapshot(`
+              [
+                "dot",
+                "spec",
+                [
+                  [Function],
+                  {
+                    "foo": "bar",
+                  },
+                ],
+              ]
+            `)
+
         })
     })
 
@@ -809,9 +742,9 @@ describe('ConfigParser', () => {
             expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
         })
 
-        it('should include spec 3 times with mulit-run', async () => {
+        it('should repeat spec 3 times', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec: [INDEX_PATH], multiRun: 3 })
+            await configParser.initialize({ spec: [INDEX_PATH], repeat: 3 })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
@@ -822,7 +755,7 @@ describe('ConfigParser', () => {
             ])
         })
 
-        it('should not include spec if blank spec parameter passed', async ()=> {
+        it('should not include spec if blank spec parameter passed', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ suite: ['mobile'], spec: [] })
 
@@ -830,19 +763,33 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(1)
         })
 
-        it('should include specs from suite 3 times with mulit-run', async () => {
+        it('should repeat specs from suite 3 times', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ suite: ['functional'], multiRun: 3 })
+            await configParser.initialize({ suite: ['functional'], repeat: 3 })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
         })
 
-        it('should throw an error if multi-run is set but no spec or suite is specified', async () => {
+        it('should repeat specs in specific order to fail early', async () => {
+            const spec1 = path.resolve(__dirname, '../utils.test.ts')
+            const spec2 = path.resolve(__dirname, 'configparser.test.ts')
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ multiRun: 3 })
+            await configParser.initialize({ spec: [spec1, spec2], repeat: 3 })
 
-            expect(() => configParser.getSpecs()).toThrow('The --multi-run flag requires that either the --spec or --suite flag is also set')
+            const specs = configParser.getSpecs()
+            expect(specs).toEqual([
+                spec1, spec2,
+                spec1, spec2,
+                spec1, spec2,
+            ])
+        })
+
+        it('should throw an error if repeat is set but no spec or suite is specified', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ repeat: 3 })
+
+            expect(() => configParser.getSpecs()).toThrow('The --repeat flag requires that either the --spec or --suite flag is also set')
         })
 
         it('should include spec when specifying a suite unless excluded', async () => {

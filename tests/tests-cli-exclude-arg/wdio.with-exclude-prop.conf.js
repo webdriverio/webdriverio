@@ -33,6 +33,7 @@ export const config = {
     framework: 'mocha',
     outputDir: __dirname,
 
+    services: ['webdriver-mock'],
     reporters: ['spec', 'dot', 'junit'],
 
     mochaOpts: {

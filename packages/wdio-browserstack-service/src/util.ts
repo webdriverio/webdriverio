@@ -2,18 +2,12 @@ import { hostname, platform, type, version, arch } from 'node:os'
 import fs from 'node:fs'
 import zlib from 'node:zlib'
 import { promisify } from 'node:util'
-import http from 'node:http'
-import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
-import { spawn } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
-import got, { HTTPError } from 'got'
-import type { Method } from 'got'
 import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
@@ -22,25 +16,33 @@ import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
-import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
+import type { UserConfig, UploadType, BrowserstackConfig, LaunchResponse } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
-import { ACCESSIBILITY_API_URL, BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT, UPLOAD_LOGS_ADDRESS, UPLOAD_LOGS_ENDPOINT, consoleHolder } from './constants.js'
-import RequestQueueHandler from './request-handler.js'
+import {
+    ACCESSIBILITY_API_URL,
+    BROWSER_DESCRIPTION,
+    DATA_ENDPOINT,
+    UPLOAD_LOGS_ADDRESS,
+    UPLOAD_LOGS_ENDPOINT,
+    consoleHolder,
+    TESTOPS_BUILD_COMPLETED_ENV,
+    TESTOPS_JWT_ENV,
+    TESTOPS_SCREENSHOT_ENV,
+    TESTOPS_BUILD_ID_ENV,
+    PERF_MEASUREMENT_ENV,
+    RERUN_ENV
+} from './constants.js'
 import CrashReporter from './crash-reporter.js'
-import { accessibilityResults, accessibilityResultsSummary } from './scripts/test-event-scripts.js'
 import { BStackLogger } from './bstackLogger.js'
 import { FileStream } from './fileStream.js'
-import BrowserstackLauncherService from './launcher.js'
+import UsageStats from './testOps/usageStats.js'
+import TestOpsConfig from './testOps/testOpsConfig.js'
+
+import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
 const pGitconfig = promisify(gitconfig)
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 export const DEFAULT_REQUEST_CONFIG = {
-    agent: {
-        http: new http.Agent({ keepAlive: true }),
-        https: new https.Agent({ keepAlive: true }),
-    },
     headers: {
         'Content-Type': 'application/json',
         'X-BSTACK-OBS': 'true'
@@ -136,7 +138,7 @@ export function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
             let functionToHandle = fn
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
             }
             const result = functionToHandle(...args)
@@ -165,19 +167,25 @@ export function errorHandler(fn: Function) {
     }
 }
 
-export async function nodeRequest(requestType: Method, apiEndpoint: string, options: any, apiUrl: string, timeout: number = 120000) {
+export async function nodeRequest(requestType: string, apiEndpoint: string, options: any, apiUrl: string, timeout: number = 120000) {
     try {
-        const response: any = await got(`${apiUrl}/${apiEndpoint}`, {
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+        const response = await fetch(`${apiUrl}/${apiEndpoint}`, {
             method: requestType,
-            timeout: {
-                request: timeout
-            },
+            signal: controller.signal,
             ...options
-        }).json()
-        return response
+        })
+
+        // Clear the timeout as the request completed successfully
+        clearTimeout(timeoutId)
+
+        return await response.json()
     } catch (error : any) {
         const isLogUpload = apiEndpoint === UPLOAD_LOGS_ENDPOINT
-        if (error instanceof HTTPError && error.response) {
+        if (error && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null
             if (errorMessage) {
@@ -221,7 +229,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                 writable: true,
                 value: function(...args: any) {
                     try {
-                        const result = (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
+                        const result = (process.env[PERF_MEASUREMENT_ENV] ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
                             return result.catch(error => processError(error, method, args))
                         }
@@ -239,6 +247,8 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 }
 
 export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+    const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
+    launchBuildUsage.triggered()
     const data = {
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
@@ -255,7 +265,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         },
         ci_info: getCiInfo(),
         build_run_identifier: process.env.BROWSERSTACK_BUILD_RUN_IDENTIFIER,
-        failed_tests_rerun: process.env.BROWSERSTACK_RERUN || false,
+        failed_tests_rerun: process.env[RERUN_ENV] || false,
         version_control: await getGitMetaData(),
         observability_version: {
             frameworkName: 'WebdriverIO-' + config.framework,
@@ -275,25 +285,33 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
 
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
-        const response: LaunchResponse = await got.post(url, {
-            ...DEFAULT_REQUEST_CONFIG,
-            username: getObservabilityUser(options, config),
-            password: getObservabilityKey(options, config),
-            json: data
-        }).json()
-        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        if (response.jwt) {
-            process.env.BS_TESTOPS_JWT = response.jwt
+        const encodedAuth = Buffer.from(`${getObservabilityUser(options, config)}:${getObservabilityKey(options, config)}`, 'utf8').toString('base64')
+        const headers: Record<string, string> = {
+            ...DEFAULT_REQUEST_CONFIG.headers,
+            Authorization: `Basic ${encodedAuth}`,
         }
-        if (response.build_hashed_id) {
-            process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
+        const response = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(data)
+        })
+        const jsonResponse: LaunchResponse = await response.json()
+        BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(jsonResponse)}`)
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        if (jsonResponse.jwt) {
+            process.env[TESTOPS_JWT_ENV] = jsonResponse.jwt
+            launchBuildUsage.success()
         }
-        if (response.allow_screenshots) {
-            process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
+        if (jsonResponse.build_hashed_id) {
+            process.env[TESTOPS_BUILD_ID_ENV] = jsonResponse.build_hashed_id
+            TestOpsConfig.getInstance().buildHashedId = jsonResponse.build_hashed_id
         }
-    } catch (error) {
-        if (error instanceof HTTPError && error.response) {
+        if (jsonResponse.allow_screenshots) {
+            process.env[TESTOPS_SCREENSHOT_ENV] = jsonResponse.allow_screenshots.toString()
+        }
+    } catch (error: any) {
+        launchBuildUsage.failed(error)
+        if (error && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
             switch (errorType) {
@@ -343,10 +361,19 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
     return false
 }
 
-export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }) => {
+export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }, world?: { [key: string]: any; }, isCucumber?: boolean ) => {
     try {
         const includeTags = Array.isArray(accessibilityOptions?.includeTagsInTestingScope) ? accessibilityOptions?.includeTagsInTestingScope : []
         const excludeTags = Array.isArray(accessibilityOptions?.excludeTagsInTestingScope) ? accessibilityOptions?.excludeTagsInTestingScope : []
+
+        if (isCucumber) {
+            const tagsList: string[] = []
+            world?.pickle?.tags.map((tag: { [key: string]: any; }) => tagsList.push(tag.name))
+            const excluded = excludeTags?.some((exclude) => tagsList.includes(exclude))
+            const included = includeTags?.length === 0 || includeTags?.some((include) => tagsList.includes(include))
+
+            return !excluded && included
+        }
 
         const fullTestName = suiteTitle + ' ' + testTitle
         const excluded = excludeTags?.some((exclude) => fullTestName.includes(exclude))
@@ -387,7 +414,10 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
         'source': {
             frameworkName: 'WebdriverIO-' + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,
-            sdkVersion: bsConfig.bstackServiceVersion
+            sdkVersion: bsConfig.bstackServiceVersion,
+            language: 'ECMAScript',
+            testFramework: 'webdriverIO',
+            testFrameworkVersion: bsConfig.bstackServiceVersion
         },
         'settings': bsConfig.accessibilityOptions || {},
         'versionControl': await getGitMetaData(),
@@ -402,15 +432,20 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
         'browserstackAutomation': true,
     }
 
+    const encodedAuth = Buffer.from(`${getBrowserStackUser(config)}:${getBrowserStackKey(config)}`, 'utf8').toString('base64')
+    const headers: any = {
+        'Content-Type': 'application/json; charset=utf-8',
+        Authorization: `Basic ${encodedAuth}`,
+    }
+
     const requestOptions = {
-        json: data,
-        username: getBrowserStackUser(config),
-        password: getBrowserStackKey(config),
+        body: JSON.stringify(data),
+        headers
     }
 
     try {
-        const response: any = await nodeRequest(
-            'POST', 'test_runs', requestOptions, ACCESSIBILITY_API_URL
+        const response = await nodeRequest(
+            'POST', 'v2/test_runs', requestOptions, ACCESSIBILITY_API_URL
         )
 
         BStackLogger.debug(`[Create Accessibility Test Run] Success response: ${JSON.stringify(response)}`)
@@ -423,6 +458,11 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
         }
 
         BStackLogger.debug(`BrowserStack Accessibility Automation Test Run ID: ${response.data.id}`)
+
+        if (response.data) {
+            AccessibilityScripts.update(response.data)
+            AccessibilityScripts.store()
+        }
 
         return response.data.scannerVersion
     } catch (error : any) {
@@ -455,6 +495,27 @@ export const createAccessibilityTestRun = errorHandler(async function createAcce
     }
 })
 
+export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
+    if (!isBrowserStackSession) {
+        BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
+        return // since we are running only on Automate as of now
+    }
+
+    if (!isAccessibilityAutomationSession(isAccessibility)) {
+        BStackLogger.warn('Not an Accessibility Automation session, cannot perform Accessibility scan.')
+        return
+    }
+
+    try {
+        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
+        BStackLogger.debug(util.format(results as string))
+        return ( results as { [key: string]: any; } | undefined )
+    } catch (err : any) {
+        BStackLogger.error('Accessibility Scan could not be performed : ' + err)
+        return
+    }
+}
+
 export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
         BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
@@ -467,7 +528,9 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
     }
 
     try {
-        const results = await (browser as WebdriverIO.Browser).execute(accessibilityResults)
+        BStackLogger.debug('Performing scan before getting results')
+        await performA11yScan(browser, isBrowserStackSession, isAccessibility)
+        const results: Array<{ [key: string]: any; }> = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResults as string)
         return results
     } catch {
         BStackLogger.error('No accessibility results were found.')
@@ -486,7 +549,9 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
     }
 
     try {
-        const summaryResults = await (browser as WebdriverIO.Browser).execute(accessibilityResultsSummary)
+        BStackLogger.debug('Performing scan before getting results summary')
+        await performA11yScan(browser, isBrowserStackSession, isAccessibility)
+        const summaryResults: { [key: string]: any; } = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResultsSummary as string)
         return summaryResults
     } catch {
         BStackLogger.error('No accessibility summary was found.')
@@ -542,10 +607,18 @@ export const stopAccessibilityTestRun = errorHandler(async function stopAccessib
 })
 
 export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        return
+    const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
+    stopBuildUsage.triggered()
+    if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
+        stopBuildUsage.failed('Build is not completed yet')
+        return {
+            status: 'error',
+            message: 'Build is not completed yet'
+        }
     }
-    if (!process.env.BS_TESTOPS_JWT) {
+
+    if (!process.env[TESTOPS_JWT_ENV]) {
+        stopBuildUsage.failed('Token/buildID is undefined, build creation might have failed')
         BStackLogger.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
         return {
             status: 'error',
@@ -557,21 +630,23 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
-        const response = await got.put(url, {
-            agent: DEFAULT_REQUEST_CONFIG.agent,
+        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env[TESTOPS_BUILD_ID_ENV]}/stop`
+        const response = await fetch(url, {
+            method: 'PUT',
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+                'Authorization': `Bearer ${process.env[TESTOPS_JWT_ENV]}`
             },
-            json: data
-        }).json()
-        BStackLogger.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
+            body: JSON.stringify(data)
+        })
+        BStackLogger.debug(`[STOP_BUILD] Success response: ${await response.text()}`)
+        stopBuildUsage.success()
         return {
             status: 'success',
             message: ''
         }
     } catch (error: any) {
+        stopBuildUsage.failed(error)
         BStackLogger.debug(`[STOP_BUILD] Failed. Error: ${error}`)
         return {
             status: 'error',
@@ -898,6 +973,9 @@ export function getScenarioExamples(world: ITestCaseHookParameter) {
 }
 
 export function removeAnsiColors(message: string): string {
+    if (!message) {
+        return ''
+    }
     // https://stackoverflow.com/a/29497680
     // eslint-disable-next-line no-control-regex
     return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
@@ -914,47 +992,6 @@ export function getLogTag(eventType: string): string {
         return 'Log_Upload'
     }
     return 'undefined'
-}
-
-export async function uploadEventData (eventData: UploadType | Array<UploadType>, eventUrl: string = DATA_EVENT_ENDPOINT) {
-    let logTag: string = 'BATCH_UPLOAD'
-    if (!Array.isArray(eventData)) {
-        logTag = getLogTag(eventData.event_type)
-    }
-
-    if (eventUrl === DATA_SCREENSHOT_ENDPOINT) {
-        logTag = 'screenshot_upload'
-    }
-
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        return
-    }
-
-    if (!process.env.BS_TESTOPS_JWT) {
-        BStackLogger.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
-        return {
-            status: 'error',
-            message: 'Token/buildID is undefined, build creation might have failed'
-        }
-    }
-
-    try {
-        const url = `${DATA_ENDPOINT}/${eventUrl}`
-        RequestQueueHandler.getInstance().pendingUploads += 1
-        const data = await got.post(url, {
-            agent: DEFAULT_REQUEST_CONFIG.agent,
-            headers: {
-                ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
-            },
-            json: eventData
-        }).json()
-        BStackLogger.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
-        RequestQueueHandler.getInstance().pendingUploads -= 1
-    } catch (error) {
-        BStackLogger.debug(`[${logTag}] Failed. Error: ${error}`)
-        RequestQueueHandler.getInstance().pendingUploads -= 1
-    }
 }
 
 // get hierarchy for a particular test (called by reporter for skipped tests)
@@ -997,23 +1034,29 @@ export function shouldAddServiceVersion(config: Options.Testrunner, testObservab
 }
 
 export async function batchAndPostEvents (eventUrl: string, kind: string, data: UploadType[]) {
-    if (!process.env.BS_TESTOPS_BUILD_COMPLETED || !process.env.BS_TESTOPS_JWT) {
-        return
+    if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
+        throw new Error('Build not completed yet')
+    }
+
+    const jwtToken = process.env[TESTOPS_JWT_ENV]
+    if (!jwtToken) {
+        throw new Error('Missing authentication Token')
     }
 
     try {
         const url = `${DATA_ENDPOINT}/${eventUrl}`
-        const response = await got.post(url, {
-            agent: DEFAULT_REQUEST_CONFIG.agent,
+        const response = await fetch(url, {
+            method: 'POST',
             headers: {
                 ...DEFAULT_REQUEST_CONFIG.headers,
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+                'Authorization': `Bearer ${jwtToken}`
             },
-            json: data
-        }).json()
-        BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
+            body: JSON.stringify(data)
+        })
+        BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(await response.json())}`)
     } catch (error) {
         BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        throw new Error('Exception in request ' + error)
     }
 }
 
@@ -1104,7 +1147,7 @@ export function frameworkSupportsHook(hook: string, framework?: string) {
     return false
 }
 
-export function patchConsoleLogs() {
+export const patchConsoleLogs = o11yErrorHandler(() => {
     const BSTestOpsPatcher = new logPatcher({})
 
     Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
@@ -1121,7 +1164,7 @@ export function patchConsoleLogs() {
             }
         }
     })
-}
+})
 
 export function getFailureObject(error: string|Error) {
     const stack = (error as Error).stack
@@ -1135,20 +1178,11 @@ export function getFailureObject(error: string|Error) {
     }
 }
 
-export async function pushDataToQueue(data: UploadType, requestQueueHandler: RequestQueueHandler|undefined = undefined) {
-    if (!requestQueueHandler) {
-        requestQueueHandler = RequestQueueHandler.getInstance()
-    }
-    const req = requestQueueHandler.add(data)
-    if (req.proceed && req.data) {
-        await uploadEventData(req.data, req.url)
-    }
-}
-
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
     if (!user || !key) {
+        BStackLogger.debug('Uploading logs failed due to no credentials')
         return
     }
     const fileStream = fs.createReadStream(BStackLogger.logFilePath)
@@ -1162,8 +1196,9 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
 
     const requestOptions = {
         body: formData,
-        username: user,
-        password: key
+        headers: {
+            'Authorization': getBasicAuthHeader(user, key)
+        }
     }
 
     const response = await nodeRequest(
@@ -1194,16 +1229,6 @@ export const ObjectsAreEqual = (object1: any, object2: any) => {
     return true
 }
 
-export function setupExitHandlers() {
-    process.on('exit', (code) => {
-        if (!!process.env.BS_TESTOPS_JWT && !BrowserstackLauncherService._testOpsBuildStopped) {
-            const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`], { detached: true, stdio: 'inherit', env: { ...process.env } })
-            childProcess.unref()
-            process.exit(code)
-        }
-    })
-}
-
 export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: WebdriverIO.Capabilities) {
     if (!caps) {
         return undefined
@@ -1221,3 +1246,26 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
     return undefined
 })
 
+export const getBasicAuthHeader = (username: string, password: string) => {
+    const encodedAuth = Buffer.from(`${username}:${password}`, 'utf8').toString('base64')
+    return `Basic ${encodedAuth}`
+}
+
+export const isObjectEmpty = (objectName: unknown) => {
+    return (
+        objectName &&
+        Object.keys(objectName).length === 0 &&
+        objectName.constructor === Object
+    )
+}
+
+export const getErrorString = (err: unknown) => {
+    if (!err) {
+        return undefined
+    }
+    if (typeof err === 'string') {
+        return  err // works, `e` narrowed to string
+    } else if (err instanceof Error) {
+        return err.message // works, `e` narrowed to Error
+    }
+}

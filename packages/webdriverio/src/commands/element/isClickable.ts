@@ -1,17 +1,18 @@
 import { ELEMENT_KEY } from 'webdriver'
 
-import { getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
 import isElementClickableScript from '../../scripts/isElementClickable.js'
 
 /**
  *
- * Return true if the selected DOM-element:
+ * An element is considered to be clickable when the following conditions are met:
  *
- * - exists
- * - is visible
- * - is within viewport (if not try scroll to it)
- * - its center is not overlapped with another element
- * - is not disabled
+ * - the element exists
+ * - the element is displayed
+ * - the element is not disabled
+ * - the element is within the viewport
+ * - the element can be scrolled into the viewport
+ * - the element's center is not overlapped with another element
  *
  * otherwise return false.
  *
@@ -46,7 +47,11 @@ export async function isClickable (this: WebdriverIO.Element) {
         return false
     }
 
-    if (this.isMobile && await this.getContext() === 'NATIVE_APP') {
+    /**
+     * some Appium platforms don't support the `getContext` method, in that case
+     * we can't determine if we are in a native context or not, so we return undefined
+     */
+    if (this.isMobile && await this.getContext().catch(() => undefined) === 'NATIVE_APP') {
         throw new Error('Method not supported in mobile native environment. It is unlikely that you need to use this command.')
     }
 

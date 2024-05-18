@@ -6,7 +6,7 @@ describe('Shared store service', () => {
         assert.equal(caps.browserName, browser.capabilities.browserName)
     })
 
-    it('should be able to set values', async () => {
+    it('should be able to get values', async () => {
         assert.equal(await browser.sharedStore.getValueFromPool('availableUrls'), 'url01.com')
         assert.equal(await browser.sharedStore.getValueFromPool('availableUrls'), 'url02.com')
         assert.equal(await browser.sharedStore.get('testKey'), 'testValue')

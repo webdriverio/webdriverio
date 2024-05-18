@@ -3,7 +3,7 @@ import { expect, describe, it, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('previous element sibling test', () => {

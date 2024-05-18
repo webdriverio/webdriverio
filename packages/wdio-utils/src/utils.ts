@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import type { Options, Services, Clients } from '@wdio/types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
@@ -122,7 +124,7 @@ export function transformCommandLogResult (result: { file?: string, script?: str
 }
 
 /**
- * checks if command argument is valid according to specificiation
+ * checks if command argument is valid according to specification
  *
  * @param  {*}       arg           command argument
  * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
@@ -165,6 +167,25 @@ export function isValidParameter (arg: any, expectedType: string) {
  */
 export function getArgumentType (arg: any) {
     return arg === null ? 'null' : typeof arg
+}
+
+/**
+ * Utility to import modules with user friendly error message
+ * @param moduleName  The name of the module to import
+ * @param namedImport The name of the import to return
+ * @returns          The imported module
+ */
+export async function userImport<T> (moduleName: string, namedImport = 'default'): Promise<T> {
+    try {
+        const mod = await import(moduleName)
+        if (namedImport in mod) {
+            return mod[namedImport]
+        }
+    } catch (err) {
+        throw new Error(`Couldn't import "${moduleName}"! Do you have it installed? If not run "npm install ${moduleName}"!`)
+    }
+
+    throw new Error(`Couldn't find "${namedImport}" in module "${moduleName}"`)
 }
 
 /**
@@ -327,4 +348,25 @@ export function isFirefox (browserName?: string) {
 }
 export function isEdge (browserName?: string) {
     return Boolean(browserName && SUPPORTED_BROWSERNAMES.edge.includes(browserName.toLowerCase()))
+}
+
+/**
+ * traverse up the scope chain until browser element was reached
+ */
+export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.ElementArray): WebdriverIO.Browser {
+    const elemObject = elem as WebdriverIO.Element
+    return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
+}
+
+/**
+ * Enables logging to a file in a specified directory.
+ * @param  {string} outputDir  Directory containing the log file
+ */
+export async function enableFileLogging (outputDir?: string): Promise<void> {
+    if (!outputDir) {
+        return
+    }
+
+    await fs.mkdir(path.join(outputDir), { recursive: true })
+    process.env.WDIO_LOG_PATH = path.join(outputDir, 'wdio.log')
 }

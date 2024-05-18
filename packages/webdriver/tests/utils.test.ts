@@ -15,7 +15,7 @@ import type { Client } from '../src/types.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils')
-vi.mock('got')
+vi.mock('fetch')
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -39,24 +39,15 @@ describe('utils', () => {
     })
 
     it('getPrototype', () => {
-        const isW3C = false
-        const isChrome = false
+        const isChromium = false
         const isMobile = false
         const isSauce = false
         const isIOS = false
         const isAndroid = false
         const isSeleniumStandalone = false
 
-        const jsonWireProtocolPrototype = getPrototype({
-            isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
-        })
-        expect(jsonWireProtocolPrototype instanceof Object).toBe(true)
-        expect(typeof jsonWireProtocolPrototype.sendKeys.value).toBe('function')
-        expect(typeof jsonWireProtocolPrototype.sendCommand).toBe('undefined')
-        expect(typeof jsonWireProtocolPrototype.lock).toBe('undefined')
-
         const webdriverPrototype = getPrototype({
-            isW3C: true, isChrome, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isW3C: true, isChromium, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(webdriverPrototype instanceof Object).toBe(true)
         expect(typeof webdriverPrototype.sendKeys).toBe('undefined')
@@ -65,7 +56,7 @@ describe('utils', () => {
         expect(typeof webdriverPrototype.lock).toBe('undefined')
 
         const chromiumPrototype = getPrototype({
-            isW3C: false, isChrome: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isW3C: false, isChromium: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(chromiumPrototype instanceof Object).toBe(true)
         expect(typeof chromiumPrototype.sendCommand.value).toBe('function')
@@ -74,7 +65,7 @@ describe('utils', () => {
         expect(typeof chromiumPrototype.lock).toBe('undefined')
 
         const geckoPrototype = getPrototype({
-            isW3C: true, isChrome: false, isFirefox: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isW3C: true, isChromium: false, isFirefox: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(geckoPrototype instanceof Object).toBe(true)
         expect(typeof geckoPrototype.setMozContext.value).toBe('function')
@@ -83,7 +74,7 @@ describe('utils', () => {
         expect(typeof geckoPrototype.lock).toBe('undefined')
 
         const mobilePrototype = getPrototype({
-            isW3C: true, isChrome: false, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isW3C: true, isChromium: false, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(mobilePrototype instanceof Object).toBe(true)
         expect(typeof mobilePrototype.performActions.value).toBe('function')
@@ -92,7 +83,7 @@ describe('utils', () => {
         expect(typeof mobilePrototype.getNetworkConnection.value).toBe('function')
 
         const mobileChromePrototype = getPrototype({
-            isW3C: true, isChrome: true, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isW3C: true, isChromium: true, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(mobileChromePrototype instanceof Object).toBe(true)
         expect(typeof mobileChromePrototype.sendCommand.value).toBe('function')
@@ -102,7 +93,7 @@ describe('utils', () => {
         expect(typeof mobileChromePrototype.getNetworkConnection.value).toBe('function')
 
         const saucePrototype = getPrototype({
-            isW3C: true, isChrome, isMobile, isSauce: true, isSeleniumStandalone, isIOS, isAndroid
+            isW3C: true, isChromium, isMobile, isSauce: true, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(saucePrototype instanceof Object).toBe(true)
         expect(typeof saucePrototype.getPageLogs.value).toBe('function')
@@ -176,7 +167,7 @@ describe('utils', () => {
         expect(error.stack).toMatch('unknown error')
 
         error = new CustomRequestError(
-            { value: { error: 'invalid selector' } },
+            { value: { message: 'invalid locator' } },
             { using: 'css selector', value: '!!' }
         )
         expect(error.message).toMatchSnapshot()
@@ -370,11 +361,9 @@ describe('utils', () => {
     })
 
     describe('getTimeoutError', () => {
-        const mkReqOpts = (opts: Options.RequestLibOptions = {}): Options.RequestLibOptions => {
+        const mkReqOpts = (opts = {}) => {
             return {
-                url: new URL('https://localhost:4445/default/method'),
                 method: 'GET',
-                json: {},
                 ...opts
             }
         }
@@ -382,18 +371,18 @@ describe('utils', () => {
         describe('should return error with', () => {
             it('command name as full endpoint', async () => {
                 const err = new Error('Timeout')
-                const reqOpts = mkReqOpts({ url: new URL('https://localhost:4445/wd/hub/session') })
+                const reqOpts = mkReqOpts({})
 
-                const timeoutErr = getTimeoutError(err, reqOpts)
+                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/wd/hub/session'))
 
                 expect(timeoutErr.message).toEqual(expect.stringMatching('when running "https://localhost:4445/wd/hub/session"'))
             })
 
             it('command name in shortened form', async () => {
                 const err = new Error('Timeout')
-                const reqOpts = mkReqOpts({ url: new URL('https://localhost:4445/wd/hub/session/abc123/url') })
+                const reqOpts = mkReqOpts({})
 
-                const timeoutErr = getTimeoutError(err, reqOpts)
+                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/wd/hub/session/abc123/url'))
 
                 expect(timeoutErr.message).toEqual(expect.stringMatching('when running "url"'))
             })
@@ -402,7 +391,7 @@ describe('utils', () => {
                 const err = new Error('Timeout')
                 const reqOpts = mkReqOpts({ method: 'GET' })
 
-                const timeoutErr = getTimeoutError(err, reqOpts)
+                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(expect.stringMatching(/when running .+ with method "GET"/))
             })
@@ -410,9 +399,9 @@ describe('utils', () => {
             it('command args as stringified object', async () => {
                 const err = new Error('Timeout')
                 const cmdArgs = { foo: 'bar' }
-                const reqOpts = mkReqOpts({ json: cmdArgs })
+                const reqOpts = mkReqOpts({ body: cmdArgs })
 
-                const timeoutErr = getTimeoutError(err, reqOpts)
+                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(
                     expect.stringMatching(new RegExp(`when running .+ with method .+ and args "${JSON.stringify(cmdArgs)}"`))
@@ -424,9 +413,9 @@ describe('utils', () => {
 
                 const err = new Error('Timeout')
                 const cmdArgs = { script: Buffer.from('script').toString('base64') }
-                const reqOpts = mkReqOpts({ json: cmdArgs })
+                const reqOpts = mkReqOpts({ body: cmdArgs })
 
-                const timeoutErr = getTimeoutError(err, reqOpts)
+                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(
                     expect.stringMatching(/when running .+ with method .+ and args "<Script\[base64\]>"/)
@@ -436,9 +425,9 @@ describe('utils', () => {
             it('command args with function script without extra wrapper', async () => {
                 const err = new Error('Timeout')
                 const cmdArgs = { script: 'return (function() {\nconsole.log("hi")\n}).apply(null, arguments)' }
-                const reqOpts = mkReqOpts({ json: cmdArgs })
+                const reqOpts = mkReqOpts({ body: cmdArgs })
 
-                const timeoutErr = getTimeoutError(err, reqOpts)
+                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(
                     expect.stringMatching(/when running .+ with method .+ and args "function\(\) {\nconsole\.log\("hi"\)\n}/)
@@ -450,9 +439,9 @@ describe('utils', () => {
 
                 const err = new Error('Timeout')
                 const cmdArgs = { file: Buffer.from('screen').toString('base64') }
-                const reqOpts = mkReqOpts({ json: cmdArgs })
+                const reqOpts = mkReqOpts({ body: cmdArgs })
 
-                const timeoutErr = getTimeoutError(err, reqOpts)
+                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(
                     expect.stringMatching(/when running .+ with method .+ and args "<Screenshot\[base64\]>"/)

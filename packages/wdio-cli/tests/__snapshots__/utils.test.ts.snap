@@ -3,10 +3,10 @@
 exports[`getAnswers 1`] = `
 {
   "backend": "On my local machine",
-  "baseUrl": "http://localhost",
   "framework": "@wdio/mocha-framework$--$mocha",
   "generateTestFiles": true,
-  "isUsingCompiler": "TypeScript (https://www.typescriptlang.org/)",
+  "includeVisualTesting": false,
+  "isUsingTypeScript": false,
   "npmInstall": true,
   "plugins": [],
   "reporters": [
@@ -108,26 +108,12 @@ exports[`npmInstall 1`] = `
       "bar$--$foo",
       "@testing-library/vue",
       "@testing-library/jest-dom",
+      "@wdio/visual-service",
       "@types/jasmine",
     ],
     true,
   ],
 ]
-`;
-
-exports[`setup Babel 1`] = `
-"module.exports = {
-    "presets": [
-        [
-            "@babel/preset-env",
-            {
-                "targets": {
-                    "node": 18
-                }
-            }
-        ]
-    ]
-}"
 `;
 
 exports[`setupTypeScript 1`] = `

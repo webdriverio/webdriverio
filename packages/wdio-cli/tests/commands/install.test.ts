@@ -10,7 +10,8 @@ import * as utils from '../../src/utils.js'
 import { installPackages } from '../../src/install.js'
 
 vi.mock('yargs')
-vi.mock('node:fs/promises', () => ({
+vi.mock('node:fs/promises', async (orig) => ({
+    ...(await orig()) as any,
     default: {
         access: vi.fn().mockResolvedValue({}),
         readFile: vi.fn().mockResolvedValue('export const config = {}'),
@@ -22,6 +23,13 @@ vi.mock('../../src/install', () => ({
     installPackages: vi.fn(),
     getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
 }))
+vi.mock('../../src/utils', async (origMod) => {
+    const orig: any = await origMod()
+    return {
+        ...orig,
+        detectPackageManager: vi.fn().mockReturnValue('npm'),
+    }
+})
 
 const findInConfigMock = vi.spyOn(utils, 'findInConfig')
 

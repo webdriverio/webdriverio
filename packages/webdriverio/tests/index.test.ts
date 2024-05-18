@@ -4,8 +4,7 @@ import path from 'node:path'
 import { logMock } from '@wdio/logger'
 import * as webdriverio from '../src/index.js'
 
-vi.mock('got')
-vi.mock('devtools')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('index.js', () => {

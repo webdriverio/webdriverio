@@ -24,7 +24,7 @@ npm install @wdio/protocols
 You can get data by importing the package as follows:
 
 ```js
-import { WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol } from '@wdio/protocols'
+import { WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol } from '@wdio/protocols'
 
 /**
  * get description of session command

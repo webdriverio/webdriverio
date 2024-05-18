@@ -47,7 +47,6 @@ vi.mock('node:child_process', () => ({
 }))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('devtools', () => ({ default: 'devtools package' }))
 vi.mock('webdriver', () => ({ default: 'webdriver package' }))
 vi.mock('safaridriver', () => ({
     start: vi.fn().mockReturnValue({
@@ -110,17 +109,14 @@ describe('startWebDriver', () => {
             stderr: expect.any(Object)
         }))
         await expect(params).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'safari',
                 'wdio:safaridriverOptions': {
                     foo: 'bar'
                 },
-            },
-            headers: {
-                Host: 'localhost',
-            },
+            }
         })
         expect(startSafaridriver).toBeCalledTimes(1)
         expect(startSafaridriver).toBeCalledWith({
@@ -140,7 +136,7 @@ describe('startWebDriver', () => {
         }
         await expect(startWebDriver(params)).resolves.toBe('geckodriver')
         expect(params).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'firefox',
@@ -157,7 +153,7 @@ describe('startWebDriver', () => {
             port: 1234,
             foo: 'bar',
             cacheDir: expect.any(String),
-            allowHosts: ['0.0.0.0'],
+            allowHosts: ['localhost'],
         })
     })
 
@@ -170,7 +166,7 @@ describe('startWebDriver', () => {
         }
         await expect(startWebDriver(options)).resolves.toBe('edgedriver')
         expect(options).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'MicrosoftEdge',
@@ -202,7 +198,7 @@ describe('startWebDriver', () => {
         const res = await startWebDriver(options)
         expect(Boolean(res?.stdout)).toBe(true)
         expect(options).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'chrome',
@@ -235,7 +231,7 @@ describe('startWebDriver', () => {
         const res = await startWebDriver(options)
         expect(Boolean(res?.stdout)).toBe(true)
         expect(options).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             port: 1234,
             capabilities: {
                 browserName: 'chrome',
@@ -268,7 +264,7 @@ describe('startWebDriver', () => {
         expect(res).toBe('geckodriver')
         expect(startGeckodriver).toBeCalledWith({
             cacheDir: expect.any(String),
-            allowHosts: ['0.0.0.0'],
+            allowHosts: ['localhost'],
             customGeckoDriverPath: '/my/geckodriver',
             port: 1234
         })
@@ -352,7 +348,7 @@ describe('startWebDriver', () => {
 
     it('should not start or download driver for appium capabilities', async () => {
         const options = {
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             protocol: 'http',
             path: '/',
             capabilities: {
@@ -362,7 +358,7 @@ describe('startWebDriver', () => {
         const res = await startWebDriver(options)
         expect(res).toBe(undefined)
         expect(options).toEqual({
-            hostname: '0.0.0.0',
+            hostname: 'localhost',
             protocol: 'http',
             path: '/',
             capabilities: {

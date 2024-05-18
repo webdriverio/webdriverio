@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 
 describe('call command', () => {
     let browser: WebdriverIO.Browser

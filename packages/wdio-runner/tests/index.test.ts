@@ -11,7 +11,8 @@ import { setOptions, SnapshotService } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 
-vi.mock('fs/promises', () => ({
+vi.mock('fs/promises', async (orig) => ({
+    ...(await orig()) as any,
     default: { writeFile: vi.fn() }
 }))
 vi.mock('util')
@@ -259,7 +260,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             runner['_shutdown'] = vi.fn()
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
-            await runner.run({ configFile: '/foo/bar', args: { autoCompileOpts: { autoCompile: true } } } as any)
+            await runner.run({ configFile: '/foo/bar', args: { } } as any)
 
             expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
         })
@@ -346,7 +347,8 @@ describe('wdio-runner', () => {
                 reporters: [],
                 beforeSession: [],
                 runner: 'local',
-                updateSnapshots: 'do it'
+                updateSnapshots: 'do it',
+                resolveSnapshotPath: 'resolve me'
             }
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             const addServiceSpy = vi.spyOn(ConfigParser.prototype, 'addService')
@@ -358,7 +360,10 @@ describe('wdio-runner', () => {
             expect(addServiceSpy).toBeCalledWith({
                 results: ['foobar']
             })
-            expect(SnapshotService.initiate).toBeCalledWith('do it')
+            expect(SnapshotService.initiate).toBeCalledWith({
+                updateState: 'do it',
+                resolveSnapshotPath: 'resolve me'
+            })
             expect(process.send).toBeCalledWith({
                 origin: 'worker',
                 name: 'snapshot',

@@ -1,4 +1,4 @@
-import { getBrowserObject } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
 
 interface BrowserSize {
     width: number
@@ -25,10 +25,6 @@ interface BrowserSize {
  */
 export async function getWindowSize(this: WebdriverIO.Browser) {
     const browser = getBrowserObject(this)
-
-    if (!browser.isW3C) {
-        return browser._getWindowSize() as unknown as BrowserSize
-    }
 
     const { width, height } = await browser.getWindowRect() as BrowserSize
     return { width, height } as BrowserSize

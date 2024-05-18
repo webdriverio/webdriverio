@@ -2,11 +2,9 @@ import path from 'node:path'
 import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, afterEach, vi } from 'vitest'
 
-// @ts-ignore mocked (original defined in webdriver package)
-import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('got')
+vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('element', () => {
@@ -20,17 +18,19 @@ describe('element', () => {
 
         const elem = await browser.$('#foo')
         const elems = await elem.$$('#subfoo')
-        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
-        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('POST')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')
-        expect(vi.mocked(got).mock.calls[1][1]!.json)
-            .toEqual({ using: 'css selector', value: '#foo' })
+        expect(vi.mocked(fetch).mock.calls[1][1]!.body)
+            .toEqual(JSON.stringify({ using: 'css selector', value: '#foo' }))
         expect(elem.elementId).toBe('some-elem-123')
-        expect(vi.mocked(got).mock.calls[2][1]!.method).toBe('POST')
-        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[2][1]!.method).toBe('POST')
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/elements')
-        expect(vi.mocked(got).mock.calls[2][1]!.json)
-            .toEqual({ using: 'css selector', value: '#subfoo' })
+        expect(vi.mocked(fetch).mock.calls[2][1]!.body)
+            .toEqual(JSON.stringify({ using: 'css selector', value: '#subfoo' }))
         expect(elems).toHaveLength(3)
 
         expect(elems[0].elementId).toBe('some-sub-elem-321')
@@ -48,25 +48,6 @@ describe('element', () => {
         expect(elems[2].ELEMENT).toBe(undefined)
         expect(elems[2].selector).toBe('#subfoo')
         expect(elems[2].index).toBe(2)
-    })
-
-    it('should fetch an element (no w3c)', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-
-        const elem = await browser.$('#foo')
-        const elems = await elem.$$('#subfoo')
-        expect(elems).toHaveLength(3)
-        expect(elems[0][ELEMENT_KEY]).toBe(undefined)
-        expect(elems[0].ELEMENT).toBe('some-sub-elem-321')
-        expect(elems[1][ELEMENT_KEY]).toBe(undefined)
-        expect(elems[1].ELEMENT).toBe('some-elem-456')
-        expect(elems[2][ELEMENT_KEY]).toBe(undefined)
-        expect(elems[2].ELEMENT).toBe('some-elem-789')
     })
 
     it('keeps prototype from browser object', async () => {
@@ -88,6 +69,6 @@ describe('element', () => {
     })
 
     afterEach(() => {
-        vi.mocked(got).mockClear()
+        vi.mocked(fetch).mockClear()
     })
 })

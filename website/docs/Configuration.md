@@ -46,14 +46,14 @@ Default: `undefined`
 
 ### user
 
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
 Type: `String`<br />
 Default: `undefined`
 
 ### key
 
-Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
 Type: `String`<br />
 Default: `undefined`
@@ -220,7 +220,7 @@ Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the opti
 To increase the timeout for a _test_, please see the framework docs.
 
 Type: `Number`<br />
-Default: `3000`
+Default: `5000`
 
 ### waitforInterval
 
@@ -366,7 +366,6 @@ Options: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
-
 Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
 
 Type: `Object`<br />
@@ -428,30 +427,34 @@ A list of glob supporting string patterns that tell the testrunner to have it ad
 Type: `String[]`<br />
 Default: `[]`
 
-### autoCompileOpts
+### updateSnapshots
 
-Compiler options when using WebdriverIO with TypeScript or Babel.
+Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
 
-#### autoCompileOpts.autoCompile
+Type: `'new' | 'all' | 'none'`<br />
+Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
 
-If set to `true` the WDIO testrunner will automatically try to transpile the spec files.
+### resolveSnapshotPath
 
-Type: `Boolean`
-Default: `true`
+Overrides default snapshot path. For example, to store snapshots next to test files.
 
-#### autoCompileOpts.tsNodeOpts
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
+}
+```
 
-Configure how [`ts-node`](https://www.npmjs.com/package/ts-node) is suppose to transpile the files.
+Type: `(testPath: string, snapExtension: string) => string`<br />
+Default: stores snapshot files in `__snapshots__` directory next to test file
 
-Type: `Object`
-Default: `{ transpileOnly: true }`
+### tsConfigPath
 
-#### autoCompileOpts.babelOpts
+WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
 
-Configure how [@babel/register](https://www.npmjs.com/package/@babel/register) is suppose to transpile the files.
+See the `tsx` docs: https://tsx.is/usage#custom-tsconfig-json-path
 
-Type: `Object`
-Default: `{}`
+Type: `String`<br />
+Default: `null`<br />
 
 ## Hooks
 

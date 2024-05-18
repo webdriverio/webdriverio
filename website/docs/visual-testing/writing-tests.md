@@ -33,6 +33,15 @@ describe('Mocha Example', () => {
     })
 
     it('using visual matchers to assert against baseline', async () => {
+        // Check screen to exactly match with baseline
+        await expect(browser).toMatchScreenSnapshot('partialPage')
+        // check an element to have a mismatch percentage of 5% with the baseline
+        await expect(browser).toMatchScreenSnapshot('partialPage', 5)
+        // check an element with options for `saveScreen` command
+        await expect(browser).toMatchScreenSnapshot('partialPage', {
+            /* some options */
+        })
+
         // Check an element to exactly match with baseline
         await expect($('#element-id')).toMatchElementSnapshot('firstButtonElement')
         // check an element to have a mismatch percentage of 5% with the baseline
@@ -133,6 +142,15 @@ describe('Jasmine Example', () => {
     })
 
     it('using visual matchers to assert against baseline', async () => {
+        // Check screen to exactly match with baseline
+        await expect(browser).toMatchScreenSnapshot('partialPage')
+        // check an element to have a mismatch percentage of 5% with the baseline
+        await expect(browser).toMatchScreenSnapshot('partialPage', 5)
+        // check an element with options for `saveScreen` command
+        await expect(browser).toMatchScreenSnapshot('partialPage', {
+            /* some options */
+        })
+
         // Check an element to exactly match with baseline
         await expect($('#element-id')).toMatchElementSnapshot('firstButtonElement')
         // check an element to have a mismatch percentage of 5% with the baseline
@@ -252,6 +270,15 @@ When('I save some screenshots', async function () {
 })
 
 Then('I should be able to match some screenshots with a baseline', async function () {
+    // Check screen to exactly match with baseline
+    await expect(browser).toMatchScreenSnapshot('partialPage')
+    // check an element to have a mismatch percentage of 5% with the baseline
+    await expect(browser).toMatchScreenSnapshot('partialPage', 5)
+    // check an element with options for `saveScreen` command
+    await expect(browser).toMatchScreenSnapshot('partialPage', {
+        /* some options */
+    })
+
     // Check an element to exactly match with baseline
     await expect($('#element-id')).toMatchElementSnapshot('firstButtonElement')
     // check an element to have a mismatch percentage of 5% with the baseline
@@ -320,15 +347,24 @@ Then('I should be able to compare some screenshots with a baseline', async funct
 
 :::note IMPORTANT
 
-This service provides `save` and `check` methods. If you run your tests for the first time you **SHOULD NOT** combine `save` and `compare` methods, the `check`-methods will automatically reject your promise if there is no baseline image with the following warning.
+This service provides `save` and `check` methods. If you run your tests for the first time you **SHOULD NOT** combine `save` and `compare` methods, the `check`-methods will automatically create a baseline image for you
+
+```sh
+#####################################################################################
+ INFO:
+ Autosaved the image to
+ /Users/wswebcreation/sample/baselineFolder/desktop_chrome/examplePage-chrome-latest-1366x768.png
+#####################################################################################
+```
+
+
+When you've [disabled to automatically save baseline images](service-options#autosavebaseline), the Promise will be rejected with the following warning.
 
 ```sh
 #####################################################################################
  Baseline image not found, save the actual image manually to the baseline.
  The image can be found here:
  /Users/wswebcreation/sample/.tmp/actual/desktop_chrome/examplePage-chrome-latest-1366x768.png
- If you want the module to auto save a non existing image to the baseline you
- can provide 'autoSaveBaseline: true' to the options.
 #####################################################################################
 ```
 

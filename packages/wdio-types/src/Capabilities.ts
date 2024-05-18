@@ -5,38 +5,38 @@ import type {
 
 type JSONLike = | { [property: string]: JSONLike } | readonly JSONLike[] | string | number | boolean | null
 
-export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
+export type PageLoadingStrategy = 'none' | 'eager' | 'normal'
 export type LoggingPreferenceType =
     'OFF' | 'SEVERE' | 'WARNING' |
     'INFO' | 'CONFIG' | 'FINE' |
-    'FINER' | 'FINEST' | 'ALL';
+    'FINER' | 'FINEST' | 'ALL'
 
 export interface LoggingPreferences {
-    browser?: LoggingPreferenceType;
-    driver?: LoggingPreferenceType;
-    server?: LoggingPreferenceType;
-    client?: LoggingPreferenceType;
+    browser?: LoggingPreferenceType
+    driver?: LoggingPreferenceType
+    server?: LoggingPreferenceType
+    client?: LoggingPreferenceType
 }
 
-export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>;
+export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>
 
-export type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
+export type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual'
 
 export interface ProxyObject {
-    proxyType?: ProxyTypes;
-    proxyAutoconfigUrl?: string;
-    ftpProxy?: string;
-    ftpProxyPort?: number;
-    httpProxy?: string;
-    httpProxyPort?: number;
-    sslProxy?: string;
-    sslProxyPort?: number;
-    socksProxy?: string;
-    socksProxyPort?: number;
-    socksVersion?: string;
-    socksUsername?: string;
-    socksPassword?: string;
-    noProxy?: string[];
+    proxyType?: ProxyTypes
+    proxyAutoconfigUrl?: string
+    ftpProxy?: string
+    ftpProxyPort?: number
+    httpProxy?: string
+    httpProxyPort?: number
+    sslProxy?: string
+    sslProxyPort?: number
+    socksProxy?: string
+    socksProxyPort?: number
+    socksVersion?: string
+    socksUsername?: string
+    socksPassword?: string
+    noProxy?: string[]
 }
 
 declare global {
@@ -45,43 +45,43 @@ declare global {
             /**
              * Identifies the user agent.
              */
-            browserName?: string;
+            browserName?: string
             /**
              * Identifies the version of the user agent.
              */
-            browserVersion?: string;
+            browserVersion?: string
             /**
              * Identifies the operating system of the endpoint node.
              */
-            platformName?: string;
+            platformName?: string
             /**
              * Indicates whether untrusted and self-signed TLS certificates are implicitly trusted on navigation for the duration of the session.
              */
-            acceptInsecureCerts?: boolean;
+            acceptInsecureCerts?: boolean
             /**
              * Defines the current session’s page load strategy.
              */
-            pageLoadStrategy?: PageLoadingStrategy;
+            pageLoadStrategy?: PageLoadingStrategy
             /**
              * Defines the current session’s proxy configuration.
              */
-            proxy?: ProxyObject;
+            proxy?: ProxyObject
             /**
              * Indicates whether the remote end supports all of the resizing and repositioning commands.
              */
-            setWindowRect?: boolean;
+            setWindowRect?: boolean
             /**
              * Describes the timeouts imposed on certain session operations.
              */
-            timeouts?: Timeouts;
+            timeouts?: Timeouts
             /**
              * Defines the current session’s strict file interactability.
              */
-            strictFileInteractability?: boolean,
+            strictFileInteractability?: boolean
             /**
              * Describes the current session’s user prompt handler. Defaults to the dismiss and notify state.
              */
-            unhandledPromptBehavior?: string;
+            unhandledPromptBehavior?: string
             /**
              * WebDriver clients opt in to a bidirectional connection by requesting a capability with the name "webSocketUrl" and value true.
              */
@@ -91,17 +91,17 @@ declare global {
 }
 
 export interface W3CCapabilities {
-    alwaysMatch: WebdriverIO.Capabilities;
-    firstMatch: WebdriverIO.Capabilities[];
+    alwaysMatch: WebdriverIO.Capabilities
+    firstMatch: WebdriverIO.Capabilities[]
 }
 
-export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[];
+export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[]
 
 export interface MultiRemoteCapabilities {
-    [instanceName: string]: WebDriverIOOptions;
+    [instanceName: string]: WebDriverIOOptions
 }
 
-export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;
+export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities
 
 /**
  * @deprecated use `WebdriverIO.Capabilities` instead
@@ -112,46 +112,46 @@ export interface DesiredCapabilities extends WebdriverIO.Capabilities, SauceLabs
     ChromeCapabilities, BrowserStackCapabilities, AppiumXCUITestCapabilities, LambdaTestCapabilities {
 
     // Read-only capabilities
-    cssSelectorsEnabled?: boolean;
-    handlesAlerts?: boolean;
-    version?: string;
-    platform?: string;
-    public?: any;
+    cssSelectorsEnabled?: boolean
+    handlesAlerts?: boolean
+    version?: string
+    platform?: string
+    public?: any
 
     loggingPrefs?: {
-        browser?: LoggingPreferences;
-        driver?: LoggingPreferences;
-        server?: LoggingPreferences;
-        client?: LoggingPreferences;
-    };
+        browser?: LoggingPreferences
+        driver?: LoggingPreferences
+        server?: LoggingPreferences
+        client?: LoggingPreferences
+    }
 
     // Read-write capabilities
-    javascriptEnabled?: boolean;
-    databaseEnabled?: boolean;
-    locationContextEnabled?: boolean;
-    applicationCacheEnabled?: boolean;
-    browserConnectionEnabled?: boolean;
-    webStorageEnabled?: boolean;
-    acceptSslCerts?: boolean;
-    rotatable?: boolean;
-    nativeEvents?: boolean;
-    unexpectedAlertBehaviour?: string;
-    elementScrollBehavior?: number;
+    javascriptEnabled?: boolean
+    databaseEnabled?: boolean
+    locationContextEnabled?: boolean
+    applicationCacheEnabled?: boolean
+    browserConnectionEnabled?: boolean
+    webStorageEnabled?: boolean
+    acceptSslCerts?: boolean
+    rotatable?: boolean
+    nativeEvents?: boolean
+    unexpectedAlertBehaviour?: string
+    elementScrollBehavior?: number
 
     // RemoteWebDriver specific
-    'webdriver.remote.sessionid'?: string;
-    'webdriver.remote.quietExceptions'?: boolean;
+    'webdriver.remote.sessionid'?: string
+    'webdriver.remote.quietExceptions'?: boolean
 
     // Selenese-Backed-WebDriver specific
-    'selenium.server.url'?: string;
+    'selenium.server.url'?: string
 
     // webdriverio specific
-    specs?: string[];
-    exclude?: string[];
-    excludeDriverLogs?: string[];
+    specs?: string[]
+    exclude?: string[]
+    excludeDriverLogs?: string[]
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIOCapabilities, WebdriverIO.WDIOVSCodeServiceOptions {
+export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIOCapabilities, WebdriverIO.WDIOVSCodeServiceOptions {
     // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Aerokube Moon specific
@@ -170,7 +170,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
     'browserstack.accessibility'?: boolean
-    'browserstack.accessibilityOptions'?: { [key: string]: any; }
+    'browserstack.accessibilityOptions'?: { [key: string]: any }
     /**
      * @private
      */
@@ -180,7 +180,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
 
     'goog:chromeOptions'?: ChromeOptions
     'moz:firefoxOptions'?: FirefoxOptions
-    // This capability is a boolean when send as part of the capabilities to Geckodrivr
+    // This capability is a boolean when send as part of the capabilities to Geckodriver
     // and is being returns as string (e.g. "<host>:<port>") when session capabilities
     // are returned from the driver
     // see https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html#moz-debuggeraddress
@@ -197,7 +197,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     // Safari specific
     'safari.options'?: {
         [name: string]: any
-    };
+    }
 
     /**
      * Selenium 4.0 Specific
@@ -211,10 +211,47 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
 }
 
 export interface WebdriverIOCapabilities {
+    /**
+     * process id of driver attached to given session
+     */
+    'wdio:driverPID'?: number
     'wdio:chromedriverOptions'?: WebdriverIO.ChromedriverOptions
     'wdio:safaridriverOptions'?: WebdriverIO.SafaridriverOptions
     'wdio:geckodriverOptions'?: WebdriverIO.GeckodriverOptions
     'wdio:edgedriverOptions'?: WebdriverIO.EdgedriverOptions
+    /**
+    * Maximum number of total parallel running workers (per capability)
+    */
+    'wdio:maxInstances'?: number
+    /**
+     * Maximum number of total parallel running workers (per capability)
+     * @deprecated please use `wdio:maxInstances` instead
+     */
+    maxInstances?: number
+
+    /**
+    * Define specs for test execution. You can either specify a glob
+    * pattern to match multiple files at once or wrap a glob or set of
+    * paths into an array to run them within a single worker process.
+    */
+    'wdio:specs'?: string[]
+    /**
+     * Define specs for test execution. You can either specify a glob
+     * pattern to match multiple files at once or wrap a glob or set of
+     * paths into an array to run them within a single worker process.
+     * @deprecated please use `wdio:specs` instead
+     */
+    specs?: string[]
+
+    /**
+     * Exclude specs from test execution.
+     */
+    'wdio:exclude'?: string[]
+    /**
+     * Exclude specs from test execution.
+     * @deprecated please use `wdio:exclude` instead
+     */
+    exclude?: string[]
 }
 
 export interface ChromeOptions {
@@ -328,21 +365,21 @@ interface MicrosoftEdgeOptions extends ChromeOptions {
 
 export type FirefoxLogLevels =
     'trace' | 'debug' | 'config' |
-    'info' | 'warn' | 'error' | 'fatal';
+    'info' | 'warn' | 'error' | 'fatal'
 
 export interface FirefoxLogObject {
     level: FirefoxLogLevels
 }
 
 export interface GeckodriverCapabilities {
-    'firefox_binary'?: string;
-    firefoxProfileTemplate?: string;
-    captureNetworkTraffic?: boolean;
-    addCustomRequestHeaders?: boolean;
-    trustAllSSLCertificates?: boolean;
-    changeMaxConnections?: boolean;
-    profile?: string;
-    pageLoadingStrategy?: string;
+    'firefox_binary'?: string
+    firefoxProfileTemplate?: string
+    captureNetworkTraffic?: boolean
+    addCustomRequestHeaders?: boolean
+    trustAllSSLCertificates?: boolean
+    changeMaxConnections?: boolean
+    profile?: string
+    pageLoadingStrategy?: string
 }
 
 export interface FirefoxOptions {
@@ -382,7 +419,7 @@ export interface SelenoidOptions {
 
 // Aerokube Moon specific
 export type MoonMobileDeviceOrientation =
-    'portait' | 'vertical' | 'landscape' | 'horizontal'
+    'portrait' | 'vertical' | 'landscape' | 'horizontal'
 
 export interface MoonOptions extends SelenoidOptions {
     mobileDevice?: {
@@ -395,22 +432,22 @@ export interface MoonOptions extends SelenoidOptions {
 // Selenium Grid specific
 export interface GridCapabilities {
     // Grid-specific
-    seleniumProtocol?: string;
-    maxInstances?: number;
-    environment?: string;
+    seleniumProtocol?: string
+    maxInstances?: number
+    environment?: string
 }
 
 // Edge specific
 export interface EdgeCapabilities {
-    'ms:inPrivate'?: boolean;
-    'ms:extensionPaths'?: string[];
-    'ms:startPage'?: string;
+    'ms:inPrivate'?: boolean
+    'ms:extensionPaths'?: string[]
+    'ms:startPage'?: string
 }
 
 // Chrome specific
 export interface ChromeCapabilities {
-    chromeOptions?: ChromeOptions;
-    mobileEmulationEnabled?: boolean;
+    chromeOptions?: ChromeOptions
+    mobileEmulationEnabled?: boolean
 }
 
 /**
@@ -430,7 +467,7 @@ export interface AppiumCapabilities {
      * + 'XCUITest' or 'Instruments' for iOS
      * + 'YouiEngine' for application built with You.i Engine
      */
-    'appium:automationName'?: string;
+    'appium:automationName'?: string
     /**
      * Which mobile OS platform to use.
      *
@@ -439,11 +476,11 @@ export interface AppiumCapabilities {
      * + 'Android'
      * + 'FirefoxOS'
      */
-    'appium:platformName'?: string;
+    'appium:platformName'?: string
     /**
      * Expected mobile OS version, eg: '7.1', '4.4' etc.
      */
-    'appium:platformVersion'?: string;
+    'appium:platformVersion'?: string
     /**
      * The kind of mobile device or emulator to use, for each platform, it accept different kind of values.
      *
@@ -456,7 +493,7 @@ export interface AppiumCapabilities {
      * ### For Android, this capability is currently ignored, though it remains required.
      * Note: This document is written with appium 1.22.1 release, this behavior may changed later.
      */
-    'appium:deviceName'?: string;
+    'appium:deviceName'?: string
     /**
      * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
      * or [.apks file (Android App Bundle)](https://appium.github.io/appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
@@ -466,41 +503,41 @@ export interface AppiumCapabilities {
      * Note that this capability is not required for Android if you specify appPackage and appActivity capabilities.
      * UiAutomator2 and XCUITest allow to start the session without app or appPackage.
      */
-    'appium:app'?: string;
+    'appium:app'?: string
     /**
      * The id of the app to be tested. eg: 'com.android.chrome'.
      */
-    'appium:appPackage'?: string;
-    'appium:appWaitActivity'?: string;
-    'appium:newCommandTimeout'?: number;
-    'appium:language'?: string;
-    'appium:locale'?: string;
+    'appium:appPackage'?: string
+    'appium:appWaitActivity'?: string
+    'appium:newCommandTimeout'?: number
+    'appium:language'?: string
+    'appium:locale'?: string
     /**
      * iOS Unique Device Identifier
      */
-    'appium:udid'?: string;
-    'appium:orientation'?: string;
-    'appium:autoWebview'?: boolean;
-    'appium:noReset'?: boolean;
-    'appium:fullReset'?: boolean;
-    'appium:eventTimings'?: boolean;
-    'appium:enablePerformanceLogging'?: boolean;
-    'appium:printPageSourceOnFindFailure'?: boolean;
-    'appium:nativeWebTap'?: boolean;
+    'appium:udid'?: string
+    'appium:orientation'?: string
+    'appium:autoWebview'?: boolean
+    'appium:noReset'?: boolean
+    'appium:fullReset'?: boolean
+    'appium:eventTimings'?: boolean
+    'appium:enablePerformanceLogging'?: boolean
+    'appium:printPageSourceOnFindFailure'?: boolean
+    'appium:nativeWebTap'?: boolean
     /**
      * Users as directConnect feature by the server
      * https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
      */
-    'appium:directConnectProtocol'?: string;
-    'appium:directConnectHost'?: string;
-    'appium:directConnectPort'?: number;
-    'appium:directConnectPath'?: string;
+    'appium:directConnectProtocol'?: string
+    'appium:directConnectHost'?: string
+    'appium:directConnectPort'?: number
+    'appium:directConnectPath'?: string
     /**
      * Windows-specific capability: Please see https://github.com/appium/appium-windows-driver#usage
      * This is a hexadecimal handle of an existing application top level window to attach to. Either this
      * capability or 'appium:app' must be provided on session startup.
      */
-    'appium:appTopLevelWindow'?: string;
+    'appium:appTopLevelWindow'?: string
 }
 
 /**
@@ -509,100 +546,100 @@ export interface AppiumCapabilities {
  * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/#android-only
  */
 export interface AppiumAndroidCapabilities {
-    'appium:appiumVersion'?: string;
-    'appium:appActivity'?: string;
-    'appium:appPackage'?: string;
-    'appium:appWaitActivity'?: string;
-    'appium:appWaitPackage'?: string;
-    'appium:appWaitDuration'?: number;
-    'appium:deviceReadyTimeout'?: number;
-    'appium:allowTestPackages'?: boolean;
-    'appium:androidCoverage'?: string;
-    'appium:androidCoverageEndIntent'?: string;
-    'appium:androidDeviceReadyTimeout'?: number;
-    'appium:androidInstallTimeout'?: number;
-    'appium:androidInstallPath'?: string;
-    'appium:adbPort'?: number;
-    'appium:systemPort'?: number;
-    'appium:remoteAdbHost'?: string;
-    'appium:androidDeviceSocket'?: string;
-    'appium:avd'?: string;
-    'appium:avdLaunchTimeout'?: number;
-    'appium:avdReadyTimeout'?: number;
-    'appium:avdArgs'?: string;
-    'appium:useKeystore'?: boolean;
-    'appium:keystorePath'?: string;
-    'appium:keystorePassword'?: string;
-    'appium:keyAlias'?: string;
-    'appium:keyPassword'?: string;
-    'appium:chromedriverExecutable'?: string;
-    'appium:chromedriverArgs'?: string[];
-    'appium:chromedriverExecutableDir'?: string;
-    'appium:chromedriverChromeMappingFile'?: string;
-    'appium:chromedriverUseSystemExecutable'?: boolean;
-    'appium:autoWebviewTimeout'?: number;
-    'appium:chromedriverPort'?: number;
+    'appium:appiumVersion'?: string
+    'appium:appActivity'?: string
+    'appium:appPackage'?: string
+    'appium:appWaitActivity'?: string
+    'appium:appWaitPackage'?: string
+    'appium:appWaitDuration'?: number
+    'appium:deviceReadyTimeout'?: number
+    'appium:allowTestPackages'?: boolean
+    'appium:androidCoverage'?: string
+    'appium:androidCoverageEndIntent'?: string
+    'appium:androidDeviceReadyTimeout'?: number
+    'appium:androidInstallTimeout'?: number
+    'appium:androidInstallPath'?: string
+    'appium:adbPort'?: number
+    'appium:systemPort'?: number
+    'appium:remoteAdbHost'?: string
+    'appium:androidDeviceSocket'?: string
+    'appium:avd'?: string
+    'appium:avdLaunchTimeout'?: number
+    'appium:avdReadyTimeout'?: number
+    'appium:avdArgs'?: string
+    'appium:useKeystore'?: boolean
+    'appium:keystorePath'?: string
+    'appium:keystorePassword'?: string
+    'appium:keyAlias'?: string
+    'appium:keyPassword'?: string
+    'appium:chromedriverExecutable'?: string
+    'appium:chromedriverArgs'?: string[]
+    'appium:chromedriverExecutableDir'?: string
+    'appium:chromedriverChromeMappingFile'?: string
+    'appium:chromedriverUseSystemExecutable'?: boolean
+    'appium:autoWebviewTimeout'?: number
+    'appium:chromedriverPort'?: number
     'appium:chromedriverPorts'?: (number | number[])[]
-    'appium:intentAction'?: string;
-    'appium:intentCategory'?: string;
-    'appium:intentFlags'?: string;
-    'appium:optionalIntentArguments'?: string;
-    'appium:dontStopAppOnReset'?: boolean;
-    'appium:unicodeKeyboard'?: boolean;
-    'appium:resetKeyboard'?: boolean;
-    'appium:noSign'?: boolean;
-    'appium:ignoreUnimportantViews'?: boolean;
-    'appium:disableAndroidWatchers'?: boolean;
-    'appium:recreateChromeDriverSessions'?: boolean;
-    'appium:nativeWebScreenshot'?: boolean;
-    'appium:androidScreenshotPath'?: string;
-    'appium:autoGrantPermissions'?: boolean;
-    'appium:networkSpeed'?: string;
-    'appium:gpsEnabled'?: boolean;
-    'appium:isHeadless'?: boolean;
-    'appium:adbExecTimeout'?: number;
-    'appium:localeScript'?: string;
-    'appium:skipDeviceInitialization'?: boolean;
-    'appium:chromedriverDisableBuildCheck'?: boolean;
-    'appium:skipUnlock'?: boolean;
-    'appium:unlockType'?: string;
-    'appium:unlockKey'?: string;
-    'appium:autoLaunch'?: boolean;
-    'appium:skipLogcatCapture'?: boolean;
-    'appium:uninstallOtherPackages'?: string;
-    'appium:disableWindowAnimation'?: boolean;
-    'appium:otherApps'?: string | string[];
-    'appium:uiautomator2ServerLaunchTimeout'?: number;
-    'appium:uiautomator2ServerInstallTimeout'?: number;
-    'appium:skipServerInstallation'?: boolean;
-    'appium:espressoServerLaunchTimeout'?: number;
-    'appium:disableSuppressAccessibilityService'?: boolean;
-    'appium:hideKeyboard'?: boolean;
-    'appium:autoWebviewName'?: string;
+    'appium:intentAction'?: string
+    'appium:intentCategory'?: string
+    'appium:intentFlags'?: string
+    'appium:optionalIntentArguments'?: string
+    'appium:dontStopAppOnReset'?: boolean
+    'appium:unicodeKeyboard'?: boolean
+    'appium:resetKeyboard'?: boolean
+    'appium:noSign'?: boolean
+    'appium:ignoreUnimportantViews'?: boolean
+    'appium:disableAndroidWatchers'?: boolean
+    'appium:recreateChromeDriverSessions'?: boolean
+    'appium:nativeWebScreenshot'?: boolean
+    'appium:androidScreenshotPath'?: string
+    'appium:autoGrantPermissions'?: boolean
+    'appium:networkSpeed'?: string
+    'appium:gpsEnabled'?: boolean
+    'appium:isHeadless'?: boolean
+    'appium:adbExecTimeout'?: number
+    'appium:localeScript'?: string
+    'appium:skipDeviceInitialization'?: boolean
+    'appium:chromedriverDisableBuildCheck'?: boolean
+    'appium:skipUnlock'?: boolean
+    'appium:unlockType'?: string
+    'appium:unlockKey'?: string
+    'appium:autoLaunch'?: boolean
+    'appium:skipLogcatCapture'?: boolean
+    'appium:uninstallOtherPackages'?: string
+    'appium:disableWindowAnimation'?: boolean
+    'appium:otherApps'?: string | string[]
+    'appium:uiautomator2ServerLaunchTimeout'?: number
+    'appium:uiautomator2ServerInstallTimeout'?: number
+    'appium:skipServerInstallation'?: boolean
+    'appium:espressoServerLaunchTimeout'?: number
+    'appium:disableSuppressAccessibilityService'?: boolean
+    'appium:hideKeyboard'?: boolean
+    'appium:autoWebviewName'?: string
 
-    'appium:uiautomator2ServerReadTimeout'?: number;
-    'appium:appWaitForLaunch'?: boolean;
-    'appium:remoteAppsCacheLimit'?: number;
-    'appium:enforceAppInstall'?: boolean;
-    'appium:clearDeviceLogsOnStart'?: boolean;
-    'appium:buildToolsVersion'?: string;
-    'appium:suppressKillServer'?: boolean;
-    'appium:ignoreHiddenApiPolicyError'?: boolean;
-    'appium:mockLocationApp'?: string;
-    'appium:logcatFormat'?: string;
-    'appium:logcatFilterSpecs'?: string;
-    'appium:allowDelayAdb'?: boolean;
-    'appium:avdEnv'?: { [key: string]: string };
-    'appium:unlockStrategy'?: string;
-    'appium:unlockSuccessTimeout'?: number;
-    'appium:webviewDevtoolsPort'?: number;
-    'appium:ensureWebviewsHavePages'?: boolean;
-    'appium:enableWebviewDetailsCollection'?: boolean;
-    'appium:extractChromeAndroidPackageFromContextName'?: boolean;
-    'appium:showChromedriverLog'?: boolean;
-    'appium:chromeOptions'?: { [key: string]: any };
-    'appium:chromeLoggingPrefs'?: { [key: string]: any };
-    'appium:userProfile'?: number;
+    'appium:uiautomator2ServerReadTimeout'?: number
+    'appium:appWaitForLaunch'?: boolean
+    'appium:remoteAppsCacheLimit'?: number
+    'appium:enforceAppInstall'?: boolean
+    'appium:clearDeviceLogsOnStart'?: boolean
+    'appium:buildToolsVersion'?: string
+    'appium:suppressKillServer'?: boolean
+    'appium:ignoreHiddenApiPolicyError'?: boolean
+    'appium:mockLocationApp'?: string
+    'appium:logcatFormat'?: string
+    'appium:logcatFilterSpecs'?: string
+    'appium:allowDelayAdb'?: boolean
+    'appium:avdEnv'?: { [key: string]: string }
+    'appium:unlockStrategy'?: string
+    'appium:unlockSuccessTimeout'?: number
+    'appium:webviewDevtoolsPort'?: number
+    'appium:ensureWebviewsHavePages'?: boolean
+    'appium:enableWebviewDetailsCollection'?: boolean
+    'appium:extractChromeAndroidPackageFromContextName'?: boolean
+    'appium:showChromedriverLog'?: boolean
+    'appium:chromeOptions'?: { [key: string]: any }
+    'appium:chromeLoggingPrefs'?: { [key: string]: any }
+    'appium:userProfile'?: number
 }
 
 /**
@@ -611,169 +648,169 @@ export interface AppiumAndroidCapabilities {
  * @see https://github.com/appium/appium-xcuitest-driver
  */
 export interface AppiumXCUITestCapabilities {
-    'appium:platformName'?: string;
-    'appium:browserName'?: string;
-    'appium:app'?: string;
-    'appium:calendarFormat'?: string;
-    'appium:bundleId'?: string;
-    'appium:launchTimeout'?: number;
-    'appium:udid'?: string;
-    'appium:appName'?: string;
-    'appium:waitForAppScript'?: string;
-    'appium:sendKeyStrategy'?: string;
-    'appium:screenshotWaitTimeout'?: number;
-    'appium:interKeyDelay'?: number;
-    'appium:nativeInstrumentsLib'?: boolean;
-    'appium:autoAcceptAlerts'?: boolean;
-    'appium:autoDismissAlerts'?: boolean;
-    'appium:nativeWebTap'?: boolean;
-    'appium:safariInitialUrl'?: string;
-    'appium:safariAllowPopups'?: boolean;
-    'appium:safariIgnoreFraudWarning'?: boolean;
-    'appium:safariOpenLinksInBackground'?: boolean;
-    'appium:safariShowFullResponse'?: boolean;
-    'appium:keepKeyChains'?: boolean;
-    'appium:locationServicesEnabled'?: boolean;
-    'appium:locationServicesAuthorized'?: boolean;
-    'appium:resetLocationService'?: boolean;
-    'appium:localizableStringsDir'?: string;
-    'appium:processArguments'?: string|AppiumXCUIProcessArguments;
-    'appium:showIOSLog'?: boolean;
-    'appium:webviewConnectRetries'?: number;
-    'appium:clearSystemFiles'?: boolean;
-    'appium:customSSLCert'?: string;
-    'appium:webkitResponseTimeout'?: number;
-    'appium:webkitDebugProxyPort'?: number;
-    'appium:remoteDebugProxy'?: string;
-    'appium:enablePerformanceLogging'?: boolean;
-    'appium:enableAsyncExecuteFromHttps'?: boolean;
-    'appium:fullContextList'?: boolean;
-    'appium:ignoreAboutBlankUrl'?: boolean;
-    'appium:skipLogCapture'?: boolean;
-    'appium:deviceName'?: string;
-    'appium:showXcodeLog'?: boolean;
-    'appium:wdaLocalPort'?: number;
-    'appium:wdaBaseUrl'?: string;
-    'appium:iosInstallPause'?: number;
-    'appium:xcodeConfigFile'?: string;
-    'appium:xcodeOrgId'?: string;
-    'appium:xcodeSigningId'?: string;
-    'appium:keychainPath'?: string;
-    'appium:keychainPassword'?: string;
-    'appium:bootstrapPath'?: string;
-    'appium:agentPath'?: string;
-    'appium:tapWithShortPressDuration'?: number;
-    'appium:scaleFactor'?: string;
-    'appium:usePrebuiltWDA'?: boolean;
-    'appium:usePreinstalledWDA'?: boolean;
-    'appium:webDriverAgentUrl'?: string;
-    'appium:derivedDataPath'?: string;
-    'appium:launchWithIDB'?: boolean;
-    'appium:useNewWDA'?: boolean;
-    'appium:wdaLaunchTimeout'?: number;
-    'appium:wdaConnectionTimeout'?: number;
-    'appium:updatedWDABundleId'?: string;
-    'appium:resetOnSessionStartOnly'?: boolean;
-    'appium:commandTimeouts'?: string|AppiumXCUICommandTimeouts;
-    'appium:wdaStartupRetries'?: number;
-    'appium:wdaStartupRetryInterval'?: number;
-    'appium:prebuildWDA'?: boolean;
-    'appium:connectHardwareKeyboard'?: boolean;
-    'appium:forceTurnOnSoftwareKeyboardSimulator'?: boolean;
-    'appium:simulatorPasteboardAutomaticSync'?: string;
-    'appium:simulatorDevicesSetPath'?: string;
-    'appium:calendarAccessAuthorized'?: boolean;
-    'appium:useSimpleBuildTest'?: boolean;
-    'appium:waitForQuiescence'?: boolean;
-    'appium:maxTypingFrequency'?: number;
-    'appium:nativeTyping'?: boolean;
-    'appium:simpleIsVisibleCheck'?: boolean;
-    'appium:shouldUseSingletonTestManager'?: boolean;
-    'appium:isHeadless'?: boolean;
-    'appium:autoGrantPermissions'?: boolean;
-    'appium:useXctestrunFile'?: boolean;
-    'appium:absoluteWebLocations'?: boolean;
-    'appium:simulatorWindowCenter'?: string;
-    'appium:simulatorStartupTimeout'?: number;
-    'appium:simulatorTracePointer'?: boolean;
-    'appium:useJSONSource'?: boolean;
-    'appium:enforceFreshSimulatorCreation'?: boolean;
-    'appium:shutdownOtherSimulators'?: boolean;
-    'appium:keychainsExcludePatterns'?: string;
-    'appium:showSafariConsoleLog'?: boolean;
-    'appium:showSafariNetworkLog'?: boolean;
-    'appium:safariGarbageCollect'?: boolean;
-    'appium:safariGlobalPreferences'?: AppiumXCUISafariGlobalPreferences;
-    'appium:safariLogAllCommunication'?: boolean;
-    'appium:safariLogAllCommunicationHexDump'?: boolean;
-    'appium:safariSocketChunkSize'?: number;
-    'appium:mjpegServerPort'?: number;
-    'appium:reduceMotion'?: boolean;
-    'appium:mjpegScreenshotUrl'?: string;
-    'appium:permissions'?: string;
-    'appium:screenshotQuality'?: number;
-    'appium:wdaEventloopIdleDelay'?: number;
-    'appium:otherApps'?: string | string[];
-    'appium:includeSafariInWebviews'?: boolean;
-    'appium:additionalWebviewBundleIds'?: Array<string>;
-    'appium:webviewConnectTimeout'?: number;
-    'appium:iosSimulatorLogsPredicate'?: string;
-    'appium:appPushTimeout'?: number;
-    'appium:nativeWebTapStrict'?: boolean;
-    'appium:safariWebInspectorMaxFrameLength'?: number;
-    'appium:allowProvisioningDeviceRegistration'?: boolean;
-    'appium:waitForIdleTimeout'?: number;
-    'appium:resultBundlePath'?: string;
-    'appium:resultBundleVersion'?: number;
-    'appium:safariIgnoreWebHostnames'?: string;
-    'appium:includeDeviceCapsToSessionInfo'?: boolean;
-    'appium:disableAutomaticScreenshots'?: boolean;
-    'appium:shouldTerminateApp'?: boolean;
-    'appium:forceAppLaunch'?: boolean;
-    'appium:useNativeCachingStrategy'?: boolean;
-    'appium:appInstallStrategy'?: string;
+    'appium:platformName'?: string
+    'appium:browserName'?: string
+    'appium:app'?: string
+    'appium:calendarFormat'?: string
+    'appium:bundleId'?: string
+    'appium:launchTimeout'?: number
+    'appium:udid'?: string
+    'appium:appName'?: string
+    'appium:waitForAppScript'?: string
+    'appium:sendKeyStrategy'?: string
+    'appium:screenshotWaitTimeout'?: number
+    'appium:interKeyDelay'?: number
+    'appium:nativeInstrumentsLib'?: boolean
+    'appium:autoAcceptAlerts'?: boolean
+    'appium:autoDismissAlerts'?: boolean
+    'appium:nativeWebTap'?: boolean
+    'appium:safariInitialUrl'?: string
+    'appium:safariAllowPopups'?: boolean
+    'appium:safariIgnoreFraudWarning'?: boolean
+    'appium:safariOpenLinksInBackground'?: boolean
+    'appium:safariShowFullResponse'?: boolean
+    'appium:keepKeyChains'?: boolean
+    'appium:locationServicesEnabled'?: boolean
+    'appium:locationServicesAuthorized'?: boolean
+    'appium:resetLocationService'?: boolean
+    'appium:localizableStringsDir'?: string
+    'appium:processArguments'?: string | AppiumXCUIProcessArguments
+    'appium:showIOSLog'?: boolean
+    'appium:webviewConnectRetries'?: number
+    'appium:clearSystemFiles'?: boolean
+    'appium:customSSLCert'?: string
+    'appium:webkitResponseTimeout'?: number
+    'appium:webkitDebugProxyPort'?: number
+    'appium:remoteDebugProxy'?: string
+    'appium:enablePerformanceLogging'?: boolean
+    'appium:enableAsyncExecuteFromHttps'?: boolean
+    'appium:fullContextList'?: boolean
+    'appium:ignoreAboutBlankUrl'?: boolean
+    'appium:skipLogCapture'?: boolean
+    'appium:deviceName'?: string
+    'appium:showXcodeLog'?: boolean
+    'appium:wdaLocalPort'?: number
+    'appium:wdaBaseUrl'?: string
+    'appium:iosInstallPause'?: number
+    'appium:xcodeConfigFile'?: string
+    'appium:xcodeOrgId'?: string
+    'appium:xcodeSigningId'?: string
+    'appium:keychainPath'?: string
+    'appium:keychainPassword'?: string
+    'appium:bootstrapPath'?: string
+    'appium:agentPath'?: string
+    'appium:tapWithShortPressDuration'?: number
+    'appium:scaleFactor'?: string
+    'appium:usePrebuiltWDA'?: boolean
+    'appium:usePreinstalledWDA'?: boolean
+    'appium:webDriverAgentUrl'?: string
+    'appium:derivedDataPath'?: string
+    'appium:launchWithIDB'?: boolean
+    'appium:useNewWDA'?: boolean
+    'appium:wdaLaunchTimeout'?: number
+    'appium:wdaConnectionTimeout'?: number
+    'appium:updatedWDABundleId'?: string
+    'appium:resetOnSessionStartOnly'?: boolean
+    'appium:commandTimeouts'?: string | AppiumXCUICommandTimeouts
+    'appium:wdaStartupRetries'?: number
+    'appium:wdaStartupRetryInterval'?: number
+    'appium:prebuildWDA'?: boolean
+    'appium:connectHardwareKeyboard'?: boolean
+    'appium:forceTurnOnSoftwareKeyboardSimulator'?: boolean
+    'appium:simulatorPasteboardAutomaticSync'?: string
+    'appium:simulatorDevicesSetPath'?: string
+    'appium:calendarAccessAuthorized'?: boolean
+    'appium:useSimpleBuildTest'?: boolean
+    'appium:waitForQuiescence'?: boolean
+    'appium:maxTypingFrequency'?: number
+    'appium:nativeTyping'?: boolean
+    'appium:simpleIsVisibleCheck'?: boolean
+    'appium:shouldUseSingletonTestManager'?: boolean
+    'appium:isHeadless'?: boolean
+    'appium:autoGrantPermissions'?: boolean
+    'appium:useXctestrunFile'?: boolean
+    'appium:absoluteWebLocations'?: boolean
+    'appium:simulatorWindowCenter'?: string
+    'appium:simulatorStartupTimeout'?: number
+    'appium:simulatorTracePointer'?: boolean
+    'appium:useJSONSource'?: boolean
+    'appium:enforceFreshSimulatorCreation'?: boolean
+    'appium:shutdownOtherSimulators'?: boolean
+    'appium:keychainsExcludePatterns'?: string
+    'appium:showSafariConsoleLog'?: boolean
+    'appium:showSafariNetworkLog'?: boolean
+    'appium:safariGarbageCollect'?: boolean
+    'appium:safariGlobalPreferences'?: AppiumXCUISafariGlobalPreferences
+    'appium:safariLogAllCommunication'?: boolean
+    'appium:safariLogAllCommunicationHexDump'?: boolean
+    'appium:safariSocketChunkSize'?: number
+    'appium:mjpegServerPort'?: number
+    'appium:reduceMotion'?: boolean
+    'appium:mjpegScreenshotUrl'?: string
+    'appium:permissions'?: string
+    'appium:screenshotQuality'?: number
+    'appium:wdaEventloopIdleDelay'?: number
+    'appium:otherApps'?: string | string[]
+    'appium:includeSafariInWebviews'?: boolean
+    'appium:additionalWebviewBundleIds'?: Array<string>
+    'appium:webviewConnectTimeout'?: number
+    'appium:iosSimulatorLogsPredicate'?: string
+    'appium:appPushTimeout'?: number
+    'appium:nativeWebTapStrict'?: boolean
+    'appium:safariWebInspectorMaxFrameLength'?: number
+    'appium:allowProvisioningDeviceRegistration'?: boolean
+    'appium:waitForIdleTimeout'?: number
+    'appium:resultBundlePath'?: string
+    'appium:resultBundleVersion'?: number
+    'appium:safariIgnoreWebHostnames'?: string
+    'appium:includeDeviceCapsToSessionInfo'?: boolean
+    'appium:disableAutomaticScreenshots'?: boolean
+    'appium:shouldTerminateApp'?: boolean
+    'appium:forceAppLaunch'?: boolean
+    'appium:useNativeCachingStrategy'?: boolean
+    'appium:appInstallStrategy'?: string
     /**
      * Windows Application Driver capabilities
      */
-    'appium:appArguments'?: string;
+    'appium:appArguments'?: string
 }
 
 export interface AppiumXCUISafariGlobalPreferences {
-    [key: string]: any;
+    [key: string]: any
 }
 
 export interface AppiumXCUIProcessArguments {
     args?: Array<string>
-    env?: { [key: string]: any;}
+    env?: { [key: string]: any }
 }
 
 export interface AppiumXCUICommandTimeouts {
-    [key: string]: any;
+    [key: string]: any
 }
 
 // IE specific
 export interface IECapabilities {
-    'ie.forceCreateProcessApi'?: boolean;
-    'ie.browserCommandLineSwitches'?: string;
-    'ie.usePerProcessProxy'?: boolean;
-    'ie.ensureCleanSession'?: boolean;
-    'ie.setProxyByServer'?: boolean;
-    'ie.fileUploadDialogTimeout'?: number;
-    'ie.edgechromium'?: boolean;
-    'ie.edgepath'?: string;
-    ignoreProtectedModeSettings?: boolean;
-    ignoreZoomSetting?: boolean;
-    initialBrowserUrl?: string;
-    enablePersistentHover?: boolean;
-    enableElementCacheCleanup?: boolean;
-    requireWindowFocus?: boolean;
-    browserAttachTimeout?: number;
-    logFile?: string;
-    logLevel?: string;
-    host?: string;
-    extractPath?: string;
-    silent?: string;
-    killProcessesByName?: boolean;
+    'ie.forceCreateProcessApi'?: boolean
+    'ie.browserCommandLineSwitches'?: string
+    'ie.usePerProcessProxy'?: boolean
+    'ie.ensureCleanSession'?: boolean
+    'ie.setProxyByServer'?: boolean
+    'ie.fileUploadDialogTimeout'?: number
+    'ie.edgechromium'?: boolean
+    'ie.edgepath'?: string
+    ignoreProtectedModeSettings?: boolean
+    ignoreZoomSetting?: boolean
+    initialBrowserUrl?: string
+    enablePersistentHover?: boolean
+    enableElementCacheCleanup?: boolean
+    requireWindowFocus?: boolean
+    browserAttachTimeout?: number
+    logFile?: string
+    logLevel?: string
+    host?: string
+    extractPath?: string
+    silent?: string
+    killProcessesByName?: boolean
 }
 
 /**
@@ -781,26 +818,397 @@ export interface IECapabilities {
  */
 export interface SauceLabsCapabilities {
     /**
+     * Desktop Browser Capabilities: Sauce-Specific – Optional
+     * see https://docs.saucelabs.com/dev/test-configuration-options/#desktop-browser-capabilities-sauce-specific--optional
+     */
+
+    /**
+     * Allows you to specify the ChromeDriver version you want to use for your tests.
+     * The default version of ChromeDriver when no value is specified depends on the version of Chrome used.
+     * As of Chrome 73, the major version of the driver and the browser must match.
+     *
+     * Desktop Virtual Devices only.
+     *
+     * For a list of ChromeDriver versions, see chromedriver versions list.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#chromedriverversion
+     * @see https://chromedriver.storage.googleapis.com/index.html
+     */
+    chromedriverVersion?: string
+
+    /**
+     * Specifies the Microsoft Edge driver version you want to use for your tests.
+     *
+     * Desktop Virtual Devices only.
+     *
+     * For a list of edgedriver versions, see the Microsoft Edge Driver website.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#edgedriverversion
+     * @see https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
+     */
+    edgedriverVersion?: string
+
+    /**
+     * Specifies the Firefox GeckoDriver version.
+     * The default geckodriver version varies based on the version of Firefox specified.
+     *
+     * Desktop Virtual Devices only.
+     *
+     * For a list of geckodriver versions and the Firefox versions they support, see geckodriver Supported Platforms.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#geckodriverversion
+     * @see https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html
+     */
+    geckodriverVersion?: string
+
+    /**
+     * Specifies the Internet Explorer Driver version. If no version is specified, it defaults to 2.53.1.
+     *
+     * Desktop Virtual Devices only.
+     *
+     * For a list of IE Driver versions, see Internet Explorer Driver Server CHANGELOG.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#iedriverversion
+     * @see https://raw.githubusercontent.com/SeleniumHQ/selenium/trunk/cpp/iedriverserver/CHANGELOG
+     */
+    iedriverVersion?: string
+
+    /**
+     * Specifies the Selenium version you want to use for your test.
+     * Sauce Labs will default to different versions, depending on the age of the browser and platform,
+     * and whether or not you're initializing a session with valid W3C syntax.
+     *
+     * Desktop Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#seleniumversion
+     */
+    seleniumVersion?: string
+
+    /**
+     * Allows the browser to communicate directly with servers without going through a proxy.
+     * By default, Sauce routes traffic from Internet Explorer and Safari through an HTTP proxy server
+     * so that HTTPS connections with self-signed certificates will work.
+     *
+     * The proxy server can cause problems for some users, and this setting allows you to avoid it.
+     *
+     * Any test run with a Sauce Connect tunnel has to use the proxy and this flag will be ignored.
+     *
+     * Desktop Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#avoidproxy
+     */
+    avoidProxy?: boolean
+
+    /**
+     * Enables Extended Debugging features. This applies to Firefox and Chrome only.
+     * It records HAR files and console logs for both of these browsers.
+     * In Chrome, it also enables network interception, network and cpu throttling as well as access to network logs
+     * during the session. It is required to be true for capturePerformance. The default value is false.
+     *
+     * Desktop Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#extendeddebugging
+     * @see https://docs.saucelabs.com/insights/debug/
+     */
+    extendedDebugging?: boolean
+
+    /**
+     * Enables Performance Capture feature.
+     * Sauce Performance Testing can be enabled by setting both extendedDebugging and capturePerformance to true.
+     * Default value is false.
+     *
+     * Desktop Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#captureperformance
+     * @see https://docs.saucelabs.com/performance/
+     */
+    capturePerformance?: boolean
+
+    /**
+     * Specifies the screen resolution to be used during your test session.
+     * Default screen resolution for Sauce tests is 1024x768.
+     *
+     * Desktop Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#screenresolution
+     */
+    screenResolution?: string
+
+    /**
+     * Sets command timeout in seconds.
+     * As a safety measure to prevent Selenium crashes from making your tests run indefinitely,
+     * we limit how long Selenium can take to run a command in our browsers.
+     * This is set to 300 seconds by default. The maximum command timeout value allowed is 600 seconds.
+     *
+     * Desktop Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#commandtimeout
+     */
+    commandTimeout?: number
+
+    /**
+     * Sets idle test timeout in seconds.
+     * As a safety measure to prevent tests from running too long after something has gone wrong,
+     * we limit how long a browser can wait for a test to send a new command.
+     * This is set to 90 seconds by default and limited to a maximum value of 1000 seconds.
+     *
+     * Desktop Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout
+     */
+    idleTimeout?: number
+
+    /**
+     * Mobile App Appium Capabilities: Sauce-Specific – Optional
+     * see https://docs.saucelabs.com/dev/test-configuration-options/#mobile-app-appium-capabilities-sauce-specific--optional
+     */
+
+    /**
+     * Specifies the Appium driver version you want to use.
+     * For most use cases, setting the appiumVersion is unnecessary because Sauce Labs defaults to the version that supports the broadest number of device combinations.
+     * Sauce Labs advises against setting this property unless you need to test a particular Appium feature or patch.
+     *
+     * Virtual and Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#appiumversion
+     */
+    appiumVersion?: string
+
+    /**
+     * Specifies the orientation of the virtual skin and screen during the test.
+     *
+     * Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#deviceorientation
+     */
+    deviceOrientation?: 'portrait' | 'landscape'
+
+    /**
+     * If your app creates an extra log then you can use the customLogFiles to store those additional logs in the "Logs" tab of the executed automated session.
+     * It is created in the form of a list of search filters that enumerate after an app test to locate text files to upload as logs.
+     * Files are uploaded with the .log extension appended. The search paths are rooted at the application under test.
+     *
+     * Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#customlogfiles
+     */
+    customLogFiles?: string[]
+
+    /**
+     * By default, our emulator uses software rendering to handle graphics for maximum compatibility.
+     * This involves the CPU calculating how everything looks on your app's screen.
+     * However, this could lead to an emulator crash when testing apps with intricate or heavy graphical elements.
+     * To mitigate this, use the hardware rendering option by specifying "android.gpu.mode"="hardware" in your test capabilities.
+     *
+     * Android Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#androidgpumode
+     */
+    'android.gpu.mode'?: 'software' | 'hardware'
+
+    /**
+     * Android allows apps to use the full screen, hiding the status bar and navigation bar.
+     * This is called "immersive mode". When you run an Android test, the device will show a popup asking if you want to allow the app to use immersive mode.
+     * This popup can interfere with your test, and by default we disable it.
+     * If you want to enable it, set disableImmersiveModePopUp to false.
+     *
+     * Android Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#disableimmersivemodepopup
+     */
+    disableImmersiveModePopUp?: boolean
+
+    /**
+     * Sets up the device pin code for the automated test session.
+     * This capability sets your device in the state required for your application to launch successfully.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#disableimmersivemodepopup
+     */
+    setupDeviceLock?: boolean
+
+    /**
+     * Use this capability to select only tablet devices for testing.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#tabletonly
+     */
+    tabletOnly?: boolean
+
+    /**
+     * Use this capability to select only phone devices for testing.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#phoneonly
+     */
+    phoneOnly?: boolean
+
+    /**
+     * Use this capability to select only private devices for testing.
+     *
+     * Private Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#privatedevicesonly
+     */
+    privateDevicesOnly?: boolean
+
+    /**
+     * Use this capability to select only public devices for testing.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#publicdevicesonly
+     */
+    publicDevicesOnly?: boolean
+
+    /**
+     * Use this capability to allocate only devices connected to a carrier network.
+     *
+     * Private Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#carrierconnectivityonly
+     */
+    carrierConnectivityOnly?: boolean
+
+    /**
+     * Keeps the device allocated to you between test sessions and bypasses the device cleaning process and session exit that occurs by default after each test completes.
+     * Normally, you'd need to start over and reopen another device.
+     * You'll need to launch your next test within 10 seconds of your previous test ending
+     * to ensure that the same device will be allocated for the test (not cleaned or reset).
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#cacheid
+     */
+    cacheId?: string
+
+    /**
+     * Controls Sauce Labs default resigning (iOS) or instrumentation (Android) of mobile apps installed on our devices.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#resigningenabled
+     */
+    resigningEnabled?: boolean
+
+    /**
+     * Enables the camera image injection feature. resigningEnabled needs to be enabled if this is set to true.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/mobile-apps/features/camera-image-injection/
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#saucelabsimageinjectionenabled
+     */
+    sauceLabsImageInjectionEnabled?: boolean
+
+    /**
+     * Bypasses the restriction on taking screenshots for secure screens (i.e., secure text entry). resigningEnabled needs to be enabled if this is set to true.
+     *
+     * Android Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#saucelabsbypassscreenshotrestriction
+     */
+    sauceLabsBypassScreenshotRestriction?: boolean
+
+    /**
+     * Enables the interception of biometric input, allowing the test to simulate Touch ID interactions (not a Sauce Labs-specific capability).
+     * resigningEnabled needs to be enabled if this is set to true.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#allowtouchidenroll
+     */
+    allowTouchIdEnroll?: boolean
+
+    /**
+     * Enables audio recording in your iOS and Android native mobile app tests.
+     * The audio will be part of the Test Results page video file, which you can play back and download in our built-in media player.
+     * The default value is false.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#audiocapture
+     */
+    audioCapture?: boolean
+
+    /**
+     * Enables mobile app instrumentation (Android or iOS) and recording of HTTP/HTTPS network traffic for debugging purposes.
+     * API calls are collected into a HAR file, which you can view and download from your Test Results > Network tab console.
+     * The default value is false.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#networkcapture
+     */
+    networkCapture?: boolean
+
+    /**
+     * Enables the use of the app's private app container directory instead of the shared app group container directory.
+     * For testing on the Real Device Cloud, the app gets resigned, which is why the shared directory is not accessible.
+     *
+     * iOS Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#groupfolderredirectenabled
+     */
+    groupFolderRedirectEnabled?: boolean
+
+    /**
+     * Use this capability to enable animations for Android real devices by setting it to true. By default, animations are disabled.
+     *
+     * Android Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#enableanimations
+     */
+    enableAnimations?: boolean
+
+    /**
+     * Delays system alerts, such as alerts asking for permission to access the camera, to prevent app crashes at startup.
+     * resigningEnabled needs to be enabled if this is set to true.
+     *
+     * iOS Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#systemalertsdelayenabled
+     */
+    systemAlertsDelayEnabled?: boolean
+
+    /**
+     * Specify the amount of time (in milliseconds) that the test should be allowed to find and assign an available device before the test will fail.
+     * The default value is 900000 milliseconds (15 minutes) and the max is 1800000 milliseconds (30 minutes).
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#sessioncreationtimeout
+     */
+    sessionCreationTimeout?: boolean
+
+    /**
+     * Specify the amount of automatic retries that Sauce Labs will execute to find and assign an available device before the test will fail.
+     * The default value is 1 and the max is 3.
+     *
+     * Real Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#sessioncreationretry
+     */
+    sessionCreationRetry?: number
+
+    /**
+     * Desktop and Mobile Capabilities: Sauce-Specific – Optional
+     * see https://docs.saucelabs.com/dev/test-configuration-options/#desktop-and-mobile-capabilities-sauce-specific--optional
+     */
+
+    /**
      * Used to record test names for jobs and make it easier to find individual tests.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#name
      */
     name?: string
+
     /**
      * Used to associate jobs with a build number or app version, which is then displayed
      * on both the Dashboard and Archives view
      *
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#build
      * @example `build-1234`
      */
     build?: string | number
+
     /**
      * User-defined tags for grouping and filtering jobs in the Dashboard and Archives view.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#tags
      * @example
      * ```
      * ["tag1", "tag2", "tag3"]
      * ```
      */
     tags?: string[]
+
+    /**
+     * Sets your Sauce Labs username for a test.
+     *
+     * You can either set "username" in capabilities or specify it in the Sauce URL as Basic Authentication. For Visual Tests), this must be set in capabilities.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#username
+     */
+    username?: string
+
+    /**
+     * Sets your Sauce Labs access key for the test.
+     *
+     * You can either set "accessKey" in capabilities or specify it in the Sauce URL as Basic Authentication. For Visual Tests, this must be set in capabilities.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#accesskey
+     */
+    accessKey?: string
+
     /**
      * User-defined custom data that will accept any valid JSON object, limited to 64KB in size.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#custom-data
      * @example
      * ```
      * {
@@ -813,82 +1221,127 @@ export interface SauceLabsCapabilities {
      * ```
      */
     'custom-data'?: any
+
     /**
-     * If you are using Sauce Connect Proxy to to test an application that is behind a firewall
-     * or on your local machine, you must provide the identifier of the Sauce Connect tunnel to
-     * use. Check out [Basic Sauce Connect Proxy Setup](https://wiki.saucelabs.com/display/DOCS/Basic+Sauce+Connect+Proxy+Setup) for more information.
-     */
-    tunnelIdentifier?: string
-    /**
-     * This desired capability will let the test job use any shared tunnels available from the
-     * specified parent account. i.e. any account that is upstream in the hierarchy. __If using a
-     * shared tunnel, you must specify both tunnelIdentifier and parentTunnel__. Check out the
-     * topic Using [Sauce Connect Tunnel Identifiers](https://wiki.saucelabs.com/display/DOCS/Using+Sauce+Connect+Tunnel+Identifiers) for more information.
-     */
-    parentTunnel?: string
-    /**
-     * This setting specifies which screen resolution should be used during the test session.
+     * We support several test/job result visibility levels, which control who can view the test details.
+     * The visibility level for a test can be set manually from the test results page, but also programmatically when starting a test or with our REST API.
+     * For more information about sharing test results, see the topics under Sharing the Results of Sauce Labs Tests.
      *
-     * @example `1280x1024`
-     */
-    screenResolution?: string
-    /**
-     * Desktop Test VMs can be configured with custom time zones. This feature should work on all operating
-     * systems, however time zones on Windows VMs are approximate. The time zone will usually default to
-     * whatever local time zone is on your selected data center, but this cannot be guaranteed. You can
-     * find a complete list of timezones on Wikipedia. If the timeZone name has two or more or words
-     * (e.g., Los Angeles), you'll need to separate the words with either a space or an underscore. Sauce
-     * takes only location names (not their paths), as shown in the example below.
+     * Desktop and Virtual Devices only.
      *
-     * @example Los_Angeles
-     * @example Honolulu
-     */
-    timeZone?: string
-    /**
-     * By default, Sauce routes traffic from some WebDriver browsers (Edge, Internet Explorer and Safari)
-     * through the Selenium HTTP proxy server so that HTTPS connections with self-signed certificates
-     * work everywhere. The Selenium proxy server can cause problems for some users. If that's the case
-     * for you, you can configure Sauce to avoid using the proxy server and have browsers communicate
-     * directly with your servers.
-     *
-     * __Don't Need the Selenium Proxy with Firefox or Google Chrome__
-     *
-     * Firefox and Google Chrome under WebDriver aren't affected by this flag as they handle invalid
-     * certificates automatically and there isn't a need to proxy through Selenium.
-     *
-     * __Incompatible with Sauce Connect Proxy__
-     *
-     * This flag is incompatible with Sauce Connect Proxy.
-     */
-    avoidProxy?: boolean
-    /**
-     * Sauce Labs supports several test result visibility levels, which control who can view the test
-     * details. The visibility level for a test can be set manually from the test results page, but
-     * also programmatically when starting a test or with our REST API. For more information about
-     * sharing test result, see the topics under Sharing the Results of Sauce Labs Tests.
-     *
-     * Available visibility levels are:
-     *
-     * - __public__: Making your test public means that it is accessible to everyone, and may be
-     *   listed on public web pages and indexed by search engines.
-     * - __public restricted__: If you want to share your job's result page and video, but keep
-     *   the logs only for you, you can certainly do so with public restricted visibility mode. This
-     *   visibility mode will hide the fancy job log as well as prohibit access to the raw Selenium log,
-     *   so that anonymous users with the link will be able to watch the video and screen shots but
-     *   won't be able to see what's being typed and done to get there.
-     * - __share__: You can also decide to make your test sharable. Making your test sharable means
-     *   that it is only accessible to people having valid link and it is not listed on publicly available
-     *   pages on saucelabs.com or indexed by search engines.
-     * - __team__: If you want to share your jobs with other team members (that were created as a sub-accounts
-     *   of one parent account), you can use team visibility mode. Making your test accessible by team means
-     *   that it is only accessible to people under the same root account as you.
-     * - __private__: If you don't want to share your test's result page and video with anyone, you should
-     *   use private job visibility mode. This way, only you (the owner) will be able to view assets and test
-     *   result page.
-     *
-     * @default private
+     * @see https://docs.saucelabs.com/test-results/sharing-test-results/
      */
     public?: 'public' | 'public restricted' | 'share' | 'team' | 'private'
+
+    /**
+     * Specify a Sauce Connect tunnel to establish connectivity with Sauce Labs for your test.
+     * Tunnels allow you to test an app that is behind a firewall or on your local machine by providing a secure connection to the Sauce Labs platform.
+     * @see https://docs.saucelabs.com/secure-connections/sauce-connect/setup-configuration/basic-setup/
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#tunnelname
+     */
+    tunnelName?: string
+
+    /**
+     * Specify a Sauce Connect tunnel name to establish connectivity with a Sauce Labs test platform. This is an alias for tunnelName.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#tunnelidentifier
+     * @deprecated
+     */
+    tunnelIdentifier?: string
+
+    /**
+     * If the tunnelName you've specified to establish connectivity with a Sauce Labs test platform is a shared tunnel,
+     * and you are not the user who created the tunnel, you must identify the Sauce Labs user who did create the tunnel in order to use it for your test.
+     * @see https://docs.saucelabs.com/secure-connections/sauce-connect/setup-configuration/basic-setup/#using-tunnel-names
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#tunnelowner
+     */
+    tunnelOwner?: string
+
+    /**
+     * If the tunnelName (or tunnelIdentifier) you've specified to establish connectivity with a Sauce Labs test platform is a shared tunnel,
+     * and you are not the user who created the tunnel, you must identify the Sauce Labs user who did create the tunnel in order to use it for your test.
+     * This is an alias for tunnelOwner.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#parenttunnel
+     * @deprecated
+     */
+    parentTunnel?: string
+
+    /**
+     * Use this to disable video recording. By default, Sauce Labs records a video of every test you run.
+     * Disabling video recording can be useful for debugging failing tests as well as having a visual confirmation that a certain feature works (or still works).
+     * However, there is an added wait time for screen recording during a test run.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#recordvideo
+     */
+    recordVideo?: boolean
+
+    /**
+     * Disables video upload for passing tests. videoUploadOnPass is an alternative to recordVideo; it lets you discard videos for tests you've marked as passing.
+     * It disables video post-processing and uploading that may otherwise consume some extra time after your test is complete.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#videouploadonpass
+     */
+    videoUploadOnPass?: boolean
+
+    /**
+     * Disables step-by-step screenshots. In addition to capturing video, Sauce Labs captures step-by-step screenshots of every test you run.
+     * Most users find it very useful to get a quick overview of what happened without having to watch the complete video.
+     * However, this feature may add some extra time to your tests.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#recordscreenshots
+     */
+    recordScreenshots?: boolean
+
+    /**
+     * In the same way Sauce Labs captures step-by-step screenshots, you can capture the HTML source at each step of a test.
+     * This feature is disabled by default, but when it is enabled you can view the HTML source captures on the Test Results page.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#capturehtml
+     */
+    captureHtml?: boolean
+
+    /**
+     * Disables log recording. By default, Sauce creates a log of all the actions that you execute to create a report for the test run
+     * that lets you troubleshoot test failures more easily.
+     * This option disables only the recording of the log.json file; the selenium-server.log will still be recorded.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#recordlogs
+     */
+    recordLogs?: boolean
+
+    /**
+     * Desktop and Virtual Device Capabilities: Sauce-Specific – Optional
+     * see https://docs.saucelabs.com/dev/test-configuration-options/#desktop-and-virtual-device-capabilities-sauce-specific--optional
+     */
+
+    /**
+     * Sets maximum test duration in seconds. As a safety measure to prevent tests from running indefinitely,
+     * the default is 1,800 seconds (30 minutes) and the maximum is 10,800 seconds (three hours).
+     *
+     * Desktop and Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#maxduration
+     */
+    maxDuration?: number
+
+    /**
+     * Setting to prioritize jobs. If you have multiple new jobs waiting to start (i.e., across a collection of sub-accounts),
+     * jobs with a lower priority number take precedence over jobs with a higher number.
+     *
+     * So, for example, if you have multiple jobs simultaneously waiting to start,
+     *  we'll first attempt to find resources to start all the jobs with priority 0,then all the jobs with priority 1, etc.
+     *
+     * When we run out of available virtual machines, or when you hit your concurrency limit, any jobs not yet started will wait.
+     * Within each priority level, jobs that have been waiting the longest take precedence.
+     *
+     * Desktop and Virtual Devices only.
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#priority
+     */
+    priority?: number
+
+    /**
+     * Allows you to set a custom time zone for your test based on a city name. Most major cities are supported.
+     *
+     * Desktop and Virtual Devices only.
+     * @example Los_Angeles
+     * @example Honolulu
+     * @see https://docs.saucelabs.com/dev/test-configuration-options/#timezone
+     */
+    timeZone?: string
+
     /**
      * You can provide a URL to an executable file, which will be downloaded and executed to configure the
      * VM before the test starts. For faster performance, you may want to upload the executable to [Sauce Storage](https://wiki.saucelabs.com/display/DOCS/Uploading+your+Application+to+Emulators+and+Simulators),
@@ -913,171 +1366,23 @@ export interface SauceLabsCapabilities {
         background: boolean
         timeout: number
     }
-    /**
-     * By default, Sauce Labs records a video of every test you run. This is generally handy for debugging
-     * failing tests, as well as having a visual confirmation that certain feature works (or still works!)
-     * However, there is an added wait time for screen recording during a test run.
-     */
-    recordVideo?: boolean
-    /**
-     * As an alternative to disabling video recording, the  videoUploadOnPass  setting will let you
-     * discard videos for passing tests identified using the passed setting. This disables video
-     * post-processing and uploading that may otherwise consume some extra time after your test is complete.
-     */
-    videoUploadOnPass?: boolean
-    /**
-     * Sauce Labs captures step-by-step screenshots of every test you run. Most users find it very
-     * useful to get a quick overview of what happened without having to watch the complete video.
-     * However, this feature may add some extra time to your tests. You can avoid this by optionally
-     * turning off this feature.
-     */
-    recordScreenshots?: boolean
-    /**
-     * By default, Sauce creates a log of all the actions that you execute to create a report for the
-     * test run that lets you troubleshoot test failures more easily.
-     *
-     * __Note:__ Selenium Logs Are Still Recorded
-     *
-     * This option only disables recording of the log.json file. The selenium-server.log will still be
-     * recorded even if you choose to disable recording of the log.json.
-     */
-    recordLogs?: boolean
-    /**
-     * If you have multiple new jobs waiting to start (i.e., across a collection of sub-accounts), jobs
-     * with a lower priority number take precedence over jobs with a higher number. So, for example, if
-     * you have multiple jobs simultaneously waiting to start, we'll first attempt to find resources to
-     * start all the jobs with priority 0, then all the jobs with priority 1, etc. When we run out of
-     * available virtual machines, or when you hit your concurrency limit, any jobs not yet started will
-     * wait. Within each priority level, jobs that have been waiting the longest take precedence.
-     *
-     * @default 0
-     */
-    priority?: number
-    /**
-     * Enable [Extended Debugging Capabilities](https://wiki.saucelabs.com/pages/viewpage.action?pageId=70072943).
-     *
-     * @default false
-     */
-    extendedDebugging?: boolean
-    /**
-     * Enable [Frontend Performance](https://wiki.saucelabs.com/display/DOCS/Measure+Page+Load+Performance+Using+Test+Automation) capturing capabilities.
-     */
-    capturePerformance?: boolean
-    /**
-     * We do not recommend to use this option.
-     * @deprecated
-     */
-    seleniumVersion?: string
-    /**
-     * Chromedriver versions are pinned to the Chrome version you have defined in your capabilities.
-     * Only define a custom `chromedriverVersion` if you know what you do.
-     *
-     * @deprecated
-     */
-    chromedriverVersion?: string
-    /**
-     * The Internet Explorer Driver defaults to version 2.53.1 when no version is specified.
-     *
-     * Note that the versions of Internet Explorer Driver we have available correspond to major Selenium
-     * releases - we do not have all the minor point releases (e.g. 3.12.0.4) available.
-     *
-     * We recommend setting the Selenium Version (see above) to correspond with the Internet Explorer Driver
-     * version you select.
-     *
-     * Sauce Labs supports launching 64-bit IE on our 64-bit VMs: Windows 7, Windows 8, and Windows 8.1.
-     * This provides a workaround for two known Selenium issues:
-     * - Using a 32 bit driver on a 64 bit operating system causes Selenium's screenshot feature to only
-     *   capture the part of the page currently visible in the browser viewport Selenium Issue 5876.
-     * - Using a 64 bit driver on a 64 bit operating system causes text entry to be extremely slow
-     *   Selenium Issue 5516.
-     *
-     * @deprecated
-     */
-    iedriverVersion?: string
-    /**
-     * For Firefox version 80 and above, geckodriver defaults to latest driver version 0.27.0 when no
-     * version is specified.
-     *
-     * @deprecated
-     */
-    geckodriverVersion?: string
-    /**
-     * As a safety measure to prevent tests from running indefinitely, Sauce limits the duration of
-     * tests to 30 minutes by default. You can adjust this limit on per-job basis and the maximum
-     * value is 10800 seconds.
-     *
-     * __Don't Exceed 30 Minutes__
-     *
-     * A test should never last more than 30 minutes and ideally should take less than five minutes.
-     * The 3 hour maximum exists mainly to ease the transition of new users migrating long running
-     * tests to Sauce Labs.
-     *
-     * While our test VMs respect the maxDuration desired capability when it's set in tests, it may
-     * not always be precise. Tests will never be timed out before their maxDuration has elapsed and
-     * in most cases, they will be timed out very shortly after their maxDuration has elapsed (usually
-     * less than 1 second). But, in some rare cases, such as when the test VM is suffering performance
-     * problems, they can be allowed to run longer (30 seconds or more).
-     *
-     * @default 1800
-     */
-    maxDuration?: number
-    /**
-     * As a safety measure to prevent Selenium crashes from making your tests run indefinitely, Sauce
-     * limits how long Selenium can take to run a command in our browsers. This is set to 300 seconds
-     * by default. The value of this setting is given in seconds. The maximum command timeout value
-     * allowed is 600 seconds.
-     *
-     * @default 300
-     */
-    commandTimeout?: number
-    /**
-     * As a safety measure to prevent tests from running too long after something has gone wrong, Sauce
-     * limits how long a browser can wait for a test to send a new command. This is set to 90 seconds
-     * by default and limited to a maximum value of 1000 seconds. You can adjust this limit on a per-job
-     * basis. The value of this setting is given in seconds.
-     *
-     * @default 90
-     */
-    idleTimeout?: number
-    /**
-     * Enables the interception of biometric input, allowing the test to
-     * simulate Touch ID interactions (not a Sauce Labs-specific capability).
-     *
-     * @default false
-     */
-    allowTouchIdEnroll?: boolean
-    /**
-     * Keeps a device allocated to you between test sessions, bypassing the
-     * device cleaning process and session exit that occurs by default after
-     * each test completes. Normally, you'd need to start over and reopen
-     * another device. You'll need to launch your next test within 10 seconds
-     * of your previous test ending to ensure that the same device will be
-     * allocated for the test (not cleaned or reset).
-     *
-     * @default *randomized string*
-     */
-    cacheId?: string
-    /**
-     * Specifies the Appium driver version you want to use. For most use cases,
-     * setting the appiumVersion is unnecessary because Sauce Labs defaults to
-     * the version that supports the broadest number of device combinations.
-     * Sauce Labs advises against setting this property unless you need to test
-     * a particular Appium feature or patch.
-     */
-    appiumVersion?: string
 }
 
-export interface LambdaTestCapabilities{
+export interface LambdaTestCapabilities {
     username?: string
     accessKey?: string
     platformName?: string
+    deviceName?: string
+    platformVersion?: string
+    app?: string
     browserName?: string
-    browserVersion? : string
+    browserVersion?: string
     /**
      * Set the resolution of the VM.
      */
     resolution?: string
     selenium_version?: string
+    driver_version?: string
     headless?: boolean
     seCdp?: boolean
     /**
@@ -1093,7 +1398,7 @@ export interface LambdaTestCapabilities{
      * These tags can be used to filter the builds on the Automate dashboard.
      */
     buildTags?: Array<string>
-    smartUiProject?: string
+    'smartUI.project'?: string
     /**
      * Use this capability to add names to the tests.
      */
@@ -1103,6 +1408,7 @@ export interface LambdaTestCapabilities{
      * These tags can be used to filter the tests on the Automate dashboard.
      */
     tags?: Array<string>
+    devicelog?: boolean
     visual?: boolean
     video?: boolean
     /**
@@ -1111,11 +1417,28 @@ export interface LambdaTestCapabilities{
      * LambdaTest Tunnel (https://www.lambdatest.com/support/docs/testing-locally-hosted-pages).
      */
     tunnel?: boolean
+    tunnelName?: string
     /**
      * Capture browser console logs at various steps in the test.
      */
-    console?: 'warn' | 'error' | 'warn' | 'info' | 'true'
+    console?: 'warn' | 'error' | 'warn' | 'info' | 'true' | 'false'
     network?: boolean
+    timezone?: string
+    geoLocation?: string
+    location?: {
+        lat: string
+        long: string
+    }
+    language?: string
+    locale?: string
+    idleTimeout?: number
+    queueTimeout?: number
+    autoGrantPermissions?: boolean
+    autoAcceptAlerts?: boolean
+    otherApps?: Array<string>
+    isRealMobile?: boolean
+    networkThrottling?: string,
+    deviceOrientation?: 'portrait' | 'landscape'
 }
 
 export interface BrowserStackCapabilities {
@@ -1154,7 +1477,7 @@ export interface BrowserStackCapabilities {
      */
     debug?: boolean
     networkLogs?: boolean
-     /**
+    /**
      * https://www.browserstack.com/docs/app-automate/appium/debug-failed-tests/network-logs
      * Enable viewing the response data in the Network Logs tab on your session
      */
@@ -1204,7 +1527,7 @@ export interface BrowserStackCapabilities {
      */
     'browserstack.maskCommands'?: string[]
     /**
-     * BrowerStack triggers `BROWSERSTACK_IDLE_TIMEOUT` error when a session
+     * BrowserStack triggers `BROWSERSTACK_IDLE_TIMEOUT` error when a session
      * is left idle for more than `idleTimeout` seconds. This happens as BrowserStack by
      * default waits for the timeout duration for additional steps or commands
      * to run. If no command is received during that time, the session is stopped,
@@ -1317,12 +1640,21 @@ export interface BrowserStackCapabilities {
     buildIdentifier?: string
 
     accessibility?: boolean
-    accessibilityOptions?: { [key: string]: any; }
+    accessibilityOptions?: { [key: string]: any }
 
     'browserstack.buildIdentifier'?: string
     'browserstack.localIdentifier'?: string
     'browserstack.accessibility'?: boolean
-    'browserstack.accessibilityOptions'?: { [key: string]: any; }
+    'browserstack.accessibilityOptions'?: { [key: string]: any }
+
+    appStoreConfiguration?: { username: string, password: string }
+    gpsLocation?: string
+    disableAnimations?: boolean
+    midSessionInstallApps?: Array<string>
+    uploadMedia?: Array<string>
+    enablePasscode?: boolean
+    deviceLogs?: boolean,
+    resignApp?: boolean
 }
 
 export interface SauceLabsVisualCapabilities {
@@ -1416,38 +1748,38 @@ export interface SauceLabsVisualCapabilities {
  * https://testingbot.com/support/other/test-options#platform
  */
 export interface TestingbotCapabilities {
-    name?: string;
-    tags?: string[];
-    build?: string | number | number;
-    public?: boolean;
-    'tunnel-identifier'?: string;
-    realDevice?: boolean;
-    'selenium-version'?: string;
-    chromedriverVersion?: string;
-    iedriverVersion?: string;
-    edgedriverVersion?: string;
-    geckodriverVersion?: string;
-    operaDriverVersion?: string;
-    timeZone?: string;
-    upload?: string;
-    'testingbot.geoCountryCode'?: string;
-    idletimeout?: number;
-    'load-extension'?: string;
+    name?: string
+    tags?: string[]
+    build?: string | number
+    public?: boolean
+    'tunnel-identifier'?: string
+    realDevice?: boolean
+    'selenium-version'?: string
+    chromedriverVersion?: string
+    iedriverVersion?: string
+    edgedriverVersion?: string
+    geckodriverVersion?: string
+    operaDriverVersion?: string
+    timeZone?: string
+    upload?: string
+    'testingbot.geoCountryCode'?: string
+    idletimeout?: number
+    'load-extension'?: string
 }
 
 export interface SeleniumRCCapabilities {
     // Selenium RC (1.0) only
-    commandLineFlags?: string;
-    executablePath?: string;
-    timeoutInSeconds?: number;
-    onlyProxySeleniumTraffic?: boolean;
-    avoidProxy?: boolean;
-    proxyEverything?: boolean;
-    proxyRequired?: boolean;
-    browserSideLog?: boolean;
-    optionsSet?: boolean;
-    singleWindow?: boolean;
-    dontInjectRegex?: RegExp;
-    userJSInjection?: boolean;
-    userExtensions?: string;
+    commandLineFlags?: string
+    executablePath?: string
+    timeoutInSeconds?: number
+    onlyProxySeleniumTraffic?: boolean
+    avoidProxy?: boolean
+    proxyEverything?: boolean
+    proxyRequired?: boolean
+    browserSideLog?: boolean
+    optionsSet?: boolean
+    singleWindow?: boolean
+    dontInjectRegex?: RegExp
+    userJSInjection?: boolean
+    userExtensions?: string
 }
