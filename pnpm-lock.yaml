@@ -169,7 +169,7 @@ importers:
         version: 2.2.3
       rimraf:
         specifier: ^5.0.5
-        version: 5.0.5
+        version: 5.0.7
       shelljs:
         specifier: ^0.8.5
         version: 0.8.5
@@ -743,8 +743,6 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
-  packages/wdio-cli/build/cjs: {}
-
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -823,8 +821,6 @@ importers:
       '@types/is-glob':
         specifier: ^4.0.1
         version: 4.0.4
-
-  packages/wdio-cucumber-framework/build/cjs: {}
 
   packages/wdio-cucumber-framework/src/cjs: {}
 
@@ -961,8 +957,6 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
-
-  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1185,8 +1179,6 @@ importers:
         specifier: workspace:*
         version: link:../wdio-globals
 
-  packages/wdio-shared-store-service/build/cjs: {}
-
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1399,8 +1391,6 @@ importers:
         specifier: ^8.8.0
         version: 8.16.0
 
-  packages/webdriver/build/cjs: {}
-
   packages/webdriver/src/cjs: {}
 
   packages/webdriverio:
@@ -1496,8 +1486,6 @@ importers:
       puppeteer-core:
         specifier: ^22.6.1
         version: 22.6.5
-
-  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
@@ -11290,6 +11278,11 @@ packages:
   rimraf@5.0.5:
     resolution: {integrity: sha512-CqDakW+hMe/Bz202FPEymy68P+G50RfMQK+Qo5YUqc9SPipvbGjCGKd0RSKEelbsfQuw3g5NZDSrlZZAJurH1A==}
     engines: {node: '>=14'}
+    hasBin: true
+
+  rimraf@5.0.7:
+    resolution: {integrity: sha512-nV6YcJo5wbLW77m+8KjH8aB/7/rxQy9SZ0HY5shnwULfS+9nmTtVXAJET5NdZmCzA4fPI/Hm1wo/Po/4mopOdg==}
+    engines: {node: '>=14.18'}
     hasBin: true
 
   robots-parser@2.4.0:
@@ -25656,6 +25649,10 @@ snapshots:
       glob: 9.3.5
 
   rimraf@5.0.5:
+    dependencies:
+      glob: 10.3.12
+
+  rimraf@5.0.7:
     dependencies:
       glob: 10.3.12
 
