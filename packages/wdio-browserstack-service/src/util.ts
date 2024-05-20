@@ -585,7 +585,7 @@ export async function getGitMetaData () {
     if (!info.commonGitDir) return {}
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = remote ? Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] })) : []
-    const gitMetaData = {
+    let gitMetaData = {
         name: 'git',
         sha: info.sha,
         short_sha: info.abbreviatedSha,
@@ -604,14 +604,7 @@ export async function getGitMetaData () {
         remotes: remotes
     }
 
-    const gitMetaDataSizeInKb = getSizeOfJsonObjectInKb(gitMetaData)
-
-    if (gitMetaDataSizeInKb && gitMetaDataSizeInKb > 0 && gitMetaDataSizeInKb > MAX_GIT_META_DATA_SIZE_IN_KB) {
-        const truncateSize = gitMetaDataSizeInKb - MAX_GIT_META_DATA_SIZE_IN_KB
-        const truncatedCommitMessage = truncateString(gitMetaData.commit_message, truncateSize)
-        gitMetaData.commit_message = truncatedCommitMessage
-        log.debug('The commit has been truncated')
-    }
+    gitMetaData = checkAndTruncateVCSInfo(gitMetaData)
     return gitMetaData
 }
 
@@ -1226,4 +1219,17 @@ export function getSizeOfJsonObjectInKb(jsonData: Object) {
     }
 
     return -1
+}
+
+export function checkAndTruncateVCSInfo(gitMetaData: any) {
+    const gitMetaDataSizeInKb = getSizeOfJsonObjectInKb(gitMetaData)
+
+    if (gitMetaDataSizeInKb && gitMetaDataSizeInKb > 0 && gitMetaDataSizeInKb > MAX_GIT_META_DATA_SIZE_IN_KB) {
+        const truncateSize = gitMetaDataSizeInKb - MAX_GIT_META_DATA_SIZE_IN_KB
+        const truncatedCommitMessage = truncateString(gitMetaData.commit_message, truncateSize)
+        gitMetaData.commit_message = truncatedCommitMessage
+        log.info(`The commit has been truncated. Size of commit after truncation is ${ getSizeOfJsonObjectInKb(gitMetaData) }`)
+    }
+
+    return gitMetaData
 }
