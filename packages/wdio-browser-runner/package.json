@@ -45,7 +45,7 @@
     "@wdio/runner": "8.36.1",
     "@wdio/types": "8.36.1",
     "@wdio/utils": "8.36.1",
-    "deepmerge-ts": "^5.0.0",
+    "deepmerge-ts": "^7.0.0",
     "expect": "^29.7.0",
     "expect-webdriverio": "^4.11.2",
     "get-port": "^7.0.0",

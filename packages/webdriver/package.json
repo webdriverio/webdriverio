@@ -43,7 +43,7 @@
     "@wdio/protocols": "8.32.0",
     "@wdio/types": "8.36.1",
     "@wdio/utils": "8.36.1",
-    "deepmerge-ts": "^5.1.0",
+    "deepmerge-ts": "^7.0.0",
     "got": "^12.6.1",
     "ky": "^0.33.0",
     "ws": "^8.8.0"

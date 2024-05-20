@@ -40,7 +40,7 @@
     "@wdio/types": "8.36.1",
     "@wdio/utils": "8.36.1",
     "decamelize": "^6.0.0",
-    "deepmerge-ts": "^5.0.0",
+    "deepmerge-ts": "^7.0.0",
     "glob": "^10.2.2",
     "import-meta-resolve": "^4.0.0"
   },
