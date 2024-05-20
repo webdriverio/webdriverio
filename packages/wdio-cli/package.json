@@ -59,7 +59,7 @@
     "cli-spinners": "^2.9.0",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
-    "execa": "^8.0.1",
+    "execa": "^9.1.0",
     "import-meta-resolve": "^4.0.0",
     "inquirer": "9.2.12",
     "lodash.flattendeep": "^4.4.0",
