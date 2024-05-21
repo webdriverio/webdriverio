@@ -38,8 +38,8 @@ export async function sendFinish(config: BrowserStackConfig) {
     await fireFunnelTestEvent('SDKTestSuccessful', config)
 }
 
-export function saveFunnelData(eventType: string, config: BrowserStackConfig, exitSignal: string|null = null): string {
-    const data = buildEventData(eventType, config, exitSignal)
+export function saveFunnelData(eventType: string, config: BrowserStackConfig): string {
+    const data = buildEventData(eventType, config)
 
     BStackLogger.ensureLogsFolder()
     const filePath = path.join(BStackLogger.logFolderPath, 'funnelData.json')
@@ -91,7 +91,7 @@ function getProductMap(config: BrowserStackConfig): any {
     }
 }
 
-function buildEventData(eventType: string, config: BrowserStackConfig, exitSignal: string|null = null): any {
+function buildEventData(eventType: string, config: BrowserStackConfig): any {
     const eventProperties: any = {
         // Framework Details
         language_framework: getLanguageFramework(config.framework),
@@ -119,10 +119,10 @@ function buildEventData(eventType: string, config: BrowserStackConfig, exitSigna
     if (eventType === 'SDKTestSuccessful') {
         const workerData = getDataFromWorkers()
         eventProperties.productUsage = getProductUsage(workerData)
-        if (exitSignal) {
+        if (config.killSignal) {
             eventProperties.finishedMetadata = {
                 reason: 'user_killed',
-                signal: exitSignal
+                signal: config.killSignal
             }
         }
     }

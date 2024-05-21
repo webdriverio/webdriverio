@@ -26,6 +26,7 @@ class BrowserStackConfig {
     public automate: boolean
     public funnelDataSent: boolean = false
     public sdkRunID: string
+    public killSignal?: string
 
     private constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
         this.framework = config.framework
@@ -43,6 +44,10 @@ class BrowserStackConfig {
 
     sentFunnelData() {
         this.funnelDataSent = true
+    }
+
+    setKillSignal(sig: string) {
+        this.killSignal = sig
     }
 
 }

@@ -1,6 +1,5 @@
 import { spawn } from 'node:child_process'
 import path from 'node:path'
-import os from 'node:os'
 import BrowserStackConfig from './config.js'
 import { saveFunnelData } from './instrumentation/funnelInstrumentation.js'
 import { fileURLToPath } from 'node:url'
@@ -10,27 +9,26 @@ import { BStackLogger } from './bstackLogger.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-function getSignalName(code?: number) : string|null {
-    if (!code) {
-        return null
+function getInterruptSignals(): string[] {
+    const allSignals: string[] = [
+        'SIGTERM',
+        'SIGINT',
+        'SIGHUP'
+    ]
+    if (process.platform !== 'win32') {
+        allSignals.push('SIGABRT')
+        allSignals.push('SIGQUIT')
+    } else {
+        // For windows Ctrl+Break
+        allSignals.push('SIGBREAK')
     }
-    // Handle case where exit code is returned as 128 + code
-    if (code >= 128) {
-        code -= 128
-    }
-
-    const signalEntry = Object.entries(os.constants.signals).find(e => e[1] === code)
-    if (signalEntry) {
-        return signalEntry[0]
-    }
-
-    return null
+    return allSignals
 }
 
 export function setupExitHandlers() {
     process.on('exit', (code) => {
         BStackLogger.debug('Exit hook called')
-        const args = shouldCallCleanup(BrowserStackConfig.getInstance(), code)
+        const args = shouldCallCleanup(BrowserStackConfig.getInstance())
         if (Array.isArray(args) && args.length) {
             BStackLogger.debug('Spawning cleanup with args ' + args.toString())
             const childProcess = spawn('node', [`${path.join(__dirname, 'cleanup.js')}`, ...args], { detached: true, stdio: 'inherit', env: { ...process.env } })
@@ -38,16 +36,22 @@ export function setupExitHandlers() {
             process.exit(code)
         }
     })
+
+    getInterruptSignals().forEach((sig: string) => {
+        process.on(sig, () => {
+            BrowserStackConfig.getInstance().setKillSignal(sig)
+        })
+    })
 }
 
-export function shouldCallCleanup(config: BrowserStackConfig, exitCode?: number): string[] {
+export function shouldCallCleanup(config: BrowserStackConfig): string[] {
     const args: string[] = []
     if (!!process.env[TESTOPS_JWT_ENV] && !config.testObservability.buildStopped) {
         args.push('--observability')
     }
 
     if (config.userName && config.accessKey && !config.funnelDataSent) {
-        const savedFilePath = saveFunnelData('SDKTestSuccessful', config, getSignalName(exitCode))
+        const savedFilePath = saveFunnelData('SDKTestSuccessful', config)
         args.push('--funnelData', savedFilePath)
     }
 
