@@ -10,11 +10,12 @@ import { BStackLogger } from './bstackLogger.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-function getSignalName(code: number) : string|null {
+function getSignalName(code?: number) : string|null {
     if (!code) {
         return null
     }
-    if (code > 128) {
+    // Handle case where exit code is returned as 128 + code
+    if (code >= 128) {
         code -= 128
     }
 
@@ -39,7 +40,7 @@ export function setupExitHandlers() {
     })
 }
 
-export function shouldCallCleanup(config: BrowserStackConfig, exitCode: number): string[] {
+export function shouldCallCleanup(config: BrowserStackConfig, exitCode?: number): string[] {
     const args: string[] = []
     if (!!process.env[TESTOPS_JWT_ENV] && !config.testObservability.buildStopped) {
         args.push('--observability')
