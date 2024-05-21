@@ -4,6 +4,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import got from 'got'
 import UsageStats from '../testOps/usageStats.js'
+import TestOpsConfig from '../testOps/testOpsConfig.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
@@ -110,6 +111,9 @@ function buildEventData(eventType: string, config: BrowserStackConfig, exitSigna
         // Product Details
         productMap: getProductMap(config),
         product: getProductList(config),
+    }
+    if (TestOpsConfig.getInstance().buildHashedId) {
+        eventProperties.testhub_uuid = TestOpsConfig.getInstance().buildHashedId
     }
 
     if (eventType === 'SDKTestSuccessful') {
