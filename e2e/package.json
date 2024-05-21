@@ -56,7 +56,6 @@
     "@wdio/local-runner": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
-    "@wdio/static-server-service": "workspace:*",
     "babel-plugin-transform-hook-names": "^1.0.2",
     "cross-env": "^7.0.3",
     "expect": "^29.7.0",

@@ -109,15 +109,7 @@ export const config = {
                 }
             })
         }
-    }, {}],
-
-    ['static-server',
-        {
-            port: 8080,
-            folders: [
-                { mount: '/', path: path.join(__dirname, '__fixtures__') },
-            ],
-        }]],
+    }, {}]],
 
     before: () => {
         /**

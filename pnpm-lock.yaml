@@ -270,9 +270,6 @@ importers:
       '@wdio/spec-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-spec-reporter
-      '@wdio/static-server-service':
-        specifier: workspace:*
-        version: link:../packages/wdio-static-server-service
       babel-plugin-transform-hook-names:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.24.5)
@@ -13839,11 +13836,11 @@ snapshots:
   '@babel/helper-function-name@7.23.0':
     dependencies:
       '@babel/template': 7.24.0
-      '@babel/types': 7.24.0
+      '@babel/types': 7.24.5
 
   '@babel/helper-hoist-variables@7.22.5':
     dependencies:
-      '@babel/types': 7.24.0
+      '@babel/types': 7.24.5
 
   '@babel/helper-member-expression-to-functions@7.23.0':
     dependencies:
