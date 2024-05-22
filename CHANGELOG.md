@@ -21,6 +21,48 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.37.0 (2024-05-22)
+
+#### :rocket: New Feature
+* `eslint-plugin-wdio`
+  * [#12716](https://github.com/webdriverio/webdriverio/pull/12716) [webdriverio-v8] Flat ESLint support ([@MadSandwich](https://github.com/MadSandwich))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#12889](https://github.com/webdriverio/webdriverio/pull/12889) [v8] Select proper input via ancestor label when multiple match ([@evankennedy](https://github.com/evankennedy))
+* `wdio-utils`
+  * [#12718](https://github.com/webdriverio/webdriverio/pull/12718) avoid calling googlechromelabs.github.io when offline and using ffx ([@step21](https://github.com/step21))
+* `wdio-types`
+  * [#12850](https://github.com/webdriverio/webdriverio/pull/12850) Update the types for suites to fix the compile error ([@iamatharva](https://github.com/iamatharva))
+* `wdio-config`
+  * [#12751](https://github.com/webdriverio/webdriverio/pull/12751) [12428] [V8] CustomService is run twice ([@jemishgopani](https://github.com/jemishgopani))
+* `wdio-junit-reporter`
+  * [#12723](https://github.com/webdriverio/webdriverio/pull/12723) fix: error counts in junit reporter ([@ASaiAnudeep](https://github.com/ASaiAnudeep))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#12855](https://github.com/webdriverio/webdriverio/pull/12855) [#11473] Refactor wdio-allure-reporter package for better hooks handling [v8] ([@lararojasmr](https://github.com/lararojasmr))
+* `wdio-types`
+  * [#12851](https://github.com/webdriverio/webdriverio/pull/12851) Add resignApp capabilites v8 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-browser-runner`, `wdio-browserstack-service`
+  * [#12802](https://github.com/webdriverio/webdriverio/pull/12802) Fix: Result and Context arguments for component tests ([@sriteja777](https://github.com/sriteja777))
+
+#### :memo: Documentation
+* [#12780](https://github.com/webdriverio/webdriverio/pull/12780) accessibility-testing-v8-bstack ([@JohnJoser3](https://github.com/JohnJoser3))
+
+#### Committers: 10
+- Anudeep ([@ASaiAnudeep](https://github.com/ASaiAnudeep))
+- Artsem Burlai ([@MadSandwich](https://github.com/MadSandwich))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Evan Kennedy ([@evankennedy](https://github.com/evankennedy))
+- Florian Idelberger ([@step21](https://github.com/step21))
+- Jemish Gopani ([@jemishgopani](https://github.com/jemishgopani))
+- John Jose ([@JohnJoser3](https://github.com/JohnJoser3))
+- Manuel Lara ([@lararojasmr](https://github.com/lararojasmr))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- [@iamatharva](https://github.com/iamatharva)
+
+
 ## v8.36.1 (2024-04-20)
 
 #### :bug: Bug Fix
