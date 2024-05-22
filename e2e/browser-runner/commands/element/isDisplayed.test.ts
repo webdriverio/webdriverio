@@ -1,7 +1,5 @@
 // @ts-expect-error resolved by vite
 import { expect, $ } from '@wdio/globals'
-// import { screen } from '@testing-library/jest-dom'
-// import userEvent from '@testing-library/user-event'
 import { html, render } from 'lit'
 
 import * as matchers from '@testing-library/jest-dom/matchers'
