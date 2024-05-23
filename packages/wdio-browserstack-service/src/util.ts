@@ -20,7 +20,7 @@ import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
-import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
+import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, TOStopData } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     ACCESSIBILITY_API_URL,
@@ -616,7 +616,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             message: 'Token/buildID is undefined, build creation might have failed'
         }
     }
-    const data:any = {
+    const data:TOStopData = {
         'finished_at': (new Date()).toISOString(),
         'finished_metadata': [],
     }
