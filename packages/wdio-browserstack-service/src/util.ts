@@ -29,7 +29,7 @@ import {
     TESTOPS_BUILD_ID_ENV,
     TESTOPS_SCREENSHOT_ENV,
     PERF_MEASUREMENT_ENV, RERUN_ENV,
-    MAX_GIT_META_DATA_SIZE_IN_KB,
+    MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED
 } from './constants'
 
@@ -1190,13 +1190,13 @@ export const getErrorString = (err: unknown) => {
     }
 }
 
-export function truncateString(field: string, truncateSizeInKb: number) {
+export function truncateString(field: string, truncateSizeInBytes: number) {
     try {
         const bufferSizeInBytes = Buffer.from(GIT_META_DATA_TRUNCATED).length
 
         const fieldBufferObj = Buffer.from(field)
         const lenOfFieldBufferObj = fieldBufferObj.length
-        const finalLen = Math.round(lenOfFieldBufferObj - (truncateSizeInKb * 1024) - (bufferSizeInBytes))
+        const finalLen = Math.ceil(lenOfFieldBufferObj - truncateSizeInBytes - bufferSizeInBytes)
         if (finalLen > 0) {
             const truncatedString = fieldBufferObj.subarray(0, finalLen).toString() + GIT_META_DATA_TRUNCATED
             return truncatedString
@@ -1207,12 +1207,12 @@ export function truncateString(field: string, truncateSizeInKb: number) {
     return field
 }
 
-export function getSizeOfJsonObjectInKb(jsonData: Object) {
+export function getSizeOfJsonObjectInBytes(jsonData: Object) {
     try {
         if (jsonData) {
             const buffer = Buffer.from(JSON.stringify(jsonData))
 
-            return Math.floor(buffer.length/1024)
+            return buffer.length
         }
     } catch (error) {
         log.debug(`Something went wrong while calculating size of JSON object: ${error}`)
@@ -1222,13 +1222,13 @@ export function getSizeOfJsonObjectInKb(jsonData: Object) {
 }
 
 export function checkAndTruncateVCSInfo(gitMetaData: any) {
-    const gitMetaDataSizeInKb = getSizeOfJsonObjectInKb(gitMetaData)
+    const gitMetaDataSizeInBytes = getSizeOfJsonObjectInBytes(gitMetaData)
 
-    if (gitMetaDataSizeInKb && gitMetaDataSizeInKb > 0 && gitMetaDataSizeInKb > MAX_GIT_META_DATA_SIZE_IN_KB) {
-        const truncateSize = gitMetaDataSizeInKb - MAX_GIT_META_DATA_SIZE_IN_KB
+    if (gitMetaDataSizeInBytes && gitMetaDataSizeInBytes > MAX_GIT_META_DATA_SIZE_IN_BYTES) {
+        const truncateSize = gitMetaDataSizeInBytes - MAX_GIT_META_DATA_SIZE_IN_BYTES
         const truncatedCommitMessage = truncateString(gitMetaData.commit_message, truncateSize)
         gitMetaData.commit_message = truncatedCommitMessage
-        log.info(`The commit has been truncated. Size of commit after truncation is ${ getSizeOfJsonObjectInKb(gitMetaData) }`)
+        log.info(`The commit has been truncated. Size of commit after truncation is ${ getSizeOfJsonObjectInBytes(gitMetaData) / 1024 } KB`)
     }
 
     return gitMetaData
