@@ -2,6 +2,7 @@ import type { AppConfig, BrowserstackConfig } from './types.js'
 import type { Options } from '@wdio/types'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 import { isUndefined } from './util.js'
+import { v4 as uuidv4 } from 'uuid'
 
 class BrowserStackConfig {
     static getInstance(options?: BrowserstackConfig & Options.Testrunner, config?: Options.Testrunner): BrowserStackConfig {
@@ -24,6 +25,8 @@ class BrowserStackConfig {
     public appAutomate: boolean
     public automate: boolean
     public funnelDataSent: boolean = false
+    public sdkRunID: string
+    public killSignal?: string
 
     private constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
         this.framework = config.framework
@@ -36,10 +39,15 @@ class BrowserStackConfig {
         this.appAutomate = !isUndefined(options.app)
         this.automate = !this.appAutomate
         this.buildIdentifier = options.buildIdentifier
+        this.sdkRunID = uuidv4()
     }
 
     sentFunnelData() {
         this.funnelDataSent = true
+    }
+
+    setKillSignal(sig: string) {
+        this.killSignal = sig
     }
 
 }
