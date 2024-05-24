@@ -5,7 +5,7 @@ title: OCR Testing
 
 Automated testing on mobile native apps and desktop sites can be particularly challenging when dealing with elements that lack unique identifiers. Standard [WebdriverIO selectors](https://webdriver.io/docs/selectors) may not always help you. Enter the world of the `@wdio/ocr-service`, a powerful service that leverages OCR ([Optical Character Recognition](https://en.wikipedia.org/wiki/Optical_character_recognition)) to search, wait for, and interact with on-screen elements based on their **visible text**.
 
-The following custom commands will be provided and added to the `browser/driver`-object so you will get the right toolset to do your job.
+The following custom commands will be provided and added to the `browser/driver` object so you will get the right toolset to do your job.
 
 -   [`await browser.ocrGetText`](./ocr-get-text.md)
 -   [`await browser.ocrGetElementPositionByText`](./ocr-get-element-position-by-text.md)
@@ -32,7 +32,7 @@ It works with **ZERO** system dependencies (besides what WebdriverIO uses), but 
 Enthusiastic? Start using it today by following the [Getting Started](./getting-started) guide.
 
 :::caution Important
-There are a variety of reasons you might not get good quality output from Tesseract. One of the biggest reasons that could be related to your app and this module could be the fact that there is no proper color distinguish between the text that needs to be found, and the background. For example, white text on a dark background can _easily_ be found, but light text on a white background or dark text on a dark background can hardly be found.
+There are a variety of reasons you might not get good quality output from Tesseract. One of the biggest reasons that could be related to your app and this module could be the fact that there is no proper color distinction between the text that needs to be found and the background. For example, white text on a dark background can _easily_ be found, but light text on a white background or dark text on a dark background can hardly be found.
 
 See also [this page](https://tesseract-ocr.github.io/tessdoc/ImproveQuality) for more information from Tesseract.
 
