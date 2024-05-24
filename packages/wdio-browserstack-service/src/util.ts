@@ -44,6 +44,25 @@ import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
 const pGitconfig = promisify(gitconfig)
 
+export type GitMetaData = {
+    name: string;
+    sha: string;
+    short_sha: string;
+    branch: string;
+    tag: string | null;
+    committer: string;
+    committer_date: string;
+    author: string;
+    author_date: string;
+    commit_message: string;
+    root: string;
+    common_git_dir: string;
+    worktree_git_dir: string;
+    last_tag: string | null;
+    commits_since_last_tag: number;
+    remotes: Array<{ name: string; url: string }>;
+};
+
 export const DEFAULT_REQUEST_CONFIG = {
     headers: {
         'Content-Type': 'application/json',
@@ -886,7 +905,8 @@ export async function getGitMetaData () {
     }
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = remote ? Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url })) : []
-    let gitMetaData = {
+
+    let gitMetaData : GitMetaData = {
         name: 'git',
         sha: info.sha,
         short_sha: info.abbreviatedSha,
@@ -1276,7 +1296,7 @@ export const getErrorString = (err: unknown) => {
     }
 }
 
-export function truncateString(field: string, truncateSizeInBytes: number) {
+export function truncateString(field: string, truncateSizeInBytes: number): string {
     try {
         const bufferSizeInBytes = Buffer.from(GIT_META_DATA_TRUNCATED).length
 
@@ -1293,13 +1313,11 @@ export function truncateString(field: string, truncateSizeInBytes: number) {
     return field
 }
 
-export function getSizeOfJsonObjectInBytes(jsonData: Object) {
+export function getSizeOfJsonObjectInBytes(jsonData: GitMetaData): number {
     try {
-        if (jsonData) {
-            const buffer = Buffer.from(JSON.stringify(jsonData))
+        const buffer = Buffer.from(JSON.stringify(jsonData))
 
-            return buffer.length
-        }
+        return buffer.length
     } catch (error) {
         BStackLogger.debug(`Something went wrong while calculating size of JSON object: ${error}`)
     }
@@ -1307,7 +1325,7 @@ export function getSizeOfJsonObjectInBytes(jsonData: Object) {
     return -1
 }
 
-export function checkAndTruncateVCSInfo(gitMetaData: any) {
+export function checkAndTruncateVCSInfo(gitMetaData: GitMetaData): GitMetaData {
     const gitMetaDataSizeInBytes = getSizeOfJsonObjectInBytes(gitMetaData)
 
     if (gitMetaDataSizeInBytes && gitMetaDataSizeInBytes > MAX_GIT_META_DATA_SIZE_IN_BYTES) {
