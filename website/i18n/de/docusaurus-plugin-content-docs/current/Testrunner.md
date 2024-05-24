@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Großartig! Jetzt müssen Sie eine Konfigurationsdatei definieren, in der alle Informationen zu Ihren Tests, Fähigkeiten und Einstellungen festgelegt sind. Wechseln Sie zum Abschnitt [Konfigurationsdatei](configurationfile) , um zu sehen, wie diese Datei aussehen sollte.
+Großartig! Jetzt müssen Sie eine Konfigurationsdatei definieren, in der alle Informationen zu Ihren Tests, Fähigkeiten und Einstellungen festgelegt sind. Switch over to the [Configuration File](/configurationfile)  section to see what that file should look like.
 
 Mit dem `wdio` Konfigurationshelfer ist es super einfach, Ihre Konfigurationsdatei zu generieren. Führen Sie einfach folgendes aus:
 
