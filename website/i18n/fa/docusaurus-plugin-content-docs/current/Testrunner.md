@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-عالی! اکنون باید یک فایل پیکربندی تعریف کنید که در آن تمام اطلاعات مربوط به تست ها، قابلیت ها و تنظیمات شما تنظیم شده باشد. به بخش [Configuration File](configurationfile)  بروید تا ببینید این فایل چگونه باید باشد.
+عالی! اکنون باید یک فایل پیکربندی تعریف کنید که در آن تمام اطلاعات مربوط به تست ها، قابلیت ها و تنظیمات شما تنظیم شده باشد. Switch over to the [Configuration File](/configurationfile)  section to see what that file should look like.
 
 با کمک پیکربندی `wdio` ، تولید فایل پیکربندی بسیار آسان است. فقط خط زیر را اجرا کنید:
 
