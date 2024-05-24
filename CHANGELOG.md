@@ -21,6 +21,27 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.38.0 (2024-05-24)
+
+#### :rocket: New Feature
+* `wdio-protocols`, `webdriverio`
+  * [#12778](https://github.com/webdriverio/webdriverio/pull/12778) Add Selenium downloadFile command ([@ccharnkij](https://github.com/ccharnkij))
+
+#### :bug: Bug Fix
+* `wdio-protocols`
+  * [#12922](https://github.com/webdriverio/webdriverio/pull/12922) Fix virtual authenticator ([@sangcnguyen](https://github.com/sangcnguyen))
+* `wdio-browserstack-service`
+  * [#12916](https://github.com/webdriverio/webdriverio/pull/12916) [v8][browserstack-service]Add instrumentation for graceful kill builds ([@samarsault](https://github.com/samarsault))
+* `wdio-logger`
+  * [#12921](https://github.com/webdriverio/webdriverio/pull/12921) [v8] fix(logger): reset cursor visibility on progress clear ([@Benricheson101](https://github.com/Benricheson101))
+
+#### Committers: 4
+- Ben Richeson ([@Benricheson101](https://github.com/Benricheson101))
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Samarjeet ([@samarsault](https://github.com/samarsault))
+- Sang Nguyen ([@sangcnguyen](https://github.com/sangcnguyen))
+
+
 ## v8.37.0 (2024-05-22)
 
 #### :rocket: New Feature
