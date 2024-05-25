@@ -15,6 +15,8 @@ Instructions on how to install `WebdriverIO` can be found [here.](../gettingStar
 
 :::note
 This module uses Tesseract as an OCR engine. By default, it will verify if you have a local installation of Tesseract installed on your system, if so, it will use that. If not, it will use the [Node.js Tesseract.js](https://github.com/naptha/tesseract.js) module which is automatically installed for you.
+
+If you want to speed up the image processing then the advice is to use a locally installed version of Tesseract. See also [Test execution time](./more-test-optimization#using-a-local-installation-of-tesseract).
 :::
 
 Instruction on how to install Tesseract as a system dependency on your local system can be found [here](https://tesseract-ocr.github.io/tessdoc/Installation.html).
@@ -66,7 +68,7 @@ exports.config = {
 -   **Mandatory:** No
 -   **Default:** `0.25`
 
-The padding needs to be added to the address bar on iOS and Android to do a proper cutout of the viewport.
+The higher the contrast, the darker the image and vice versa. This can help to find text in an image. It accepts values between `-1` and `1`.
 
 #### `imagesFolder`
 
@@ -77,7 +79,7 @@ The padding needs to be added to the address bar on iOS and Android to do a prop
 The folder where the OCR results are stored.
 
 :::note
-If you provide a customer `imagesFolder`, then the service will automatically add the subfolder `ocr` to it.
+If you provide a custom `imagesFolder`, then the service will automatically add the subfolder `ocr` to it.
 :::
 
 #### `language`
