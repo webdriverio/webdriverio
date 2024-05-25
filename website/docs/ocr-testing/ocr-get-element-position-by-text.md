@@ -10,7 +10,7 @@ Get the position of a text on the screen. The command will search for the provid
 ```js
 const result = await driver.ocrGetElementPositionByText("Username");
 
-console.log("result = ", JSON.stringyfy(result, null, 2));
+console.log("result = ", JSON.stringify(result, null, 2));
 ```
 
 ## Result
@@ -126,100 +126,6 @@ await driver.ocrGetElementPositionByText({
     text: "WebdriverIO",
     // Use Dutch as a language
     language: SUPPORTED_OCR_LANGUAGES.DUTCH,
-});
-```
-
-### `relativePosition`
-
--   **Type:** `object`
--   **Mandatory:** no
-
-You can click on the screen relative to the matching element. This can be done based on relative pixels `above`, `right`, `below` or `left` from the matching element
-
-:::note
-
-The following combinations are allowed
-
--   single properties
--   `above` + `left` or `above` + `right`
--   `below` + `left` or `below` + `right`
-
-The following combinations are **NOT** allowed
-
--   `above` plus `below`
--   `left` plus `right`
-
-:::
-
-#### `relativePosition.above`
-
--   **Type:** `number`
--   **Mandatory:** no
-
-Click x pixels `above` the matching element.
-
-##### Example
-
-```js
-await driver.ocrGetElementPositionByText({
-    text: "WebdriverIO",
-    relativePosition: {
-        above: 100,
-    },
-});
-```
-
-#### `relativePosition.right`
-
--   **Type:** `number`
--   **Mandatory:** no
-
-Click x pixels `right` from the matching element.
-
-##### Example
-
-```js
-await driver.ocrGetElementPositionByText({
-    text: "WebdriverIO",
-    relativePosition: {
-        right: 100,
-    },
-});
-```
-
-#### `relativePosition.below`
-
--   **Type:** `number`
--   **Mandatory:** no
-
-Click x pixels `below` the matching element.
-
-##### Example
-
-```js
-await driver.ocrGetElementPositionByText({
-    text: "WebdriverIO",
-    relativePosition: {
-        below: 100,
-    },
-});
-```
-
-#### `relativePosition.left`
-
--   **Type:** `number`
--   **Mandatory:** no
-
-Click x pixels `left` from the matching element.
-
-##### Example
-
-```js
-await driver.ocrGetElementPositionByText({
-    text: "WebdriverIO",
-    relativePosition: {
-        left: 100,
-    },
 });
 ```
 

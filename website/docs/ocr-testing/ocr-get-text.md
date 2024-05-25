@@ -8,49 +8,81 @@ Get the text on an image.
 ### Usage
 
 ```js
-driver.ocrGetText();
+const result = await driver.ocrGetText();
+
+console.log("result = ", JSON.stringify(result, null, 2));
 ```
 
-### Options
+## Result
 
-| Name                                 | Type             | Default | Details                                                                                |
-| ------------------------------------ | ---------------- | ------- | -------------------------------------------------------------------------------------- |
-| options (optional)                   | `GetTextOptions` | `{}`    | command options                                                                        |
-| options.reuseOcr (optional)          | `boolean`        | `false` | Re-use a previous OCR scan if it is available                                          |
-| options.androidRectangles (optional) | `Rectangles`     |         | Rectangles for Android to crop the search area for OCR                                 |
-| options.androidRectangles.top        | `number`         |         | Start position from the top of the screen to start cropping the search area for OCR    |
-| options.androidRectangles.left       | `number`         |         | Start position from the left of the screen to start cropping the search area for OCR   |
-| options.androidRectangles.right      | `number`         |         | Start position from the right of the screen to start cropping the search area for OCR  |
-| options.androidRectangles.bottom     | `number`         |         | Start position from the bottom of the screen to start cropping the search area for OCR |
-| options.iOSRectangles (optional)     | `Rectangles`     |         | Rectangles for Android to crop the search area for OCR                                 |
-| options.iOSRectangles.top            | `number`         |         | Start position from the top of the screen to start cropping the search area for OCR    |
-| options.iOSRectangles.left           | `number`         |         | Start position from the left of the screen to start cropping the search area for OCR   |
-| options.iOSRectangles.right          | `number`         |         | Start position from the right of the screen to start cropping the search area for OCR  |
-| options.iOSRectangles.bottom         | `number`         |         | Start position from the bottom of the screen to start cropping the search area for OCR |
+```logs
+result = "VS docs API Blog Contribute Community Sponsor v8 *Engishy CV} Q OQ G asearch Next-gen browser and mobile automation Welcome! How can | help? i test framework for Node.js Get Started Why WebdriverI0? View on GitHub Watch on YouTube"
+```
 
-### Returns
+## Logs
 
-Returns the text on the screen
+```log
+[0-0] 2024-05-25T17:38:25.970Z INFO webdriver: COMMAND ocrGetText()
+......................
+[0-0] 2024-05-25T17:38:26.738Z INFO webdriver: RESULT VS docs API Blog Contribute Community Sponsor v8 *Engishy CV} Q OQ G asearch Next-gen browser and mobile automation Welcome! How can | help? i test framework for Node.js Get Started Why WebdriverI0? View on GitHub Watch on YouTube
+```
 
-### Example
+## Options
+
+### `contrast`
+
+-   **Type:** `number`
+-   **Mandatory:** no
+-   **Default:** `0.25`
+
+The higher the contrast, the darker the image and vice versa. This can help to find text in an image. It accepts values between `-1` and `1`.
+
+#### Example
 
 ```js
-it("should be able to the the text of a screen", () => {
-    // Assert that the word `PRODUCTS` is shown
-    expect(driver.ocrGetText()).toContain("PRODUCTS");
+await driver.ocrGetText({ contrast: 0.5 });
+```
 
-    // OR assert with options
-    expect(
-        driver.ocrGetText({
-            // Same as for iOSRectangles
-            androidRectangles: {
-                top: 200,
-                left: 0,
-                right: 800,
-                bottom: 400,
-            },
-            reuseOcr: true,
-        })
-    ).toContain("PRODUCTS");
+### `haystack`
+
+-   **Type:** `number`
+-   **Mandatory:** `WebdriverIO.Element | ChainablePromiseElement | Rectangle`
+
+This is the search area in the screen where the OCR needs to look for text. This can be an element or a rectangle containing `x`, `y`, `width` and `height`
+
+#### Example
+
+```js
+await driver.ocrGetText({ haystack: $("elementSelector") });
+
+// OR
+await driver.ocrGetText({ haystack: await $("elementSelector") });
+
+// OR
+await driver.ocrGetText({
+    haystack: {
+        x: 10,
+        y: 50,
+        width: 300,
+        height: 75,
+    },
+});
+```
+
+### `language`
+
+-   **Type:** `string`
+-   **Mandatory:** No
+-   **Default:** `eng`
+
+The language that Tesseract will recognize. More info can be found [here](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions) and the supported languages can be found [here](https://github.com/webdriverio/visual-testing/blob/main/packages/ocr-service/src/utils/constants.ts).
+
+#### Example
+
+```js
+import { SUPPORTED_OCR_LANGUAGES } from "@wdio/ocr-service";
+await driver.ocrGetText({
+    // Use Dutch as a language
+    language: SUPPORTED_OCR_LANGUAGES.DUTCH,
 });
 ```
