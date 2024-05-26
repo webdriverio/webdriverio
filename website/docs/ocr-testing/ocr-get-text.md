@@ -13,13 +13,15 @@ const result = await driver.ocrGetText();
 console.log("result = ", JSON.stringify(result, null, 2));
 ```
 
-## Result
+## Output
+
+### Result
 
 ```logs
 result = "VS docs API Blog Contribute Community Sponsor v8 *Engishy CV} Q OQ G asearch Next-gen browser and mobile automation Welcome! How can | help? i test framework for Node.js Get Started Why WebdriverI0? View on GitHub Watch on YouTube"
 ```
 
-## Logs
+### Logs
 
 ```log
 [0-0] 2024-05-25T17:38:25.970Z INFO webdriver: COMMAND ocrGetText()

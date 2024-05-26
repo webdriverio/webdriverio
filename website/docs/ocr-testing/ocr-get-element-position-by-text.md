@@ -13,7 +13,9 @@ const result = await driver.ocrGetElementPositionByText("Username");
 console.log("result = ", JSON.stringify(result, null, 2));
 ```
 
-## Result
+## Output
+
+### Result
 
 ```logs
 result = {
@@ -36,7 +38,7 @@ result = {
 }
 ```
 
-## Logs
+### Logs
 
 ```log
 # Still finding a match even though we searched for "Start3d" and the found text was "Started"
