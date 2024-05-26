@@ -166,6 +166,7 @@
             "ocr-testing/ocr-wait-for-text-displayed"
           ]
         },
+        "ocr-testing/more-test-optimization",
         "ocr-testing/ocr-faq"
       ],
       "link": {
