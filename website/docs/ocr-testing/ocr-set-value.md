@@ -42,7 +42,7 @@ The text you want to search for to click on.
 #### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
 });
@@ -58,7 +58,7 @@ Value to be added.
 #### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
 });
@@ -75,7 +75,7 @@ If the value also needs to be submitted into the input field. This means an "ENT
 #### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     submitValue: true,
@@ -93,7 +93,7 @@ This is the duration of the click. If you want you can also create a "long click
 #### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     clickDuration: 3000, // This is 3 seconds
@@ -111,7 +111,7 @@ The higher the contrast, the darker the image and vice versa. This can help to f
 #### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     contrast: 0.5,
@@ -128,21 +128,21 @@ This is the search area in the screen where the OCR needs to look for text. This
 #### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     haystack: $("elementSelector"),
 });
 
 // OR
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     haystack: await $("elementSelector"),
 });
 
 // OR
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     haystack: {
@@ -166,7 +166,7 @@ The language that Tesseract will recognize. More info can be found [here](https:
 
 ```js
 import { SUPPORTED_OCR_LANGUAGES } from "@wdio/ocr-service";
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     // Use Dutch as a language
@@ -206,7 +206,7 @@ Click x pixels `above` the matching element.
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     relativePosition: {
@@ -225,7 +225,7 @@ Click x pixels `right` from the matching element.
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     relativePosition: {
@@ -244,7 +244,7 @@ Click x pixels `below` the matching element.
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     relativePosition: {
@@ -263,7 +263,7 @@ Click x pixels `left` from the matching element.
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     relativePosition: {
@@ -287,7 +287,7 @@ Determines how close the match must be to the fuzzy location (specified by locat
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     fuzzyFindOptions: {
@@ -307,7 +307,7 @@ Determines approximately where in the text is the pattern expected to be found.
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     fuzzyFindOptions: {
@@ -327,7 +327,7 @@ At what point does the matching algorithm give up. A threshold of 0 requires a p
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     fuzzyFindOptions: {
@@ -347,7 +347,7 @@ Whether the search should be case sensitive.
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     fuzzyFindOptions: {
@@ -367,7 +367,7 @@ Only the matches whose length exceeds this value will be returned. (For instance
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     fuzzyFindOptions: {
@@ -387,7 +387,7 @@ When `true`, the matching function will continue to the end of a search pattern 
 ##### Example
 
 ```js
-await driver.ocrSetValue({
+await browser.ocrSetValue({
     text: "WebdriverIO",
     value: "The Value",
     fuzzyFindOptions: {

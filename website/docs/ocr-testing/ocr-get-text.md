@@ -8,7 +8,7 @@ Get the text on an image.
 ### Usage
 
 ```js
-const result = await driver.ocrGetText();
+const result = await browser.ocrGetText();
 
 console.log("result = ", JSON.stringify(result, null, 2));
 ```
@@ -42,7 +42,7 @@ The higher the contrast, the darker the image and vice versa. This can help to f
 #### Example
 
 ```js
-await driver.ocrGetText({ contrast: 0.5 });
+await browser.ocrGetText({ contrast: 0.5 });
 ```
 
 ### `haystack`
@@ -55,13 +55,13 @@ This is the search area in the screen where the OCR needs to look for text. This
 #### Example
 
 ```js
-await driver.ocrGetText({ haystack: $("elementSelector") });
+await browser.ocrGetText({ haystack: $("elementSelector") });
 
 // OR
-await driver.ocrGetText({ haystack: await $("elementSelector") });
+await browser.ocrGetText({ haystack: await $("elementSelector") });
 
 // OR
-await driver.ocrGetText({
+await browser.ocrGetText({
     haystack: {
         x: 10,
         y: 50,
@@ -83,7 +83,7 @@ The language that Tesseract will recognize. More info can be found [here](https:
 
 ```js
 import { SUPPORTED_OCR_LANGUAGES } from "@wdio/ocr-service";
-await driver.ocrGetText({
+await browser.ocrGetText({
     // Use Dutch as a language
     language: SUPPORTED_OCR_LANGUAGES.DUTCH,
 });

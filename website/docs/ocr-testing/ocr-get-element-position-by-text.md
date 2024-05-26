@@ -8,7 +8,7 @@ Get the position of a text on the screen. The command will search for the provid
 ## Usage
 
 ```js
-const result = await driver.ocrGetElementPositionByText("Username");
+const result = await browser.ocrGetElementPositionByText("Username");
 
 console.log("result = ", JSON.stringify(result, null, 2));
 ```
@@ -59,7 +59,7 @@ The text you want to search for to click on.
 #### Example
 
 ```js
-await driver.ocrGetElementPositionByText({ text: "WebdriverIO" });
+await browser.ocrGetElementPositionByText({ text: "WebdriverIO" });
 ```
 
 ### `contrast`
@@ -73,7 +73,7 @@ The higher the contrast, the darker the image and vice versa. This can help to f
 #### Example
 
 ```js
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     contrast: 0.5,
 });
@@ -89,19 +89,19 @@ This is the search area in the screen where the OCR needs to look for text. This
 #### Example
 
 ```js
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     haystack: $("elementSelector"),
 });
 
 // OR
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     haystack: await $("elementSelector"),
 });
 
 // OR
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     haystack: {
         x: 10,
@@ -124,7 +124,7 @@ The language that Tesseract will recognize. More info can be found [here](https:
 
 ```js
 import { SUPPORTED_OCR_LANGUAGES } from "@wdio/ocr-service";
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     // Use Dutch as a language
     language: SUPPORTED_OCR_LANGUAGES.DUTCH,
@@ -146,7 +146,7 @@ Determines how close the match must be to the fuzzy location (specified by locat
 ##### Example
 
 ```js
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         distance: 20,
@@ -165,7 +165,7 @@ Determines approximately where in the text is the pattern expected to be found.
 ##### Example
 
 ```js
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         location: 20,
@@ -184,7 +184,7 @@ At what point does the matching algorithm give up. A threshold of 0 requires a p
 ##### Example
 
 ```js
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         threshold: 0.8,
@@ -203,7 +203,7 @@ Whether the search should be case sensitive.
 ##### Example
 
 ```js
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         isCaseSensitive: true,
@@ -222,7 +222,7 @@ Only the matches whose length exceeds this value will be returned. (For instance
 ##### Example
 
 ```js
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         minMatchCharLength: 5,
@@ -241,7 +241,7 @@ When `true`, the matching function will continue to the end of a search pattern 
 ##### Example
 
 ```js
-await driver.ocrGetElementPositionByText({
+await browser.ocrGetElementPositionByText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         findAllMatches: 100,

@@ -8,7 +8,7 @@ Click on an element based on the provided texts. The command will search for the
 ## Usage
 
 ```js
-await driver.ocrClickOnText({ text: "Start3d" });
+await browser.ocrClickOnText({ text: "Start3d" });
 ```
 
 ## Output
@@ -40,7 +40,7 @@ The text you want to search for to click on.
 #### Example
 
 ```js
-await driver.ocrClickOnText({ text: "WebdriverIO" });
+await browser.ocrClickOnText({ text: "WebdriverIO" });
 ```
 
 ### `clickDuration`
@@ -54,7 +54,7 @@ This is the duration of the click. If you want you can also create a "long click
 #### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     clickDuration: 3000, // This is 3 seconds
 });
@@ -71,7 +71,7 @@ The higher the contrast, the darker the image and vice versa. This can help to f
 #### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     contrast: 0.5,
 });
@@ -87,19 +87,19 @@ This is the search area in the screen where the OCR needs to look for text. This
 #### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     haystack: $("elementSelector"),
 });
 
 // OR
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     haystack: await $("elementSelector"),
 });
 
 // OR
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     haystack: {
         x: 10,
@@ -122,7 +122,7 @@ The language that Tesseract will recognize. More info can be found [here](https:
 
 ```js
 import { SUPPORTED_OCR_LANGUAGES } from "@wdio/ocr-service";
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     // Use Dutch as a language
     language: SUPPORTED_OCR_LANGUAGES.DUTCH,
@@ -161,7 +161,7 @@ Click x pixels `above` the matching element.
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     relativePosition: {
         above: 100,
@@ -179,7 +179,7 @@ Click x pixels `right` from the matching element.
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     relativePosition: {
         right: 100,
@@ -197,7 +197,7 @@ Click x pixels `below` the matching element.
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     relativePosition: {
         below: 100,
@@ -215,7 +215,7 @@ Click x pixels `left` from the matching element.
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     relativePosition: {
         left: 100,
@@ -238,7 +238,7 @@ Determines how close the match must be to the fuzzy location (specified by locat
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         distance: 20,
@@ -257,7 +257,7 @@ Determines approximately where in the text is the pattern expected to be found.
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         location: 20,
@@ -276,7 +276,7 @@ At what point does the matching algorithm give up. A threshold of 0 requires a p
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         threshold: 0.8,
@@ -295,7 +295,7 @@ Whether the search should be case sensitive.
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         isCaseSensitive: true,
@@ -314,7 +314,7 @@ Only the matches whose length exceeds this value will be returned. (For instance
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         minMatchCharLength: 5,
@@ -333,7 +333,7 @@ When `true`, the matching function will continue to the end of a search pattern 
 ##### Example
 
 ```js
-await driver.ocrClickOnText({
+await browser.ocrClickOnText({
     text: "WebdriverIO",
     fuzzyFindOptions: {
         findAllMatches: 100,
