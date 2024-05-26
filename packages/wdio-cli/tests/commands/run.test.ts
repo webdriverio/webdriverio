@@ -64,6 +64,12 @@ describe('Command: run', () => {
             .toContain('sample.conf')
     })
 
+    it('should allow if config is of type .ts ', async () => {
+        vi.spyOn(configCmd, 'canAccessConfigPath').mockResolvedValue('sample.conf.ts')
+        await runCmd.handler({ configPath: 'sample.conf.ts' } as any)
+        expect(execa).toBeCalled()
+    })
+
     it('should use local conf if nothing defined', async () => {
         await runCmd.handler({ argv: {} } as any)
         expect(fs.access).toBeCalledTimes(6)
