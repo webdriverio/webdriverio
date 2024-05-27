@@ -17,7 +17,7 @@ First, it's important to understand how the OCR process in this module works, so
 
 ### The image area is too big
 
-When the module needs to process a large area of the screenshot it might not find the text. You can provide a smaller area by providing a haystack when you use a command. Please check the [commands](/ocr-click-on-text) which commands support providing a haystack.
+When the module needs to process a large area of the screenshot it might not find the text. You can provide a smaller area by providing a haystack when you use a command. Please check the [commands](./ocr-click-on-text) which commands support providing a haystack.
 
 ### The contrast between the text and background is not correct
 
