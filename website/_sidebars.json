@@ -33,7 +33,6 @@
         "driverbinaries",
         "capabilities",
         "appium",
-        "babel",
         "typescript",
         "proxy"
       ]
