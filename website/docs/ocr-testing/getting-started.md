@@ -11,7 +11,7 @@ The easiest way is to keep `@wdio/ocr-service` as a dependency in your `package.
 npm install @wdio/ocr-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](../gettingStarted)
+Instructions on how to install `WebdriverIO` can be found [here.](../gettingstarted)
 
 :::note
 This module uses Tesseract as an OCR engine. By default, it will verify if you have a local installation of Tesseract installed on your system, if so, it will use that. If not, it will use the [Node.js Tesseract.js](https://github.com/naptha/tesseract.js) module which is automatically installed for you.

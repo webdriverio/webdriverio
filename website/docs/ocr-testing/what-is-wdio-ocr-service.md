@@ -36,5 +36,5 @@ There are a variety of reasons you might not get good quality output from Tesser
 
 See also [this page](https://tesseract-ocr.github.io/tessdoc/ImproveQuality) for more information from Tesseract.
 
-Also don't forget to read the [FAQ](./more-faq).
+Also don't forget to read the [FAQ](./ocr-faq).
 :::
