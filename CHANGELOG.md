@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.38.1 (2024-05-28)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#12928](https://github.com/webdriverio/webdriverio/pull/12928) ws/ocr-docs ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 1
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v8.38.0 (2024-05-24)
 
 #### :rocket: New Feature
