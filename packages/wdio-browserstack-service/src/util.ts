@@ -1228,9 +1228,8 @@ export function truncateString(field: string, truncateSizeInBytes: number): stri
 
 export function getSizeOfJsonObjectInBytes(jsonData: GitMetaData): number {
     try {
-            const buffer = Buffer.from(JSON.stringify(jsonData))
-
-            return buffer.length
+        const buffer = Buffer.from(JSON.stringify(jsonData))
+        return buffer.length
     } catch (error) {
         log.debug(`Something went wrong while calculating size of JSON object: ${error}`)
     }
