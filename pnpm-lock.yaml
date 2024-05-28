@@ -743,6 +743,8 @@ importers:
         specifier: ^17.0.24
         version: 17.0.32
 
+  packages/wdio-cli/build/cjs: {}
+
   packages/wdio-cli/src/cjs: {}
 
   packages/wdio-concise-reporter:
@@ -821,6 +823,8 @@ importers:
       '@types/is-glob':
         specifier: ^4.0.1
         version: 4.0.4
+
+  packages/wdio-cucumber-framework/build/cjs: {}
 
   packages/wdio-cucumber-framework/src/cjs: {}
 
@@ -957,6 +961,8 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
+
+  packages/wdio-json-reporter/build/cjs: {}
 
   packages/wdio-json-reporter/src/cjs: {}
 
@@ -1179,6 +1185,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-globals
 
+  packages/wdio-shared-store-service/build/cjs: {}
+
   packages/wdio-shared-store-service/src/cjs: {}
 
   packages/wdio-smoke-test-cjs-service:
@@ -1391,6 +1399,8 @@ importers:
         specifier: ^8.8.0
         version: 8.16.0
 
+  packages/webdriver/build/cjs: {}
+
   packages/webdriver/src/cjs: {}
 
   packages/webdriverio:
@@ -1489,6 +1499,8 @@ importers:
       puppeteer-core:
         specifier: ^22.6.1
         version: 22.6.5
+
+  packages/webdriverio/build/cjs: {}
 
   packages/webdriverio/src/cjs: {}
 
