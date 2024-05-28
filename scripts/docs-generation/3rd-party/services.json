@@ -6,6 +6,12 @@
     "npmUrl": "https://www.npmjs.com/package/@wdio/visual-service"
   },
   {
+    "packageName": "@wdio/ocr-service",
+    "title": "OCR Testing",
+    "githubUrl": "https://github.com/webdriverio/visual-testing",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/ocr-service"
+  },
+  {
     "packageName": "wdio-vscode-service",
     "title": "VSCode Extension Testing",
     "githubUrl": "https://github.com/webdriverio-community/wdio-vscode-service",
@@ -140,12 +146,6 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-aws-device-farm-service"
   },
   {
-    "packageName": "wdio-ocr-service",
-    "title": "OCR service for Appium Native Apps",
-    "githubUrl": "https://github.com/wswebcreation/wdio-ocr-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-ocr-service"
-  },
-  {
     "packageName": "wdio-wait-for",
     "title": "Library of useful expected conditions",
     "githubUrl": "https://github.com/webdriverio/wdio-wait-for",
@@ -218,5 +218,5 @@
     "title": "QUnit",
     "githubUrl": "https://github.com/mauriciolauffer/wdio-qunit-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-qunit-service"
-   }
+  }
 ]
