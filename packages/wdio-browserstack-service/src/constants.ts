@@ -97,3 +97,10 @@ export const RERUN_ENV = 'BROWSERSTACK_RERUN'
 // To store whether the build launch has completed or not
 export const TESTOPS_BUILD_COMPLETED_ENV = 'BS_TESTOPS_BUILD_COMPLETED'
 
+// Maximum size of VCS info which is allowed
+export const MAX_GIT_META_DATA_SIZE_IN_BYTES = 64 * 1024
+
+/* The value to be appended at the end if git metadata is larger than
+MAX_GIT_META_DATA_SIZE_IN_BYTES
+*/
+export const GIT_META_DATA_TRUNCATED = '...[TRUNCATED]'
