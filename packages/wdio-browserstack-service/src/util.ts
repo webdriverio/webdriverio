@@ -34,7 +34,9 @@ import {
     PERF_MEASUREMENT_ENV,
     RERUN_ENV,
     TESTOPS_BUILD_COMPLETED_ENV,
-    TESTOPS_JWT_ENV
+    TESTOPS_JWT_ENV,
+    MAX_GIT_META_DATA_SIZE_IN_BYTES,
+    GIT_META_DATA_TRUNCATED
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -44,6 +46,25 @@ import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 
 const pGitconfig = promisify(gitconfig)
+
+export type GitMetaData = {
+    name: string;
+    sha: string;
+    short_sha: string;
+    branch: string;
+    tag: string | null;
+    committer: string;
+    committer_date: string;
+    author: string;
+    author_date: string;
+    commit_message: string;
+    root: string;
+    common_git_dir: string;
+    worktree_git_dir: string;
+    last_tag: string | null;
+    commits_since_last_tag: number;
+    remotes: Array<{ name: string; url: string }>;
+};
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -886,7 +907,7 @@ export async function getGitMetaData () {
     }
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = remote ? Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url })) : []
-    return {
+    let gitMetaData : GitMetaData = {
         name: 'git',
         sha: info.sha,
         short_sha: info.abbreviatedSha,
@@ -904,6 +925,9 @@ export async function getGitMetaData () {
         commits_since_last_tag: info.commitsSinceLastTag,
         remotes: remotes
     }
+
+    gitMetaData = checkAndTruncateVCSInfo(gitMetaData)
+    return gitMetaData
 }
 
 export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): string {
@@ -1186,6 +1210,48 @@ export function getFailureObject(error: string|Error) {
         failure_reason: removeAnsiColors(message.toString()),
         failure_type: message ? (message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError') : null
     }
+}
+
+export function truncateString(field: string, truncateSizeInBytes: number): string {
+    try {
+        const bufferSizeInBytes = Buffer.from(GIT_META_DATA_TRUNCATED).length
+
+        const fieldBufferObj = Buffer.from(field)
+        const lenOfFieldBufferObj = fieldBufferObj.length
+        const finalLen = Math.ceil(lenOfFieldBufferObj - truncateSizeInBytes - bufferSizeInBytes)
+        if (finalLen > 0) {
+            const truncatedString = fieldBufferObj.subarray(0, finalLen).toString() + GIT_META_DATA_TRUNCATED
+            return truncatedString
+        }
+    } catch (error) {
+        BStackLogger.debug(`Error while truncating field, nothing was truncated here: ${error}`)
+    }
+    return field
+}
+
+export function getSizeOfJsonObjectInBytes(jsonData: GitMetaData): number {
+    try {
+        const buffer = Buffer.from(JSON.stringify(jsonData))
+
+        return buffer.length
+    } catch (error) {
+        BStackLogger.debug(`Something went wrong while calculating size of JSON object: ${error}`)
+    }
+
+    return -1
+}
+
+export function checkAndTruncateVCSInfo(gitMetaData: GitMetaData): GitMetaData {
+    const gitMetaDataSizeInBytes = getSizeOfJsonObjectInBytes(gitMetaData)
+
+    if (gitMetaDataSizeInBytes && gitMetaDataSizeInBytes > MAX_GIT_META_DATA_SIZE_IN_BYTES) {
+        const truncateSize = gitMetaDataSizeInBytes - MAX_GIT_META_DATA_SIZE_IN_BYTES
+        const truncatedCommitMessage = truncateString(gitMetaData.commit_message, truncateSize)
+        gitMetaData.commit_message = truncatedCommitMessage
+        BStackLogger.info(`The commit has been truncated. Size of commit after truncation is ${ getSizeOfJsonObjectInBytes(gitMetaData) /1024 } KB`)
+    }
+
+    return gitMetaData
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
