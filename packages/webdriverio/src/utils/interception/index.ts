@@ -1,4 +1,5 @@
 import EventEmitter from 'node:events'
+// @ts-expect-error type import issue
 import { minimatch } from 'minimatch'
 
 import Timer from '../Timer.js'

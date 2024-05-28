@@ -22,6 +22,49 @@ export default {
             },
         },
     },
+    '/session/:sessionId/se/files': {
+        GET: {
+            command: 'getDownloadableFiles',
+            description:
+                'List files from remote machine available for download.',
+            ref: 'https://www.seleniumhq.org/',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'names',
+                description:
+                    'Object containing a list of downloadable files on remote machine.',
+            },
+        },
+        POST: {
+            command: 'download',
+            description:
+                'Download a file from remote machine on which the browser is running.',
+            ref: 'https://www.seleniumhq.org/',
+            parameters: [
+                {
+                    name: 'name',
+                    type: 'string',
+                    description:
+                        'Name of the file to be downloaded',
+                    required: true,
+                },
+            ],
+            returns: {
+                type: 'Object',
+                name: 'data',
+                description:
+                    'Object containing downloaded file name and its content',
+            },
+        },
+        DELETE: {
+            command: 'deleteDownloadableFiles',
+            description:
+                'Remove all downloadable files from remote machine on which the browser is running.',
+            ref: 'https://www.seleniumhq.org/',
+            parameters: [],
+        },
+    },
     '/grid/api/hub/': {
         GET: {
             isHubCommand: true,

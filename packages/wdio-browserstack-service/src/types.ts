@@ -333,3 +333,8 @@ export interface TOUsageStats {
     buildHashedId?: string
     events?: any
 }
+
+export interface TOStopData {
+    finished_at: string,
+    finished_metadata: Array<any>,
+}

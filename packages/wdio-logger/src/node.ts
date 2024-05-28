@@ -130,7 +130,7 @@ const progress = function (this: any, data: string) {
         const timestampFormatter = chalk.gray(new Date().toISOString())
         const levelFormatter = chalk[COLORS[level]](level.toUpperCase())
         const nameFormatter = chalk.whiteBright(this.name)
-        const _data = data.length > 0 ? `${timestampFormatter} ${levelFormatter} ${nameFormatter}: ${data}` : '\r\x1b[K'
+        const _data = data.length > 0 ? `${timestampFormatter} ${levelFormatter} ${nameFormatter}: ${data}` : '\r\x1b[K\x1b[?25h'
         process.stdout.write('\u001B[?25l') // Disable cursor in terminal
         process.stdout.write(`${_data}\r`)
     }

@@ -20,7 +20,7 @@ import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
-import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
+import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, TOStopData } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     ACCESSIBILITY_API_URL,
@@ -617,7 +617,7 @@ export const stopAccessibilityTestRun = errorHandler(async function stopAccessib
     }
 })
 
-export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
+export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream(killSignal: string|null = null) {
     const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
     stopBuildUsage.triggered()
     if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
@@ -637,8 +637,15 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             message: 'Token/buildID is undefined, build creation might have failed'
         }
     }
-    const data = {
-        'stop_time': (new Date()).toISOString()
+    const data:TOStopData = {
+        'finished_at': (new Date()).toISOString(),
+        'finished_metadata': [],
+    }
+    if (killSignal) {
+        data.finished_metadata.push({
+            reason: 'user_killed',
+            signal: killSignal
+        })
     }
 
     try {
