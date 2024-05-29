@@ -276,7 +276,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             await this._updateJob({
                 status: result === 0 && this._specsRan ? 'passed' : 'failed',
                 ...(setSessionName ? { name: this._fullTitle } : {}),
-                ...(hasReasons ? { reason: this._failReasons.join('\n') } : {})
+                ...(result === 0 && this._specsRan ?
+                    {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
             })
         }
 
