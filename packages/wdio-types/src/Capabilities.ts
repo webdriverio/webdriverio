@@ -1748,6 +1748,8 @@ export interface SauceLabsVisualCapabilities {
  * https://testingbot.com/support/other/test-options#platform
  */
 export interface TestingbotCapabilities {
+    appiumVersion?: string
+    appiumPlugins?: string[]
     name?: string
     tags?: string[]
     build?: string | number
@@ -1760,7 +1762,16 @@ export interface TestingbotCapabilities {
     edgedriverVersion?: string
     geckodriverVersion?: string
     operaDriverVersion?: string
+    prerun?: any
+    'screen-resolution'?: string
     timeZone?: string
+    'throttle_network'?: any
+    tabletOnly?: boolean
+    phoneOnly?: boolean
+    recordLogs?: boolean
+    screenshot?: boolean
+    screenrecorder?: boolean
+    maxDuration?: number
     upload?: string
     'testingbot.geoCountryCode'?: string
     idletimeout?: number
