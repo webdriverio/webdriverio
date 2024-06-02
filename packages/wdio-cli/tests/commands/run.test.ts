@@ -48,6 +48,7 @@ describe('Command: run', () => {
 
     beforeEach(() => {
         vi.mocked(fs.access).mockClear()
+        vi.mocked(execa).mockClear()
         vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
             return undefined as never
         })
@@ -65,7 +66,8 @@ describe('Command: run', () => {
     })
 
     it('should allow if config is of type .ts ', async () => {
-        vi.spyOn(configCmd, 'canAccessConfigPath').mockResolvedValue('sample.conf.ts')
+        vi.mocked(fs.access).mockResolvedValue()
+        vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
         await runCmd.handler({ configPath: 'sample.conf.ts' } as any)
         expect(execa).toBeCalled()
     })
