@@ -21,6 +21,25 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.38.2 (2024-06-03)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12952](https://github.com/webdriverio/webdriverio/pull/12952) SDK-694: Fix for showing reason for passed test (v8) ([@TamsilAmani](https://github.com/TamsilAmani))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#12955](https://github.com/webdriverio/webdriverio/pull/12955) Add missing TestingbotCapabilities ([@jochen-testingbot](https://github.com/jochen-testingbot))
+* `wdio-browserstack-service`
+  * [#12932](https://github.com/webdriverio/webdriverio/pull/12932) SDK-667 : Limit VCS info to 64kb v8 ([@TamsilAmani](https://github.com/TamsilAmani))
+
+#### Committers: 4
+- Jochen ([@jochen-testingbot](https://github.com/jochen-testingbot))
+- Perillai ([@perillai](https://github.com/perillai))
+- Tamsil Sajid Amani ([@TamsilAmani](https://github.com/TamsilAmani))
+- Valery Yatsynovich ([@valfirst](https://github.com/valfirst))
+
+
 ## v8.38.1 (2024-05-28)
 
 #### :memo: Documentation
