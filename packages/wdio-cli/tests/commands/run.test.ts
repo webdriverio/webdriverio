@@ -53,8 +53,9 @@ describe('Command: run', () => {
             return undefined as never
         })
         vi.spyOn(console, 'error')
-        vi.spyOn(process, 'openStdin').mockImplementation(
-            () => ({ setEncoding: setEncodingMock, on: onMock }) as any)
+        vi.spyOn(process.stdin, 'resume')
+        vi.spyOn(process.stdin, 'setEncoding').mockImplementation(setEncodingMock)
+        vi.spyOn(process.stdin, 'on').mockImplementation(onMock)
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
@@ -97,7 +98,7 @@ describe('Command: run', () => {
 
         await runCmd.handler({ configPath: 'foo/bar' } as any)
 
-        expect(process.openStdin).toHaveBeenCalled()
+        expect(process.stdin.resume).toHaveBeenCalled()
         expect(setEncodingMock).toHaveBeenCalled()
         expect(onMock).toHaveBeenCalledTimes(2)
 
@@ -200,7 +201,6 @@ describe('Command: run', () => {
     })
 
     afterEach(() => {
-        vi.mocked(process.openStdin).mockReset()
         vi.mocked(console.error).mockReset()
         vi.mocked(fs.access).mockClear()
         vi.mocked(configCmd.missingConfigurationPrompt).mockClear()
