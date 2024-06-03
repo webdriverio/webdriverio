@@ -241,6 +241,7 @@ class CucumberAdapter {
                 requireModules: this._cucumberOpts.requireModule,
                 requirePaths: this._cucumberOpts.require,
                 importPaths: this._cucumberOpts.import,
+                loaders: []
             })
 
             this.addWdioHooks(this._config, supportCodeLibraryBuilder)

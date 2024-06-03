@@ -149,7 +149,8 @@ export const builder = (yargs: Argv) => {
 
 export function launchWithStdin(wdioConfPath: string, params: Partial<RunCommandArguments>) {
     let stdinData = ''
-    const stdin = process.openStdin()
+    process.stdin.resume()
+    const stdin = process.stdin
 
     stdin.setEncoding('utf8')
     stdin.on('data', (data) => {

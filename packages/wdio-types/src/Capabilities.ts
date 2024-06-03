@@ -1762,7 +1762,7 @@ export interface TestingbotCapabilities {
     edgedriverVersion?: string
     geckodriverVersion?: string
     operaDriverVersion?: string
-    prerun?: any
+    // prerun?: any
     'screen-resolution'?: string
     timeZone?: string
     'throttle_network'?: any
