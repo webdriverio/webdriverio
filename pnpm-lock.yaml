@@ -163,7 +163,7 @@ importers:
         version: 6.2.0
       recast:
         specifier: ^0.23.6
-        version: 0.23.6
+        version: 0.23.9
       recursive-readdir:
         specifier: ^2.2.3
         version: 2.2.3
@@ -11296,6 +11296,10 @@ packages:
     resolution: {integrity: sha512-9FHoNjX1yjuesMwuthAmPKabxYQdOgihFYmT5ebXfYGBcnqXZf3WOVz+5foEZ8Y83P4ZY6yQD5GMmtV+pgCCAQ==}
     engines: {node: '>= 4'}
 
+  recast@0.23.9:
+    resolution: {integrity: sha512-Hx/BGIbwj+Des3+xy5uAtAbdCyqK9y9wbBcDFDYanLS9JnMqf7OeF87HQwUimE87OEc72mr6tkKUKMBBL+hF9Q==}
+    engines: {node: '>= 4'}
+
   rechoir@0.6.2:
     resolution: {integrity: sha512-HFM8rkZ+i3zrV+4LQjwQ0W+ez98pApMGM3HUrN04j3CqzPOzl9nmP15Y8YXNm8QHGv/eacOVEjqhmWpkRV0NAw==}
     engines: {node: '>= 0.10'}
@@ -19684,7 +19688,7 @@ snapshots:
       '@babel/parser': 7.24.4
       camelcase: 8.0.0
       cddl: 0.8.5
-      recast: 0.23.6
+      recast: 0.23.9
       yargs: 17.7.2
 
   cddl@0.8.5:
@@ -25970,6 +25974,14 @@ snapshots:
   reading-time@1.5.0: {}
 
   recast@0.23.6:
+    dependencies:
+      ast-types: 0.16.1
+      esprima: 4.0.1
+      source-map: 0.6.1
+      tiny-invariant: 1.3.3
+      tslib: 2.6.2
+
+  recast@0.23.9:
     dependencies:
       ast-types: 0.16.1
       esprima: 4.0.1
