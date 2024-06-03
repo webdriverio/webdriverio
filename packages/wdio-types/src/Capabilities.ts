@@ -1365,7 +1365,7 @@ export interface SauceLabsCapabilities {
         args: string[]
         background: boolean
         timeout: number
-    }
+    } | any
 }
 
 export interface LambdaTestCapabilities {
