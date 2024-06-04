@@ -2,7 +2,7 @@ import safeStringify from 'safe-stringify'
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
-import { getCID } from '../utils.js'
+import { getCID, filterTestArgument } from '../utils.js'
 import { EVENTS, WDIO_EVENT_NAME } from '../../constants.js'
 
 const startTime = Date.now()
@@ -203,15 +203,35 @@ export class MochaFramework extends HTMLElement {
             }
 
             this.#hookResolver.set(id, { resolve, reject })
+
+            /**
+             * filter large objects from args otherwise stringifying it to send it over
+             * to the Node.js process may result in slow performance
+             */
             args = args.map((arg) => {
+                if (typeof arg !== 'object') {
+                    return arg
+                }
+
+                if ('_runnable' in arg) {
+                    delete arg._runnable
+                }
+
+                if ('test' in arg) {
+                    arg.test = filterTestArgument(arg.test, this.#spec)
+                }
+
+                if ('currentTest' in arg) {
+                    arg.currentTest = filterTestArgument(arg.currentTest, this.#spec)
+                }
+
                 // Check for test argument and file to that argument.
-                if (typeof arg === 'object' && 'type' in arg && 'title' in arg) {
-                    const { type, title, body, async, sync, timedOut, pending, parent } = arg
-                    return { type, title, body, async, sync, timedOut, pending, parent, file: this.#spec }
+                if ('type' in arg && 'title' in arg) {
+                    return filterTestArgument(args, this.#spec)
                 }
 
                 // Check for error and convert error class to serializable Object.
-                if (typeof arg === 'object' && 'error' in arg && arg.error instanceof Error) {
+                if ('error' in arg && arg.error instanceof Error) {
                     const errorObject = {
                         // Pull all enumerable properties, supporting properties on custom Errors
                         ...arg.error,
@@ -224,6 +244,7 @@ export class MochaFramework extends HTMLElement {
                         expected: arg.error.expected,
                         actual: arg.error.actual
                     }
+
                     return {
                         ...arg,
                         error: errorObject
