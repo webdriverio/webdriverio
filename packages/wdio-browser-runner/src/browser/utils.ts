@@ -26,7 +26,7 @@ export const showPopupWarning = <T>(name: string, value: T, defaultValue?: T) =>
     return value
 }
 
-export function sanitizeConsoleArgs (args: unknown[]) {
+export function sanitizeConsoleArgs(args: unknown[]) {
     return args.map((arg: any) => {
         try {
             if (arg && typeof arg.selector === 'string') {
@@ -53,13 +53,31 @@ export function sanitizeConsoleArgs (args: unknown[]) {
     })
 }
 
+const pick = (keys: string[], obj: any) => {
+    return Object.fromEntries(
+        Object.entries(obj)
+            .filter(([k]) => keys.includes(k))
+    )
+}
+
+const RELEVANT_TEST_PROPS = ['type', 'title', 'body', 'async', 'sync', 'timedOut', 'pending', 'parent', 'test']
+
 /**
  * Filter test argument to only contain relevant information
  * @param arg hook parameter that may contain a test object from Mocha or Jasmine
  * @param file file path of the test
  * @returns test object with only relevant information
  */
-export function filterTestArgument (arg: any, file: string) {
-    const { type, title, body, async, sync, timedOut, pending } = arg
-    return { type, title, body, async, sync, timedOut, pending, file }
+export function filterTestArgument(arg: any, file: string): any {
+    if (!arg) {
+        return arg
+    }
+
+    const newArgs = pick(RELEVANT_TEST_PROPS, arg) as any
+    return {
+        ...newArgs,
+        file: arg.file || file,
+        test: filterTestArgument(newArgs.test, file),
+        parent: filterTestArgument(newArgs.parent, file),
+    }
 }
