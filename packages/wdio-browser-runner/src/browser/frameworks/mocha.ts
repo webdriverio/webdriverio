@@ -213,23 +213,6 @@ export class MochaFramework extends HTMLElement {
                     return arg
                 }
 
-                if ('_runnable' in arg) {
-                    delete arg._runnable
-                }
-
-                if ('test' in arg) {
-                    arg.test = filterTestArgument(arg.test, this.#spec)
-                }
-
-                if ('currentTest' in arg) {
-                    arg.currentTest = filterTestArgument(arg.currentTest, this.#spec)
-                }
-
-                // Check for test argument and file to that argument.
-                if ('type' in arg && 'title' in arg) {
-                    return filterTestArgument(args, this.#spec)
-                }
-
                 // Check for error and convert error class to serializable Object.
                 if ('error' in arg && arg.error instanceof Error) {
                     const errorObject = {
@@ -251,7 +234,12 @@ export class MochaFramework extends HTMLElement {
                     }
                 }
 
-                return arg
+                return {
+                    ...filterTestArgument(arg, this.#spec),
+                    ...('type' in arg && 'title' in arg ? { parent: arg.parent } : {}),
+                    ...('test' in arg && arg.test ? { test: filterTestArgument(arg.test, this.#spec) } : {}),
+                    ...('currentTest' in arg && arg.currentTest ? { currentTest: filterTestArgument(arg.currentTest, this.#spec) } : {})
+                }
             })
             import.meta.hot?.send(WDIO_EVENT_NAME, this.#hookTrigger({ name, id, cid, args }))
         })
