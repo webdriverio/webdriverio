@@ -52,3 +52,14 @@ export function sanitizeConsoleArgs (args: unknown[]) {
         return arg
     })
 }
+
+/**
+ * Filter test argument to only contain relevant information
+ * @param arg hook parameter that may contain a test object from Mocha or Jasmine
+ * @param file file path of the test
+ * @returns test object with only relevant information
+ */
+export function filterTestArgument (arg: any, file: string) {
+    const { type, title, body, async, sync, timedOut, pending } = arg
+    return { type, title, body, async, sync, timedOut, pending, file }
+}
