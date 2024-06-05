@@ -512,6 +512,7 @@ export interface AppiumCapabilities {
     'appium:newCommandTimeout'?: number
     'appium:language'?: string
     'appium:locale'?: string
+    'appium:animationCoolOffTimeout'?: number
     /**
      * iOS Unique Device Identifier
      */
@@ -1366,6 +1367,8 @@ export interface SauceLabsCapabilities {
         background: boolean
         timeout: number
     } | any
+
+    recordDeviceVitals?: boolean
 }
 
 export interface LambdaTestCapabilities {
