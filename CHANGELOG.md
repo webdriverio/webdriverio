@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.38.3 (2024-06-05)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#12980](https://github.com/webdriverio/webdriverio/pull/12980) fix(@wdio/browser-runner): sanitize objects to reduce performance bur… ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.38.2 (2024-06-03)
 
 #### :bug: Bug Fix
