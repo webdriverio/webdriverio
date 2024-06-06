@@ -13,7 +13,9 @@ It could be that the error `Width and height cannot be negative` is thrown. 9 ou
 
 ### Installation of Canvas on Windows failed with Node-Gyp logs
 
-Canvas uses Node-Gyp and might cause some issues on Windows that are not fully set up. Please check:
+If you encounter issues with Canvas installation on Windows due to Node-Gyp errors, please note that this applies only to Version 4 and lower. To avoid these issues, consider updating to Version 5 or higher, which does not have these dependencies and uses [Jimp](https://github.com/jimp-dev/jimp) for image processing.
+
+If you still need to resolve the issues with Version 4, please check:
 
 -   the Node Canvas section in the [Getting Started](/docs/visual-testing#system-requirements) guide
 -   [this post](https://spin.atomicobject.com/2019/03/27/node-gyp-windows/) for Fixing Node-Gyp Issues on Windows. (Thanks to [IgorSasovets](https://github.com/IgorSasovets))
