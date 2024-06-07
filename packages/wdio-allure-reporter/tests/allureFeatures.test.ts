@@ -1064,7 +1064,7 @@ describe('test step naming', () => {
         reporter = new AllureReporter({ outputDir, disableMochaHooks: false })
     })
 
-    it('when both command name and enpoint are available ', () => {
+    it('should display command name when both command name and enpoint are available ', () => {
         const command = {
             command: 'SomeCommandStep',
             method: 'POST',
@@ -1088,11 +1088,11 @@ describe('test step naming', () => {
         expect(testResult).not.toBeUndefined()
         expect(testResult.steps).toHaveLength(1)
         expect(testResult.steps[0].name).toEqual(
-            'SomeCommandStep [POST /session/:sessionId/element]'
+            'SomeCommandStep'
         )
     })
 
-    it('when command name is not available ', () => {
+    it('should display the endpoint and method in the absence of command name', () => {
         const command = {
             method: 'POST',
             endpoint: '/session/:sessionId/element',
