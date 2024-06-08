@@ -82,7 +82,7 @@ class Launcher {
          */
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
-                .map((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                .map((c: WebdriverIO.Capabilities | Capabilities.MultiRemoteCapabilities) => {
                     if (this.isParallelMultiremote) {
                         const keys = Object.keys(c as Capabilities.MultiRemoteCapabilities)
                         return this.configParser.getSpecs(((c as Capabilities.MultiRemoteCapabilities)[keys[0]].capabilities as Capabilities.DesiredCapabilities).specs,
@@ -378,7 +378,7 @@ class Launcher {
      */
     private async _startInstance(
         specs: string[],
-        caps: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities,
+        caps: WebdriverIO.Capabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities,
         cid: number,
         rid: string | undefined,
         retries: number

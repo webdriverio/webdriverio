@@ -51,7 +51,7 @@ export interface SauceServiceConfig {
      */
     setJobName?: (
         config: Options.Testrunner,
-        capabilities: Capabilities.RemoteCapability,
+        capabilities: Capabilities.ResolveTestrunnerCaps,
         suiteTitle: string
     ) => string
 }

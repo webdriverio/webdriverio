@@ -13,7 +13,7 @@ import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriv
 import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from 'edgedriver'
 import type { InstallOptions } from '@puppeteer/browsers'
 
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
@@ -32,7 +32,7 @@ declare global {
 const log = logger('@wdio/utils')
 const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
 
-export async function startWebDriver (options: Options.WebDriver) {
+export async function startWebDriver (options: Capabilities.RemoteConfig) {
     /**
      * in case we are running unit tests, just return
      */

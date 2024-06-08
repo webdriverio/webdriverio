@@ -17,7 +17,7 @@ import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
 import { REG_EXPS } from './constants.js'
 import type { WebDriverResponse } from './request/index.js'
-import type { Client, JSONWPCommandError, SessionFlags } from './types.js'
+import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
 
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })
@@ -32,7 +32,7 @@ const BROWSER_DRIVER_ERRORS = [
 /**
  * start browser session with WebDriver protocol
  */
-export async function startWebDriverSession (params: Options.WebDriver): Promise<{ sessionId: string, capabilities: Capabilities.DesiredCapabilities }> {
+export async function startWebDriverSession (params: RemoteConfig): Promise<{ sessionId: string, capabilities: WebdriverIO.Capabilities }> {
     /**
      * validate capabilities to check if there are no obvious mix between
      * JSONWireProtocol and WebDriver protocol, e.g.
@@ -96,9 +96,9 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
     /**
      * save actual received session details
      */
-    params.capabilities = response.value.capabilities || response.value
+    params.capabilities = (response.value.capabilities || response.value) as WebdriverIO.Capabilities
 
-    return { sessionId, capabilities: params.capabilities as Capabilities.DesiredCapabilities }
+    return { sessionId, capabilities: params.capabilities }
 }
 
 /**
@@ -306,7 +306,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
  * @param  {Client} params post-new-session client
  */
 export function setupDirectConnect(client: Client) {
-    const capabilities = client.capabilities as Capabilities.DesiredCapabilities
+    const capabilities = client.capabilities
     const directConnectProtocol = capabilities['appium:directConnectProtocol']
     const directConnectHost = capabilities['appium:directConnectHost']
     const directConnectPath = capabilities['appium:directConnectPath']

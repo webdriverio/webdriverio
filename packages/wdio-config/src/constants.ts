@@ -3,7 +3,7 @@ import type { Options, Services } from '@wdio/types'
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
-export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = () => ({
+export const DEFAULT_CONFIGS: () => Options.Testrunner = () => ({
     specs: [],
     suites: {},
     exclude: [],

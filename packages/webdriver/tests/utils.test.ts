@@ -178,10 +178,10 @@ describe('utils', () => {
             // @ts-expect-error
             sessionId?: string
             // @ts-expect-error
-            requestedCapabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+            requestedCapabilities?: WebdriverIO.Capabilities | Capabilities.W3CCapabilities
 
             constructor(
-                public capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities,
+                public capabilities: WebdriverIO.Capabilities | Capabilities.W3CCapabilities,
                 public options: Options.WebDriver
             ) {
                 this.capabilities = capabilities

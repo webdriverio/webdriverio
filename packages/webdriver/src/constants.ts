@@ -1,7 +1,8 @@
 import os from 'node:os'
 import type { Options } from '@wdio/types'
+import type { RemoteConfig } from './types.js'
 
-export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
+export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
     /**
      * protocol of automation driver
      */

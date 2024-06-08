@@ -2,7 +2,7 @@ import type { SuiteStats, RunnerStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
-import type { Capabilities, Reporters } from '@wdio/types'
+import type { Reporters } from '@wdio/types'
 
 export default class ConciseReporter extends WDIOReporter {
     // keep track of the order that suites were called
@@ -39,7 +39,7 @@ export default class ConciseReporter extends WDIOReporter {
         const header = chalk.yellow('========= Your concise report ==========')
 
         const output = [
-            this.getEnviromentCombo(runner.capabilities as Capabilities.DesiredCapabilities),
+            this.getEnviromentCombo(runner.capabilities),
             this.getCountDisplay(),
             ...this.getFailureDisplay()
         ]
@@ -102,11 +102,11 @@ export default class ConciseReporter extends WDIOReporter {
      * @param  {Boolean} verbose
      * @return {String}          Enviroment string
      */
-    getEnviromentCombo (caps: Capabilities.DesiredCapabilities) {
-        const device = caps.deviceName
-        const browser = caps.browserName || caps.browser
-        const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
-        const platform = caps.os ? (caps.os + ' ' + caps.os_version) : (caps.platform || caps.platformName)
+    getEnviromentCombo (caps: WebdriverIO.Capabilities) {
+        const device = caps['appium:deviceName']
+        const browser = caps.browserName
+        const version = caps.browserVersion || caps['appium:platformVersion']
+        const platform = caps.platformName
 
         // mobile capabilities
         if (device) {

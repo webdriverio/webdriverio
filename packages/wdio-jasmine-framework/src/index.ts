@@ -59,7 +59,7 @@ class JasmineAdapter {
         private _cid: string,
         private _config: WebdriverIOJasmineConfig,
         private _specs: string[],
-        private _capabilities: Capabilities.RemoteCapabilities,
+        private _capabilities: Capabilities.ResolveTestrunnerCaps,
         reporter: EventEmitter
     ) {
         this._jasmineOpts = Object.assign({

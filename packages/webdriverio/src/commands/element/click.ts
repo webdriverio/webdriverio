@@ -148,7 +148,7 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
         throw new Error('Button type not supported.')
     }
 
-    const browser = getBrowserObject(element)
+    const browser = getBrowserObject(element) as WebdriverIO.Browser
     if (x || y) {
         const { width, height } = await browser.getElementRect(element.elementId)
         if ((x && x < (-Math.floor(width / 2))) || (x && x > Math.floor(width / 2))) {

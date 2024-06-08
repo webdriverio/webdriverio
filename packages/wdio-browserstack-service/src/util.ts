@@ -83,7 +83,7 @@ export const COLORS: Record<string, ColorName> = {
  * get browser description for Browserstack service
  * @param cap browser capablities
  */
-export function getBrowserDescription(cap: Capabilities.DesiredCapabilities) {
+export function getBrowserDescription(cap: WebdriverIO.Capabilities) {
     cap = cap || {}
     if (cap['bstack:options']) {
         cap = { ...cap, ...cap['bstack:options'] } as Capabilities.DesiredCapabilities

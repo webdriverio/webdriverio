@@ -1,15 +1,13 @@
 import { capabilitiesEnvironmentDetector } from '@wdio/utils'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 /**
  * create `browser` object with capabilities and environment flags before session is started
  * so that Mocha/Jasmine users can filter their specs based on flags or use capabilities in test titles
  */
 export default class ProtocolStub {
-    static async newSession (options: Options.WebDriver) {
-        const capabilities = emulateSessionCapabilities(
-            (options.capabilities || {}) as unknown as Capabilities.DesiredCapabilities
-        )
+    static async newSession (options: Capabilities.RemoteConfig) {
+        const capabilities = emulateSessionCapabilities(options.capabilities)
 
         const browser: any = {
             options,
@@ -53,7 +51,7 @@ export default class ProtocolStub {
  * @param   {object} caps user defined capabilities
  * @return  {object}
  */
-function emulateSessionCapabilities (caps: Capabilities.DesiredCapabilities) {
+function emulateSessionCapabilities (caps: Capabilities.RequestedStandaloneCapabilities) {
     const capabilities: Record<string, any> = {}
 
     // remove appium vendor prefix from capabilities
@@ -63,7 +61,8 @@ function emulateSessionCapabilities (caps: Capabilities.DesiredCapabilities) {
     })
 
     // isChrome
-    if (caps.browserName && caps.browserName.toLowerCase() === 'chrome') {
+    const c = 'alwaysMatch' in caps ? caps.alwaysMatch : caps
+    if (c.browserName && c.browserName.toLowerCase() === 'chrome') {
         capabilities.chrome = true
     }
 

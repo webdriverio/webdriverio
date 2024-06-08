@@ -88,7 +88,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return fn(this._caps as WebdriverIO.Capabilities)
     }
 
-    beforeSession (config: Omit<Options.Testrunner, 'capabilities'>) {
+    beforeSession (config: Options.Testrunner) {
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
         // will fail

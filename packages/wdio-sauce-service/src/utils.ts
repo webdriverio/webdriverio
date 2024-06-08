@@ -1,5 +1,3 @@
-import type { Capabilities } from '@wdio/types'
-
 /**
  * Determine if the current instance is a RDC instance. RDC tests are Real Device tests
  * that can be started with different sets of capabilities. A deviceName is not mandatory, the only mandatory cap for
@@ -42,12 +40,10 @@ import type { Capabilities } from '@wdio/types'
  *  deviceContextId: ''
  * }
  */
-export function isRDC (caps: Capabilities.DesiredCapabilities){
-    const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
-    const name = appiumDeviceName || deviceName
-
+export function isRDC (caps: WebdriverIO.Capabilities){
+    const { 'appium:deviceName': appiumDeviceName = '', platformName = '' } = caps
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
-    return !name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+    return !appiumDeviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
 
 /**
@@ -55,12 +51,10 @@ export function isRDC (caps: Capabilities.DesiredCapabilities){
  * @param {object} caps
  * @returns {boolean}
  */
-export function isEmuSim (caps: Capabilities.DesiredCapabilities){
-    const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
-    const name = appiumDeviceName || deviceName
-
+export function isEmuSim (caps: WebdriverIO.Capabilities){
+    const { 'appium:deviceName': appiumDeviceName = '', platformName = '' } = caps
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
-    return !!name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+    return !!appiumDeviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
 
 /** Ensure capabilities are in the correct format for Sauce Labs
@@ -69,14 +63,13 @@ export function isEmuSim (caps: Capabilities.DesiredCapabilities){
  * @returns {function(object): void} - A function that mutates a single capability
  */
 export function makeCapabilityFactory(tunnelIdentifier: string) {
-    return (capability: Capabilities.DesiredCapabilities) => {
+    return (capability: WebdriverIO.Capabilities) => {
         // If the `sauce:options` are not provided and it is a W3C session then add it
         if (!capability['sauce:options']) {
             capability['sauce:options'] = {}
         }
 
         capability['sauce:options'].tunnelIdentifier = (
-            capability.tunnelIdentifier ||
             capability['sauce:options'].tunnelIdentifier ||
             tunnelIdentifier
         )

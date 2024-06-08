@@ -155,7 +155,7 @@ export async function runOnCompleteHook(
 /**
  * get runner identification by caps
  */
-export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
+export function getRunnerName(caps: WebdriverIO.Capabilities = {}) {
     let runner =
         caps.browserName ||
         caps.platformName ||

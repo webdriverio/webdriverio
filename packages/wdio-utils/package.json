@@ -38,8 +38,8 @@
   },
   "dependencies": {
     "@puppeteer/browsers": "^2.2.0",
-    "@wdio/logger": "workspace:9.0.0-alpha.0",
-    "@wdio/types": "workspace:9.0.0-alpha.0",
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^7.0.3",
     "edgedriver": "^5.5.0",

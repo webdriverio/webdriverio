@@ -4,7 +4,12 @@ import logger from '@wdio/logger'
 
 import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
-import type { Options } from '@wdio/types'
+<<<<<<< HEAD
+import type { Capabilities, Options } from '@wdio/types'
+=======
+import { deepmerge } from 'deepmerge-ts'
+import type { Options, Capabilities } from '@wdio/types'
+>>>>>>> 5e5f37dbf (breaking(*): better type definitions for capabilities)
 
 import command from './command.js'
 import { DEFAULTS } from './constants.js'
@@ -15,7 +20,7 @@ const log = logger('webdriver')
 
 export default class WebDriver {
     static async newSession(
-        options: Options.WebDriver,
+        options: Capabilities.RemoteConfig,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
@@ -122,9 +127,9 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        const webSocketUrl = 'alwaysMatch' in options.capabilities!
-            ? options.capabilities.alwaysMatch?.webSocketUrl
-            : options.capabilities!.webSocketUrl
+        const webSocketUrl = 'alwaysMatch' in options.requestedCapabilities
+            ? options.requestedCapabilities.alwaysMatch?.webSocketUrl
+            : options.requestedCapabilities.webSocketUrl
         if (webSocketUrl) {
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
             Object.assign(bidiPrototype, initiateBidi(webSocketUrl as any as string, options.strictSSL))
@@ -152,7 +157,7 @@ export default class WebDriver {
      */
     static async reloadSession(instance: Client, newCapabilities?: WebdriverIO.Capabilities) {
         const capabilities = newCapabilities ? newCapabilities : instance.requestedCapabilities as WebdriverIO.Capabilities
-        let params: Options.WebDriver = { ...instance.options, capabilities }
+        let params: Capabilities.RemoteConfig = { ...instance.options, capabilities }
 
         for (const prop of ['protocol', 'hostname', 'port', 'path', 'queryParams', 'user', 'key'] as (keyof Options.Connection)[]) {
             if (prop in capabilities) {

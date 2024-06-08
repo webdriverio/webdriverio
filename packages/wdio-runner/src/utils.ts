@@ -9,9 +9,9 @@ import { enableFileLogging } from '@wdio/utils'
 
 const log = logger('@wdio/runner')
 
-export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilities'> {
-    sessionId?: string,
-    capabilities: Capabilities.RemoteCapability
+export interface ConfigWithSessionId extends Options.Testrunner {
+    sessionId?: string
+    capabilities: Capabilities.RequestedStandaloneCapabilities
 }
 
 /**
@@ -20,9 +20,10 @@ export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilit
  * @return {Object}       sanitized caps
  */
 export function sanitizeCaps (
-    caps: Capabilities.RemoteCapability,
+    capabilities: Capabilities.RequestedStandaloneCapabilities,
     filterOut?: boolean
-): Omit<Capabilities.RemoteCapability, 'logLevel'> {
+): Omit<WebdriverIO.Capabilities, 'logLevel'> {
+    const caps = 'alwaysMatch' in capabilities ? capabilities.alwaysMatch : capabilities
     const defaultConfigsKeys = [
         // WDIO config keys
         ...Object.keys(DEFAULT_CONFIGS()),
@@ -30,16 +31,16 @@ export function sanitizeCaps (
         ...Object.keys(DEFAULTS)
     ]
 
-    return Object.keys(caps).filter((key: keyof Capabilities.RemoteCapability) => (
+    return Object.keys(caps).filter((key: keyof WebdriverIO.Capabilities) => (
         /**
          * filter out all wdio config keys
          */
         !defaultConfigsKeys.includes(key as string) === !filterOut
     )).reduce((
-        obj: Capabilities.RemoteCapability,
-        key: keyof Capabilities.RemoteCapability
+        obj: WebdriverIO.Capabilities,
+        key: keyof WebdriverIO.Capabilities
     ) => {
-        obj[key] = caps[key]
+        obj[key] = caps[key] as any
         return obj
     }, {})
 }
@@ -52,8 +53,8 @@ export function sanitizeCaps (
  * @return {Promise}               resolves with browser object
  */
 export async function initializeInstance (
-    config: ConfigWithSessionId,
-    capabilities: Capabilities.RemoteCapability,
+    config: ConfigWithSessionId | Options.Testrunner,
+    capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
     isMultiremote?: boolean
 ): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {
     await enableFileLogging(config.outputDir)
@@ -61,9 +62,9 @@ export async function initializeInstance (
     /**
      * check if config has sessionId and attach it to a running session if so
      */
-    if (config.sessionId) {
+    if ('sessionId' in config) {
         log.debug(`attach to session with id ${config.sessionId}`)
-        config.capabilities = sanitizeCaps(capabilities)
+        config.capabilities = sanitizeCaps(capabilities as WebdriverIO.Capabilities)
 
         /**
          * propagate connection details defined by services or user in capabilities
@@ -75,31 +76,37 @@ export async function initializeInstance (
             port: caps.port || config.port,
             path: caps.path || config.path
         }
-        const params = { ...config, ...connectionProps, capabilities } as Required<ConfigWithSessionId>
-        return attach({ ...params, options: params })
+        const params = { ...config, ...connectionProps, capabilities }
+        return attach({ ...params, options: params } as any)
     }
 
+    /**
+     * start a normal standalone session
+     */
     if (!isMultiremote) {
         log.debug('init remote session')
-        const sessionConfig: Options.WebdriverIO = {
+        const sessionConfig: Capabilities.WebdriverIOConfig = {
             ...config,
             /**
              * allow to overwrite connection details by user through capabilities
              */
-            ...sanitizeCaps(capabilities, true),
+            ...sanitizeCaps(capabilities as Options.Connection, true),
             capabilities: sanitizeCaps(capabilities)
         }
         return remote(sessionConfig)
     }
 
-    const options: Record<string, Options.WebdriverIO> = {}
+    /**
+     * initiate multiremote sessions
+     */
+    const options: Capabilities.RequestedMultiremoteCapabilities = {}
     log.debug('init multiremote session')
     // @ts-expect-error ToDo(Christian): can be removed?
     delete config.capabilities
     for (const browserName of Object.keys(capabilities)) {
         options[browserName] = deepmerge(
             config,
-            (capabilities as Capabilities.MultiRemoteCapabilities)[browserName]
+            (capabilities as Capabilities.RequestedMultiremoteCapabilities)[browserName]
         )
     }
 

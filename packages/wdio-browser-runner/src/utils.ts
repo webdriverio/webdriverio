@@ -10,7 +10,7 @@ import type { BrowserRunnerOptions, CoverageOptions } from './types.js'
 
 const log = logger('@wdio/browser-runner')
 
-export function makeHeadless (options: BrowserRunnerOptions, caps: Capabilities.RemoteCapability): Capabilities.RemoteCapability {
+export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
     const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
     if (!capability.browserName) {
         throw new Error(
@@ -57,7 +57,7 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: Capabilities.
 /**
  * Open with devtools open when in watch mode
  */
-export function adjustWindowInWatchMode (config: Options.Testrunner, caps: Capabilities.RemoteCapability): Capabilities.RemoteCapability {
+export function adjustWindowInWatchMode (config: Options.Testrunner, caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
     if (!config.watch) {
         return caps
     }

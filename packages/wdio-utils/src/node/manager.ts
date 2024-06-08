@@ -19,24 +19,25 @@ enum BrowserDriverTaskLabel {
 
 function mapCapabilities (
     options: Omit<Options.WebdriverIO, 'capabilities'>,
-    caps: Capabilities.RemoteCapabilities,
+    caps: Capabilities.WithRequestedCapabilities['capabilities'] | Capabilities.WithRequestedMultiremoteCapabilities['capabilities'],
     task: SetupTaskFunction,
     taskItemLabel: string) {
     const capabilitiesToRequireSetup = (
         Array.isArray(caps)
-            ? caps.map((cap) => {
+            ? caps.map((cap: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) => {
                 const w3cCaps = cap as Capabilities.W3CCapabilities
-                const multiremoteCaps = cap as Capabilities.MultiRemoteCapabilities
-                const isMultiremote = Boolean(multiremoteCaps[Object.keys(cap)[0]].capabilities)
+                const multiremoteCaps = cap as Capabilities.RequestedMultiremoteCapabilities
+                const multiremoteInstanceNames = Object.keys(multiremoteCaps)
+                if (multiremoteCaps[multiremoteInstanceNames[0]]) {
+                    return Object.values(multiremoteCaps).map((c) => 'alwaysMatch' in c ? c.alwaysMatch : c) as WebdriverIO.Capabilities[]
+                }
 
-                if (isMultiremote) {
-                    return Object.values(multiremoteCaps).map((c) => c.capabilities) as WebdriverIO.Capabilities[]
-                } else if (w3cCaps.alwaysMatch) {
+                if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
                 }
                 return cap as WebdriverIO.Capabilities
             }).flat()
-            : Object.values(caps as Capabilities.MultiRemoteCapabilities).map((mrOpts) => {
+            : Object.values(caps as Capabilities.WithRequestedMultiremoteCapabilities['capabilities']).map((mrOpts) => {
                 const w3cCaps = mrOpts.capabilities as Capabilities.W3CCapabilities
                 if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
@@ -97,7 +98,7 @@ function mapCapabilities (
     )
 }
 
-export async function setupDriver (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RemoteCapabilities) {
+export async function setupDriver (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) {
     return mapCapabilities(options, caps, async (cap: WebdriverIO.Capabilities) => {
         const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {
@@ -114,7 +115,7 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
     }, BrowserDriverTaskLabel.DRIVER)
 }
 
-export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RemoteCapabilities) {
+export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) {
     return mapCapabilities(options, caps, async (cap: WebdriverIO.Capabilities) => {
         const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {

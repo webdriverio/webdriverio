@@ -29,6 +29,7 @@ type ObtainMethods<T> = { [Prop in keyof T]: T[Prop] extends Fn ? ThenArg<Return
 type WebDriverBidiCommands = typeof WebDriverBidiProtocol
 export type BidiCommands = WebDriverBidiCommands[keyof WebDriverBidiCommands]['socket']['command']
 export type BidiResponses = ValueOf<ObtainMethods<Pick<BidiHandler, BidiCommands>>>
+export type RemoteConfig = Options.WebDriver & Capabilities.WithRequestedCapabilities
 
 type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
 type WebDriverClassicEvents = {
@@ -53,17 +54,15 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     // id of WebDriver session
     sessionId: string
     // assigned capabilities by the browser driver / WebDriver server
-    capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    capabilities: WebdriverIO.Capabilities
     // original requested capabilities
-    requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    requestedCapabilities: Capabilities.WithRequestedCapabilities['capabilities']
     // framework options
     options: Options.WebDriver
 }
 
 export interface Client extends Omit<BaseClient, keyof BidiEventHandler>, ProtocolCommands, BidiHandler, BidiEventHandler {}
 
-export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
+export interface AttachOptions extends Pick<BaseClient, 'capabilities' | 'requestedCapabilities'>, Partial<SessionFlags>, Partial<Options.WebDriver> {
     sessionId: string
-    capabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
-    isW3C?: boolean
 }

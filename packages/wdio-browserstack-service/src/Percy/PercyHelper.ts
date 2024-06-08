@@ -32,12 +32,12 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Remo
 
         if (Array.isArray(capabilities)) {
             capabilities
-                .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+                .flatMap((c: WebdriverIO.Capabilities | Capabilities.MultiRemoteCapabilities) => {
                     if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
                         return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
                     }
                     return c as (Capabilities.DesiredCapabilities)
-                }).forEach((capability: Capabilities.DesiredCapabilities) => {
+                }).forEach((capability: WebdriverIO.Capabilities) => {
                     let currBrowserName = capability.browserName
                     if (capability['bstack:options']) {
                         currBrowserName = capability['bstack:options'].browserName || currBrowserName

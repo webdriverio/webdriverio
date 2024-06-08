@@ -1,4 +1,4 @@
-import type { Capabilities, Services, Options } from '@wdio/types'
+import type { Services, Options } from '@wdio/types'
 import logger from '@wdio/logger'
 
 import initializePlugin from './initializePlugin.js'
@@ -91,7 +91,7 @@ function sanitizeServiceArray (service: Services.ServiceEntry): ServiceWithOptio
  *                            as a list of services that don't need to be
  *                            required in the worker
  */
-export async function initializeLauncherService (config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>, caps: Capabilities.DesiredCapabilities) {
+export async function initializeLauncherService (config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>, caps: WebdriverIO.Capabilities) {
     const ignoredWorkerServices = []
     const launcherServices: Services.ServiceInstance[] = []
     let serviceLabelToBeInitialised = 'unknown'
@@ -154,7 +154,7 @@ export async function initializeLauncherService (config: Omit<Options.Testrunner
  */
 export async function initializeWorkerService (
     config: Options.Testrunner,
-    caps: Capabilities.DesiredCapabilities,
+    caps: WebdriverIO.Capabilities,
     ignoredWorkerServices: string[] = []
 ): Promise<Services.ServiceInstance[]> {
     let serviceLabelToBeInitialised = 'unknown'

@@ -17,7 +17,7 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
         this.options = options
     }
 
-    async onPrepare (config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities) {
+    async onPrepare (config: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities) {
         if (!this.options.tbTunnel || !config.user || !config.key) {
             return
         }
@@ -35,11 +35,11 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
 
         const capabilitiesEntries = Array.isArray(capabilities) ?
             (capabilities as []).every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities)) ?
-                capabilities.flatMap((cap: Capabilities.MultiRemoteCapabilities ) => Object.values(cap))
+                capabilities.flatMap((cap: Capabilities.RequestedMultiremoteCapabilities ) => Object.values(cap))
                 : capabilities
             : Object.values(capabilities)
         for (const capability of capabilitiesEntries) {
-            const caps = (capability as Options.WebDriver).capabilities || capability
+            const caps = (capability as Capabilities.WithRequestedCapabilities).capabilities || capability
             const c = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
 
             if (!c['tb:options']) {

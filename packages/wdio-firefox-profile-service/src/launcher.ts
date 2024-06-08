@@ -8,7 +8,7 @@ export default class FirefoxProfileLauncher {
     private _profile?: Profile
     constructor(private _options: FirefoxProfileOptions) {}
 
-    async onPrepare(config: never, capabilities: Capabilities.RemoteCapabilities) {
+    async onPrepare(config: never, capabilities: Capabilities.TestrunnerCapabilities) {
         /**
          * Return if no profile options were specified
          */
@@ -59,7 +59,7 @@ export default class FirefoxProfileLauncher {
         this._profile.updatePreferences()
     }
 
-    async _buildExtension(capabilities: Capabilities.RemoteCapabilities) {
+    async _buildExtension(capabilities: Capabilities.TestrunnerCapabilities) {
         if (!this._profile) {
             return
         }
@@ -67,12 +67,12 @@ export default class FirefoxProfileLauncher {
         const zippedProfile = await promisify(this._profile.encoded.bind(this._profile))()
 
         if (Array.isArray(capabilities)) {
-            (capabilities as Capabilities.DesiredCapabilities[] | Capabilities.MultiRemoteCapabilities[])
-                .flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
+            (capabilities as Capabilities.RequestedStandaloneCapabilities[] | Capabilities.RequestedMultiremoteCapabilities[])
+                .flatMap((c: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) => {
                     if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
                         return Object.values(c).map((o) => o.capabilities)
                     }
-                    return c as (Capabilities.DesiredCapabilities)
+                    return c
                 })
                 .filter((capability) => capability.browserName === 'firefox')
                 .forEach((capability) => {
@@ -83,9 +83,8 @@ export default class FirefoxProfileLauncher {
         }
 
         for (const browser in capabilities) {
-            const capability = capabilities[browser].capabilities as Capabilities.DesiredCapabilities
-
-            if (!capability || capability.browserName !== 'firefox') {
+            const capability = capabilities[browser].capabilities as Capabilities.RequestedMultiremoteCapabilities[string]['capabilities']
+            if (!capability || (capability as WebdriverIO.Capabilities).browserName !== 'firefox' && (capability as Capabilities.W3CCapabilities).alwaysMatch.browserName !== 'firefox') {
                 continue
             }
 
@@ -93,14 +92,10 @@ export default class FirefoxProfileLauncher {
         }
     }
 
-    _setProfile(capability: WebdriverIO.Capabilities, zippedProfile: string) {
-        if (this._options.legacy) {
-            // for older firefox and geckodriver versions
-            capability.firefox_profile = zippedProfile
-        } else {
-            // for firefox >= 56.0 and geckodriver >= 0.19.0
-            capability['moz:firefoxOptions'] = capability['moz:firefoxOptions'] || {}
-            capability['moz:firefoxOptions'].profile = zippedProfile
-        }
+    _setProfile(capability: Capabilities.RequestedStandaloneCapabilities, zippedProfile: string) {
+        const cap = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
+
+        cap['moz:firefoxOptions'] = cap['moz:firefoxOptions'] || {}
+        cap['moz:firefoxOptions'].profile = zippedProfile
     }
 }

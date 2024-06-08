@@ -1,5 +1,5 @@
-import type { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities.js'
 import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options.js'
+import type { RequestedStandaloneCapabilities, RequestedMultiremoteCapabilities, TestrunnerCapabilities } from './Capabilities.js'
 import type { Suite, Test, TestResult } from './Frameworks.js'
 import type { Worker } from './Workers.js'
 
@@ -30,7 +30,7 @@ export interface ServiceOption {
 }
 
 export interface ServiceClass {
-    new(options: ServiceOption, caps: RemoteCapability, config: Omit<WebdriverIOOptions, 'capabilities'>): ServiceInstance
+    new(options: ServiceOption, capabilities: WebdriverIO.Capabilities, config: WebdriverIOOptions): ServiceInstance
 }
 
 export interface ServicePlugin extends ServiceClass {
@@ -40,7 +40,7 @@ export interface ServicePlugin extends ServiceClass {
 
 export interface ServiceInstance extends HookFunctions {
     options?: Record<string, any>,
-    capabilities?: RemoteCapability,
+    capabilities?: WebdriverIO.Capabilities,
     config?: TestrunnerOptions
 }
 
@@ -115,7 +115,7 @@ export interface HookFunctions {
      */
     onPrepare?(
         config: TestrunnerOptions,
-        capabilities: RemoteCapabilities
+        capabilities: TestrunnerCapabilities
     ): unknown | Promise<unknown>
 
     /**
@@ -129,22 +129,22 @@ export interface HookFunctions {
     onComplete?(
         exitCode: number,
         config: Omit<TestrunnerOptions, 'capabilities'>,
-        capabilities: RemoteCapabilities,
+        capabilities: TestrunnerCapabilities,
         results: any // Results
     ): unknown | Promise<unknown>
 
     /**
      * Gets executed before a worker process is spawned and can be used to initialize specific service
      * for that worker as well as modify runtime environments in an async fashion.
-     * @param cid       capability id (e.g 0-0)
-     * @param caps      object containing capabilities for session that will be spawn in the worker
-     * @param specs     specs to be run in the worker process
-     * @param args      object that will be merged with the main configuration once worker is initialized
-     * @param execArgv  list of string arguments passed to the worker process
+     * @param cid           capability id (e.g 0-0)
+     * @param capabilities  object containing capabilities for session that will be spawn in the worker
+     * @param specs         specs to be run in the worker process
+     * @param args          object that will be merged with the main configuration once worker is initialized
+     * @param execArgv      list of string arguments passed to the worker process
      */
     onWorkerStart?(
         cid: string,
-        caps: DesiredCapabilities,
+        capabilities: WebdriverIO.Capabilities,
         specs: string[],
         args: TestrunnerOptions,
         execArgv: string[]
@@ -172,7 +172,7 @@ export interface HookFunctions {
      * @param browser       instance of created browser/device session
      */
     before?(
-        capabilities: RemoteCapability,
+        capabilities: RequestedStandaloneCapabilities | RequestedMultiremoteCapabilities,
         specs: string[],
         browser: any // BrowserObject
     ): unknown | Promise<unknown>
@@ -186,7 +186,7 @@ export interface HookFunctions {
      */
     after?(
         result: number,
-        capabilities: RemoteCapability,
+        capabilities: RequestedStandaloneCapabilities | RequestedMultiremoteCapabilities,
         specs: string[]
     ): unknown | Promise<unknown>
 
@@ -200,7 +200,7 @@ export interface HookFunctions {
      */
     beforeSession?(
         config: Omit<TestrunnerOptions, 'capabilities'>,
-        capabilities: RemoteCapability,
+        capabilities: RequestedStandaloneCapabilities | RequestedMultiremoteCapabilities,
         specs: string[],
         cid: string
     ): unknown | Promise<unknown>
@@ -213,7 +213,7 @@ export interface HookFunctions {
      */
     afterSession?(
         config: TestrunnerOptions,
-        capabilities: RemoteCapability,
+        capabilities: WebdriverIO.Capabilities,
         specs: string[]
     ): unknown | Promise<unknown>
 
