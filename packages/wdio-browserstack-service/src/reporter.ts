@@ -33,7 +33,7 @@ class _TestReporter extends WDIOReporter {
     private _gitConfigured: boolean = false
     private _currentHook: CurrentRunInfo = {}
     private _currentTest: CurrentRunInfo = {}
-    private _userCaps?: Capabilities.RemoteCapability = {}
+    private _userCaps?: Capabilities.ResolveTestrunnerCaps = {}
     private listener = Listener.getInstance()
 
     async onRunnerStart (runnerStats: RunnerStats) {
@@ -49,7 +49,7 @@ class _TestReporter extends WDIOReporter {
     }
 
     private getUserCaps(runnerStats: RunnerStats) {
-        return runnerStats.instanceOptions[runnerStats.sessionId]?.capabilities
+        return runnerStats.capabilities
     }
 
     registerListeners () {

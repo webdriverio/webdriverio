@@ -19,7 +19,7 @@ enum BrowserDriverTaskLabel {
 
 function mapCapabilities (
     options: Omit<Options.WebdriverIO, 'capabilities'>,
-    caps: Capabilities.WithRequestedCapabilities['capabilities'] | Capabilities.WithRequestedMultiremoteCapabilities['capabilities'],
+    caps: Capabilities.TestrunnerCapabilities,
     task: SetupTaskFunction,
     taskItemLabel: string) {
     const capabilitiesToRequireSetup = (
@@ -98,7 +98,7 @@ function mapCapabilities (
     )
 }
 
-export async function setupDriver (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) {
+export async function setupDriver (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.TestrunnerCapabilities) {
     return mapCapabilities(options, caps, async (cap: WebdriverIO.Capabilities) => {
         const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {
@@ -115,7 +115,7 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
     }, BrowserDriverTaskLabel.DRIVER)
 }
 
-export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) {
+export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.TestrunnerCapabilities) {
     return mapCapabilities(options, caps, async (cap: WebdriverIO.Capabilities) => {
         const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {

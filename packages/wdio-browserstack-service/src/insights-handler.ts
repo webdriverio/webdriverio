@@ -47,10 +47,10 @@ class _InsightsHandler {
         scenariosStarted: false,
         steps: []
     }
-    private _userCaps?: Capabilities.RemoteCapability = {}
+    private _userCaps?: Capabilities.ResolveTestrunnerCaps = {}
     private listener = Listener.getInstance()
 
-    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
+    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.ResolveTestrunnerCaps) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 

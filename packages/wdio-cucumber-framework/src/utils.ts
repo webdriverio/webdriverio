@@ -182,7 +182,7 @@ export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
  * @param {string[][]} tags - The original tags of scenarios.
  * @returns {string[]} - An array of generated skip tags in Cucumber tag expression format.
  */
-export function generateSkipTagsFromCapabilities(capabilities: Capabilities.RemoteCapability, tags: string[][]): string[] {
+export function generateSkipTagsFromCapabilities(capabilities: Capabilities.ResolveTestrunnerCaps, tags: string[][]): string[] {
     const generatedTags: string[] = []
 
     const skipTag = /^@skip$|^@skip\((.*)\)$/

@@ -23,7 +23,7 @@ export const stopPercy = async (percy: Percy) => {
     return percy.stop()
 }
 
-export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.RemoteCapabilities) : any => {
+export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.TestrunnerCapabilities) : any => {
     try {
         const percyBrowserPreference: any = { 'chrome': 0, 'firefox': 1, 'edge': 2, 'safari': 3 }
 
@@ -32,11 +32,15 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Remo
 
         if (Array.isArray(capabilities)) {
             capabilities
-                .flatMap((c: WebdriverIO.Capabilities | Capabilities.MultiRemoteCapabilities) => {
-                    if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
-                        return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
+                .flatMap((c) => {
+                    if ('alwaysMatch' in c) {
+                        return c.alwaysMatch as WebdriverIO.Capabilities
                     }
-                    return c as (Capabilities.DesiredCapabilities)
+
+                    if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                        return Object.values(c).map((o) => o.capabilities) as WebdriverIO.Capabilities[]
+                    }
+                    return c as WebdriverIO.Capabilities
                 }).forEach((capability: WebdriverIO.Capabilities) => {
                     let currBrowserName = capability.browserName
                     if (capability['bstack:options']) {
@@ -52,7 +56,7 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Remo
                 })
             return bestPlatformCaps
         } else if (typeof capabilities === 'object') {
-            Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
+            Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach(([, caps]) => {
                 let currBrowserName = (caps.capabilities as WebdriverIO.Capabilities).browserName
                 if ((caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                     currBrowserName = (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']?.browserName || currBrowserName

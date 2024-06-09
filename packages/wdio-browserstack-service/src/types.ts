@@ -122,7 +122,7 @@ export interface BrowserstackConfig {
      */
     sessionNameFormat?: (
         config: Options.Testrunner,
-        capabilities: Capabilities.RemoteCapability,
+        capabilities: Capabilities.ResolveTestrunnerCaps,
         suiteTitle: string,
         testTitle?: string
     ) => string
@@ -255,7 +255,7 @@ export interface LaunchResponse {
 export interface UserConfigforReporting {
   framework?: string,
   services?: any[],
-  capabilities?: Capabilities.RemoteCapability,
+  capabilities?: WebdriverIO.Capabilities,
   env?: {
     'BROWSERSTACK_BUILD': string | undefined,
     'BROWSERSTACK_BUILD_NAME': string | undefined,

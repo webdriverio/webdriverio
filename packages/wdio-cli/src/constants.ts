@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { HOOK_DEFINITION } from '@wdio/utils'
-import type { Options, Services, Reporters, Capabilities } from '@wdio/types'
+import type { Options, Services, Reporters } from '@wdio/types'
 
 import {
     detectCompiler,
@@ -672,7 +672,7 @@ export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
     'wdio-gmail-service'
 ]
 
-export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
+export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner & { capabilities: unknown }> = {
     /**
      * Define specs for test execution. You can either specify a glob
      * pattern to match multiple files at once or wrap a glob or set of
@@ -729,7 +729,7 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
      */
     capabilities: {
         type: 'object',
-        validate: (param: Capabilities.RemoteCapabilities) => {
+        validate: (param: unknown) => {
             /**
              * should be an object
              */

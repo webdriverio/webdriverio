@@ -23,7 +23,7 @@ import { BStackLogger } from './bstackLogger.js'
 
 class _AccessibilityHandler {
     private _platformA11yMeta: { [key: string]: any; }
-    private _caps: Capabilities.RemoteCapability
+    private _caps: Capabilities.ResolveTestrunnerCaps
     private _suiteFile?: string
     private _accessibility?: boolean
     private _accessibilityOptions?: { [key: string]: any; }
@@ -33,7 +33,7 @@ class _AccessibilityHandler {
 
     constructor (
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
-        private _capabilities: Capabilities.RemoteCapability,
+        private _capabilities: Capabilities.ResolveTestrunnerCaps,
         isAppAutomate?: boolean,
         private _framework?: string,
         private _accessibilityAutomation?: boolean | string,
@@ -43,7 +43,8 @@ class _AccessibilityHandler {
 
         this._platformA11yMeta = {
             browser_name: caps.browserName,
-            browser_version: caps?.browserVersion || (caps as Capabilities.DesiredCapabilities)?.version || 'latest',
+            // @ts-expect-error invalid caps property
+            browser_version: caps?.browserVersion || (caps as WebdriverIO.Capabilities)?.version || 'latest',
             os_name: this._getCapabilityValue(_capabilities, 'os', 'os'),
             os_version: this._getCapabilityValue(_capabilities, 'osVersion', 'os_version')
         }
@@ -57,7 +58,7 @@ class _AccessibilityHandler {
         this._suiteFile = filename
     }
 
-    _getCapabilityValue(caps: Capabilities.RemoteCapability, capType: string, legacyCapType: string) {
+    _getCapabilityValue(caps: Capabilities.ResolveTestrunnerCaps, capType: string, legacyCapType: string) {
         if (caps) {
             if (capType === 'accessibility') {
                 if ((caps as WebdriverIO.Capabilities)['bstack:options'] && (isTrue((caps as WebdriverIO.Capabilities)['bstack:options']?.accessibility))) {

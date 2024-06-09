@@ -18,7 +18,7 @@ export default class DevToolsService implements Services.ServiceInstance {
     constructor (private _options: DevtoolsConfig) {}
 
     async before (
-        caps: Capabilities.RemoteCapability,
+        caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
         specs: string[],
         browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {

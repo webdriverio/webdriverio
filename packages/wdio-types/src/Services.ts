@@ -1,5 +1,5 @@
 import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options.js'
-import type { RequestedStandaloneCapabilities, RequestedMultiremoteCapabilities, TestrunnerCapabilities } from './Capabilities.js'
+import type { RequestedStandaloneCapabilities, RequestedMultiremoteCapabilities, TestrunnerCapabilities, ResolveTestrunnerCaps } from './Capabilities.js'
 import type { Suite, Test, TestResult } from './Frameworks.js'
 import type { Worker } from './Workers.js'
 
@@ -30,7 +30,7 @@ export interface ServiceOption {
 }
 
 export interface ServiceClass {
-    new(options: ServiceOption, capabilities: WebdriverIO.Capabilities, config: WebdriverIOOptions): ServiceInstance
+    new(options: ServiceOption, capabilities: ResolveTestrunnerCaps, config: WebdriverIOOptions): ServiceInstance
 }
 
 export interface ServicePlugin extends ServiceClass {

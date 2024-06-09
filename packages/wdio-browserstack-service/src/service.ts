@@ -44,7 +44,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
-        private _caps: Capabilities.RemoteCapability,
+        private _caps: Capabilities.ResolveTestrunnerCaps,
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
@@ -78,8 +78,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    _updateCaps (fn: (caps: WebdriverIO.Capabilities | Capabilities.DesiredCapabilities) => void) {
-        const multiRemoteCap = this._caps as Capabilities.MultiRemoteCapabilities
+    _updateCaps (fn: (caps: WebdriverIO.Capabilities) => void) {
+        const multiRemoteCap = this._caps as Capabilities.RequestedMultiremoteCapabilities
 
         if (multiRemoteCap.capabilities) {
             return Object.entries(multiRemoteCap).forEach(([, caps]) => fn(caps.capabilities as WebdriverIO.Capabilities))
@@ -104,7 +104,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
     }
 
-    async before(caps: Capabilities.RemoteCapability, specs: string[], browser: WebdriverIO.Browser) {
+    async before(caps: Capabilities.ResolveTestrunnerCaps, specs: string[], browser: WebdriverIO.Browser) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : globalThis.browser
 
@@ -385,8 +385,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     _isAppAutomate(): boolean {
-        const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
-        const desiredCapabilities = (this._caps ?? {})  as Capabilities.DesiredCapabilities
+        const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
+        const desiredCapabilities = (this._caps ?? {})
         return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app']
     }
 
@@ -412,7 +412,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const multiremotebrowser = this._browser as any as WebdriverIO.MultiRemoteBrowser
         return Promise.all(multiremotebrowser.instances
             .filter((browserName: string) => {
-                const cap = getBrowserCapabilities(multiremotebrowser, (this._caps as Capabilities.MultiRemoteCapabilities), browserName)
+                const cap = getBrowserCapabilities(multiremotebrowser, this._caps, browserName)
                 return isBrowserstackCapability(cap)
             })
             .map((browserName: string) => (
