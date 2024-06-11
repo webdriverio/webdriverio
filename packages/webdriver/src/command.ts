@@ -118,7 +118,7 @@ export default function (
 
         const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)
         request.on('performance', (...args) => this.emit('request.performance', ...args))
-        this.emit('command', { method, endpoint, body })
+        this.emit('command', { command, method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         /**
          * use then here so we can better unit test what happens before and after the request
@@ -136,7 +136,7 @@ export default function (
                 log.info('RESULT', resultLog)
             }
 
-            this.emit('result', { method, endpoint, body, result })
+            this.emit('result', { command, method, endpoint, body, result })
 
             if (command === 'deleteSession') {
                 const shutdownDriver = body.deleteSessionOpts?.shutdownDriver !== false

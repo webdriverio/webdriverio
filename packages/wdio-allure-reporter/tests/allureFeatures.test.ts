@@ -1054,3 +1054,68 @@ describe('nested suite naming', () => {
         expect(childSuite).not.toBeUndefined()
     })
 })
+
+describe('test step naming', () => {
+    const outputDir = temporaryDirectory()
+    let reporter: any
+
+    beforeEach(() => {
+        clean(outputDir)
+        reporter = new AllureReporter({ outputDir, disableMochaHooks: false })
+    })
+
+    it('should display command name when both command name and enpoint are available ', () => {
+        const command = {
+            command: 'SomeCommandStep',
+            method: 'POST',
+            endpoint: '/session/:sessionId/element',
+        }
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(testStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(command)
+        reporter.onAfterCommand(command)
+        reporter.onTestPass()
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        const testResult = results.find(
+            (result) => result.name === 'should can do something'
+        )
+
+        expect(results).toHaveLength(1)
+        expect(testResult).not.toBeUndefined()
+        expect(testResult.steps).toHaveLength(1)
+        expect(testResult.steps[0].name).toEqual(
+            'SomeCommandStep'
+        )
+    })
+
+    it('should display the endpoint and method in the absence of command name', () => {
+        const command = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/element',
+        }
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(testStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(command)
+        reporter.onAfterCommand(command)
+        reporter.onTestPass()
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+        const testResult = results.find(
+            (result) => result.name === 'should can do something'
+        )
+
+        expect(results).toHaveLength(1)
+        expect(testResult).not.toBeUndefined()
+        expect(testResult.steps).toHaveLength(1)
+        expect(testResult.steps[0].name).toEqual(
+            'POST /session/:sessionId/element'
+        )
+    })
+})

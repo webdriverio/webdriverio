@@ -497,11 +497,12 @@ export default class AllureReporter extends WDIOReporter {
         if (disableWebdriverStepsReporting || this._isMultiremote) {
             return
         }
+        const { method, endpoint } = command
 
-        const stepName = command.method ? `${command.method} ${command.endpoint}` : command.command as string
+        const stepName = command.command ? command.command : `${method} ${endpoint}`
         const payload = command.body || command.params
 
-        this._startStep(stepName)
+        this._startStep(stepName as string)
 
         if (!isEmpty(payload)) {
             this.attachJSON('Request', payload)

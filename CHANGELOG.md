@@ -21,6 +21,45 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.38.3 (2024-06-05)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#12980](https://github.com/webdriverio/webdriverio/pull/12980) fix(@wdio/browser-runner): sanitize objects to reduce performance bur… ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.38.2 (2024-06-03)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12952](https://github.com/webdriverio/webdriverio/pull/12952) SDK-694: Fix for showing reason for passed test (v8) ([@TamsilAmani](https://github.com/TamsilAmani))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#12955](https://github.com/webdriverio/webdriverio/pull/12955) Add missing TestingbotCapabilities ([@jochen-testingbot](https://github.com/jochen-testingbot))
+* `wdio-browserstack-service`
+  * [#12932](https://github.com/webdriverio/webdriverio/pull/12932) SDK-667 : Limit VCS info to 64kb v8 ([@TamsilAmani](https://github.com/TamsilAmani))
+
+#### Committers: 4
+- Jochen ([@jochen-testingbot](https://github.com/jochen-testingbot))
+- Perillai ([@perillai](https://github.com/perillai))
+- Tamsil Sajid Amani ([@TamsilAmani](https://github.com/TamsilAmani))
+- Valery Yatsynovich ([@valfirst](https://github.com/valfirst))
+
+
+## v8.38.1 (2024-05-28)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#12928](https://github.com/webdriverio/webdriverio/pull/12928) ws/ocr-docs ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 1
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v8.38.0 (2024-05-24)
 
 #### :rocket: New Feature
