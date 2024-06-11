@@ -191,6 +191,31 @@ This is an example of how the tabbing works on our [guinea pig website](http://g
 
 ![WDIO tabbing example](/img/visual/tabbable-chrome-latest-1366x768.png)
 
+### Automatically update failed Visual Snapshots
+
+Update the baseline images through the command line by adding the argument `--update-visual-baseline`. This will
+
+-   automatically copy the actual take screenshot and put it in the baseline folder
+-   if there are differences it will let the test pass because the baseline has been updated
+
+**Usage:**
+
+```sh
+npm run test.local.desktop  --update-visual-baseline
+```
+
+When running logs info/debug mode you will see the following logs added
+
+```logs
+[0-0] ..............
+[0-0] #####################################################################################
+[0-0]  INFO:
+[0-0]  Updated the actual image to
+[0-0]  /Users/wswebcreation/Git/wdio/visual-testing/localBaseline/chromel/demo-chrome-1366x768.png
+[0-0] #####################################################################################
+[0-0] ..........
+```
+
 ## Typescript support
 
 We now also support typescript types. Add the following to the `types` in your `tsconfig.json`:
