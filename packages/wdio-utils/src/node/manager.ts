@@ -18,7 +18,7 @@ enum BrowserDriverTaskLabel {
 }
 
 function mapCapabilities (
-    options: Omit<Options.WebdriverIO, 'capabilities'>,
+    options: Options.WebdriverIO,
     caps: Capabilities.TestrunnerCapabilities,
     task: SetupTaskFunction,
     taskItemLabel: string) {
@@ -28,8 +28,13 @@ function mapCapabilities (
                 const w3cCaps = cap as Capabilities.W3CCapabilities
                 const multiremoteCaps = cap as Capabilities.RequestedMultiremoteCapabilities
                 const multiremoteInstanceNames = Object.keys(multiremoteCaps)
-                if (multiremoteCaps[multiremoteInstanceNames[0]]) {
-                    return Object.values(multiremoteCaps).map((c) => 'alwaysMatch' in c ? c.alwaysMatch : c) as WebdriverIO.Capabilities[]
+
+                if (typeof multiremoteCaps[multiremoteInstanceNames[0]] === 'object' && 'capabilities' in multiremoteCaps[multiremoteInstanceNames[0]]) {
+                    return Object.values(multiremoteCaps).map((c: Capabilities.WithRequestedCapabilities) => (
+                        'alwaysMatch' in c.capabilities
+                            ? c.capabilities.alwaysMatch
+                            : c.capabilities
+                    ))
                 }
 
                 if (w3cCaps.alwaysMatch) {

@@ -41,9 +41,11 @@
  * }
  */
 export function isRDC (caps: WebdriverIO.Capabilities){
-    const { 'appium:deviceName': appiumDeviceName = '', platformName = '' } = caps
+    // @ts-expect-error outdated JSONWP capabilities
+    const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
+    const name = appiumDeviceName || deviceName
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
-    return !appiumDeviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+    return !name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
 
 /**
@@ -52,9 +54,11 @@ export function isRDC (caps: WebdriverIO.Capabilities){
  * @returns {boolean}
  */
 export function isEmuSim (caps: WebdriverIO.Capabilities){
-    const { 'appium:deviceName': appiumDeviceName = '', platformName = '' } = caps
+    // @ts-expect-error outdated JSONWP capabilities
+    const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
+    const name = appiumDeviceName || deviceName
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
-    return !!appiumDeviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+    return !!name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
 
 /** Ensure capabilities are in the correct format for Sauce Labs

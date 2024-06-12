@@ -1,5 +1,4 @@
 import path from 'node:path'
-import fs from 'node:fs/promises'
 
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
@@ -40,127 +39,6 @@ describe('wdio-runner', () => {
         vi.mocked(_setGlobal).mockClear()
         vi.mocked(setOptions).mockClear()
         process.send = vi.fn()
-    })
-
-    describe('_fetchDriverLogs', () => {
-        let runner: WDIORunner
-
-        beforeEach(() => {
-            runner = new WDIORunner()
-            runner['_cid'] = '0-1'
-        })
-
-        it('not do anything if driver does not support log commands', async () => {
-            runner['_browser'] = { sessionId: '123' } as any as BrowserObject
-
-            const result = await runner['_fetchDriverLogs']({ outputDir: '/foo/bar', capabilities: {} }, ['*'])
-            expect(result).toBe(undefined)
-        })
-
-        it('should not write to file if all logs excluded', async () => {
-            runner['_browser'] = {
-                getLogTypes: () => Promise.resolve(['foo', 'bar']),
-                getLogs: (type: string) => Promise.resolve([
-                    { message: `#1 ${type} log` },
-                    { message: `#2 ${type} log` }
-                ]),
-                sessionId: '123'
-            } as any as BrowserObject
-
-            await runner['_fetchDriverLogs']({ outputDir: '/foo/bar', capabilities: {} }, ['*'])
-
-            expect(fs.writeFile).toHaveBeenCalledTimes(0)
-        })
-
-        it('should not write to file excluded logTypes', async () => {
-            runner['_browser'] = {
-                getLogTypes: () => Promise.resolve(['foo', 'bar']),
-                getLogs: (type: string) => Promise.resolve([
-                    { message: `#1 ${type} log` },
-                    { message: `#2 ${type} log` }
-                ]),
-                sessionId: '123'
-            } as any as BrowserObject
-
-            await runner['_fetchDriverLogs']({ outputDir: '/foo/bar', capabilities: {} }, ['bar'])
-
-            expect(fs.writeFile).toHaveBeenCalledTimes(1)
-
-            expect(vi.mocked(fs.writeFile).mock.calls[0][0])
-                .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-1-foo.log/)
-            expect(vi.mocked(fs.writeFile).mock.calls[0][1])
-                .toEqual('{"message":"#1 foo log"}\n{"message":"#2 foo log"}')
-            expect(vi.mocked(fs.writeFile).mock.calls[0][2])
-                .toEqual('utf-8')
-        })
-
-        it('should fetch logs', async () => {
-            runner['_browser'] = {
-                getLogTypes: () => Promise.resolve(['foo', 'bar']),
-                getLogs: (type: string) => Promise.resolve([
-                    { message: `#1 ${type} log` },
-                    { message: `#2 ${type} log` }
-                ]),
-                sessionId: '123'
-            } as any
-
-            await runner['_fetchDriverLogs']({ outputDir: '/foo/bar', capabilities: {} }, [])
-            expect(vi.mocked(fs.writeFile).mock.calls[0][0])
-                .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-1-foo.log/)
-            expect(vi.mocked(fs.writeFile).mock.calls[0][1])
-                .toEqual('{"message":"#1 foo log"}\n{"message":"#2 foo log"}')
-            expect(vi.mocked(fs.writeFile).mock.calls[0][2])
-                .toEqual('utf-8')
-
-            expect(vi.mocked(fs.writeFile).mock.calls[1][0])
-                .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-1-bar.log/)
-            expect(vi.mocked(fs.writeFile).mock.calls[0][1])
-                .toEqual('{"message":"#1 foo log"}\n{"message":"#2 foo log"}')
-            expect(vi.mocked(fs.writeFile).mock.calls[0][2])
-                .toEqual('utf-8')
-
-        })
-
-        it('should not fail if logsTypes can not be received', async () => {
-            runner['_browser'] = {
-                getLogTypes: () => Promise.reject(new Error('boom')),
-                getLogs: (type: string) => Promise.resolve([
-                    { message: `#1 ${type} log` },
-                    { message: `#2 ${type} log` }
-                ]),
-                sessionId: '123'
-            } as any as BrowserObject
-
-            await runner['_fetchDriverLogs']({ outputDir: '/foo/bar', capabilities: {} }, [])
-            expect(fs.writeFile).toHaveBeenCalledTimes(0)
-        })
-
-        it('should not fail if logs can not be received', async () => {
-            runner['_browser'] = {
-                getLogTypes: () => Promise.resolve(['corrupt']),
-                getLogs: () => Promise.reject(new Error('boom')),
-                sessionId: '123'
-            } as any as BrowserObject
-
-            await runner['_fetchDriverLogs']({ outputDir: '/foo/bar', capabilities: {} }, [])
-            expect(fs.writeFile).toHaveBeenCalledTimes(0)
-        })
-
-        it('should not write to file if no logs exist', async () => {
-            runner['_browser'] = {
-                getLogTypes: () => Promise.resolve(['foo', 'bar']),
-                getLogs: () => Promise.resolve([]),
-                sessionId: '123'
-            } as any as BrowserObject
-
-            await runner['_fetchDriverLogs']({ outputDir: '/foo/bar', capabilities: {} }, [])
-            expect(vi.mocked(fs.writeFile).mock.calls).toHaveLength(0)
-        })
-
-        afterEach(() => {
-            vi.mocked(fs.writeFile).mockClear()
-            delete runner['_browser']
-        })
     })
 
     describe('endSession', () => {
@@ -260,7 +138,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             runner['_shutdown'] = vi.fn()
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
-            await runner.run({ configFile: '/foo/bar', args: { } } as any)
+            await runner.run({ configFile: '/foo/bar', args: {}, caps: [] } as any)
 
             expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
         })

@@ -7,11 +7,11 @@ const config: WebdriverIO.Config = {
         // @ts-expect-error
         scenarioLevelReporter: 'wrong param',
     },
-    capabilities: {}
+    capabilities: [{}]
 }
 
 const configB: WebdriverIO.Config = {
-    capabilities: {},
+    capabilities: [{}],
     beforeFeature (uri, feature) {
         expectType<string>(uri)
         expectType<string>(feature.children[0].scenario.name)

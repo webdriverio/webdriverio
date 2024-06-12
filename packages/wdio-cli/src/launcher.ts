@@ -343,7 +343,7 @@ class Launcher {
             const specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
             this._startInstance(
                 specs.files,
-                schedulableCaps[0].caps as Capabilities.ResolveTestrunnerCaps,
+                schedulableCaps[0].caps as Capabilities.ResolvedTestrunnerCapabilities,
                 schedulableCaps[0].cid,
                 specs.rid,
                 specs.retries
@@ -380,7 +380,7 @@ class Launcher {
      */
     private async _startInstance(
         specs: string[],
-        caps: Capabilities.ResolveTestrunnerCaps,
+        caps: Capabilities.ResolvedTestrunnerCapabilities,
         cid: number,
         rid: string | undefined,
         retries: number

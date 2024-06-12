@@ -113,10 +113,15 @@ export type WebdriverIOMultiremoteConfig = WebDriverIOOptions & { capabilities: 
 
 /**
  * A type referencing all possible capability types when using Testrunner
+ * e.g. everything a user can provide in the `capabilities` property
  */
 export type TestrunnerCapabilities = RequestedStandaloneCapabilities[] | RequestedMultiremoteCapabilities | RequestedMultiremoteCapabilities[]
 
-export type ResolveTestrunnerCaps = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities>
+/**
+ * The capabilities that will be resolved within a worker instance, e.g. either
+ * a single set of capabilities or a single multiremote instance
+ */
+export type ResolvedTestrunnerCapabilities = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities>
 
 /**
  * The `capabilities` property is a required property when using the `remote` method.

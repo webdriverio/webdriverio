@@ -33,7 +33,7 @@ class _TestReporter extends WDIOReporter {
     private _gitConfigured: boolean = false
     private _currentHook: CurrentRunInfo = {}
     private _currentTest: CurrentRunInfo = {}
-    private _userCaps?: Capabilities.ResolveTestrunnerCaps = {}
+    private _userCaps?: Capabilities.ResolvedTestrunnerCapabilities = {}
     private listener = Listener.getInstance()
 
     async onRunnerStart (runnerStats: RunnerStats) {

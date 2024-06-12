@@ -83,7 +83,7 @@ class CucumberAdapter {
         private _cid: string,
         private _config: Options.Testrunner,
         private _specs: string[],
-        private _capabilities: Capabilities.ResolveTestrunnerCaps,
+        private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _reporter: EventEmitter,
         private _eventEmitter: EventEmitter,
         private _generateSkipTags: boolean = true,

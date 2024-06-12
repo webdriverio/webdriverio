@@ -24,7 +24,7 @@ class _PercyHandler {
     constructor (
         private _percyAutoCaptureMode: string | undefined,
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
-        private _capabilities: Capabilities.ResolveTestrunnerCaps,
+        private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _isAppAutomate?: boolean,
         private _framework?: string
     ) {

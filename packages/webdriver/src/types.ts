@@ -63,6 +63,10 @@ export interface BaseClient extends EventEmitter, SessionFlags {
 
 export interface Client extends Omit<BaseClient, keyof BidiEventHandler>, ProtocolCommands, BidiHandler, BidiEventHandler {}
 
-export interface AttachOptions extends Pick<BaseClient, 'capabilities' | 'requestedCapabilities'>, Partial<SessionFlags>, Partial<Options.WebDriver> {
+export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
     sessionId: string
+    // assigned capabilities by the browser driver / WebDriver server
+    capabilities?: WebdriverIO.Capabilities
+    // original requested capabilities
+    requestedCapabilities?: Capabilities.WithRequestedCapabilities['capabilities']
 }

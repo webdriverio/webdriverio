@@ -1,6 +1,6 @@
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
-import { remote, multiremote, attach } from 'webdriverio'
+import { remote, multiremote, attach, type AttachOptions } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { AsymmetricMatchers } from 'expect-webdriverio'
@@ -76,8 +76,8 @@ export async function initializeInstance (
             port: caps.port || config.port,
             path: caps.path || config.path
         }
-        const params = { ...config, ...connectionProps, capabilities }
-        return attach({ ...params, options: params } as any)
+        const params = { ...config, ...connectionProps, capabilities } as AttachOptions
+        return attach({ ...params, options: params })
     }
 
     /**

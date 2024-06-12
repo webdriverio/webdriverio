@@ -468,9 +468,9 @@ export type DragAndDropCoordinate = {
 }
 
 export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilities'> {
-    options: Omit<Options.WebdriverIO, 'capabilities'>
-    capabilities: WebDriverAttachOptions['capabilities']
-    requestedCapabilities: WebDriverAttachOptions['capabilities']
+    options?: Options.WebdriverIO
+    capabilities?: WebDriverAttachOptions['capabilities']
+    requestedCapabilities?: WebDriverAttachOptions['capabilities']
 }
 
 export type ThrottlePreset = 'offline' | 'GPRS' | 'Regular2G' | 'Good2G' | 'Regular3G' | 'Good3G' | 'Regular4G' | 'DSL' | 'WiFi' | 'online'

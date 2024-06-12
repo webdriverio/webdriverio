@@ -28,8 +28,6 @@ export function isW3C(capabilities?: WebdriverIO.Capabilities) {
      * - it is an Appium session (since Appium is full W3C compliant)
      */
     const isAppium = Boolean(
-        // @ts-expect-error outdated jsonwp cap
-        capabilities.automationName ||
         capabilities['appium:automationName'] ||
         capabilities['appium:deviceName'] ||
         capabilities['appium:appiumVersion']
@@ -62,7 +60,7 @@ function isChrome(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
-    return Boolean(capabilities['goog:chromeOptions'])
+    return Boolean(capabilities['goog:chromeOptions'] && capabilities.browserName === 'chrome')
 }
 
 /**
@@ -219,6 +217,11 @@ function isSeleniumStandalone(capabilities?: WebdriverIO.Capabilities) {
     }
     return (
         /**
+         * Selenium v3 and below
+         */
+        // @ts-expect-error outdated JSONWP capabilities
+        Boolean(capabilities['webdriver.remote.sessionid']) ||
+        /**
          * Selenium v4 and up
          */
         Boolean(capabilities['se:cdp'])
@@ -261,8 +264,13 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
  * @param  {Object}  requestedCapabilities
  * @return {Object}                         object with environment flags
  */
-export function sessionEnvironmentDetector({ capabilities, requestedCapabilities }:
-    { capabilities: WebdriverIO.Capabilities, requestedCapabilities: Capabilities.WithRequestedCapabilities['capabilities'] }) {
+export function sessionEnvironmentDetector({
+    capabilities,
+    requestedCapabilities
+}: {
+    capabilities: WebdriverIO.Capabilities,
+    requestedCapabilities: Capabilities.RequestedStandaloneCapabilities
+}) {
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),

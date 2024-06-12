@@ -40,7 +40,7 @@ export default class SauceService implements Services.ServiceInstance {
 
     constructor (
         options: SauceServiceConfig,
-        private _capabilities: Capabilities.ResolveTestrunnerCaps,
+        private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }

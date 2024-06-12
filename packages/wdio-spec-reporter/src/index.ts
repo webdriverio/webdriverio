@@ -582,7 +582,7 @@ export default class SpecReporter extends WDIOReporter {
      * @param isMultiremote
      * @return {String}          Enviroment string
      */
-    getEnviromentCombo (capability: Capabilities.ResolveTestrunnerCaps, verbose = true, isMultiremote = false): string {
+    getEnviromentCombo (capability: Capabilities.ResolvedTestrunnerCapabilities, verbose = true, isMultiremote = false): string {
         if (isMultiremote) {
             const browserNames = Object.values(capability).map((c) => c.browserName)
             const browserName = browserNames.length > 1
@@ -592,9 +592,11 @@ export default class SpecReporter extends WDIOReporter {
         }
         const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
         const device = caps['appium:deviceName']
-        const app = ((caps['appium:app'] || (caps as any).app) || '').replace('sauce-storage:', '')
+        // @ts-expect-error outdated JSONWP capabilities
+        const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
         const appName = app || caps['appium:bundleId'] || (caps as any).bundleId
-        const browser = caps.browserName || appName
+        // @ts-expect-error outdated JSONWP capabilities
+        const browser = caps.browserName || caps.browser || appName
         /**
          * fallback to different capability types:
          * browserVersion: W3C format
@@ -602,14 +604,16 @@ export default class SpecReporter extends WDIOReporter {
          * platformVersion: mobile format
          * browser_version: invalid BS capability
          */
-        const version = caps.browserVersion || caps['appium:platformVersion']
+        // @ts-expect-error outdated JSONWP capabilities
+        const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
         /**
          * fallback to different capability types:
          * platformName: W3C format
          * platform: JSONWP format
          * os, os_version: invalid BS capability
          */
-        const platform = caps.platformName || caps['appium:platformName'] || '(unknown)'
+        // @ts-expect-error outdated JSONWP capabilities
+        const platform = caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
         if (device) {

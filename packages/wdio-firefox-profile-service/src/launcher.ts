@@ -84,7 +84,8 @@ export default class FirefoxProfileLauncher {
 
         for (const browser in capabilities) {
             const capability = capabilities[browser].capabilities as Capabilities.RequestedMultiremoteCapabilities[string]['capabilities']
-            if (!capability || (capability as WebdriverIO.Capabilities).browserName !== 'firefox' && (capability as Capabilities.W3CCapabilities).alwaysMatch.browserName !== 'firefox') {
+            const cap = capability && ('alwaysMatch' in capability ? capability.alwaysMatch : capability)
+            if (!capability || cap.browserName !== 'firefox') {
                 continue
             }
 

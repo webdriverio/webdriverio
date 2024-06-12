@@ -83,7 +83,7 @@ export enum State {
 }
 
 export interface TestLink {
-    capabilities: Capabilities.ResolveTestrunnerCaps
+    capabilities: Capabilities.ResolvedTestrunnerCapabilities
     sessionId: string
     isMultiremote: boolean
     instanceName?: string

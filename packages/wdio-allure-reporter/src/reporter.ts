@@ -33,7 +33,7 @@ import {
 
 export default class AllureReporter extends WDIOReporter {
     private _allure: AllureRuntime
-    private _capabilities: Capabilities.ResolveTestrunnerCaps
+    private _capabilities: Capabilities.ResolvedTestrunnerCapabilities
     private _isMultiremote?: boolean
     private _config?: Options.Testrunner
     private _options: AllureReporterOptions
@@ -238,15 +238,21 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         if (!this._isMultiremote) {
-            const caps = this._capabilities as WebdriverIO.Capabilities
-            const deviceName = caps['appium:deviceName']
-            let targetName = caps.browserName || deviceName || cid
+            const caps = this._capabilities
+            // @ts-expect-error outdated JSONWP capabilities
+            const { browserName, desired, device } = caps
+            // @ts-expect-error outdated JSONWP capabilities
+            const deviceName = (desired || {}).deviceName || (desired || {})['appium:deviceName'] || caps.deviceName || caps['appium:deviceName']
+            let targetName = device || browserName || deviceName || cid
             // custom mobile grids can have device information in a `desired` cap
-            if (caps['appium:platformVersion']) {
-                targetName = `${deviceName} ${caps['appium:platformVersion']}`
+            if (desired && deviceName && desired['appium:platformVersion']) {
+                targetName = `${device || deviceName} ${desired['appium:platformVersion']}`
             }
-            const version = caps.browserVersion || caps['appium:platformVersion'] || ''
-            const paramName = deviceName ? 'device' : 'browser'
+            // @ts-expect-error outdated JSONWP capabilities
+            const browserstackVersion = caps.os_version || caps.osVersion
+            // @ts-expect-error outdated JSONWP capabilities
+            const version = browserstackVersion || caps.browserVersion || caps.version || caps['appium:platformVersion'] || ''
+            const paramName = (deviceName || device) ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
 
             if (!paramValue) {

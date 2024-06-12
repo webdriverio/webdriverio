@@ -23,7 +23,7 @@ import { BStackLogger } from './bstackLogger.js'
 
 class _AccessibilityHandler {
     private _platformA11yMeta: { [key: string]: any; }
-    private _caps: Capabilities.ResolveTestrunnerCaps
+    private _caps: Capabilities.ResolvedTestrunnerCapabilities
     private _suiteFile?: string
     private _accessibility?: boolean
     private _accessibilityOptions?: { [key: string]: any; }
@@ -33,7 +33,7 @@ class _AccessibilityHandler {
 
     constructor (
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
-        private _capabilities: Capabilities.ResolveTestrunnerCaps,
+        private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         isAppAutomate?: boolean,
         private _framework?: string,
         private _accessibilityAutomation?: boolean | string,
@@ -58,7 +58,7 @@ class _AccessibilityHandler {
         this._suiteFile = filename
     }
 
-    _getCapabilityValue(caps: Capabilities.ResolveTestrunnerCaps, capType: string, legacyCapType: string) {
+    _getCapabilityValue(caps: Capabilities.ResolvedTestrunnerCapabilities, capType: string, legacyCapType: string) {
         if (caps) {
             if (capType === 'accessibility') {
                 if ((caps as WebdriverIO.Capabilities)['bstack:options'] && (isTrue((caps as WebdriverIO.Capabilities)['bstack:options']?.accessibility))) {

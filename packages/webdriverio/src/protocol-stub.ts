@@ -63,7 +63,7 @@ function emulateSessionCapabilities (caps: Capabilities.RequestedStandaloneCapab
     // isChrome
     const c = 'alwaysMatch' in caps ? caps.alwaysMatch : caps
     if (c.browserName && c.browserName.toLowerCase() === 'chrome') {
-        capabilities.chrome = true
+        capabilities['goog:chromeOptions'] = {}
     }
 
     return capabilities

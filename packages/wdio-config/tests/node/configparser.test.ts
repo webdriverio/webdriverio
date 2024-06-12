@@ -365,7 +365,10 @@ describe('ConfigParser', () => {
                         FileNamed(FIXTURES_LOCAL_CONF).withContents({
                             config: {
                                 hostname: '127.0.0.1',
-                                port: 4444
+                                port: 4444,
+                                capabilities: [{
+                                    browserName: 'chrome'
+                                }]
                             }
                         })
                     ]
@@ -384,7 +387,12 @@ describe('ConfigParser', () => {
             const configParser = ConfigParserBuilder.withBaseDir(FIXTURES_PATH, FIXTURES_DEFAULT_CONF).withFiles([
                 FileNamed(FIXTURES_DEFAULT_CONF).withContents({
                     default: {
-                        config: { foo: 'bar' }
+                        config: {
+                            foo: 'bar',
+                            capabilities: [{
+                                browserName: 'chrome'
+                            }]
+                        }
                     }
                 })
             ]).build()

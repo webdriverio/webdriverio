@@ -6,7 +6,7 @@ import { SupportedAutomationProtocols } from '../constants.js'
 
 interface ProtocolDriver {
     Driver: Automation.Driver<Capabilities.RemoteConfig>
-    options: Capabilities.RemoteConfig
+    options: Capabilities.WebdriverIOConfig
 }
 
 let webdriverImport: Automation.Driver<Capabilities.RemoteConfig> | undefined

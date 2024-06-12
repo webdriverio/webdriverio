@@ -9,7 +9,7 @@ import { sanitizeCaps } from '../utils.js'
  */
 export default class RunnerStats extends RunnableStats {
     cid: string
-    capabilities: Capabilities.ResolveTestrunnerCaps
+    capabilities: Capabilities.ResolvedTestrunnerCapabilities
     sanitizedCapabilities: string
     config: Options.Testrunner
     specs: string[]

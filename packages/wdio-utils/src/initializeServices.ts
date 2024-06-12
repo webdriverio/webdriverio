@@ -114,7 +114,7 @@ export async function initializeLauncherService (config: Omit<Options.Testrunner
             const Launcher = (service as Services.ServicePlugin).launcher
             if (typeof Launcher === 'function' && serviceName) {
                 serviceLabelToBeInitialised = `"${serviceName}"`
-                launcherServices.push(new Launcher(serviceConfig, caps as Capabilities.ResolveTestrunnerCaps, config))
+                launcherServices.push(new Launcher(serviceConfig, caps as Capabilities.ResolvedTestrunnerCapabilities, config))
             }
 
             /**
@@ -122,7 +122,7 @@ export async function initializeLauncherService (config: Omit<Options.Testrunner
              */
             if (typeof service === 'function' && !serviceName) {
                 serviceLabelToBeInitialised = `"${service.constructor?.name || service.toString()}"`
-                launcherServices.push(new service(serviceConfig, caps as Capabilities.ResolveTestrunnerCaps, config))
+                launcherServices.push(new service(serviceConfig, caps as Capabilities.ResolvedTestrunnerCapabilities, config))
             }
 
             /**

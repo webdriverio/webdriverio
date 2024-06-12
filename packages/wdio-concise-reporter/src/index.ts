@@ -103,10 +103,14 @@ export default class ConciseReporter extends WDIOReporter {
      * @return {String}          Enviroment string
      */
     getEnviromentCombo (caps: WebdriverIO.Capabilities) {
-        const device = caps['appium:deviceName']
-        const browser = caps.browserName
-        const version = caps.browserVersion || caps['appium:platformVersion']
-        const platform = caps.platformName
+        // @ts-expect-error `deviceName` and `device` are outdated JSONWP caps
+        const device = caps.deviceName || caps['appium:deviceName'] || caps.device
+        // @ts-expect-error `browser` is an outdated JSONWP cap
+        const browser = caps.browserName || caps.browser
+        // @ts-expect-error `version` and `browser_version` are outdated JSONWP caps
+        const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
+        // @ts-expect-error `os`, `os_version` and `platform` are outdated JSONWP caps
+        const platform = caps.os ? (caps.os + ' ' + caps.os_version) : (caps.platform || caps.platformName)
 
         // mobile capabilities
         if (device) {

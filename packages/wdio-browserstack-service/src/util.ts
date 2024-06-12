@@ -104,7 +104,7 @@ export function getBrowserDescription(cap: WebdriverIO.Capabilities) {
  * @param caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
  * @param browserName browser name in case of multiremote
  */
-export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, caps?: Capabilities.ResolveTestrunnerCaps, browserName?: string) {
+export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, caps?: Capabilities.ResolvedTestrunnerCapabilities, browserName?: string) {
     if (!browser.isMultiremote) {
         return { ...browser.capabilities, ...caps } as WebdriverIO.Capabilities
     }

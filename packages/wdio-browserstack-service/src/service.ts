@@ -44,7 +44,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
-        private _caps: Capabilities.ResolveTestrunnerCaps,
+        private _caps: Capabilities.ResolvedTestrunnerCapabilities,
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
@@ -104,7 +104,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
     }
 
-    async before(caps: Capabilities.ResolveTestrunnerCaps, specs: string[], browser: WebdriverIO.Browser) {
+    async before(caps: Capabilities.ResolvedTestrunnerCapabilities, specs: string[], browser: WebdriverIO.Browser) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : globalThis.browser
 

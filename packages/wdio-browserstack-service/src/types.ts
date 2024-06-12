@@ -122,7 +122,7 @@ export interface BrowserstackConfig {
      */
     sessionNameFormat?: (
         config: Options.Testrunner,
-        capabilities: Capabilities.ResolveTestrunnerCaps,
+        capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         suiteTitle: string,
         testTitle?: string
     ) => string

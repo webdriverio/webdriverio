@@ -42,7 +42,7 @@ export default class ConfigParser {
     #isInitialised = false
     #configFilePath: string
     private _config: TestrunnerOptionsWithParameters
-    private _capabilities?: Capabilities.TestrunnerCapabilities
+    private _capabilities?: Capabilities.TestrunnerCapabilities = []
 
     constructor(
         configFilePath: string,
@@ -131,7 +131,7 @@ export default class ConfigParser {
 
             const configFileCapabilities = config.capabilities
             if (!configFileCapabilities) {
-                throw new Error(`No capabilities found in config file: ${filePath}`)
+                throw new Error(`No \`capabilities\` property found in WebdriverIO.Config defined in file: ${filePath}`)
             }
 
             /**
@@ -142,7 +142,8 @@ export default class ConfigParser {
             /**
              * merge capabilities
              */
-            this._capabilities = deepmerge(this._capabilities, fileConfig.capabilities)
+            const defaultTo = (Array.isArray(this._capabilities) ? [] : {}) as Capabilities.TestrunnerCapabilities
+            this._capabilities = deepmerge(this._capabilities, fileConfig.capabilities || defaultTo)
             delete fileConfig.capabilities
 
             /**

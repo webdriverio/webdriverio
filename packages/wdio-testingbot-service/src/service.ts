@@ -17,7 +17,7 @@ export default class TestingBotService implements Services.ServiceInstance {
 
     constructor (
         private _options: TestingbotOptions,
-        private _capabilities: Capabilities.ResolveTestrunnerCaps,
+        private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _config: Options.Testrunner
     ) {
         this._tbUser = this._config.user

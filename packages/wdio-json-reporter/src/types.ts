@@ -11,7 +11,7 @@ export interface SuiteState {
 export interface ResultSet {
     start: Date
     end?: Date
-    capabilities: Capabilities.ResolveTestrunnerCaps
+    capabilities: Capabilities.ResolvedTestrunnerCapabilities
     framework?: string
     mochaOpts?: WebdriverIO.MochaOpts
     jasmineOpts?: WebdriverIO.JasmineOpts
