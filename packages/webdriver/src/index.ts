@@ -4,7 +4,6 @@ import logger from '@wdio/logger'
 
 import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
-import { deepmerge } from 'deepmerge-ts'
 import type { Options } from '@wdio/types'
 
 import command from './command.js'
@@ -152,11 +151,18 @@ export default class WebDriver {
      * @returns {string}           the new session id of the browser
      */
     static async reloadSession(instance: Client, newCapabilities?: WebdriverIO.Capabilities) {
-        const capabilities = deepmerge(instance.requestedCapabilities, newCapabilities || {})
-        const params: Options.WebDriver = { ...instance.options, capabilities }
+        const capabilities = newCapabilities ? newCapabilities : instance.requestedCapabilities as WebdriverIO.Capabilities
+        let params: Options.WebDriver = { ...instance.options, capabilities }
+
+        for (const prop of ['protocol', 'hostname', 'port', 'path', 'queryParams', 'user', 'key'] as (keyof Options.Connection)[]) {
+            if (prop in capabilities) {
+                params = { ...params, [prop]: capabilities[prop] }
+                delete capabilities[prop]
+            }
+        }
 
         let driverProcess: ChildProcess | undefined
-        if (newCapabilities?.browserName) {
+        if (params.hostname === '0.0.0.0' && newCapabilities?.browserName) {
             delete params.port
             delete params.hostname
             driverProcess = await startWebDriver(params)
