@@ -43,7 +43,7 @@
     "@wdio/protocols": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "deepmerge-ts": "^5.1.0",
+    "deepmerge-ts": "^7.0.3",
     "ws": "^8.8.0"
   }
 }

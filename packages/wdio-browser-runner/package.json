@@ -44,7 +44,7 @@
     "@wdio/runner": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "deepmerge-ts": "^5.1.0",
+    "deepmerge-ts": "^7.0.3",
     "expect": "^29.7.0",
     "expect-webdriverio": "^4.12.2",
     "get-port": "^7.1.0",
