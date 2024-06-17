@@ -298,7 +298,7 @@ describe('WebDriver', () => {
 
         it('starts a new driver process if browserName is given', async () => {
             vi.mocked(startWebDriver).mockImplementation((params) => {
-                params.hostname = 'localhost'
+                params.hostname = '0.0.0.0'
                 params.port = 4444
                 return { pid: 1234 } as any
             })
@@ -310,6 +310,18 @@ describe('WebDriver', () => {
             await WebDriver.reloadSession(session, { browserName: 'chrome' })
             expect(startWebDriver).toHaveBeenCalledOnce()
             expect((session.capabilities as WebdriverIO.Capabilities)['wdio:driverPID']).toBe(1234)
+        })
+
+        it('connects to the new remote', async () => {
+            const session = await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            vi.mocked(startWebDriver).mockClear()
+            await WebDriver.reloadSession(session, { hostname: '1.1.1.1', port: 5555, browserName: 'chrome' })
+            expect(startWebDriver).not.toHaveBeenCalledOnce()
+            expect(session.options.hostname).toBe('1.1.1.1')
+            expect(session.options.port).toBe(5555)
         })
     })
 
