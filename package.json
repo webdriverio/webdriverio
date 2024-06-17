@@ -120,7 +120,7 @@
     "tsd": "^0.31.0",
     "tsx": "^4.7.2",
     "typescript": "^5.4.5",
-    "unzipper": "^0.11.3",
+    "unzipper": "^0.12.1",
     "vitest": "^1.5.0"
   },
   "engines": {
