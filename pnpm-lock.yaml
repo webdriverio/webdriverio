@@ -509,8 +509,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
-        specifier: ^5.1.0
-        version: 5.1.0
+        specifier: ^7.0.3
+        version: 7.0.3
       expect:
         specifier: ^29.7.0
         version: 29.7.0
@@ -773,8 +773,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0
       deepmerge-ts:
-        specifier: ^5.0.0
-        version: 5.1.0
+        specifier: ^7.0.3
+        version: 7.0.3
       glob:
         specifier: ^10.2.2
         version: 10.4.1
@@ -1108,8 +1108,8 @@ importers:
         specifier: workspace:9.0.0-alpha.0
         version: link:../wdio-utils
       deepmerge-ts:
-        specifier: ^5.1.0
-        version: 5.1.0
+        specifier: ^7.0.3
+        version: 7.0.3
       expect-webdriverio:
         specifier: ^4.12.0
         version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
@@ -1301,8 +1301,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0
       deepmerge-ts:
-        specifier: ^5.1.0
-        version: 5.1.0
+        specifier: ^7.0.3
+        version: 7.0.3
       edgedriver:
         specifier: ^5.5.0
         version: 5.6.0
@@ -1377,8 +1377,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
-        specifier: ^5.1.0
-        version: 5.1.0
+        specifier: ^7.0.3
+        version: 7.0.3
       ws:
         specifier: ^8.8.0
         version: 8.17.0
@@ -6871,6 +6871,10 @@ packages:
 
   deepmerge-ts@5.1.0:
     resolution: {integrity: sha512-eS8dRJOckyo9maw9Tu5O5RUi/4inFLrnoLkBe3cPfDMx3WZioXtmOew4TXQaxq7Rhl4xjDtR7c6x8nNTxOvbFw==}
+    engines: {node: '>=16.0.0'}
+
+  deepmerge-ts@7.0.3:
+    resolution: {integrity: sha512-dxFbFO2RSIhPNBPL/j8Nvdt6/vrkW9+uGf1NLah/QxBGAVbK9fj2fGTO+HwdHpPAyFAsyT9iEn/1SI9SUvespw==}
     engines: {node: '>=16.0.0'}
 
   deepmerge@4.3.1:
@@ -20351,6 +20355,8 @@ snapshots:
   deep-is@0.1.4: {}
 
   deepmerge-ts@5.1.0: {}
+
+  deepmerge-ts@7.0.3: {}
 
   deepmerge@4.3.1: {}
 
