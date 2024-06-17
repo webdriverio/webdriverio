@@ -7313,6 +7313,10 @@ packages:
     resolution: {integrity: sha512-bPZ9zfyJHF41dO8o7iFcEV4Dvcw45yhsv1WjtJyPLZPjQ+ixVBrbSil9+rjRiONoX4f45EZRCqaGvPlzNC523Q==}
     engines: {node: '>=16 || >=18 || >=20'}
 
+  expect-webdriverio@4.15.1:
+    resolution: {integrity: sha512-xtBSidt7Whs1fsUC+utxVzfmkmaStXWW17b+BcMCiCltx0Yku6l7BTv1Y14DEKX8L6rttaDQobYyRtBKbi4ssg==}
+    engines: {node: '>=16 || >=18 || >=20'}
+
   expect@29.7.0:
     resolution: {integrity: sha512-2Zks0hf1VLFYI1kbh0I5jP3KHHyCHpkfyHBzsSXRFgl/Bg9mWYfMW8oD+PdMPlEwy5HNsR9JutYy6pMeOh61nw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -17639,7 +17643,7 @@ snapshots:
 
   '@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.4.5)':
     optionalDependencies:
-      expect-webdriverio: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+      expect-webdriverio: 4.15.1(encoding@0.1.13)(typescript@5.4.5)
       webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.4.5)
     transitivePeerDependencies:
       - bufferutil
@@ -20221,6 +20225,25 @@ snapshots:
       - supports-color
       - typescript
       - utf-8-validate
+
+  expect-webdriverio@4.15.1(encoding@0.1.13)(typescript@5.4.5):
+    dependencies:
+      '@vitest/snapshot': 1.6.0
+      expect: 29.7.0
+      jest-matcher-utils: 29.7.0
+      lodash.isequal: 4.5.0
+    optionalDependencies:
+      '@wdio/globals': 8.38.2(encoding@0.1.13)(typescript@5.4.5)
+      '@wdio/logger': 8.38.0
+      webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.4.5)
+    transitivePeerDependencies:
+      - bufferutil
+      - devtools
+      - encoding
+      - supports-color
+      - typescript
+      - utf-8-validate
+    optional: true
 
   expect@29.7.0:
     dependencies:
