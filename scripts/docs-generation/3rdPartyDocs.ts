@@ -22,9 +22,9 @@ interface Plugin {
 
 const docsFixes: Record<string, ((docs: string) => string)> = {
     '@sap_oss/wdio-qmate-service' : (docs: string) => docs
-        .replace('Benjamin Warth <benjamin.warth@sap.com>', '[Benjamin Warth](benjamin.warth@sap.com)')
-        .replace('Georgios Treska <georgios.treska@sap.com>', '[Georgios Treska](georgios.treska@sap.com)')
-        .replace('Marvin Grüßinger <marvin.gruessinger@sap.com>', '[Marvin Grüßinger](marvin.gruessinger@sap.com)'),
+        .replace('Benjamin Warth <benjamin.warth@sap.com>', '[Benjamin Warth](mailto:benjamin.warth@sap.com)')
+        .replace('Georgios Treska <georgios.treska@sap.com>', '[Georgios Treska](mailto:georgios.treska@sap.com)')
+        .replace('Marvin Grüßinger <marvin.gruessinger@sap.com>', '[Marvin Grüßinger](mailto:marvin.gruessinger@sap.com)'),
     'wdio-ui5-service': (docs: string) => docs
         .replace('<https://ui5-community.github.io/wdi5/>', '[https://ui5-community.github.io/wdi5/](https://ui5-community.github.io/wdi5/)')
         .replace('Roadmap: <https://github.com/orgs/ui5-community/projects/2/views/1>', '[Roadmap](https://github.com/orgs/ui5-community/projects/2/views/1)'),
