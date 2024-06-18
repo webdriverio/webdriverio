@@ -4,7 +4,31 @@ const config: WebdriverIO.Config = {
         // @ts-expect-error
         fullTrace: 'wrong param'
     },
+    capabilities: [{}]
+}
+
+const mrconfig: WebdriverIO.MultiremoteConfig = {
+    mochaOpts: {
+        ui: 'qunit',
+        // @ts-expect-error
+        fullTrace: 'wrong param'
+    },
     capabilities: {}
+}
+
+const mrconfig2: WebdriverIO.MultiremoteConfig = {
+    mochaOpts: {
+        ui: 'qunit',
+        // @ts-expect-error
+        fullTrace: 'wrong param'
+    },
+    capabilities: [{
+        chromeBrowser: {
+            capabilities: {
+                browserName: 'chrome'
+            }
+        }
+    }]
 }
 
 /**

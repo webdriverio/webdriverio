@@ -6,7 +6,7 @@ import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
-import { type Capabilities, type Workers, type Options, type Services, MESSAGE_TYPES } from '@wdio/types'
+import { type Workers, type Options, type Services, MESSAGE_TYPES } from '@wdio/types'
 
 import { transformExpectArgs } from './utils.js'
 import type BaseReporter from './reporter.js'
@@ -42,7 +42,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         private _cid: string,
         private _config: Options.Testrunner & { sessionId?: string },
         private _specs: string[],
-        private _capabilities: Capabilities.RemoteCapability,
         private _reporter: BaseReporter
     ) {
         // listen on testrunner events
@@ -460,8 +459,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
     }
 
-    static init (cid: string, config: any, specs: string[], caps: Capabilities.RemoteCapability, reporter: BaseReporter) {
-        const framework = new BrowserFramework(cid, config, specs, caps, reporter)
+    static init (cid: string, config: any, specs: string[], _: unknown, reporter: BaseReporter) {
+        const framework = new BrowserFramework(cid, config, specs, reporter)
         return framework
     }
 }

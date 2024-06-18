@@ -21,7 +21,7 @@ export default class CrashReporter {
         process.env.CREDENTIALS_FOR_CRASH_REPORTING = JSON.stringify(this.credentialsForCrashReportUpload)
     }
 
-    static setConfigDetails(userConfig: Options.Testrunner, capabilities: Capabilities.RemoteCapability, options: BrowserstackConfig & Options.Testrunner) {
+    static setConfigDetails(userConfig: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities, options: BrowserstackConfig & Options.Testrunner) {
         const configWithoutPII = this.filterPII(userConfig)
         const filteredCapabilities = this.filterCapabilities(capabilities)
         this.userConfigForReporting = {
@@ -116,7 +116,7 @@ export default class CrashReporter {
         ['user', 'username', 'key', 'accessKey'].forEach(key => delete obj[key])
     }
 
-    static filterCapabilities(capabilities: Capabilities.RemoteCapability) {
+    static filterCapabilities(capabilities: Capabilities.TestrunnerCapabilities) {
         const capsCopy = JSON.parse(JSON.stringify(capabilities))
         this.recursivelyRedactKeysFromObject(capsCopy, ['extensions'])
         return capsCopy

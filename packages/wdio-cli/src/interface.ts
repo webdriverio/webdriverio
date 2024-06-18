@@ -3,7 +3,7 @@ import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
 import { SnapshotManager } from '@vitest/snapshot/manager'
 import type { SnapshotResult } from '@vitest/snapshot'
-import type { Options, Capabilities, Workers } from '@wdio/types'
+import type { Options, Workers } from '@wdio/types'
 
 import { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'
@@ -144,7 +144,7 @@ export default class WDIOCLInterface extends EventEmitter {
     onJobComplete(cid: string, job?: Workers.Job, retries = 0, message = '', _logger: Function = this.log) {
         const details = [`[${cid}]`, message]
         if (job) {
-            details.push('in', getRunnerName(job.caps as Capabilities.DesiredCapabilities), this.getFilenames(job.specs))
+            details.push('in', getRunnerName(job.caps as WebdriverIO.Capabilities), this.getFilenames(job.specs))
         }
         if (retries > 0) {
             details.push(`(${retries} retries)`)

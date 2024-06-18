@@ -1,5 +1,3 @@
-import type { Capabilities } from '@wdio/types'
-
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 
@@ -24,7 +22,7 @@ export function sanitizeString (str?: string) {
  * formats capability object into sanitized string for e.g.filenames
  * @param {object} caps  Selenium capabilities
  */
-export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
+export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
     if (!caps) {
         return ''
     }
@@ -34,16 +32,20 @@ export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
     /**
      * mobile caps
      */
-    result = caps.deviceName
+    // @ts-expect-error outdated JSONWP capabilities
+    result = caps['appium:deviceName'] || caps.deviceName
         ? [
             sanitizeString(caps.platformName),
-            sanitizeString(caps.deviceName || caps['appium:deviceName']),
+            // @ts-expect-error outdated JSONWP capabilities
+            sanitizeString(caps['appium:deviceName'] || caps.deviceName),
             sanitizeString(caps['appium:platformVersion']),
             sanitizeString(caps['appium:app'])
         ]
         : [
             sanitizeString(caps.browserName),
+            // @ts-expect-error outdated JSONWP capabilities
             sanitizeString(caps.version || caps.browserVersion),
+            // @ts-expect-error outdated JSONWP capabilities
             sanitizeString(caps.platform || caps.platformName),
             sanitizeString(caps['appium:app'])
         ]

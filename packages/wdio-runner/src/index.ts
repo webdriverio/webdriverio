@@ -1,5 +1,3 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
@@ -13,11 +11,10 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
-import { initializeInstance, filterLogTypes, getInstancesData } from './utils.js'
+import { initializeInstance, getInstancesData } from './utils.js'
 import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
-    TestFramework, SingleConfigOption, MultiRemoteCaps, SessionStartedMessage,
-    SessionEndedMessage, SnapshotResultMessage
+    TestFramework, SessionStartedMessage, SessionEndedMessage, SnapshotResultMessage
 } from './types.js'
 
 const log = logger('@wdio/runner')
@@ -34,7 +31,7 @@ export default class Runner extends EventEmitter {
     private _config?: Options.Testrunner
     private _cid?: string
     private _specs?: string[]
-    private _caps?: Capabilities.RemoteCapability
+    private _caps?: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
 
     /**
      * run test suite
@@ -65,7 +62,7 @@ export default class Runner extends EventEmitter {
         this._config = this._configParser.getConfig()
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
-        const capabilities = this._configParser.getCapabilities() as Capabilities.RemoteCapability
+        const capabilities = this._configParser.getCapabilities()
         const isMultiremote = this._isMultiremote = !Array.isArray(capabilities) ||
             (Object.values(caps).length > 0 && Object.values(caps).every(c => typeof c === 'object' && c.capabilities))
 
@@ -113,7 +110,7 @@ export default class Runner extends EventEmitter {
             return this._shutdown(0, retries, true)
         }
 
-        browser = await this._initSession(this._config as SingleConfigOption, this._caps)
+        browser = await this._initSession(this._config, this._caps)
 
         /**
          * return if session initialization failed
@@ -124,7 +121,7 @@ export default class Runner extends EventEmitter {
             return this._shutdown(1, retries, true)
         }
 
-        this._reporter.caps = browser.capabilities as Capabilities.RemoteCapability
+        this._reporter.caps = browser.capabilities
 
         const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
         await executeHooksWithArgs('before', this._config.before, beforeArgs)
@@ -162,7 +159,7 @@ export default class Runner extends EventEmitter {
                     caps[browserName] = multiRemoteBrowser.getInstance(browserName).capabilities
                     caps[browserName].sessionId = multiRemoteBrowser.getInstance(browserName).sessionId
                     return caps
-                }, {} as MultiRemoteCaps)
+                }, {} as Capabilities.RequestedMultiremoteCapabilities)
                 : { ...browser.capabilities, sessionId: browser.sessionId },
             retry: this._specFileRetryAttempts
         } as Options.RunnerStart)
@@ -190,7 +187,6 @@ export default class Runner extends EventEmitter {
         let failures = 0
         try {
             failures = await this._framework.run()
-            await this._fetchDriverLogs(this._config, (caps as Required<Capabilities.DesiredCapabilities>).excludeDriverLogs)
         } catch (err: any) {
             log.error(err)
             this.emit('error', err)
@@ -219,7 +215,7 @@ export default class Runner extends EventEmitter {
     async #initFramework (
         cid: string,
         config: Options.Testrunner,
-        capabilities: Capabilities.RemoteCapability,
+        capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
         reporter: BaseReporter,
         specs: string[]
     ): Promise<TestFramework> {
@@ -252,8 +248,8 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     private async _initSession (
-        config: SingleConfigOption,
-        caps: Capabilities.RemoteCapability
+        config: Options.Testrunner,
+        caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     ) {
         const browser = await this._startSession(config, caps) as WebdriverIO.Browser
 
@@ -292,8 +288,8 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     private async _startSession (
-        config: SingleConfigOption,
-        caps: Capabilities.RemoteCapability
+        config: Options.Testrunner,
+        caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     ) {
         try {
             /**
@@ -358,71 +354,6 @@ export default class Runner extends EventEmitter {
         }
 
         return this._browser
-    }
-
-    /**
-     * fetch logs provided by browser driver
-     */
-    private async _fetchDriverLogs (
-        config: Options.Testrunner,
-        excludeDriverLogs: string[]
-    ) {
-        /**
-         * only fetch logs if
-         */
-        if (
-            /**
-             * a log directory is given in config
-             */
-            !config.outputDir ||
-            /**
-             * the session wasn't killed during start up phase
-             */
-            !(this._browser as WebdriverIO.Browser)?.sessionId ||
-            /**
-             * driver supports it
-             */
-            typeof this._browser?.getLogs === 'undefined'
-        ) {
-            return
-        }
-
-        let logTypes: string[]
-        try {
-            logTypes = await this._browser.getLogTypes() as string[]
-        } catch (errIgnored) {
-            /**
-             * getLogTypes is not supported by browser
-             */
-            return
-        }
-
-        logTypes = filterLogTypes(excludeDriverLogs, logTypes)
-
-        log.debug(`Fetching logs for ${logTypes.join(', ')}`)
-        return Promise.all(logTypes.map(async (logType) => {
-            let logs
-
-            try {
-                logs = await this._browser?.getLogs(logType)
-            } catch (e: any) {
-                return log.warn(`Couldn't fetch logs for ${logType}: ${e.message}`)
-            }
-
-            /**
-             * don't write to file if no logs were captured
-             */
-            if (!Array.isArray(logs) || logs.length === 0) {
-                return
-            }
-
-            const stringLogs = logs.map((log: any) => JSON.stringify(log)).join('\n')
-            return fs.writeFile(
-                path.join(config.outputDir!, `wdio-${this._cid}-${logType}.log`),
-                stringLogs,
-                'utf-8'
-            )
-        }))
     }
 
     /**
@@ -507,12 +438,13 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * store capabilities for afterSession hook
+         * store updated capabilities for afterSession hook
          */
-        const capabilities: Capabilities.RemoteCapability = this._browser?.capabilities || {}
+        const capabilities = (this._browser?.capabilities as WebdriverIO.Capabilities) || ({} as Capabilities.RequestedMultiremoteCapabilities)
         if (this._isMultiremote) {
+            const multiremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
             multiremoteBrowser.instances.forEach((browserName: string) => {
-                (capabilities as MultiRemoteCaps)[browserName] = multiremoteBrowser.getInstance(browserName).capabilities
+                (capabilities as Capabilities.RequestedMultiremoteCapabilities)[browserName] = multiremoteBrowser.getInstance(browserName).capabilities as any
             })
         }
 

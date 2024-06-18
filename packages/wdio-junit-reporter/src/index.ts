@@ -2,7 +2,6 @@ import url from 'node:url'
 
 import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import type { Capabilities } from '@wdio/types'
 import junit from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
@@ -225,9 +224,12 @@ class JunitReporter extends WDIOReporter {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
             // NOTE: platformVersion is used to build sanitizedCapabilities which can be incorrect and includes a minor version for iOS which is not guaranteed to be the same under Browserstack.
             const browserstackSanitizedCapabilities = [
-                (runner.capabilities as Capabilities.DesiredCapabilities).device,
-                (runner.capabilities as Capabilities.DesiredCapabilities).os,
-                ((runner.capabilities as Capabilities.DesiredCapabilities).os_version || '').replace(/\./g, '_'),
+                // @ts-expect-error capability only exists when running on BrowserStack
+                (runner.capabilities).device,
+                // @ts-expect-error capability only exists when running on BrowserStack
+                (runner.capabilities).os,
+                // @ts-expect-error capability only exists when running on BrowserStack
+                ((runner.capabilities).os_version || '').replace(/\./g, '_'),
             ]
                 .filter(Boolean)
                 .map((capability) => capability!.toLowerCase())

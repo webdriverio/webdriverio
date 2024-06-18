@@ -1,7 +1,7 @@
 WDIO Firefox Profile Service
 ============================
 
-You want to run your Firefox browser with a specific extension or need to set couple preferences? Selenium allows you to use a profile for the Firefox browser by passing this profile as `base64` string to the `firefox_profile` property in your desired capabilities. This requires building that profile and converting it into `base64`. This service for the [wdio testrunner](https://webdriver.io/docs/clioptions) takes the work of compiling the profile out of your hand and lets you define your desired options comfortably from the `wdio.conf.js` file.
+You want to run your Firefox browser with a specific extension or need to set a couple preferences? Selenium allows you to use a profile for the Firefox browser by passing this profile as `base64` string to the `moz:firefoxOptions.profile` property in your desired capabilities. This requires building that profile and converting it into `base64`. This service for the [wdio testrunner](https://webdriver.io/docs/clioptions) takes the work of compiling the profile out of your hand and lets you define your desired options comfortably from the `wdio.conf.js` file.
 
 To find all possible options open [about:config](about:config) in your Firefox browser or go to [mozillaZine](http://kb.mozillazine.org/About:config_entries) website to find the whole documentation about each setting. In Addition to that, you can define compiled (as `*.xpi`) Firefox extensions that should get installed before the test starts.
 

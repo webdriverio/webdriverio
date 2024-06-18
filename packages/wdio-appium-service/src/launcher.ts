@@ -34,7 +34,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     constructor(
         private _options: AppiumServiceConfig,
-        private _capabilities: Capabilities.RemoteCapabilities,
+        private _capabilities: Capabilities.TestrunnerCapabilities,
         private _config?: Options.Testrunner
     ) {
         this._args = {

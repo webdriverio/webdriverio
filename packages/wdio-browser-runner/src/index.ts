@@ -54,8 +54,8 @@ export default class BrowserRunner extends LocalRunner {
          */
         if (this.#config.mochaOpts) {
             this.#config.mochaOpts.require = (this.#config.mochaOpts.require || [])
-                .map((r) => path.join(this.#config.rootDir || process.cwd(), r))
-                .map((r) => url.pathToFileURL(r).pathname)
+                .map((r: 'string') => path.join(this.#config.rootDir || process.cwd(), r))
+                .map((r: 'string') => url.pathToFileURL(r).pathname)
         }
     }
 

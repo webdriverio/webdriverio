@@ -1,6 +1,6 @@
 /// <reference types="@wdio/globals/types" />
 import logger from '@wdio/logger'
-import type { Clients, Frameworks } from '@wdio/types'
+import type { Frameworks } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
@@ -120,9 +120,9 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
         return commandResult
     }
 
-    function wrapElementFn (promise: Promise<Clients.Browser>, cmd: Function, args: any[], prevInnerArgs?: { prop: string | number, args: any[] }): any {
+    function wrapElementFn (promise: Promise<WebdriverIO.Browser>, cmd: Function, args: any[], prevInnerArgs?: { prop: string | number, args: any[] }): any {
         return new Proxy(
-            Promise.resolve(promise).then((ctx: Clients.Browser) => cmd.call(ctx, ...args)),
+            Promise.resolve(promise).then((ctx: WebdriverIO.Browser) => cmd.call(ctx, ...args)),
             {
                 get: (target, prop: string) => {
                     /**
@@ -160,13 +160,13 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                             /**
                              * `this` is an array of WebdriverIO elements
                              */
-                            function (this: WebdriverIO.ElementArray, index: number) {
+                            function (this: any, index: number) {
                                 /**
                                  * if we access an index that is out of bounds we wait for the
                                  * array to get that long, and timeout eventually if it doesn't
                                  */
                                 if (index >= this.length) {
-                                    const browser = getBrowserObject(this)
+                                    const browser = getBrowserObject(this) as any
                                     return browser.waitUntil(async () => {
                                         const elems = await this.parent[this.foundWith as any as '$$'](this.selector)
                                         if (elems.length > index) {
@@ -278,11 +278,11 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
         )
     }
 
-    function chainElementQuery(this: Promise<Clients.Browser>, ...args: any[]): any {
+    function chainElementQuery(this: Promise<WebdriverIO.Browser>, ...args: any[]): any {
         return wrapElementFn(this, wrapCommandFn, args)
     }
 
-    return function (this: Clients.Browser, ...args: any[]) {
+    return function (this: WebdriverIO.Browser, ...args: any[]) {
         /**
          * if the command suppose to return an element, we apply `chainElementQuery` to allow
          * chaining of these promises.

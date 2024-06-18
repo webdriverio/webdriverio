@@ -5,7 +5,7 @@ const config: WebdriverIO.Config = {
         random: 'test wrong parameter',
         stopOnSpecFailure: true
     },
-    capabilities: {}
+    capabilities: [{}]
 }
 
 /**

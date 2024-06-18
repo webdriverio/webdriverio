@@ -5,7 +5,6 @@ import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
-import type { RemoteOptions } from '../src/types.js'
 import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
 import * as cjsExport from '../src/cjs/index.js'
 
@@ -84,8 +83,7 @@ describe('WebdriverIO module interface', () => {
 
     describe('remote function', () => {
         it('creates a webdriver session', async () => {
-            const options: RemoteOptions = {
-                automationProtocol: 'webdriver',
+            const options: any = {
                 capabilities: {},
                 logLevel: 'trace'
             }
@@ -152,7 +150,10 @@ describe('WebdriverIO module interface', () => {
             const browser = await remote({ capabilities: { browserName: 'chrome' } })
 
             expect(browser.sessionId).toBeUndefined()
-            expect(browser.capabilities).toEqual({ browserName: 'chrome', chrome: true })
+            expect(browser.capabilities).toEqual({
+                browserName: 'chrome',
+                'goog:chromeOptions': {}
+            })
 
             const flags: any = {}
             Object.entries(browser).forEach(([key, value]) => {

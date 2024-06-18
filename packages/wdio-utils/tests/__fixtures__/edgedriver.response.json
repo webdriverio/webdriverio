@@ -2,24 +2,31 @@
   "value": {
     "sessionId": "867A8C76-537F-4F2B-897C-85F87DF2C995",
     "capabilities": {
-      "ms:inPrivate": false,
-      "browserVersion": "44.17763.1.0",
-      "takesScreenshot": true,
-      "acceptSslCerts": true,
-      "cssSelectorsEnabled": true,
-      "javascriptEnabled": true,
+      "acceptInsecureCerts": false,
       "browserName": "MicrosoftEdge",
-      "locationContextEnabled": true,
-      "platform": "ANY",
-      "takesElementScreenshot": true,
-      "webdriver.remote.sessionid": "199008b1e1e64a039d45e534d71b1e32",
-      "hasMetadata": true,
-      "applicationCacheEnabled": true,
-      "webStorageEnabled": true,
+      "browserVersion": "125.0.2535.92",
+      "fedcm:accounts": true,
+      "ms:edgeOptions": {
+        "debuggerAddress": "localhost:56304"
+      },
+      "msedge": {
+        "msedgedriverVersion": "125.0.2535.92 (d2d4746171db016dca5f4d42bb86454ce4c16da3)",
+        "userDataDir": "/var/folders/rt/1bg19g7s3tn3w25gydr272c80000gn/T/.com.microsoft.edgemac.OJ80Mj"
+      },
+      "networkConnectionEnabled": false,
       "pageLoadStrategy": "normal",
-      "platformName": "windows",
-      "platformVersion": "10",
-      "unhandledPromptBehavior": "dismiss and notify"
+      "platformName": "mac",
+      "proxy": {},
+      "setWindowRect": true,
+      "strictFileInteractability": false,
+      "timeouts": { "implicit": 0, "pageLoad": 300000, "script": 30000 },
+      "unhandledPromptBehavior": "dismiss and notify",
+      "webauthn:extension:credBlob": true,
+      "webauthn:extension:largeBlob": true,
+      "webauthn:extension:minPinLength": true,
+      "webauthn:extension:prf": true,
+      "webauthn:virtualAuthenticators": true,
+      "wdio:driverPID": 87674
     }
   }
 }

@@ -106,9 +106,10 @@ export default class PointerAction extends BaseAction {
      * Creates an action to release a single key.
      * @param params PointerActionUpParams
      */
+    up (button?: Button): PointerAction
     up (button?: ButtonNames): PointerAction
     up (params?: PointerActionUpParams): PointerAction
-    up (params: PointerActionUpParams | ButtonNames = UP_PARAM_DEFAULTS) {
+    up (params: PointerActionUpParams | ButtonNames | Button = UP_PARAM_DEFAULTS) {
         this.sequence.push({
             type: 'pointerUp',
             ...mapButton(params)
@@ -120,9 +121,10 @@ export default class PointerAction extends BaseAction {
      * Creates an action to press a single key
      * @param params PointerActionParams
      */
+    down (button?: Button): PointerAction
     down (button?: ButtonNames): PointerAction
     down (params?: PointerActionParams): PointerAction
-    down (params: PointerActionParams | ButtonNames = {}) {
+    down (params: PointerActionParams | Button | ButtonNames = {}) {
         this.sequence.push({
             type: 'pointerDown',
             ...PARAM_DEFAULTS,

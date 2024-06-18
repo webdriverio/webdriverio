@@ -130,7 +130,7 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
 export async function runOnCompleteHook(
     onCompleteHook: Function | Function[],
     config: Options.Testrunner,
-    capabilities: Capabilities.RemoteCapabilities,
+    capabilities: Capabilities.TestrunnerCapabilities,
     exitCode: number,
     results: OnCompleteResult
 ) {
@@ -155,7 +155,7 @@ export async function runOnCompleteHook(
 /**
  * get runner identification by caps
  */
-export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
+export function getRunnerName(caps: WebdriverIO.Capabilities = {}) {
     let runner =
         caps.browserName ||
         caps.platformName ||
@@ -324,9 +324,9 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         let requiredCaps = config.getCapabilities()
         requiredCaps = (
             // multi capabilities
-            (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[parseInt(arg.capabilities, 10)] ||
+            (requiredCaps as (Capabilities.RequestedStandaloneCapabilities)[])[parseInt(arg.capabilities, 10)] ||
             // multiremote
-            (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
+            (requiredCaps as Capabilities.RequestedMultiremoteCapabilities)[arg.capabilities]
         )
         const requiredW3CCaps = pickBy(requiredCaps, (_, key) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
         if (!Object.keys(requiredW3CCaps).length) {

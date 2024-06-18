@@ -33,8 +33,8 @@ export default class SauceLauncher implements Services.ServiceInstance {
      * modify config and launch sauce connect
      */
     async onPrepare (
-        config: Options.Testrunner,
-        capabilities: Capabilities.RemoteCapabilities
+        _: Options.Testrunner,
+        capabilities: Capabilities.TestrunnerCapabilities
     ) {
         if (!this._options.sauceConnect) {
             return
@@ -70,11 +70,11 @@ export default class SauceLauncher implements Services.ServiceInstance {
                  */
                 if (Object.values(capability).length > 0 && Object.values(capability).every(c => typeof c === 'object' && c.capabilities)) {
                     for (const browserName of Object.keys(capability)) {
-                        const caps = (capability as Capabilities.MultiRemoteCapabilities)[browserName].capabilities
+                        const caps = (capability as Capabilities.RequestedMultiremoteCapabilities)[browserName].capabilities
                         prepareCapability((caps as Capabilities.W3CCapabilities).alwaysMatch || caps)
                     }
                 } else {
-                    prepareCapability(capability as Capabilities.DesiredCapabilities)
+                    prepareCapability(capability as WebdriverIO.Capabilities)
                 }
             }
         } else {
