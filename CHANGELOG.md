@@ -21,6 +21,32 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.39.0 (2024-06-18)
+
+#### :nail_care: Polish
+* `wdio-appium-service`
+  * [#13046](https://github.com/webdriverio/webdriverio/pull/13046) Add logFilter appium server arguments type v8 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-types`
+  * [#13048](https://github.com/webdriverio/webdriverio/pull/13048) Add maskCommands type for `bstack:options` for v8 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `webdriver`, `webdriverio`
+  * [#12957](https://github.com/webdriverio/webdriverio/pull/12957) Allows reloadSession to connect to remote driver ([@ccharnkij](https://github.com/ccharnkij))
+* `wdio-allure-reporter`, `webdriver`
+  * [#12986](https://github.com/webdriverio/webdriverio/pull/12986) feat: display command name for webdriver calls in allure reporter for v8 ([@sudharsan-selvaraj](https://github.com/sudharsan-selvaraj))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#13020](https://github.com/webdriverio/webdriverio/pull/13020) fix(docs): add await before mock.restore() ([@sangcnguyen](https://github.com/sangcnguyen))
+* Other
+  * [#13008](https://github.com/webdriverio/webdriverio/pull/13008) feat: new blogpost ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 5
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Sang Nguyen ([@sangcnguyen](https://github.com/sangcnguyen))
+- Sudharsan Selvaraj ([@sudharsan-selvaraj](https://github.com/sudharsan-selvaraj))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v8.38.3 (2024-06-05)
 
 #### :bug: Bug Fix
