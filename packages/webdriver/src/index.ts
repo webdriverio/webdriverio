@@ -4,12 +4,7 @@ import logger from '@wdio/logger'
 
 import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
-<<<<<<< HEAD
 import type { Capabilities, Options } from '@wdio/types'
-=======
-import { deepmerge } from 'deepmerge-ts'
-import type { Options, Capabilities } from '@wdio/types'
->>>>>>> 5e5f37dbf (breaking(*): better type definitions for capabilities)
 
 import command from './command.js'
 import { DEFAULTS } from './constants.js'
@@ -127,12 +122,10 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        const webSocketUrl = options.requestedCapabilities && 'alwaysMatch' in options.requestedCapabilities
-            ? options.requestedCapabilities.alwaysMatch?.webSocketUrl
-            : options.requestedCapabilities?.webSocketUrl
-        if (webSocketUrl) {
+        const webSocketUrl = options.capabilities?.webSocketUrl as unknown as string
+        if (typeof webSocketUrl === 'string') {
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as any as string, options.strictSSL))
+            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string, options.strictSSL))
         }
 
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
