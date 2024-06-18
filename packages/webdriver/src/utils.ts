@@ -174,14 +174,14 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
  */
 export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
-    const ProtocolCommands: Protocol = deepmerge(
+    const ProtocolCommands = deepmerge<any>(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
          * some legacy JSONWire commands are still used in Appium
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? deepmerge(AppiumProtocol, WebDriverProtocol)
+            ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
             : WebDriverProtocol,
         /**
          * enable Bidi protocol for W3C sessions
@@ -190,7 +190,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
         /**
          * only apply mobile protocol if session is actually for mobile
          */
-        isMobile ? deepmerge(MJsonWProtocol, AppiumProtocol) : {},
+        isMobile ? deepmerge<any>(MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chromium commands if session is using Chrome or Edge
          */
@@ -209,7 +209,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
          */
         isSeleniumStandalone ? SeleniumProtocol : {},
         {} as Protocol
-    )
+    ) as Protocol
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
