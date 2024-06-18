@@ -19,7 +19,7 @@
   },
   {
     "packageName": "wdio-nuxt-service",
-    "title": "WDIO Nuxt Service",
+    "title": "Nuxt Service",
     "githubUrl": "https://github.com/webdriverio-community/wdio-nuxt-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-nuxt-service"
   },
@@ -162,13 +162,6 @@
     "title": "Auto-detect missing imports w/eslint",
     "githubUrl": "https://github.com/jamesmortensen/wdio-eslinter-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-eslinter-service"
-  },
-  {
-    "packageName": "wdio-ms-teams-service",
-    "title": "Microsoft Teams",
-    "branch": "master",
-    "githubUrl": "https://github.com/marcelblijleven/wdio-ms-teams-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-ms-teams-service"
   },
   {
     "packageName": "wdio-cucumber-viewport-logger-service",
