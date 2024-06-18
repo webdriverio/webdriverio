@@ -39,8 +39,6 @@ jobs:
         run: npm run test
       - name: Interop Tests
         run: npm run test:e2e:cjs
-      - name: Install Edge
-        uses: browser-actions/setup-edge@v1
       - name: E2E Launch Tests
         run: npm run test:e2e:webdriver
       # - name: 🐛 Debug Build
@@ -71,8 +69,6 @@ jobs:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
-      - name: Install Edge
-        uses: browser-actions/setup-edge@v1
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v3
         with:
@@ -97,7 +93,7 @@ jobs:
             e2e/*.log
             e2e/browser-runner/logs
   e2e-mac:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -109,8 +105,6 @@ jobs:
         run: npm run setup
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install Edge
-        uses: browser-actions/setup-edge@v1
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v3
         with:
