@@ -1657,7 +1657,18 @@ export interface BrowserStackCapabilities {
     uploadMedia?: Array<string>
     enablePasscode?: boolean
     deviceLogs?: boolean,
-    resignApp?: boolean
+
+    /**
+     * Disable re-signing of Enterprise signed app uploaded on BrowserStack
+     * @default true
+     */
+    resignApp?: boolean,
+
+    /**
+     * Hides data that you send to or retrieve from the remote browsers through the following commands:
+     * Example: 'setValues, getValues, setCookies, getCookies'
+     */
+    maskCommands?: string
 }
 
 export interface SauceLabsVisualCapabilities {
