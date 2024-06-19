@@ -665,7 +665,7 @@ export async function hasElementId (element: WebdriverIO.Element) {
             : element.isShadowElement
                 ? element.parent.shadow$.bind(element.parent)
                 : element.parent.$.bind(element.parent)
-        element.elementId = (await command(element.selector as string)).elementId
+        element.elementId = (await command(element.selector as string).getElement()).elementId
     }
 
     /*

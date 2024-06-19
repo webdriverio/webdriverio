@@ -31,7 +31,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  * @returns a matcher result computed in the Node.js environment
  */
 function createMatcher (matcherName: string) {
-    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element> | ChainablePromiseArray, ...args: any[]) {
+    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | ChainablePromiseArray, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
             return {

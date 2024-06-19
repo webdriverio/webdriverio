@@ -66,7 +66,7 @@ async function bar() {
     // instances array
     expectType<string[]>(mr.instances)
 
-    const elements = await browser.$$('foo')
+    const elements = await browser.$$('foo').getElements()
     expectType<string>(elements.foundWith)
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -80,8 +80,10 @@ async function bar() {
 
     const elemA = await remoteBrowser.$('')
     const elemB = await remoteBrowser.$('')
-    const multipleElems = await $$([elemA, elemB])
+    const multipleElems = await $$([elemA, elemB]).getElements()
+    const multipleElemsChain = $$([elemA, elemB])
     expectType<WebdriverIO.ElementArray>(multipleElems)
+    expectType<ChainablePromiseArray>(multipleElemsChain)
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -142,7 +144,7 @@ async function bar() {
     )
     expectType<true | void>(waitUntil)
     const waitUntilElems = await browser.waitUntil(async () => {
-        const elems = await $$('elems')
+        const elems = await $$('elems').getElements()
         if (elems.length < 2) {
             return false
         }
@@ -247,7 +249,7 @@ async function bar() {
     expectType<number>(ambientResult)
 
     // $
-    const el1 = await $('')
+    const el1 = await $('').getElement()
     const strFunction = (str: string) => str
     strFunction(el1.selector as string)
     strFunction(el1.elementId)
@@ -303,7 +305,7 @@ async function bar() {
     expectType<number>(elcResult)
 
     // $$
-    const elems = await $$('')
+    const elems = await $$('').getElements()
     const el4 = elems[0]
     const el5 = await el4.$('')
     expectType<string>(await el4.getAttribute('class'))
@@ -377,7 +379,7 @@ async function bar() {
     const ele = await $('')
     const touchAction: TouchAction = {
         action: 'longPress',
-        element: await $(''),
+        element: await $('').getElement(),
         ms: 0,
         x: 0,
         y: 0
@@ -439,7 +441,7 @@ async function bar() {
 
     // async chain API
     expectType<WebdriverIO.Element>(
-        await browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar'))
+        await browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar').getElement())
     expectType<Selector>(
         await browser.$('foo').$('bar').selector)
     expectType<Error>(
@@ -457,7 +459,7 @@ async function bar() {
 
     // promise chain API
     expectType<string>(
-        await browser.$('foo').then(_ => _.getText()))
+        await browser.$('foo').getElement().then(_ => _.getText()))
 
     expectType<void>(
         await browser.$$('foo').forEach(() => true)

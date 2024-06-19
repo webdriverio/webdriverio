@@ -19,6 +19,7 @@ const ELEMENT_PROPS = [
 ]
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
+const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
 
 const TIME_BUFFER = 3
 
@@ -236,6 +237,16 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                      */
                     if (PROMISE_METHODS.includes(prop)) {
                         return target[prop as 'then' | 'catch' | 'finally'].bind(target)
+                    }
+
+                    /**
+                     * Convenience methods to get the element promise. Technically we could just
+                     * await an `ChainablePromiseElement` directly but this causes bad DX when
+                     * chaining commands and e.g. VS Code tries to wrap promises around thenable
+                     * objects.
+                     */
+                    if (ELEMENT_RETURN_COMMANDS.includes(prop)) {
+                        return target
                     }
 
                     /**
