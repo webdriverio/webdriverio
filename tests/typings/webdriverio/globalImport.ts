@@ -3,12 +3,12 @@ import { $, $$, browser, driver, multiremotebrowser } from '@wdio/globals'
 import { fn, spyOn, mock, unmock, mocked } from '@wdio/browser-runner'
 
 ;(async () => {
-    const elem = await $('foo')
+    const elem = await $('foo').getElement()
     expectType<string>(elem.elementId)
     const label = await $('foo').$('bar').getComputedLabel()
     expectType<string>(label)
 
-    const elems = await $$('foo')
+    const elems = await $$('foo').getElements()
     expectType<string>(elems.foundWith)
     const tagNames = await $$('foo').map((el) => el.getTagName())
     expectType<string[]>(tagNames)

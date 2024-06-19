@@ -246,7 +246,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                      * objects.
                      */
                     if (ELEMENT_RETURN_COMMANDS.includes(prop)) {
-                        return target
+                        return () => target
                     }
 
                     /**
