@@ -49,6 +49,6 @@ export const config: WebdriverIO.MultiremoteConfig = {
     /**
      * include shared store service for e2e tests
      */
-    services: ['shared-store', 'devtools'],
+    services: ['shared-store', 'lighthouse'],
     onPrepare: () => setValue('foo', 'bar')
 }
