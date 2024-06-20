@@ -26,10 +26,12 @@ jobs:
   authorize:
     name: Authorize Actor
     uses: ./.github/workflows/authorize.yml
+    secrets: inherit
   build_core:
     name: Build
     uses: ./.github/workflows/build.yml
     needs: [authorize]
+    secrets: inherit
   release:
     permissions:
       contents: write
