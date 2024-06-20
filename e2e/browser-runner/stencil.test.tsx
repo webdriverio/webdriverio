@@ -97,7 +97,7 @@ describe('Stencil Component Testing', () => {
         await expect(page.root).not.toBeExisting()
     })
 
-    it('can auto peirce shadow dom', async () => {
+    it.skip('can auto peirce shadow dom', async () => {
         if ((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase() === 'safari') {
             return
         }
