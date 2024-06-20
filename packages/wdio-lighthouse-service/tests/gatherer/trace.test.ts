@@ -1,9 +1,9 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
 import type { Protocol } from 'devtools-protocol'
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
-import type { HTTPRequest } from 'puppeteer-core/lib/esm/puppeteer/common/HTTPRequest.js'
+import type { HTTPRequest } from 'puppeteer-core/lib/esm/puppeteer/api/HTTPRequest.js'
 
 import TraceGatherer from '../../src/gatherer/trace.js'
 import { FRAME_LOAD_START_TIMEOUT, CLICK_TRANSITION } from '../../src/constants.js'
@@ -79,7 +79,7 @@ test('onFrameLoadFail', () => {
     } as unknown as HTTPRequest)
     expect(traceGatherer['_failingFrameLoadIds']).toEqual([])
     traceGatherer.onFrameLoadFail({
-        frame: () => ({ _id: '123' })
+        frame: () => ({ url: () => '123' })
     } as unknown as HTTPRequest)
     expect(traceGatherer['_failingFrameLoadIds']).toEqual(['123'])
 })
@@ -156,7 +156,7 @@ test('onFrameNavigated: should not start if tracing is not started', () => {
 test('onFrameNavigated: should cancel trace if page load failed', () => {
     traceGatherer['_traceStart'] = Date.now()
     traceGatherer.finishTracing = vi.fn()
-    traceGatherer['_failingFrameLoadIds'].push('123')
+    traceGatherer['_failingFrameLoadIds'].push('http://foobar.com')
     traceGatherer.onFrameNavigated({ frame } as unknown as Protocol.Page.FrameNavigatedEvent)
     expect(traceGatherer.emit).toHaveBeenCalledWith('tracingError', expect.any(Error))
     expect(traceGatherer.finishTracing).toHaveBeenCalledTimes(1)

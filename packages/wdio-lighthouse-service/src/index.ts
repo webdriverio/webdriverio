@@ -5,14 +5,10 @@ import CommandHandler from './commands.js'
 import type Auditor from './auditor.js'
 import { setUnsupportedCommand, getLighthouseDriver } from './utils.js'
 import { DEFAULT_THROTTLE_STATE, NETWORK_STATES } from './constants.js'
-import type {
-    DevtoolsConfig, EnablePerformanceAuditsOptions,
-    DeviceDescription, PWAAudits, DeviceOptions
-} from './types.js'
+import type { DevtoolsConfig, EnablePerformanceAuditsOptions, PWAAudits } from './types.js'
 
 export default class DevToolsService implements Services.ServiceInstance {
     private _command: CommandHandler[] = []
-
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
     constructor (private _options: DevtoolsConfig) {}
@@ -44,12 +40,6 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         return Promise.all(this._command.map(async c => await c._afterCmd(commandName)))
-    }
-
-    async after () {
-        for (const c of this._command) {
-            await c._logCoverage()
-        }
     }
 
     /**
@@ -86,17 +76,6 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
     }
 
-    /**
-     * set device emulation
-     */
-    async _emulateDevice (device: string | DeviceDescription, deviceOptions?: DeviceOptions) {
-        if (this._command.length === 1) {
-            return await this._command[0].emulateDevice(device, deviceOptions)
-        }
-
-        return Promise.all(this._command.map(async c => await c.emulateDevice(device, deviceOptions)))
-    }
-
     async _setThrottlingProfile(
         networkThrottling = DEFAULT_THROTTLE_STATE.networkThrottling,
         cpuThrottling: number = DEFAULT_THROTTLE_STATE.cpuThrottling,
@@ -116,22 +95,6 @@ export default class DevToolsService implements Services.ServiceInstance {
             return await this._command[0].checkPWA(auditsToBeRun)
         }
         return Promise.all(this._command.map(async c => await c.checkPWA(auditsToBeRun)))
-    }
-
-    async _getCoverageReport () {
-        if (this._command.length === 1) {
-            return this._command[0].getCoverageReport()
-        }
-
-        return await Promise.all(this._command.map(c => c.getCoverageReport()))
-    }
-
-    _cdp (domain: string, command: string, args = {}) {
-        if (this._command.length === 1) {
-            return this._command[0].cdp(domain, command, args)
-        }
-
-        return Promise.all(this._command.map(async c => await c.cdp(domain, command, args)))
     }
 
     async _setupHandler () {
@@ -155,11 +118,6 @@ export default class DevToolsService implements Services.ServiceInstance {
             const puppeteer = await (browser as WebdriverIO.Browser).getPuppeteer().catch(() => undefined) as any as PuppeteerBrowser
             if (!puppeteer) {
                 return setUnsupportedCommand(browser as WebdriverIO.Browser)
-            }
-
-            /* istanbul ignore next */
-            if (!puppeteer) {
-                throw new Error('Could not initiate Puppeteer instance')
             }
 
             const url = await (browser as WebdriverIO.Browser).getUrl()
@@ -193,10 +151,7 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
-        this._browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
         this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
-        this._browser.addCommand('getCoverageReport', this._getCoverageReport.bind(this))
-        this._browser.addCommand('cdp', this._cdp.bind(this))
     }
 }
 

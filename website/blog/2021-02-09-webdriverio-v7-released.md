@@ -89,6 +89,12 @@ If you have been using Cucumber, all you need to do to update to v7 is to update
 
 Since v6 WebdriverIO can run on the [WebDriver protocol](https://w3c.github.io/webdriver/) for true cross browser automation, but also automate specific browsers using browser APIs such as [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/). This allows for interesting integrations into tools that allow broader testing capabilities such as [Google Lighthouse](https://developers.google.com/web/tools/lighthouse). With the `@wdio/devtools-service`, WebdriverIO users were able to access these capabilities using Google Lighthouse to run [performance tests](https://www.youtube.com/watch?v=Al7zlLdd_es). In this release, we’ve also updated Google Lighthouse to the latest version to enable new performance metrics such as [Cumulative Layout Shifts](https://web.dev/cls/) or [First Input Delay](https://web.dev/fid/).
 
+:::info Update
+
+With WebdriverIO v9 we have deprecated the Devtools Service and transitioned many functionalities to a Lighthouse Service (`@wdio/lighthouse-service`). We recommend users to transition to the Puppeteer interface (via the `getPuppeteer` command) to access Chrome Devtools capabilities.
+
+:::
+
 While in v6 performance tests were automatically run on a mobile environment, we have decided to change this and make the default behavior more obvious. Therefore, if you run performance tests in v7, there aren't any changes to the environment where you run your tests. We still recommend emulating a mobile device to more accurately capture the user experience of users most impacted by bad application performance. To do so, you can run the following commands:
 
 ```js
