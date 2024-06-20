@@ -28,6 +28,7 @@
     ".": "./build/index.js",
     "./package.json": "./package.json",
     "./stencil": {
+      "import": "./build/browser/integrations/stencil.js",
       "types": "./stencil/index.d.ts"
     }
   },
