@@ -159,8 +159,12 @@ export default class WebDriver {
             }
         }
 
+        /**
+         * if we have been running a local session before, delete connection details
+         * in order to start a new session on a potential new driver
+         */
         let driverProcess: ChildProcess | undefined
-        if (params.hostname === '0.0.0.0' && newCapabilities?.browserName) {
+        if (params.hostname === 'localhost' && newCapabilities?.browserName) {
             delete params.port
             delete params.hostname
             driverProcess = await startWebDriver(params)

@@ -75,7 +75,7 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
         log.warn(`Suppressing error closing the session: ${err.stack}`)
     }
 
-    if (this.puppeteer?.isConnected()) {
+    if (this.puppeteer?.connected) {
         this.puppeteer.disconnect()
         log.debug('Disconnected puppeteer session')
     }

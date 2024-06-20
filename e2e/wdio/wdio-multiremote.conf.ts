@@ -2,11 +2,11 @@ import url from 'node:url'
 import path from 'node:path'
 import { config as baseConfig } from './wdio.conf.js'
 
-import { setValue } from '../../packages/wdio-shared-store-service/build/index.js'
+import { setValue } from '@wdio/shared-store-service'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-export const config = {
+export const config: WebdriverIO.MultiremoteConfig = {
     ...baseConfig,
 
     specs: [path.resolve(__dirname, 'headless', 'multiremoteTest.e2e.ts')],

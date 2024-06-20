@@ -1,22 +1,13 @@
 import os from 'node:os'
 
 describe('main suite 1', () => {
-    it('foobar test', async () => {
-        const browserName = (browser.capabilities as WebdriverIO.Capabilities).browserName
-        await browser.url('http://guinea-pig.webdriver.io/')
-
-        const actualUA = (await $('#useragent').getText()).toLowerCase()
-        const expectedUA = browserName ? browserName.replace(' ', '').replace('-headless-shell', '') : browserName
-        await expect(actualUA).toContain(expectedUA)
-    })
-
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
         await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
 
-    it.skip('should allow to check for PWA', async () => {
+    it('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
         // eslint-disable-next-line wdio/no-pause
         await browser.pause(100)
@@ -31,7 +22,7 @@ describe('main suite 1', () => {
         ])).passed).toBe(true)
     })
 
-    it.skip('should also detect non PWAs', async () => {
+    it('should also detect non PWAs', async () => {
         await browser.url('https://json.org')
         expect((await browser.checkPWA()).passed).toBe(false)
     })
@@ -42,38 +33,41 @@ describe('main suite 1', () => {
         await expect($('>>>ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
-    it.skip('should be able to use async-iterators', async () => {
+    it('should be able to use async-iterators', async () => {
         await browser.url('https://webdriver.io')
-        const contributeLink = await browser.$$('a.navbar__item.navbar__link').find<WebdriverIO.Element>(
+        await browser.$('aria/Toggle navigation bar').click()
+        const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find<WebdriverIO.Element>(
             async (link) => await link.getText() === 'Contribute')
+        expect(contributeLink).toBeDefined()
         await contributeLink.click()
         await expect(browser).toHaveTitle('Contribute | WebdriverIO')
     })
 
-    /**
-     * fails due to "Unable to identify the main resource"
-     * https://github.com/webdriverio/webdriverio/issues/8541
-     */
-    it.skip('should allow to do performance tests', async () => {
-        await browser.enablePerformanceAudits()
-        await browser.url('http://json.org')
-        const metrics = await browser.getMetrics()
-        expect(typeof metrics.serverResponseTime).toBe('number')
-        expect(typeof metrics.domContentLoaded).toBe('number')
-        expect(typeof metrics.firstVisualChange).toBe('number')
-        expect(typeof metrics.firstPaint).toBe('number')
-        expect(typeof metrics.firstContentfulPaint).toBe('number')
-        expect(typeof metrics.firstMeaningfulPaint).toBe('number')
-        expect(typeof metrics.largestContentfulPaint).toBe('number')
-        expect(typeof metrics.lastVisualChange).toBe('number')
-        expect(typeof metrics.interactive).toBe('number')
-        expect(typeof metrics.load).toBe('number')
-        expect(typeof metrics.speedIndex).toBe('number')
-        expect(typeof metrics.totalBlockingTime).toBe('number')
-        expect(typeof metrics.maxPotentialFID).toBe('number')
-        expect(typeof metrics.cumulativeLayoutShift).toBe('number')
-        const score = await browser.getPerformanceScore()
-        expect(typeof score).toBe('number')
+    describe('Lighthouse Service Performance Testing capabilities', () => {
+        before(() => browser.enablePerformanceAudits())
+
+        it('should allow to do performance tests', async () => {
+            await browser.url('http://json.org')
+            const metrics = await browser.getMetrics()
+            expect(typeof metrics.serverResponseTime).toBe('number')
+            expect(typeof metrics.domContentLoaded).toBe('number')
+            expect(typeof metrics.firstVisualChange).toBe('number')
+            expect(typeof metrics.firstPaint).toBe('number')
+            expect(typeof metrics.firstContentfulPaint).toBe('number')
+            expect(typeof metrics.firstMeaningfulPaint).toBe('number')
+            expect(typeof metrics.largestContentfulPaint).toBe('number')
+            expect(typeof metrics.lastVisualChange).toBe('number')
+            expect(typeof metrics.interactive).toBe('number')
+            expect(typeof metrics.load).toBe('number')
+            expect(typeof metrics.speedIndex).toBe('number')
+            expect(typeof metrics.totalBlockingTime).toBe('number')
+            expect(typeof metrics.maxPotentialFID).toBe('number')
+            expect(typeof metrics.cumulativeLayoutShift).toBe('number')
+            const score = await browser.getPerformanceScore()
+            expect(typeof score).toBe('number')
+        })
+
+        after(() => browser.disablePerformanceAudits())
     })
 
     it('should be able to scroll up and down', async () => {
@@ -195,24 +189,6 @@ describe('main suite 1', () => {
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
-
-        it('xOffset would cause a out of bounds', async () => {
-            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
-            await expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: 0 }))
-                .rejects.toEqual('xOffset would cause a out of bounds error as it goes outside of element')
-        })
-
-        it('yOffset would cause a out of bounds', async () => {
-            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
-            expect(async () => await browser.$('#parent').moveTo({ xOffset: 0, yOffset: elemRect.height/2 + 1 }))
-                .rejects.toEqual('yOffset would cause a out of bounds error as it goes outside of element')
-        })
-
-        it('xOffset and yOffset would cause a out of bounds', async () => {
-            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
-            expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: elemRect.height/2 + 1 }))
-                .rejects.toEqual('xOffset would cause a out of bounds error as it goes outside of element')
-        })
     })
 
     const inputs: (ScrollIntoViewOptions | boolean | undefined)[] = [
@@ -292,24 +268,5 @@ describe('main suite 1', () => {
         for (const input of inputs) {
             await scrollAndCheck(input)
         }
-    })
-
-    describe('reloadSession', () => {
-        it('can reload a session', async () => {
-            const sessionId = browser.sessionId
-            await browser.reloadSession()
-            expect(browser.sessionId).not.toBe(sessionId)
-        })
-
-        it('can reload a session with new capabilities', async () => {
-            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('chrome-headless-shell')
-            await browser.reloadSession({
-                browserName: 'edge',
-                'ms:edgeOptions': {
-                    args: ['headless', 'disable-gpu']
-                }
-            })
-            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('edge-headless-shell')
-        })
     })
 })

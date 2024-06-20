@@ -1,7 +1,13 @@
+import { multiremotebrowser as browser } from '@wdio/globals'
 import { Key } from 'webdriverio'
+
+let browserA: WebdriverIO.Browser
+let browserB: WebdriverIO.Browser
 
 describe('main suite 1', () => {
     it('should open chat application', async () => {
+        browserA = await browser.getInstance('browserA')
+        browserB = await browser.getInstance('browserB')
         await browser.url('https://socketio-chat-h9jt.herokuapp.com/')
     })
 
@@ -17,24 +23,6 @@ describe('main suite 1', () => {
         await nameInput.addValue('Browser B')
         await browserB.keys(Key.Enter)
         await expect(browserB.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
-    })
-
-    it.skip('should return devtools result', async () => {
-        await browserA.url('https://webdriver.io')
-        await browserB.url('https://google.com')
-
-        const cookiesA = await browserA.cdp('Network', 'getCookies')
-        const cookiesB = await browserB.cdp('Network', 'getCookies')
-        const cookies = await browser.cdp('Network', 'getCookies')
-
-        expect(Object.keys(cookiesA).length).toBe(1)
-        expect(Object.keys(cookiesA)).toEqual(['cookies'])
-        expect(Object.keys(cookiesB).length).toBe(1)
-        expect(Object.keys(cookiesB)).toEqual(['cookies'])
-        expect(Object.keys(cookies).length).toBe(2)
-
-        const score = await browser.checkPWA()
-        expect(Object.keys(score).length).toBe(2)
     })
 
     it('can access shared store', async () => {

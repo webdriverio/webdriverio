@@ -128,8 +128,7 @@ export default class TraceGatherer extends EventEmitter {
         /**
          * page load failed, cancel tracing
          */
-        if (this._failingFrameLoadIds.includes(msgObj.frame.id)) {
-            delete this._traceStart
+        if (this._failingFrameLoadIds.includes(msgObj.frame.url)) {
             this._waitConditionPromises = []
             this._frameId = '"unsuccessful loaded frame"'
             this.finishTracing()
@@ -215,7 +214,7 @@ export default class TraceGatherer extends EventEmitter {
         const frame = request.frame()
 
         if (frame) {
-            this._failingFrameLoadIds.push(frame._id)
+            this._failingFrameLoadIds.push(frame.url())
         }
     }
 
