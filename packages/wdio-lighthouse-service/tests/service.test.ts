@@ -121,8 +121,6 @@ test('if supported by browser', async () => {
     expect(service['_browser']?.addCommand).toBeCalledWith(
         'disablePerformanceAudits', expect.any(Function))
     expect(service['_browser']?.addCommand).toBeCalledWith(
-        'emulateDevice', expect.any(Function))
-    expect(service['_browser']?.addCommand).toBeCalledWith(
         'checkPWA', expect.any(Function))
 })
 
@@ -134,16 +132,6 @@ test('beforeCommand', async () => {
     // @ts-ignore test without paramater
     service.beforeCommand()
     expect(service['_command'][0]._beforeCmd).toBeCalledTimes(1)
-})
-
-test('afterCommand', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
-
-    // @ts-ignore test without paramater
-    service.afterCommand()
-    expect(service['_command'][0]._afterCmd).toBeCalledTimes(1)
 })
 
 test('afterCommand: switchToWindow', async () => {
@@ -237,25 +225,6 @@ test('_setThrottlingProfile for multiremote', async () => {
     expect(service['_command'][1].setThrottlingProfile).toBeCalledTimes(1)
 })
 
-test('_emulateDevice', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
-
-    await service._emulateDevice('Nexus 6P')
-    expect(service['_command'][0].emulateDevice).toBeCalledTimes(1)
-})
-
-test('_emulateDevice for multiremote', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = multiBrowser
-    await service._setupHandler()
-    await service._emulateDevice('Nexus 6P')
-
-    expect(service['_command'][0].emulateDevice).toBeCalledTimes(1)
-    expect(service['_command'][1].emulateDevice).toBeCalledTimes(1)
-})
-
 test('_checkPWA', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
@@ -275,46 +244,6 @@ test('_checkPWA for multiremote', async () => {
     expect(service['_command'][1].checkPWA).toBeCalledTimes(1)
 })
 
-test('_getCoverageReport', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
-
-    await service._getCoverageReport()
-    expect(service['_command'][0].getCoverageReport).toBeCalledTimes(1)
-})
-
-test('_getCoverageReport for multiremote', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = multiBrowser
-    await service._setupHandler()
-    await service._getCoverageReport()
-
-    expect(service['_command'][0].getCoverageReport).toBeCalledTimes(1)
-    expect(service['_command'][1].getCoverageReport).toBeCalledTimes(1)
-})
-
-test('_cdp', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
-
-    // @ts-ignore test without paramater
-    await service._cdp()
-    expect(service['_command'][0].cdp).toBeCalledTimes(1)
-})
-
-test('_cdp for multiremote', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = multiBrowser
-    await service._setupHandler()
-
-    // @ts-ignore test without paramater
-    await service._cdp()
-    expect(service['_command'][0].cdp).toBeCalledTimes(1)
-    expect(service['_command'][1].cdp).toBeCalledTimes(1)
-})
-
 test('before hook', async () => {
     const service = new DevToolsService({})
     service._setupHandler = vi.fn()
@@ -329,13 +258,4 @@ test('onReload hook', async () => {
     ;(service['_browser'] as any).puppeteer = 'suppose to be reset after reload' as any
     service.onReload()
     expect(service._setupHandler).toBeCalledTimes(1)
-})
-
-test('after hook', async () => {
-    const service = new DevToolsService({})
-    service['_browser'] = browser
-    await service._setupHandler()
-
-    await service.after()
-    expect(service['_command'][0]._logCoverage).toBeCalledTimes(1)
 })

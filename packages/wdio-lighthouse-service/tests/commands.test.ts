@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import { expect, test, vi, beforeEach } from 'vitest'
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 import Auditor from '../src/auditor.js'
 
@@ -93,7 +93,7 @@ test('initialization', async () => {
     )
     await handler._initCommand()
 
-    expect(browser.addCommand.mock.calls).toHaveLength(14)
+    expect(browser.addCommand.mock.calls).toHaveLength(8)
     expect(sessionMock.on).toBeCalled()
     expect(pageMock.on).toBeCalled()
 
@@ -107,7 +107,6 @@ test('initialization', async () => {
     expect(handler['_devtoolsGatherer']?.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
     expect((handler['_browser'] as any).emit).toBeCalledTimes(1)
     expect((handler['_browser'] as any).emit).toBeCalledWith('foo', 'bar')
-    expect(handler['_coverageGatherer']!.init).toBeCalledTimes(1)
 })
 
 test('getTraceLogs', () => {
@@ -120,55 +119,6 @@ test('getTraceLogs', () => {
     )
     commander['_traceEvents'] = [{ foo: 'bar' }] as any
     expect(commander.getTraceLogs()).toEqual([{ foo: 'bar' }])
-})
-
-test('cdp', async () => {
-    sessionMock.send.mockReturnValue(Promise.resolve('foobar'))
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-    expect(await handler.cdp('Network', 'enable')).toBe('foobar')
-    expect(sessionMock.send).toBeCalledWith('Network.enable', {})
-})
-
-test('getNodeId', async () => {
-    sessionMock.send.mockResolvedValueOnce({ root: { nodeId: 123 } })
-    sessionMock.send.mockResolvedValueOnce({ nodeId: 42 })
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-
-    expect(await handler.getNodeId('selector')).toBe(42)
-    expect(sessionMock.send).toBeCalledWith('DOM.getDocument')
-    expect(sessionMock.send).toBeCalledWith(
-        'DOM.querySelector',
-        { nodeId: 123, selector: 'selector' })
-})
-
-test('getNodeIds', async () => {
-    sessionMock.send.mockResolvedValueOnce({ root: { nodeId: 123 } })
-    sessionMock.send.mockResolvedValueOnce({ nodeIds: [42, 43] })
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-
-    expect(await handler.getNodeIds('selector')).toEqual([42, 43])
-    expect(sessionMock.send).toBeCalledWith('DOM.getDocument')
-    expect(sessionMock.send).toBeCalledWith(
-        'DOM.querySelectorAll',
-        { nodeId: 123, selector: 'selector' })
 })
 
 test('startTracing', () => {
@@ -475,28 +425,4 @@ test('setThrottlingProfile', async () => {
         offline: false,
         uploadThroughput: -1
     })
-})
-
-test('emulateDevice', async () => {
-    const handler = new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        driverMock as any,
-        options as any,
-        browser as any
-    )
-
-    handler['_page'] = pageMock as any
-    handler['_session'] = sessionMock as any
-    await handler.emulateDevice('Nexus 6P')
-
-    expect(pageMock.emulate.mock.calls).toMatchSnapshot()
-    pageMock.emulate.mockClear()
-    await handler.emulateDevice({ foo: 'bar' } as any)
-    expect(pageMock.emulate.mock.calls).toEqual([[{ foo: 'bar' }]])
-
-    const isSuccessful = await handler.emulateDevice('not existing').then(
-        () => true,
-        () => false)
-    expect(isSuccessful).toBe(false)
 })

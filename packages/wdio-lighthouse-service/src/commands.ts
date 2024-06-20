@@ -11,21 +11,17 @@ import NetworkHandler from './handler/network.js'
 import { CLICK_TRANSITION, DEFAULT_THROTTLE_STATE, DEFAULT_TRACING_CATEGORIES, NETWORK_STATES } from './constants.js'
 import { sumByKey } from './utils.js'
 import type {
-    Device,
-    DeviceOptions,
-    DeviceDescription, DevtoolsConfig,
+    DevtoolsConfig,
     EnablePerformanceAuditsOptions,
     FormFactor,
     GathererDriver,
     PWAAudits
 } from './types.js'
-import { KnownDevices } from 'puppeteer-core'
 import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
 import DevtoolsGatherer from './gatherer/devtools.js'
 import Auditor from './auditor.js'
 import PWAGatherer from './gatherer/pwa.js'
 import TraceGatherer from './gatherer/trace.js'
-import CoverageGatherer from './gatherer/coverage.js'
 
 const log = logger('@wdio/lighthouse-service:CommandHandler')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
@@ -55,7 +51,6 @@ export default class CommandHandler {
 
     private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
-    private _coverageGatherer?: CoverageGatherer
     private _pwaGatherer?: PWAGatherer
 
     constructor (
@@ -88,43 +83,6 @@ export default class CommandHandler {
 
         this._devtoolsGatherer = new DevtoolsGatherer()
         _session.on('*', this._propagateWSEvents.bind(this))
-    }
-
-    /**
-     * The cdp command is a custom command added to the browser scope that allows you
-     * to call directly commands to the protocol.
-     */
-    cdp (domain: string, command: string, args = {}) {
-        log.info(`Send command "${domain}.${command}" with args: ${JSON.stringify(args)}`)
-        return this._session.send(`${domain}.${command}` as any, args)
-    }
-
-    /**
-     * Helper method to get the nodeId of an element in the page.
-     * NodeIds are similar like WebDriver node ids an identifier for a node.
-     * It can be used as a parameter for other Chrome DevTools methods, e.g. DOM.focus.
-     */
-    async getNodeId (selector: string) {
-        const document = await this._session.send('DOM.getDocument')
-        const { nodeId } = await this._session.send(
-            'DOM.querySelector',
-            { nodeId: document.root.nodeId, selector }
-        )
-        return nodeId
-    }
-
-    /**
-     * Helper method to get the nodeId of an element in the page.
-     * NodeIds are similar like WebDriver node ids an identifier for a node.
-     * It can be used as a parameter for other Chrome DevTools methods, e.g. DOM.focus.
-     */
-    async getNodeIds (selector: string) {
-        const document = await this._session.send('DOM.getDocument')
-        const { nodeIds } = await this._session.send(
-            'DOM.querySelectorAll',
-            { nodeId: document.root.nodeId, selector }
-        )
-        return nodeIds
     }
 
     /**
@@ -214,35 +172,6 @@ export default class CommandHandler {
     }
 
     /**
-     * set device emulation
-     */
-    async emulateDevice (device: string | DeviceDescription, deviceOptions?: DeviceOptions) {
-        if (!this._page) {
-            throw new Error('No page has been captured yet')
-        }
-
-        if (typeof device === 'string') {
-            const deviceName = device + (deviceOptions?.inLandscape ? ' landscape' : '') as keyof typeof KnownDevices
-            const deviceCapabilities = KnownDevices[deviceName]
-            if (!deviceCapabilities) {
-                const deviceNames = Object.values(KnownDevices)
-                    .map((device: Device) => device.name)
-                    .filter((device: string) => !device.endsWith('landscape'))
-                throw new Error(`Unknown device, available options: ${deviceNames.join(', ')}`)
-            } else {
-                const osVersion = deviceOptions?.osVersion?.replaceAll('.', '_')
-                deviceCapabilities.userAgent = deviceCapabilities.userAgent.replace(/(?:Android|iPhone OS)\s?([\d._]+)?/, (match, group1) => {
-                    return osVersion ? match.replace(group1 || '', osVersion) : match
-                })
-            }
-
-            return this._page.emulate(deviceCapabilities)
-        }
-
-        return this._page.emulate(device)
-    }
-
-    /**
      * helper method to set throttling profile
      */
     async setThrottlingProfile(
@@ -265,16 +194,6 @@ export default class CommandHandler {
         return auditor._auditPWA(artifacts, auditsToBeRun)
     }
 
-    getCoverageReport () {
-        return this._coverageGatherer!.getCoverageReport()
-    }
-
-    async _logCoverage() {
-        if (this._coverageGatherer) {
-            await this._coverageGatherer.logCoverage()
-        }
-    }
-
     private _propagateWSEvents (data: any) {
         if (!isCDPSessionOnMessageObject(data)) {
             return
@@ -294,15 +213,6 @@ export default class CommandHandler {
     }
 
     async _initCommand () {
-        /**
-         * register coverage gatherer if options is set by user
-         */
-        if (this._options.coverageReporter?.enable) {
-            this._coverageGatherer = new CoverageGatherer(this._page, this._options.coverageReporter)
-            this._browser.addCommand('getCoverageReport', this.getCoverageReport.bind(this))
-            await this._coverageGatherer.init()
-        }
-
         /**
          * enable domains for client
          */
