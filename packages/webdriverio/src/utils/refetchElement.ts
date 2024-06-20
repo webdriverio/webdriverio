@@ -30,8 +30,8 @@ export default async function refetchElement (
      */
     return selectors.reduce(async (elementPromise, { selector, index }, currentIndex) => {
         const resolvedElement = await elementPromise
-        let nextElement = index > 0 ? (await resolvedElement.$$(selector as string))[index] : null
-        nextElement = nextElement || await resolvedElement.$(selector)
+        let nextElement = index > 0 ? await resolvedElement.$$(selector as string)[index]?.getElement() : null
+        nextElement = nextElement || await resolvedElement.$(selector).getElement()
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array

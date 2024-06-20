@@ -66,5 +66,7 @@ export async function isExisting (this: WebdriverIO.Element) {
         : this.isShadowElement
             ? this.shadow$$.bind(this.parent)
             : this.parent.$$.bind(this.parent)
-    return command(this.selector as string).then((res) => res.length > 0)
+    return command(this.selector as string)
+        .getElements()
+        .then((res) => res.length > 0)
 }

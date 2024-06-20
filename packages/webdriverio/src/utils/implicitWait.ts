@@ -19,7 +19,7 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             /**
              * if waitForExist was successful requery element and assign elementId to the scope
              */
-            return (currentElement.parent as WebdriverIO.Element).$(currentElement.selector)
+            return (currentElement.parent as WebdriverIO.Element).$(currentElement.selector).getElement()
         } catch {
             if (currentElement.selector.toString().includes('this.previousElementSibling')) {
                 throw new Error(

@@ -16,9 +16,9 @@ type $ElementCommands = typeof ElementCommands
 type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
 type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
-    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ThenArg<ReturnType<$ElementCommands[K]>>>
+    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement
 } & {
-    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<ThenArg<ReturnType<$ElementCommands[K]>>>
+    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray
 }
 
 type AsyncElementProto = {
@@ -49,11 +49,14 @@ interface ChainablePromiseBaseElement {
      * index of the element if fetched with `$$`
      */
     index?: Promise<number>
+    /**
+     * get the `WebdriverIO.Element` reference
+     */
+    getElement(): Promise<WebdriverIO.Element>
 }
-export interface ChainablePromiseElement<T> extends
+export interface ChainablePromiseElement extends
     ChainablePromiseBaseElement,
     AsyncElementProto,
-    Promise<T>,
     Omit<WebdriverIO.Element, keyof ChainablePromiseBaseElement | keyof AsyncElementProto> {}
 
 interface AsyncIterators<T> {
@@ -77,7 +80,7 @@ interface AsyncIterators<T> {
     reduce: <T, U>(callback: (accumulator: U, currentValue: WebdriverIO.Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
 }
 
-export interface ChainablePromiseArray<T> extends Promise<T>, AsyncIterators<T> {
+export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
 
     /**
@@ -98,7 +101,11 @@ export interface ChainablePromiseArray<T> extends Promise<T>, AsyncIterators<T> 
     /**
      * allow to access a specific index of the element set
      */
-    [n: number]: ChainablePromiseElement<WebdriverIO.Element | undefined>
+    [n: number]: ChainablePromiseElement
+    /**
+     * get the `WebdriverIO.Element[]` list
+     */
+    getElements(): Promise<WebdriverIO.ElementArray>
 }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype

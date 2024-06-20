@@ -3,6 +3,8 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { getBrowserObject } from '@wdio/utils'
 
+import type { ChainablePromiseElement } from '../../types.js'
+
 const ACTION_BUTTON = 0 as const
 
 type DragAndDropOptions = {
@@ -47,7 +49,7 @@ type ElementCoordinates = {
  */
 export async function dragAndDrop (
     this: WebdriverIO.Element,
-    target: WebdriverIO.Element | ElementCoordinates,
+    target: WebdriverIO.Element | ChainablePromiseElement | ElementCoordinates,
     { duration = 10 }: DragAndDropOptions = {}
 ) {
     const moveToCoordinates = target as ElementCoordinates

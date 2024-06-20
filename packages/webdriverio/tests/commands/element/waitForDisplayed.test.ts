@@ -97,6 +97,8 @@ describe('waitForDisplayed', () => {
             isDisplayed: tmpElem.isDisplayed,
             options: { waitforTimeout: 500, waitforInterval: 50 },
         } as any as WebdriverIO.Element
+        // @ts-expect-error
+        elem.getElement = () => Promise.resolve(elem)
 
         try {
             await elem.waitForDisplayed({ timeout })
