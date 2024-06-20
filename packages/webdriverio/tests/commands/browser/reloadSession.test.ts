@@ -148,7 +148,7 @@ describe('reloadSession test', () => {
 
         const puppeteerMock = {
             pages: vi.fn().mockReturnValue([pageMock]),
-            isConnected: vi.fn().mockReturnValue(true),
+            connected: true,
             disconnect: vi.fn()
         }
         const hook = vi.fn()

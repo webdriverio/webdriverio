@@ -281,7 +281,7 @@ describe('WebDriver', () => {
 
         it('starts a new driver process if browserName is given', async () => {
             vi.mocked(startWebDriver).mockImplementation((params) => {
-                params.hostname = '0.0.0.0'
+                params.hostname = 'localhost'
                 params.port = 4444
                 return { pid: 1234 } as any
             })
