@@ -45,6 +45,8 @@ test('can attach to a Bidi session', async () => {
         }
     })
 
+    // eslint-disable-next-line wdio/no-pause
+    await browser.pause(1000)
     const origContextTree = await browser.browsingContextGetTree({ maxDepth: 1 })
     expect(origContextTree.contexts).toHaveLength(1)
     expect(typeof origContextTree.contexts[0].context).toBe('string')
