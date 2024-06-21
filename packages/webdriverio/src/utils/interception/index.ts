@@ -9,7 +9,7 @@ import { URLPattern } from 'urlpattern-polyfill'
 import Timer from '../Timer.js'
 import { parseOverwrite, getPatternParam } from './utils.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
-import type { MockOptions, RequestWithOptions, RespondWithOptions } from './types.js'
+import type { MockFilterOptions, RequestWithOptions, RespondWithOptions } from './types.js'
 import type { WaitForOptions } from '../../types.js'
 
 const log = logger('WebDriverInterception')
@@ -27,13 +27,17 @@ type RespondBody = string | JsonCompatible | Buffer
 export default class WebDriverInterception {
     #pattern: URLPattern
     #mockId: string
+    #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
 
     #emitter = new EventEmitter()
     #restored = false
+    #requestOverwrites: {
+        overwrite?: RequestWithOptions
+        once?: boolean
+    }[] = []
     #respondOverwrites: {
-        overwrite?: RequestWithOptions | RespondWithOptions
-        requestWith?: RequestWithOptions
+        overwrite?: RespondWithOptions
         once?: boolean
         abort?: boolean
     }[] = []
@@ -42,10 +46,12 @@ export default class WebDriverInterception {
     private constructor (
         pattern: URLPattern,
         mockId: string,
+        filterOptions: MockFilterOptions,
         browser: WebdriverIO.Browser
     ) {
         this.#pattern = pattern
         this.#mockId = mockId
+        this.#filterOptions = filterOptions
         this.#browser = browser
 
         /**
@@ -57,10 +63,7 @@ export default class WebDriverInterception {
 
     static async initiate(
         url: string,
-        /**
-         * ToDo(Christian): incorporate filterOptions
-         */
-        filterOptions: MockOptions,
+        filterOptions: MockFilterOptions,
         browser: WebdriverIO.Browser
     ) {
         const pattern = parseUrlPattern(url)
@@ -90,10 +93,12 @@ export default class WebDriverInterception {
             }]
         })
 
-        return new WebDriverInterception(pattern, interception.intercept, browser)
+        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser)
     }
 
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
+        console.log(1, 'handleBeforeRequestSent', request)
+
         /**
          * don't do anything if:
          * - request is not blocked
@@ -107,6 +112,7 @@ export default class WebDriverInterception {
          * continue the request without modifications, if:
          */
         const continueRequest = (
+            this.#requestOverwrites.length > 0 ||
             /**
              * - mock has no request/respond overwrites
              * - no request modifications are set
@@ -114,10 +120,7 @@ export default class WebDriverInterception {
              *   - no requestWith is set
              */
             this.#respondOverwrites.length === 0 ||
-            (
-                !this.#respondOverwrites[0].abort &&
-                !this.#respondOverwrites[0].requestWith
-            )
+            !this.#respondOverwrites[0].abort
         )
 
         /**
@@ -125,13 +128,22 @@ export default class WebDriverInterception {
          */
         if (continueRequest) {
             this.#emitter.emit('continue', request.request.request)
+
+            const { overwrite } = this.#requestOverwrites[0].once
+                ? this.#requestOverwrites.shift() || {}
+                : this.#requestOverwrites[0]
+
             return this.#browser.networkContinueRequest({
-                request: request.request.request
+                request: request.request.request,
+                ...(overwrite
+                    ? parseOverwrite(overwrite, request)
+                    : {}
+                )
             })
         }
 
         this.#emitter.emit('request', request)
-        const { requestWith, abort } = this.#respondOverwrites[0].once
+        const { overwrite, abort } = this.#respondOverwrites[0].once
             ? this.#respondOverwrites.shift() || {}
             : this.#respondOverwrites[0]
 
@@ -146,11 +158,11 @@ export default class WebDriverInterception {
         /**
          * continue request (possibly with overwrites)
          */
-        if (requestWith) {
+        if (overwrite) {
             this.#emitter.emit('overwrite', request)
             return this.#browser.networkContinueRequest({
                 request: request.request.request,
-                ...parseOverwrite(requestWith, request)
+                ...parseOverwrite(overwrite, request)
             })
         }
 
@@ -214,8 +226,63 @@ export default class WebDriverInterception {
         })
     }
 
-    #isRequestMatching (request: local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters) {
-        return request.isBlocked && this.#pattern && this.#pattern.test(request.request.url)
+    #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters> (request: T) {
+        let isRequestMatching = request.isBlocked && this.#pattern && this.#pattern.test(request.request.url)
+        if (this.#filterOptions.method) {
+            isRequestMatching = typeof this.#filterOptions.method === 'function'
+                ? this.#filterOptions.method(request.request.method)
+                : this.#filterOptions.method === request.request.method
+        }
+
+        if (this.#filterOptions.headers) {
+            isRequestMatching = typeof this.#filterOptions.headers === 'function'
+                ? this.#filterOptions.headers(request.request.headers.reduce((acc, { name, value }) => {
+                    acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
+                    return acc
+                }, {} as Record<string, string>))
+                : Object.entries(this.#filterOptions.headers).every(([key, value]) => {
+                    const header = request.request.headers.find(({ name }) => name === key)
+                    return header && header.value.type === 'string'
+                        ? header.value.value === value
+                        : Buffer.from(header!.value.value, 'base64').toString() === value
+                })
+        }
+
+        if (this.#filterOptions.requestHeaders) {
+            isRequestMatching = typeof this.#filterOptions.requestHeaders === 'function'
+                ? this.#filterOptions.requestHeaders(request.request.headers.reduce((acc, { name, value }) => {
+                    acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
+                    return acc
+                }, {} as Record<string, string>))
+                : Object.entries(this.#filterOptions.requestHeaders).every(([key, value]) => {
+                    const header = request.request.headers.find(({ name }) => name === key)
+                    return header && header.value.type === 'string'
+                        ? header.value.value === value
+                        : Buffer.from(header!.value.value, 'base64').toString() === value
+                })
+        }
+
+        if (this.#filterOptions.responseHeaders && 'response' in request) {
+            isRequestMatching = typeof this.#filterOptions.responseHeaders === 'function'
+                ? this.#filterOptions.responseHeaders(request.response.headers.reduce((acc, { name, value }) => {
+                    acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
+                    return acc
+                }, {} as Record<string, string>))
+                : Object.entries(this.#filterOptions.responseHeaders).every(([key, value]) => {
+                    const header = request.response.headers.find(({ name }) => name === key)
+                    return header && header.value.type === 'string'
+                        ? header.value.value === value
+                        : Buffer.from(header!.value.value, 'base64').toString() === value
+                })
+        }
+
+        if (this.#filterOptions.statusCode && 'response' in request) {
+            isRequestMatching = typeof this.#filterOptions.statusCode === 'function'
+                ? this.#filterOptions.statusCode(request.response.status)
+                : this.#filterOptions.statusCode === request.response.status
+        }
+
+        return isRequestMatching
     }
 
     /**
@@ -265,10 +332,36 @@ export default class WebDriverInterception {
     }
 
     /**
+     * Always use request modification for the next request done by the browser.
+     * @param payload  payload to overwrite the request
+     * @param once     apply overwrite only once for the next request
+     * @returns        this instance to chain commands
+     */
+    request(payload: RequestWithOptions, once?: boolean) {
+        this.#ensureNotRestored()
+        const body = typeof payload === 'string'
+            ? payload
+            : globalThis.Buffer && globalThis.Buffer.isBuffer(payload)
+                ? payload.toString('base64')
+                : JSON.stringify(payload)
+        const overwrite: RespondWithOptions = { body, ...payload }
+        this.#requestOverwrites.push({ overwrite, once })
+        return this
+    }
+
+    /**
+     * alias for `mock.request(…, true)`
+     */
+    requestOnce(payload: RequestWithOptions) {
+        return this.request(payload, true)
+    }
+
+    /**
      * Always respond with same overwrite
-     * @param {*} overwrites  payload to overwrite the response
-     * @param {*} params      additional respond parameters to overwrite
-     * @param {boolean} once  apply overwrite only once for the next request
+     * @param {*}       payload  payload to overwrite the response
+     * @param {*}       params   additional respond parameters to overwrite
+     * @param {boolean} once     apply overwrite only once for the next request
+     * @returns                  this instance to chain commands
      */
     respond(payload: RespondBody, params: Omit<RespondWithOptions, 'body'> = {}, once?: boolean) {
         this.#ensureNotRestored()
@@ -315,7 +408,7 @@ export default class WebDriverInterception {
     redirect(redirectUrl: string, once?: boolean) {
         this.#ensureNotRestored()
         const requestWith = { url: redirectUrl }
-        this.#respondOverwrites.push({ requestWith, once })
+        this.request(requestWith, once)
         return this
     }
 

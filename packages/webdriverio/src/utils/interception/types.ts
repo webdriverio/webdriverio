@@ -28,5 +28,3 @@ export interface RespondWithOptions extends Omit<RequestWithOptions, 'url' | 'me
 export interface MockRequestOptions {
     requestWith?: RequestWithOptions
 }
-
-export type MockOptions = MockFilterOptions & MockRequestOptions

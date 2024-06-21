@@ -52,6 +52,8 @@ export class BidiCore {
 
             const listener = (data: RawData) => {
                 try {
+                    console.log(11, data.toString());
+
                     const payload = JSON.parse(data.toString()) as CommandResponse
                     if (payload.id === id) {
                         clearTimeout(t)
@@ -64,6 +66,8 @@ export class BidiCore {
                         resolve(payload)
                     }
                 } catch (err: any) {
+                    console.log('NOO', err);
+
                     log.error(`Failed parse message: ${err.message}`)
                 }
             }
@@ -72,6 +76,8 @@ export class BidiCore {
     }
 
     public sendAsync (params: Omit<CommandData, 'id'>) {
+        console.log('SEND', params);
+
         if (!this.#isConnected) {
             throw new Error('No connection to WebDriver Bidi was established')
         }

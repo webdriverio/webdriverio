@@ -1,6 +1,6 @@
 import { getBrowserObject } from '@wdio/utils'
 
-import type { MockOptions } from '../../utils/interception/types.js'
+import type { MockFilterOptions } from '../../utils/interception/types.js'
 import WebDriverInterception from '../../utils/interception/index.js'
 
 export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
@@ -114,7 +114,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
 export async function mock(
     this: WebdriverIO.Browser,
     url: string,
-    filterOptions?: MockOptions
+    filterOptions?: MockFilterOptions
 ): Promise<WebdriverIO.Mock> {
     if (!this.isBidi) {
         throw new Error('Mocking is only supported when running tests using WebDriver Bidi')
