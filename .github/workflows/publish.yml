@@ -27,44 +27,37 @@ jobs:
     name: Authorize Actor
     uses: ./.github/workflows/authorize.yml
     secrets: inherit
-  build_core:
-    name: Build
-    uses: ./.github/workflows/build.yml
-    needs: [authorize]
-    secrets: inherit
   release:
     permissions:
       contents: write
       id-token: write
-    needs: [build_core]
+    needs: [authorize]
     runs-on: ubuntu-latest
     steps:
-      - name: ⬇️ Checkout Code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: 🧑‍🔧 Get Core Dependencies
-        uses: ./.github/workflows/actions/get-core-dependencies
-
-      - name: Download Build Archive
-        uses: ./.github/workflows/actions/download-archive
+      - uses: actions/checkout@v4
         with:
-          name: webdriverio
-          path: .
-          filename: webdriverio-build.zip
-
+          ref: 'main'
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
       - name: NPM Setup
         run: |
           npm set registry "https://registry.npmjs.org/"
           npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
           npm whoami
-
       - name: Git Setup
         run: |
           git config --global user.email "bot@webdriver.io"
           git config --global user.name "WebdriverIO Release Bot"
-
+      - name: Install Dependencies
+        run: pnpm install
       - name: Release
         run: |
+          pnpm run setup
+          pnpm run generate:typings
           pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           pnpm run pushReleaseTag
         env:
