@@ -17,6 +17,11 @@ const log = logger('WebDriverInterception')
 let hasSubscribedToEvents = false
 
 type RespondBody = string | JsonCompatible | Buffer
+interface Overwrite {
+    overwrite?: RequestWithOptions | RespondWithOptions
+    once?: boolean
+    abort?: boolean
+}
 
 /**
  * Network interception class based on a WebDriver Bidi implementation.
@@ -32,15 +37,8 @@ export default class WebDriverInterception {
 
     #emitter = new EventEmitter()
     #restored = false
-    #requestOverwrites: {
-        overwrite?: RequestWithOptions
-        once?: boolean
-        abort?: boolean
-    }[] = []
-    #respondOverwrites: {
-        overwrite?: RespondWithOptions
-        once?: boolean
-    }[] = []
+    #requestOverwrites: Overwrite[] = []
+    #respondOverwrites: Overwrite[] = []
     #calls: local.NetworkResponseCompletedParameters[] = []
 
     private constructor (
@@ -116,7 +114,6 @@ export default class WebDriverInterception {
         }
 
         this.#emitter.emit('request', request)
-
         const hasRequestOverwrites = this.#requestOverwrites.length > 0
         if (hasRequestOverwrites) {
             const { overwrite, abort } = this.#requestOverwrites[0].once
@@ -270,6 +267,15 @@ export default class WebDriverInterception {
         return isRequestMatching
     }
 
+    #setOverwrite = (overwriteProp: Overwrite[], { overwrite, abort, once }: Overwrite) => {
+        return once
+            ? [
+                ...overwriteProp.filter(({ once }) => once),
+                { overwrite, abort, once }
+            ]
+            : [{ overwrite, abort }]
+    }
+
     /**
      * allows access to all requests made with given pattern
      */
@@ -325,12 +331,7 @@ export default class WebDriverInterception {
      */
     request(overwrite: RequestWithOptions, once?: boolean) {
         this.#ensureNotRestored()
-        if (once) {
-            this.#requestOverwrites.push({ overwrite, once })
-        } else {
-            this.#requestOverwrites = [{ overwrite }]
-        }
-
+        this.#requestOverwrites = this.#setOverwrite(this.#requestOverwrites, { overwrite, once })
         return this
     }
 
@@ -356,13 +357,7 @@ export default class WebDriverInterception {
                 ? payload.toString('base64')
                 : JSON.stringify(payload)
         const overwrite: RespondWithOptions = { body, ...params }
-
-        if (once) {
-            this.#respondOverwrites.push({ overwrite, once })
-        } else {
-            this.#respondOverwrites = [{ overwrite }]
-        }
-
+        this.#respondOverwrites = this.#setOverwrite(this.#respondOverwrites, { overwrite, once })
         return this
     }
 
@@ -380,13 +375,7 @@ export default class WebDriverInterception {
      */
     abort(once?: boolean) {
         this.#ensureNotRestored()
-
-        if (once) {
-            this.#requestOverwrites.push({ abort: true, once })
-        } else {
-            this.#requestOverwrites = [{ abort: true }]
-        }
-
+        this.#requestOverwrites = this.#setOverwrite(this.#requestOverwrites, { abort: true, once })
         return this
     }
 

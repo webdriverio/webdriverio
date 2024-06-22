@@ -3,16 +3,7 @@ import { parseOverwrite, getPatternParam } from '../../../src/utils/interception
 
 describe('parseOverwrite', () => {
     it('should parse request overwrite', () => {
-        expect(parseOverwrite({}, {} as any)).toMatchInlineSnapshot(`
-          {
-            "body": undefined,
-            "cookies": [],
-            "headers": [],
-            "method": undefined,
-            "statusCode": undefined,
-            "url": undefined,
-          }
-        `)
+        expect(parseOverwrite({}, {} as any)).toEqual({})
         expect(parseOverwrite({
             body: 'foobar',
             headers: { foo: 'bar' },

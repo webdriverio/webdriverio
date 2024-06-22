@@ -34,8 +34,6 @@ export default class FetchRequest extends WebDriverRequest {
                 body: await resp.json() ?? {},
             } as Options.RequestLibResponse
         } catch (err: any) {
-            console.log('AVORT', err)
-
             if (!(err instanceof Error)) {
                 throw new RequestLibError(err.message || err)
             }

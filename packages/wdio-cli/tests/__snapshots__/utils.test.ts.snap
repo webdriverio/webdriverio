@@ -97,7 +97,7 @@ exports[`getCapabilities > should throw capability not provided 1`] = `[Error: P
 
 exports[`getCapabilities > should throw config not found error 1`] = `[Error: Config File not found: ./test.js]`;
 
-exports[`getCapabilities > should throw config not found error 2`] = `[Error: Could not parse ./test.js, failed with error : ups]`;
+exports[`getCapabilities > should throw config not found error 2`] = `[Error: Could not parse ./test.js, failed with error: ups]`;
 
 exports[`npmInstall 1`] = `
 [

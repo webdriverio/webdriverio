@@ -418,7 +418,7 @@ async function bar() {
     browser.mock('**/image.jpg')
     const mock = await browser.mock('**/image.jpg', {
         method: 'get',
-        headers: { foo: 'bar' }
+        requestHeaders: { foo: 'bar' }
     })
     mock.abort(true)
     mock.abortOnce()

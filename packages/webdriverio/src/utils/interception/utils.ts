@@ -37,11 +37,11 @@ export function parseOverwrite<
             }
     }
 
-    const headersOverwrite = typeof overwrite.headers === 'function'
-        ? overwrite.headers(request as local.NetworkBeforeRequestSentParameters)
-        : overwrite.headers
-    if (headersOverwrite) {
-        result.headers = Object.entries(headersOverwrite).map(([name, value]) => ({
+    if ('headers' in overwrite) {
+        const headersOverwrite = typeof overwrite.headers === 'function'
+            ? overwrite.headers(request as local.NetworkBeforeRequestSentParameters)
+            : overwrite.headers
+        result.headers = Object.entries(headersOverwrite || {}).map(([name, value]) => ({
             name,
             value: { type: 'string', value }
         }))
