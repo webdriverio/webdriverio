@@ -316,7 +316,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
             await config.initialize()
         } catch (e) {
             throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}` :
-                `Could not parse ${arg.option}, failed with error : ${(e as Error).message}`)
+                `Could not parse ${arg.option}, failed with error: ${(e as Error).message}`)
         }
         if (typeof arg.capabilities === 'undefined') {
             throw Error('Please provide index/named property of capability to use from the capabilities array/object in wdio config file')

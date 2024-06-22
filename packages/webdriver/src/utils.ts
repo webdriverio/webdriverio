@@ -447,14 +447,11 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
 
 export function parseBidiMessage (this: EventEmitter, data: Buffer) {
     try {
-        // keep backwards compatibility
-        // ToDo(Christian): remove in v9
-        this.emit('message', data)
-
         const payload: Event = JSON.parse(data.toString())
         if (payload.type !== 'event') {
             return
         }
+
         this.emit(payload.method, payload.params)
     } catch (err: unknown) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)

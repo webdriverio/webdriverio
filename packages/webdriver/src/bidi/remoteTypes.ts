@@ -470,8 +470,8 @@ export interface NetworkContinueRequest extends Command {
 
 export interface NetworkContinueRequestParameters {
   request: NetworkRequest;
-  body?: NetworkBytesValue;
   cookies?: NetworkCookieHeader[];
+  body?: NetworkBytesValue;
   headers?: NetworkHeader[];
   method?: string;
   url?: string;

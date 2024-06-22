@@ -9,6 +9,7 @@ import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
 import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
+import { DEFAULTS } from '../constants.js'
 
 let pkg = { version: '' }
 if ('process' in globalThis && globalThis.process.versions?.node) {
@@ -61,6 +62,8 @@ const DEFAULT_HEADERS = {
 const log = logger('webdriver')
 
 export default abstract class WebDriverRequest extends EventEmitter {
+    #requestTimeout?: NodeJS.Timeout
+
     body?: Record<string, unknown>
     method: string
     endpoint: string
@@ -92,7 +95,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
 
     protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
         const controller = new AbortController()
-        setTimeout(() => controller.abort(), options.connectionRetryTimeout|| 120000)
+        this.#requestTimeout = setTimeout(
+            () => controller.abort(),
+            options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default
+        )
 
         const requestOptions: RequestInit = {
             signal: controller.signal
@@ -171,6 +177,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: RequestLibError) => err)
         const durationMillisecond = this._libPerformanceNow() - startTime
+
+        if (this.#requestTimeout) {
+            clearTimeout(this.#requestTimeout)
+        }
 
         /**
          * handle retries for requests
