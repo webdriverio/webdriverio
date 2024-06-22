@@ -37,7 +37,6 @@ export function parseOverwrite<
             }
     }
 
-    // let headers: remote.NetworkHeader[] = []
     const headersOverwrite = typeof overwrite.headers === 'function'
         ? overwrite.headers(request as local.NetworkBeforeRequestSentParameters)
         : overwrite.headers
@@ -68,10 +67,10 @@ export function parseOverwrite<
     }
 
     if ('statusCode' in overwrite && overwrite.statusCode) {
-        // const statusCodeOverwrite = typeof overwrite.statusCode === 'function'
-        //     ? overwrite.statusCode(request as local.NetworkResponseCompletedParameters)
-        //     : overwrite.statusCode
-        // result.statusCode = statusCodeOverwrite
+        const statusCodeOverwrite = typeof overwrite.statusCode === 'function'
+            ? overwrite.statusCode(request as local.NetworkResponseCompletedParameters)
+            : overwrite.statusCode
+        ;(result as RespondWithOptions).statusCode = statusCodeOverwrite
     }
 
     if ('method' in overwrite) {

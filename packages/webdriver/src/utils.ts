@@ -452,7 +452,6 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
             return
         }
 
-        console.log('incoming: ---->', payload)
         this.emit(payload.method, payload.params)
     } catch (err: unknown) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
