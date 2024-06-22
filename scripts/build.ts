@@ -53,8 +53,6 @@ const ESM_CJS_PACKAGES = [
 
 const CJS_PACKAGES = ['wdio-smoke-test-cjs-service']
 
-const ESM_PACKAGES_WITH_CJS_FOLDER = ['wdio-cli', 'webdriver', 'webdriverio']
-
 const packages = getSubPackages()
     /**
      * Filter out packages that don't need compiling
@@ -134,13 +132,6 @@ console.log(cjsCmd)
 const { code: cjsCode } = shell.exec(cjsCmd)
 
 if (!HAS_WATCH_FLAG) {
-    console.log('\n' + chalk.grey('Removing `export {}` from CJS files compiled using module ESNext'))
-    for (const pkg of ESM_PACKAGES_WITH_CJS_FOLDER) {
-        const filePath = path.join(__dirname, '..', 'packages', pkg, 'build', 'cjs', 'index.js')
-        const fileContent = await readFile(filePath, 'utf8')
-        await writeFile(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
-    }
-
     /**
      * Fix type annotation in `@wdio/globals` package.
      *

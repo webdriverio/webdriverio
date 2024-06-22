@@ -5,7 +5,7 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
   "license": "MIT",
-  "main": "./build/cjs/index.js",
+  "main": "./build/index.cjs",
   "type": "module",
   "module": "./build/index.js",
   "exports": {
@@ -13,9 +13,9 @@
       {
         "types": "./build/index.d.ts",
         "import": "./build/index.js",
-        "require": "./build/cjs/index.js"
+        "require": "./build/index.cjs"
       },
-      "./build/cjs/index.js"
+      "./build/index.cjs"
     ],
     "./package.json": "./package.json"
   },

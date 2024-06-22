@@ -1,6 +1,6 @@
 function command (method: string, encodeUri: string, commandInfo: any, doubleEncodeVariables = false) {
     return async function protocolCommand(this: unknown, ...args: unknown[]) {
-        const commandESM = await import('../command.js')
+        const commandESM = await import('./command.js')
         return commandESM.default(method, encodeUri, commandInfo, doubleEncodeVariables).apply(this, args)
     }
 }
@@ -12,7 +12,7 @@ class WebDriver {
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<any> {
-        const WebDriver = (await import('../index.js')).default
+        const WebDriver = (await import('./index.js')).default
         return WebDriver.newSession(options, modifier, userPrototype, customCommandWrapper)
     }
 
@@ -25,7 +25,7 @@ class WebDriver {
         userPrototype = {},
         commandWrapper?: (...args: any[]) => any
     ): Promise<any> {
-        const WebDriver = (await import('../index.js')).default
+        const WebDriver = (await import('./index.js')).default
         return WebDriver.attachToSession(options, modifier, userPrototype, commandWrapper)
     }
 
@@ -37,7 +37,7 @@ class WebDriver {
      * @returns {string}           the new session id of the browser
      */
     static async reloadSession (instance: any) {
-        const WebDriver = (await import('../index.js')).default
+        const WebDriver = (await import('./index.js')).default
         return WebDriver.reloadSession(instance)
     }
 

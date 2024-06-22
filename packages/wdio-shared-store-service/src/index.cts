@@ -1,4 +1,4 @@
-const esmModule = import('../index.js')
+const esmModule = import('./index.js')
 
 exports.setValue = async function (key: string, value: never) {
     const m = await esmModule

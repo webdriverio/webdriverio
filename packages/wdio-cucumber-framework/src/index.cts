@@ -25,7 +25,7 @@ const {
 
 const adapterFactory = {
     init: async function initCucumberFramework (...args: any[]) {
-        const { CucumberAdapter } = await import('../index.js')
+        const { CucumberAdapter } = await import('./index.js')
         // @ts-ignore just passing through args
         const adapter = new CucumberAdapter(...args as any)
         const instance = await adapter.init()
@@ -54,7 +54,7 @@ const adapterFactory = {
     defineStep,
 
     publishCucumberReport: async function (cucumberMessageDir: string) {
-        const { publishCucumberReport } = await import('../index.js')
+        const { publishCucumberReport } = await import('./index.js')
         await publishCucumberReport(cucumberMessageDir)
     }
 }

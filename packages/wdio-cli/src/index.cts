@@ -2,12 +2,12 @@ class Launcher {
     #esmLauncher: any
 
     constructor(
-        private configFilePath: string,
-        private args: any = {},
-        private isWatchMode = false
+        configFilePath: string,
+        args: any = {},
+        isWatchMode = false
     ) {
-        this.#esmLauncher = import('../launcher.js').then(
-            ({ default: Launcher }) => new Launcher(this.configFilePath, this.args, this.isWatchMode))
+        this.#esmLauncher = import('./launcher.js').then(
+            ({ default: Launcher }) => new Launcher(configFilePath, args, isWatchMode))
     }
 
     /**
@@ -20,7 +20,7 @@ class Launcher {
 }
 
 async function run(): Promise<false | void> {
-    const { run } = await import('../index.js')
+    const { run } = await import('./index.js')
     return run()
 }
 

@@ -10,5 +10,3 @@ packages:
   - 'examples/cloudservices/**'
   - 'examples/bidi/**'
   - 'examples/appium/**'
-  - '!packages/**/build/cjs'
-  - '!packages/**/src/cjs'
