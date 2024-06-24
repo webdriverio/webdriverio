@@ -100,7 +100,7 @@
     "ejs-lint": "^2.0.0",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-unicorn": "^53.0.0",
+    "eslint-plugin-unicorn": "^54.0.0",
     "eslint-plugin-wdio": "workspace:*",
     "eta": "^3.4.0",
     "glob": "^10.3.12",
