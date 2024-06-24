@@ -22,7 +22,7 @@ importers:
         version: 20.1.1
       '@preact/preset-vite':
         specifier: ^2.8.2
-        version: 2.8.2(@babel/core@7.24.7)(preact@10.22.0)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+        version: 2.8.3(@babel/core@7.24.7)(preact@10.22.0)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
       '@serenity-js/core':
         specifier: ^3.22.1
         version: 3.23.2
@@ -4072,8 +4072,8 @@ packages:
   '@polka/url@1.0.0-next.25':
     resolution: {integrity: sha512-j7P6Rgr3mmtdkeDGTe0E/aYyWEWVtc5yFXtHCRHs28/jptDEWfaVOc5T7cblqy1XKPPfCxJc/8DwQ5YgLOZOVQ==}
 
-  '@preact/preset-vite@2.8.2':
-    resolution: {integrity: sha512-m3tl+M8IO8jgiHnk+7LSTFl8axdPXloewi7iGVLdmCwf34XOzEUur0bZVewW4DUbUipFjTS2CXu27+5f/oexBA==}
+  '@preact/preset-vite@2.8.3':
+    resolution: {integrity: sha512-IT4+IV3D4lIyoDrp4FUfx4dT2yW/5KIl2MXAsqqItGTbz1xUhtSyP9nS2kLXNnhLG4I2Nku/X+vKFMmRG+oMDA==}
     peerDependencies:
       '@babel/core': 7.x
       vite: 2.x || 3.x || 4.x || 5.x
@@ -16949,8 +16949,9 @@ snapshots:
 
   '@polka/url@1.0.0-next.25': {}
 
-  '@preact/preset-vite@2.8.2(@babel/core@7.24.7)(preact@10.22.0)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))':
+  '@preact/preset-vite@2.8.3(@babel/core@7.24.7)(preact@10.22.0)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))':
     dependencies:
+      '@babel/code-frame': 7.24.7
       '@babel/core': 7.24.7
       '@babel/plugin-transform-react-jsx': 7.24.7(@babel/core@7.24.7)
       '@babel/plugin-transform-react-jsx-development': 7.24.7(@babel/core@7.24.7)
