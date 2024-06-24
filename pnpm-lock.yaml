@@ -55,7 +55,7 @@ importers:
         version: 2.1.4
       '@types/mocha':
         specifier: ^10.0.6
-        version: 10.0.6
+        version: 10.0.7
       '@types/node':
         specifier: ^20.12.7
         version: 20.14.8
@@ -5163,6 +5163,9 @@ packages:
 
   '@types/mocha@10.0.6':
     resolution: {integrity: sha512-dJvrYWxP/UcXm36Qn36fxhUKu8A/xMRXVT2cliFF1Z7UA9liG5Psj3ezNSZw+5puH2czDXRLcXQxf8JbJt0ejg==}
+
+  '@types/mocha@10.0.7':
+    resolution: {integrity: sha512-GN8yJ1mNTcFcah/wKEFIJckJx9iJLoMSzWcfRRuxz/Jk+U6KQNnml+etbtxFK8lPjzOw3zp4Ha/kjSst9fsHYw==}
 
   '@types/morgan@1.9.9':
     resolution: {integrity: sha512-iRYSDKVaC6FkGSpEVVIvrRGw0DfJMiQzIn3qr2G5B3C//AWkulhXgaBd7tS9/J79GWSYMTHGs7PfI5b3Y8m+RQ==}
@@ -18272,6 +18275,8 @@ snapshots:
   '@types/minimist@1.2.5': {}
 
   '@types/mocha@10.0.6': {}
+
+  '@types/mocha@10.0.7': {}
 
   '@types/morgan@1.9.9':
     dependencies:
