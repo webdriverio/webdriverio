@@ -43,7 +43,7 @@ export const config = {
 ```
 
 ```sh
-wdio repl "./path/to/wdio.config.js" 0 -p 9515
+wdio repl "./path/to/wdio.conf.ts" 0 -p 9515
 ```
 
 WebdriverIO with [multiremote](https://webdriver.io/docs/multiremote/) capability object:
@@ -67,7 +67,7 @@ export const config = {
 ```
 
 ```sh
-wdio repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515
+wdio repl "./path/to/wdio.conf.ts" "myChromeBrowser" -p 9515
 ```
 
 Or if you want to run local mobile tests using Appium:
