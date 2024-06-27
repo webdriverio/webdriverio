@@ -174,6 +174,7 @@ class Listener {
 
         if (!this.requestBatcher) {
             this.requestBatcher = RequestQueueHandler.getInstance(async (data: UploadType[]) => {
+                BStackLogger.warn('EVENT DATA ' + JSON.stringify(data))
                 BStackLogger.debug('callback: called with events ' + data.length)
                 try {
                     this.pendingUploads += 1
