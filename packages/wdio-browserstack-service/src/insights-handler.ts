@@ -808,6 +808,7 @@ class _InsightsHandler {
     }
 
     private async flushCBTDataQueue() {
+        if (isUndefined(this._currentTestId)) {return}
         this._cbtQueue.forEach(cbtData => {
             cbtData.uuid = this._currentTestId!
             this.listener.cbtSessionCreated(cbtData)
