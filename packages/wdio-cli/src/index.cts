@@ -1,9 +1,9 @@
 class Launcher {
-    #esmLauncher: any
+    #esmLauncher
 
     constructor(
-        configFilePath: string,
-        args: any = {},
+        configFilePath,
+        args = {},
         isWatchMode = false
     ) {
         this.#esmLauncher = import('./launcher.js').then(
@@ -14,12 +14,12 @@ class Launcher {
      * run sequence
      * @return  {Promise}  that only gets resolved with either an exitCode or an error
      */
-    async run(): Promise<undefined | number> {
+    async run() {
         return (await this.#esmLauncher).run()
     }
 }
 
-async function run(): Promise<false | void> {
+async function run() {
     const { run } = await import('./index.js')
     return run()
 }

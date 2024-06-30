@@ -4,7 +4,7 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import { yargs as yargsMock } from 'yargs'
 
 import { run } from '../src/index.js'
-import { run as cjsRun } from '../src/cjs/index.js'
+import * as cjsExport from '../src/index.cjs'
 import { handler } from '../src/commands/run.js'
 
 vi.mock('dotenv/config', () => {
@@ -40,7 +40,8 @@ describe('index', () => {
     })
 
     it('should call esm run method from cjs index', async () => {
-        await cjsRun()
+        // @ts-expect-error
+        await cjsExport.run()
         expect(vi.mocked(handler).mock.calls[0][0]).toEqual({
             configPath: join(`${process.cwd()}`, 'wdio.conf.js'),
             _: ['wdio.conf.js']

@@ -4,10 +4,9 @@ import logger from '@wdio/logger'
 import { sleep, enableFileLogging } from '@wdio/utils'
 import Launcher from '../src/launcher.js'
 // @ts-expect-error
-import { Launcher as cjsLauncher, run as cjsRun } from '../src/cjs/index.js'
+import { Launcher as cjsLauncher, run as cjsRun } from '../src/index.cjs'
 
 const caps: WebdriverIO.Capabilities = {
-    // @ts-expect-error missing type
     maxInstances: 1,
     browserName: 'chrome'
 }
@@ -697,7 +696,7 @@ describe('launcher', () => {
     })
 
     describe('run', () => {
-        let config: WebdriverIO.Config = { capabilities: {} }
+        let config: WebdriverIO.Config = { capabilities: [{}] }
 
         beforeEach(() => {
             global.console.error = vi.fn()
@@ -706,7 +705,7 @@ describe('launcher', () => {
                 // ConfigParser.addFileConfig() will return onPrepare and onComplete as arrays of functions
                 onPrepare: [vi.fn()],
                 onComplete: [vi.fn()],
-                capabilities: {},
+                capabilities: [{}],
                 runner: 'local',
                 runnerEnv: {},
                 outputDir: 'tempDir',
