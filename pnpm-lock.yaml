@@ -28,7 +28,7 @@ importers:
         version: 3.23.2
       '@stencil/core':
         specifier: ^4.16.0
-        version: 4.18.3
+        version: 4.19.1
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.0
         version: 3.1.1(svelte@4.2.17)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
@@ -4673,8 +4673,8 @@ packages:
   '@stencil-community/router@1.0.2':
     resolution: {integrity: sha512-GQkhcwDZdkX6k6rE/ZqrH2mbxGt9wPq0KGAdwPJOcZJbfq9cKaSMOuS7heDEBcWgXgxJS2rKqwUKyKTj41g9pA==}
 
-  '@stencil/core@4.18.3':
-    resolution: {integrity: sha512-8yoG5AFQYEPocVtuoc5kvRS0Hku0MoDWDUpADRaXPVHsOFLmxR16LJENj25ucCz5GEfeTGQ/tCE8JAypPmr/fQ==}
+  '@stencil/core@4.19.1':
+    resolution: {integrity: sha512-fjSBctHrobeSL2+XcuX7GVk/eaUhZ/lvIu21RJmzHAPcNyueuSAEv7J/Isn4UlYNk70o+yOK72H0FTlNkUibvw==}
     engines: {node: '>=16.0.0', npm: '>=7.10.0'}
     hasBin: true
 
@@ -17798,7 +17798,7 @@ snapshots:
     dependencies:
       '@stencil/state-tunnel': 1.0.1
 
-  '@stencil/core@4.18.3': {}
+  '@stencil/core@4.19.1': {}
 
   '@stencil/state-tunnel@1.0.1': {}
 
