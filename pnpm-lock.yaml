@@ -163,7 +163,7 @@ importers:
         version: 6.2.0
       puppeteer-core:
         specifier: ^22.11.2
-        version: 22.11.2
+        version: 22.12.1
       recast:
         specifier: ^0.23.6
         version: 0.23.9
@@ -966,8 +966,8 @@ importers:
         specifier: 8.6.0
         version: 8.6.0
       puppeteer-core:
-        specifier: 22.11.1
-        version: 22.11.1
+        specifier: 22.12.1
+        version: 22.12.1
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -6296,8 +6296,8 @@ packages:
     peerDependencies:
       devtools-protocol: '*'
 
-  chromium-bidi@0.5.23:
-    resolution: {integrity: sha512-1o/gLU9wDqbN5nL2MtfjykjOuighGXc3/hnWueO1haiEoFgX8h5vbvcA4tgdQfjw1mkZ1OEF4x/+HVeqEX6NoA==}
+  chromium-bidi@0.5.24:
+    resolution: {integrity: sha512-5xQNN2SVBdZv4TxeMLaI+PelrnZsHDhn8h2JtyriLr+0qHcZS8BMuo93qN6J1VmtmrgYP+rmcLHcbpnA8QJh+w==}
     peerDependencies:
       devtools-protocol: '*'
 
@@ -11058,12 +11058,8 @@ packages:
     resolution: {integrity: sha512-I54J4Vy4I07UHsgB1QSmuFoF7KNQjJWcvFBPhtY+ezMdBfwgGDr8dzYrJa11aPgP9kxIUHjhktcMmmfJkOAtTw==}
     engines: {node: '>=18'}
 
-  puppeteer-core@22.11.1:
-    resolution: {integrity: sha512-lIMQrpbMlQ5GqXzD7fo/j74PhceRma+DrVFX+vAx3cwURsfDKyYx7fksTo1nUfLmKyXRyCDSa2peASa/DQ0R9Q==}
-    engines: {node: '>=18'}
-
-  puppeteer-core@22.11.2:
-    resolution: {integrity: sha512-vQo+YDuePyvj+92Z9cdtxi/HalKf+k/R4tE80nGtQqJRNqU81eHaHkbVfnLszdaLlvwFF5tipnnSCzqWlEddtw==}
+  puppeteer-core@22.12.1:
+    resolution: {integrity: sha512-XmqeDPVdC5/3nGJys1jbgeoZ02wP0WV1GBlPtr/ULRbGXJFuqgXMcKQ3eeNtFpBzGRbpeoCGWHge1ZWKWl0Exw==}
     engines: {node: '>=18'}
 
   qs@6.11.0:
@@ -19865,7 +19861,7 @@ snapshots:
       urlpattern-polyfill: 10.0.0
       zod: 3.22.4
 
-  chromium-bidi@0.5.23(devtools-protocol@0.0.1299070):
+  chromium-bidi@0.5.24(devtools-protocol@0.0.1299070):
     dependencies:
       devtools-protocol: 0.0.1299070
       mitt: 3.0.1
@@ -25691,22 +25687,10 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  puppeteer-core@22.11.1:
+  puppeteer-core@22.12.1:
     dependencies:
       '@puppeteer/browsers': 2.2.3
-      chromium-bidi: 0.5.23(devtools-protocol@0.0.1299070)
-      debug: 4.3.5(supports-color@8.1.1)
-      devtools-protocol: 0.0.1299070
-      ws: 8.17.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
-  puppeteer-core@22.11.2:
-    dependencies:
-      '@puppeteer/browsers': 2.2.3
-      chromium-bidi: 0.5.23(devtools-protocol@0.0.1299070)
+      chromium-bidi: 0.5.24(devtools-protocol@0.0.1299070)
       debug: 4.3.5(supports-color@8.1.1)
       devtools-protocol: 0.0.1299070
       ws: 8.17.1
@@ -27836,7 +27820,7 @@ snapshots:
       deepmerge-ts: 5.1.0
       got: 12.6.1
       ky: 0.33.3
-      ws: 8.17.0
+      ws: 8.17.1
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -27940,7 +27924,7 @@ snapshots:
       sockjs: 0.3.24
       spdy: 4.0.2
       webpack-dev-middleware: 5.3.4(webpack@5.91.0(@swc/core@1.5.27))
-      ws: 8.17.0
+      ws: 8.17.1
     optionalDependencies:
       webpack: 5.91.0(@swc/core@1.5.27)
     transitivePeerDependencies:
