@@ -79,14 +79,14 @@ exports.Key = {
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
 exports.remote = async function(
-    params: any,
-    remoteModifier?: (client: any, options: any) => any
-): Promise<WebdriverIO.Browser> {
+    params,
+    remoteModifier
+) {
     const { remote } = await import('./index.js')
     return remote(params, remoteModifier)
 }
 
-exports.attach = async function(attachOptions: any): Promise<WebdriverIO.Browser> {
+exports.attach = async function(attachOptions) {
     const { attach } = await import('./index.js')
     return attach(attachOptions)
 }
@@ -111,9 +111,9 @@ exports.attach = async function(attachOptions: any): Promise<WebdriverIO.Browser
  * @see <a href="https://webdriver.io/docs/multiremote">External document and example usage</a>.
  */
 exports.multiremote = async function(
-    params: any,
-    { automationProtocol }: { automationProtocol?: string } = {}
-): Promise<WebdriverIO.MultiRemoteBrowser> {
+    params,
+    { automationProtocol }
+) {
     const { multiremote } = await import('./index.js')
     return multiremote(params, { automationProtocol })
 }
