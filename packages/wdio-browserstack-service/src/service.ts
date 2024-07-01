@@ -369,6 +369,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
             BStackLogger.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
+        BStackLogger.warn(`Session Reloaded: Old Session Id: ${oldSessionId}, New Session Id: ${newSessionId}`)
+        await this._insightsHandler?.sendCBTInfo()
+
         if (setSessionStatus) {
             await this._update(oldSessionId, {
                 status,
