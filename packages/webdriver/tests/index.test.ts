@@ -318,10 +318,17 @@ describe('WebDriver', () => {
                 capabilities: { browserName: 'firefox' }
             })
             vi.mocked(startWebDriver).mockClear()
-            await WebDriver.reloadSession(session, { hostname: '1.1.1.1', port: 5555, browserName: 'chrome' })
+            await WebDriver.reloadSession(session, { protocol: 'https', hostname: '1.1.1.1', port: 5555, browserName: 'chrome' })
             expect(startWebDriver).not.toHaveBeenCalledOnce()
+            expect(session.options.protocol).toBe('https')
             expect(session.options.hostname).toBe('1.1.1.1')
             expect(session.options.port).toBe(5555)
+
+            await WebDriver.reloadSession(session, { protocol: 'http', hostname: '0.0.0.0', browserName: 'firefox' })
+            expect(startWebDriver).toHaveBeenCalledOnce()
+            expect(session.options.protocol).toBe('http')
+            expect(session.options.hostname).toBe('0.0.0.0')
+            expect((session.requestedCapabilities as WebdriverIO.Capabilities)['browserName']).toBe('firefox')
         })
     })
 
