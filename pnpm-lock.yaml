@@ -25,7 +25,7 @@ importers:
         version: 2.8.2(@babel/core@7.24.7)(preact@10.22.0)(vite@5.2.12(@types/node@20.14.8))
       '@serenity-js/core':
         specifier: ^3.17.0
-        version: 3.23.2
+        version: 3.24.1
       '@stencil/core':
         specifier: ^4.12.2
         version: 4.18.3
@@ -1046,8 +1046,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@serenity-js/core@3.23.2':
-    resolution: {integrity: sha512-ypoXjuOQ0MK45oy4yOBaIfCct3RJiWVzd5AhXS9Ah15HhXiPQjET2QhRKoqmzmxrX5rdzVpJ37InBplEhBzLQA==}
+  '@serenity-js/core@3.24.1':
+    resolution: {integrity: sha512-VZLt8aCtWwVSX1XtwOkMvaqvz0KkaXWUO5YYJJ/QlRc1KbMnArZ67P/ik0kKBiozDq6yH73qKytDpOfycCRLDw==}
     engines: {node: ^16.13 || ^18.12 || ^20}
 
   '@sigstore/bundle@1.1.0':
@@ -6846,7 +6846,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.18.0':
     optional: true
 
-  '@serenity-js/core@3.23.2':
+  '@serenity-js/core@3.24.1':
     dependencies:
       '@paralleldrive/cuid2': 2.2.2
       chalk: 4.1.2
@@ -9418,7 +9418,7 @@ snapshots:
       read-package-json: 6.0.4
       semver: 7.6.2
       validate-npm-package-license: 3.0.4
-      validate-npm-package-name: 5.0.0
+      validate-npm-package-name: 5.0.1
 
   inquirer@8.2.6:
     dependencies:
@@ -9646,7 +9646,7 @@ snapshots:
 
   jest-diff@29.7.0:
     dependencies:
-      chalk: 4.1.0
+      chalk: 4.1.2
       diff-sequences: 29.6.3
       jest-get-type: 29.6.3
       pretty-format: 29.7.0
@@ -10321,14 +10321,14 @@ snapshots:
       hosted-git-info: 6.1.1
       proc-log: 3.0.0
       semver: 7.6.2
-      validate-npm-package-name: 5.0.0
+      validate-npm-package-name: 5.0.1
 
   npm-package-arg@11.0.2:
     dependencies:
       hosted-git-info: 7.0.2
       proc-log: 4.2.0
       semver: 7.6.2
-      validate-npm-package-name: 5.0.0
+      validate-npm-package-name: 5.0.1
 
   npm-package-arg@8.1.1:
     dependencies:
@@ -10419,7 +10419,7 @@ snapshots:
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.7
       axios: 1.7.2
-      chalk: 4.1.0
+      chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
       cliui: 8.0.1
@@ -10526,7 +10526,7 @@ snapshots:
   ora@5.3.0:
     dependencies:
       bl: 4.1.0
-      chalk: 4.1.0
+      chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
       is-interactive: 1.0.0
