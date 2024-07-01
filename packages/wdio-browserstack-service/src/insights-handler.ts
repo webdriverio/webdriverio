@@ -26,7 +26,8 @@ import type {
     TestMeta,
     PlatformMeta,
     CurrentRunInfo,
-    StdLog
+    StdLog,
+    CBTData
 } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
@@ -49,6 +50,8 @@ class _InsightsHandler {
     }
     private _userCaps?: Capabilities.RemoteCapability = {}
     private listener = Listener.getInstance()
+    private _currentTestId: string | undefined
+    private _cbtQueue: Array<CBTData> = []
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
@@ -380,6 +383,7 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         BStackLogger.debug('calling testFinished')
+        this.flushCBTDataQueue()
         this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
@@ -430,6 +434,7 @@ class _InsightsHandler {
 
     async afterScenario (world: ITestCaseHookParameter) {
         this._cucumberData.scenario = undefined
+        this.flushCBTDataQueue()
         this.listener.testFinished(this.getTestRunDataForCucumber(world, 'TestRunFinished'))
     }
 
@@ -614,6 +619,7 @@ class _InsightsHandler {
         const testMetaData = this._tests[fullTitle]
 
         const filename = test.file || this._suiteFile
+        this._currentTestId = testMetaData.uuid
 
         const testData: TestData = {
             uuid: testMetaData.uuid,
@@ -728,6 +734,8 @@ class _InsightsHandler {
             fullNameWithExamples = scenario?.name || ''
         }
 
+        this._currentTestId = uuid
+
         const testData: TestData = {
             uuid: uuid,
             started_at: startedAt,
@@ -797,6 +805,36 @@ class _InsightsHandler {
         }
 
         return testData
+    }
+
+    private async flushCBTDataQueue() {
+        if (isUndefined(this._currentTestId)) {return}
+        this._cbtQueue.forEach(cbtData => {
+            cbtData.uuid = this._currentTestId!
+            this.listener.cbtSessionCreated(cbtData)
+        })
+        this._currentTestId = undefined // set undefined for next test
+    }
+
+    async sendCBTInfo() {
+        const integrationsData: any = {}
+
+        if (this._browser && this._platformMeta) {
+            const provider = getCloudProvider(this._browser)
+            integrationsData[provider] = this.getIntegrationsObject()
+        }
+
+        const cbtData: CBTData = {
+            uuid: '',
+            integrations: integrationsData
+        }
+
+        if (this._currentTestId !== undefined) {
+            cbtData.uuid = this._currentTestId
+            this.listener.cbtSessionCreated(cbtData)
+        } else {
+            this._cbtQueue.push(cbtData)
+        }
     }
 
     private getIntegrationsObject () {

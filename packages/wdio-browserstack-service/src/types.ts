@@ -324,7 +324,7 @@ export interface FeaturesUsageData {
 
 export interface CBTData {
     uuid: string
-    integrations: IntegrationObject
+    integrations: { [index: string]: IntegrationObject }
 }
 
 export interface TOUsageStats {
