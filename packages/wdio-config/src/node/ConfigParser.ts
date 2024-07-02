@@ -13,7 +13,7 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 import type { PathService, ModuleImportService } from '../types.js'
 
 const log = logger('@wdio/config:ConfigParser')
-const MERGE_DUPLICATION = ['services', 'reporters'] as const
+const MERGE_DUPLICATION = ['services', 'reporters', 'capabilities'] as const
 
 type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]
 type Spec = string | string[]
