@@ -6,7 +6,6 @@ import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
 import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
-import * as cjsExport from '../src/cjs/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -73,12 +72,6 @@ describe('WebdriverIO module interface', () => {
         expect(typeof multiremote).toBe('function')
         expect(typeof Key).toBe('object')
         expect(typeof SevereServiceError).toBe('function')
-
-        expect(typeof (cjsExport as any).remote).toBe('function')
-        expect(typeof (cjsExport as any).attach).toBe('function')
-        expect(typeof (cjsExport as any).multiremote).toBe('function')
-        expect(typeof (cjsExport as any).Key).toBe('object')
-        expect(typeof (cjsExport as any).SevereServiceError).toBe('function')
     })
 
     describe('remote function', () => {

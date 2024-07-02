@@ -3,11 +3,8 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { sleep, enableFileLogging } from '@wdio/utils'
 import Launcher from '../src/launcher.js'
-// @ts-expect-error
-import { Launcher as cjsLauncher, run as cjsRun } from '../src/cjs/index.js'
 
 const caps: WebdriverIO.Capabilities = {
-    // @ts-expect-error missing type
     maxInstances: 1,
     browserName: 'chrome'
 }
@@ -697,7 +694,7 @@ describe('launcher', () => {
     })
 
     describe('run', () => {
-        let config: WebdriverIO.Config = { capabilities: {} }
+        let config: WebdriverIO.Config = { capabilities: [{}] }
 
         beforeEach(() => {
             global.console.error = vi.fn()
@@ -706,7 +703,7 @@ describe('launcher', () => {
                 // ConfigParser.addFileConfig() will return onPrepare and onComplete as arrays of functions
                 onPrepare: [vi.fn()],
                 onComplete: [vi.fn()],
-                capabilities: {},
+                capabilities: [{}],
                 runner: 'local',
                 runnerEnv: {},
                 outputDir: 'tempDir',
@@ -773,12 +770,5 @@ describe('launcher', () => {
     afterEach(() => {
         vi.mocked(global.console.log).mockRestore()
         vi.mocked(sleep).mockClear()
-    })
-})
-
-describe('launcher cjs', () => {
-    it('should provide all exports', () => {
-        expect(typeof (cjsLauncher as any)).toBe('function')
-        expect(typeof (cjsRun as any)).toBe('function')
     })
 })
