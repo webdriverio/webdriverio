@@ -379,6 +379,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
             })
         }
 
+        BStackLogger.warn(`Session Reloaded: Old Session Id: ${oldSessionId}, New Session Id: ${newSessionId}`)
+        await this._insightsHandler?.sendCBTInfo()
+
         this._scenariosThatRan = []
         delete this._fullTitle
         delete this._suiteFile
