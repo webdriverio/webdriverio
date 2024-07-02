@@ -6,8 +6,7 @@ import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
 import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
-// @ts-expect-error
-import * as cjsExport from '../src/index.cts'
+import * as cjsExport from '../src/cjs/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
