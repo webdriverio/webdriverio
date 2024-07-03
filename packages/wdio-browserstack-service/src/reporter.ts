@@ -14,7 +14,7 @@ import {
     o11yClassErrorHandler,
     removeAnsiColors,
     getHookType,
-    getPlatformVersion
+    getPlatformVersion, GitMetaData, isObjectEmpty
 } from './util'
 import Listener from './testOps/listener'
 
@@ -85,9 +85,9 @@ class _TestReporter extends WDIOReporter {
         if (this._gitConfigured) {
             return
         }
-        const gitMeta = await getGitMetaData()
-        if (gitMeta) {
-            this._gitConfigPath = gitMeta.root
+        const gitMeta: {} | GitMetaData = await getGitMetaData()
+        if (gitMeta && !isObjectEmpty(gitMeta)) {
+            this._gitConfigPath = (gitMeta as GitMetaData).root
         }
         this._gitConfigured = true
     }
