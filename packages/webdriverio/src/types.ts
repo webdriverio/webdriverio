@@ -9,7 +9,15 @@ import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
 import type WebDriverInterception from './utils/interception/index.js'
 
+/**
+ * export mock primitives
+ */
 export * from './utils/interception/types.js'
+/**
+ * re-export action primitives
+ */
+export * from './utils/actions/index.js'
+
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
 
