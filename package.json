@@ -107,7 +107,7 @@
     "husky": "^9.0.11",
     "inquirer": "^9.2.19",
     "jsdom": "^24.0.0",
-    "lerna": "^8.1.2",
+    "lerna": "8.1.4",
     "lerna-changelog": "^2.2.0",
     "mime-types": "^2.1.35",
     "npm-run-all2": "^6.1.2",
