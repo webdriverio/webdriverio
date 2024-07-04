@@ -743,6 +743,7 @@ export const enhanceElementsArray = (
     elementArray.parent = parent
     elementArray.foundWith = foundWith
     elementArray.props = props
+    elementArray.getElements = async () => elementArray
     return elementArray
 }
 
