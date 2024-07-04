@@ -153,6 +153,9 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
      * parent of the element if fetched via `$(parent).$(child)`
      */
     parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    /**
+     * command name with which this element was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`
+     */
     foundWith: string
     /**
      * properties of the fetched elements

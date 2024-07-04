@@ -2,7 +2,7 @@ import type { ChainablePromiseArray } from '../../types.js'
 
 /**
  *
- * Access `WebdriverIO.Element` properties like `selector` or `elementId` from the element reference.
+ * Access `WebdriverIO.ElementArray` properties like `length` or `selector` from the elements reference.
  *
  * <example>
     :getElements.ts
