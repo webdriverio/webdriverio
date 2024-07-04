@@ -151,7 +151,7 @@ export default class WebDriver {
      * @returns {string}           the new session id of the browser
      */
     static async reloadSession(instance: Client, newCapabilities?: WebdriverIO.Capabilities) {
-        const capabilities = newCapabilities ? newCapabilities : instance.requestedCapabilities as WebdriverIO.Capabilities
+        const capabilities = newCapabilities ? newCapabilities : Object.assign({}, instance.requestedCapabilities) as WebdriverIO.Capabilities
         let params: Options.WebDriver = { ...instance.options, capabilities }
 
         for (const prop of ['protocol', 'hostname', 'port', 'path', 'queryParams', 'user', 'key'] as (keyof Options.Connection)[]) {
@@ -178,10 +178,17 @@ export default class WebDriver {
             newSessionCapabilities['wdio:driverPID'] = driverProcess.pid
         }
 
-        instance.options.hostname = params.hostname
-        instance.options.port = params.port
+        for (const prop of ['protocol', 'hostname', 'port', 'path', 'queryParams', 'user', 'key'] as (keyof Options.Connection)[]) {
+            if (prop in params) {
+                (<typeof prop>instance.options[prop]) = params[prop] as typeof prop
+            }
+        }
+        for (const prop in instance.requestedCapabilities) {
+            delete instance.requestedCapabilities[prop as keyof typeof instance.requestedCapabilities]
+        }
         instance.sessionId = sessionId
         instance.capabilities = newSessionCapabilities
+        Object.assign(instance.requestedCapabilities, capabilities)
         return sessionId
     }
 
