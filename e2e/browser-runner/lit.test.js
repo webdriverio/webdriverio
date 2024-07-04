@@ -211,6 +211,20 @@ describe('Lit Component testing', () => {
         expect(err.stack).toContain('at getErrorFromResponseBody')
     })
 
+    it('intercepts "element not interactable" errors and waits for the element to be interactable', async () => {
+        render(
+            html`<input style="display: none;" />`,
+            document.body
+        )
+
+        await $('input').execute(elem => {
+            setTimeout(() => {
+                elem.setAttribute('style', '')
+            }, 1000)
+        })
+        await $('input').click()
+    })
+
     it('should allow to auto mock dependencies', () => {
         expect(defaultExport).toBe('barfoo')
         expect(namedExportValue).toBe('foobar')
