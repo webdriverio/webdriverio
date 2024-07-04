@@ -13,6 +13,11 @@ export * from './element/getAttribute.js'
 export * from './element/getCSSProperty.js'
 export * from './element/getComputedRole.js'
 export * from './element/getComputedLabel.js'
+export * from './element/getElement.js'
+/**
+ * don't expose this method as it should not be attached to the `WebdriverIO.Element` prototype.
+ */
+// export * from './element/getElements.js'
 export * from './element/getHTML.js'
 export * from './element/getLocation.js'
 export * from './element/getProperty.js'
