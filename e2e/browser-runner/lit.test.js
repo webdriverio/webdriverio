@@ -199,7 +199,7 @@ describe('Lit Component testing', () => {
         })
     })
 
-    it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async function() {
+    it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
         render(
             html`<input style="display: none;" />`,
             document.body
