@@ -40,7 +40,8 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                         return await element.waitForClickable()
                     } catch (error) {
                         const elementHTML = await element.getHTML()
-                        err.message = `Element ${elementHTML} not interactable`
+                        err.name = 'webdriverio(middleware): element did not become interactable'
+                        err.message = `Element ${elementHTML} did not become interactable`
                         err.stack = err.stack ?? Error.captureStackTrace(err)
                     }
                 }

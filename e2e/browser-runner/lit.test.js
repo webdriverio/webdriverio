@@ -199,15 +199,15 @@ describe('Lit Component testing', () => {
         })
     })
 
-    it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
+    it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async function() {
         render(
             html`<input style="display: none;" />`,
             document.body
         )
 
         const err = await $('input').click().catch((err) => err)
-        expect(err.name).toBe('element not interactable')
-        expect(err.message).toBe('Element <input style="display: none;"> not interactable')
+        expect(err.name).toBe('webdriverio(middleware): element did not become interactable')
+        expect(err.message).toBe('Element <input style="display: none;"> did not become interactable')
         expect(err.stack).toContain('at getErrorFromResponseBody')
     })
 
@@ -223,6 +223,20 @@ describe('Lit Component testing', () => {
             }, 1000)
         })
         await $('input').click()
+    })
+
+    it('intercepts "element not interactable" errors and waits for the element in array to be interactable', async () => {
+        render(
+            html`<input style="display: none;" />`,
+            document.body
+        )
+
+        await $('input').execute(elem => {
+            setTimeout(() => {
+                elem.setAttribute('style', '')
+            }, 1000)
+        })
+        await $$('input')[0].click()
     })
 
     it('should allow to auto mock dependencies', () => {
