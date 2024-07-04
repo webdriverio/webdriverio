@@ -726,6 +726,9 @@ importers:
       recursive-readdir:
         specifier: ^2.2.3
         version: 2.2.3
+      tsx:
+        specifier: ^4.7.2
+        version: 4.16.0
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
