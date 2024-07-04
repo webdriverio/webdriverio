@@ -506,6 +506,16 @@ async function bar() {
     const elemArrayTest: WebdriverIO.ElementArray = {} as any
     expectType<string>(elemArrayTest.foundWith)
     expectType<WebdriverIO.Element>(elemArrayTest[123])
+
+    // getElement / getElements type check
+    const singleChainedElement = await browser.$('foo').getElement()
+    const singleElement = await singleChainedElement.getElement()
+    expectType<string>(singleElement.elementId)
+    expectType<string>(singleElement.elementId)
+    const multiChainedElements = await browser.$$('foo').getElements()
+    const multiElements = await multiChainedElements.getElements()
+    expectType<number>(multiChainedElements.length)
+    expectType<number>(multiElements.length)
 }
 
 function testSevereServiceError_noParameters() {
