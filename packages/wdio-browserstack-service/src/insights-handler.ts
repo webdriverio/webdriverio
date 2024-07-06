@@ -23,7 +23,7 @@ import {
     isUndefined,
     o11yClassErrorHandler,
     removeAnsiColors,
-    getFailureObject,
+    getFailureObject, GitMetaData, isObjectEmpty,
 } from './util'
 import type { TestData, TestMeta, PlatformMeta, CurrentRunInfo, StdLog } from './types'
 import Listener from './testOps/listener'
@@ -76,9 +76,9 @@ class _InsightsHandler {
             await this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
         }
 
-        const gitMeta = await getGitMetaData()
-        if (gitMeta) {
-            this._gitConfigPath = gitMeta.root
+        const gitMeta: {} | GitMetaData = await getGitMetaData()
+        if (gitMeta && !isObjectEmpty(gitMeta)) {
+            this._gitConfigPath = (gitMeta as GitMetaData).root
         }
     }
 
