@@ -473,13 +473,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
             })
         }
 
+        BStackLogger.warn(`Session Reloaded: Old Session Id: ${oldSessionId}, New Session Id: ${newSessionId}`)
+        await this._insightsHandler?.sendCBTInfo()
+
         this._scenariosThatRan = []
         delete this._fullTitle
         delete this._suiteFile
         this._failReasons = []
         await this._printSessionURL()
     }
-
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
         const desiredCapabilities = (this._caps ?? {})  as Capabilities.DesiredCapabilities
