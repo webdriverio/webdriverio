@@ -30,11 +30,13 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
+    "@browserstack/ai-sdk-node": "github:browserstack/ai-sdk-node",
     "@percy/appium-app": "^2.0.1",
     "@percy/selenium-webdriver": "^2.0.3",
     "@types/gitconfiglocal": "^2.0.1",
     "@wdio/logger": "8.38.0",
     "@wdio/reporter": "8.39.0",
+    "@wdio/shared-store-service": "^8.39.1",
     "@wdio/types": "8.39.0",
     "browserstack-local": "^1.5.1",
     "chalk": "^5.3.0",
