@@ -11,6 +11,8 @@ import {
     isBrowserstackSession,
     patchConsoleLogs
 } from './util.js'
+import fs from 'node:fs'
+import path from 'node:path'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
@@ -23,6 +25,7 @@ import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
 import { saveWorkerData } from './data-store.js'
 import UsageStats from './testOps/usageStats.js'
+import aiSDK from '@browserstack/ai-sdk-node'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -109,6 +112,97 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async before(caps: Capabilities.RemoteCapability, specs: string[], browser: WebdriverIO.Browser) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : globalThis.browser
+
+        const readTcgAuthConfigToGlobal = () => {
+            const browserstackFolderPath: any = path.join('tmp')
+            const tcgConfigPath: any = path.join(browserstackFolderPath, 'tcgConfig.json')
+            try {
+                const tcgConfig: any = JSON.parse(fs.readFileSync(tcgConfigPath).toString())
+                const aiHealConfig: any = tcgConfig
+                return {
+                    sessionToken: tcgConfig.sessionToken,
+                    isAuthenticated : tcgConfig.isAuthenticated,
+                    groupID: tcgConfig.groupId,
+                    userID: tcgConfig.userId,
+                    groupAIEnabled: tcgConfig.groupAIEnabled,
+                    isHealingEnabled: aiHealConfig.isHealingEnabled
+                }
+            } catch (err){
+            //   logger.debug(`Cound not setup tcgAuth config file due to error: ${err}`)
+            }
+
+        }
+
+        //   const isUndefinedOrNull: any = val:any => {return (val === undefined || val === null || val === '')}
+
+        //   const isNotUndefinedOrNull: any = val:any => {return !isUndefinedOrNull(val)}
+
+        //   const isString: any = val:any => {return (isNotUndefinedOrNull(val) && typeof val === 'string')}
+
+        function isUndefinedOrNull(val: any){
+            return (val === undefined || val === null || val === '')
+        }
+
+        function isNotUndefinedOrNull(val: any){
+            return !isUndefinedOrNull(val)
+        }
+
+        function isString(val: any){
+            return (isNotUndefinedOrNull(val) && typeof val === 'string')
+        }
+
+        const authInfo:any = readTcgAuthConfigToGlobal()
+        const isAuthenticated:any = authInfo.isAuthenticated
+        const isHealingEnabled:any = authInfo.isHealingEnabled
+        if (isAuthenticated && isHealingEnabled) {
+            console.log('User is authenticated')
+            const sessionToken: any = authInfo.sessionToken
+            const resp: any = await aiSDK.BrowserstackHealing.setToken(this._browser.sessionId, sessionToken, 'https://tcg.browserstack.com')
+            console.log('Response from setToken: ', resp)
+
+            const browser:any = this._browser as WebdriverIO.Browser
+            browser.overwriteCommand('findElement', async (orginalFunc:any, using: any, value: any) => {
+                // const browser = this._browser as WebdriverIO.Browser
+                const sessionId: any = browser.sessionId
+                console.log('HEALING!!!!, patching find element')
+                const constants:any = {
+                    tcgRegion: 'use',
+                    tcgUrl: 'https://tcg.browserstack.com',
+                }
+                let tcgDetails = `{"region": "${constants.tcgRegion}", "tcgUrls": {"${constants.tcgRegion}": {"endpoint": "${constants.tcgUrl.split('s://')[1]}"}}}`
+                tcgDetails = isNotUndefinedOrNull(tcgDetails) && isString(tcgDetails) ? tcgDetails.replace(/'/g, '\\\'').replace(/"/g, '\\"') : ''
+                const using1: string = isNotUndefinedOrNull(using) && isString(using) ? using.replace(/'/g, '\\\'').replace(/"/g, '\\"') : ''
+                const value1: string = isNotUndefinedOrNull(value) && isString(value) ? value.replace(/'/g, '\\\'').replace(/"/g, '\\"') : ''
+                try {
+
+                    const result: any = await orginalFunc(using, value)
+                    let script: string = await aiSDK.BrowserstackHealing.logData(using1, value1, undefined, undefined, authInfo.groupID, sessionId, undefined, tcgDetails)
+                    if (script) {
+                        console.log('Executing logData script' + script)
+                        await browser.execute(script)
+                    }
+                    if (!result.error) {
+                        return result
+                    }
+                    script = await aiSDK.BrowserstackHealing.healFailure(using1, value1, undefined, undefined, authInfo.userID, authInfo.groupID, sessionId, undefined, undefined, authInfo.groupAIEnabled, tcgDetails)
+                    if (script) {
+                        await browser.execute(script)
+                        console.log('Executing healing script' + script)
+                        const tcgData: any = await aiSDK.BrowserstackHealing.pollResult('https://tcg.browserstack.com', sessionId, authInfo.sessionToken)
+                        if (tcgData && tcgData.selector && tcgData.value){
+                            const result2: any = await orginalFunc(tcgData.selector, tcgData.value)
+                            console.log('Healing worked, element found: ', tcgData.selector, tcgData.value)
+
+                            return result2.error ? result : result2
+                        }
+                    }
+                } catch (err){
+                    console.log('Error in findElement: ', err, 'using: ', using, 'value: ', value)
+                    console.log('Healing disabled for this command')
+                    return orginalFunc(using, value)
+                }
+            })
+        }
 
         // Ensure capabilities are not null in case of multiremote
 
@@ -378,9 +472,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 ...(hasReasons ? { reason: this._failReasons.join('\n') } : {})
             })
         }
-
-        BStackLogger.warn(`Session Reloaded: Old Session Id: ${oldSessionId}, New Session Id: ${newSessionId}`)
-        await this._insightsHandler?.sendCBTInfo()
 
         this._scenariosThatRan = []
         delete this._fullTitle

@@ -47,6 +47,7 @@ import type Percy from './Percy/Percy.js'
 import { sendStart, sendFinish } from './instrumentation/funnelInstrumentation.js'
 import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
+import aiSDK from '@browserstack/ai-sdk-node'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -189,6 +190,31 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         } catch (err: unknown) {
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
+        }
+        const setupTcgConfigFile = (tcgConfig: any) => {
+            try {
+                const browserstackFolderPath: any = path.join('tmp')
+                if (!fs.existsSync(browserstackFolderPath)){
+                    fs.mkdirSync(browserstackFolderPath)
+                }
+                const tcgAuthConfigPath: any = path.join(browserstackFolderPath, 'tcgConfig.json')
+                if (fs.existsSync(tcgAuthConfigPath)) {
+                    fs.unlinkSync(tcgAuthConfigPath)
+                }
+
+                fs.writeFileSync(tcgAuthConfigPath, JSON.stringify(tcgConfig))
+            } catch (err) {
+                console.log(`Cound not setup tcgAuth config file due to error: ${err}`)
+            }
+        }
+
+        const authResult = await aiSDK.BrowserstackHealing.init(process.env.BROWSERSTACK_ACCESS_KEY, process.env.BROWSERSTACK_USERNAME, 'https://tcg.browserstack.com', '9.0.0')
+
+        const { isAuthenticated, userId, groupId, sessionToken, isGroupAIEnabled, isHealingEnabled } = authResult
+        console.log(`isAuthenticated: ${isAuthenticated}, userId: ${userId}, groupId: ${groupId}, sessionToken: ${sessionToken}, isGroupAIEnabled: ${isGroupAIEnabled}, isHealingEnabled: ${isHealingEnabled}`)
+        setupTcgConfigFile(authResult)
+        if (isAuthenticated && isHealingEnabled) {
+            caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
         }
     }
 
