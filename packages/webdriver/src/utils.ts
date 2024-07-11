@@ -238,6 +238,22 @@ export function getErrorFromResponseBody (body: any, requestOptions: any) {
         return new Error('Unknown error')
     }
 
+    /**
+     * e.g. in Firefox or Safari, error are following the following structure:
+     * ```
+     * {
+     *   value: {
+     *     error: '...',
+     *     message: '...',
+     *     stacktrace: '...'
+     *   }
+     * }
+     * ```
+     */
+    if (typeof body === 'object' && body.value && body.value.error) {
+        return new Error(body.value.error)
+    }
+
     return new CustomRequestError(body, requestOptions)
 }
 
