@@ -51,7 +51,7 @@ export async function generateWdioDocs (sidebars: any) {
             }
 
             const filepath = path.join(COMMAND_DIR, scope, file)
-            const output = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
+            const output = path.join(docDir, `_${file.replace(/(js|ts)$/, 'md')}`)
 
             const raw = fs.readFileSync(filepath, 'utf-8')
             const data = compiler(raw)
