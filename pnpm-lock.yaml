@@ -408,8 +408,8 @@ importers:
         specifier: ^5.0.3
         version: 5.0.5(vite@5.2.12(@types/node@20.14.8)(terser@5.31.1))(vue@3.4.27(typescript@5.4.5))
       expect-webdriverio:
-        specifier: ^4.11.2
-        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+        specifier: 5.0.0-alpha.0
+        version: 5.0.0-alpha.0(encoding@0.1.13)(typescript@5.4.5)
       mocha:
         specifier: ^10.2.0
         version: 10.4.0
@@ -530,8 +530,8 @@ importers:
         specifier: ^29.7.0
         version: 29.7.0
       expect-webdriverio:
-        specifier: ^4.12.2
-        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+        specifier: 5.0.0-alpha.0
+        version: 5.0.0-alpha.0(encoding@0.1.13)(typescript@5.4.5)
       get-port:
         specifier: ^7.1.0
         version: 7.1.0
@@ -869,8 +869,8 @@ importers:
   packages/wdio-globals:
     optionalDependencies:
       expect-webdriverio:
-        specifier: ^4.11.2
-        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+        specifier: 5.0.0-alpha.0
+        version: 5.0.0-alpha.0(encoding@0.1.13)(typescript@5.4.5)
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -895,8 +895,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-utils
       expect-webdriverio:
-        specifier: ^4.11.2
-        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+        specifier: 5.0.0-alpha.0
+        version: 5.0.0-alpha.0(encoding@0.1.13)(typescript@5.4.5)
       jasmine:
         specifier: ^5.0.0
         version: 5.1.0
@@ -1129,8 +1129,8 @@ importers:
         specifier: ^7.0.3
         version: 7.0.3
       expect-webdriverio:
-        specifier: ^4.12.0
-        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+        specifier: 5.0.0-alpha.0
+        version: 5.0.0-alpha.0(encoding@0.1.13)(typescript@5.4.5)
       gaze:
         specifier: ^1.1.3
         version: 1.1.3
@@ -1755,8 +1755,8 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
       expect-webdriverio:
-        specifier: ^4.13.0
-        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+        specifier: 5.0.0-alpha.0
+        version: 5.0.0-alpha.0(encoding@0.1.13)(typescript@5.4.5)
       webdriver:
         specifier: workspace:*
         version: link:../../../packages/webdriver
@@ -7663,12 +7663,12 @@ packages:
     resolution: {integrity: sha512-A5EmesHW6rfnZ9ysHQjPdJRni0SRar0tjtG5MNtm9n5TUvsYU8oozprtRD4AqHxcZWWlVuAmQo2nWKfN9oyjTw==}
     engines: {node: '>=0.10.0'}
 
-  expect-webdriverio@4.14.0:
-    resolution: {integrity: sha512-bPZ9zfyJHF41dO8o7iFcEV4Dvcw45yhsv1WjtJyPLZPjQ+ixVBrbSil9+rjRiONoX4f45EZRCqaGvPlzNC523Q==}
-    engines: {node: '>=16 || >=18 || >=20'}
-
   expect-webdriverio@4.15.1:
     resolution: {integrity: sha512-xtBSidt7Whs1fsUC+utxVzfmkmaStXWW17b+BcMCiCltx0Yku6l7BTv1Y14DEKX8L6rttaDQobYyRtBKbi4ssg==}
+    engines: {node: '>=16 || >=18 || >=20'}
+
+  expect-webdriverio@5.0.0-alpha.0:
+    resolution: {integrity: sha512-eKKjyHx3WXeIw+GRu5qaIFxNlwrMx2BcKQ0II1S/IY647jLLXAAWOTmn6Od2DBbwz8D3/UzGYjJpMGj0aSNG1A==}
     engines: {node: '>=16 || >=18 || >=20'}
 
   expect@29.7.0:
@@ -13558,10 +13558,10 @@ snapshots:
       '@aws-crypto/sha1-browser': 5.2.0
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/client-sso-oidc': 3.598.0
-      '@aws-sdk/client-sts': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
+      '@aws-sdk/client-sso-oidc': 3.598.0(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/client-sts': 3.598.0
       '@aws-sdk/core': 3.598.0
-      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/middleware-bucket-endpoint': 3.598.0
       '@aws-sdk/middleware-expect-continue': 3.598.0
       '@aws-sdk/middleware-flexible-checksums': 3.598.0
@@ -13616,13 +13616,13 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-sso-oidc@3.598.0':
+  '@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0)':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/client-sts': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
+      '@aws-sdk/client-sts': 3.598.0
       '@aws-sdk/core': 3.598.0
-      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/middleware-host-header': 3.598.0
       '@aws-sdk/middleware-logger': 3.598.0
       '@aws-sdk/middleware-recursion-detection': 3.598.0
@@ -13659,6 +13659,7 @@ snapshots:
       '@smithy/util-utf8': 3.0.0
       tslib: 2.6.3
     transitivePeerDependencies:
+      - '@aws-sdk/client-sts'
       - aws-crt
 
   '@aws-sdk/client-sso-oidc@3.609.0(@aws-sdk/client-sts@3.609.0)':
@@ -13792,13 +13793,13 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-sts@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)':
+  '@aws-sdk/client-sts@3.598.0':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/client-sso-oidc': 3.598.0
+      '@aws-sdk/client-sso-oidc': 3.598.0(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/core': 3.598.0
-      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/middleware-host-header': 3.598.0
       '@aws-sdk/middleware-logger': 3.598.0
       '@aws-sdk/middleware-recursion-detection': 3.598.0
@@ -13835,7 +13836,6 @@ snapshots:
       '@smithy/util-utf8': 3.0.0
       tslib: 2.6.3
     transitivePeerDependencies:
-      - '@aws-sdk/client-sso-oidc'
       - aws-crt
 
   '@aws-sdk/client-sts@3.609.0':
@@ -13941,13 +13941,13 @@ snapshots:
       '@smithy/util-stream': 3.0.5
       tslib: 2.6.3
 
-  '@aws-sdk/credential-provider-ini@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)':
+  '@aws-sdk/credential-provider-ini@3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)':
     dependencies:
-      '@aws-sdk/client-sts': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
+      '@aws-sdk/client-sts': 3.598.0
       '@aws-sdk/credential-provider-env': 3.598.0
       '@aws-sdk/credential-provider-http': 3.598.0
       '@aws-sdk/credential-provider-process': 3.598.0
-      '@aws-sdk/credential-provider-sso': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
+      '@aws-sdk/credential-provider-sso': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))
       '@aws-sdk/credential-provider-web-identity': 3.598.0(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/types': 3.598.0
       '@smithy/credential-provider-imds': 3.1.3
@@ -13977,13 +13977,13 @@ snapshots:
       - '@aws-sdk/client-sso-oidc'
       - aws-crt
 
-  '@aws-sdk/credential-provider-node@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)':
+  '@aws-sdk/credential-provider-node@3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)':
     dependencies:
       '@aws-sdk/credential-provider-env': 3.598.0
       '@aws-sdk/credential-provider-http': 3.598.0
-      '@aws-sdk/credential-provider-ini': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/credential-provider-ini': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/credential-provider-process': 3.598.0
-      '@aws-sdk/credential-provider-sso': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
+      '@aws-sdk/credential-provider-sso': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))
       '@aws-sdk/credential-provider-web-identity': 3.598.0(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/types': 3.598.0
       '@smithy/credential-provider-imds': 3.1.1
@@ -14031,10 +14031,10 @@ snapshots:
       '@smithy/types': 3.3.0
       tslib: 2.6.3
 
-  '@aws-sdk/credential-provider-sso@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)':
+  '@aws-sdk/credential-provider-sso@3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))':
     dependencies:
       '@aws-sdk/client-sso': 3.598.0
-      '@aws-sdk/token-providers': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
+      '@aws-sdk/token-providers': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))
       '@aws-sdk/types': 3.598.0
       '@smithy/property-provider': 3.1.3
       '@smithy/shared-ini-file-loader': 3.1.3
@@ -14059,7 +14059,7 @@ snapshots:
 
   '@aws-sdk/credential-provider-web-identity@3.598.0(@aws-sdk/client-sts@3.598.0)':
     dependencies:
-      '@aws-sdk/client-sts': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
+      '@aws-sdk/client-sts': 3.598.0
       '@aws-sdk/types': 3.598.0
       '@smithy/property-provider': 3.1.3
       '@smithy/types': 3.3.0
@@ -14229,9 +14229,9 @@ snapshots:
       '@smithy/types': 3.3.0
       tslib: 2.6.3
 
-  '@aws-sdk/token-providers@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)':
+  '@aws-sdk/token-providers@3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))':
     dependencies:
-      '@aws-sdk/client-sso-oidc': 3.598.0
+      '@aws-sdk/client-sso-oidc': 3.598.0(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/types': 3.598.0
       '@smithy/property-provider': 3.1.3
       '@smithy/shared-ini-file-loader': 3.1.3
@@ -21362,24 +21362,6 @@ snapshots:
     dependencies:
       homedir-polyfill: 1.0.3
 
-  expect-webdriverio@4.14.0(encoding@0.1.13)(typescript@5.4.5):
-    dependencies:
-      '@vitest/snapshot': 1.6.0
-      expect: 29.7.0
-      jest-matcher-utils: 29.7.0
-      lodash.isequal: 4.5.0
-    optionalDependencies:
-      '@wdio/globals': 8.38.2(encoding@0.1.13)(typescript@5.4.5)
-      '@wdio/logger': 8.38.0
-      webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.4.5)
-    transitivePeerDependencies:
-      - bufferutil
-      - devtools
-      - encoding
-      - supports-color
-      - typescript
-      - utf-8-validate
-
   expect-webdriverio@4.15.1(encoding@0.1.13)(typescript@5.4.5):
     dependencies:
       '@vitest/snapshot': 1.6.0
@@ -21398,6 +21380,24 @@ snapshots:
       - typescript
       - utf-8-validate
     optional: true
+
+  expect-webdriverio@5.0.0-alpha.0(encoding@0.1.13)(typescript@5.4.5):
+    dependencies:
+      '@vitest/snapshot': 1.6.0
+      expect: 29.7.0
+      jest-matcher-utils: 29.7.0
+      lodash.isequal: 4.5.0
+    optionalDependencies:
+      '@wdio/globals': 8.38.2(encoding@0.1.13)(typescript@5.4.5)
+      '@wdio/logger': 8.38.0
+      webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.4.5)
+    transitivePeerDependencies:
+      - bufferutil
+      - devtools
+      - encoding
+      - supports-color
+      - typescript
+      - utf-8-validate
 
   expect@29.7.0:
     dependencies:
@@ -27734,7 +27734,7 @@ snapshots:
       deepmerge-ts: 5.1.0
       got: 12.6.1
       ky: 0.33.3
-      ws: 8.17.1
+      ws: 8.18.0
     transitivePeerDependencies:
       - bufferutil
       - supports-color
