@@ -189,6 +189,1615 @@ importers:
         specifier: ^1.2.2
         version: 1.6.0(@types/node@22.2.0)(jsdom@22.1.0)
 
+  packages/eslint-plugin-wdio:
+    devDependencies:
+      '@types/estree':
+        specifier: ^1.0.1
+        version: 1.0.5
+      eslint:
+        specifier: ^9.0.0
+        version: 9.4.0
+
+  packages/eslint-plugin-wdio/cjs: {}
+
+  packages/wdio-allure-reporter:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      allure-js-commons:
+        specifier: ^2.5.0
+        version: 2.15.1
+      csv-stringify:
+        specifier: ^6.0.4
+        version: 6.5.0
+      strip-ansi:
+        specifier: ^7.1.0
+        version: 7.1.0
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.7
+
+  packages/wdio-allure-reporter/cjs: {}
+
+  packages/wdio-appium-service:
+    dependencies:
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:../wdio-config
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      change-case:
+        specifier: ^5.4.3
+        version: 5.4.4
+      get-port:
+        specifier: ^7.0.0
+        version: 7.1.0
+      import-meta-resolve:
+        specifier: ^4.0.0
+        version: 4.1.0
+      tree-kill:
+        specifier: ^1.2.2
+        version: 1.2.2
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+
+  packages/wdio-browser-runner:
+    dependencies:
+      '@originjs/vite-plugin-commonjs':
+        specifier: ^1.0.3
+        version: 1.0.3
+      '@types/istanbul-lib-source-maps':
+        specifier: ^4.0.4
+        version: 4.0.4
+      '@vitest/spy':
+        specifier: ^1.4.0
+        version: 1.6.0
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+      '@wdio/local-runner':
+        specifier: workspace:*
+        version: link:../wdio-local-runner
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
+      '@wdio/runner':
+        specifier: workspace:*
+        version: link:../wdio-runner
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      deepmerge-ts:
+        specifier: ^7.0.3
+        version: 7.0.3
+      expect:
+        specifier: ^29.7.0
+        version: 29.7.0
+      expect-webdriverio:
+        specifier: ^4.12.2
+        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+      get-port:
+        specifier: ^7.1.0
+        version: 7.1.0
+      import-meta-resolve:
+        specifier: ^4.0.0
+        version: 4.1.0
+      istanbul-lib-coverage:
+        specifier: ^3.2.2
+        version: 3.2.2
+      istanbul-lib-report:
+        specifier: ^3.0.1
+        version: 3.0.1
+      istanbul-lib-source-maps:
+        specifier: ^5.0.4
+        version: 5.0.4
+      istanbul-reports:
+        specifier: ^3.1.7
+        version: 3.1.7
+      mlly:
+        specifier: ^1.6.1
+        version: 1.7.1
+      modern-node-polyfills:
+        specifier: ^1.0.0
+        version: 1.0.0(esbuild@0.21.5)(rollup@4.18.0)
+      recast:
+        specifier: ^0.23.6
+        version: 0.23.9
+      safe-stringify:
+        specifier: ^1.1.0
+        version: 1.1.0
+      source-map-support:
+        specifier: ^0.5.21
+        version: 0.5.21
+      vite:
+        specifier: ~5.3.1
+        version: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
+      vite-plugin-istanbul:
+        specifier: ^6.0.0
+        version: 6.0.2(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+      vite-plugin-top-level-await:
+        specifier: ^1.4.1
+        version: 1.4.1(rollup@4.18.0)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+      webdriver:
+        specifier: workspace:*
+        version: link:../webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+    devDependencies:
+      '@types/istanbul-lib-coverage':
+        specifier: ^2.0.6
+        version: 2.0.6
+      '@types/istanbul-lib-report':
+        specifier: ^3.0.3
+        version: 3.0.3
+      '@types/istanbul-reports':
+        specifier: ^3.0.4
+        version: 3.0.4
+      esbuild:
+        specifier: ^0.21.3
+        version: 0.21.5
+
+  packages/wdio-browserstack-service:
+    dependencies:
+      '@percy/appium-app':
+        specifier: ^2.0.1
+        version: 2.0.6
+      '@percy/selenium-webdriver':
+        specifier: ^2.0.3
+        version: 2.0.5
+      '@types/gitconfiglocal':
+        specifier: ^2.0.1
+        version: 2.0.3
+      '@wdio/cli':
+        specifier: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
+        version: 8.38.2(encoding@0.1.13)(typescript@5.4.5)
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      browserstack-local:
+        specifier: ^1.5.1
+        version: 1.5.5
+      chalk:
+        specifier: ^5.3.0
+        version: 5.3.0
+      csv-writer:
+        specifier: ^1.6.0
+        version: 1.6.0
+      formdata-node:
+        specifier: 5.0.1
+        version: 5.0.1
+      git-repo-info:
+        specifier: ^2.1.1
+        version: 2.1.1
+      gitconfiglocal:
+        specifier: ^2.1.0
+        version: 2.1.0
+      uuid:
+        specifier: ^10.0.0
+        version: 10.0.0
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+      winston-transport:
+        specifier: ^4.5.0
+        version: 4.7.0
+      yauzl:
+        specifier: ^3.0.0
+        version: 3.1.3
+    devDependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+      '@types/yauzl':
+        specifier: ^2.10.3
+        version: 2.10.3
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+
+  packages/wdio-cli:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.1
+        version: 20.14.2
+      '@vitest/snapshot':
+        specifier: ^1.2.1
+        version: 1.6.0
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:../wdio-config
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      async-exit-hook:
+        specifier: ^2.0.1
+        version: 2.0.1
+      chalk:
+        specifier: ^5.2.0
+        version: 5.3.0
+      chokidar:
+        specifier: ^3.5.3
+        version: 3.6.0
+      cli-spinners:
+        specifier: ^3.0.0
+        version: 3.0.0
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.3.2
+      ejs:
+        specifier: ^3.1.9
+        version: 3.1.10
+      execa:
+        specifier: ^9.2.0
+        version: 9.2.0
+      import-meta-resolve:
+        specifier: ^4.0.0
+        version: 4.1.0
+      inquirer:
+        specifier: 9.3.2
+        version: 9.3.2
+      lodash.flattendeep:
+        specifier: ^4.4.0
+        version: 4.4.0
+      lodash.pickby:
+        specifier: ^4.6.0
+        version: 4.6.0
+      lodash.union:
+        specifier: ^4.6.0
+        version: 4.6.0
+      read-pkg-up:
+        specifier: ^10.0.0
+        version: 10.0.0
+      recursive-readdir:
+        specifier: ^2.2.3
+        version: 2.2.3
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+      yargs:
+        specifier: ^17.7.2
+        version: 17.7.2
+    devDependencies:
+      '@types/async-exit-hook':
+        specifier: ^2.0.0
+        version: 2.0.2
+      '@types/ejs':
+        specifier: ^3.1.2
+        version: 3.1.5
+      '@types/inquirer':
+        specifier: ^9.0.3
+        version: 9.0.7
+      '@types/lodash.flattendeep':
+        specifier: ^4.4.7
+        version: 4.4.9
+      '@types/lodash.pickby':
+        specifier: ^4.6.7
+        version: 4.6.9
+      '@types/lodash.union':
+        specifier: ^4.6.7
+        version: 4.6.9
+      '@types/recursive-readdir':
+        specifier: ^2.2.1
+        version: 2.2.4
+      '@types/yargs':
+        specifier: ^17.0.24
+        version: 17.0.32
+
+  packages/wdio-concise-reporter:
+    dependencies:
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      chalk:
+        specifier: ^5.0.1
+        version: 5.3.0
+      pretty-ms:
+        specifier: ^9.0.0
+        version: 9.0.0
+
+  packages/wdio-config:
+    dependencies:
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      decamelize:
+        specifier: ^6.0.0
+        version: 6.0.0
+      deepmerge-ts:
+        specifier: ^7.0.3
+        version: 7.0.3
+      glob:
+        specifier: ^10.2.2
+        version: 10.4.1
+      import-meta-resolve:
+        specifier: ^4.0.0
+        version: 4.1.0
+    devDependencies:
+      minimatch:
+        specifier: ^9.0.0
+        version: 9.0.4
+
+  packages/wdio-cucumber-framework:
+    dependencies:
+      '@cucumber/cucumber':
+        specifier: ^10.3.1
+        version: 10.8.0
+      '@cucumber/gherkin':
+        specifier: 28.0.0
+        version: 28.0.0
+      '@cucumber/messages':
+        specifier: 24.1.0
+        version: 24.1.0
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      glob:
+        specifier: ^10.2.2
+        version: 10.4.1
+      is-glob:
+        specifier: ^4.0.0
+        version: 4.0.3
+    devDependencies:
+      '@types/is-glob':
+        specifier: ^4.0.1
+        version: 4.0.4
+
+  packages/wdio-dot-reporter:
+    dependencies:
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      chalk:
+        specifier: ^5.0.1
+        version: 5.3.0
+    devDependencies:
+      '@types/tmp':
+        specifier: ^0.2.3
+        version: 0.2.6
+      tmp:
+        specifier: ^0.2.1
+        version: 0.2.3
+
+  packages/wdio-firefox-profile-service:
+    dependencies:
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      firefox-profile:
+        specifier: ^4.5.0
+        version: 4.6.0
+
+  packages/wdio-globals:
+    optionalDependencies:
+      expect-webdriverio:
+        specifier: ^4.11.2
+        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+
+  packages/wdio-globals/cjs: {}
+
+  packages/wdio-jasmine-framework:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      expect-webdriverio:
+        specifier: ^4.11.2
+        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+      jasmine:
+        specifier: ^5.0.0
+        version: 5.1.0
+    devDependencies:
+      '@types/jasmine':
+        specifier: 5.1.4
+        version: 5.1.4
+
+  packages/wdio-json-reporter:
+    dependencies:
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+
+  packages/wdio-junit-reporter:
+    dependencies:
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      json-stringify-safe:
+        specifier: ^5.0.1
+        version: 5.0.1
+      junit-report-builder:
+        specifier: ^3.0.0
+        version: 3.2.1
+    devDependencies:
+      '@types/json-stringify-safe':
+        specifier: ^5.0.0
+        version: 5.0.3
+
+  packages/wdio-lighthouse-service:
+    dependencies:
+      '@babel/core':
+        specifier: ^7.18.0
+        version: 7.24.7
+      '@tracerbench/trace-event':
+        specifier: ^8.0.0
+        version: 8.0.0
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      babel-plugin-istanbul:
+        specifier: ^6.1.1
+        version: 6.1.1
+      devtools-protocol:
+        specifier: ^0.0.1312386
+        version: 0.0.1312386
+      istanbul-lib-coverage:
+        specifier: ^3.2.0
+        version: 3.2.2
+      istanbul-lib-report:
+        specifier: ^3.0.0
+        version: 3.0.1
+      istanbul-reports:
+        specifier: ^3.1.4
+        version: 3.1.7
+      lighthouse:
+        specifier: 8.6.0
+        version: 8.6.0
+      puppeteer-core:
+        specifier: 22.12.1
+        version: 22.12.1
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+    devDependencies:
+      '@types/babel__core':
+        specifier: ^7.1.19
+        version: 7.20.5
+      '@types/istanbul-lib-coverage':
+        specifier: ^2.0.6
+        version: 2.0.6
+      '@types/istanbul-lib-report':
+        specifier: ^3.0.0
+        version: 3.0.3
+      '@types/istanbul-reports':
+        specifier: ^3.0.4
+        version: 3.0.4
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+
+  packages/wdio-local-runner:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/repl':
+        specifier: workspace:*
+        version: link:../wdio-repl
+      '@wdio/runner':
+        specifier: workspace:*
+        version: link:../wdio-runner
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      async-exit-hook:
+        specifier: ^2.0.1
+        version: 2.0.1
+      split2:
+        specifier: ^4.1.0
+        version: 4.2.0
+      stream-buffers:
+        specifier: ^3.0.2
+        version: 3.0.2
+    devDependencies:
+      '@types/async-exit-hook':
+        specifier: ^2.0.0
+        version: 2.0.2
+      '@types/stream-buffers':
+        specifier: ^3.0.4
+        version: 3.0.7
+
+  packages/wdio-logger:
+    dependencies:
+      chalk:
+        specifier: ^5.1.2
+        version: 5.3.0
+      loglevel:
+        specifier: ^1.6.0
+        version: 1.9.1
+      loglevel-plugin-prefix:
+        specifier: ^0.8.4
+        version: 0.8.4
+      strip-ansi:
+        specifier: ^7.1.0
+        version: 7.1.0
+
+  packages/wdio-mocha-framework:
+    dependencies:
+      '@types/mocha':
+        specifier: ^10.0.6
+        version: 10.0.6
+      '@types/node':
+        specifier: ^20.11.28
+        version: 20.14.2
+      '@wdio/logger':
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../wdio-utils
+      mocha:
+        specifier: ^10.3.0
+        version: 10.4.0
+
+  packages/wdio-protocols: {}
+
+  packages/wdio-repl:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+
+  packages/wdio-reporter:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      diff:
+        specifier: ^5.0.0
+        version: 5.2.0
+      object-inspect:
+        specifier: ^1.12.0
+        version: 1.13.1
+    devDependencies:
+      '@types/diff':
+        specifier: ^5.0.2
+        version: 5.2.1
+      '@types/object-inspect':
+        specifier: ^1.8.1
+        version: 1.13.0
+      '@types/supports-color':
+        specifier: ^8.1.1
+        version: 8.1.3
+      '@types/tmp':
+        specifier: ^0.2.3
+        version: 0.2.6
+      tmp:
+        specifier: ^0.2.1
+        version: 0.2.3
+
+  packages/wdio-reporter/cjs: {}
+
+  packages/wdio-runner:
+    dependencies:
+      '@types/node':
+        specifier: ^20.11.28
+        version: 20.14.2
+      '@wdio/config':
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../wdio-config
+      '@wdio/globals':
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../wdio-globals
+      '@wdio/logger':
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../wdio-utils
+      deepmerge-ts:
+        specifier: ^7.0.3
+        version: 7.0.3
+      expect-webdriverio:
+        specifier: ^4.12.0
+        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+      gaze:
+        specifier: ^1.1.3
+        version: 1.1.3
+      webdriver:
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../webdriver
+      webdriverio:
+        specifier: workspace:9.0.0-alpha.0
+        version: link:../webdriverio
+
+  packages/wdio-sauce-service:
+    dependencies:
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      ip:
+        specifier: ^2.0.1
+        version: 2.0.1
+      saucelabs:
+        specifier: 7.5.0
+        version: 7.5.0
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+    devDependencies:
+      '@types/ip':
+        specifier: ^1.1.0
+        version: 1.1.3
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+
+  packages/wdio-shared-store-service:
+    dependencies:
+      '@polka/parse':
+        specifier: ^1.0.0-next.0
+        version: 1.0.0-next.0
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      polka:
+        specifier: ^0.5.2
+        version: 0.5.2
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+    devDependencies:
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+
+  packages/wdio-smoke-test-cjs-service:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+
+  packages/wdio-smoke-test-reporter:
+    dependencies:
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+
+  packages/wdio-smoke-test-service:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+
+  packages/wdio-smoke-test-service/cjs: {}
+
+  packages/wdio-spec-reporter:
+    dependencies:
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      chalk:
+        specifier: ^5.1.2
+        version: 5.3.0
+      easy-table:
+        specifier: ^1.2.0
+        version: 1.2.0
+      pretty-ms:
+        specifier: ^9.0.0
+        version: 9.0.0
+
+  packages/wdio-static-server-service:
+    dependencies:
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      express:
+        specifier: ^4.14.0
+        version: 4.19.2
+      morgan:
+        specifier: ^1.7.0
+        version: 1.10.0
+    devDependencies:
+      '@types/express':
+        specifier: ^4.17.8
+        version: 4.17.21
+      '@types/morgan':
+        specifier: ^1.9.1
+        version: 1.9.9
+
+  packages/wdio-sumologic-reporter:
+    dependencies:
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      dateformat:
+        specifier: 4.5.1
+        version: 4.5.1
+      json-stringify-safe:
+        specifier: ^5.0.1
+        version: 5.0.1
+    devDependencies:
+      '@types/dateformat':
+        specifier: ^5.0.0
+        version: 5.0.2
+      '@types/json-stringify-safe':
+        specifier: ^5.0.0
+        version: 5.0.3
+
+  packages/wdio-testingbot-service:
+    dependencies:
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      testingbot-tunnel-launcher:
+        specifier: ^1.1.7
+        version: 1.1.12
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+    devDependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+
+  packages/wdio-types:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+
+  packages/wdio-utils:
+    dependencies:
+      '@puppeteer/browsers':
+        specifier: ^2.2.0
+        version: 2.2.3
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      decamelize:
+        specifier: ^6.0.0
+        version: 6.0.0
+      deepmerge-ts:
+        specifier: ^7.0.3
+        version: 7.0.3
+      edgedriver:
+        specifier: ^5.5.0
+        version: 5.6.0
+      geckodriver:
+        specifier: ^4.3.3
+        version: 4.4.1
+      get-port:
+        specifier: ^7.0.0
+        version: 7.1.0
+      import-meta-resolve:
+        specifier: ^4.0.0
+        version: 4.1.0
+      locate-app:
+        specifier: ^2.2.24
+        version: 2.4.15
+      safaridriver:
+        specifier: ^0.1.2
+        version: 0.1.2
+      split2:
+        specifier: ^4.2.0
+        version: 4.2.0
+      wait-port:
+        specifier: ^1.1.0
+        version: 1.1.0
+
+  packages/wdio-webdriver-mock-service:
+    dependencies:
+      '@types/uuid':
+        specifier: ^9.0.0
+        version: 9.0.8
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      nock:
+        specifier: 14.0.0-beta.6
+        version: 14.0.0-beta.6
+      uuid:
+        specifier: ^10.0.0
+        version: 10.0.0
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
+    devDependencies:
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+
+  packages/webdriver:
+    dependencies:
+      '@types/node':
+        specifier: ^20.1.0
+        version: 20.14.2
+      '@types/ws':
+        specifier: ^8.5.3
+        version: 8.5.10
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:../wdio-config
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      deepmerge-ts:
+        specifier: ^7.0.3
+        version: 7.0.3
+      ws:
+        specifier: ^8.8.0
+        version: 8.17.0
+
+  packages/webdriverio:
+    dependencies:
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.14.2
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:../wdio-config
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
+      '@wdio/repl':
+        specifier: workspace:*
+        version: link:../wdio-repl
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../wdio-utils
+      archiver:
+        specifier: ^7.0.1
+        version: 7.0.1
+      aria-query:
+        specifier: ^5.3.0
+        version: 5.3.0
+      cheerio:
+        specifier: ^1.0.0-rc.12
+        version: 1.0.0-rc.12
+      css-shorthand-properties:
+        specifier: ^1.1.1
+        version: 1.1.1
+      css-value:
+        specifier: ^0.0.1
+        version: 0.0.1
+      grapheme-splitter:
+        specifier: ^1.0.4
+        version: 1.0.4
+      htmlfy:
+        specifier: ^0.2.1
+        version: 0.2.1
+      import-meta-resolve:
+        specifier: ^4.0.0
+        version: 4.1.0
+      is-plain-obj:
+        specifier: ^4.1.0
+        version: 4.1.0
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
+      lodash.clonedeep:
+        specifier: ^4.5.0
+        version: 4.5.0
+      lodash.zip:
+        specifier: ^4.2.0
+        version: 4.2.0
+      minimatch:
+        specifier: ^9.0.3
+        version: 9.0.4
+      query-selector-shadow-dom:
+        specifier: ^1.0.1
+        version: 1.0.1
+      resq:
+        specifier: ^1.11.0
+        version: 1.11.0
+      rgb2hex:
+        specifier: 0.2.5
+        version: 0.2.5
+      serialize-error:
+        specifier: ^11.0.3
+        version: 11.0.3
+      urlpattern-polyfill:
+        specifier: ^10.0.0
+        version: 10.0.0
+      webdriver:
+        specifier: workspace:*
+        version: link:../webdriver
+    devDependencies:
+      '@types/archiver':
+        specifier: ^6.0.2
+        version: 6.0.2
+      '@types/aria-query':
+        specifier: ^5.0.4
+        version: 5.0.4
+      '@types/lodash.clonedeep':
+        specifier: ^4.5.9
+        version: 4.5.9
+      '@types/lodash.zip':
+        specifier: ^4.2.9
+        version: 4.2.9
+      puppeteer-core:
+        specifier: ^22.6.1
+        version: 22.10.0
+
+  tests:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-browserstack-service
+      '@wdio/cli':
+        specifier: workspace:*
+        version: link:../packages/wdio-cli
+      '@wdio/concise-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-concise-reporter
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:../packages/wdio-config
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../packages/wdio-cucumber-framework
+      '@wdio/dot-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-dot-reporter
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../packages/wdio-jasmine-framework
+      '@wdio/junit-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-junit-reporter
+      '@wdio/lighthouse-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-lighthouse-service
+      '@wdio/local-runner':
+        specifier: workspace:*
+        version: link:../packages/wdio-local-runner
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../packages/wdio-logger
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../packages/wdio-protocols
+      '@wdio/repl':
+        specifier: workspace:*
+        version: link:../packages/wdio-repl
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-reporter
+      '@wdio/runner':
+        specifier: workspace:*
+        version: link:../packages/wdio-runner
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-shared-store-service
+      '@wdio/smoke-test-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-smoke-test-reporter
+      '@wdio/smoke-test-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-smoke-test-service
+      '@wdio/spec-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-spec-reporter
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-testingbot-service
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../packages/wdio-utils
+      '@wdio/webdriver-mock-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-webdriver-mock-service
+      webdriver:
+        specifier: workspace:*
+        version: link:../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../packages/webdriverio
+
+  tests/interop:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../packages/wdio-allure-reporter
+      '@wdio/cli':
+        specifier: workspace:*
+        version: link:../../packages/wdio-cli
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../packages/wdio-cucumber-framework
+      '@wdio/local-runner':
+        specifier: workspace:*
+        version: link:../../packages/wdio-local-runner
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../packages/wdio-reporter
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../packages/wdio-shared-store-service
+      webdriver:
+        specifier: workspace:*
+        version: link:../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../packages/webdriverio
+
+  tests/mocha/cjs: {}
+
+  tests/typings/cucumber:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/lighthouse-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-lighthouse-service
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  tests/typings/jasmine:
+    dependencies:
+      '@types/jasmine':
+        specifier: ^5.1.4
+        version: 5.1.4
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/lighthouse-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-lighthouse-service
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      expect-webdriverio:
+        specifier: ^4.13.0
+        version: 4.14.0(encoding@0.1.13)(typescript@5.4.5)
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  tests/typings/mocha:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/lighthouse-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-lighthouse-service
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  tests/typings/webdriver:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/lighthouse-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-lighthouse-service
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  tests/typings/webdriverio:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-allure-reporter
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-appium-service
+      '@wdio/browser-runner':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browser-runner
+      '@wdio/browserstack-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-browserstack-service
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-cucumber-framework
+      '@wdio/firefox-profile-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-firefox-profile-service
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-jasmine-framework
+      '@wdio/lighthouse-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-lighthouse-service
+      '@wdio/mocha-framework':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-mocha-framework
+      '@wdio/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-reporter
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sauce-service
+      '@wdio/shared-store-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-shared-store-service
+      '@wdio/static-server-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-static-server-service
+      '@wdio/sumologic-reporter':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-sumologic-reporter
+      '@wdio/testingbot-service':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-testingbot-service
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-utils
+      webdriver:
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
+      webdriverio:
+        specifier: workspace:*
+        version: link:../../../packages/webdriverio
+
+  website:
+    dependencies:
+      '@docusaurus/core':
+        specifier: ^3.3.2
+        version: 3.4.0(@docusaurus/types@3.4.0(@swc/core@1.5.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@swc/core@1.5.27)(eslint@9.4.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5)(vue-template-compiler@2.7.16)
+      '@docusaurus/module-type-aliases':
+        specifier: ^3.3.2
+        version: 3.4.0(@swc/core@1.5.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@docusaurus/plugin-client-redirects':
+        specifier: ^3.3.2
+        version: 3.4.0(@docusaurus/types@3.4.0(@swc/core@1.5.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@swc/core@1.5.27)(eslint@9.4.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5)(vue-template-compiler@2.7.16)
+      '@docusaurus/plugin-google-analytics':
+        specifier: ^3.3.2
+        version: 3.4.0(@swc/core@1.5.27)(eslint@9.4.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5)(vue-template-compiler@2.7.16)
+      '@docusaurus/plugin-ideal-image':
+        specifier: ^3.3.2
+        version: 3.4.0(@swc/core@1.5.27)(eslint@9.4.0)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5)(vue-template-compiler@2.7.16)
+      '@docusaurus/plugin-pwa':
+        specifier: ^3.3.2
+        version: 3.4.0(@swc/core@1.5.27)(@types/babel__core@7.20.5)(eslint@9.4.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5)(vue-template-compiler@2.7.16)
+      '@docusaurus/preset-classic':
+        specifier: ^3.3.2
+        version: 3.4.0(@algolia/client-search@4.23.3)(@swc/core@1.5.27)(@types/react@18.3.3)(eslint@9.4.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.14.0)(typescript@5.4.5)(vue-template-compiler@2.7.16)
+      '@docusaurus/remark-plugin-npm2yarn':
+        specifier: ^3.3.2
+        version: 3.4.0
+      '@docusaurus/theme-search-algolia':
+        specifier: ^3.3.2
+        version: 3.4.0(@algolia/client-search@4.23.3)(@docusaurus/types@3.4.0(@swc/core@1.5.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@swc/core@1.5.27)(@types/react@18.3.3)(eslint@9.4.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.14.0)(typescript@5.4.5)(vue-template-compiler@2.7.16)
+      '@docusaurus/tsconfig':
+        specifier: ^3.3.2
+        version: 3.4.0
+      '@mdx-js/react':
+        specifier: ^3.0.1
+        version: 3.0.1(@types/react@18.3.3)(react@18.3.1)
+      '@mendable/search':
+        specifier: ^0.0.206
+        version: 0.0.206(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tsconfig/docusaurus':
+        specifier: ^2.0.3
+        version: 2.0.3
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      docusaurus-theme-github-codeblock:
+        specifier: ^2.0.2
+        version: 2.0.2(@swc/core@1.5.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      react-lite-youtube-embed:
+        specifier: ^2.4.0
+        version: 2.4.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.4.5
+      workbox-routing:
+        specifier: ^7.1.0
+        version: 7.1.0
+      workbox-strategies:
+        specifier: ^7.1.0
+        version: 7.1.0
+    devDependencies:
+      '@docusaurus/theme-common':
+        specifier: ^3.3.2
+        version: 3.4.0(@docusaurus/types@3.4.0(@swc/core@1.5.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@swc/core@1.5.27)(eslint@9.4.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5)(vue-template-compiler@2.7.16)
+
 packages:
 
   '@ampproject/remapping@2.3.0':
@@ -4884,6 +6493,10 @@ packages:
   tr46@4.1.1:
     resolution: {integrity: sha512-2lv/66T7e5yNyhAAC4NaKe5nVavzuGJQVVtRYLyQ2OI8tsJ61PMLlelehb0wi2Hx6+hT/OJUWZcw8MjlSRnxvw==}
     engines: {node: '>=14'}
+
+  tree-kill@1.2.2:
+    resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
+    hasBin: true
 
   trim-newlines@3.0.1:
     resolution: {integrity: sha512-c1PTsA3tYrIsLGkJkzHF+w9F2EyxfXGo4UyJc4pFL++FMjnq0HJS69T3M7d//gKrFKwy429bouPescbjecU+Zw==}
@@ -11535,6 +13148,8 @@ snapshots:
   tr46@4.1.1:
     dependencies:
       punycode: 2.3.1
+
+  tree-kill@1.2.2: {}
 
   trim-newlines@3.0.1: {}
 
