@@ -17,6 +17,7 @@ describe('elements', () => {
         })
 
         const elems = await browser.$$('.foo')
+        expect(elems).toBe(await elems.getElements())
         expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('POST')
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
@@ -46,7 +47,7 @@ describe('elements', () => {
 
         expect(elems.parent).toBe(browser)
         expect(elems.selector).toBe('.foo')
-        expect(elems.foundWith).toBe('$$')
+        expect((await elems.getElements()).foundWith).toBe('$$')
     })
 
     it('keeps prototype from browser object', async () => {

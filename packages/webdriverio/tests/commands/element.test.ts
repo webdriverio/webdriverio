@@ -7,11 +7,14 @@ import { remote } from '../../src/index.js'
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+const IGNORED_COMMANDS = ['getElements']
+
 const scope = 'element'
 const dir = path.resolve(__dirname, '../..', 'src', 'commands', scope)
 const files = fs
     .readdirSync(dir)
     .map(f => path.basename(f, path.extname(f)))
+    .filter((f) => !IGNORED_COMMANDS.includes(f))
 
 test(scope + ' commands list and strategies', () => {
     const prototype = Object.keys(getPrototype(scope))
@@ -30,5 +33,6 @@ test('no browser commands in element scope', async () => {
 
     const elem = await browser.$('#foo')
     expect(typeof elem.addValue).toBe('function')
+    // @ts-expect-error not existing command on element
     expect(typeof elem.setCookies).toBe('undefined')
 })

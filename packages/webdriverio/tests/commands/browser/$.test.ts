@@ -17,6 +17,7 @@ describe('element', () => {
         })
 
         const elem = await browser.$('#foo')
+        expect(elem).toBe(await elem.getElement())
         expect(vi.mocked(fetch).mock.calls[1][1]!.method)
             .toBe('POST')
         // @ts-expect-error mock implementation

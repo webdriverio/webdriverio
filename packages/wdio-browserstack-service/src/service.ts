@@ -390,7 +390,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
         const desiredCapabilities = (this._caps ?? {})
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app']
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)
     }
 
     _updateJob (requestBody: any) {
