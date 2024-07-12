@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
+import treeKill from 'tree-kill'
 import { spawn } from 'node:child_process'
 import type cp from 'node:child_process'
 import getPort from 'get-port'
@@ -35,6 +36,10 @@ vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue(
 
 vi.mock('get-port', () => ({
     default: vi.fn().mockResolvedValue(4723)
+}))
+
+vi.mock('tree-kill', () => ({
+    default: vi.fn((pid, signal, callback) => callback(null))
 }))
 
 class MockProcess {
@@ -627,7 +632,7 @@ describe('Appium launcher', () => {
             await launcher.onPrepare()
             launcher['_process']!.kill = vi.fn()
             launcher.onComplete()
-            expect(launcher['_process']!.kill).toBeCalled()
+            expect(treeKill).toHaveBeenCalled()
         })
 
         test('should not call process.kill', () => {
