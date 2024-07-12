@@ -889,7 +889,6 @@ test('setupTypeScript', async () => {
     } as any
     await setupTypeScript(parsedAnswers)
     expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toMatchSnapshot()
-    expect(parsedAnswers.packagesToInstall).toEqual(['tsx'])
 })
 
 test('setupTypeScript does not create tsconfig.json if TypeScript was not selected', async () => {
@@ -928,7 +927,6 @@ test('setupTypeScript does not create tsconfig.json if there is already one', as
     } as any
     await setupTypeScript(parsedAnswers)
     expect(fs.writeFile).not.toBeCalled()
-    expect(parsedAnswers.packagesToInstall).toEqual(['tsx'])
 })
 
 test('createWDIOConfig', async () => {

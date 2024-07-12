@@ -9,7 +9,15 @@ import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
 import type WebDriverInterception from './utils/interception/index.js'
 
+/**
+ * export mock primitives
+ */
 export * from './utils/interception/types.js'
+/**
+ * re-export action primitives
+ */
+export * from './utils/actions/index.js'
+
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
 
@@ -134,11 +142,33 @@ export type MultiRemoteProtocolCommandsType = {
 }
 
 interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof AsyncIterators<WebdriverIO.Element>>, AsyncIterators<WebdriverIO.Element> {
+    /**
+     * selector used to fetch this element, can be
+     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
+     * - a string if `findElement` was used and a reference was found
+     * - or a function if element was found via e.g. `$(() => document.body)`
+     */
     selector: Selector
+    /**
+     * parent of the element if fetched via `$(parent).$(child)`
+     */
     parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    /**
+     * command name with which this element was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`
+     */
     foundWith: string
+    /**
+     * properties of the fetched elements
+     */
     props: any[]
+    /**
+     * Amount of element fetched.
+     */
     length: number
+    /**
+     * get the `WebdriverIO.Element[]` list
+     */
+    getElements(): Promise<WebdriverIO.ElementArray>
 }
 export type ElementArray = ElementArrayExport
 
