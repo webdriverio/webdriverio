@@ -164,6 +164,7 @@ export interface BrowserstackConfig {
      * @default false
     */
     turboScale?: boolean;
+    selfHeal?: boolean;
 }
 
 /**

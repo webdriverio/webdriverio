@@ -70,6 +70,8 @@ export const LOG_KIND_USAGE_MAP = {
 
 export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'
 
+export const TCG_URL = 'https://tcg.browserstack.com'
+
 // Env variables - Define all the env variable constants over here
 
 // To store the JWT token returned the session launch

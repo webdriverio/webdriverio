@@ -114,18 +114,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._browser = browser ? browser : globalThis.browser
 
         const readTcgAuthConfigToGlobal = () => {
-            const browserstackFolderPath: any = path.join('tmp')
-            const tcgConfigPath: any = path.join(browserstackFolderPath, 'tcgConfig.json')
+            const browserstackFolderPath = path.join('tmp')
+            const tcgConfigPath = path.join(browserstackFolderPath, 'tcgConfig.json')
             try {
-                const tcgConfig: any = JSON.parse(fs.readFileSync(tcgConfigPath).toString())
-                const aiHealConfig: any = tcgConfig
+                const tcgConfig = JSON.parse(fs.readFileSync(tcgConfigPath).toString())
                 return {
                     sessionToken: tcgConfig.sessionToken,
                     isAuthenticated : tcgConfig.isAuthenticated,
                     groupID: tcgConfig.groupId,
                     userID: tcgConfig.userId,
                     groupAIEnabled: tcgConfig.groupAIEnabled,
-                    isHealingEnabled: aiHealConfig.isHealingEnabled
+                    isHealingEnabled: tcgConfig.isHealingEnabled
                 }
             } catch (err){
             //   logger.debug(`Cound not setup tcgAuth config file due to error: ${err}`)
@@ -178,7 +177,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     const result: any = await orginalFunc(using, value)
                     let script: string = await aiSDK.BrowserstackHealing.logData(using1, value1, undefined, undefined, authInfo.groupID, sessionId, undefined, tcgDetails)
                     if (script) {
-                        console.log('Executing logData script' + script)
+                        console.log('Executing logData script: ' + script)
                         await browser.execute(script)
                     }
                     if (!result.error) {
@@ -187,7 +186,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     script = await aiSDK.BrowserstackHealing.healFailure(using1, value1, undefined, undefined, authInfo.userID, authInfo.groupID, sessionId, undefined, undefined, authInfo.groupAIEnabled, tcgDetails)
                     if (script) {
                         await browser.execute(script)
-                        console.log('Executing healing script' + script)
+                        console.log('Executing healing script: ' + script)
                         const tcgData: any = await aiSDK.BrowserstackHealing.pollResult('https://tcg.browserstack.com', sessionId, authInfo.sessionToken)
                         if (tcgData && tcgData.selector && tcgData.value){
                             const result2: any = await orginalFunc(tcgData.selector, tcgData.value)

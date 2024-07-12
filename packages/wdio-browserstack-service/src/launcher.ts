@@ -21,7 +21,8 @@ import {
     BSTACK_SERVICE_VERSION,
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
     TESTOPS_BUILD_ID_ENV,
-    VALID_APP_EXTENSION
+    VALID_APP_EXTENSION,
+    TCG_URL
 } from './constants.js'
 import {
     launchTestSession,
@@ -30,6 +31,7 @@ import {
     stopBuildUpstream,
     getCiInfo,
     isBStackSession,
+    isBrowserstackInfra,
     isUndefined,
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
@@ -208,13 +210,25 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         }
 
-        const authResult = await aiSDK.BrowserstackHealing.init(process.env.BROWSERSTACK_ACCESS_KEY, process.env.BROWSERSTACK_USERNAME, 'https://tcg.browserstack.com', '9.0.0')
+        if (!isBrowserstackInfra(this._options)) {
+            const wdioBrowserStackServiceVersion = (await import('../package.json', { assert: { type: 'json' } })).default.version
+            if (this._config.user && this._config.key) {
+                const authResult = await aiSDK.BrowserstackHealing.init(this._config.key, this._config.user, TCG_URL, wdioBrowserStackServiceVersion)
+                if ('userId' in authResult) {
 
-        const { isAuthenticated, userId, groupId, sessionToken, isGroupAIEnabled, isHealingEnabled } = authResult
-        console.log(`isAuthenticated: ${isAuthenticated}, userId: ${userId}, groupId: ${groupId}, sessionToken: ${sessionToken}, isGroupAIEnabled: ${isGroupAIEnabled}, isHealingEnabled: ${isHealingEnabled}`)
-        setupTcgConfigFile(authResult)
-        if (isAuthenticated && isHealingEnabled) {
-            caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
+                    const { isAuthenticated, userId, groupId, sessionToken, isGroupAIEnabled, isHealingEnabled } = authResult
+                    console.log(`isAuthenticated: ${isAuthenticated}, userId: ${userId}, groupId: ${groupId}, sessionToken: ${sessionToken}, isGroupAIEnabled: ${isGroupAIEnabled}, isHealingEnabled: ${isHealingEnabled}`)
+
+                    console.log(`Authenticated! User ID: ${authResult.userId}`)
+                    setupTcgConfigFile(authResult)
+                    if (authResult.isAuthenticated && authResult.isHealingEnabled) {
+                        caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
+                    }
+                } else if (this._options.selfHeal === true) {
+                    console.log(`Healing Auth failed. Disabling healing for this session. Reason: ${authResult.message}`)
+                }
+
+            }
         }
     }
 
