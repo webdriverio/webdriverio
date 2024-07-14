@@ -193,7 +193,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } catch (err: unknown) {
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
-        const setupTcgConfigFile = (tcgConfig: any) => {
+        const setupTcgConfigFile = async (tcgConfig: any) => {
             try {
                 const browserstackFolderPath: any = path.join('tmp')
                 if (!fs.existsSync(browserstackFolderPath)){
@@ -220,7 +220,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     console.log(`isAuthenticated: ${isAuthenticated}, userId: ${userId}, groupId: ${groupId}, sessionToken: ${sessionToken}, isGroupAIEnabled: ${isGroupAIEnabled}, isHealingEnabled: ${isHealingEnabled}`)
 
                     console.log(`Authenticated! User ID: ${authResult.userId}`)
-                    setupTcgConfigFile(authResult)
+                    await setupTcgConfigFile(authResult)
                     if (authResult.isAuthenticated && authResult.isHealingEnabled) {
                         caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
                     }

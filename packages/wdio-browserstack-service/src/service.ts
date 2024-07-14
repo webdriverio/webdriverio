@@ -17,7 +17,7 @@ import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScale
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
-import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants.js'
+import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV, TCG_URL } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import AccessibilityHandler from './accessibility-handler.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -150,49 +150,49 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return (isNotUndefinedOrNull(val) && typeof val === 'string')
         }
 
-        const authInfo:any = readTcgAuthConfigToGlobal()
-        const isAuthenticated:any = authInfo.isAuthenticated
-        const isHealingEnabled:any = authInfo.isHealingEnabled
+        const authInfo: any = readTcgAuthConfigToGlobal()
+        const isAuthenticated = authInfo.isAuthenticated
+        const isHealingEnabled = authInfo.isHealingEnabled
         if (isAuthenticated && isHealingEnabled) {
             console.log('User is authenticated')
-            const sessionToken: any = authInfo.sessionToken
-            const resp: any = await aiSDK.BrowserstackHealing.setToken(this._browser.sessionId, sessionToken, 'https://tcg.browserstack.com')
+            const sessionToken = authInfo.sessionToken
+            const resp = await aiSDK.BrowserstackHealing.setToken(this._browser.sessionId, sessionToken, TCG_URL)
             console.log('Response from setToken: ', resp)
 
             const browser:any = this._browser as WebdriverIO.Browser
             browser.overwriteCommand('findElement', async (orginalFunc:any, using: any, value: any) => {
                 // const browser = this._browser as WebdriverIO.Browser
-                const sessionId: any = browser.sessionId
+                const sessionId = browser.sessionId
                 console.log('HEALING!!!!, patching find element')
-                const constants:any = {
+                const constants = {
                     tcgRegion: 'use',
-                    tcgUrl: 'https://tcg.browserstack.com',
+                    tcgUrl: TCG_URL,
                 }
                 let tcgDetails = `{"region": "${constants.tcgRegion}", "tcgUrls": {"${constants.tcgRegion}": {"endpoint": "${constants.tcgUrl.split('s://')[1]}"}}}`
                 tcgDetails = isNotUndefinedOrNull(tcgDetails) && isString(tcgDetails) ? tcgDetails.replace(/'/g, '\\\'').replace(/"/g, '\\"') : ''
-                const using1: string = isNotUndefinedOrNull(using) && isString(using) ? using.replace(/'/g, '\\\'').replace(/"/g, '\\"') : ''
-                const value1: string = isNotUndefinedOrNull(value) && isString(value) ? value.replace(/'/g, '\\\'').replace(/"/g, '\\"') : ''
+                const locatorType = isNotUndefinedOrNull(using) && isString(using) ? using.replace(/'/g, '\\\'').replace(/"/g, '\\"') : ''
+                const locatorValue = isNotUndefinedOrNull(value) && isString(value) ? value.replace(/'/g, '\\\'').replace(/"/g, '\\"') : ''
                 try {
 
-                    const result: any = await orginalFunc(using, value)
-                    let script: string = await aiSDK.BrowserstackHealing.logData(using1, value1, undefined, undefined, authInfo.groupID, sessionId, undefined, tcgDetails)
-                    if (script) {
-                        console.log('Executing logData script: ' + script)
-                        await browser.execute(script)
-                    }
+                    const result = await orginalFunc(using, value)
                     if (!result.error) {
+                        const script = await aiSDK.BrowserstackHealing.logData(locatorType, locatorValue, undefined, undefined, authInfo.groupID, sessionId, undefined, tcgDetails)
+                        if (script) {
+                            console.log('Executing logData script: ' + script)
+                            await browser.execute(script)
+                        }
                         return result
                     }
-                    script = await aiSDK.BrowserstackHealing.healFailure(using1, value1, undefined, undefined, authInfo.userID, authInfo.groupID, sessionId, undefined, undefined, authInfo.groupAIEnabled, tcgDetails)
+                    const script = await aiSDK.BrowserstackHealing.healFailure(locatorType, locatorValue, undefined, undefined, authInfo.userID, authInfo.groupID, sessionId, undefined, undefined, authInfo.groupAIEnabled, tcgDetails)
                     if (script) {
                         await browser.execute(script)
                         console.log('Executing healing script: ' + script)
-                        const tcgData: any = await aiSDK.BrowserstackHealing.pollResult('https://tcg.browserstack.com', sessionId, authInfo.sessionToken)
+                        const tcgData = await aiSDK.BrowserstackHealing.pollResult(TCG_URL, sessionId, authInfo.sessionToken)
                         if (tcgData && tcgData.selector && tcgData.value){
-                            const result2: any = await orginalFunc(tcgData.selector, tcgData.value)
+                            const healedResult = await orginalFunc(tcgData.selector, tcgData.value)
                             console.log('Healing worked, element found: ', tcgData.selector, tcgData.value)
 
-                            return result2.error ? result : result2
+                            return healedResult.error ? result : healedResult
                         }
                     }
                 } catch (err){
