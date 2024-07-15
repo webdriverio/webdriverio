@@ -25,11 +25,11 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/uuid": "^9.0.0",
+    "@types/uuid": "^10.0.0",
     "@wdio/protocols": "8.38.0",
     "@wdio/types": "8.39.0",
     "nock": "^13.2.4",
-    "uuid": "^9.0.0",
+    "uuid": "^10.0.0",
     "webdriverio": "8.39.1"
   },
   "devDependencies": {

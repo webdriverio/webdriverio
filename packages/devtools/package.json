@@ -50,12 +50,12 @@
     "puppeteer-core": "20.3.0",
     "query-selector-shadow-dom": "^1.0.0",
     "ua-parser-js": "^1.0.37",
-    "uuid": "^9.0.0",
+    "uuid": "^10.0.0",
     "which": "^4.0.0"
   },
   "devDependencies": {
     "@types/ua-parser-js": "^0.7.33",
-    "@types/uuid": "^9.0.0",
+    "@types/uuid": "^10.0.0",
     "@wdio/globals": "8.39.1"
   }
 }
