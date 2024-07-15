@@ -109,7 +109,7 @@
     "eslint-plugin-unicorn": "^53.0.0",
     "eslint-plugin-wdio": "^8.24.12",
     "eta": "^3.2.0",
-    "glob": "^10.3.10",
+    "glob": "^11.0.0",
     "husky": "^9.0.11",
     "inquirer": "^9.2.12",
     "jsdom": "^22.1.0",
