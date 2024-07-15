@@ -193,39 +193,25 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } catch (err: unknown) {
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
-        const setupTcgConfigFile = async (tcgConfig: any) => {
-            try {
-                const browserstackFolderPath: any = path.join('tmp')
-                if (!fs.existsSync(browserstackFolderPath)){
-                    fs.mkdirSync(browserstackFolderPath)
-                }
-                const tcgAuthConfigPath: any = path.join(browserstackFolderPath, 'tcgConfig.json')
-                if (fs.existsSync(tcgAuthConfigPath)) {
-                    fs.unlinkSync(tcgAuthConfigPath)
-                }
-
-                fs.writeFileSync(tcgAuthConfigPath, JSON.stringify(tcgConfig))
-            } catch (err) {
-                console.log(`Cound not setup tcgAuth config file due to error: ${err}`)
-            }
-        }
 
         if (!isBrowserstackInfra(this._options)) {
             const wdioBrowserStackServiceVersion = (await import('../package.json', { assert: { type: 'json' } })).default.version
             if (this._config.user && this._config.key) {
+
                 const authResult = await aiSDK.BrowserstackHealing.init(this._config.key, this._config.user, TCG_URL, wdioBrowserStackServiceVersion)
-                if ('userId' in authResult) {
+                process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
 
-                    const { isAuthenticated, userId, groupId, sessionToken, isGroupAIEnabled, isHealingEnabled } = authResult
-                    console.log(`isAuthenticated: ${isAuthenticated}, userId: ${userId}, groupId: ${groupId}, sessionToken: ${sessionToken}, isGroupAIEnabled: ${isGroupAIEnabled}, isHealingEnabled: ${isHealingEnabled}`)
-
-                    console.log(`Authenticated! User ID: ${authResult.userId}`)
-                    await setupTcgConfigFile(authResult)
-                    if (authResult.isAuthenticated && authResult.isHealingEnabled) {
+                const installExtCondition = authResult.isAuthenticated === true && authResult.isHealingEnabled === true
+                if (installExtCondition) {
+                    if (typeof caps === 'object') {
                         caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
+                    } else if (Array.isArray(caps)){
+                        const newCaps = aiSDK.BrowserstackHealing.initializeCapabilities(caps[0])
+                        caps[0] = newCaps
                     }
                 } else if (this._options.selfHeal === true) {
-                    console.log(`Healing Auth failed. Disabling healing for this session. Reason: ${authResult.message}`)
+                    const healingWarnMessage = (authResult as aiSDK.BrowserstackHealing.InitErrorResponse).message
+                    BStackLogger.warn(`Healing Auth failed. Disabling healing for this session. Reason: ${healingWarnMessage}`)
                 }
 
             }
