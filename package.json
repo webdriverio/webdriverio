@@ -80,7 +80,7 @@
     "@types/shelljs": "^0.8.15",
     "@types/split2": "^4.2.3",
     "@types/unzipper": "^0.10.9",
-    "@types/uuid": "^9.0.8",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
     "@typescript-eslint/utils": "^7.7.0",
