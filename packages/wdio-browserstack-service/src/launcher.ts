@@ -16,7 +16,7 @@ import PerformanceTester from './performance-tester.js'
 
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
 
-import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig } from './types.js'
+import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig, SelfHeal } from './types.js'
 import {
     BSTACK_SERVICE_VERSION,
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
@@ -50,6 +50,7 @@ import { sendStart, sendFinish } from './instrumentation/funnelInstrumentation.j
 import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
 import aiSDK from '@browserstack/ai-sdk-node'
+import { createRequire } from 'node:module'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -70,7 +71,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
         capabilities: Capabilities.RemoteCapability,
-        private _config: Options.Testrunner
+        private _config: Options.Testrunner & SelfHeal
     ) {
         BStackLogger.clearLogFile()
         PercyLogger.clearLogFile()
@@ -195,7 +196,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (!isBrowserstackInfra(this._options)) {
-            const wdioBrowserStackServiceVersion = (await import('../package.json', { assert: { type: 'json' } })).default.version
+            const wdioBrowserStackServiceVersion = createRequire(import.meta.url)('../package.json').version
             if (this._config.user && this._config.key) {
 
                 const authResult = await aiSDK.BrowserstackHealing.init(this._config.key, this._config.user, TCG_URL, wdioBrowserStackServiceVersion)
@@ -209,7 +210,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         const newCaps = aiSDK.BrowserstackHealing.initializeCapabilities(caps[0])
                         caps[0] = newCaps
                     }
-                } else if (this._options.selfHeal === true) {
+                } else if (this._config.selfHeal === true) {
                     const healingWarnMessage = (authResult as aiSDK.BrowserstackHealing.InitErrorResponse).message
                     BStackLogger.warn(`Healing Auth failed. Disabling healing for this session. Reason: ${healingWarnMessage}`)
                 }

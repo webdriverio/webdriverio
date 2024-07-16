@@ -22,6 +22,10 @@ export type AppConfig = {
     shareable_id?: string
 }
 
+export type SelfHeal = {
+    selfHeal?: boolean
+}
+
 export interface AppUploadResponse {
     app_url?: string,
     custom_id?: string,
