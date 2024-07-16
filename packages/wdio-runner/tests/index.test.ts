@@ -233,6 +233,29 @@ describe('wdio-runner', () => {
             await runner.endSession()
             expect(hook).toBeCalledTimes(0)
         })
+
+        it('should shutdown if deleteSession throws', async () => {
+            const log = logger('wdio-runner')
+            const error = new Error('Session not started or terminated')
+            const hook = vi.fn()
+            const runner = new WDIORunner()
+            runner['_shutdown'] = vi.fn()
+            runner['_browser'] = {
+                deleteSession: vi.fn().mockRejectedValue(error),
+                sessionId: '123',
+                config: { afterSession: [hook] }
+            } as any as BrowserObject
+            runner['_config'] = { logLevel: 'info', afterSession: [hook] } as any
+            await runner.endSession()
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession',
+                [hook],
+                [{ logLevel: 'info', afterSession: [hook] }, {}, undefined])
+            expect(runner['_browser'].deleteSession).toBeCalledTimes(1)
+            expect(!runner['_browser'].sessionId).toBe(true)
+            expect(runner['_shutdown']).toBeCalledTimes(0)
+            expect(log.debug).toHaveBeenCalledWith('Error deleting session', error)
+        })
     })
 
     describe('run', () => {
