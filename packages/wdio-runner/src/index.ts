@@ -448,7 +448,12 @@ export default class Runner extends EventEmitter {
             })
         }
 
-        await this._browser?.deleteSession()
+        try {
+            await this._browser?.deleteSession()
+        } catch (error) {
+            log.debug('Error deleting session', error)
+        }
+
         process.send!(<SessionEndedMessage>{
             origin: 'worker',
             name: 'sessionEnded',
