@@ -9,6 +9,9 @@ import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
 import { getDataFromWorkers, removeWorkersDataDir } from '../data-store.js'
+import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
+import type { Options } from '@wdio/types'
+import type { BrowserstackConfig } from '../types.js'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -150,4 +153,58 @@ function getLanguageFramework(framework?: string) {
 function getReferrer(framework?: string) {
     const fullName = framework ? 'WebdriverIO-' + framework : 'WebdriverIO'
     return `${fullName}/${BSTACK_SERVICE_VERSION}`
+}
+
+async function sendTcgDownError(config: BrowserStackConfig) {
+    await fireFunnelTestEvent('SDKTestTcgDownResponse', config)
+}
+
+async function sendInvalidTcgAuthResponse(config: BrowserStackConfig) {
+    await fireFunnelTestEvent('SDKTestInvalidTcgAuthResponseWithUserImpact', config)
+}
+
+async function sendTcgAuthFailure(config: BrowserStackConfig) {
+    await fireFunnelTestEvent('SDKTestTcgAuthFailure', config)
+}
+
+async function sendTcgtInitSuccessful(config: BrowserStackConfig) {
+    await fireFunnelTestEvent('SDKTestTcgtInitSuccessful', config)
+}
+
+async function sendInitFailedResponse(config: BrowserStackConfig) {
+    await fireFunnelTestEvent('SDKTestInitFailedResponse', config)
+}
+
+async function sendTcgProxyFailure(config: BrowserStackConfig) {
+    await fireFunnelTestEvent('SDKTestTcgProxyFailure', config)
+}
+
+export function handleHealingInstrumentation (
+    authResult: BrowserstackHealing.InitErrorResponse | BrowserstackHealing.InitSuccessResponse,
+    config: BrowserStackConfig,
+    isSelfHealEnabled: boolean | undefined,
+    options: BrowserstackConfig & Options.Testrunner
+) {
+    if ((authResult as BrowserstackHealing.InitErrorResponse).message  === 'Upgrade required' && isSelfHealEnabled) {
+        BStackLogger.warn('Please upgrade Browserstack Service to the latest version to use the self-healing feature.')
+    } else if (!authResult.isAuthenticated && authResult.status === 503 && isSelfHealEnabled) {
+        BStackLogger.warn('Something went wrong. Disabling healing for this session. Please try again later.')
+        sendTcgDownError(config)
+    } else if (!authResult.isAuthenticated && isSelfHealEnabled) {
+        BStackLogger.warn('Authentication Failed. Disabling Healing for this session.')
+        sendTcgAuthFailure(config)
+    } else if (authResult.isAuthenticated && !authResult.isHealingEnabled && isSelfHealEnabled) {
+        BStackLogger.warn('Healing is not enabled for your group, please contact the admin')
+    } else if (authResult.isAuthenticated && authResult.userId && authResult.isHealingEnabled && isSelfHealEnabled) {
+        sendTcgtInitSuccessful(config)
+    } else if ((authResult as any).status >= 400) {
+        sendInitFailedResponse(config)
+    } else if (!(authResult as any).status) {
+        sendInvalidTcgAuthResponse(config)
+    } else if (
+        //TODO: Might need to explore more on proxy handling and modify this condition accordingly
+        (config as any).proxyHost || (config as any).localProxyHost || (options as any).proxyHost || (options as any).localProxyHost
+    ) {
+        sendTcgProxyFailure(config)
+    }
 }

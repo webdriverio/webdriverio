@@ -22,7 +22,8 @@ import {
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
     TESTOPS_BUILD_ID_ENV,
     VALID_APP_EXTENSION,
-    TCG_URL
+    TCG_URL,
+    SUPPORTED_BROWSERS_FOR_AI
 } from './constants.js'
 import {
     launchTestSession,
@@ -46,7 +47,7 @@ import { BStackLogger } from './bstackLogger.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
 import { FileStream } from './fileStream.js'
 import type Percy from './Percy/Percy.js'
-import { sendStart, sendFinish } from './instrumentation/funnelInstrumentation.js'
+import { sendStart, sendFinish, handleHealingInstrumentation } from './instrumentation/funnelInstrumentation.js'
 import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
 import aiSDK from '@browserstack/ai-sdk-node'
@@ -195,11 +196,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
 
-        if (!isBrowserstackInfra(this._options)) {
+        if (!isBrowserstackInfra(this._config) && SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName) ) {
             const wdioBrowserStackServiceVersion = createRequire(import.meta.url)('../package.json').version
             if (this._config.user && this._config.key) {
 
                 const authResult = await aiSDK.BrowserstackHealing.init(this._config.key, this._config.user, TCG_URL, wdioBrowserStackServiceVersion)
+
+                handleHealingInstrumentation(authResult, this.browserStackConfig, this._config.selfHeal, this._options)
+
                 process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
 
                 const installExtCondition = authResult.isAuthenticated === true && authResult.isHealingEnabled === true
