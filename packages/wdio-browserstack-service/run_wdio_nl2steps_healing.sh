@@ -6,7 +6,7 @@
 # 4. A working local selenium grid setup is required to run the tests. Documentation to setup local selenium grid: https://browserstack.atlassian.net/wiki/spaces/ENG/pages/4205380059/Testing+on+Local+-+Healing
 
 rm -rf webdriverio_ai package-lock.json
-git clone --single-branch --branch v8-ai-support-child git@github.com:xxshubhamxx/webdriverio_ai.git
+git clone --single-branch --branch nl2steps-and-healing-support git@github.com:xxshubhamxx/webdriverio_ai.git
 cd webdriverio_ai
 npm install
 
@@ -111,6 +111,8 @@ describe("Testing with BStackDemo", () => {
     await browser.url('https://xxshubhamxx.github.io/html-files/new/adv.html');
     await browser.execute("window.dispatchEvent(new CustomEvent('enable-ext-logs'));");
     await browser.pause(10000);
+    await browser.ai("Click the Subscribe button present at the end of the page");
+    await browser.pause(5000)
     const elem = await \$('/html/body/div/div/form/button');
     if(!elem){
       throw new Error("Element not found");
