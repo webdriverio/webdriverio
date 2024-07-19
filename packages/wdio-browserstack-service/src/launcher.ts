@@ -206,7 +206,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
                 process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
 
-                const installExtCondition = authResult.isAuthenticated === true && authResult.isHealingEnabled === true
+                const installExtCondition = authResult.isAuthenticated === true && (authResult.defaultLogDataEnabled === true || this._config.selfHeal === true)
                 if (installExtCondition) {
                     if (typeof caps === 'object') {
                         caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)

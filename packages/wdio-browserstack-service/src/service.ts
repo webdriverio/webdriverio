@@ -125,10 +125,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
 
             const authInfo = readTcgAuthConfigToGlobal()
-            const isAuthenticated = authInfo.isAuthenticated
-            const isHealingEnabled = authInfo.isHealingEnabled
-            if (isAuthenticated && isHealingEnabled) {
-                const sessionToken = authInfo.sessionToken
+
+            const {
+                isAuthenticated,
+                isHealingEnabled,
+                sessionToken,
+                defaultLogDataEnabled
+            } = authInfo
+
+            if (isAuthenticated && (defaultLogDataEnabled === true || this._config.selfHeal === true)) {
                 await aiSDK.BrowserstackHealing.setToken(this._browser.sessionId, sessionToken, TCG_URL)
 
                 this._browser.overwriteCommand('findElement' as any, async (orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string) => {
@@ -151,7 +156,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                             }
                             return result
                         }
-                        if (this._config.selfHeal === true) {
+                        if (this._config.selfHeal === true && isHealingEnabled) {
                             BStackLogger.info('findElement failed, trying to heal')
                             const script = await aiSDK.BrowserstackHealing.healFailure(locatorType, locatorValue, undefined, undefined, authInfo.userId, authInfo.groupId, sessionId, undefined, undefined, authInfo.groupAIEnabled, tcgDetails)
                             if (script) {

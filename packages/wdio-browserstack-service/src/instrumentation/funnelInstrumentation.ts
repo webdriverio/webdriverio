@@ -185,10 +185,16 @@ export function handleHealingInstrumentation (
     isSelfHealEnabled: boolean | undefined,
     options: BrowserstackConfig & Options.Testrunner
 ) {
-    const { message, isAuthenticated, status, userId, isHealingEnabled } = authResult as any
 
     // TODO: Might need to explore more on proxy handling and modify this condition accordingly
     const proxyHost = (config as any).proxyHost || (config as any).localProxyHost || (options as any).proxyHost || (options as any).localProxyHost
+
+    if (proxyHost) {
+        sendTcgProxyFailure(config)
+        return
+    }
+
+    const { message, isAuthenticated, status, userId, isHealingEnabled } = authResult as any
 
     if (isSelfHealEnabled) {
         if (message === 'Upgrade required') {
@@ -197,7 +203,7 @@ export function handleHealingInstrumentation (
         }
 
         if (!isAuthenticated) {
-            if (status === 503) {
+            if (status >= 500) {
                 BStackLogger.warn('Something went wrong. Disabling healing for this session. Please try again later.')
                 sendTcgDownError(config)
             } else {
@@ -212,15 +218,12 @@ export function handleHealingInstrumentation (
         } else if (userId) {
             sendTcgtInitSuccessful(config)
         }
-        return
 
+        if (status >= 400) {
+            sendInitFailedResponse(config)
+        } else if (!status) {
+            sendInvalidTcgAuthResponse(config)
+        }
     }
 
-    if (status >= 400) {
-        sendInitFailedResponse(config)
-    } else if (!status) {
-        sendInvalidTcgAuthResponse(config)
-    } else if (proxyHost) {
-        sendTcgProxyFailure(config)
-    }
 }
