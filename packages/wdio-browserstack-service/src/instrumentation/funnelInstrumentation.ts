@@ -186,44 +186,48 @@ export function handleHealingInstrumentation (
     options: BrowserstackConfig & Options.Testrunner
 ) {
 
-    // TODO: Might need to explore more on proxy handling and modify this condition accordingly
-    const proxyHost = (config as any).proxyHost || (config as any).localProxyHost || (options as any).proxyHost || (options as any).localProxyHost
+    try {
 
-    if (proxyHost) {
-        sendTcgProxyFailure(config)
-        return
-    }
+        // TODO: Might need to explore more on proxy handling and modify this condition accordingly
+        const proxyHost = (config as any).proxyHost || (config as any).localProxyHost || (options as any).proxyHost || (options as any).localProxyHost
 
-    const { message, isAuthenticated, status, userId, isHealingEnabled:isHealingEnabledForUser } = authResult as any
-
-    if (isSelfHealEnabled) {
-        if (message === 'Upgrade required') {
-            BStackLogger.warn('Please upgrade Browserstack Service to the latest version to use the self-healing feature.')
+        if (proxyHost) {
+            sendTcgProxyFailure(config)
             return
         }
 
-        if (!isAuthenticated) {
-            if (status >= 500) {
-                BStackLogger.warn('Something went wrong. Disabling healing for this session. Please try again later.')
-                sendTcgDownError(config)
-            } else {
-                BStackLogger.warn('Authentication Failed. Disabling Healing for this session.')
-                sendTcgAuthFailure(config)
+        const { message, isAuthenticated, status, userId, isHealingEnabled:isHealingEnabledForUser } = authResult as any
+
+        if (isSelfHealEnabled) {
+            if (message === 'Upgrade required') {
+                BStackLogger.warn('Please upgrade Browserstack Service to the latest version to use the self-healing feature.')
+                return
             }
-            return
-        }
 
-        if (!isHealingEnabledForUser) {
-            BStackLogger.warn('Healing is not enabled for your group, please contact the admin')
-        } else if (userId) {
-            sendTcgtInitSuccessful(config)
-        }
+            if (!isAuthenticated) {
+                if (status >= 500) {
+                    BStackLogger.warn('Something went wrong. Disabling healing for this session. Please try again later.')
+                    sendTcgDownError(config)
+                } else {
+                    BStackLogger.warn('Authentication Failed. Disabling Healing for this session.')
+                    sendTcgAuthFailure(config)
+                }
+                return
+            }
 
-        if (status >= 400) {
-            sendInitFailedResponse(config)
-        } else if (!status) {
-            sendInvalidTcgAuthResponse(config)
+            if (!isHealingEnabledForUser) {
+                BStackLogger.warn('Healing is not enabled for your group, please contact the admin')
+            } else if (userId) {
+                sendTcgtInitSuccessful(config)
+            }
+
+            if (status >= 400) {
+                sendInitFailedResponse(config)
+            } else if (!status) {
+                sendInvalidTcgAuthResponse(config)
+            }
         }
+    } catch (err) {
+        BStackLogger.debug('Error in handling healing instrumentation: ' + err)
     }
-
 }

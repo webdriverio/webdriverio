@@ -196,30 +196,34 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
 
-        if (!isBrowserstackInfra(this._config) && SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName) ) {
-            const wdioBrowserStackServiceVersion = createRequire(import.meta.url)('../package.json').version
-            if (this._config.user && this._config.key) {
+        try {
+            if (!isBrowserstackInfra(this._config) && SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName) ) {
+                const wdioBrowserStackServiceVersion = createRequire(import.meta.url)('../package.json').version
+                if (this._config.user && this._config.key) {
 
-                const authResult = await aiSDK.BrowserstackHealing.init(this._config.key, this._config.user, TCG_URL, wdioBrowserStackServiceVersion)
+                    const authResult = await aiSDK.BrowserstackHealing.init(this._config.key, this._config.user, TCG_URL, wdioBrowserStackServiceVersion)
 
-                handleHealingInstrumentation(authResult, this.browserStackConfig, this._config.selfHeal, this._options)
+                    handleHealingInstrumentation(authResult, this.browserStackConfig, this._config.selfHeal, this._options)
 
-                process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
+                    process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
 
-                const installExtCondition = authResult.isAuthenticated === true && (authResult.defaultLogDataEnabled === true || this._config.selfHeal === true)
-                if (installExtCondition) {
-                    if (typeof caps === 'object') {
-                        caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
-                    } else if (Array.isArray(caps)){
-                        const newCaps = aiSDK.BrowserstackHealing.initializeCapabilities(caps[0])
-                        caps[0] = newCaps
+                    const installExtCondition = authResult.isAuthenticated === true && (authResult.defaultLogDataEnabled === true || this._config.selfHeal === true)
+                    if (installExtCondition) {
+                        if (typeof caps === 'object') {
+                            caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
+                        } else if (Array.isArray(caps)){
+                            const newCaps = aiSDK.BrowserstackHealing.initializeCapabilities(caps[0])
+                            caps[0] = newCaps
+                        }
+                    } else if (this._config.selfHeal === true) {
+                        const healingWarnMessage = (authResult as aiSDK.BrowserstackHealing.InitErrorResponse).message
+                        BStackLogger.warn(`Healing Auth failed. Disabling healing for this session. Reason: ${healingWarnMessage}`)
                     }
-                } else if (this._config.selfHeal === true) {
-                    const healingWarnMessage = (authResult as aiSDK.BrowserstackHealing.InitErrorResponse).message
-                    BStackLogger.warn(`Healing Auth failed. Disabling healing for this session. Reason: ${healingWarnMessage}`)
-                }
 
+                }
             }
+        } catch (err) {
+            BStackLogger.debug(`Error while initiliazing Browserstack healing Extension ${err}`)
         }
     }
 
