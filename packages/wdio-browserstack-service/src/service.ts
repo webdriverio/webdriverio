@@ -113,7 +113,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._browser = browser ? browser : globalThis.browser
 
         // Healing Support:
-        if (!isBrowserstackInfra(this._config) && (caps as any).browserName in SUPPORTED_BROWSERS_FOR_AI) {
+        if (!isBrowserstackInfra(this._config) && SUPPORTED_BROWSERS_FOR_AI.includes((caps as any).browserName) ) {
             const readTcgAuthConfigToGlobal = () => {
 
                 const authResult = JSON.parse(process.env.TCG_AUTH_RESULT || '{}')

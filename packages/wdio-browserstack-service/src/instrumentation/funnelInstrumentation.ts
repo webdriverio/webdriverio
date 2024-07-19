@@ -194,7 +194,7 @@ export function handleHealingInstrumentation (
         return
     }
 
-    const { message, isAuthenticated, status, userId, isHealingEnabled } = authResult as any
+    const { message, isAuthenticated, status, userId, isHealingEnabled:isHealingEnabledForUser } = authResult as any
 
     if (isSelfHealEnabled) {
         if (message === 'Upgrade required') {
@@ -213,7 +213,7 @@ export function handleHealingInstrumentation (
             return
         }
 
-        if (!isHealingEnabled) {
+        if (!isHealingEnabledForUser) {
             BStackLogger.warn('Healing is not enabled for your group, please contact the admin')
         } else if (userId) {
             sendTcgtInitSuccessful(config)

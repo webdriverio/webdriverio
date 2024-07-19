@@ -1,11 +1,12 @@
+# TODO: This file is just made for testing the functionality E2E. It will be removed once the functionality is tested and working as expected.
 # Prerquisites: 
 # 1. Ensure that you have access to https://github.com/browserstack/ai-sdk-node
 # 2. This bash script is compatible only with Mac OS.
-# 3. Ensure that you have the following environment variables set: BROWSERSTACK_USERNAME, BROWSERSTACK_ACCESS_KEY
+# 3. Ensure that you have the following environment variables are exported in `~/.zshrc` (or) `~/.bashrc` : BROWSERSTACK_USERNAME, BROWSERSTACK_ACCESS_KEY. For NL2Steps, another variable named TCG_AUTH_TOKEN will also be required.
 # 4. A working local selenium grid setup is required to run the tests. Documentation to setup local selenium grid: https://browserstack.atlassian.net/wiki/spaces/ENG/pages/4205380059/Testing+on+Local+-+Healing
 
 rm -rf webdriverio_ai package-lock.json
-git clone --single-branch --branch v8-ai-support git@github.com:xxshubhamxx/webdriverio_ai.git
+git clone --single-branch --branch v8-ai-support-child git@github.com:xxshubhamxx/webdriverio_ai.git
 cd webdriverio_ai
 npm install
 
