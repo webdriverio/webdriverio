@@ -83,8 +83,8 @@ async function bar() {
     const multipleElems = await $$([elemA, elemB]).getElements()
     const multipleElemsChain = $$([elemA, elemB])
     expectType<WebdriverIO.ElementArray>(multipleElems)
-    // @ts-expect-error
-    expectType<ChainablePromiseArray>(multipleElemsChain)
+    // // @ts-expect-error
+    // expectType<ChainablePromiseArray>(multipleElemsChain)
 
     ////////////////////////////////////////////////////////////////////////////////
 

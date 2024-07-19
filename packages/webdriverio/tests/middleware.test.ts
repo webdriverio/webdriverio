@@ -75,7 +75,6 @@ describe('middleware', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                // @ts-expect-error
                 browserName: 'safari',
                 // @ts-expect-error mock feature
                 keepBrowserName: true
@@ -83,7 +82,7 @@ describe('middleware', () => {
             waitforInterval: 20,
             waitforTimeout: 100
         })
-        const elem = await browser.$('#foo')
+        const elem = await browser.$('#foo').getElement()
         elem.selector = '#nonexisting'
         // @ts-ignore mock feature
         vi.mocked(fetch).setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, undefined, 'bar'])
@@ -104,7 +103,7 @@ describe('middleware', () => {
     })
 
     it('should assign elementId and w3c identifier to element scope after re-found', async () => {
-        const elem = await browser.$('#nonexisting')
+        const elem = await browser.$('#nonexisting').getElement()
         expect(elem.elementId).toEqual(undefined)
         expect(elem['element-6066-11e4-a52e-4f735466cecf']).toEqual(undefined)
 
