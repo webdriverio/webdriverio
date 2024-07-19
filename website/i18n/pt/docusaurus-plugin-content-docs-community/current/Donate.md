@@ -3,17 +3,17 @@ id: donate
 title: Doação
 ---
 
-Se a sua empresa usa o WebdriverIO e se beneficia dele, por favor, peça ao seu gerente ou à sua equipe de marketing para apoiar o projeto, doando para a comunidade. O suporte permitirá que os responsáveis dediquem mais tempo para manutenção e novos recursos para todos.
+Se a sua empresa usa o WebdriverIO e se beneficia dele, por favor, peça ao seu gerente ou à sua equipe de marketing para apoiar o projeto fazendo uma doação. O suporte permitirá que os responsáveis dediquem mais tempo para manutenção e novos recursos para todos.
 
 Por favor, verifique a nossa página [OpenCollective](https://opencollective.com/webdriverio) para mais informações sobre como doar para o projeto.
 
-Obrigado a todos que irão ou já doaram dinheiro para a comunidade e, consequentemente, apoiaram o projeto e todos os que contribuíram para ele. Isso realmente significa muito ❤️
+Obrigado a todos que irão ou já doaram dinheiro e, consequentemente, apoiaram o projeto e todos os que contribuíram para ele. Isso realmente significa muito ❤️
 
 ## Políticas de despesas
 
-We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+Queremos ser transparentes quanto à forma como aceitamos despesas. Todos devem ser elegíveis para participar e enviar despesas relacionadas ao desenvolvimento de determinadas funcionalidades. Também queremos retribuir à comunidade permitindo o reembolso de despesas com eventos. Os seguintes tipos de despesas podem ser elegíveis para reembolso:
 
-### Event Expenses
+### Despesas com Evento
 
 If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
 
