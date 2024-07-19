@@ -185,26 +185,42 @@ export function handleHealingInstrumentation (
     isSelfHealEnabled: boolean | undefined,
     options: BrowserstackConfig & Options.Testrunner
 ) {
-    if ((authResult as BrowserstackHealing.InitErrorResponse).message  === 'Upgrade required' && isSelfHealEnabled) {
-        BStackLogger.warn('Please upgrade Browserstack Service to the latest version to use the self-healing feature.')
-    } else if (!authResult.isAuthenticated && authResult.status === 503 && isSelfHealEnabled) {
-        BStackLogger.warn('Something went wrong. Disabling healing for this session. Please try again later.')
-        sendTcgDownError(config)
-    } else if (!authResult.isAuthenticated && isSelfHealEnabled) {
-        BStackLogger.warn('Authentication Failed. Disabling Healing for this session.')
-        sendTcgAuthFailure(config)
-    } else if (authResult.isAuthenticated && !authResult.isHealingEnabled && isSelfHealEnabled) {
-        BStackLogger.warn('Healing is not enabled for your group, please contact the admin')
-    } else if (authResult.isAuthenticated && authResult.userId && authResult.isHealingEnabled && isSelfHealEnabled) {
-        sendTcgtInitSuccessful(config)
-    } else if ((authResult as any).status >= 400) {
+    const { message, isAuthenticated, status, userId, isHealingEnabled } = authResult as any
+
+    // TODO: Might need to explore more on proxy handling and modify this condition accordingly
+    const proxyHost = (config as any).proxyHost || (config as any).localProxyHost || (options as any).proxyHost || (options as any).localProxyHost
+
+    if (isSelfHealEnabled) {
+        if (message === 'Upgrade required') {
+            BStackLogger.warn('Please upgrade Browserstack Service to the latest version to use the self-healing feature.')
+            return
+        }
+
+        if (!isAuthenticated) {
+            if (status === 503) {
+                BStackLogger.warn('Something went wrong. Disabling healing for this session. Please try again later.')
+                sendTcgDownError(config)
+            } else {
+                BStackLogger.warn('Authentication Failed. Disabling Healing for this session.')
+                sendTcgAuthFailure(config)
+            }
+            return
+        }
+
+        if (!isHealingEnabled) {
+            BStackLogger.warn('Healing is not enabled for your group, please contact the admin')
+        } else if (userId) {
+            sendTcgtInitSuccessful(config)
+        }
+        return
+
+    }
+
+    if (status >= 400) {
         sendInitFailedResponse(config)
-    } else if (!(authResult as any).status) {
+    } else if (!status) {
         sendInvalidTcgAuthResponse(config)
-    } else if (
-        //TODO: Might need to explore more on proxy handling and modify this condition accordingly
-        (config as any).proxyHost || (config as any).localProxyHost || (options as any).proxyHost || (options as any).localProxyHost
-    ) {
+    } else if (proxyHost) {
         sendTcgProxyFailure(config)
     }
 }
