@@ -1590,6 +1590,9 @@ importers:
       '@wdio/webdriver-mock-service':
         specifier: workspace:*
         version: link:../packages/wdio-webdriver-mock-service
+      expect-webdriverio:
+        specifier: 5.0.0-alpha.2
+        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
         version: link:../packages/webdriver
