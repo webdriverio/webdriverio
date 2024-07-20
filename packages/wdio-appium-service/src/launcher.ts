@@ -129,18 +129,17 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         }
 
         /**
-         * Get port from service option or use a random port
+         * Use port from service option or get a random port
          */
-        const port = typeof this._args.port === 'number'
-            ? this._args.port
+        this._args.port = typeof this._args.port === 'number' ? this._args.port
             : await getPort({ port: DEFAULT_APPIUM_PORT })
 
-        this._setCapabilities(port)
+        this._setCapabilities(this._args.port)
 
         /**
          * Append cli arguments
          */
-        this._appiumCliArgs.push(...formatCliArgs({ port, ...this._args }))
+        this._appiumCliArgs.push(...formatCliArgs({ ...this._args }))
 
         /**
          * start Appium
