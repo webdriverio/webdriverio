@@ -9,6 +9,22 @@ import { BStackLogger } from './bstackLogger.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+function getInterruptSignals(): string[] {
+    const allSignals: string[] = [
+        'SIGTERM',
+        'SIGINT',
+        'SIGHUP'
+    ]
+    if (process.platform !== 'win32') {
+        allSignals.push('SIGABRT')
+        allSignals.push('SIGQUIT')
+    } else {
+        // For windows Ctrl+Break
+        allSignals.push('SIGBREAK')
+    }
+    return allSignals
+}
+
 export function setupExitHandlers() {
     process.on('exit', (code) => {
         BStackLogger.debug('Exit hook called')
@@ -19,6 +35,12 @@ export function setupExitHandlers() {
             childProcess.unref()
             process.exit(code)
         }
+    })
+
+    getInterruptSignals().forEach((sig: string) => {
+        process.on(sig, () => {
+            BrowserStackConfig.getInstance().setKillSignal(sig)
+        })
     })
 }
 

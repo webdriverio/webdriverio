@@ -19,7 +19,7 @@ tasks:
       npm start
   - name: Setup WebdriverIO Development Environment
     init: |
-      npm install
+      npm install --legacy-peer-deps
       npm run setup
       gp sync-done installation
     command: npm run watch

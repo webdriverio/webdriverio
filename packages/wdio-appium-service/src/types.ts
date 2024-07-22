@@ -48,6 +48,11 @@ export type AppiumServerArguments = {
      */
     log?: string
     /**
+     * Log Filters
+     * A path to a valid JSON file containing an array of filtering rules
+     */
+    logFilters?: string
+    /**
      * Log level
      */
     logLevel?: string

@@ -21,6 +21,15 @@ export interface WindowHandle {
     type: string
 }
 
+export interface Credential {
+    credentialId: string,
+    isResidentCredential: boolean,
+    rpId: string,
+    privateKey: string,
+    userHandle: string,
+    signCount: number
+}
+
 export interface RectReturn {
     x: number,
     y: number,

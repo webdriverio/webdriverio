@@ -35,5 +35,6 @@ export const returnTypeMap = {
     getAllCookies: 'Cookie[]',
     send: 'BidiResponse',
     getContext: 'Context',
-    getContexts: 'Context[]'
+    getContexts: 'Context[]',
+    getCredentials: 'Credential[]'
 }

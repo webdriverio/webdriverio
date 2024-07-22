@@ -1,10 +1,10 @@
 import stripAnsi from 'strip-ansi'
 import type { HookStats, TestStats, SuiteStats, CommandArgs, Tag } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
-import type { Label, AllureTest, AllureGroup } from 'allure-js-commons'
-import { Status as AllureStatus, md5, LabelName } from 'allure-js-commons'
+import type { AllureGroup, AllureStep, AllureTest, ExecutableItemWrapper, FixtureResult, Label, TestResult } from 'allure-js-commons'
+import { LabelName, md5, Stage, Status, Status as AllureStatus } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
-import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants.js'
+import { allHooks, eachHooks, linkPlaceholder } from './constants.js'
 
 /**
  * Get allure test status by TestStat object
@@ -38,6 +38,8 @@ export const getTestStatus = (
                 ? AllureStatus.FAILED
                 : AllureStatus.BROKEN
         }
+    } else if (test.errors) {
+        return AllureStatus.FAILED
     }
 
     return AllureStatus.BROKEN
@@ -52,31 +54,40 @@ export const isEmpty = (object: any) =>
     !object || Object.keys(object).length === 0
 
 /**
- * Is mocha beforeEach hook
+ * Is mocha/jasmine beforeEach hook
  * @param title {String} - hook title
  * @returns {boolean}
  * @private
  */
-export const isMochaBeforeEachHook = (title: string) =>
-    title.includes(mochaEachHooks[0])
+export const isBeforeEachTypeHook = (title: string) =>
+    title.includes(eachHooks[0])
 
 /**
- * Is mocha beforeEach / afterEach hook
+ * Is mocha/jasmine beforeAll / beforeEach hook
  * @param title {String} - hook title
  * @returns {boolean}
  * @private
  */
-export const isMochaEachHooks = (title: string) =>
-    mochaEachHooks.some((hook) => title.includes(hook))
+export const isBeforeTypeHook = (title: string) =>
+    title.includes(allHooks[0]) || title.includes(eachHooks[0])
 
 /**
- * Is mocha beforeAll / afterAll hook
+ * Is mocha/jasmine beforeEach / afterEach hook
  * @param title {String} - hook title
  * @returns {boolean}
  * @private
  */
-export const isMochaAllHooks = (title: string) =>
-    mochaAllHooks.some((hook) => title.includes(hook))
+export const isEachTypeHooks = (title: string) =>
+    eachHooks.some((hook) => title.includes(hook))
+
+/**
+ * Is mocha/jasmine beforeAll / afterAll hook
+ * @param title {String} - hook title
+ * @returns {boolean}
+ * @private
+ */
+export const isAllTypeHooks = (title: string) =>
+    allHooks.some((hook) => title.includes(hook))
 
 /**
  * Properly format error from different test runners
@@ -87,7 +98,7 @@ export const isMochaAllHooks = (title: string) =>
 export const getErrorFromFailedTest = (
     test: TestStats | HookStats
 ): Error | CompoundError | undefined => {
-    if (test.errors && Array.isArray(test.errors)) {
+    if (test.errors && Array.isArray(test.errors) && test.errors.length) {
         for (let i = 0; i < test.errors.length; i += 1) {
             if (test.errors[i].message) {
                 test.errors[i].message = stripAnsi(test.errors[i].message)
@@ -111,6 +122,60 @@ export const getErrorFromFailedTest = (
     }
 
     return test.error
+}
+
+/**
+ * Update the hook information with the new one, it could be use when a hook ends
+ * @param {HookStats} newHookStats - New information that will be applied to current hook info
+ * @param {ExecutableItemWrapper} hookElement - hook element registered in the report
+ * @param {AllureStep} hookRootStep - root hook step
+ *
+ * @private
+ */
+export const getHookStatus = (newHookStats: HookStats, hookElement: ExecutableItemWrapper, hookRootStep: AllureStep) => {
+    // stage to finish for all hook.
+    hookElement.stage = hookRootStep.stage =
+        Stage.FINISHED
+    // set error detail information
+    const formattedError = getErrorFromFailedTest(newHookStats)
+    hookElement.detailsMessage = hookRootStep.detailsMessage = formattedError?.message
+    hookElement.detailsTrace = hookRootStep.detailsTrace = formattedError?.stack
+
+    let finalStatus = Status.PASSED
+    // set status to hook root step
+    const hookSteps = hookRootStep.wrappedItem.steps
+    if (Array.isArray(hookSteps) && hookSteps.length) {
+        const statusPriority = {
+            [Status.FAILED]: 0,
+            [Status.BROKEN]: 1,
+            [Status.SKIPPED]: 2,
+            [Status.PASSED]: 3,
+        }
+        let stepStatus = Status.PASSED
+        for (const step of hookSteps) {
+            if (step.status && statusPriority[step.status] < statusPriority[finalStatus]) {
+                stepStatus = step.status
+            }
+        }
+        finalStatus = stepStatus === Status.FAILED? Status.BROKEN : stepStatus
+    } else if (newHookStats.error || (Array.isArray(newHookStats.errors) && newHookStats.errors.length)){
+        finalStatus = Status.BROKEN
+    }
+
+    hookElement.status = hookRootStep.status = finalStatus
+}
+
+export const cleanCucumberHooks = (hook:  FixtureResult | TestResult) => {
+    const currentStep = hook.steps[hook.steps.length - 1]
+    if (
+        currentStep &&
+        currentStep.steps.length === 0 &&
+        currentStep.attachments.length === 0 &&
+        hook.attachments.length === 0 &&
+        currentStep.status === Status.PASSED
+    ) {
+        hook.steps.pop()
+    }
 }
 
 /**

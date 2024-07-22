@@ -9,19 +9,6 @@ import reporters3rdParty from './3rd-party/reporters.json' assert { type: 'json'
 import services3rdParty from './3rd-party/services.json' assert { type: 'json' }
 import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
 
-const servicesWithBrokenReadmes = [
-    '@sap_oss/wdio-qmate-service',
-    'wdio-reportportal-service',
-    'wdio-ms-teams-service',
-    'wdio-intercept-service',
-    'wdio-ui5-service'
-]
-
-const reportersWithBrokenReadmes = [
-    'wdio-mochawesome-reporter',
-    'wdio-reportportal-reporter'
-]
-
 interface Plugin {
     packageName: string
     title: string
@@ -33,17 +20,35 @@ interface Plugin {
     suppressBuildInfo?: boolean
 }
 
+const docsFixes: Record<string, ((docs: string) => string)> = {
+    '@sap_oss/wdio-qmate-service' : (docs: string) => docs
+        .replace('Benjamin Warth <benjamin.warth@sap.com>', '[Benjamin Warth](mailto:benjamin.warth@sap.com)')
+        .replace('Georgios Treska <georgios.treska@sap.com>', '[Georgios Treska](mailto:georgios.treska@sap.com)')
+        .replace('Marvin Grüßinger <marvin.gruessinger@sap.com>', '[Marvin Grüßinger](mailto:marvin.gruessinger@sap.com)'),
+    'wdio-ui5-service': (docs: string) => docs
+        .replace('<https://ui5-community.github.io/wdi5/>', '[https://ui5-community.github.io/wdi5/](https://ui5-community.github.io/wdi5/)')
+        .replace('Roadmap: <https://github.com/orgs/ui5-community/projects/2/views/1>', '[Roadmap](https://github.com/orgs/ui5-community/projects/2/views/1)'),
+    'wdio-intercept-service': (docs: string) => docs
+        .replace('browser.excludeUrls(urlRegexes: (string | RegExp)[])', '`browser.excludeUrls(urlRegexes: (string | RegExp)[])`')
+        .replace('browser.assertRequests({ orderBy?: \'START\' | \'END\' }?: = {})', '`browser.assertRequests({ orderBy?: \'START\' | \'END\' }?: = {})`')
+        .replace('browser.assertExpectedRequestsOnly({ inOrder?: boolean, orderBy?: \'START\' | \'END\' }?: = {})', "`browser.assertExpectedRequestsOnly({ inOrder?: boolean, orderBy?: 'START' | 'END' }?: = {})`")
+        .replace('browser.getRequest(index: number, { includePending?: boolean, orderBy?: \'START\' | \'END\' }?: = {})', "`browser.getRequest(index: number, { includePending?: boolean, orderBy?: 'START' | 'END' }?: = {})`")
+        .replace('browser.getRequests({ includePending?: boolean, orderBy?: \'START\' | \'END\' }?: = {})', "`browser.getRequests({ includePending?: boolean, orderBy?: 'START' | 'END' }?: = {})`"),
+    'wdio-reportportal-reporter': (docs: string) => docs
+        .replace('<http://reportportal.io/>', '[http://reportportal.io/](http://reportportal.io/)')
+}
+
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const plugins = [{
     category: 'docs',
     namePlural: 'Reporter',
     nameSingular: 'Reporter',
-    packages3rdParty: reporters3rdParty.filter(({ packageName }) => !reportersWithBrokenReadmes.includes(packageName))
+    packages3rdParty: reporters3rdParty
 }, {
     category: 'docs',
     namePlural: 'Services',
     nameSingular: 'Service',
-    packages3rdParty: services3rdParty.filter(({ packageName }) => !servicesWithBrokenReadmes.includes(packageName))
+    packages3rdParty: services3rdParty
 }, {
     category: 'api',
     namePlural: 'Testrunner',
@@ -83,7 +88,8 @@ export async function generate3rdPartyDocs (sidebars: any) {
                 githubUrl,
                 branch,
                 buildPreface(id, title, nameSingular, `${githubUrl}/edit/${branch}/${location}`),
-                suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl)
+                suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl),
+                packageName
             )
             await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
 
@@ -110,7 +116,7 @@ export async function generate3rdPartyDocs (sidebars: any) {
  * @param {string}  repoInfo    repoInfo
  * @return {string}             readme content without header
  */
-function normalizeDoc(readme: string, githubUrl: string, branch: string, preface: string[], repoInfo: string[]) {
+function normalizeDoc(readme: string, githubUrl: string, branch: string, preface: string[], repoInfo: string[], packageName: string) {
     /**
      * remove badges
      */
@@ -159,6 +165,14 @@ function normalizeDoc(readme: string, githubUrl: string, branch: string, preface
             readmeArr[idx] = readmeArr[idx].replace(`](${stringInParentheses})`, `](${url})`)
         }
     })
+
+    /**
+     * apply custom fixes
+     */
+    if (docsFixes[packageName]) {
+        console.log(`Applying custom fixes for ${packageName}`)
+        readmeArr = [docsFixes[packageName](readmeArr.join('\n'))]
+    }
 
     return [...preface, ...repoInfo, ...readmeArr]
         .join('\n')

@@ -152,17 +152,42 @@
     },
     {
       "type": "category",
+      "label": "OCR Testing",
+      "items": [
+        "ocr-testing/getting-started",
+        {
+          "type": "category",
+          "label": "Commands",
+          "items": [
+            "ocr-testing/ocr-click-on-text",
+            "ocr-testing/ocr-get-element-position-by-text",
+            "ocr-testing/ocr-get-text",
+            "ocr-testing/ocr-set-value",
+            "ocr-testing/ocr-wait-for-text-displayed"
+          ]
+        },
+        "ocr-testing/cli-wizard",
+        "ocr-testing/more-test-optimization",
+        "ocr-testing/ocr-faq"
+      ],
+      "link": {
+        "type": "doc",
+        "id": "ocr-testing/ocr-testing"
+      }
+    },
+    {
+      "type": "category",
       "label": "Visual Testing",
       "items": [
         "visual-testing/writing-tests",
         "visual-testing/methods",
         {
-            "type": "category",
-            "label": "Options",
-            "items": [
-                "visual-testing/service-options",
-                "visual-testing/method-options"
-            ]
+          "type": "category",
+          "label": "Options",
+          "items": [
+            "visual-testing/service-options",
+            "visual-testing/method-options"
+          ]
         },
         "visual-testing/test-output",
         "visual-testing/considerations",
@@ -174,8 +199,8 @@
             "id": "percy-overview"
           },
           "items": [
-              "visual-testing/integrate-with-percy",
-              "visual-testing/integrate-with-app-percy"
+            "visual-testing/integrate-with-percy",
+            "visual-testing/integrate-with-app-percy"
           ]
         },
         "visual-testing/faq"
@@ -216,11 +241,11 @@
     "api/modules"
   ],
   "flowcharts": {
-      "Flowcharts": [
-        "flowcharts/wdiocommands",
-        "flowcharts/createlocalworkerprocess",
-        "flowcharts/testexecution",
-        "flowcharts/highleveloverview"
-      ]
+    "Flowcharts": [
+      "flowcharts/wdiocommands",
+      "flowcharts/createlocalworkerprocess",
+      "flowcharts/testexecution",
+      "flowcharts/highleveloverview"
+    ]
   }
 }

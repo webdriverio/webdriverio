@@ -4,6 +4,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import got from 'got'
 import UsageStats from '../testOps/usageStats.js'
+import TestOpsConfig from '../testOps/testOpsConfig.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
@@ -101,6 +102,7 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
         // Build Details
         buildName: config.buildName || 'undefined',
         buildIdentifier: String(config.buildIdentifier),
+        sdkRunId: config.sdkRunID,
 
         // Host details
         os: os.type() || 'unknown',
@@ -110,10 +112,19 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
         productMap: getProductMap(config),
         product: getProductList(config),
     }
+    if (TestOpsConfig.getInstance().buildHashedId) {
+        eventProperties.testhub_uuid = TestOpsConfig.getInstance().buildHashedId
+    }
 
     if (eventType === 'SDKTestSuccessful') {
         const workerData = getDataFromWorkers()
         eventProperties.productUsage = getProductUsage(workerData)
+        if (config.killSignal) {
+            eventProperties.finishedMetadata = {
+                reason: 'user_killed',
+                signal: config.killSignal
+            }
+        }
     }
 
     return {

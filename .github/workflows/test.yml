@@ -93,7 +93,7 @@ jobs:
             e2e/*.log
             e2e/browser-runner/logs
   e2e-mac:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

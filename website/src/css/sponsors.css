@@ -37,6 +37,9 @@
     .sponsorSection {
         background: none;
     }
+    .sponsors {
+        margin: 0 15px;
+    }
 }
 
 @media (max-width: 500px) {
@@ -50,4 +53,32 @@
         flex-direction: column;
         width: 100%;
     }
+}
+
+/**
+ * sponsor section on the start site
+ */
+.sponsors h1 {
+    text-align: center;
+}
+
+.sponsors h3 {
+    text-align: left!important;
+}
+
+.sponsors .sponsors-grid {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    margin: 40px 0;
+    gap: 30px;
+}
+.sponsors .sponsors-grid > div {
+    flex-basis: calc(50% - 30px);
+    flex-grow: 1;
+}
+.sponsors .logos {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
 }

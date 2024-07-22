@@ -324,7 +324,7 @@ export interface FeaturesUsageData {
 
 export interface CBTData {
     uuid: string
-    integrations: IntegrationObject
+    integrations: { [index: string]: IntegrationObject }
 }
 
 export interface TOUsageStats {
@@ -332,4 +332,9 @@ export interface TOUsageStats {
     manuallySet: boolean
     buildHashedId?: string
     events?: any
+}
+
+export interface TOStopData {
+    finished_at: string,
+    finished_metadata: Array<any>,
 }

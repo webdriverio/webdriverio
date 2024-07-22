@@ -126,7 +126,7 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
     This will install the defined Node.js version for you. You can then go ahead and set-up the project via:
 
     ```sh
-    $ npm install
+    $ npm install --legacy-peer-deps
     $ npm run setup
     ```
 

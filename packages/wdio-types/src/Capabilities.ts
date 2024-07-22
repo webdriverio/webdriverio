@@ -512,6 +512,7 @@ export interface AppiumCapabilities {
     'appium:newCommandTimeout'?: number
     'appium:language'?: string
     'appium:locale'?: string
+    'appium:animationCoolOffTimeout'?: number
     /**
      * iOS Unique Device Identifier
      */
@@ -1365,7 +1366,9 @@ export interface SauceLabsCapabilities {
         args: string[]
         background: boolean
         timeout: number
-    }
+    } | any
+
+    recordDeviceVitals?: boolean
 }
 
 export interface LambdaTestCapabilities {
@@ -1654,7 +1657,18 @@ export interface BrowserStackCapabilities {
     uploadMedia?: Array<string>
     enablePasscode?: boolean
     deviceLogs?: boolean,
-    resignApp?: boolean
+
+    /**
+     * Disable re-signing of Enterprise signed app uploaded on BrowserStack
+     * @default true
+     */
+    resignApp?: boolean,
+
+    /**
+     * Hides data that you send to or retrieve from the remote browsers through the following commands:
+     * Example: 'setValues, getValues, setCookies, getCookies'
+     */
+    maskCommands?: string
 }
 
 export interface SauceLabsVisualCapabilities {
@@ -1748,6 +1762,8 @@ export interface SauceLabsVisualCapabilities {
  * https://testingbot.com/support/other/test-options#platform
  */
 export interface TestingbotCapabilities {
+    appiumVersion?: string
+    appiumPlugins?: string[]
     name?: string
     tags?: string[]
     build?: string | number
@@ -1760,7 +1776,16 @@ export interface TestingbotCapabilities {
     edgedriverVersion?: string
     geckodriverVersion?: string
     operaDriverVersion?: string
+    prerun?: any
+    'screen-resolution'?: string
     timeZone?: string
+    'throttle_network'?: any
+    tabletOnly?: boolean
+    phoneOnly?: boolean
+    recordLogs?: boolean
+    screenshot?: boolean
+    screenrecorder?: boolean
+    maxDuration?: number
     upload?: string
     'testingbot.geoCountryCode'?: string
     idletimeout?: number
