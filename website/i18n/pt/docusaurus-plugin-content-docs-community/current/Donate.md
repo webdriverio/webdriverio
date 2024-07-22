@@ -3,11 +3,11 @@ id: donate
 title: Doação
 ---
 
-Se a sua empresa usa o WebdriverIO e se beneficia dele, por favor, peça ao seu gerente ou à sua equipe de marketing para apoiar o projeto fazendo uma doação. O suporte permitirá que os responsáveis dediquem mais tempo para manutenção e novos recursos para todos.
+Se a sua empresa usa o WebdriverIO e se beneficia dele, por favor, peça ao seu gerente ou à sua equipe de marketing para apoiar o projeto fazendo uma doação. O suporte permitirá que os responsáveis dediquem mais tempo para a manutenção e o desenvolvimento de novos recursos para todos.
 
-Por favor, verifique a nossa página [OpenCollective](https://opencollective.com/webdriverio) para mais informações sobre como doar para o projeto.
+Por favor, verifique a nossa página no [OpenCollective](https://opencollective.com/webdriverio) para mais informações sobre como doar para o projeto.
 
-Obrigado a todos que irão ou já doaram dinheiro e, consequentemente, apoiaram o projeto e todos os que contribuíram para ele. Isso realmente significa muito ❤️
+Obrigado a todos que irão ou já doaram dinheiro, e, consequentemente, apoiaram o projeto e todos os que contribuíram para ele. Isso realmente significa muito ❤️
 
 ## Políticas de despesas
 
@@ -36,7 +36,7 @@ If you have done development work on any of the repositories within the GitHub W
 
 ### Travel Expenses
 
-If you are a member of the [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) you are eligible to expense flights and hotel accommodations for travel to conferences or meetups as part of a speaking engagement on WebdriverIO, not paid by the event itself or a company. You may expense up to $500. Reimbursement requirements for travel expenses include:
+Se você é um membro da equipe [Técnica Diretor](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) você tem direito a despesas de voos e acomodações de hotéis para viagens a conferências ou encontros como parte de um compromisso com a WebdriverIO, não pago pelo evento em si ou por uma empresa. You may expense up to $500. Os requisitos de reembolso para despesas de viagem incluem:
 
 - You must send out a post from your main social media account (e.g. Twitter, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
 - You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accomodations.
