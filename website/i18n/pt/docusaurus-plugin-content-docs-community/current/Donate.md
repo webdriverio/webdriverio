@@ -34,10 +34,10 @@ If you have done development work on any of the repositories within the GitHub W
 - You must claim an [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) issue by commenting to the issue thread to ensure that no one else is working on the same issue.
 - Anyone contributing to WebdriverIO is eligible to expense their work if the implemented features or bug fixes are not objectives of a commercial job.
 
-### Travel Expenses
+### Despesas de Viagem
 
-Se você é um membro da equipe [Técnica Diretor](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) você tem direito a despesas de voos e acomodações de hotéis para viagens a conferências ou encontros como parte de um compromisso com a WebdriverIO, não pago pelo evento em si ou por uma empresa. You may expense up to $500. Os requisitos de reembolso para despesas de viagem incluem:
+Se você é um membro da equipe [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) você tem direito a reembolso de despesas de voos e acomodações de hotéis para viagens a conferências ou encontros como parte de um compromisso de palestras sobre WebdriverIO, não pago pelo evento em si ou por uma empresa. Você pode solicitar reembolso de até US$ 500. Os requisitos de reembolso para despesas de viagem incluem:
 
-- You must send out a post from your main social media account (e.g. Twitter, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
-- You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accomodations.
-- You must submit receipts with your reimbursement request.
+- Você deve fazer uma postagem a partir da sua conta de mídia social principal (por exemplo, Twitter, LinkedIn ou blog pessoal) agradecendo a todos os colaboradores do projeto após o evento ter ocorrido.
+- Você deve utilizar os fundos para despesas de viagem qualificadas, como o transporte terrestre ou aéreo, para o evento e acomodações de hotel.
+- Você deve enviar os recibos com a sua solicitação de reembolso.
