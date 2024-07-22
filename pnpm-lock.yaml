@@ -13126,18 +13126,6 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.17.1:
-    resolution: {integrity: sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
   ws@8.18.0:
     resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
     engines: {node: '>=10.0.0'}
@@ -16301,7 +16289,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
       '@types/yargs': 17.0.32
       chalk: 4.1.2
 
@@ -18017,7 +18005,7 @@ snapshots:
   '@types/body-parser@1.19.5':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
 
   '@types/bonjour@3.5.13':
     dependencies:
@@ -18078,7 +18066,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.19.3':
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
       '@types/qs': 6.9.15
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
@@ -18095,7 +18083,7 @@ snapshots:
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
 
   '@types/gtag.js@0.0.12': {}
 
@@ -18266,7 +18254,7 @@ snapshots:
 
   '@types/readdir-glob@1.1.5':
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
 
   '@types/recursive-readdir@2.2.4':
     dependencies:
@@ -18296,7 +18284,7 @@ snapshots:
   '@types/serve-static@1.15.7':
     dependencies:
       '@types/http-errors': 2.0.4
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
       '@types/send': 0.17.4
 
   '@types/shelljs@0.8.15':
@@ -18326,7 +18314,7 @@ snapshots:
 
   '@types/through@0.0.33':
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
 
   '@types/tmp@0.2.6': {}
 
@@ -18801,11 +18789,11 @@ snapshots:
 
   '@wdio/repl@8.24.12':
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
 
   '@wdio/types@8.38.2':
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
 
   '@wdio/utils@8.38.2':
     dependencies:
@@ -19726,7 +19714,7 @@ snapshots:
 
   chrome-launcher@0.14.2:
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -21274,7 +21262,7 @@ snapshots:
 
   eval@0.1.8:
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
       require-like: 0.1.2
 
   event-stream@3.3.4:
@@ -22963,7 +22951,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -26530,7 +26518,7 @@ snapshots:
 
   speedline-core@1.4.3:
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
       image-ssim: 0.2.0
       jpeg-js: 0.4.4
 
@@ -27680,7 +27668,7 @@ snapshots:
 
   webdriver@8.38.2:
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
       '@types/ws': 8.5.10
       '@wdio/config': 8.38.2
       '@wdio/logger': 8.38.0
@@ -27698,7 +27686,7 @@ snapshots:
 
   webdriverio@8.38.2(encoding@0.1.13)(typescript@5.4.5):
     dependencies:
-      '@types/node': 20.14.8
+      '@types/node': 20.14.10
       '@wdio/config': 8.38.2
       '@wdio/logger': 8.38.0
       '@wdio/protocols': 8.38.0
@@ -27794,7 +27782,7 @@ snapshots:
       sockjs: 0.3.24
       spdy: 4.0.2
       webpack-dev-middleware: 5.3.4(webpack@5.91.0(@swc/core@1.5.27))
-      ws: 8.17.1
+      ws: 8.18.0
     optionalDependencies:
       webpack: 5.91.0(@swc/core@1.5.27)
     transitivePeerDependencies:
@@ -28117,8 +28105,6 @@ snapshots:
   ws@8.13.0: {}
 
   ws@8.17.0: {}
-
-  ws@8.17.1: {}
 
   ws@8.18.0: {}
 
