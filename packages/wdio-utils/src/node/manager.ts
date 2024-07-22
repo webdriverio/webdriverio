@@ -65,6 +65,8 @@ function mapCapabilities (
         !isSafari(cap.browserName) &&
         // - driver options don't define a binary path
         !getDriverOptions(cap).binary &&
+        // - environment does not define a binary path
+        !(process.env.CHROMEDRIVER_PATH && isChrome(cap.browserName)) &&
         // - user is not defining "devtools" as automation protocol
         options.automationProtocol !== 'devtools'
     )) as WebdriverIO.Capabilities[]
