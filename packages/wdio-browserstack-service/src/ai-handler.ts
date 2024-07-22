@@ -1,14 +1,13 @@
 import aiSDK from '@browserstack/ai-sdk-node'
 import { BStackLogger } from './bstackLogger.js'
 import { TCG_URL, TCG_INFO, SUPPORTED_BROWSERS_FOR_AI } from './constants.js'
-import type { BrowserstackConfig, SelfHeal } from './types.js'
-
-import type BrowserStackConfig from './config.js'
-
-import type { Options } from '@wdio/types'
 import { handleHealingInstrumentation } from './instrumentation/funnelInstrumentation.js'
 import { createRequire } from 'node:module'
+
 import type { Capabilities } from '@wdio/types'
+import type { BrowserstackConfig, SelfHeal } from './types.js'
+import type BrowserStackConfig from './config.js'
+import type { Options } from '@wdio/types'
 
 class AiHandler {
 
@@ -19,7 +18,7 @@ class AiHandler {
         caps: any
     ) {
         try {
-            if (SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName) ) {
+            if (SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName)) {
                 const wdioBrowserStackServiceVersion = createRequire(import.meta.url)('../package.json').version
                 if (config.user && config.key) {
 
@@ -28,17 +27,21 @@ class AiHandler {
                     handleHealingInstrumentation(authResult, browserStackConfig, config.selfHeal, options)
                     process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
 
-                    const installExtCondition = authResult.isAuthenticated === true && (authResult.defaultLogDataEnabled === true || config.selfHeal === true)
-                    if (installExtCondition) {
-                        if (typeof caps === 'object') {
-                            caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
-                        } else if (Array.isArray(caps)){
-                            const newCaps = aiSDK.BrowserstackHealing.initializeCapabilities(caps[0])
-                            caps[0] = newCaps
+                    if (caps.browserName !== 'firefox') {
+
+                        const installExtCondition = authResult.isAuthenticated === true && (authResult.defaultLogDataEnabled === true || config.selfHeal === true)
+
+                        if (installExtCondition) {
+                            if (typeof caps === 'object') {
+                                caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
+                            } else if (Array.isArray(caps)){
+                                const newCaps = aiSDK.BrowserstackHealing.initializeCapabilities(caps[0])
+                                caps[0] = newCaps
+                            }
+                        } else if (config.selfHeal === true) {
+                            const healingWarnMessage = (authResult as aiSDK.BrowserstackHealing.InitErrorResponse).message
+                            BStackLogger.warn(`Healing Auth failed. Disabling healing for this session. Reason: ${healingWarnMessage}`)
                         }
-                    } else if (config.selfHeal === true) {
-                        const healingWarnMessage = (authResult as aiSDK.BrowserstackHealing.InitErrorResponse).message
-                        BStackLogger.warn(`Healing Auth failed. Disabling healing for this session. Reason: ${healingWarnMessage}`)
                     }
 
                 }
@@ -55,6 +58,7 @@ class AiHandler {
 
             if (SUPPORTED_BROWSERS_FOR_AI.includes((caps as any).browserName)) {
                 const authInfo = JSON.parse(process.env.TCG_AUTH_RESULT || '{}')
+
                 if (Object.keys(authInfo).length === 0 && config.selfHeal === true) {
                     BStackLogger.debug('TCG Auth result is empty')
                     return
@@ -69,6 +73,10 @@ class AiHandler {
 
                 if (isAuthenticated && (defaultLogDataEnabled === true || config.selfHeal === true)) {
                     await aiSDK.BrowserstackHealing.setToken(browser.sessionId, sessionToken, TCG_URL)
+
+                    if ((caps as any).browserName === 'firefox') {
+                        await browser.installAddOn(aiSDK.BrowserstackHealing.getFirefoxAddonPath(), true)
+                    }
 
                     browser.overwriteCommand('findElement' as any, async (orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string) => {
 
