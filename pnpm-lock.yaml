@@ -85,7 +85,7 @@ importers:
         version: 4.3.1(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
-        version: 5.0.5(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))(vue@3.4.31(typescript@5.4.5))
+        version: 5.0.5(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))(vue@3.4.33(typescript@5.4.5))
       '@vitest/coverage-v8':
         specifier: ^1.5.0
         version: 1.6.0(vitest@1.6.0(@types/node@20.14.8)(jsdom@24.1.0)(terser@5.31.1))
@@ -242,7 +242,7 @@ importers:
         version: 14.5.2(@testing-library/dom@10.1.0)
       '@testing-library/vue':
         specifier: ^8.0.1
-        version: 8.1.0(@vue/compiler-sfc@3.4.31)(vue@3.4.27(typescript@5.4.5))
+        version: 8.1.0(@vue/compiler-sfc@3.4.33)(vue@3.4.27(typescript@5.4.5))
       '@types/mocha':
         specifier: ^10.0.6
         version: 10.0.6
@@ -400,7 +400,7 @@ importers:
         version: 6.4.6(@types/jest@29.5.12)(vitest@1.6.0(@types/node@20.14.10)(jsdom@24.1.0)(terser@5.31.1))
       '@testing-library/vue':
         specifier: ^8.0.1
-        version: 8.1.0(@vue/compiler-sfc@3.4.31)(vue@3.4.27(typescript@5.4.5))
+        version: 8.1.0(@vue/compiler-sfc@3.4.33)(vue@3.4.27(typescript@5.4.5))
       '@types/mocha':
         specifier: ^10.0.6
         version: 10.0.6
@@ -409,7 +409,7 @@ importers:
         version: 5.0.5(vite@5.2.12(@types/node@20.14.10)(terser@5.31.1))(vue@3.4.27(typescript@5.4.5))
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.12.1)(typescript@5.4.5))(@wdio/logger@9.0.0-alpha.0)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.12.1))
+        version: 5.0.0-alpha.2(@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.4.5))(@wdio/logger@8.38.0)(webdriverio@8.38.2(encoding@0.1.13)(typescript@5.4.5))
       mocha:
         specifier: ^10.2.0
         version: 10.4.0
@@ -870,7 +870,7 @@ importers:
     optionalDependencies:
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.12.1)(typescript@5.4.5))(@wdio/logger@9.0.0-alpha.0)(webdriverio@packages+webdriverio)
+        version: 5.0.0-alpha.2(@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.4.5))(@wdio/logger@8.38.0)(webdriverio@packages+webdriverio)
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -896,7 +896,7 @@ importers:
         version: link:../wdio-utils
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.12.1))
+        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@8.38.2(encoding@0.1.13)(typescript@5.4.5))
       jasmine:
         specifier: ^5.0.0
         version: 5.1.0
@@ -1759,7 +1759,7 @@ importers:
         version: link:../../../packages/wdio-utils
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.0.0-alpha.0)(webdriverio@packages+webdriverio)
+        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@8.38.0)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
         version: link:../../../packages/webdriver
@@ -5454,32 +5454,32 @@ packages:
   '@vue/compiler-core@3.4.27':
     resolution: {integrity: sha512-E+RyqY24KnyDXsCuQrI+mlcdW3ALND6U7Gqa/+bVwbcpcR3BRRIckFoz7Qyd4TTlnugtwuI7YgjbvsLmxb+yvg==}
 
-  '@vue/compiler-core@3.4.30':
-    resolution: {integrity: sha512-ZL8y4Xxdh8O6PSwfdZ1IpQ24PjTAieOz3jXb/MDTfDtANcKBMxg1KLm6OX2jofsaQGYfIVzd3BAG22i56/cF1w==}
-
   '@vue/compiler-core@3.4.31':
     resolution: {integrity: sha512-skOiodXWTV3DxfDhB4rOf3OGalpITLlgCeOwb+Y9GJpfQ8ErigdBUHomBzvG78JoVE8MJoQsb+qhZiHfKeNeEg==}
+
+  '@vue/compiler-core@3.4.33':
+    resolution: {integrity: sha512-MoIREbkdPQlnGfSKDMgzTqzqx5nmEjIc0ydLVYlTACGBsfvOJ4tHSbZXKVF536n6fB+0eZaGEOqsGThPpdvF5A==}
 
   '@vue/compiler-dom@3.4.27':
     resolution: {integrity: sha512-kUTvochG/oVgE1w5ViSr3KUBh9X7CWirebA3bezTbB5ZKBQZwR2Mwj9uoSKRMFcz4gSMzzLXBPD6KpCLb9nvWw==}
 
-  '@vue/compiler-dom@3.4.30':
-    resolution: {integrity: sha512-+16Sd8lYr5j/owCbr9dowcNfrHd+pz+w2/b5Lt26Oz/kB90C9yNbxQ3bYOvt7rI2bxk0nqda39hVcwDFw85c2Q==}
-
   '@vue/compiler-dom@3.4.31':
     resolution: {integrity: sha512-wK424WMXsG1IGMyDGyLqB+TbmEBFM78hIsOJ9QwUVLGrcSk0ak6zYty7Pj8ftm7nEtdU/DGQxAXp0/lM/2cEpQ==}
+
+  '@vue/compiler-dom@3.4.33':
+    resolution: {integrity: sha512-GzB8fxEHKw0gGet5BKlpfXEqoBnzSVWwMnT+dc25wE7pFEfrU/QsvjZMP9rD4iVXHBBoemTct8mN0GJEI6ZX5A==}
 
   '@vue/compiler-sfc@3.4.27':
     resolution: {integrity: sha512-nDwntUEADssW8e0rrmE0+OrONwmRlegDA1pD6QhVeXxjIytV03yDqTey9SBDiALsvAd5U4ZrEKbMyVXhX6mCGA==}
 
-  '@vue/compiler-sfc@3.4.31':
-    resolution: {integrity: sha512-einJxqEw8IIJxzmnxmJBuK2usI+lJonl53foq+9etB2HAzlPjAS/wa7r0uUpXw5ByX3/0uswVSrjNb17vJm1kQ==}
+  '@vue/compiler-sfc@3.4.33':
+    resolution: {integrity: sha512-7rk7Vbkn21xMwIUpHQR4hCVejwE6nvhBOiDgoBcR03qvGqRKA7dCBSsHZhwhYUsmjlbJ7OtD5UFIyhP6BY+c8A==}
 
   '@vue/compiler-ssr@3.4.27':
     resolution: {integrity: sha512-CVRzSJIltzMG5FcidsW0jKNQnNRYC8bT21VegyMMtHmhW3UOI7knmUehzswXLrExDLE6lQCZdrhD4ogI7c+vuw==}
 
-  '@vue/compiler-ssr@3.4.31':
-    resolution: {integrity: sha512-RtefmITAje3fJ8FSg1gwgDhdKhZVntIVbwupdyZDSifZTRMiWxWehAOTCc8/KZDnBOcYQ4/9VWxsTbd3wT0hAA==}
+  '@vue/compiler-ssr@3.4.33':
+    resolution: {integrity: sha512-0WveC9Ai+eT/1b6LCV5IfsufBZ0HP7pSSTdDjcuW302tTEgoBw8rHVHKPbGUtzGReUFCRXbv6zQDDgucnV2WzQ==}
 
   '@vue/language-core@2.0.21':
     resolution: {integrity: sha512-vjs6KwnCK++kIXT+eI63BGpJHfHNVJcUCr3RnvJsccT3vbJnZV5IhHR2puEkoOkIbDdp0Gqi1wEnv3hEd3WsxQ==}
@@ -5492,39 +5492,39 @@ packages:
   '@vue/reactivity@3.4.27':
     resolution: {integrity: sha512-kK0g4NknW6JX2yySLpsm2jlunZJl2/RJGZ0H9ddHdfBVHcNzxmQ0sS0b09ipmBoQpY8JM2KmUw+a6sO8Zo+zIA==}
 
-  '@vue/reactivity@3.4.31':
-    resolution: {integrity: sha512-VGkTani8SOoVkZNds1PfJ/T1SlAIOf8E58PGAhIOUDYPC4GAmFA2u/E14TDAFcf3vVDKunc4QqCe/SHr8xC65Q==}
+  '@vue/reactivity@3.4.33':
+    resolution: {integrity: sha512-B24QIelahDbyHipBgbUItQblbd4w5HpG3KccL+YkGyo3maXyS253FzcTR3pSz739OTphmzlxP7JxEMWBpewilA==}
 
   '@vue/runtime-core@3.4.27':
     resolution: {integrity: sha512-7aYA9GEbOOdviqVvcuweTLe5Za4qBZkUY7SvET6vE8kyypxVgaT1ixHLg4urtOlrApdgcdgHoTZCUuTGap/5WA==}
 
-  '@vue/runtime-core@3.4.31':
-    resolution: {integrity: sha512-LDkztxeUPazxG/p8c5JDDKPfkCDBkkiNLVNf7XZIUnJ+66GVGkP+TIh34+8LtPisZ+HMWl2zqhIw0xN5MwU1cw==}
+  '@vue/runtime-core@3.4.33':
+    resolution: {integrity: sha512-6wavthExzT4iAxpe8q37/rDmf44nyOJGISJPxCi9YsQO+8w9v0gLCFLfH5TzD1V1AYrTAdiF4Y1cgUmP68jP6w==}
 
   '@vue/runtime-dom@3.4.27':
     resolution: {integrity: sha512-ScOmP70/3NPM+TW9hvVAz6VWWtZJqkbdf7w6ySsws+EsqtHvkhxaWLecrTorFxsawelM5Ys9FnDEMt6BPBDS0Q==}
 
-  '@vue/runtime-dom@3.4.31':
-    resolution: {integrity: sha512-2Auws3mB7+lHhTFCg8E9ZWopA6Q6L455EcU7bzcQ4x6Dn4cCPuqj6S2oBZgN2a8vJRS/LSYYxwFFq2Hlx3Fsaw==}
+  '@vue/runtime-dom@3.4.33':
+    resolution: {integrity: sha512-iHsMCUSFJ+4z432Bn9kZzHX+zOXa6+iw36DaVRmKYZpPt9jW9riF32SxNwB124i61kp9+AZtheQ/mKoJLerAaQ==}
 
   '@vue/server-renderer@3.4.27':
     resolution: {integrity: sha512-dlAMEuvmeA3rJsOMJ2J1kXU7o7pOxgsNHVr9K8hB3ImIkSuBrIdy0vF66h8gf8Tuinf1TK3mPAz2+2sqyf3KzA==}
     peerDependencies:
       vue: 3.4.27
 
-  '@vue/server-renderer@3.4.31':
-    resolution: {integrity: sha512-D5BLbdvrlR9PE3by9GaUp1gQXlCNadIZytMIb8H2h3FMWJd4oUfkUTEH2wAr3qxoRz25uxbTcbqd3WKlm9EHQA==}
+  '@vue/server-renderer@3.4.33':
+    resolution: {integrity: sha512-jTH0d6gQcaYideFP/k0WdEu8PpRS9MF8d0b6SfZzNi+ap972pZ0TNIeTaESwdOtdY0XPVj54XEJ6K0wXxir4fw==}
     peerDependencies:
-      vue: 3.4.31
+      vue: 3.4.33
 
   '@vue/shared@3.4.27':
     resolution: {integrity: sha512-DL3NmY2OFlqmYYrzp39yi3LDkKxa5vZVwxWdQ3rG0ekuWscHraeIbnI8t+aZK7qhYqEqWKTUdijadunb9pnrgA==}
 
-  '@vue/shared@3.4.30':
-    resolution: {integrity: sha512-CLg+f8RQCHQnKvuHY9adMsMaQOcqclh6Z5V9TaoMgy0ut0tz848joZ7/CYFFyF/yZ5i2yaw7Fn498C+CNZVHIg==}
-
   '@vue/shared@3.4.31':
     resolution: {integrity: sha512-Yp3wtJk//8cO4NItOPpi3QkLExAr/aLBGZMmTtW9WpdwBCJpRM6zj9WgWktXAl8IDIozwNMByT45JP3tO3ACWA==}
+
+  '@vue/shared@3.4.33':
+    resolution: {integrity: sha512-aoRY0jQk3A/cuvdkodTrM4NMfxco8n55eG4H7ML/CRy7OryHfiqvug4xrCBBMbbN+dvXAetDDwZW9DXWWjBntA==}
 
   '@vue/test-utils@2.4.6':
     resolution: {integrity: sha512-FMxEjOpYNYiFe0GkaHsnJPXFHxQ6m4t8vI/ElPGpMWxZKpmRvQ33OIrvRXemy6yha03RxhOlQuy+gZMC3CQSow==}
@@ -5538,55 +5538,28 @@ packages:
     resolution: {integrity: sha512-xlnapTr1vOA0h5HsHTIqj47729FbG3WjxmgHweDEQvcT4C1g9l+WKf+N3FM7DNNoIsAqxKi6rOHG02rJADQJtw==}
     engines: {node: ^16.13 || >=18}
 
-  '@wdio/config@9.0.0-alpha.0':
-    resolution: {integrity: sha512-mMYtci32n7QykjPrslVmwnP7GuOMzyKpCSs7wo9z8PUIS1fwvx+Jat0vOKl3qAxQDuVGdYHQ/ZK3p997w4YX3A==}
-    engines: {node: '>=18'}
-
   '@wdio/globals@8.38.2':
     resolution: {integrity: sha512-iIrUF1EODfHLh3V/CSNCqbNNxUTe3ND+c86zDjzJcPFjawLX1plvAApsU/eDmtsFShcOS2KHbfSjiydFoqQG1Q==}
     engines: {node: ^16.13 || >=18}
-
-  '@wdio/globals@9.0.0-alpha.0':
-    resolution: {integrity: sha512-c3LVQzuMPnvbM+T1+9xQijiBXv16E7wM4Dg7Iib2Yl+37qfdK1YfYvMEhxJ9BK1bcIkipzIGZen2TPOLEcDVYw==}
-    engines: {node: '>=18'}
 
   '@wdio/logger@8.38.0':
     resolution: {integrity: sha512-kcHL86RmNbcQP+Gq/vQUGlArfU6IIcbbnNp32rRIraitomZow+iEoc519rdQmSVusDozMS5DZthkgDdxK+vz6Q==}
     engines: {node: ^16.13 || >=18}
 
-  '@wdio/logger@9.0.0-alpha.0':
-    resolution: {integrity: sha512-kHNkK+1p87y70fQQx7ex13tA3lH3BTf+2Wfwn3yhvHxxEzS5ES+evAF9NDdUOd7Z2kLoZwmyMdOoQyh5PT1z4w==}
-    engines: {node: '>=18'}
-
   '@wdio/protocols@8.38.0':
     resolution: {integrity: sha512-7BPi7aXwUtnXZPeWJRmnCNFjyDvGrXlBmN9D4Pi58nILkyjVRQKEY9/qv/pcdyB0cvmIvw++Kl/1Lg+RxG++UA==}
-
-  '@wdio/protocols@9.0.0-alpha.0':
-    resolution: {integrity: sha512-wFXiXp/kjcHcgciuBWoDGMIiK9YLhwHoj3Pyzs0AY4ooSe+xSyTW0TkGsFfRC+07yyN4kUstzs3hPVUgsSXW/g==}
 
   '@wdio/repl@8.24.12':
     resolution: {integrity: sha512-321F3sWafnlw93uRTSjEBVuvWCxTkWNDs7ektQS15drrroL3TMeFOynu4rDrIz0jXD9Vas0HCD2Tq/P0uxFLdw==}
     engines: {node: ^16.13 || >=18}
 
-  '@wdio/repl@9.0.0-alpha.0':
-    resolution: {integrity: sha512-50S3/3lYPNRAznCYBgX+7zT9gZmDzKD10Qe/kfW4/t1WJfSijv0vNehZKHDsGuHyTSYBQMKdoYczGFFtPJjErQ==}
-    engines: {node: '>=18'}
-
   '@wdio/types@8.38.2':
     resolution: {integrity: sha512-+wj1c1OSLdnN4WO5b44Ih4263dTl/eSwMGSI4/pCgIyXIuYQH38JQ+6WRa+c8vJEskUzboq2cSgEQumVZ39ozQ==}
     engines: {node: ^16.13 || >=18}
 
-  '@wdio/types@9.0.0-alpha.0':
-    resolution: {integrity: sha512-ezgQvWTuxr2juJtSF6tVBZx7l2RgEBRwQJCnuceGTn+ePtoablfqMsq/PZbRzFACxpf1zOi+ytURZqUd+U8Q5Q==}
-    engines: {node: '>=18'}
-
   '@wdio/utils@8.38.2':
     resolution: {integrity: sha512-y5AnBwsGcu/XuCBGCgKmlvKdwEIFyzLA+Cr+denySxY3jbWDONtPUcGaVdFALwsIa5jcIjcATqGmZcCPGnkd7g==}
     engines: {node: ^16.13 || >=18}
-
-  '@wdio/utils@9.0.0-alpha.0':
-    resolution: {integrity: sha512-xPPjsnecaCAAFYxf2UqENMod/pUG5R24QGgVfaWac3xTmvCBs9+AgSpxgHMZQsIrsz7CZlHQdZF3PvwbpFrDTA==}
-    engines: {node: '>=18'}
 
   '@webassemblyjs/ast@1.12.1':
     resolution: {integrity: sha512-EKfMUOPRRUTy5UII4qJDGPpqfwjOmZ5jeGFwid9mnoqIFK+e0vqoi1qH56JpmZSzEL53jKnNzScdmftJyG5xWg==}
@@ -10865,6 +10838,10 @@ packages:
     resolution: {integrity: sha512-Wglpdk03BSfXkHoQa3b/oulrotAkwrlLDRSOb9D0bN86FdRyE9lppSp33aHNPgBa0JKCoB+drFLZkQoRRYae5A==}
     engines: {node: ^10 || ^12 || >=14}
 
+  postcss@8.4.39:
+    resolution: {integrity: sha512-0vzE+lAiG7hZl1/9I8yzKLx3aR9Xbof3fBHKunvMfOCYAtMhrsnccJY2iTURb9EZd5+pLuiNV9/c/GZJOHsgIw==}
+    engines: {node: ^10 || ^12 || >=14}
+
   posthog-js@1.139.0:
     resolution: {integrity: sha512-FuYlxQFO0Dq5X1/bFEM8F+NgOqZiVh4fPVHHeOTWMkqVP+pCnODQitbtW0hgT0/EE665w0xpZBk93YavaZRhzQ==}
 
@@ -12835,8 +12812,8 @@ packages:
       typescript:
         optional: true
 
-  vue@3.4.31:
-    resolution: {integrity: sha512-njqRrOy7W3YLAlVqSKpBebtZpDVg21FPoaq1I7f/+qqBThK9ChAIjkRWgeP6Eat+8C+iia4P3OYqpATP21BCoQ==}
+  vue@3.4.33:
+    resolution: {integrity: sha512-VdMCWQOummbhctl4QFMcW6eNtXHsFyDlX60O/tsSQuCcuDOnJ1qPOhhVla65Niece7xq/P2zyZReIO5mP+LGTQ==}
     peerDependencies:
       typescript: '*'
     peerDependenciesMeta:
@@ -12880,10 +12857,6 @@ packages:
     resolution: {integrity: sha512-NGfjW0BDYwFgOIzeojOcWGn3tYloQdvHr+Y2xKKYVqa9Rs0x1mzlTjU1kWtC4DaV8DltskwaPa7o+s8hTNpuyA==}
     engines: {node: ^16.13 || >=18}
 
-  webdriver@9.0.0-alpha.0:
-    resolution: {integrity: sha512-ORm7evOuFp3p6mxiiBC47SrcKlhl2TteZTa2fQr1L7LPTNJF+vJQMbCc9OzR+NPm/td+eiwLToxvPlmmhPu2/A==}
-    engines: {node: '>=18'}
-
   webdriverio@8.38.2:
     resolution: {integrity: sha512-r09y5UfivyYh5JOzT2SpJJ1zDmQl/R4OTH12opUqkjvp21BibCQm/uu1mrxGy4lzSHljrvqSVrrcGI+6UA1O8w==}
     engines: {node: ^16.13 || >=18}
@@ -12891,15 +12864,6 @@ packages:
       devtools: ^8.14.0
     peerDependenciesMeta:
       devtools:
-        optional: true
-
-  webdriverio@9.0.0-alpha.0:
-    resolution: {integrity: sha512-hjHqUNvQjxth4TJif2y9C5vFXvi6nnPug3b/Hrh0K4tW/edxthJCLXc9fYbEgib03+hdAqLLosLEts/mRkNfIQ==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      puppeteer-core: ^22.3.0
-    peerDependenciesMeta:
-      puppeteer-core:
         optional: true
 
   webidl-conversions@3.0.1:
@@ -13537,10 +13501,10 @@ snapshots:
       '@aws-crypto/sha1-browser': 5.2.0
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/client-sso-oidc': 3.598.0(@aws-sdk/client-sts@3.598.0)
-      '@aws-sdk/client-sts': 3.598.0
+      '@aws-sdk/client-sso-oidc': 3.598.0
+      '@aws-sdk/client-sts': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
       '@aws-sdk/core': 3.598.0
-      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/middleware-bucket-endpoint': 3.598.0
       '@aws-sdk/middleware-expect-continue': 3.598.0
       '@aws-sdk/middleware-flexible-checksums': 3.598.0
@@ -13595,13 +13559,13 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0)':
+  '@aws-sdk/client-sso-oidc@3.598.0':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/client-sts': 3.598.0
+      '@aws-sdk/client-sts': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
       '@aws-sdk/core': 3.598.0
-      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/middleware-host-header': 3.598.0
       '@aws-sdk/middleware-logger': 3.598.0
       '@aws-sdk/middleware-recursion-detection': 3.598.0
@@ -13638,7 +13602,6 @@ snapshots:
       '@smithy/util-utf8': 3.0.0
       tslib: 2.6.3
     transitivePeerDependencies:
-      - '@aws-sdk/client-sts'
       - aws-crt
 
   '@aws-sdk/client-sso-oidc@3.614.0(@aws-sdk/client-sts@3.614.0)':
@@ -13772,13 +13735,13 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-sts@3.598.0':
+  '@aws-sdk/client-sts@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/client-sso-oidc': 3.598.0(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/client-sso-oidc': 3.598.0
       '@aws-sdk/core': 3.598.0
-      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/credential-provider-node': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/middleware-host-header': 3.598.0
       '@aws-sdk/middleware-logger': 3.598.0
       '@aws-sdk/middleware-recursion-detection': 3.598.0
@@ -13815,6 +13778,7 @@ snapshots:
       '@smithy/util-utf8': 3.0.0
       tslib: 2.6.3
     transitivePeerDependencies:
+      - '@aws-sdk/client-sso-oidc'
       - aws-crt
 
   '@aws-sdk/client-sts@3.614.0':
@@ -13920,13 +13884,13 @@ snapshots:
       '@smithy/util-stream': 3.0.6
       tslib: 2.6.3
 
-  '@aws-sdk/credential-provider-ini@3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)':
+  '@aws-sdk/credential-provider-ini@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)':
     dependencies:
-      '@aws-sdk/client-sts': 3.598.0
+      '@aws-sdk/client-sts': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
       '@aws-sdk/credential-provider-env': 3.598.0
       '@aws-sdk/credential-provider-http': 3.598.0
       '@aws-sdk/credential-provider-process': 3.598.0
-      '@aws-sdk/credential-provider-sso': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))
+      '@aws-sdk/credential-provider-sso': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
       '@aws-sdk/credential-provider-web-identity': 3.598.0(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/types': 3.598.0
       '@smithy/credential-provider-imds': 3.1.4
@@ -13956,13 +13920,13 @@ snapshots:
       - '@aws-sdk/client-sso-oidc'
       - aws-crt
 
-  '@aws-sdk/credential-provider-node@3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)':
+  '@aws-sdk/credential-provider-node@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)':
     dependencies:
       '@aws-sdk/credential-provider-env': 3.598.0
       '@aws-sdk/credential-provider-http': 3.598.0
-      '@aws-sdk/credential-provider-ini': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/credential-provider-ini': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/credential-provider-process': 3.598.0
-      '@aws-sdk/credential-provider-sso': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))
+      '@aws-sdk/credential-provider-sso': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
       '@aws-sdk/credential-provider-web-identity': 3.598.0(@aws-sdk/client-sts@3.598.0)
       '@aws-sdk/types': 3.598.0
       '@smithy/credential-provider-imds': 3.1.1
@@ -14010,10 +13974,10 @@ snapshots:
       '@smithy/types': 3.3.0
       tslib: 2.6.3
 
-  '@aws-sdk/credential-provider-sso@3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))':
+  '@aws-sdk/credential-provider-sso@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)':
     dependencies:
       '@aws-sdk/client-sso': 3.598.0
-      '@aws-sdk/token-providers': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))
+      '@aws-sdk/token-providers': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
       '@aws-sdk/types': 3.598.0
       '@smithy/property-provider': 3.1.3
       '@smithy/shared-ini-file-loader': 3.1.4
@@ -14038,7 +14002,7 @@ snapshots:
 
   '@aws-sdk/credential-provider-web-identity@3.598.0(@aws-sdk/client-sts@3.598.0)':
     dependencies:
-      '@aws-sdk/client-sts': 3.598.0
+      '@aws-sdk/client-sts': 3.598.0(@aws-sdk/client-sso-oidc@3.598.0)
       '@aws-sdk/types': 3.598.0
       '@smithy/property-provider': 3.1.3
       '@smithy/types': 3.3.0
@@ -14208,9 +14172,9 @@ snapshots:
       '@smithy/types': 3.3.0
       tslib: 2.6.3
 
-  '@aws-sdk/token-providers@3.598.0(@aws-sdk/client-sso-oidc@3.598.0(@aws-sdk/client-sts@3.598.0))':
+  '@aws-sdk/token-providers@3.598.0(@aws-sdk/client-sso-oidc@3.598.0)':
     dependencies:
-      '@aws-sdk/client-sso-oidc': 3.598.0(@aws-sdk/client-sts@3.598.0)
+      '@aws-sdk/client-sso-oidc': 3.598.0
       '@aws-sdk/types': 3.598.0
       '@smithy/property-provider': 3.1.3
       '@smithy/shared-ini-file-loader': 3.1.4
@@ -17989,14 +17953,14 @@ snapshots:
     dependencies:
       '@testing-library/dom': 10.1.0
 
-  '@testing-library/vue@8.1.0(@vue/compiler-sfc@3.4.31)(vue@3.4.27(typescript@5.4.5))':
+  '@testing-library/vue@8.1.0(@vue/compiler-sfc@3.4.33)(vue@3.4.27(typescript@5.4.5))':
     dependencies:
       '@babel/runtime': 7.24.7
       '@testing-library/dom': 9.3.4
       '@vue/test-utils': 2.4.6
       vue: 3.4.27(typescript@5.4.5)
     optionalDependencies:
-      '@vue/compiler-sfc': 3.4.31
+      '@vue/compiler-sfc': 3.4.33
 
   '@tootallnate/once@1.1.2': {}
 
@@ -18562,10 +18526,10 @@ snapshots:
       vite: 5.2.12(@types/node@20.14.10)(terser@5.31.1)
       vue: 3.4.27(typescript@5.4.5)
 
-  '@vitejs/plugin-vue@5.0.5(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))(vue@3.4.31(typescript@5.4.5))':
+  '@vitejs/plugin-vue@5.0.5(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))(vue@3.4.33(typescript@5.4.5))':
     dependencies:
       vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
-      vue: 3.4.31(typescript@5.4.5)
+      vue: 3.4.33(typescript@5.4.5)
 
   '@vitest/coverage-v8@1.6.0(vitest@1.6.0(@types/node@20.14.8)(jsdom@24.1.0)(terser@5.31.1))':
     dependencies:
@@ -18637,18 +18601,18 @@ snapshots:
       estree-walker: 2.0.2
       source-map-js: 1.2.0
 
-  '@vue/compiler-core@3.4.30':
-    dependencies:
-      '@babel/parser': 7.24.7
-      '@vue/shared': 3.4.30
-      entities: 4.5.0
-      estree-walker: 2.0.2
-      source-map-js: 1.2.0
-
   '@vue/compiler-core@3.4.31':
     dependencies:
       '@babel/parser': 7.24.7
       '@vue/shared': 3.4.31
+      entities: 4.5.0
+      estree-walker: 2.0.2
+      source-map-js: 1.2.0
+
+  '@vue/compiler-core@3.4.33':
+    dependencies:
+      '@babel/parser': 7.24.7
+      '@vue/shared': 3.4.33
       entities: 4.5.0
       estree-walker: 2.0.2
       source-map-js: 1.2.0
@@ -18658,15 +18622,15 @@ snapshots:
       '@vue/compiler-core': 3.4.27
       '@vue/shared': 3.4.27
 
-  '@vue/compiler-dom@3.4.30':
-    dependencies:
-      '@vue/compiler-core': 3.4.30
-      '@vue/shared': 3.4.30
-
   '@vue/compiler-dom@3.4.31':
     dependencies:
       '@vue/compiler-core': 3.4.31
       '@vue/shared': 3.4.31
+
+  '@vue/compiler-dom@3.4.33':
+    dependencies:
+      '@vue/compiler-core': 3.4.33
+      '@vue/shared': 3.4.33
 
   '@vue/compiler-sfc@3.4.27':
     dependencies:
@@ -18680,16 +18644,16 @@ snapshots:
       postcss: 8.4.38
       source-map-js: 1.2.0
 
-  '@vue/compiler-sfc@3.4.31':
+  '@vue/compiler-sfc@3.4.33':
     dependencies:
       '@babel/parser': 7.24.7
-      '@vue/compiler-core': 3.4.31
-      '@vue/compiler-dom': 3.4.31
-      '@vue/compiler-ssr': 3.4.31
-      '@vue/shared': 3.4.31
+      '@vue/compiler-core': 3.4.33
+      '@vue/compiler-dom': 3.4.33
+      '@vue/compiler-ssr': 3.4.33
+      '@vue/shared': 3.4.33
       estree-walker: 2.0.2
       magic-string: 0.30.10
-      postcss: 8.4.38
+      postcss: 8.4.39
       source-map-js: 1.2.0
 
   '@vue/compiler-ssr@3.4.27':
@@ -18697,16 +18661,16 @@ snapshots:
       '@vue/compiler-dom': 3.4.27
       '@vue/shared': 3.4.27
 
-  '@vue/compiler-ssr@3.4.31':
+  '@vue/compiler-ssr@3.4.33':
     dependencies:
-      '@vue/compiler-dom': 3.4.31
-      '@vue/shared': 3.4.31
+      '@vue/compiler-dom': 3.4.33
+      '@vue/shared': 3.4.33
 
   '@vue/language-core@2.0.21(typescript@5.4.5)':
     dependencies:
       '@volar/language-core': 2.3.0
-      '@vue/compiler-dom': 3.4.30
-      '@vue/shared': 3.4.30
+      '@vue/compiler-dom': 3.4.31
+      '@vue/shared': 3.4.31
       computeds: 0.0.1
       minimatch: 9.0.4
       path-browserify: 1.0.1
@@ -18718,19 +18682,19 @@ snapshots:
     dependencies:
       '@vue/shared': 3.4.27
 
-  '@vue/reactivity@3.4.31':
+  '@vue/reactivity@3.4.33':
     dependencies:
-      '@vue/shared': 3.4.31
+      '@vue/shared': 3.4.33
 
   '@vue/runtime-core@3.4.27':
     dependencies:
       '@vue/reactivity': 3.4.27
       '@vue/shared': 3.4.27
 
-  '@vue/runtime-core@3.4.31':
+  '@vue/runtime-core@3.4.33':
     dependencies:
-      '@vue/reactivity': 3.4.31
-      '@vue/shared': 3.4.31
+      '@vue/reactivity': 3.4.33
+      '@vue/shared': 3.4.33
 
   '@vue/runtime-dom@3.4.27':
     dependencies:
@@ -18738,11 +18702,11 @@ snapshots:
       '@vue/shared': 3.4.27
       csstype: 3.1.3
 
-  '@vue/runtime-dom@3.4.31':
+  '@vue/runtime-dom@3.4.33':
     dependencies:
-      '@vue/reactivity': 3.4.31
-      '@vue/runtime-core': 3.4.31
-      '@vue/shared': 3.4.31
+      '@vue/reactivity': 3.4.33
+      '@vue/runtime-core': 3.4.33
+      '@vue/shared': 3.4.33
       csstype: 3.1.3
 
   '@vue/server-renderer@3.4.27(vue@3.4.27(typescript@5.4.5))':
@@ -18751,17 +18715,17 @@ snapshots:
       '@vue/shared': 3.4.27
       vue: 3.4.27(typescript@5.4.5)
 
-  '@vue/server-renderer@3.4.31(vue@3.4.31(typescript@5.4.5))':
+  '@vue/server-renderer@3.4.33(vue@3.4.33(typescript@5.4.5))':
     dependencies:
-      '@vue/compiler-ssr': 3.4.31
-      '@vue/shared': 3.4.31
-      vue: 3.4.31(typescript@5.4.5)
+      '@vue/compiler-ssr': 3.4.33
+      '@vue/shared': 3.4.33
+      vue: 3.4.33(typescript@5.4.5)
 
   '@vue/shared@3.4.27': {}
 
-  '@vue/shared@3.4.30': {}
-
   '@vue/shared@3.4.31': {}
+
+  '@vue/shared@3.4.33': {}
 
   '@vue/test-utils@2.4.6':
     dependencies:
@@ -18814,18 +18778,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@wdio/config@9.0.0-alpha.0':
-    dependencies:
-      '@wdio/logger': 9.0.0-alpha.0
-      '@wdio/types': 9.0.0-alpha.0
-      '@wdio/utils': 9.0.0-alpha.0
-      decamelize: 6.0.0
-      deepmerge-ts: 5.1.0
-      glob: 10.4.2
-      import-meta-resolve: 4.1.0
-    transitivePeerDependencies:
-      - supports-color
-
   '@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.4.5)':
     optionalDependencies:
       expect-webdriverio: 4.15.1(encoding@0.1.13)(typescript@5.4.5)
@@ -18838,27 +18790,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.12.1)(typescript@5.4.5)':
-    optionalDependencies:
-      expect-webdriverio: 4.15.1(encoding@0.1.13)(typescript@5.4.5)
-      webdriverio: 9.0.0-alpha.0(puppeteer-core@22.12.1)
-    transitivePeerDependencies:
-      - bufferutil
-      - devtools
-      - encoding
-      - puppeteer-core
-      - supports-color
-      - typescript
-      - utf-8-validate
-
   '@wdio/logger@8.38.0':
-    dependencies:
-      chalk: 5.3.0
-      loglevel: 1.9.1
-      loglevel-plugin-prefix: 0.8.4
-      strip-ansi: 7.1.0
-
-  '@wdio/logger@9.0.0-alpha.0':
     dependencies:
       chalk: 5.3.0
       loglevel: 1.9.1
@@ -18867,47 +18799,19 @@ snapshots:
 
   '@wdio/protocols@8.38.0': {}
 
-  '@wdio/protocols@9.0.0-alpha.0': {}
-
   '@wdio/repl@8.24.12':
     dependencies:
       '@types/node': 20.14.8
 
-  '@wdio/repl@9.0.0-alpha.0':
-    dependencies:
-      '@types/node': 20.14.10
-
   '@wdio/types@8.38.2':
     dependencies:
       '@types/node': 20.14.8
-
-  '@wdio/types@9.0.0-alpha.0':
-    dependencies:
-      '@types/node': 20.14.10
 
   '@wdio/utils@8.38.2':
     dependencies:
       '@puppeteer/browsers': 1.9.1
       '@wdio/logger': 8.38.0
       '@wdio/types': 8.38.2
-      decamelize: 6.0.0
-      deepmerge-ts: 5.1.0
-      edgedriver: 5.6.0
-      geckodriver: 4.4.1
-      get-port: 7.1.0
-      import-meta-resolve: 4.1.0
-      locate-app: 2.4.15
-      safaridriver: 0.1.2
-      split2: 4.2.0
-      wait-port: 1.1.0
-    transitivePeerDependencies:
-      - supports-color
-
-  '@wdio/utils@9.0.0-alpha.0':
-    dependencies:
-      '@puppeteer/browsers': 2.2.3
-      '@wdio/logger': 9.0.0-alpha.0
-      '@wdio/types': 9.0.0-alpha.0
       decamelize: 6.0.0
       deepmerge-ts: 5.1.0
       edgedriver: 5.6.0
@@ -21465,38 +21369,38 @@ snapshots:
       - utf-8-validate
     optional: true
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.12.1)(typescript@5.4.5))(@wdio/logger@9.0.0-alpha.0)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.12.1)):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.4.5))(@wdio/logger@8.38.0)(webdriverio@8.38.2(encoding@0.1.13)(typescript@5.4.5)):
     dependencies:
       '@vitest/snapshot': 1.6.0
-      '@wdio/globals': 9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.12.1)(typescript@5.4.5)
-      '@wdio/logger': 9.0.0-alpha.0
+      '@wdio/globals': 8.38.2(encoding@0.1.13)(typescript@5.4.5)
+      '@wdio/logger': 8.38.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
-      webdriverio: 9.0.0-alpha.0(puppeteer-core@22.12.1)
+      webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.4.5)
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.12.1)(typescript@5.4.5))(@wdio/logger@9.0.0-alpha.0)(webdriverio@packages+webdriverio):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.4.5))(@wdio/logger@8.38.0)(webdriverio@packages+webdriverio):
     dependencies:
       '@vitest/snapshot': 1.6.0
-      '@wdio/globals': 9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.12.1)(typescript@5.4.5)
-      '@wdio/logger': 9.0.0-alpha.0
+      '@wdio/globals': 8.38.2(encoding@0.1.13)(typescript@5.4.5)
+      '@wdio/logger': 8.38.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
       webdriverio: link:packages/webdriverio
     optional: true
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.0.0-alpha.0)(webdriverio@packages+webdriverio):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@8.38.0)(webdriverio@packages+webdriverio):
     dependencies:
       '@vitest/snapshot': 1.6.0
       '@wdio/globals': link:packages/wdio-globals
-      '@wdio/logger': 9.0.0-alpha.0
+      '@wdio/logger': 8.38.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
       webdriverio: link:packages/webdriverio
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.12.1)):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@8.38.2(encoding@0.1.13)(typescript@5.4.5)):
     dependencies:
       '@vitest/snapshot': 1.6.0
       '@wdio/globals': link:packages/wdio-globals
@@ -21504,7 +21408,7 @@ snapshots:
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
-      webdriverio: 9.0.0-alpha.0(puppeteer-core@22.12.1)
+      webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.4.5)
 
   expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio):
     dependencies:
@@ -25421,6 +25325,12 @@ snapshots:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
+  postcss@8.4.39:
+    dependencies:
+      nanoid: 3.3.7
+      picocolors: 1.0.1
+      source-map-js: 1.2.0
+
   posthog-js@1.139.0:
     dependencies:
       fflate: 0.4.8
@@ -27725,13 +27635,13 @@ snapshots:
     optionalDependencies:
       typescript: 5.4.5
 
-  vue@3.4.31(typescript@5.4.5):
+  vue@3.4.33(typescript@5.4.5):
     dependencies:
-      '@vue/compiler-dom': 3.4.31
-      '@vue/compiler-sfc': 3.4.31
-      '@vue/runtime-dom': 3.4.31
-      '@vue/server-renderer': 3.4.31(vue@3.4.31(typescript@5.4.5))
-      '@vue/shared': 3.4.31
+      '@vue/compiler-dom': 3.4.33
+      '@vue/compiler-sfc': 3.4.33
+      '@vue/runtime-dom': 3.4.33
+      '@vue/server-renderer': 3.4.33(vue@3.4.33(typescript@5.4.5))
+      '@vue/shared': 3.4.33
     optionalDependencies:
       typescript: 5.4.5
 
@@ -27786,22 +27696,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  webdriver@9.0.0-alpha.0:
-    dependencies:
-      '@types/node': 20.14.10
-      '@types/ws': 8.5.10
-      '@wdio/config': 9.0.0-alpha.0
-      '@wdio/logger': 9.0.0-alpha.0
-      '@wdio/protocols': 9.0.0-alpha.0
-      '@wdio/types': 9.0.0-alpha.0
-      '@wdio/utils': 9.0.0-alpha.0
-      deepmerge-ts: 5.1.0
-      ws: 8.18.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
   webdriverio@8.38.2(encoding@0.1.13)(typescript@5.4.5):
     dependencies:
       '@types/node': 20.14.8
@@ -27834,37 +27728,6 @@ snapshots:
       - encoding
       - supports-color
       - typescript
-      - utf-8-validate
-
-  webdriverio@9.0.0-alpha.0(puppeteer-core@22.12.1):
-    dependencies:
-      '@types/node': 20.14.10
-      '@wdio/config': 9.0.0-alpha.0
-      '@wdio/logger': 9.0.0-alpha.0
-      '@wdio/protocols': 9.0.0-alpha.0
-      '@wdio/repl': 9.0.0-alpha.0
-      '@wdio/types': 9.0.0-alpha.0
-      '@wdio/utils': 9.0.0-alpha.0
-      archiver: 7.0.1
-      aria-query: 5.3.0
-      css-shorthand-properties: 1.1.1
-      css-value: 0.0.1
-      grapheme-splitter: 1.0.4
-      import-meta-resolve: 4.1.0
-      is-plain-obj: 4.1.0
-      lodash.clonedeep: 4.5.0
-      lodash.zip: 4.2.0
-      minimatch: 9.0.4
-      query-selector-shadow-dom: 1.0.1
-      resq: 1.11.0
-      rgb2hex: 0.2.5
-      serialize-error: 11.0.3
-      webdriver: 9.0.0-alpha.0
-    optionalDependencies:
-      puppeteer-core: 22.12.1
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
       - utf-8-validate
 
   webidl-conversions@3.0.1: {}
