@@ -193,7 +193,7 @@ importers:
         version: 5.4.5
       unzipper:
         specifier: ^0.12.1
-        version: 0.12.1
+        version: 0.12.2
       vitest:
         specifier: ^1.5.0
         version: 1.6.0(@types/node@20.14.8)(jsdom@24.1.0)(terser@5.31.1)
@@ -6008,8 +6008,8 @@ packages:
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
 
-  bluebird@3.4.7:
-    resolution: {integrity: sha512-iD3898SR7sWVRHbiQv+sHUtHnMvC1o3nW5rAcqnq3uOn07DSAppZYUkIGslDz6gXC7HfunPe7YVBgoEJASPcHA==}
+  bluebird@3.7.2:
+    resolution: {integrity: sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==}
 
   body-parser@1.20.2:
     resolution: {integrity: sha512-ml9pReCu3M61kGlqoTm2umSXTlRTuGTx0bfYj+uIUKKYycG5NtSbeetV3faSU6R7ajOPw0g/J1PvK4qNy7s5bA==}
@@ -12570,8 +12570,8 @@ packages:
     resolution: {integrity: sha512-KK8xQ1mkzZeg9inewmFVDNkg3l5LUhoq9kN6iWYB/CC9YMG8HA+c1Q8HwDe6dEX7kErrEVNVBO3fWsVq5iDgtw==}
     engines: {node: '>=8'}
 
-  unzipper@0.12.1:
-    resolution: {integrity: sha512-wjYe5XddA387WIAZbEMWOT0U8kw9yf1MdfLHccJer1y7a80t3DqVv0SHOAWV5NDBD2TUPj/pFYmK9tCeY6l9UQ==}
+  unzipper@0.12.2:
+    resolution: {integrity: sha512-ecRhBc+ZfQkYnRr8L7OkxvAAWDkqP3Dun9CHUmYYZx/mErGdy7N7ju6ODJ7uKmm9PD99aAG8grxzl5y9lmEK2A==}
 
   upath@1.2.0:
     resolution: {integrity: sha512-aZwGpamFO61g3OlfT7OQCHqhGnW43ieH9WZeP7QxN/G/jS4jfqUkZxoryvJgVPEcrl5NL/ggHsSmLMHuH64Lhg==}
@@ -19342,7 +19342,7 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  bluebird@3.4.7: {}
+  bluebird@3.7.2: {}
 
   body-parser@1.20.2:
     dependencies:
@@ -27319,9 +27319,9 @@ snapshots:
 
   untildify@4.0.0: {}
 
-  unzipper@0.12.1:
+  unzipper@0.12.2:
     dependencies:
-      bluebird: 3.4.7
+      bluebird: 3.7.2
       duplexer2: 0.1.4
       fs-extra: 11.2.0
       graceful-fs: 4.2.11
