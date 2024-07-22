@@ -194,7 +194,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (!isBrowserstackInfra(this._config)){
-            caps = await AiHandler.AiHealingSetup(this._config, this.browserStackConfig, this._options, caps)
+            caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps)
         }
     }
 
