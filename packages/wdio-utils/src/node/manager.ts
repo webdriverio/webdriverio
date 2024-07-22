@@ -62,7 +62,9 @@ function mapCapabilities (
         // - we are not running Safari (driver already installed on macOS)
         !isSafari(cap.browserName) &&
         // - driver options don't define a binary path
-        !getDriverOptions(cap).binary
+        !getDriverOptions(cap).binary &&
+        // - environment does not define a binary path
+        !(process.env.CHROMEDRIVER_PATH && isChrome(cap.browserName))
     )) as WebdriverIO.Capabilities[]
 
     /**
