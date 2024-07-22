@@ -8,6 +8,9 @@ import type { Capabilities } from '@wdio/types'
 import type { BrowserstackConfig, SelfHeal } from './types.js'
 import type BrowserStackConfig from './config.js'
 import type { Options } from '@wdio/types'
+import path from 'node:path'
+import fs from 'node:fs'
+import url from 'node:url'
 
 class AiHandler {
 
@@ -75,7 +78,10 @@ class AiHandler {
                     await aiSDK.BrowserstackHealing.setToken(browser.sessionId, sessionToken, TCG_URL)
 
                     if ((caps as any).browserName === 'firefox') {
-                        await browser.installAddOn(aiSDK.BrowserstackHealing.getFirefoxAddonPath(), true)
+                        const __dirname =  url.fileURLToPath(new URL('.', import.meta.url))
+                        const extensionPath = path.resolve(__dirname, aiSDK.BrowserstackHealing.getFirefoxAddonPath())
+                        const extFile = fs.readFileSync(extensionPath)
+                        await browser.installAddOn(extFile.toString('base64'), true)
                     }
 
                     browser.overwriteCommand('findElement' as any, async (orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string) => {
