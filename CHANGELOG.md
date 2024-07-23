@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.39.1 (2024-07-03)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#13083](https://github.com/webdriverio/webdriverio/pull/13083) Reload session support ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### Committers: 1
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v8.39.0 (2024-06-18)
 
 #### :nail_care: Polish

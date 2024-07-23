@@ -1,6 +1,6 @@
 {
   "name": "devtools",
-  "version": "8.39.0",
+  "version": "8.39.1",
   "description": "A Chrome DevTools protocol binding that maps WebDriver commands into Chrome DevTools commands using Puppeteer",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/devtools",
@@ -50,12 +50,12 @@
     "puppeteer-core": "20.3.0",
     "query-selector-shadow-dom": "^1.0.0",
     "ua-parser-js": "^1.0.37",
-    "uuid": "^9.0.0",
+    "uuid": "^10.0.0",
     "which": "^4.0.0"
   },
   "devDependencies": {
     "@types/ua-parser-js": "^0.7.33",
-    "@types/uuid": "^9.0.0",
-    "@wdio/globals": "8.39.0"
+    "@types/uuid": "^10.0.0",
+    "@wdio/globals": "8.39.1"
   }
 }
