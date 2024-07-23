@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { URL } from 'node:url'
 import type { MockedFunction } from 'vitest'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Capabilities, Options } from '@wdio/types'
 
@@ -11,7 +11,7 @@ import {
     getTimeoutError,
     setupDirectConnect
 } from '../src/utils.js'
-import type { Client } from '../src/types.js'
+import type { Client, RemoteConfig } from '../src/types.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils')
@@ -311,8 +311,14 @@ describe('utils', () => {
     })
 
     describe('startWebDriverSession', () => {
+        const mockedFetch = vi.mocked(fetch)
+
+        afterEach(() => {
+            mockedFetch.mockClear()
+        })
+
         it('attaches capabilities to the params object', async () => {
-            const params: Options.WebDriver = {
+            const params: RemoteConfig = {
                 hostname: 'localhost',
                 port: 4444,
                 path: '/',
@@ -320,6 +326,7 @@ describe('utils', () => {
                 logLevel: 'warn',
                 capabilities: {
                     browserName: 'chrome',
+                    // @ts-expect-error test invalid cap
                     platform: 'Windows'
                 }
             }
@@ -327,6 +334,43 @@ describe('utils', () => {
             expect(sessionId).toBe('foobar-123')
             expect(capabilities.browserName)
                 .toBe('mockBrowser')
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(true)
+        })
+
+        it('should allow to opt-out from bidi', async () => {
+            const params: RemoteConfig = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                capabilities: {
+                    browserName: 'chrome',
+                    'wdio:enforceWebDriverClassic': true
+                }
+            }
+            await startWebDriverSession(params)
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(undefined)
+        })
+
+        it('should allow to opt-out from bidi when using alwaysMatch', async () => {
+            const params: RemoteConfig = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                capabilities: {
+                    alwaysMatch: {
+                        browserName: 'chrome',
+                        'wdio:enforceWebDriverClassic': true
+                    },
+                    firstMatch: []
+                }
+            }
+            await startWebDriverSession(params)
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(undefined)
         })
 
         it('should handle sessionRequest error', async () => {
@@ -338,7 +382,7 @@ describe('utils', () => {
         })
 
         it('should break if JSONWire and WebDriver caps are mixed together', async () => {
-            const params: Options.WebDriver = {
+            const params: RemoteConfig = {
                 hostname: 'localhost',
                 port: 4444,
                 path: '/',
@@ -347,6 +391,7 @@ describe('utils', () => {
                 capabilities: {
                     browserName: 'chrome',
                     'sauce:options': {},
+                    // @ts-expect-error test invalid cap
                     platform: 'Windows',
                     // @ts-ignore test invalid cap
                     foo: 'bar'
