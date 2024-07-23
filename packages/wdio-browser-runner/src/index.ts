@@ -14,9 +14,8 @@ import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartially
 import type { InlineConfig } from 'vite'
 
 import { ViteServer } from './vite/server.js'
-import {
-    FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DEFAULT_REPORTS_DIRECTORY
-} from './constants.js'
+import { FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DEFAULT_REPORTS_DIRECTORY } from './constants.js'
+import { DEFAULT_HOSTNAME } from './vite/constants.js'
 import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
 import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
@@ -98,7 +97,8 @@ export default class BrowserRunner extends LocalRunner {
 
         try {
             await server.start()
-            runArgs.args.baseUrl = `http://localhost:${server.config.server?.port}`
+            const hostname = this.#options.hostname || DEFAULT_HOSTNAME
+            runArgs.args.baseUrl = `http://${hostname}:${server.config.server?.port}`
         } catch (err: any) {
             throw new Error(`Vite server failed to start: ${err.stack}`)
         }

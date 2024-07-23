@@ -5,6 +5,7 @@ import type { InlineConfig } from 'vite'
 import { codeFrameFix } from './plugins/esbuild.js'
 import type { FrameworkPreset } from '../types.js'
 
+export const DEFAULT_HOSTNAME = '0.0.0.0'
 export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] | undefined> = {
     react: ['@vitejs/plugin-react', 'default', {
         babel: {
@@ -26,7 +27,7 @@ export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] 
 
 export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
     configFile: false,
-    server: { host: 'localhost' },
+    server: { host: DEFAULT_HOSTNAME },
     logLevel: 'silent',
     plugins: [topLevelAwait()],
     build: {
