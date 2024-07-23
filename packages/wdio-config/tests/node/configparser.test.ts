@@ -737,6 +737,25 @@ describe('ConfigParser', () => {
             `)
 
         })
+
+        it('should ensure capabilities are not duped when utilizing launcher', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF, {
+                capabilities: [
+                    {
+                        platformName: 'chrome',
+                    },
+                ]
+            })
+            await configParser.initialize({
+                capabilities: [
+                    {
+                        platformName: 'chrome',
+                    },
+                ]
+            })
+            const { capabilities } = configParser.getConfig()
+            expect(capabilities).toHaveLength(1)
+        })
     })
 
     describe('addService', () => {
