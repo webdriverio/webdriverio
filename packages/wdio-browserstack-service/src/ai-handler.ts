@@ -113,7 +113,7 @@ class AiHandler {
                     handleHealingInstrumentation(authResult, browserStackConfig, config.selfHeal, options)
                     process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
 
-                    await this.updateCaps(authResult, config, caps)
+                    caps = await this.updateCaps(authResult, config, caps)
 
                 }
             }
