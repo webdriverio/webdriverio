@@ -304,9 +304,9 @@ describe('Appium launcher', () => {
                 expect(spawn).toBeCalledWith(
                     'cmd',
                     [
-                        expect.any(String),
+                        '/c',
                         'node',
-                        '/foo/bar/appium',
+                        expect.any(String),
                         '--base-path',
                         '/',
                         '--port',
