@@ -22,21 +22,21 @@ If you host an event that has a speaker talking about using WebdriverIO and it's
 - You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
 - You must submit receipts with your reimbursement request.
 
-### Development Expenses
+### Despesas em Desenvolvimento
 
-If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
+Se você realizou trabalho de desenvolvimento em qualquer um dos repositórios da organização GitHub WebdriverIO, você pode solicitar reembolso de até __$1000__ se os seguintes requisitos forem atendidos:
 
-- You must have submitted qualifying pull requests that have closed at least 10 issues that were labeled with [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
-- Every additional issue closed with that label can be expensed with $100
-- You must submit links to all issues you’ve closed due to your pull requests
-- In order to close the ticket automatically, you must have one commit message with the Fix keyword. For example, Fix #1234 to close ticket #1234.
-- Pull Requests must be merged by someone from the [core team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). If there are several Pull Requests, the core team member either selects the most recent one or the best one - that’s up to them to decide what is best for the project.
-- You must claim an [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) issue by commenting to the issue thread to ensure that no one else is working on the same issue.
-- Anyone contributing to WebdriverIO is eligible to expense their work if the implemented features or bug fixes are not objectives of a commercial job.
+- Você deve ter enviado pull requests qualificados que fecharam pelo menos 10 issues que estavam marcados com [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
+- Cada issue adicional fechada com essa etiqueta pode ser gasta com $100
+- Você deve enviar links para todas as issues que você fechou devido aos seus pull requests
+- Para fechar o ticket automaticamente, você deve ter uma mensagem de commit com a palavra-chave Fix. Por exemplo, Fix #1234 para fechar o ticket #1234.
+- Os Pull Requests devem ser mesclados por alguém da [equipe principal](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). Se houver vários Pull Requests, o membro principal da equipe seleciona o mais recente ou o melhor - cabe a eles decidir o que é melhor para o projeto.
+- Você deve reivindicar uma issue [` Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) comentando no tópico da issue para garantir que ninguém mais esteja trabalhando na mesma issue.
+- Qualquer pessoa que contribua para o WebdriverIO é elegível para reembolsar seu trabalho se os recursos implementados ou correções de bugs não forem objetivos de um trabalho comercial.
 
 ### Despesas de Viagem
 
-Se você é um membro da equipe [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) você tem direito a reembolso de despesas de voos e acomodações de hotéis para viagens a conferências ou encontros como parte de um compromisso de palestras sobre WebdriverIO, não pago pelo evento em si ou por uma empresa. Você pode solicitar reembolso de até US$ 500. Os requisitos de reembolso para despesas de viagem incluem:
+Se você é um membro da [Equipe do Comitê Técnico de Direção](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) você tem direito a reembolso de despesas de voos e acomodações de hotéis para viagens a conferências ou encontros como parte de um compromisso de palestras sobre WebdriverIO, não pago pelo evento em si ou por uma empresa. Você pode solicitar reembolso de até US$ 500. Os requisitos de reembolso para despesas de viagem incluem:
 
 - Você deve fazer uma postagem a partir da sua conta de mídia social principal (por exemplo, Twitter, LinkedIn ou blog pessoal) agradecendo a todos os colaboradores do projeto após o evento ter ocorrido.
 - Você deve utilizar os fundos para despesas de viagem qualificadas, como o transporte terrestre ou aéreo, para o evento e acomodações de hotel.
