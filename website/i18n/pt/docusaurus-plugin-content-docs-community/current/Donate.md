@@ -13,18 +13,18 @@ Obrigado a todos que irão ou já doaram dinheiro, e, consequentemente, apoiaram
 
 Queremos ser transparentes quanto à forma como aceitamos despesas. Todos devem ser elegíveis para participar e enviar despesas relacionadas ao desenvolvimento de determinadas funcionalidades. Também queremos retribuir à comunidade permitindo o reembolso de despesas com eventos. Os seguintes tipos de despesas podem ser elegíveis para reembolso:
 
-### Despesas com Evento
+### Despesas de Evento
 
-If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
+Se você organizar um evento que tenha um palestrante falando sobre o uso do WebdriverIO e suas funcionalidades, você pode solicitar reembolso de até __US$100__. Os requisitos de reembolso para despesas de evento incluem:
 
-- You or the event account must share the project on social media (Twitter, Facebook or LinkedIn) at least 3x
-- The event page must have the WebdriverIO logo and a link to the project page in your meetup description
-- You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
-- You must submit receipts with your reimbursement request.
+- Você ou a conta do evento devem compartilhar o projeto nas redes sociais (Twitter, Facebook ou LinkedIn) pelo menos 3 vezes
+- A página do evento deve ter o logotipo do WebdriverIO e um link para a página do projeto na descrição do seu encontro
+- Você deve usar os fundos para despesas qualificadas do evento, como comida, bebida, aluguel de sala ou de equipamentos.
+- Você deve enviar os recibos com a sua solicitação de reembolso.
 
 ### Despesas em Desenvolvimento
 
-Se você realizou trabalho de desenvolvimento em qualquer um dos repositórios da organização GitHub WebdriverIO, você pode solicitar reembolso de até __$1000__ se os seguintes requisitos forem atendidos:
+Se você realizou trabalho de desenvolvimento em qualquer um dos repositórios da organização GitHub WebdriverIO, você pode solicitar reembolso de até __US$1000__ se os seguintes requisitos forem atendidos:
 
 - Você deve ter enviado pull requests qualificados que fecharam pelo menos 10 issues que estavam marcados com [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
 - Cada issue adicional fechada com essa etiqueta pode ser gasta com $100
