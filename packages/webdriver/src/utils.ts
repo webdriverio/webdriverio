@@ -238,22 +238,6 @@ export function getErrorFromResponseBody (body: any, requestOptions: any) {
         return new Error('Unknown error')
     }
 
-    /**
-     * e.g. in Firefox or Safari, error are following the following structure:
-     * ```
-     * {
-     *   value: {
-     *     error: '...',
-     *     message: '...',
-     *     stacktrace: '...'
-     *   }
-     * }
-     * ```
-     */
-    if (typeof body === 'object' && body.value && body.value.error) {
-        return new Error(body.value.error)
-    }
-
     return new CustomRequestError(body, requestOptions)
 }
 
@@ -261,7 +245,19 @@ export function getErrorFromResponseBody (body: any, requestOptions: any) {
 export class CustomRequestError extends Error {
     constructor (body: WebDriverResponse, requestOptions: any) {
         const errorObj = body.value || body
-        let errorMessage = errorObj.message || errorObj.class || 'unknown error'
+        /**
+         * e.g. in Firefox or Safari, error are following the following structure:
+         * ```
+         * {
+         *   value: {
+         *     error: '...',
+         *     message: '...',
+         *     stacktrace: '...'
+         *   }
+         * }
+         * ```
+         */
+        let errorMessage = errorObj.message || errorObj.error || errorObj.class || 'unknown error'
 
         /**
          * Improve Chromedriver's error message for an invalid selector
@@ -276,7 +272,7 @@ export class CustomRequestError extends Error {
          *  error: 'timeout'
          *  message: ''
          */
-        if (typeof errorObj.message === 'string' && errorObj.message.includes('invalid locator')) {
+        if (typeof errorMessage === 'string' && errorMessage.includes('invalid locator')) {
             errorMessage = (
                 `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid!`
             )
@@ -285,7 +281,7 @@ export class CustomRequestError extends Error {
         super(errorMessage)
         if (errorObj.error) {
             this.name = errorObj.error
-        } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
+        } else if (errorMessage && errorMessage.includes('stale element reference')) {
             this.name = 'stale element reference'
         } else {
             this.name = errorObj.name || 'WebDriver Error'
