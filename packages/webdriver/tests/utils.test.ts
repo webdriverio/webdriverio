@@ -354,6 +354,19 @@ describe('utils', () => {
                 .toBe(undefined)
         })
 
+        it('should not opt-in for Safari as it is not supported', async () => {
+            const params: RemoteConfig = {
+                hostname: 'localhost',
+                port: 4444,
+                capabilities: {
+                    browserName: 'safari'
+                }
+            }
+            await startWebDriverSession(params)
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(undefined)
+        })
+
         it('should allow to opt-out from bidi when using alwaysMatch', async () => {
             const params: RemoteConfig = {
                 hostname: 'localhost',
