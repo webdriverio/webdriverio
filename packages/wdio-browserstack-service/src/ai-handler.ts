@@ -28,15 +28,15 @@ class AiHandler {
     async updateCaps(
         authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse,
         config: Options.Testrunner & SelfHeal,
-        caps: any
+        caps: Array<Capabilities.RemoteCapability> | Capabilities.RemoteCapability
     ) {
         const installExtCondition = authResult.isAuthenticated === true && (authResult.defaultLogDataEnabled === true || config.selfHeal === true)
         if (installExtCondition){
-            if (typeof caps === 'object') {
-                caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
-            } else if (Array.isArray(caps)){
+            if (Array.isArray(caps)){
                 const newCaps= aiSDK.BrowserstackHealing.initializeCapabilities(caps[0])
                 caps[0] = newCaps
+            } else if (typeof caps === 'object') {
+                caps = aiSDK.BrowserstackHealing.initializeCapabilities(caps)
             }
         } else if (config.selfHeal === true) {
             const healingWarnMessage = (authResult as aiSDK.BrowserstackHealing.InitErrorResponse).message

@@ -8,12 +8,18 @@ import AiHandler from '../src/ai-handler.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import * as funnelInstrumentation from '../src/instrumentation/funnelInstrumentation.js'
 import type { Capabilities } from '@wdio/types'
+import { TCG_URL } from '../src/constants.js'
 
 // Mock only the external dependency
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@browserstack/ai-sdk-node')
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('uuid', () => ({ v4: () => '123456789' }))
+vi.mock('node:fs', () => ({
+    default: {
+        readFileSync: vi.fn().mockReturnValue(Buffer.from('extension-content'))
+    }
+}))
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
@@ -81,9 +87,101 @@ describe('AiHandler', () => {
             vi.spyOn(aiSDK.BrowserstackHealing, 'initializeCapabilities')
                 .mockReturnValue({ ...caps, 'goog:chromeOptions': { extensions: [mockExtension] } })
 
-            const updatedCaps = await AiHandler.updateCaps(authResult, config, caps)
+            const updatedCaps = await AiHandler.updateCaps(authResult, config, caps) as any
 
             expect(updatedCaps['goog:chromeOptions'].extensions).toEqual([mockExtension])
+        })
+
+        it('should not update capabilities if authentication failed', async () => {
+            const authResult = {
+                isAuthenticated: false,
+                message: 'Authentication failed'
+            } as any
+
+            const caps = { browserName: 'chrome' }
+            const updatedCaps = await AiHandler.updateCaps(authResult, config, caps)
+
+            expect(updatedCaps).toEqual(caps)
+        })
+
+        it('should not update capabilities if selfHeal is false', async () => {
+            const authResult = {
+                isAuthenticated: false,
+                message: 'Authentication failed'
+            } as any
+
+            config.selfHeal = false
+
+            const caps = { browserName: 'chrome' }
+            const updatedCaps = await AiHandler.updateCaps(authResult, config, caps)
+
+            expect(updatedCaps).toEqual(caps)
+        })
+
+        it('should handle array of capabilities', async () => {
+            const authResult = {
+                isAuthenticated: true,
+                defaultLogDataEnabled: true,
+            } as any
+
+            const caps = [{ browserName: 'chrome' }]
+            const mockExtension = 'mock-extension'
+
+            vi.spyOn(aiSDK.BrowserstackHealing, 'initializeCapabilities')
+                .mockReturnValue({ browserName: 'chrome', 'goog:chromeOptions': { extensions: [mockExtension] } })
+
+            const updatedCaps = await AiHandler.updateCaps(authResult, config, caps) as any
+
+            expect(updatedCaps[0]['goog:chromeOptions'].extensions).toEqual([mockExtension])
+        })
+
+        it('should handle mixed array and object capabilities', async () => {
+            const authResult = {
+                isAuthenticated: true,
+                defaultLogDataEnabled: true,
+                isHealingEnabled: true,
+            } as any
+
+            const capsArray = [{
+                browserName: 'chrome',
+                'goog:chromeOptions': {}
+            }]
+
+            const capsObject = {
+                browserName: 'firefox',
+                'moz:firefoxOptions': {}
+            }
+
+            const mockChromeExtension = 'mock-chrome-extension'
+            const mockFirefoxExtension = 'mock-firefox-extension'
+
+            const initializeCapabilitiesSpy = vi.spyOn(aiSDK.BrowserstackHealing, 'initializeCapabilities')
+                .mockReturnValueOnce({
+                    browserName: 'chrome',
+                    'goog:chromeOptions': { extensions: [mockChromeExtension] }
+                })
+                .mockReturnValueOnce({
+                    browserName: 'firefox',
+                    'moz:firefoxOptions': { extensions: [mockFirefoxExtension] }
+                })
+
+            const updatedCapsArray = await AiHandler.updateCaps(authResult, config, capsArray) as Array<Capabilities.RemoteCapability>
+            const updatedCapsObject = await AiHandler.updateCaps(authResult, config, capsObject)
+
+            expect(initializeCapabilitiesSpy).toHaveBeenCalledTimes(2)
+
+            expect(initializeCapabilitiesSpy).toHaveBeenNthCalledWith(2, capsObject)
+
+            expect(updatedCapsArray).toBeInstanceOf(Array)
+            expect(updatedCapsArray[0]).toEqual({
+                browserName: 'chrome',
+                'goog:chromeOptions': { extensions: [mockChromeExtension] }
+            })
+
+            expect(updatedCapsObject).toEqual({
+                browserName: 'firefox',
+                'moz:firefoxOptions': { extensions: [mockFirefoxExtension] }
+            })
         })
     })
 
@@ -232,6 +330,21 @@ describe('AiHandler', () => {
             expect(updateCapsSpy).not.toHaveBeenCalled()
             expect(updatedCaps).toEqual(caps) // Expect caps to remain unchanged
         })
+
+        it('should handle errors in setup', async () => {
+            const caps = { browserName: 'chrome' }
+            const authenticateUserSpy = vi.spyOn(AiHandler, 'authenticateUser')
+                .mockRejectedValue(new Error('Authentication failed'))
+
+            const debugSpy = vi.spyOn(bstackLogger.BStackLogger, 'debug')
+
+            const emptyObj = {} as any
+            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
+
+            expect(authenticateUserSpy).toHaveBeenCalledTimes(1)
+            expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Error while initiliazing Browserstack healing Extension'))
+            expect(updatedCaps).toEqual(caps)
+        })
     })
 
     describe('selfHeal', () => {
@@ -295,7 +408,6 @@ describe('AiHandler', () => {
             const setTokenSpy = vi.spyOn(AiHandler, 'setToken')
             const overwriteCommandSpy = vi.spyOn(browser, 'overwriteCommand')
 
-            // Mock logData to return a function (executable script)
             vi.spyOn(aiSDK.BrowserstackHealing, 'logData')
                 .mockResolvedValue('logging-script')
 
@@ -305,6 +417,105 @@ describe('AiHandler', () => {
             expect(setTokenSpy).toHaveBeenCalledWith(browser.sessionId, 'mock-session-token')
             expect(overwriteCommandSpy).toHaveBeenCalledTimes(1)
             expect(overwriteCommandSpy).toHaveBeenCalledWith('findElement', expect.any(Function))
+        })
+
+        it('should call overwriteCommand for Edge', async () => {
+            const caps = { browserName: 'microsoftedge' } as Capabilities.RemoteCapability
+            AiHandler['authResult'] = {
+                isAuthenticated: true,
+                sessionToken: 'mock-session-token',
+                defaultLogDataEnabled: true,
+                isHealingEnabled: true
+            } as any
+
+            const setTokenSpy = vi.spyOn(AiHandler, 'setToken')
+            const overwriteCommandSpy = vi.spyOn(browser, 'overwriteCommand')
+
+            vi.spyOn(aiSDK.BrowserstackHealing, 'logData')
+                .mockResolvedValue('logging-script')
+
+            await AiHandler.selfHeal(config, caps, browser)
+
+            expect(setTokenSpy).toHaveBeenCalledTimes(1)
+            expect(setTokenSpy).toHaveBeenCalledWith(browser.sessionId, 'mock-session-token')
+            expect(overwriteCommandSpy).toHaveBeenCalledTimes(1)
+            expect(overwriteCommandSpy).toHaveBeenCalledWith('findElement', expect.any(Function))
+        })
+
+        it('should skip selfHeal for unsupported browser', async () => {
+            const caps = { browserName: 'safari' } as Capabilities.RemoteCapability
+
+            const setTokenSpy = vi.spyOn(AiHandler, 'setToken')
+            const installFirefoxExtensionSpy = vi.spyOn(AiHandler, 'installFirefoxExtension')
+            const overwriteCommandSpy = vi.spyOn(browser, 'overwriteCommand')
+
+            await AiHandler.selfHeal(config, caps, browser)
+
+            expect(setTokenSpy).not.toHaveBeenCalled()
+            expect(installFirefoxExtensionSpy).not.toHaveBeenCalled()
+            expect(overwriteCommandSpy).not.toHaveBeenCalled()
+        })
+
+        it('should handle error in selfHeal function', async () => {
+            const caps = { browserName: 'chrome' } as Capabilities.RemoteCapability
+            AiHandler['authResult'] = {
+                isAuthenticated: true,
+                sessionToken: 'mock-session-token',
+                defaultLogDataEnabled: true,
+                isHealingEnabled: true
+            } as any
+
+            const setTokenSpy = vi.spyOn(AiHandler, 'setToken').mockImplementationOnce(() => {
+                throw new Error('Some error occurred in setToken.')
+            })
+
+            const errorSpy = vi.spyOn(bstackLogger.BStackLogger, 'error')
+
+            await AiHandler.selfHeal(config, caps, browser)
+
+            expect(setTokenSpy).toHaveBeenCalledTimes(1)
+            expect(errorSpy).toHaveBeenCalledWith('Error in setting up self-healing: Error: Some error occurred in setToken.')
+        })
+
+        it('should not set token if isAuthenticated is false', async () => {
+            const caps = { browserName: 'chrome' } as Capabilities.RemoteCapability
+            AiHandler['authResult'] = {
+                isAuthenticated: false,
+                sessionToken: 'mock-session-token',
+            } as any
+
+            const setTokenSpy = vi.spyOn(AiHandler, 'setToken')
+
+            await AiHandler.selfHeal(config, caps, browser)
+
+            expect(setTokenSpy).not.toHaveBeenCalled()
+        })
+
+        it('should not overwrite findElement command if defaultLogDataEnabled and selfHeal are false', async () => {
+            const caps = { browserName: 'chrome' } as Capabilities.RemoteCapability
+            config.selfHeal = false
+            AiHandler['authResult'] = {
+                isAuthenticated: true,
+                sessionToken: 'mock-session-token',
+                defaultLogDataEnabled: false,
+            } as any
+
+            const overwriteCommandSpy = vi.spyOn(browser, 'overwriteCommand')
+
+            await AiHandler.selfHeal(config, caps, browser)
+
+            expect(overwriteCommandSpy).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('setToken', () => {
+        it('should call setToken with correct parameters', async () => {
+            const setTokenSpy = vi.spyOn(aiSDK.BrowserstackHealing, 'setToken')
+                .mockResolvedValue(undefined)
+
+            await AiHandler.setToken('test-session-id', 'test-token')
+
+            expect(setTokenSpy).toHaveBeenCalledWith('test-session-id', 'test-token', TCG_URL)
         })
     })
 })
