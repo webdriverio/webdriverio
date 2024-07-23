@@ -110,7 +110,7 @@ class AiHandler {
 
                     const authResult = await this.authenticateUser(config)
 
-                    handleHealingInstrumentation(authResult, browserStackConfig, config.selfHeal, options)
+                    handleHealingInstrumentation(authResult, browserStackConfig, config.selfHeal)
                     process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
 
                     caps = await this.updateCaps(authResult, config, caps)
