@@ -58,7 +58,16 @@ export class BidiCore {
                         h.off('message', listener)
                         log.info('BIDI RESULT', JSON.stringify(payload))
                         if (payload.error) {
-                            failError.message += ` with error: ${payload.error}`
+                            failError.message += ` with error: ${payload.error} - ${payload.message}`
+                            if (payload.stacktrace) {
+                                const driverStack = payload.stacktrace
+                                    .split('\n')
+                                    .filter(Boolean)
+                                    .map((line: string) => `    at ${line}`)
+                                    .join('\n')
+                                failError.stack += `\n\nDriver Stack:\n${driverStack}`
+                            }
+
                             return reject(failError)
                         }
                         resolve(payload)
