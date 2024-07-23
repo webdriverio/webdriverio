@@ -201,7 +201,7 @@ function handleAuthenticationSuccess(
 ) {
     if (!isHealingEnabledForUser && isSelfHealEnabled) {
         BStackLogger.warn('Healing is not enabled for your group, please contact the admin')
-    } else if (userId) {
+    } else if (userId && isHealingEnabledForUser) {
         sendEvent.tcgtInitSuccessful(config)
     }
 }
@@ -229,7 +229,7 @@ export function handleHealingInstrumentation(
             return
         }
 
-        const { message, isAuthenticated, status, userId, isHealingEnabled: isHealingEnabledForUser } = authResult as any
+        const { message, isAuthenticated, status, userId, groupId, isHealingEnabled: isHealingEnabledForUser } = authResult as any
 
         if (message === 'Upgrade required') {
             handleUpgradeRequired(isSelfHealEnabled)
@@ -241,12 +241,15 @@ export function handleHealingInstrumentation(
             return
         }
 
+        if (isAuthenticated && userId && groupId) {
+            handleAuthenticationSuccess(isHealingEnabledForUser, userId, config, isSelfHealEnabled)
+            return
+        }
+
         if (status >= 400 || !status) {
             handleInitializationFailure(status, config, isSelfHealEnabled)
             return
         }
-
-        handleAuthenticationSuccess(isHealingEnabledForUser, userId, config, isSelfHealEnabled)
 
     } catch (err) {
         BStackLogger.debug('Error in handling healing instrumentation: ' + err)
