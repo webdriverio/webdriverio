@@ -358,6 +358,8 @@ describe('utils', () => {
             const params: RemoteConfig = {
                 hostname: 'localhost',
                 port: 4444,
+                path: '/',
+                protocol: 'http',
                 capabilities: {
                     browserName: 'safari'
                 }
