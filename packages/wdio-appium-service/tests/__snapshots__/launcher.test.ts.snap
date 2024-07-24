@@ -8,6 +8,8 @@ exports[`Appium launcher > onPrepare > should set correct config properties for 
   "/",
   "--address",
   "bar",
+  "--port",
+  "4723",
 ]
 `;
 
@@ -17,6 +19,8 @@ exports[`Appium launcher > onPrepare > should set correct config properties for 
   "/",
   "--address",
   "bar",
+  "--port",
+  "4723",
 ]
 `;
 
@@ -26,5 +30,7 @@ exports[`Appium launcher > onPrepare > should set correct config properties for 
   "/",
   "--address",
   "bar",
+  "--port",
+  "4723",
 ]
 `;
