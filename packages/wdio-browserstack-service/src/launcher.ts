@@ -29,6 +29,7 @@ import {
     stopBuildUpstream,
     getCiInfo,
     isBStackSession,
+    isBrowserstackInfra,
     isUndefined,
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
@@ -46,6 +47,7 @@ import type Percy from './Percy/Percy.js'
 import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
 import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation.js'
+import AiHandler from './ai-handler.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -191,6 +193,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         } catch (err: unknown) {
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
+        }
+
+        if (!isBrowserstackInfra(this._config)){
+            caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps)
         }
     }
 

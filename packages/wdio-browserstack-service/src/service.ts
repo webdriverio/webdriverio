@@ -21,6 +21,7 @@ import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
 import { saveWorkerData } from './data-store.js'
 import UsageStats from './testOps/usageStats.js'
+import AiHandler from './ai-handler.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -107,6 +108,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async before(caps: Capabilities.ResolvedTestrunnerCapabilities, specs: string[], browser: WebdriverIO.Browser) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : globalThis.browser
+
+        // Healing Support:
+        if (!isBrowserstackSession(this._browser)) {
+            await AiHandler.selfHeal(this._config, caps, this._browser)
+        }
 
         // Ensure capabilities are not null in case of multiremote
 
