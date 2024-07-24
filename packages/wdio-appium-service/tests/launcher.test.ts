@@ -3,6 +3,7 @@ import url from 'node:url'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import type cp from 'node:child_process'
+import getPort from 'get-port'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'
@@ -115,7 +116,9 @@ describe('Appium launcher', () => {
                         '--address',
                         'bar',
                         '--default-capabilities',
-                        '{"foo":"bar"}'
+                        '{"foo":"bar"}',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -128,7 +131,9 @@ describe('Appium launcher', () => {
                         '--address',
                         'bar',
                         '--default-capabilities',
-                        '{"foo":"bar"}'
+                        '{"foo":"bar"}',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -248,14 +253,85 @@ describe('Appium launcher', () => {
             }
             const capabilities = [{ deviceName: 'baz' } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
+
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        expect.any(String),
+                        'path/to/my_custom_appium',
+                        '--base-path',
+                        '/',
+                        '--address',
+                        'bar',
+                        '--port',
+                        '1234'
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'path/to/my_custom_appium',
+                    [
+                        '--base-path',
+                        '/',
+                        '--address',
+                        'bar',
+                        '--port',
+                        '1234'
+                    ],
+                    expect.any(Object)
+                )
+            }
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(1234)
+            expect(capabilities[0].path).toBe('/')
+        })
+
+        test('should respect random Appium port', async () => {
+            vi.mocked(getPort).mockResolvedValueOnce(567567)
+
+            const capabilities = [{ deviceName: 'baz' } as Capabilities.DesiredCapabilities]
+            const launcher = new AppiumLauncher({}, capabilities, {} as any)
+            await launcher.onPrepare()
+
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        '/c',
+                        'node',
+                        expect.any(String),
+                        '--base-path',
+                        '/',
+                        '--port',
+                        '567567'
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'node',
+                    [
+                        '/foo/bar/appium',
+                        '--base-path',
+                        '/',
+                        '--port',
+                        '567567'
+                    ],
+                    expect.any(Object)
+                )
+            }
+
+            expect(launcher['_process']).toBeInstanceOf(MockProcess)
+            expect(capabilities[0].protocol).toBe('http')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
+            expect(capabilities[0].port).toBe(567567)
             expect(capabilities[0].path).toBe('/')
         })
 
@@ -267,8 +343,37 @@ describe('Appium launcher', () => {
             }
             const capabilities = [{ port: 4321, deviceName: 'baz' } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
+
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        expect.any(String),
+                        'path/to/my_custom_appium',
+                        '--base-path',
+                        '/foo/bar',
+                        '--address',
+                        'bar',
+                        '--port',
+                        '1234'
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'path/to/my_custom_appium',
+                    [
+                        '--base-path',
+                        '/foo/bar',
+                        '--address',
+                        'bar',
+                        '--port',
+                        '1234'
+                    ],
+                    expect.any(Object)
+                )
+            }
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
@@ -298,7 +403,9 @@ describe('Appium launcher', () => {
                     '--base-path',
                     '/',
                     '--address',
-                    'bar'
+                    'bar',
+                    '--port',
+                    '4723'
                 ],
                 expect.any(Object)
             )
@@ -338,7 +445,9 @@ describe('Appium launcher', () => {
                         '--base-path',
                         '/',
                         '--address',
-                        'bar'
+                        'bar',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -350,7 +459,9 @@ describe('Appium launcher', () => {
                         '--base-path',
                         '/',
                         '--address',
-                        'bar'
+                        'bar',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -371,7 +482,9 @@ describe('Appium launcher', () => {
                         'node',
                         expect.any(String),
                         '--base-path',
-                        '/'
+                        '/',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -381,7 +494,9 @@ describe('Appium launcher', () => {
                     [
                         '/foo/bar/appium',
                         '--base-path',
-                        '/'
+                        '/',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
