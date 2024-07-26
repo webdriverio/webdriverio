@@ -622,8 +622,20 @@ export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): s
 }
 
 export function getCloudProvider(browser: Browser<'async'> | MultiRemoteBrowser<'async'>): string {
-    if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) {
-        return 'browserstack'
+    if (browser && 'instances' in browser) {
+        // Loop through all instances
+        for (const instanceName of browser.instances) {
+            const instance = browser[instanceName]
+            if (instance.options && instance.options.hostname && instance.options.hostname.includes('browserstack')) {
+                return 'browserstack'
+            }
+        }
+    }
+    else {
+        // Single browser instance
+        if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) {
+            return 'browserstack'
+        }
     }
     return 'unknown_grid'
 }
