@@ -630,12 +630,8 @@ export function getCloudProvider(browser: Browser<'async'> | MultiRemoteBrowser<
                 return 'browserstack'
             }
         }
-    }
-    else {
-        // Single browser instance
-        if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) {
-            return 'browserstack'
-        }
+    } else if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) { // Single browser instance
+        return 'browserstack'
     }
     return 'unknown_grid'
 }
