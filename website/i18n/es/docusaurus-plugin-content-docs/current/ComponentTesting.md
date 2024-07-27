@@ -121,6 +121,21 @@ You can now go into the browser or use the command line as REPL
 
 Pulsa `Ctrl` o `Comando` + `c` o entra `.exit` para continuar con la prueba.
 
+## Run using a Selenium Grid
+
+If you have a [Selenium Grid](https://www.selenium.dev/documentation/grid/) set up and run your browser through that grid, you have to set the `host` browser runner option to allow the browser, to access the right host where the test files are being served, e.g.:
+
+```ts title=wdio.conf.ts
+export const config: WebdriverIO.Config = {
+    runner: ['browser', {
+        // network IP of the machine that runs the WebdriverIO process
+        host: 'http://172.168.0.2'
+    }]
+}
+```
+
+This will ensure the browser correctly opens the right server instance hosted on the instance that runs the WebdriverIO tests.
+
 ## Ejemplos:
 
 Puede encontrar varios ejemplos de componentes de prueba utilizando frameworks de componentes populares en nuestro [repositorio de ejemplo](https://github.com/webdriverio/component-testing-examples).
