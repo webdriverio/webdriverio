@@ -6,7 +6,7 @@ import { codeFrameFix } from './plugins/esbuild.js'
 import type { FrameworkPreset } from '../types.js'
 
 export const DEFAULT_PROTOCOL = 'http'
-export const DEFAULT_HOSTNAME = '0.0.0.0'
+export const DEFAULT_HOSTNAME = 'localhost'
 export const DEFAULT_HOST = `${DEFAULT_PROTOCOL}://${DEFAULT_HOSTNAME}`
 export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] | undefined> = {
     react: ['@vitejs/plugin-react', 'default', {
