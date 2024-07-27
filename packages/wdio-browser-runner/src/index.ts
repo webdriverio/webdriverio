@@ -15,7 +15,7 @@ import type { InlineConfig } from 'vite'
 
 import { ViteServer } from './vite/server.js'
 import { FRAMEWORK_SUPPORT_ERROR, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER, DEFAULT_REPORTS_DIRECTORY } from './constants.js'
-import { DEFAULT_HOSTNAME } from './vite/constants.js'
+import { DEFAULT_HOST } from './vite/constants.js'
 import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
 import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
@@ -97,8 +97,8 @@ export default class BrowserRunner extends LocalRunner {
 
         try {
             await server.start()
-            const hostname = this.#options.hostname || DEFAULT_HOSTNAME
-            runArgs.args.baseUrl = `http://${hostname}:${server.config.server?.port}`
+            const host = this.#options.host || DEFAULT_HOST
+            runArgs.args.baseUrl = `${host}:${server.config.server?.port}`
         } catch (err: any) {
             throw new Error(`Vite server failed to start: ${err.stack}`)
         }

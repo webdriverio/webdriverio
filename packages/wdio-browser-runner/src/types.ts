@@ -119,9 +119,9 @@ export interface BrowserRunnerOptions {
      * In order for the browser to connect to the correct server, you need to set the `hostname` to the IP or hostname
      * of the machine that runs the WebdriverIO process.
      *
-     * @default 0.0.0.0
+     * @default http://0.0.0.0
      */
-    hostname?: string
+    host?: string
 }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
