@@ -88,7 +88,7 @@ const client = await WebDriver.newSession(options)
 The following options are available:
 
 ### capabilities
-Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your Selenium session.
+Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your WebDriver session. Note: by default, it will automatically set the `webSocketUrl` to establish a [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) session, if you don't want this, make sure to set `'wdio:enforceWebDriverClassic': true` in your capabilities.
 
 Type: `Object`<br />
 Required: `true`
@@ -158,13 +158,13 @@ Default:
 ```
 
 ### transformRequest
-Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made
+Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made to a driver.
 
 Type: `(RequestOptions) => RequestOptions`<br />
 Default: *none*
 
 ### transformResponse
-Function intercepting HTTP response objects after a WebDriver response has arrived
+Function intercepting HTTP response objects after a WebDriver response has arrived.
 
 Type: `(Response, RequestOptions) => Response`<br />
 Default: *none*
