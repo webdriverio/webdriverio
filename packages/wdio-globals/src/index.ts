@@ -1,10 +1,13 @@
 /// <reference path="../types.d.ts" />
+import { AsyncLocalStorage } from 'node:async_hooks'
 
 type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
 
 declare global {
     // eslint-disable-next-line no-var
     var _wdioGlobals: Map<SupportedGlobals, any>
+    // eslint-disable-next-line no-var
+    var _wdioGlobalsStorage: AsyncLocalStorage<Map<SupportedGlobals, any>>
 }
 
 /**
@@ -14,17 +17,22 @@ declare global {
  * imported in the test, the same file will be used as CJS version (/cjs/index.js)
  * and can use the Map initiated by the testrunner by making it accessible globally.
  */
-const globals: Map<SupportedGlobals, any> = globalThis._wdioGlobals = globalThis._wdioGlobals || new Map()
+const globalsDefault: Map<SupportedGlobals, any> = globalThis._wdioGlobals = globalThis._wdioGlobals || new Map<SupportedGlobals, any>()
+const globalsStorage: AsyncLocalStorage<Map<SupportedGlobals, any>> = globalThis._wdioGlobalsStorage = globalThis._wdioGlobalsStorage || new AsyncLocalStorage<Map<SupportedGlobals, any>>()
 const GLOBALS_ERROR_MESSAGE = 'No browser instance registered. Don\'t import @wdio/globals outside of the WDIO testrunner context. Or you have two two different "@wdio/globals" packages installed.'
+
+function getGlobalKey(key: SupportedGlobals) {
+    const globals = globalsStorage.getStore() || globalsDefault
+    if (!globals.has(key)) {
+        throw new Error(GLOBALS_ERROR_MESSAGE)
+    }
+    return globals.get(key)
+}
 
 function proxyHandler (key: SupportedGlobals) {
     return {
         get: (self: never, prop: any) => {
-            if (!globals.has(key)) {
-                throw new Error(GLOBALS_ERROR_MESSAGE)
-            }
-
-            const receiver = globals.get(key)
+            const receiver = getGlobalKey(key)
             const field = receiver[prop]
 
             return typeof field === 'function'
@@ -47,22 +55,13 @@ export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
     proxyHandler('multiremotebrowser')
 )
 export const $: WebdriverIO.Browser['$'] = (...args: any) => {
-    if (!globals.has('$')) {
-        throw new Error(GLOBALS_ERROR_MESSAGE)
-    }
-    return globals.get('$')(...args)
+    return getGlobalKey('$')(...args)
 }
 export const $$: WebdriverIO.Browser['$$'] = (...args: any) => {
-    if (!globals.has('$$')) {
-        throw new Error(GLOBALS_ERROR_MESSAGE)
-    }
-    return globals.get('$$')(...args)
+    return getGlobalKey('$$')(...args)
 }
 export const expect: ExpectWebdriverIO.Expect = ((...args: any) => {
-    if (!globals.has('expect')) {
-        throw new Error(GLOBALS_ERROR_MESSAGE)
-    }
-    return globals.get('expect')(...args)
+    return getGlobalKey('expect')(...args)
 }) as ExpectWebdriverIO.Expect
 
 const ASYNC_MATCHERS = [
@@ -76,28 +75,19 @@ const ASYNC_MATCHERS = [
 
 for (const matcher of ASYNC_MATCHERS) {
     expect[matcher] = (...args: any) => {
-        if (!globals.has('expect')) {
-            throw new Error(GLOBALS_ERROR_MESSAGE)
-        }
-        return globals.get('expect')[matcher](...args)
+        return getGlobalKey('expect')[matcher](...args)
     }
 }
 
 expect.not = ASYNC_MATCHERS.reduce((acc, matcher) => {
     acc[matcher] = (...args: any) => {
-        if (!globals.has('expect')) {
-            throw new Error(GLOBALS_ERROR_MESSAGE)
-        }
-        return globals.get('expect').not[matcher](...args)
+        return getGlobalKey('expect').not[matcher](...args)
     }
     return acc
 }, {} as ExpectWebdriverIO.AsymmetricMatchers)
 
 expect.extend = (...args: unknown[]) => {
-    if (!globals.has('expect')) {
-        throw new Error(GLOBALS_ERROR_MESSAGE)
-    }
-    const expect = globals.get('expect')
+    const expect = getGlobalKey('expect')
     return expect.extend(...args)
 }
 
@@ -108,9 +98,20 @@ expect.extend = (...args: unknown[]) => {
  * @private
  */
 export function _setGlobal (key: SupportedGlobals, value: any, setGlobal = true) {
-    globals.set(key, value)
+    (globalsStorage.getStore() || globalsDefault)?.set(key, value)
 
     if (setGlobal) {
-        globalThis[key] = value
+        //Sets the proxy instead of the value globaly so that LocalStorage is used when ever it applies.
+        globalThis[key] = { browser, driver, multiremotebrowser, $, $$, expect }[key] as any
     }
+}
+
+/**
+ * allows having different global values per each execution without them getting overriden by the other
+ * @param ctx
+ * @param callback
+ * @returns
+ */
+export function _runInGlobalStorage(ctx: Map<SupportedGlobals, any>, callback: () => void) {
+    return globalsStorage.run(ctx, callback)
 }
