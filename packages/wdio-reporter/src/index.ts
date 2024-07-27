@@ -208,18 +208,36 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         /**
+         * deduplicate long script strings (> 1KB) to avoid memory leaks.
+         */
+        const scriptMap = new Map<string, string>()
+        const deduplicateScript =
+            (payload: { body: { script?: string } }) => {
+                const script = payload.body?.script
+                if (typeof script === 'string' && script.length > 1000) { // bytes
+                    const value = scriptMap.get(script)
+                    if (value === undefined) {
+                        scriptMap.set(script, script)
+                    } else {
+                        payload.body.script = value
+                    }
+                }
+            }
+        /**
          * browser client event handlers
          */
         this.on('client:beforeCommand',  /* istanbul ignore next */(payload) => {
             if (!currentTest) {
                 return
             }
+            deduplicateScript(payload)
             currentTest.output.push(Object.assign(payload, { type: 'command' }))
         })
         this.on('client:afterCommand',  /* istanbul ignore next */(payload) => {
             if (!currentTest) {
                 return
             }
+            deduplicateScript(payload)
             currentTest.output.push(Object.assign(payload, { type: 'result' }))
         })
     }
