@@ -16,7 +16,7 @@
     "@wdio/appium-service": "workspace:*",
     "@wdio/browserstack-service": "workspace:*",
     "@wdio/cucumber-framework": "workspace:*",
-    "@wdio/devtools-service": "workspace:*",
+    "@wdio/lighthouse-service": "workspace:*",
     "@wdio/firefox-profile-service": "workspace:*",
     "@wdio/jasmine-framework": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",

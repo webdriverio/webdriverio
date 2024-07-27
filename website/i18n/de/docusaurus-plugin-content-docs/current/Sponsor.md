@@ -42,3 +42,5 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 ### 🥈 Silver
 
 <ImageSwitcher lightImageSrc="/img/sponsors/lambdatest_black.svg" darkImageSrc="/img/sponsors/lambdatest_white.svg" alt="Lambdatest" link="https://www.lambdatest.com/" />
+
+<ImageSwitcher lightImageSrc="/img/sponsors/testingbot.svg" darkImageSrc="/img/sponsors/testingbot.svg" alt="TestingBot" link="https://testingbot.com/" />

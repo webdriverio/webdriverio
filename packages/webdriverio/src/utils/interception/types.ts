@@ -3,11 +3,9 @@ import type { Cookie } from '@wdio/protocols'
 
 export type MockFilterOptions = {
     method?: string | ((method: string) => boolean)
-    headers?: Record<string, string> | ((headers: Record<string, string>) => boolean)
     requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean)
     responseHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean)
     statusCode?: number | ((statusCode: number) => boolean)
-    postData?: string | ((payload: string | undefined) => boolean)
 }
 
 type Overwrite <T, Request> = T | ((request: Request) => T)
@@ -28,5 +26,3 @@ export interface RespondWithOptions extends Omit<RequestWithOptions, 'url' | 'me
 export interface MockRequestOptions {
     requestWith?: RequestWithOptions
 }
-
-export type MockOptions = MockFilterOptions & MockRequestOptions

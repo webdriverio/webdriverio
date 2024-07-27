@@ -15,7 +15,7 @@
       "@wdio/allure-reporter",
       "@wdio/appium-service",
       "@wdio/browserstack-service",
-      "@wdio/devtools-service",
+      "@wdio/lighthouse-service",
       "@wdio/firefox-profile-service",
       "@wdio/static-server-service",
       "@wdio/testingbot-service",

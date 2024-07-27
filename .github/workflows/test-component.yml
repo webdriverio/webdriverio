@@ -1,0 +1,56 @@
+name: Component Tests
+
+on:
+  workflow_call:
+    # Make this a reusable workflow, no value needed
+    # https://docs.github.com/en/actions/using-workflows/reusing-workflows
+
+jobs:
+  check:
+    name: Component Test (${{ matrix.os }}.${{ matrix.node }})
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['18', '20', '22']
+        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'pnpm'
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      - name: Link Packages
+        run: pnpm run link
+        shell: bash
+
+      - name: Component Tests
+        run: pnpm run test:component
+        # component testing on Windows is currently broken
+        # https://github.com/webdriverio/webdriverio/actions/runs/9075112951/job/24935302330#step:7:30
+        if: matrix.os != 'windows-latest'
+        shell: bash
+
+      - name: Check Git Context
+        if: matrix.os != 'windows-latest'
+        uses: ./.github/workflows/actions/check-git-context
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: component-tests-${{ matrix.os }}-${{ matrix.node }}-logs
+          path: e2e/browser-runner/logs

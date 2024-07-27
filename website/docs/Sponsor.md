@@ -54,6 +54,7 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     lightImageSrc="/img/sponsors/browserstack_black.svg"
     darkImageSrc="/img/sponsors/browserstack_white.svg"
     alt="BrowserStack"
+    target="_blank"
     link="https://www.browserstack.com/automation-webdriverio"
 />
 
@@ -63,10 +64,20 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     alt="Sauce Labs"
     link="https://www.saucelabs.com"
     width={400}
+    target="_blank"
     style={{ marginLeft: '30px', position: 'relative', top: '-8px' }}
 />
 
 ### 🥇 Gold
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/route4me.svg"
+    darkImageSrc="/img/sponsors/route4me.svg"
+    alt="Route4Me"
+    link="https://www.route4me.com/"
+    width="350"
+    target="_blank"
+/>
 
 Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-sponsor-26921/checkout?interval=month&amount=500&contributeAs=me).
 
@@ -76,8 +87,19 @@ Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-s
     lightImageSrc="/img/sponsors/lambdatest_black.svg"
     darkImageSrc="/img/sponsors/lambdatest_white.svg"
     alt="Lambdatest"
+    target="_blank"
     link="https://www.lambdatest.com/"
     width="250"
+/>
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/testingbot.svg"
+    darkImageSrc="/img/sponsors/testingbot.svg"
+    alt="TestingBot"
+    link="https://testingbot.com/"
+    width="250"
+    target="_blank"
+    style={{ marginLeft: '30px', position: 'relative', top: '-8px' }}
 />
 
 Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silver-sponsor-69223/checkout?interval=month&amount=250&contributeAs=me).
@@ -88,6 +110,7 @@ Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silv
     lightImageSrc="/img/sponsors/eslint_black.svg"
     darkImageSrc="/img/sponsors/eslint_white.svg"
     alt="Eslint"
+    target="_blank"
     link="https://eslint.org/"
     width="150"
 />

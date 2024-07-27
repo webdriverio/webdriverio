@@ -9,7 +9,7 @@
         mock.respond('https://webdriver.io/img/webdriverio.png')
         await browser.url('https://google.com') // shows WebdriverIO logo instead of Google
 
-        mock.restore()
+        await mock.restore()
         await browser.url('https://google.com') // shows normal Google logo again
     })
  * </example>

@@ -7,7 +7,7 @@ import { handleRequires } from 'mocha/lib/cli/run-helpers.js'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
-import type { Capabilities, Services, Options } from '@wdio/types'
+import type { Services, Options } from '@wdio/types'
 
 import { formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
@@ -43,7 +43,7 @@ class MochaAdapter {
         private _cid: string,
         private _config: ParsedConfiguration,
         private _specs: string[],
-        private _capabilities: Capabilities.RemoteCapability,
+        private _capabilities: WebdriverIO.Capabilities,
         private _reporter: EventEmitter
     ) {
         this._config = Object.assign({

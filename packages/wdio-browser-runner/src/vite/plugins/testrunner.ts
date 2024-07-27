@@ -10,7 +10,8 @@ import { resolve } from 'import-meta-resolve'
 import type { Plugin } from 'vite'
 import {
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
-    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
+    type Protocol
 } from '@wdio/protocols'
 
 import { SESSIONS } from '../../constants.js'
@@ -19,10 +20,10 @@ import { getTemplate, getErrorTemplate, normalizeId } from '../utils.js'
 const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
-const commands = deepmerge(
+const commands = deepmerge<any>(
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
-)
+) as Protocol
 const protocolCommandList = Object.values(commands).map(
     (endpoint) => Object.values(endpoint).map(
         ({ command }) => command

@@ -70,10 +70,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                 reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
                 reporter.onRunnerEnd(runnerEnd())
 
-                const { results, attachments, containers } = getResults(outputDir)
+                const { results, containers } = getResults(outputDir)
 
                 expect(results).toHaveLength(1)
-                expect(attachments).toHaveLength(1)
+                expect(
+                    results[0].steps.find(
+                        (step: StepResult) => step.attachments.length,
+                    ).attachments,
+                ).toHaveLength(1)
                 expect(containers).toHaveLength(1)
 
                 allureResult = results[0]

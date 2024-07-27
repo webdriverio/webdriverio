@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { HOOK_DEFINITION } from '@wdio/utils'
-import type { Options, Services, Reporters, Capabilities } from '@wdio/types'
+import type { Options, Services, Reporters } from '@wdio/types'
 
 import {
     detectCompiler,
@@ -120,7 +120,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
-        { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
+        { name: 'lighthouse', value: '@wdio/lighthouse-service$--$lighthouse' },
         { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
         { name: 'electron', value: 'wdio-electron-service$--$electron' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
@@ -144,7 +144,6 @@ export const SUPPORTED_PACKAGES = {
         { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' },
         { name: 'cleanuptotal', value: 'wdio-cleanuptotal-service$--$cleanuptotal' },
         { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
-        { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
         { name: 'ms-teams', value: 'wdio-ms-teams-service$--$ms-teams' },
         { name: 'tesults', value: 'wdio-tesults-service$--$tesults' },
         { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' },
@@ -673,7 +672,7 @@ export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
     'wdio-gmail-service'
 ]
 
-export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
+export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner & { capabilities: unknown }> = {
     /**
      * Define specs for test execution. You can either specify a glob
      * pattern to match multiple files at once or wrap a glob or set of
@@ -730,7 +729,7 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
      */
     capabilities: {
         type: 'object',
-        validate: (param: Capabilities.RemoteCapabilities) => {
+        validate: (param: unknown) => {
             /**
              * should be an object
              */

@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import type { Options, Services, Clients } from '@wdio/types'
+import type { Options, Services } from '@wdio/types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
 
@@ -45,10 +45,10 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
         const origCommand = propertiesObject[commandName].value
         delete propertiesObject[commandName]
 
-        const newCommand = function (this: Clients.Browser, ...args: any[]) {
+        const newCommand = function (this: WebdriverIO.Browser, ...args: any[]) {
             const element = this
             return userDefinedCommand.apply(element, [
-                function origCommandFunction (this: Clients.Browser) {
+                function origCommandFunction (this: WebdriverIO.Browser) {
                     const context = this || element // respect explicite context binding, use element as default
                     return origCommand.apply(context, arguments)
                 },

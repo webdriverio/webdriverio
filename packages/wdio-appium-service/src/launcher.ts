@@ -34,7 +34,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     constructor(
         private _options: AppiumServiceConfig,
-        private _capabilities: Capabilities.RemoteCapabilities,
+        private _capabilities: Capabilities.TestrunnerCapabilities,
         private _config?: Options.Testrunner
     ) {
         this._args = {
@@ -127,18 +127,19 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         if (Array.isArray(this._options.args)) {
             throw new Error('Args should be an object')
         }
-        /**
-         * Append remaining arguments
-         */
-        this._appiumCliArgs.push(...formatCliArgs(this._args))
 
         /**
-         * Get port from service option or use a random port
+         * Use port from service option or get a random port
          */
-        const port = typeof this._args.port === 'number'
-            ? this._args.port
+        this._args.port = typeof this._args.port === 'number' ? this._args.port
             : await getPort({ port: DEFAULT_APPIUM_PORT })
-        this._setCapabilities(port)
+
+        this._setCapabilities(this._args.port)
+
+        /**
+         * Append cli arguments
+         */
+        this._appiumCliArgs.push(...formatCliArgs({ ...this._args }))
 
         /**
          * start Appium

@@ -83,7 +83,7 @@ class CucumberAdapter {
         private _cid: string,
         private _config: Options.Testrunner,
         private _specs: string[],
-        private _capabilities: Capabilities.RemoteCapability,
+        private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _reporter: EventEmitter,
         private _eventEmitter: EventEmitter,
         private _generateSkipTags: boolean = true,
@@ -241,6 +241,7 @@ class CucumberAdapter {
                 requireModules: this._cucumberOpts.requireModule,
                 requirePaths: this._cucumberOpts.require,
                 importPaths: this._cucumberOpts.import,
+                loaders: []
             })
 
             this.addWdioHooks(this._config, supportCodeLibraryBuilder)

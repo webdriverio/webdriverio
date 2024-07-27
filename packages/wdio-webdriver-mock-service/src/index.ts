@@ -37,7 +37,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.getLogTypes().reply(200, { value: [] })
     }
 
-    beforeSession(config: Omit<Options.Testrunner, 'capabilities'>): void {
+    beforeSession(config: Options.Testrunner): void {
         config.hostname = 'localhost'
         config.port = 4444
     }

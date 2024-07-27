@@ -4,7 +4,7 @@ import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import type { Capabilities, Options, Workers } from '@wdio/types'
+import type { Options, Workers } from '@wdio/types'
 
 import logger from '@wdio/logger'
 
@@ -32,9 +32,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     config: Options.Testrunner
     configFile: string
     // requestedCapabilities
-    caps: Capabilities.RemoteCapability
+    caps: WebdriverIO.Capabilities
     // actual capabilities returned by driver
-    capabilities: Capabilities.RemoteCapability
+    capabilities: WebdriverIO.Capabilities
     specs: string[]
     execArgv: string[]
     retries: number

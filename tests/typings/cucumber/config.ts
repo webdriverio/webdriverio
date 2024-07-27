@@ -7,11 +7,11 @@ const config: WebdriverIO.Config = {
         // @ts-expect-error
         scenarioLevelReporter: 'wrong param',
     },
-    capabilities: {}
+    capabilities: [{}]
 }
 
 const configB: WebdriverIO.Config = {
-    capabilities: {},
+    capabilities: [{}],
     beforeFeature (uri, feature) {
         expectType<string>(uri)
         expectType<string>(feature.children[0].scenario.name)
@@ -21,4 +21,4 @@ const configB: WebdriverIO.Config = {
 /**
  * check import of assertion lib
  */
-expect($('foo')).toHaveTextContaining('foobar')
+expect($('foo')).toHaveText('foobar')

@@ -12,22 +12,22 @@ WebdriverIO provides image comparisons on screens, elements or a full-page for
 
 -   🖥️ Desktop browsers (Chrome / Firefox / Safari / Microsoft Edge)
 -   📱 Mobile / Tablet browsers (Chrome on Android emulators / Safari on iOS Simulators / Simulators / real devices) via Appium
--   📱 Native Apps (Android emulators / iOS Simulators / real devices) via Appium (🌟 __NEW__ 🌟)
+-   📱 Native Apps (Android emulators / iOS Simulators / real devices) via Appium (🌟 **NEW** 🌟)
 -   📳 Hybrid apps via Appium
 
 through the [`@wdio/visual-service`](https://www.npmjs.com/package/@wdio/visual-service) which is a lightweight WebdriverIO service.
 
 This allows you to:
 
--   save or compare __screens/elements/full-page__ screens against a baseline
--   automatically __create a baseline__ when no baseline is there
--   __block out custom regions__ and even __automatically exclude__ a status and or toolbars (mobile only) during a comparison
+-   save or compare **screens/elements/full-page** screens against a baseline
+-   automatically **create a baseline** when no baseline is there
+-   **block out custom regions** and even **automatically exclude** a status and or toolbars (mobile only) during a comparison
 -   increase the element dimensions screenshots
-- __hide text__ during website comparison to:
-  - __improve stability__ and prevent font rendering flakiness
-  - only focus on the __layout__ of a website
--   use __different comparison methods__ and a set of __additional matchers__ for better readable tests
--   verify how your website will __support tabbing with your keyboard)__, see also [Tabbing through a website](#tabbing-through-a-website)
+-   **hide text** during website comparison to:
+    -   **improve stability** and prevent font rendering flakiness
+    -   only focus on the **layout** of a website
+-   use **different comparison methods** and a set of **additional matchers** for better readable tests
+-   verify how your website will **support tabbing with your keyboard)**, see also [Tabbing through a website](#tabbing-through-a-website)
 -   and much more, see the [service](./visual-testing/service-options) and [method](./visual-testing/method-options) options
 
 The service is a lightweight module to retrieve the needed data and screenshots for all browsers/devices. The comparison power comes from [ResembleJS](https://github.com/Huddle/Resemble.js). If you want to compare images online you can check the [online tool](http://rsmbl.github.io/Resemble.js/).
@@ -51,7 +51,7 @@ npm install --save-dev @wdio/visual-service
 `@wdio/visual-service` can be used as a normal service. You can set it up in your configuration file with the following:
 
 ```js
-import path from 'node:path'
+import path from "node:path";
 
 // wdio.conf.ts
 export const config = {
@@ -60,17 +60,20 @@ export const config = {
     // Setup
     // =====
     services: [
-        ['visual', {
-            // Some options, see the docs for more
-            baselineFolder: path.join(process.cwd(), 'tests', 'baseline'),
-            formatImageName: '{tag}-{logName}-{width}x{height}',
-            screenshotPath: path.join(process.cwd(), 'tmp'),
-            savePerInstance: true,
-            // ... more options
-        }]
-    ]
+        [
+            "visual",
+            {
+                // Some options, see the docs for more
+                baselineFolder: path.join(process.cwd(), "tests", "baseline"),
+                formatImageName: "{tag}-{logName}-{width}x{height}",
+                screenshotPath: path.join(process.cwd(), "tmp"),
+                savePerInstance: true,
+                // ... more options
+            },
+        ],
+    ],
     // ...
-}
+};
 ```
 
 More service options can be found [here](/docs/visual-testing/service-options).
@@ -90,30 +93,30 @@ export const config = {
     capabilities: {
         chromeBrowserOne: {
             capabilities: {
-                browserName: 'chrome',
-                'goog:chromeOptions': {
-                    args: ['disable-infobars'],
+                browserName: "chrome",
+                "goog:chromeOptions": {
+                    args: ["disable-infobars"],
                 },
                 // THIS!!!
-                'wdio-ics:options': {
-                    logName: 'chrome-latest-one',
-                }
-            }
+                "wdio-ics:options": {
+                    logName: "chrome-latest-one",
+                },
+            },
         },
         chromeBrowserTwo: {
             capabilities: {
-                browserName: 'chrome',
-                'goog:chromeOptions': {
-                    args: ['disable-infobars'],
+                browserName: "chrome",
+                "goog:chromeOptions": {
+                    args: ["disable-infobars"],
                 },
                 // THIS!!!
-                'wdio-ics:options': {
-                    logName: 'chrome-latest-two',
-                }
-            }
-        }
-    }
-}
+                "wdio-ics:options": {
+                    logName: "chrome-latest-two",
+                },
+            },
+        },
+    },
+};
 ```
 
 ### Running Programmatically
@@ -121,32 +124,32 @@ export const config = {
 Here is a minimal example of how to use `@wdio/visual-service` via `remote` options:
 
 ```js
-import { remote } from 'webdriverio'
-import VisualService from '@wdio/visual-service'
+import { remote } from "webdriverio";
+import VisualService from "@wdio/visual-service";
 
 let visualService = new VisualService({
-    autoSaveBaseline: true
-})
+    autoSaveBaseline: true,
+});
 
 const browser = await remote({
-    logLevel: 'silent',
+    logLevel: "silent",
     capabilities: {
-        browserName: 'chrome',
-    }
-})
+        browserName: "chrome",
+    },
+});
 
 // "Start" the service to add the custom commands to the `browser`
-visualService.remoteSetup(browser)
+visualService.remoteSetup(browser);
 
-await browser.url('https://webdriver.io/')
+await browser.url("https://webdriver.io/");
 
 // or use this for ONLY saving a screenshot
-await browser.saveFullPageScreen('examplePaged', {})
+await browser.saveFullPageScreen("examplePaged", {});
 
 // or use this for validating. Both methods don't need to be combined, see the FAQ
-await browser.checkFullPageScreen('examplePaged', {})
+await browser.checkFullPageScreen("examplePaged", {});
 
-await browser.deleteSession()
+await browser.deleteSession();
 ```
 
 ### Tabbing through a website
@@ -154,7 +157,7 @@ await browser.deleteSession()
 You can check if a website is accessible by using the keyboard <kbd>TAB</kbd>-key. Testing this part of accessibility has always been a time-consuming (manual) job and pretty hard to do through automation.
 With the methods `saveTabbablePage` and `checkTabbablePage`, you can now draw lines and dots on your website to verify the tabbing order.
 
-Be aware of the fact that this is only useful for desktop browsers and **NOT**** for mobile devices. All desktop browsers support this feature.
+Be aware of the fact that this is only useful for desktop browsers and **NOT\*\*** for mobile devices. All desktop browsers support this feature.
 
 :::note
 
@@ -170,7 +173,7 @@ Both methods will create a `canvas` element on your website and draw lines and d
 
 :::important
 
-**Use the `saveTabbablePage` only when you need to create a screenshot and DON'T want to compare it **with a **baseline** image.****
+**Use the `saveTabbablePage` only when you need to create a screenshot and DON'T want to compare it **with a **baseline** image.\*\*\*\*
 
 :::
 
@@ -188,6 +191,31 @@ This is an example of how the tabbing works on our [guinea pig website](http://g
 
 ![WDIO tabbing example](/img/visual/tabbable-chrome-latest-1366x768.png)
 
+### Automatically update failed Visual Snapshots
+
+Update the baseline images through the command line by adding the argument `--update-visual-baseline`. This will
+
+-   automatically copy the actual take screenshot and put it in the baseline folder
+-   if there are differences it will let the test pass because the baseline has been updated
+
+**Usage:**
+
+```sh
+npm run test.local.desktop  --update-visual-baseline
+```
+
+When running logs info/debug mode you will see the following logs added
+
+```logs
+[0-0] ..............
+[0-0] #####################################################################################
+[0-0]  INFO:
+[0-0]  Updated the actual image to
+[0-0]  /Users/wswebcreation/Git/wdio/visual-testing/localBaseline/chromel/demo-chrome-1366x768.png
+[0-0] #####################################################################################
+[0-0] ..........
+```
+
 ## Typescript support
 
 We now also support typescript types. Add the following to the `types` in your `tsconfig.json`:
@@ -202,25 +230,33 @@ We now also support typescript types. Add the following to the `types` in your `
 
 ## System Requirements
 
-Aside from the general [project requirements](/docs/gettingstarted#system-requirements) this module relies on [Canvas](https://github.com/Automattic/node-canvas) which is a canvas implementation for Node.js. It relies on [Cairo](https://cairographics.org/).
+### Version 5 and up
+
+For version 5 and up, this module is a purely JavaScript-based module with no additional system dependencies beyond the general [project requirements](/docs/gettingstarted#system-requirements). It uses [Jimp](https://github.com/jimp-dev/jimp) which is an image processing library for Node written entirely in JavaScript, with zero native dependencies.
+
+### Version 4 and Lower
+
+For version 4 and lower, this module relies on [Canvas](https://github.com/Automattic/node-canvas), a canvas implementation for Node.js. Canvas depends on [Cairo](https://cairographics.org/).
+
+#### Installation Details
 
 By default, binaries for macOS, Linux and Windows will be downloaded during your project's `npm install`. If you don't have a supported OS or processor architecture, the module will be compiled on your system. This requires several dependencies, including Cairo and Pango.
 
-For detailed installation information, see the [node-canvas wiki](https://github.com/Automattic/node-canvas/wiki/_pages). One-line installation instructions for common OSes are below. Note that `libgif/giflib`, `librsvg` and `libjpeg` are optional and only required if you need GIF, SVG and JPEG support, respectively. Cairo v1.10.0 or later is required.
+For detailed installation information, see the [node-canvas wiki](https://github.com/Automattic/node-canvas/wiki/_pages). Below are one-line installation instructions for common operating systems. Note that `libgif/giflib`, `librsvg`, and `libjpeg` are optional and only needed for GIF, SVG, and JPEG support, respectively. Cairo v1.10.0 or later is required.
 
 <Tabs
-    defaultValue="osx"
-    values={[
-        {label: 'OS', value: 'osx'},
-        {label: 'Ubuntu', value: 'ubuntu'},
-        {label: 'Fedora', value: 'fedora'},
-        {label: 'Solaris', value: 'solaris'},
-        {label: 'OpenBSD', value: 'openbsd'},
-        {label: 'Window', value: 'windows'},
-        {label: 'Others', value: 'others'},
-    ]}
->
-<TabItem value="osx">
+defaultValue="osx"
+values={[
+{label: 'OS', value: 'osx'},
+{label: 'Ubuntu', value: 'ubuntu'},
+{label: 'Fedora', value: 'fedora'},
+{label: 'Solaris', value: 'solaris'},
+{label: 'OpenBSD', value: 'openbsd'},
+{label: 'Window', value: 'windows'},
+{label: 'Others', value: 'others'},
+]}
+
+> <TabItem value="osx">
 
      Using [Homebrew](https://brew.sh/):
 

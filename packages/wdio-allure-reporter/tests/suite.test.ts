@@ -236,6 +236,36 @@ describe('Failed tests', () => {
 
         expect(results).toHaveLength(1)
 
+        const browserParameter = results[0].parameters.find(
+            (param: Parameter) => param.name === 'browser',
+        )
+
+        expect(results[0].name).toEqual('should can do something')
+        expect(results[0].status).toEqual(Status.FAILED)
+        expect(results[0].parameters).toHaveLength(1)
+        expect(results[0].historyId).toEqual('607cb53d8a84b61120bbab44d5f01694')
+        expect(browserParameter.value).toEqual(testStart().cid)
+    })
+
+    it('should detect failed test case onTestRetry', () => {
+        const reporter = new AllureReporter({ outputDir })
+
+        const runnerEvent = runnerStart()
+
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestRetry(testFailed())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+
         const browserParameter = results[0].parameters.find((param: Parameter) => param.name === 'browser')
 
         expect(results[0].name).toEqual('should can do something')
@@ -490,10 +520,12 @@ describe('Hook reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(results[0].name).toEqual('"before all" hook for "should login with valid credentials"')
+        expect(containers[0].befores[0].steps[0].name).toEqual(
+            '"before all" hook for "should login with valid credentials"',
+        )
         expect(results[0].status).toEqual(Status.BROKEN)
     })
 
@@ -512,16 +544,19 @@ describe('Hook reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
         expect(results).toHaveLength(2)
+        expect(containers[0].befores[0].steps).toHaveLength(1)
 
-        const testCaseStep = results.find(((tc: any) => tc.name === 'My Login application'))
-        expect(testCaseStep).toBeDefined()
-        expect(testCaseStep.status).toEqual(Status.BROKEN)
+        expect(['should can do something', 'My Login application'].includes(results[0].name)).toBeTruthy()
+        expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
 
-        const hookCase = results.find(((tc: any) => tc.name === '"before each" hook'))
+        const hookCase = containers[0].befores[0].steps.find(((tc: any) => tc.name === '"before each" hook'))
         expect(hookCase).toBeDefined()
         expect(hookCase.status).toEqual(Status.BROKEN)
+        expect(containers[0].befores[0].steps[0]).toBeDefined()
+        expect(containers[0].befores[0].steps[0].name).toEqual('"before each" hook')
+        expect(containers[0].befores[0].steps[0].status).toEqual(Status.BROKEN)
     })
 
     it('should report failed before each hook with disableMochaHooks', () => {
@@ -539,13 +574,15 @@ describe('Hook reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
-        expect(results[0].status).toEqual(Status.FAILED)
-        expect(results[0].steps[0].name).toEqual('"before each" hook')
-        expect(results[0].steps[0].status).toEqual(Status.FAILED)
+        expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
+        expect(containers[0].befores[0].steps[0].name).toEqual(
+            '"before each" hook',
+        )
+        expect(containers[0].befores[0].steps[0].status).toEqual(Status.BROKEN)
     })
 })
 
@@ -864,8 +901,9 @@ describe('command reporting', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        const { results } = getResults(outputDir)
-        expect(results).toHaveLength(2)
+        const { results, containers } = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        expect(containers[0].befores[0].steps).toHaveLength(1)
 
         const result = results.find((res: any) => res.attachments.length === 1)
         expect(result).toBeDefined()

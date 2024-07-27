@@ -1,3 +1,4 @@
+import type { Cookie } from '@wdio/protocols'
 /**
  *
  * Retrieve a [cookie](https://w3c.github.io/webdriver/webdriver-spec.html#cookies)
@@ -33,7 +34,7 @@
 export async function getCookies(
     this: WebdriverIO.Browser,
     names?: string | string[]
-) {
+): Promise<Cookie[]> {
     if (names === undefined) {
         return this.getAllCookies()
     }

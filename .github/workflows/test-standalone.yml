@@ -1,0 +1,40 @@
+name: E2E Standalone Tests
+
+on:
+  workflow_call:
+    # Make this a reusable workflow, no value needed
+    # https://docs.github.com/en/actions/using-workflows/reusing-workflows
+
+jobs:
+  standalone_check:
+    name: E2E Standalone Tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-latest', 'macos-13']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      - name: Link Packages
+        run: pnpm run link
+        shell: bash
+
+      - name: E2E Standalone Tests
+        run: pnpm run test:e2e:standalone
+        shell: bash
+
+      - name: Check Git Context
+        if: matrix.os != 'windows-latest'
+        uses: ./.github/workflows/actions/check-git-context

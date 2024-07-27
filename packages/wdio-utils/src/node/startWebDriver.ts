@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 import cp, { type ChildProcess } from 'node:child_process'
 
@@ -14,7 +13,7 @@ import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriv
 import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from 'edgedriver'
 import type { InstallOptions } from '@puppeteer/browsers'
 
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
@@ -33,7 +32,7 @@ declare global {
 const log = logger('@wdio/utils')
 const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
 
-export async function startWebDriver (options: Options.WebDriver) {
+export async function startWebDriver (options: Capabilities.RemoteConfig) {
     /**
      * in case we are running unit tests, just return
      */
@@ -145,9 +144,10 @@ export async function startWebDriver (options: Options.WebDriver) {
         /**
          * on Linux set the path to the Edge binary if not already set
          */
-        if (!caps['ms:edgeOptions']?.binary && os.platform() !== 'darwin' && os.platform() !== 'win32') {
+        if (!caps['ms:edgeOptions']?.binary) {
             caps['ms:edgeOptions'] = caps['ms:edgeOptions'] || {}
             caps['ms:edgeOptions'].binary = findEdgePath()
+            log.info(`Found Edge binary at ${caps['ms:edgeOptions'].binary}`)
         }
     } else {
         throw new Error(

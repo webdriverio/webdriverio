@@ -8,11 +8,11 @@ import type { GetValueOptions } from './types.js'
 export default class SharedStoreService implements Services.ServiceInstance {
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
-    constructor(_: never, caps: Capabilities.RemoteCapability) {
+    constructor(_: never, caps: Capabilities.ResolvedTestrunnerCapabilities) {
         const port = (
             (caps as SharedStoreServiceCapabilities)[CUSTOM_CAP] ||
             ((caps as Capabilities.W3CCapabilities).alwaysMatch as SharedStoreServiceCapabilities)?.[CUSTOM_CAP] ||
-            (Object.values(caps as Capabilities.MultiRemoteCapabilities)[0]?.capabilities as SharedStoreServiceCapabilities)[CUSTOM_CAP]
+            (Object.values(caps as Capabilities.ResolvedTestrunnerCapabilities)[0]?.capabilities as SharedStoreServiceCapabilities)[CUSTOM_CAP]
         )
 
         if (!port) {

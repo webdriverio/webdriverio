@@ -20,13 +20,6 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-html-nice-reporter"
   },
   {
-    "packageName": "wdio-mochawesome-reporter",
-    "title": "Mochawesome",
-    "branch": "master",
-    "githubUrl": "https://github.com/fijijavis/wdio-mochawesome-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-mochawesome-reporter"
-  },
-  {
     "packageName": "wdio-timeline-reporter",
     "title": "Timeline",
     "branch": "master",

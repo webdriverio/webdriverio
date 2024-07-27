@@ -1,4 +1,4 @@
-import type { Capabilities, Services, Options } from '@wdio/types'
+import type { Services, Options, Capabilities } from '@wdio/types'
 import logger from '@wdio/logger'
 
 import initializePlugin from './initializePlugin.js'
@@ -61,7 +61,7 @@ async function initializeServices (services: ServiceWithOptions[]): Promise<Inti
          * services as NPM packages
          *
          * ```
-         * services: ['@wdio/devtools-service']
+         * services: ['@wdio/lighthouse-service']
          * ```
          */
         log.debug(`initialize service "${serviceName}" as NPM package`)
@@ -91,7 +91,7 @@ function sanitizeServiceArray (service: Services.ServiceEntry): ServiceWithOptio
  *                            as a list of services that don't need to be
  *                            required in the worker
  */
-export async function initializeLauncherService (config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>, caps: Capabilities.DesiredCapabilities) {
+export async function initializeLauncherService (config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>, caps: Capabilities.TestrunnerCapabilities) {
     const ignoredWorkerServices = []
     const launcherServices: Services.ServiceInstance[] = []
     let serviceLabelToBeInitialised = 'unknown'
@@ -114,7 +114,7 @@ export async function initializeLauncherService (config: Omit<Options.Testrunner
             const Launcher = (service as Services.ServicePlugin).launcher
             if (typeof Launcher === 'function' && serviceName) {
                 serviceLabelToBeInitialised = `"${serviceName}"`
-                launcherServices.push(new Launcher(serviceConfig, caps, config))
+                launcherServices.push(new Launcher(serviceConfig, caps as Capabilities.ResolvedTestrunnerCapabilities, config))
             }
 
             /**
@@ -122,7 +122,7 @@ export async function initializeLauncherService (config: Omit<Options.Testrunner
              */
             if (typeof service === 'function' && !serviceName) {
                 serviceLabelToBeInitialised = `"${service.constructor?.name || service.toString()}"`
-                launcherServices.push(new service(serviceConfig, caps, config))
+                launcherServices.push(new service(serviceConfig, caps as Capabilities.ResolvedTestrunnerCapabilities, config))
             }
 
             /**
@@ -154,7 +154,7 @@ export async function initializeLauncherService (config: Omit<Options.Testrunner
  */
 export async function initializeWorkerService (
     config: Options.Testrunner,
-    caps: Capabilities.DesiredCapabilities,
+    caps: WebdriverIO.Capabilities,
     ignoredWorkerServices: string[] = []
 ): Promise<Services.ServiceInstance[]> {
     let serviceLabelToBeInitialised = 'unknown'

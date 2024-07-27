@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 import assert from 'node:assert'
+import { expect } from 'expect-webdriverio'
 
 import { sleep } from '../packages/wdio-utils/build/utils.js'
 import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
@@ -169,7 +170,7 @@ const jasmineReporter = async () => {
     await sleep(100)
     const reporterLogsPath = path.join(__dirname, 'jasmine', 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
-    assert.equal(reporterLogs.toString(), JASMINE_REPORTER_LOGS)
+    expect(reporterLogs.toString()).toEqual(JASMINE_REPORTER_LOGS)
     await fs.unlink(reporterLogsPath)
 }
 

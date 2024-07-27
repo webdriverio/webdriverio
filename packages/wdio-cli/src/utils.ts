@@ -130,7 +130,7 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
 export async function runOnCompleteHook(
     onCompleteHook: Function | Function[],
     config: Options.Testrunner,
-    capabilities: Capabilities.RemoteCapabilities,
+    capabilities: Capabilities.TestrunnerCapabilities,
     exitCode: number,
     results: OnCompleteResult
 ) {
@@ -155,7 +155,7 @@ export async function runOnCompleteHook(
 /**
  * get runner identification by caps
  */
-export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
+export function getRunnerName(caps: WebdriverIO.Capabilities = {}) {
     let runner =
         caps.browserName ||
         caps.platformName ||
@@ -316,7 +316,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
             await config.initialize()
         } catch (e) {
             throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}` :
-                `Could not parse ${arg.option}, failed with error : ${(e as Error).message}`)
+                `Could not parse ${arg.option}, failed with error: ${(e as Error).message}`)
         }
         if (typeof arg.capabilities === 'undefined') {
             throw Error('Please provide index/named property of capability to use from the capabilities array/object in wdio config file')
@@ -324,9 +324,9 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         let requiredCaps = config.getCapabilities()
         requiredCaps = (
             // multi capabilities
-            (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[parseInt(arg.capabilities, 10)] ||
+            (requiredCaps as (Capabilities.RequestedStandaloneCapabilities)[])[parseInt(arg.capabilities, 10)] ||
             // multiremote
-            (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
+            (requiredCaps as Capabilities.RequestedMultiremoteCapabilities)[arg.capabilities]
         )
         const requiredW3CCaps = pickBy(requiredCaps, (_, key) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
         if (!Object.keys(requiredW3CCaps).length) {
@@ -852,14 +852,12 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
      * as it is a requirement for running tests with TypeScript
      */
     if (parsedAnswers.hasRootTSConfig) {
-        parsedAnswers.packagesToInstall.push('tsx')
         return
     }
 
     console.log('Setting up TypeScript...')
     const frameworkPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.framework)
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
-    parsedAnswers.packagesToInstall.push('tsx')
     const serenityTypes = parsedAnswers.serenityAdapter === 'jasmine' ? ['jasmine'] : []
 
     const types = [

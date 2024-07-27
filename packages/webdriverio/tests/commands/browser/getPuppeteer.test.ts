@@ -180,7 +180,7 @@ describe('attach Puppeteer', () => {
                 }
             },
             puppeteer: {
-                isConnected: vi.fn().mockReturnValue(true)
+                connected: true
             } as any
         })
         expect(typeof pptr).toBe('object')

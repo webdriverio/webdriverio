@@ -395,7 +395,7 @@ test('onPrepare without tunnel identifier and without w3c caps ', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: false
     }
-    const caps: Capabilities.DesiredCapabilities[] = [{
+    const caps: WebdriverIO.Capabilities[] = [{
         browserName: 'chrome'
     }, {
         browserName: 'firefox',
@@ -422,7 +422,7 @@ test('onPrepare without tunnel identifier and with w3c caps ', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: false
     }
-    const caps: Capabilities.DesiredCapabilities[] = [{
+    const caps: WebdriverIO.Capabilities[] = [{
         browserName: 'chrome',
         'sauce:options': {
             commandTimeout: 600,
@@ -466,7 +466,7 @@ test('onPrepare with tunnel identifier and with w3c caps ', async () => {
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps: Capabilities.DesiredCapabilities[] = [{
+    const caps: WebdriverIO.Capabilities[] = [{
         browserName: 'chrome',
         'sauce:options': {
             commandTimeout: 600,
@@ -511,7 +511,7 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps: Capabilities.DesiredCapabilities[] = [{
+    const caps: WebdriverIO.Capabilities[] = [{
         browserName: 'internet explorer',
         platform: 'Windows 7',
         'sauce:options': { tunnelIdentifier: 'fish' }

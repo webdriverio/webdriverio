@@ -9,12 +9,9 @@ const config: myConfig = {
     capabilities: [
         {
             browserName: 'chrome',
-            maxInstances: 3 ,// <-- assert, but deprecated
-            'wdio:maxInstances': 3, // <-- assert
-            specs: ['foo'], // <-- assert, but deprecated
-            'wdio:specs': ['foo'], // <-- assert
-            exclude: ['bar'], // <-- assert, but deprecated
-            'wdio:exclude': ['bar'] // <-- assert
+            'wdio:maxInstances': 3,
+            'wdio:specs': ['foo'],
+            'wdio:exclude': ['bar']
         }
     ]
 }

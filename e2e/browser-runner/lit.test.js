@@ -558,6 +558,23 @@ describe('Lit Component testing', () => {
                 await expect(elem).toHaveValue('Hello World!')
             })
 
+            it('multiple inputs with a label', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label for="search-1">Search 1</label>
+                        <input id="search-1" type="text" value="Hello World! 1" />
+                        <label for="search-2">Search 2</label>
+                        <input id="search-2" type="text" value="Hello World 2" />
+                    `,
+                    document.body
+                )
+                const elem1 = await $('aria/Search 1')
+                await expect(elem1).toHaveValue('Hello World! 1')
+                const elem2 = await $('aria/Search 2')
+                await expect(elem2).toHaveValue('Hello World 2')
+            })
+
             it('textarea with a label', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
@@ -569,6 +586,23 @@ describe('Lit Component testing', () => {
                 )
                 const elem = await $('aria/Search')
                 await expect(elem).toHaveValue('Hello World!')
+            })
+
+            it('multiple textareas with a label', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label for="search-1">Search 1</label>
+                        <textarea id="search-1">Hello World! 1</textarea>
+                        <label for="search-2">Search 2</label>
+                        <textarea id="search-2">Hello World 2</textarea>
+                    `,
+                    document.body
+                )
+                const elem1 = await $('aria/Search 1')
+                await expect(elem1).toHaveValue('Hello World! 1')
+                const elem2 = await $('aria/Search 2')
+                await expect(elem2).toHaveValue('Hello World 2')
             })
 
             it('input with a label as parent', async () => {
@@ -586,6 +620,27 @@ describe('Lit Component testing', () => {
                 await expect(elem).toHaveValue('Hello World!')
             })
 
+            it('multiple inputs with a label as parent', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label>
+                            Search 1
+                            <input type="text" value="Hello World! 1" />
+                        </label>
+                        <label>
+                            Search 2
+                            <input type="text" value="Hello World! 2" />
+                        </label>
+                    `,
+                    document.body
+                )
+                const elem1 = await $('aria/Search 1')
+                await expect(elem1).toHaveValue('Hello World! 1')
+                const elem2 = await $('aria/Search 2')
+                await expect(elem2).toHaveValue('Hello World! 2')
+            })
+
             it('textarea with a label as parent', async () => {
                 // https://www.w3.org/TR/accname-1.1/#step2D
                 render(
@@ -599,6 +654,27 @@ describe('Lit Component testing', () => {
                 )
                 const elem = await $('aria/Search')
                 await expect(elem).toHaveValue('Hello World!')
+            })
+
+            it('multiple textareas with a label as parent', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label>
+                            Search 1
+                            <textarea>Hello World! 1</textarea>
+                        </label>
+                        <label>
+                            Search 2
+                            <textarea>Hello World! 2</textarea>
+                        </label>
+                    `,
+                    document.body
+                )
+                const elem1 = await $('aria/Search 1')
+                await expect(elem1).toHaveValue('Hello World! 1')
+                const elem2 = await $('aria/Search 2')
+                await expect(elem2).toHaveValue('Hello World! 2')
             })
 
             it('aria label is recevied by other element with aria-labelledBy', async () => {

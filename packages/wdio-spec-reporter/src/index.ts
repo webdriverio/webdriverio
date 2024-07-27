@@ -231,17 +231,7 @@ export default class SpecReporter extends WDIOReporter {
         const isSauceJob = (
             (config && config.hostname && config.hostname.includes('saucelabs')) ||
             // only show if multiremote is not used
-            capabilities && (
-                // check w3c cap in jsonwp caps
-                (capabilities as Capabilities.DesiredCapabilities)['sauce:options'] ||
-                // check jsonwp caps
-                (capabilities as Capabilities.DesiredCapabilities).tunnelIdentifier ||
-                // check w3c caps
-                (
-                    (capabilities as Capabilities.W3CCapabilities).alwaysMatch &&
-                    (capabilities as Capabilities.W3CCapabilities).alwaysMatch['sauce:options']
-                )
-            )
+            capabilities['sauce:options']
         )
 
         if (isSauceJob && config && config.user && config.key && sessionId) {
@@ -592,7 +582,7 @@ export default class SpecReporter extends WDIOReporter {
      * @param isMultiremote
      * @return {String}          Enviroment string
      */
-    getEnviromentCombo (capability: Capabilities.RemoteCapability, verbose = true, isMultiremote = false): string {
+    getEnviromentCombo (capability: Capabilities.ResolvedTestrunnerCapabilities, verbose = true, isMultiremote = false): string {
         if (isMultiremote) {
             const browserNames = Object.values(capability).map((c) => c.browserName)
             const browserName = browserNames.length > 1
@@ -600,13 +590,12 @@ export default class SpecReporter extends WDIOReporter {
                 : browserNames.pop()
             return `MultiremoteBrowser on ${browserName}`
         }
-        const caps = (
-            ((capability as Capabilities.W3CCapabilities).alwaysMatch as Capabilities.DesiredCapabilities) ||
-            (capability as Capabilities.DesiredCapabilities)
-        )
+        const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
         const device = caps['appium:deviceName']
-        const app = ((caps['appium:app'] || (caps as any).app) || '').replace('sauce-storage:', '')
+        // @ts-expect-error outdated JSONWP capabilities
+        const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
         const appName = app || caps['appium:bundleId'] || (caps as any).bundleId
+        // @ts-expect-error outdated JSONWP capabilities
         const browser = caps.browserName || caps.browser || appName
         /**
          * fallback to different capability types:
@@ -615,6 +604,7 @@ export default class SpecReporter extends WDIOReporter {
          * platformVersion: mobile format
          * browser_version: invalid BS capability
          */
+        // @ts-expect-error outdated JSONWP capabilities
         const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
         /**
          * fallback to different capability types:
@@ -622,6 +612,7 @@ export default class SpecReporter extends WDIOReporter {
          * platform: JSONWP format
          * os, os_version: invalid BS capability
          */
+        // @ts-expect-error outdated JSONWP capabilities
         const platform = caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities

@@ -9,7 +9,7 @@ import {
 } from '@wdio/protocols'
 import { transformCommandLogResult } from '@wdio/utils'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options } from '@wdio/types'
 
 import Request from './request/request.js'
 import command from './command.js'
@@ -17,7 +17,7 @@ import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
 import { REG_EXPS } from './constants.js'
 import type { WebDriverResponse } from './request/index.js'
-import type { Client, JSONWPCommandError, SessionFlags } from './types.js'
+import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
 
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })
@@ -32,7 +32,7 @@ const BROWSER_DRIVER_ERRORS = [
 /**
  * start browser session with WebDriver protocol
  */
-export async function startWebDriverSession (params: Options.WebDriver): Promise<{ sessionId: string, capabilities: Capabilities.DesiredCapabilities }> {
+export async function startWebDriverSession (params: RemoteConfig): Promise<{ sessionId: string, capabilities: WebdriverIO.Capabilities }> {
     /**
      * validate capabilities to check if there are no obvious mix between
      * JSONWireProtocol and WebDriver protocol, e.g.
@@ -64,15 +64,25 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
-    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch
+    const [w3cCaps, jsonwpCaps] = params.capabilities && 'alwaysMatch' in params.capabilities
         /**
          * in case W3C compliant capabilities are provided
          */
-        ? [params.capabilities, (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch]
+        ? [params.capabilities, params.capabilities.alwaysMatch]
         /**
          * otherwise assume they passed in jsonwp-style caps (flat object)
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+
+    /**
+     * automatically opt-into WebDriver Bid (@ref https://w3c.github.io/webdriver-bidi/)
+     */
+    if (!w3cCaps.alwaysMatch['wdio:enforceWebDriverClassic'] && typeof w3cCaps.alwaysMatch.browserName === 'string' && w3cCaps.alwaysMatch.browserName !== 'safari') {
+        w3cCaps.alwaysMatch.webSocketUrl = true
+    }
+    if (!jsonwpCaps['wdio:enforceWebDriverClassic'] && typeof jsonwpCaps.browserName === 'string' && jsonwpCaps.browserName !== 'safari') {
+        jsonwpCaps.webSocketUrl = true
+    }
 
     const sessionRequest = new Request(
         'POST',
@@ -96,9 +106,9 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
     /**
      * save actual received session details
      */
-    params.capabilities = response.value.capabilities || response.value
+    params.capabilities = (response.value.capabilities || response.value) as WebdriverIO.Capabilities
 
-    return { sessionId, capabilities: params.capabilities as Capabilities.DesiredCapabilities }
+    return { sessionId, capabilities: params.capabilities }
 }
 
 /**
@@ -174,14 +184,14 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
  */
 export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
-    const ProtocolCommands: Protocol = deepmerge(
+    const ProtocolCommands = deepmerge<any>(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
          * some legacy JSONWire commands are still used in Appium
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? deepmerge(AppiumProtocol, WebDriverProtocol)
+            ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
             : WebDriverProtocol,
         /**
          * enable Bidi protocol for W3C sessions
@@ -190,7 +200,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
         /**
          * only apply mobile protocol if session is actually for mobile
          */
-        isMobile ? deepmerge(MJsonWProtocol, AppiumProtocol) : {},
+        isMobile ? deepmerge<any>(MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chromium commands if session is using Chrome or Edge
          */
@@ -209,7 +219,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
          */
         isSeleniumStandalone ? SeleniumProtocol : {},
         {} as Protocol
-    )
+    ) as Protocol
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
@@ -245,7 +255,19 @@ export function getErrorFromResponseBody (body: any, requestOptions: any) {
 export class CustomRequestError extends Error {
     constructor (body: WebDriverResponse, requestOptions: any) {
         const errorObj = body.value || body
-        let errorMessage = errorObj.message || errorObj.class || 'unknown error'
+        /**
+         * e.g. in Firefox or Safari, error are following the following structure:
+         * ```
+         * {
+         *   value: {
+         *     error: '...',
+         *     message: '...',
+         *     stacktrace: '...'
+         *   }
+         * }
+         * ```
+         */
+        let errorMessage = errorObj.message || errorObj.error || errorObj.class || 'unknown error'
 
         /**
          * Improve Chromedriver's error message for an invalid selector
@@ -260,7 +282,7 @@ export class CustomRequestError extends Error {
          *  error: 'timeout'
          *  message: ''
          */
-        if (typeof errorObj.message === 'string' && errorObj.message.includes('invalid locator')) {
+        if (typeof errorMessage === 'string' && errorMessage.includes('invalid locator')) {
             errorMessage = (
                 `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid!`
             )
@@ -269,7 +291,7 @@ export class CustomRequestError extends Error {
         super(errorMessage)
         if (errorObj.error) {
             this.name = errorObj.error
-        } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
+        } else if (errorMessage && errorMessage.includes('stale element reference')) {
             this.name = 'stale element reference'
         } else {
             this.name = errorObj.name || 'WebDriver Error'
@@ -306,7 +328,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
  * @param  {Client} params post-new-session client
  */
 export function setupDirectConnect(client: Client) {
-    const capabilities = client.capabilities as Capabilities.DesiredCapabilities
+    const capabilities = client.capabilities
     const directConnectProtocol = capabilities['appium:directConnectProtocol']
     const directConnectHost = capabilities['appium:directConnectHost']
     const directConnectPath = capabilities['appium:directConnectPath']
@@ -447,14 +469,11 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
 
 export function parseBidiMessage (this: EventEmitter, data: Buffer) {
     try {
-        // keep backwards compatibility
-        // ToDo(Christian): remove in v9
-        this.emit('message', data)
-
         const payload: Event = JSON.parse(data.toString())
         if (payload.type !== 'event') {
             return
         }
+
         this.emit(payload.method, payload.params)
     } catch (err: unknown) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)

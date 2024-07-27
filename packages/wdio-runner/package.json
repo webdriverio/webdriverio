@@ -35,8 +35,8 @@
     "@wdio/logger": "workspace:9.0.0-alpha.0",
     "@wdio/types": "workspace:9.0.0-alpha.0",
     "@wdio/utils": "workspace:9.0.0-alpha.0",
-    "deepmerge-ts": "^5.1.0",
-    "expect-webdriverio": "^4.12.0",
+    "deepmerge-ts": "^7.0.3",
+    "expect-webdriverio": "5.0.0-alpha.2",
     "gaze": "^1.1.3",
     "webdriver": "workspace:9.0.0-alpha.0",
     "webdriverio": "workspace:9.0.0-alpha.0"

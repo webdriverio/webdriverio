@@ -43,7 +43,7 @@
     "cucumber",
     "testingbot"
   ],
-  "main": "./build/cjs/index.js",
+  "main": "./build/index.cjs",
   "type": "module",
   "module": "./build/index.js",
   "exports": {
@@ -51,9 +51,9 @@
       {
         "types": "./build/index.d.ts",
         "import": "./build/index.js",
-        "require": "./build/cjs/index.js"
+        "require": "./build/index.cjs"
       },
-      "./build/cjs/index.js"
+      "./build/index.cjs"
     ],
     "./package.json": "./package.json"
   },
@@ -83,6 +83,7 @@
     "htmlfy": "^0.2.1",
     "import-meta-resolve": "^4.0.0",
     "is-plain-obj": "^4.1.0",
+    "jszip": "^3.10.1",
     "lodash.clonedeep": "^4.5.0",
     "lodash.zip": "^4.2.0",
     "minimatch": "^9.0.3",

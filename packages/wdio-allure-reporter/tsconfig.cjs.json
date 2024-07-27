@@ -8,6 +8,7 @@
     "declarationMap": false
   },
   "include": [
-    "src/common"
+    "src/common",
+    "src/constants",
   ]
 }
