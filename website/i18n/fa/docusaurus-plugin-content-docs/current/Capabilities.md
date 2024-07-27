@@ -72,6 +72,12 @@ Exclude specs from test execution for that browser/capability. Same as the [regu
 
 Type: `String[]`
 
+#### `wdio:enforceWebDriverClassic`
+
+By default, WebdriverIO attempts to establish a WebDriver Bidi session. If you don't prefer that, you can set this flag to disable this behavior.
+
+Type: `boolean`
+
 #### Common Driver Options
 
 While all driver offer different parameters for configuration, there are some common ones that WebdriverIO understand and uses for setting up your driver or browser:
