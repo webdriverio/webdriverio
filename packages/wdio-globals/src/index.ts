@@ -29,7 +29,7 @@ function getGlobalKey(key: SupportedGlobals) {
     return globals.get(key)
 }
 
-function proxyHandler (key: SupportedGlobals) {
+function proxyHandler (key: SupportedGlobals): ProxyHandler<any> {
     return {
         get: (self: never, prop: any) => {
             const receiver = getGlobalKey(key)
@@ -38,7 +38,13 @@ function proxyHandler (key: SupportedGlobals) {
             return typeof field === 'function'
                 ? field.bind(receiver)
                 : field
-        }
+        },
+        set: (self: never, prop: any, value: any) => {
+            const receiver = getGlobalKey(key)
+            receiver[prop] = value
+            return true
+        },
+
     }
 }
 
