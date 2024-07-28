@@ -1,4 +1,4 @@
-import { DATA_ENDPOINT } from '../build/constants.js'
+import { DATA_ENDPOINT } from '../src/constants.js'
 import CrashReporter from '../src/crash-reporter.js'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import * as bstackLogger from '../src/bstackLogger.js'

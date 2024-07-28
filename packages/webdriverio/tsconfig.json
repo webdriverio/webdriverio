@@ -3,11 +3,15 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./build",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "allowJs": false
   },
   "include": [
-    "src/**/*",
+    "src/commands/browser/**/*.ts",
     "../../@types",
-    "src/cjs/package.json"
+  ],
+  "exclude": [
+    "node_modules",
+    "build"
   ]
 }
