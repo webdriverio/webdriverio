@@ -51,9 +51,11 @@ import type {
     HookFunctionExtension as HookFunctionExtensionImport,
     StepDefinitionOptions
 } from './types.js'
+import type { SupportCodeLibrary } from 'node_modules/@cucumber/cucumber/lib/support_code_library_builder/types.js'
 
 export const FILE_PROTOCOL = 'file://'
 
+let supportCodeLibrary: Promise<SupportCodeLibrary>
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
@@ -236,21 +238,26 @@ class CucumberAdapter {
         let outStream
 
         try {
-            await this.registerRequiredModules()
-            supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
-                requireModules: this._cucumberOpts.requireModule,
-                requirePaths: this._cucumberOpts.require,
-                importPaths: this._cucumberOpts.import,
-                loaders: []
-            })
+            if (!supportCodeLibrary) {
+                supportCodeLibrary = (async () => {
+                    await this.registerRequiredModules()
+                    supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
+                        requireModules: this._cucumberOpts.requireModule,
+                        requirePaths: this._cucumberOpts.require,
+                        importPaths: this._cucumberOpts.import,
+                        loaders: []
+                    })
 
-            this.addWdioHooks(this._config, supportCodeLibraryBuilder)
-            await this.loadFiles()
-            this.wrapSteps(this._config)
-            setUserHookNames(supportCodeLibraryBuilder)
-            setDefaultTimeout(this._cucumberOpts.timeout)
+                    this.addWdioHooks(this._config, supportCodeLibraryBuilder)
+                    await this.loadFiles()
+                    this.wrapSteps(this._config)
+                    setUserHookNames(supportCodeLibraryBuilder)
+                    setDefaultTimeout(this._cucumberOpts.timeout)
 
-            const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
+                    return supportCodeLibraryBuilder.finalize()
+
+                })()
+            }
 
             outStream = new Writable({
                 write(chunk, encoding, callback) {
@@ -276,7 +283,7 @@ class CucumberAdapter {
             const { success } = await runCucumber(
                 {
                     ...runConfiguration,
-                    support: supportCodeLibrary || runConfiguration.support,
+                    support: await supportCodeLibrary || runConfiguration.support,
                 },
                 environment
             )

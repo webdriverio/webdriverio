@@ -76,6 +76,9 @@ declare global {
         interface HookFunctionExtension {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}
+        interface LocalRunnerOptions {
+            useSingleProcess: boolean
+        }
         interface ChromedriverOptions extends DriverOptions {}
         interface GeckodriverOptions extends DriverOptions {}
         interface EdgedriverOptions extends DriverOptions {}

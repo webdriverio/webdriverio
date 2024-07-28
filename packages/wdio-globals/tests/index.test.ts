@@ -42,7 +42,7 @@ describe('global handler', () => {
             expect($$('foo')).toBe('barfoo')
             resolver({})
         })
-        await first;
+        await first
         await seccond
     })
 })

@@ -183,7 +183,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      *   running an independant browser session
      * - browser: all spec files are run within the browser
      */
-    runner?: 'local' | 'browser' | ['browser', WebdriverIO.BrowserRunnerOptions] | ['local', never]
+    runner?: 'local' | 'browser' | ['browser', WebdriverIO.BrowserRunnerOptions] | ['local', WebdriverIO.LocalRunnerOptions]
     /**
      * Project root directory path.
      */
