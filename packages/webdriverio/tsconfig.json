@@ -7,7 +7,7 @@
     "allowJs": false
   },
   "include": [
-    "src/commands/browser/**/*.ts",
+    "src/**/*.ts",
     "../../@types",
   ],
   "exclude": [
