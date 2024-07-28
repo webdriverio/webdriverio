@@ -51,11 +51,10 @@ import type {
     HookFunctionExtension as HookFunctionExtensionImport,
     StepDefinitionOptions
 } from './types.js'
-import type { SupportCodeLibrary } from 'node_modules/@cucumber/cucumber/lib/support_code_library_builder/types.js'
 
 export const FILE_PROTOCOL = 'file://'
 
-let supportCodeLibrary: Promise<SupportCodeLibrary>
+let supportCodeLibrary: Promise<any>
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)

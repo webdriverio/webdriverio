@@ -5,7 +5,6 @@ import type { Options, Workers } from '@wdio/types'
 import WorkerInstance from './worker.js'
 import LiteWorkerInstance from './liteWorker.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
-import { Worker } from 'node_modules/@wdio/types/build/Workers.js'
 
 const log = logger('@wdio/local-runner')
 
@@ -52,7 +51,7 @@ export default class LocalRunner {
         const worker = new WorkerClass(this._config, workerOptions, this.stdout, this.stderr)
         this.workerPool[workerOptions.cid] = worker
         worker.postMessage(command, args)
-        return worker as Worker
+        return worker as Workers.Worker
     }
 
     /**
