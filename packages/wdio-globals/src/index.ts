@@ -1,5 +1,14 @@
 /// <reference path="../types.d.ts" />
-import { AsyncLocalStorage } from 'node:async_hooks'
+
+//Shim in case async_hooks is not suported.
+import('async_hooks').then(({AsyncLocalStorage}) => {
+    globalsStorage = globalThis._wdioGlobalsStorage = globalThis._wdioGlobalsStorage || new AsyncLocalStorage<Map<SupportedGlobals, any>>()
+}).catch(e => {
+    globalsStorage = {
+        getStore: () => globalsDefault,
+        run: (store: never, fn: Function) => fn()
+    }
+});
 
 type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
 
@@ -7,7 +16,7 @@ declare global {
     // eslint-disable-next-line no-var
     var _wdioGlobals: Map<SupportedGlobals, any>
     // eslint-disable-next-line no-var
-    var _wdioGlobalsStorage: AsyncLocalStorage<Map<SupportedGlobals, any>>
+    var _wdioGlobalsStorage: any
 }
 
 /**
@@ -18,7 +27,7 @@ declare global {
  * and can use the Map initiated by the testrunner by making it accessible globally.
  */
 const globalsDefault: Map<SupportedGlobals, any> = globalThis._wdioGlobals = globalThis._wdioGlobals || new Map<SupportedGlobals, any>()
-const globalsStorage: AsyncLocalStorage<Map<SupportedGlobals, any>> = globalThis._wdioGlobalsStorage = globalThis._wdioGlobalsStorage || new AsyncLocalStorage<Map<SupportedGlobals, any>>()
+let globalsStorage: any;
 const GLOBALS_ERROR_MESSAGE = 'No browser instance registered. Don\'t import @wdio/globals outside of the WDIO testrunner context. Or you have two two different "@wdio/globals" packages installed.'
 
 function getGlobalKey(key: SupportedGlobals) {
