@@ -56,7 +56,7 @@ export interface Worker
     caps: WebdriverIO.Capabilities
     cid: string
     isBusy?: boolean
-    postMessage: (command: string, args: WorkerMessageArgs) => void
+    postMessage: (command: string, args: WorkerMessageArgs, requiresSetup?: boolean) => void
     specs: string[]
     sessionId?: string
     logsAggregator: string[]

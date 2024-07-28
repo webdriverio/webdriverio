@@ -21,6 +21,7 @@ import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
 import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
+import { Worker } from 'node_modules/@wdio/types/build/Workers.js'
 
 const log = logger('@wdio/browser-runner')
 
@@ -89,7 +90,7 @@ export default class BrowserRunner extends LocalRunner {
         await super.initialize()
     }
 
-    async run (runArgs: RunArgs): Promise<WorkerInstance> {
+    async run (runArgs: RunArgs): Promise<Worker> {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
         runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
 

@@ -3,7 +3,6 @@ import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-li
 
 import logger from '@wdio/logger'
 import type { WebSocketClient } from 'vite'
-import type { WorkerInstance } from '@wdio/local-runner'
 import { MESSAGE_TYPES, type Options, type Workers } from '@wdio/types'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
 
@@ -41,7 +40,7 @@ export class ServerWorkerCommunicator {
         this.#config = config
     }
 
-    register (server: ViteServer, worker: WorkerInstance) {
+    register (server: ViteServer, worker: Workers.Worker) {
         server.onBrowserEvent((data, client) => this.#onBrowserEvent(data, client, worker))
         worker.on('message', this.#onWorkerMessage.bind(this))
     }
@@ -88,7 +87,7 @@ export class ServerWorkerCommunicator {
         }
     }
 
-    #onBrowserEvent (message: Workers.SocketMessage, client: WebSocketClient, worker: WorkerInstance) {
+    #onBrowserEvent (message: Workers.SocketMessage, client: WebSocketClient, worker: Workers.Worker) {
         /**
          * some browser events don't need to go through the worker process
          */
