@@ -172,10 +172,10 @@ export async function url (
         if (network && options.wait === 'networkIdle') {
             const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
             await this.waitUntil(async () => {
-                return network.getPendingRequests(context) === 0
+                return network.getPendingRequests(context).length === 0
             }, {
                 timeout,
-                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(context)} pending requests`
+                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(context).length} (${network.getPendingRequests(context).map((r) => r.url).join(', ')}) pending requests`
             })
         }
 

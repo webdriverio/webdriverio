@@ -5,6 +5,10 @@ export interface Request {
     redirectChain?: string[],
     headers: Record<string, string>
     cookies?: NetworkCookie[]
+    /**
+     * Error message if request failed
+     */
+    error?: string
     response?: {
         fromCache: boolean
         headers: Record<string, string>

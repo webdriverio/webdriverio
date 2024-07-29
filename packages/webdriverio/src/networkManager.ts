@@ -43,12 +43,14 @@ export class NetworkManager {
             events: [
                 'browsingContext.navigationStarted',
                 'network.responseCompleted',
-                'network.beforeRequestSent'
+                'network.beforeRequestSent',
+                'network.fetchError'
             ]
         }).then(() => true, () => false)
         this.#browser.on('browsingContext.navigationStarted', this.#navigationStarted.bind(this))
         this.#browser.on('network.responseCompleted', this.#responseCompleted.bind(this))
         this.#browser.on('network.beforeRequestSent', this.#beforeRequestSent.bind(this))
+        this.#browser.on('network.fetchError', this.#fetchError.bind(this))
     }
 
     async initialize () {
@@ -114,6 +116,19 @@ export class NetworkManager {
         })
     }
 
+    #fetchError (log: local.NetworkFetchErrorParameters) {
+        const response = log.context ? this.#requests.get(log.context) : undefined
+        if (!response) {
+            return
+        }
+
+        const request = response.children?.find((child) => child.id === log.request.request)
+        if (!request) {
+            return
+        }
+        request.error = log.errorText
+    }
+
     #responseCompleted (log: local.NetworkResponseCompletedParameters) {
         const response = log.context ? this.#requests.get(log.context) : undefined
         if (!response) {
@@ -158,7 +173,7 @@ export class NetworkManager {
     }
 
     /**
-     * returns the number of requests that are currently pending
+     * Returns the number of requests that are currently pending.
      * @param context browsing context id
      * @returns the number of requests that are currently pending
      */
@@ -169,9 +184,19 @@ export class NetworkManager {
         }
 
         const subRequests = (request.children || [])
-        return subRequests.length === 0
-            ? 0
-            : subRequests.filter((child) => !child.response).length
+        /**
+         * A request is pending, if:
+         */
+        return subRequests.filter((child) => (
+            /**
+             * either the request has no response yet
+             */
+            !child.response &&
+            /**
+             * and there was no request error
+             */
+            !child.error
+        ))
     }
 }
 
