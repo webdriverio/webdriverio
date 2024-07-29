@@ -22,10 +22,6 @@ export type AppConfig = {
     shareable_id?: string
 }
 
-export type SelfHeal = {
-    selfHeal?: boolean
-}
-
 export interface AppUploadResponse {
     app_url?: string,
     custom_id?: string,
@@ -43,6 +39,10 @@ export interface TestObservabilityOptions {
     buildTag?: string[],
     user?: string,
     key?: string
+}
+
+export interface BrowserstackOptions extends Options.Testrunner {
+    selfHeal?: boolean;
 }
 
 export interface BrowserstackConfig {
@@ -168,7 +168,6 @@ export interface BrowserstackConfig {
      * @default false
     */
     turboScale?: boolean;
-    selfHeal?: boolean;
 }
 
 /**

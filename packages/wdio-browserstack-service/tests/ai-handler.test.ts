@@ -59,7 +59,7 @@ describe('AiHandler', () => {
             const initSpy = vi.spyOn(aiSDK.BrowserstackHealing, 'init')
                 .mockReturnValue(Promise.resolve(authResponse) as any)
 
-            const result = await AiHandler.authenticateUser(config)
+            const result = await AiHandler.authenticateUser(config.user, config.key)
 
             expect(initSpy).toHaveBeenCalledTimes(1)
             expect(initSpy).toHaveBeenCalledWith(

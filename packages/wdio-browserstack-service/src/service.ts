@@ -11,7 +11,7 @@ import {
     isBrowserstackSession,
     patchConsoleLogs
 } from './util.js'
-import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse, SelfHeal } from './types.js'
+import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
@@ -48,7 +48,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
         private _caps: Capabilities.RemoteCapability,
-        private _config: Options.Testrunner & SelfHeal
+        private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         // added to maintain backward compatibility with webdriverIO v5

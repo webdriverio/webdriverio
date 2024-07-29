@@ -16,7 +16,7 @@ import PerformanceTester from './performance-tester.js'
 
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
 
-import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig, SelfHeal } from './types.js'
+import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig } from './types.js'
 import {
     BSTACK_SERVICE_VERSION,
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
@@ -69,7 +69,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
         capabilities: Capabilities.RemoteCapability,
-        private _config: Options.Testrunner & SelfHeal
+        private _config: Options.Testrunner
     ) {
         BStackLogger.clearLogFile()
         PercyLogger.clearLogFile()
@@ -193,7 +193,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
 
-        if (!isBrowserstackInfra(this._config)){
+        if (!isBrowserstackInfra(this._config)) {
             caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps)
         }
     }
