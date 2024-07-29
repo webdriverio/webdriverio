@@ -36,7 +36,7 @@
   "dependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@types/istanbul-lib-source-maps": "^4.0.4",
-    "@vitest/spy": "^1.4.0",
+    "@vitest/spy": "^2.0.4",
     "@wdio/globals": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/logger": "workspace:*",
