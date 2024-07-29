@@ -33,8 +33,8 @@ export type RemoteConfig = Options.WebDriver & Capabilities.WithRequestedCapabil
 
 type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
 type WebDriverClassicEvents = {
-    command: { method: string, endpoint: string, body: any }
-    result: { method: string, endpoint: string, body: any, result: any }
+    command: { command: string, method: string, endpoint: string, body: any }
+    result: { command: string, method: string, endpoint: string, body: any, result: any }
     'request.performance': { durationMillisecond: number, error: string, request: any, retryCount: number, success: boolean }
 }
 export type BidiEventMap = {
