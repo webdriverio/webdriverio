@@ -25,7 +25,7 @@ importers:
         version: 2.9.0(@babel/core@7.24.9)(preact@10.22.0)(vite@5.2.12(@types/node@20.14.11))
       '@serenity-js/core':
         specifier: ^3.17.0
-        version: 3.25.2
+        version: 3.25.3
       '@stencil/core':
         specifier: ^4.12.2
         version: 4.18.3
@@ -1157,8 +1157,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@serenity-js/core@3.25.2':
-    resolution: {integrity: sha512-mLjISNiiyBo2PM9pqCpJ7Kz1/gvXfysEPVDNg2SmwVqm9A17wTtJR8iWEl+4rXmIqpfa+cNJ1gwsr6uIMXHLlg==}
+  '@serenity-js/core@3.25.3':
+    resolution: {integrity: sha512-UQHywT/xlA7clr4FRwErwWAoMivDwIg0Xskd/t9lALUWeY80p3gsGu1FSyymRiJn0PcXYaA04Shh32WOu4IChw==}
     engines: {node: ^16.13 || ^18.12 || ^20}
 
   '@sigstore/bundle@1.1.0':
@@ -7184,7 +7184,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.18.0':
     optional: true
 
-  '@serenity-js/core@3.25.2':
+  '@serenity-js/core@3.25.3':
     dependencies:
       '@paralleldrive/cuid2': 2.2.2
       chalk: 4.1.2
