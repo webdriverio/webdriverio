@@ -1,9 +1,10 @@
 import type { EventEmitter } from 'node:events'
-import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, BidiEventHandler } from 'webdriver'
+import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
 import type { Capabilities, Options, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
+import type { Dialog as DialogImport } from './dialog.js'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
@@ -270,6 +271,15 @@ export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Webdri
      * capabilities of the browser instance
      */
     capabilities: WebdriverIO.Capabilities
+}
+
+type WebdriverIOEventMap = EventMap & {
+    'dialog': WebdriverIO.Dialog
+}
+
+interface BidiEventHandler {
+    on<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: EventMap[K]) => void): this
+    once<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: EventMap[K]) => void): this
 }
 
 /**
@@ -570,5 +580,14 @@ declare global {
          * @see https://webdriver.io/docs/api/mock
          */
         interface Mock extends WebDriverInterception {}
+        /**
+         * WebdriverIO Dialog object
+         * The dialog object represents a user prompt that was triggered by the browser. It contains
+         * information about the message, type and default value of the prompt.
+         * It can be received using the `on('dialog')` event.
+         *
+         * @see https://webdriver.io/docs/api/dialog
+         */
+        interface Dialog extends DialogImport {}
     }
 }
