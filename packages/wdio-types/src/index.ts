@@ -5,6 +5,7 @@ import type * as Services from './Services.js'
 import type * as Reporters from './Reporters.js'
 import type * as Frameworks from './Frameworks.js'
 import type * as Workers from './Workers.js'
+import type * as Network from './Network.js'
 
 /**
  * exported constant values
@@ -63,6 +64,11 @@ declare global {
         }
         interface MultiRemoteElement {}
         interface ElementArray {}
+
+        /**
+         * A network request during a WebDriver Bidi session
+         */
+        interface Request extends Network.Request {}
 
         /**
          * types to be extended by ecosystem framework adapters

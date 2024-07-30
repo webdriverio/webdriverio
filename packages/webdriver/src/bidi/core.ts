@@ -46,7 +46,7 @@ export class BidiCore {
         const failError = new Error(`WebDriver Bidi command "${params.method}" failed`)
         return new Promise<CommandResponse>((resolve, reject) => {
             const t = setTimeout(() => {
-                reject(new Error(`Request with id ${id} timed out`))
+                reject(new Error(`Command ${params.method} with id ${id} (with the following parameter: ${JSON.stringify(params.params)}) timed out`))
                 h.off('message', listener)
             }, RESPONSE_TIMEOUT)
 
@@ -58,7 +58,16 @@ export class BidiCore {
                         h.off('message', listener)
                         log.info('BIDI RESULT', JSON.stringify(payload))
                         if (payload.error) {
-                            failError.message += ` with error: ${payload.error}`
+                            failError.message += ` with error: ${payload.error} - ${payload.message}`
+                            if (payload.stacktrace) {
+                                const driverStack = payload.stacktrace
+                                    .split('\n')
+                                    .filter(Boolean)
+                                    .map((line: string) => `    at ${line}`)
+                                    .join('\n')
+                                failError.stack += `\n\nDriver Stack:\n${driverStack}`
+                            }
+
                             return reject(failError)
                         }
                         resolve(payload)

@@ -40,7 +40,7 @@ import {
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { installPackages } from '../src/install.js'
-import { hasBabelConfig } from '../build/utils.js'
+import { hasBabelConfig } from '../src/utils.js'
 
 vi.mock('ejs')
 vi.mock('inquirer')

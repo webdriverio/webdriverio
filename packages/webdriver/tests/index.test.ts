@@ -4,7 +4,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import logger, { logMock } from '@wdio/logger'
 import { sessionEnvironmentDetector } from '@wdio/utils'
 import { startWebDriver } from '@wdio/utils'
-import type { Capabilities } from '@wdio/types'
 
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
@@ -89,10 +88,16 @@ describe('WebDriver', () => {
                 expect.objectContaining({ pathname: '/session' }),
                 expect.objectContaining({ body: JSON.stringify({
                     capabilities: {
-                        alwaysMatch: { browserName: 'firefox' },
+                        alwaysMatch: {
+                            browserName: 'firefox',
+                            webSocketUrl: true
+                        },
                         firstMatch: [{}]
                     },
-                    desiredCapabilities: { browserName: 'firefox' }
+                    desiredCapabilities: {
+                        browserName: 'firefox',
+                        webSocketUrl: true
+                    }
                 }) })
             )
         })
@@ -110,10 +115,16 @@ describe('WebDriver', () => {
                 expect.objectContaining({ pathname: '/session' }),
                 expect.objectContaining({ body: JSON.stringify({
                     capabilities: {
-                        alwaysMatch: { browserName: 'firefox' },
+                        alwaysMatch: {
+                            browserName: 'firefox',
+                            webSocketUrl: true
+                        },
                         firstMatch: [{}]
                     },
-                    desiredCapabilities: { browserName: 'firefox' }
+                    desiredCapabilities: {
+                        browserName: 'firefox',
+                        webSocketUrl: true
+                    }
                 }) })
             )
 
@@ -145,8 +156,8 @@ describe('WebDriver', () => {
                 path: '/',
                 capabilities: { browserName: 'firefox' }
             })
-            expect((browser.capabilities as Capabilities.DesiredCapabilities).browserName).toBe('mockBrowser')
-            expect((browser.requestedCapabilities as Capabilities.DesiredCapabilities).browserName).toBe('firefox')
+            expect(browser.capabilities.browserName).toBe('mockBrowser')
+            expect((browser.requestedCapabilities as WebdriverIO.Capabilities).browserName).toBe('firefox')
         })
 
         it('attaches bidi handler if socket url is given', async () => {

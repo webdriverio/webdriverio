@@ -24,6 +24,7 @@ export class ShadowRootManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
+    #frameDepth = 0
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
@@ -43,6 +44,7 @@ export class ShadowRootManager {
             events: ['log.entryAdded', 'browsingContext.contextCreated', 'browsingContext.contextDestroyed']
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
+        this.#browser.on('result', this.#commandResultHandler.bind(this))
         browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
@@ -50,6 +52,26 @@ export class ShadowRootManager {
 
     async initialize () {
         return this.#initialize
+    }
+
+    /**
+     * keep track of frame depth
+     */
+    #commandResultHandler (result: { command: string, result: any }) {
+        if (result.command === 'switchToFrame' && !result.result.error) {
+            this.#frameDepth++
+        }
+        if (result.command === 'switchToParentFrame' && !result.result.error) {
+            this.#frameDepth = Math.max(0, this.#frameDepth - 1)
+        }
+    }
+
+    /**
+     * check if we are within a frame
+     * @returns {boolean} true if we are within a frame
+     */
+    isWithinFrame () {
+        return this.#frameDepth > 0
     }
 
     /**

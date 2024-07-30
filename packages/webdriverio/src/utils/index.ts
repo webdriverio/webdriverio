@@ -405,14 +405,16 @@ export async function findElement(
     selector: Selector
 ) {
     const browserObject = getBrowserObject(this)
+    const shadowRootManager = getShadowRootManager(browserObject)
 
     /**
      * do a deep lookup if
      * - we are using Bidi
      * - have a string selector
      * - that is not a deep selector
+     * - and we are not in an iframe (because it is currently not supported to locate nodes in an iframe via Bidi)
      */
-    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
+    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !shadowRootManager.isWithinFrame()) {
         return findDeepElement.call(this, selector)
     }
 

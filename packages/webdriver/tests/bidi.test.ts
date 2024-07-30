@@ -56,12 +56,16 @@ describe('BidiCore', () => {
             const promise = handler.send({ method: 'session.new', params: {} })
             const [, messageCallback] = vi.mocked(handler.socket.on).mock.calls[1]
             setTimeout(
-                () => messageCallback.call(this as any, Buffer.from(JSON.stringify({ id: 1, error: 'foobar' }))),
+                () => messageCallback.call(this as any, Buffer.from(JSON.stringify({
+                    id: 1,
+                    error: 'foobar',
+                    message: 'I am an error!'
+                }))),
                 100
             )
 
             const error = await promise.catch((err) => err)
-            const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar'
+            const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
             expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:56:'))
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)

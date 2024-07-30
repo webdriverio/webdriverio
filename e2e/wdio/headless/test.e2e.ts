@@ -189,6 +189,10 @@ describe('main suite 1', () => {
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
+
+        after(() => {
+            browser.switchToParentFrame()
+        })
     })
 
     const inputs: (ScrollIntoViewOptions | boolean | undefined)[] = [
@@ -268,5 +272,37 @@ describe('main suite 1', () => {
         for (const input of inputs) {
             await scrollAndCheck(input)
         }
+    })
+
+    describe('url command', () => {
+        it('supports basic auth', async () => {
+            await browser.url('https://the-internet.herokuapp.com/basic_auth', {
+                auth: {
+                    user: 'admin',
+                    pass: 'admin'
+
+                }
+            })
+            await expect($('p=Congratulations! You must have the proper credentials.')).toBeDisplayed()
+        })
+
+        it('should return a request object', async () => {
+            const request = await browser.url('http://guinea-pig.webdriver.io/')
+            if (!request) {
+                throw new Error('Request object is not defined')
+            }
+            expect(request.children!.length > 0).toBe(true)
+            expect(Object.keys(request.response?.headers || {})).toContain('x-amz-request-id')
+        })
+
+        it('should not contain any children due to "none" wait property', async () => {
+            const request = await browser.url('http://guinea-pig.webdriver.io/', {
+                wait: 'none'
+            })
+            if (!request) {
+                throw new Error('Request object is not defined')
+            }
+            expect(request.children!.length).toBe(0)
+        })
     })
 })
