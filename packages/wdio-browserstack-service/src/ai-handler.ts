@@ -11,7 +11,7 @@ import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 import path from 'node:path'
 import fs from 'node:fs'
 import url from 'node:url'
-import { getAiUserAndKey } from './util.js'
+import { getBrowserStackUserAndKey } from './util.js'
 import type { BrowserstackOptions } from './types.js'
 
 class AiHandler {
@@ -107,7 +107,7 @@ class AiHandler {
     ) {
         try {
             if (SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName)) {
-                const { user, key } = getAiUserAndKey(config, options)
+                const { user, key } = getBrowserStackUserAndKey(config, options)
                 if (user && key) {
 
                     const authResult = await this.authenticateUser(user, key)

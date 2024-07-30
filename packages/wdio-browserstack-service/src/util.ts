@@ -1056,7 +1056,7 @@ export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrun
     return config?.hostname?.includes('browserstack.com') || false
 }
 
-export function getAiUserAndKey(config: Options.Testrunner, options: Options.Testrunner) {
+export function getBrowserStackUserAndKey(config: Options.Testrunner, options: Options.Testrunner) {
 
     // Fallback 1: Env variables
     // Fallback 2: Service variables in wdio.conf.js (that are received inside options object)
