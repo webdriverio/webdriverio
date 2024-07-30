@@ -26,7 +26,8 @@ export async function generateWdioDocs (sidebars: any) {
     const COMMANDS = {
         browser: ['api/browser', fs.readdirSync(path.join(COMMAND_DIR, 'browser'))],
         element: ['api/element', fs.readdirSync(path.join(COMMAND_DIR, 'element'))],
-        mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))]
+        mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))],
+        dialog: ['api/dialog', fs.readdirSync(path.join(COMMAND_DIR, 'dialog'))],
     }
 
     const apiDocs: NavbarItem[] = []

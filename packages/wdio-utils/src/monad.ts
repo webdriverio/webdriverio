@@ -217,6 +217,20 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     for (const eventCommand in EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [any, any]) {
             const method = eventCommand as keyof EventEmitter
+
+            /**
+             * Emit an event when a dialog listener is registered or unregistered.
+             * This is used in `packages/webdriverio/src/dialog.ts`
+             * to decide whether to propagate a `dialog` event to
+             * the user or automatically accept or dismiss the dialog.
+             */
+            if (method === 'on' && args[0] === 'dialog') {
+                eventHandler.emit('_dialogListenerRegistered')
+            }
+            if (method === 'off' && args[0] === 'dialog') {
+                eventHandler.emit('_dialogListenerRemoved')
+            }
+
             eventHandler[method]?.(...args as [never, any])
             return this
         }
