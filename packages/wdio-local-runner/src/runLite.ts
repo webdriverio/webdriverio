@@ -18,45 +18,67 @@ interface RunnerInterface extends NodeJS.EventEmitter {
 }
 
 export interface IsolatedProcess {
-    emitter: EventEmitter,
-    stdout: Readable,
-    stderr: Readable,
+    stdout: Readable | null,
+    stderr: Readable | null,
+    send(args:any): any,
+    on(event: string, ars: any): any,
+    kill(args: any): any,
 }
 
 export function run (env: {[key: string]: string}): IsolatedProcess {
     const stdout = new PassThrough()
     const stderr = new PassThrough()
-    const emitter = new EventEmitter()
-    const send = function (arg: any) {
-        runWithProcessContext({}, () => emitter.emit('send', arg))
-    }
-    const ctx = {
+    const internalChildProcessEvents = new EventEmitter()
+    const externalChildProcessEvents = new EventEmitter()
+
+    const internalChildProcess = {
         send: (arg: unknown) => {
-            runWithProcessContext({}, () => send(arg))
+            runWithProcessContext({}, () => externalChildProcessEvents.emit('message', arg))
         },
         env,
         stdout,
         stderr,
-        kill: (arg: any) => runWithProcessContext({}, () => emitter.emit('exit', arg))
+        kill: (arg: unknown) => runWithProcessContext({}, () => externalChildProcessEvents.emit('exit', arg)),
     } as any
 
+    const childProcess = {
+        send : (arg: unknown) => runWithProcessContext(internalChildProcess, () => internalChildProcessEvents.emit('message', arg)),
+        stdout,
+        stderr,
+        on: function() {externalChildProcessEvents.on.call(externalChildProcessEvents, ...arguments)},
+        kill: () => {}
+    }
+
+    //Shim the process EventEmitter for the child process
+    for (const p in internalChildProcessEvents) {
+        const obj = internalChildProcessEvents as any
+        if (typeof obj[p] === 'function') {
+            const patchedFn = obj[p] as Function
+            internalChildProcess[p] = function() {
+                runWithProcessContext({}, () => patchedFn.apply(internalChildProcessEvents, arguments))
+            }
+        } else {
+            internalChildProcess.p = obj[p]
+        }
+    }
+
     const runner = new Runner() as unknown as RunnerInterface
-    runner.on('error', ({ name, message, stack }) => send!({
+    runner.on('error', ({ name, message, stack }) => internalChildProcess.send!({
         origin: 'worker',
         name: 'error',
         content: { name, message, stack }
     }))
 
-    emitter.on('message', (m: Workers.WorkerCommand) => {
+    internalChildProcess.on('message', (m: Workers.WorkerCommand) => {
         if (!m || !m.command || !runner[m.command]) {
             return
         }
 
         log.info(`Run worker command: ${m.command}`)
-        runWithProcessContext(ctx, () => {
+        runWithProcessContext(internalChildProcess, () => {
             _runInGlobalStorage(new Map(), () => {
                 runner[m.command](m).then(
-                    (result: any) => send!({
+                    (result: any) => internalChildProcess.send!({
                         origin: 'worker',
                         name: 'finishedCommand',
                         content: {
@@ -74,9 +96,12 @@ export function run (env: {[key: string]: string}): IsolatedProcess {
         })
     })
 
-    return {
-        emitter,
-        stdout,
-        stderr
-    }
+    setImmediate(() => {
+        internalChildProcess.send(<Workers.WorkerMessage>{
+            name: 'ready',
+            origin: 'worker'
+        })
+    })
+
+    return childProcess
 }

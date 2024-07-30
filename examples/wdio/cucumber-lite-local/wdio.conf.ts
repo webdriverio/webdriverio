@@ -5,7 +5,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 export const config: WebdriverIO.Config = {
     runner: ['local', {
-        useSingleProcess: true
+        useSingleProcess: false
     }],
 
     maxInstances: 2,

@@ -2,7 +2,14 @@ import type vm from 'node:vm'
 
 import type { ReplConfig, ReplCallback } from '@wdio/repl'
 import WDIORepl from '@wdio/repl'
-import type { ChildProcess } from 'node:child_process'
+
+export interface ChildProcess {
+    send(payload: {
+        origin: string;
+        name: string;
+        content?: any;
+    }): any;
+}
 
 export default class WDIORunnerRepl extends WDIORepl {
     childProcess: ChildProcess
