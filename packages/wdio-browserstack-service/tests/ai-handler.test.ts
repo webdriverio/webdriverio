@@ -29,6 +29,7 @@ describe('AiHandler', () => {
     let browser: any
 
     beforeEach(() => {
+        vi.resetModules()
         config = {
             user: 'foobaruser',
             key: '12345',
@@ -306,8 +307,8 @@ describe('AiHandler', () => {
             const updateCapsSpy = vi.spyOn(AiHandler, 'updateCaps')
 
             const emptyObj = {} as any
+            vi.stubEnv('BROWSERSTACK_ACCESS_KEY', '')
             const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
-
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
@@ -323,8 +324,8 @@ describe('AiHandler', () => {
             const updateCapsSpy = vi.spyOn(AiHandler, 'updateCaps')
 
             const emptyObj = {} as any
+            vi.stubEnv('BROWSERSTACK_USERNAME', '')
             const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
-
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
