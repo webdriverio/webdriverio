@@ -21,6 +21,7 @@ export function getDialogManager(browser: WebdriverIO.Browser) {
 export class DialogManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
+    #autoHandleDialog = true
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
@@ -39,6 +40,10 @@ export class DialogManager {
         this.#initialize = this.#browser.sessionSubscribe({
             events: ['browsingContext.userPromptOpened']
         }).then(() => true, () => false)
+        // @ts-ignore this is a private event
+        this.#browser.on('_dialogListenerRegistered', () => this.#switchListenerFlag(false))
+        // @ts-ignore this is a private event
+        this.#browser.on('_dialogListenerRemoved', () => this.#switchListenerFlag(true))
         this.#browser.on('browsingContext.userPromptOpened', this.#handleUserPrompt.bind(this))
     }
 
@@ -49,9 +54,25 @@ export class DialogManager {
     /**
      * capture shadow root elements propagated through console.debug
      */
-    #handleUserPrompt(log: local.BrowsingContextUserPromptOpenedParameters) {
+    async #handleUserPrompt(log: local.BrowsingContextUserPromptOpenedParameters) {
+        if (this.#autoHandleDialog) {
+            return this.#browser.browsingContextHandleUserPrompt({
+                accept: false,
+                context: log.context
+            })
+        }
+
         const dialog = new Dialog(log, this.#browser)
         this.#browser.emit('dialog', dialog)
+    }
+
+    /**
+     * Is called when a new dialog listener is registered with the `dialog` name.
+     * In these cases we set a flag to the `#listener` map to indicate that we
+     * are listening to dialog events for this page in this context.
+     */
+    #switchListenerFlag(value: boolean) {
+        this.#autoHandleDialog = value
     }
 }
 

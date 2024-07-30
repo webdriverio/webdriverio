@@ -278,8 +278,8 @@ type WebdriverIOEventMap = EventMap & {
 }
 
 interface BidiEventHandler {
-    on<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: EventMap[K]) => void): this
-    once<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: EventMap[K]) => void): this
+    on<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: WebdriverIOEventMap[K]) => void): this
+    once<K extends keyof WebdriverIOEventMap>(event: K, listener: (this: WebdriverIO.Browser, param: WebdriverIOEventMap[K]) => void): this
 }
 
 /**

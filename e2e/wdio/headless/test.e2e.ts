@@ -305,4 +305,28 @@ describe('main suite 1', () => {
             expect(request.children!.length).toBe(0)
         })
     })
+
+    describe('dialog handling', () => {
+        it('should automatically accept alerts', async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+
+            await browser.execute(() => alert('123'))
+
+            /**
+             * in case the alert is not automatically accepted
+             * the following line would time out
+             */
+            await browser.$('div').click()
+        })
+
+        it('should be able to handle dialogs', async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+            browser.execute(() => alert('123'))
+            const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
+
+            expect(dialog.type()).toBe('alert')
+            expect(dialog.message()).toBe('123')
+            await dialog.dismiss()
+        })
+    })
 })

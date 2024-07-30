@@ -14,6 +14,7 @@ import { WDIO_DEFAULTS, SupportedAutomationProtocols, Key as KeyConstant } from 
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
 import { getShadowRootManager } from './shadowRoot.js'
 import { getNetworkManager } from './networkManager.js'
+import { getDialogManager } from './dialog.js'
 import type { AttachOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
@@ -81,7 +82,8 @@ export const remote = async function(
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
     await Promise.all([
         getShadowRootManager(instance).initialize(),
-        getNetworkManager(instance).initialize()
+        getNetworkManager(instance).initialize(),
+        getDialogManager(instance).initialize()
     ])
     return instance
 }
@@ -109,8 +111,13 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
 
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
     // @ts-expect-error `bidiHandler` is a private property
-    await driver._bidiHandler?.connect().then(
-        () => getShadowRootManager(driver).initialize())
+    await driver._bidiHandler?.connect().then(() => (
+        Promise.all([
+            getShadowRootManager(driver).initialize(),
+            getNetworkManager(driver).initialize(),
+            getDialogManager(driver).initialize()
+        ])
+    ))
     return driver
 }
 
