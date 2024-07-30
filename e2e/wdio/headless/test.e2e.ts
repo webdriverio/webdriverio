@@ -189,6 +189,10 @@ describe('main suite 1', () => {
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
+
+        after(() => {
+            browser.switchToParentFrame()
+        })
     })
 
     const inputs: (ScrollIntoViewOptions | boolean | undefined)[] = [
