@@ -10,8 +10,8 @@ import logger from '@wdio/logger'
 import runnerTransformStream from './transformStream.js'
 import ReplQueue from './replQueue.js'
 import RunnerStream from './stdStream.js'
-import type { IsolatedProcess } from './runLite.js'
 import { run } from './runLite.js'
+import type { IsolatedProcess } from './processProxy.js'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -28,7 +28,7 @@ stdErrStream.pipe(process.stderr)
  * responsible for spawning a sub process to run the framework in and handle its
  * session lifetime.
  */
-export default class LiteWorkerInstance extends EventEmitter implements Workers.Worker {
+export default class WorkerInstance extends EventEmitter implements Workers.Worker {
     cid: string
     config: Options.Testrunner
     configFile: string

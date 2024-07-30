@@ -2,21 +2,14 @@ import type vm from 'node:vm'
 
 import type { ReplConfig, ReplCallback } from '@wdio/repl'
 import WDIORepl from '@wdio/repl'
-
-export interface ChildProcess {
-    send(payload: {
-        origin: string;
-        name: string;
-        content?: any;
-    }): any;
-}
+import type { IsolatedProcess } from './processProxy.js'
 
 export default class WDIORunnerRepl extends WDIORepl {
-    childProcess: ChildProcess
+    childProcess: IsolatedProcess
     callback?: ReplCallback
     commandIsRunning = false
 
-    constructor (childProcess: ChildProcess, options: ReplConfig) {
+    constructor (childProcess: IsolatedProcess, options: ReplConfig) {
         super(options)
         this.childProcess = childProcess
     }

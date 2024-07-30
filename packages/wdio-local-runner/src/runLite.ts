@@ -3,7 +3,6 @@ import logger from '@wdio/logger'
 import type { Workers } from '@wdio/types'
 import EventEmitter from 'node:events'
 import { runWithProcessContext } from './processProxy.js'
-import type { Readable } from 'node:stream'
 import { PassThrough } from 'node:stream'
 import { _runInGlobalStorage } from '@wdio/globals'
 
@@ -17,15 +16,7 @@ interface RunnerInterface extends NodeJS.EventEmitter {
     [key: string]: any
 }
 
-export interface IsolatedProcess {
-    stdout: Readable | null,
-    stderr: Readable | null,
-    send(args:any): any,
-    on(event: string, ars: any): any,
-    kill(args: any): any,
-}
-
-export function run (env: {[key: string]: string}): IsolatedProcess {
+export function run (env: {[key: string]: string}) {
     const stdout = new PassThrough()
     const stderr = new PassThrough()
     const internalChildProcessEvents = new EventEmitter()

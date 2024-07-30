@@ -8,7 +8,7 @@ import libCoverage, { type CoverageMap } from 'istanbul-lib-coverage'
 import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 
-import type { RunArgs } from '@wdio/local-runner'
+import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import type { Options } from '@wdio/types'
 import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartiallyMockedDeep } from '@vitest/spy'
 import type { InlineConfig } from 'vite'
@@ -20,7 +20,6 @@ import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
 import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
-import type { Worker } from 'node_modules/@wdio/types/build/Workers.js'
 
 const log = logger('@wdio/browser-runner')
 
@@ -89,7 +88,7 @@ export default class BrowserRunner extends LocalRunner {
         await super.initialize()
     }
 
-    async run (runArgs: RunArgs): Promise<Worker> {
+    async run (runArgs: RunArgs): Promise<WorkerInstance> {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
         runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
 

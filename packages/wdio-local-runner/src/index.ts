@@ -3,7 +3,6 @@ import { WritableStreamBuffer } from 'stream-buffers'
 import type { Options, Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
-import type LiteWorkerInstance from './liteWorker.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
 
 const log = logger('@wdio/local-runner')
@@ -16,7 +15,7 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 }
 
 export default class LocalRunner {
-    workerPool: Record<string, WorkerInstance | LiteWorkerInstance> = {}
+    workerPool: Record<string, WorkerInstance> = {}
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -48,7 +47,7 @@ export default class LocalRunner {
         const worker = new WorkerInstance(this._config, workerOptions, this.stdout, this.stderr)
         this.workerPool[workerOptions.cid] = worker
         worker.postMessage(command, args)
-        return worker as Workers.Worker
+        return worker
     }
 
     /**
