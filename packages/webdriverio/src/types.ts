@@ -46,7 +46,7 @@ interface ChainablePromiseBaseElement {
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
      * - a string if `findElement` was used and a reference was found
-     * - or a functin if element was found via e.g. `$(() => document.body)`
+     * - or a function if element was found via e.g. `$(() => document.body)`
      */
     selector: Promise<Selector>
     /**
