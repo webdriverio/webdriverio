@@ -24,6 +24,7 @@ import PercyHandler from './Percy/Percy-Handler'
 import Listener from './testOps/listener'
 import { saveWorkerData } from './data-store'
 import UsageStats from './testOps/usageStats'
+import AiHandler from './ai-handler.js'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -111,6 +112,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : (global as any).browser
+
+        if (!isBrowserstackSession(this._browser)) {
+            await AiHandler.selfHeal(this._config, caps, this._browser as Browser<'async'> | MultiRemoteBrowser<'async'>)
+        }
 
         // Ensure capabilities are not null in case of multiremote
 
@@ -407,7 +412,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (!_browser.isMultiremote) {
-            return action(_browser.sessionId)
+            return action(_browser.sessionId as string)
         }
 
         return Promise.all(_browser.instances
