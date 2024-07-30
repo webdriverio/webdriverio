@@ -1079,7 +1079,7 @@ export function getBrowserStackUserAndKey(config: Options.Testrunner, options: O
 }
 
 export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
-    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false)) {
+    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false) || (config.hostname && !config.hostname.includes('browserstack.com'))) {
         return false
     }
     return true
