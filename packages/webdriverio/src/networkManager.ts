@@ -103,6 +103,20 @@ export class NetworkManager {
              */
             !log.url.startsWith('http')
         ) {
+            /**
+             * Chrome v127 and below does not support yet navigation ids, hence we have to
+             * accept that we have to accept the event without it
+             */
+            if (log.navigation === null && log.url === '') {
+                return this.#requests.set(log.context, {
+                    url: '',
+                    headers: {},
+                    timestamp: log.timestamp,
+                    redirectChain: [],
+                    children: []
+                })
+            }
+
             return
         }
 
@@ -133,6 +147,14 @@ export class NetworkManager {
         const response = log.context ? this.#requests.get(log.context) : undefined
         if (!response) {
             return
+        }
+
+        /**
+         * patch for Chrome v127 and below
+         */
+        if (!response.navigation && response.url === '') {
+            response.url = log.request.url
+            response.navigation = log.navigation as string
         }
 
         /**

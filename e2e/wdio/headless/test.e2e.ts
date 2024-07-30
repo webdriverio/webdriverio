@@ -287,16 +287,16 @@ describe('main suite 1', () => {
         })
 
         it('should return a request object', async () => {
-            const request = await browser.url('https://guinea-pig.webdriver.io/')
+            const request = await browser.url('http://guinea-pig.webdriver.io/')
             if (!request) {
                 throw new Error('Request object is not defined')
             }
-            expect(request.children!.length > 0).toBeTrue()
+            expect(request.children!.length > 0).toBe(true)
             expect(Object.keys(request.response?.headers || {})).toContain('x-amz-request-id')
         })
 
         it('should not contain any children due to "none" wait property', async () => {
-            const request = await browser.url('https://guinea-pig.webdriver.io/', {
+            const request = await browser.url('http://guinea-pig.webdriver.io/', {
                 wait: 'none'
             })
             if (!request) {
