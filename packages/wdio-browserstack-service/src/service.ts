@@ -114,7 +114,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._browser = browser ? browser : (global as any).browser
 
         if (!isBrowserstackSession(this._browser)) {
-            await AiHandler.selfHeal(this._config, caps, this._browser as Browser<'async'> | MultiRemoteBrowser<'async'>)
+            await AiHandler.selfHeal(this._options, caps, this._browser as Browser<'async'> | MultiRemoteBrowser<'async'>)
         }
 
         // Ensure capabilities are not null in case of multiremote
