@@ -41,6 +41,15 @@ interface UrlCommandOptions {
      * @default 5000
      */
     timeout?: number
+    /**
+     * A function that is being called before your page has loaded all of its resources. It allows you to easily
+     * mock the environment, e.g. overwrite Web APIs that your application uses.
+     *
+     * Note: the provided function is being serialized and executed in the browser context. You can not pass in variables
+     * from the Node.js context. Furthermore changes to the environment only apply for this specific page load.
+     * Checkout `browser.addPreloadScript` for a more versatile way to mock the environment.
+     */
+    onBeforeLoad?: (window: Window) => void
 }
 
 /**
@@ -113,6 +122,25 @@ interface UrlCommandOptions {
         }
     });
     await expect($('p=Congratulations! You must have the proper credentials.).toBeDisplayed();
+
+    :onBeforeLoad.js
+    // navigate to a URL and mock the battery API
+    await browser.url('https://pazguille.github.io/demo-battery-api/', {
+        onBeforeLoad (win) {
+            // mock "navigator.battery" property
+            // returning mock charge object
+            win.navigator.getBattery = () => Promise.resolve({
+                level: 0.5,
+                charging: false,
+                chargingTime: Infinity,
+                dischargingTime: 3600, // seconds
+            })
+        }
+    })
+    // now we can assert actual text - we are charged at 50%
+    await expect($('.battery-percentage')).toHaveText('50%')
+    // and has enough juice for 1 hour
+    await expect($('.battery-remaining')).toHaveText('01:00)
  * </example>
  *
  * @param {String=} url  the URL to navigate to
@@ -138,7 +166,27 @@ export async function url (
     }
 
     if (this.isBidi) {
+        let preloadScriptId: string | undefined
         const context = await this.getWindowHandle()
+
+        /**
+         * set up preload script if `onBeforeLoad` option is provided
+         */
+        if (options.onBeforeLoad) {
+            if (typeof options.onBeforeLoad !== 'function' && typeof options.onBeforeLoad !== 'string') {
+                throw new Error(`Option "onBeforeLoad" must be a function or string, but received: ${typeof options.onBeforeLoad}`)
+            }
+
+            const functionDeclaration = typeof options.onBeforeLoad === 'string'
+                ? options.onBeforeLoad
+                : `(function ${options.onBeforeLoad.toString()})(globalThis)`
+            const res = await this.scriptAddPreloadScript({
+                functionDeclaration,
+                arguments: [],
+                contexts: [context]
+            })
+            preloadScriptId = res.script
+        }
 
         if (options.auth) {
             options.headers = {
@@ -179,11 +227,18 @@ export async function url (
             })
         }
 
+        /**
+         * clear up preload script
+         */
+        if (preloadScriptId) {
+            await this.scriptRemovePreloadScript({ script: preloadScriptId })
+        }
+
         return request
     }
 
-    if (options.headers) {
-        throw new Error('Setting headers is only supported when automating browser using WebDriver Bidi protocol')
+    if (Object.keys(options).length > 0) {
+        throw new Error('Setting url options is only supported when automating browser using WebDriver Bidi protocol')
     }
 
     await this.navigateTo(validateUrl(path))
