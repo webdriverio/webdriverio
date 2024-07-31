@@ -24,7 +24,7 @@ import PercyHandler from './Percy/Percy-Handler'
 import Listener from './testOps/listener'
 import { saveWorkerData } from './data-store'
 import UsageStats from './testOps/usageStats'
-import AiHandler from './ai-handler.js'
+import AiHandler from './ai-handler'
 
 const log = logger('@wdio/browserstack-service')
 

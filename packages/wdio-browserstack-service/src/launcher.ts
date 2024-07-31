@@ -43,7 +43,7 @@ import type Percy from './Percy/Percy'
 import { setupExitHandlers } from './exitHandler'
 import BrowserStackConfig from './config'
 import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation'
-import AiHandler from './ai-handler.js'
+import AiHandler from './ai-handler'
 
 const log = logger('@wdio/browserstack-service')
 

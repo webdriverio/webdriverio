@@ -1,17 +1,17 @@
 import aiSDK from '@browserstack/ai-sdk-node'
-import { BStackLogger } from './bstackLogger.js'
-import { TCG_URL, TCG_INFO, SUPPORTED_BROWSERS_FOR_AI } from './constants.js'
-import { handleHealingInstrumentation } from './instrumentation/funnelInstrumentation.js'
+import { BStackLogger } from './bstackLogger'
+import { TCG_URL, TCG_INFO, SUPPORTED_BROWSERS_FOR_AI } from './constants'
+import { handleHealingInstrumentation } from './instrumentation/funnelInstrumentation'
 
 import type { Capabilities } from '@wdio/types'
-import type { SelfHeal } from './types.js'
-import type BrowserStackConfig from './config.js'
+import type { SelfHeal } from './types'
+import type BrowserStackConfig from './config'
 import type { Options } from '@wdio/types'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 import fs from 'node:fs'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
-import { getBrowserStackUserAndKey } from './util.js'
-import type { BrowserstackOptions } from './types.js'
+import { getBrowserStackUserAndKey } from './util'
+import type { BrowserstackOptions } from './types'
 
 class AiHandler {
     authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse
