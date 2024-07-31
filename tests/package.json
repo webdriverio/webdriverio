@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "expect-webdriverio": "5.0.0-alpha.2",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*",
     "@wdio/cli": "workspace:*",

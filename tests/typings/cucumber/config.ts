@@ -21,4 +21,4 @@ const configB: WebdriverIO.Config = {
 /**
  * check import of assertion lib
  */
-expect($('foo')).toHaveTextContaining('foobar')
+expect($('foo')).toHaveText('foobar')

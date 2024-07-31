@@ -34,4 +34,4 @@ const mrconfig2: WebdriverIO.MultiremoteConfig = {
 /**
  * check import of assertion lib
  */
-expect($('foo')).toHaveTextContaining('foobar')
+expect($('foo')).toHaveText('foobar')

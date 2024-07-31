@@ -5,6 +5,8 @@ import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { isStaleElementError } from './utils/index.js'
 
+const COMMANDS_TO_SKIP = ['getElement', 'getElements']
+
 /**
  * This method is an command wrapper for elements that checks if a command is called
  * that wasn't found on the page and automatically waits for it
@@ -14,6 +16,10 @@ import { isStaleElementError } from './utils/index.js'
 export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
     return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: any[]) {
         return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
+            if (COMMANDS_TO_SKIP.includes(commandName)) {
+                return fn(commandName, commandFn).apply(this, args)
+            }
+
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
             this[ELEMENT_KEY] = element.elementId

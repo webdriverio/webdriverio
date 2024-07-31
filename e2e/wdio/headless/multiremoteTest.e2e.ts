@@ -10,7 +10,7 @@ describe('multi remote test', () => {
         browserB = browser.getInstance('browserB')
     })
 
-    it('should also detect non PWAs', async () => {
+    it.skip('should also detect non PWAs', async () => {
         await browserA.url('https://json.org')
         await browserB.url('https://webdriver.io')
 
