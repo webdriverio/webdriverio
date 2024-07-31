@@ -58,15 +58,15 @@ function proxyHandler (key: SupportedGlobals): ProxyHandler<any> {
 }
 
 export const browser: WebdriverIO.Browser = new Proxy(
-    class Browser {} as any as WebdriverIO.Browser,
+    {} as any as WebdriverIO.Browser,
     proxyHandler('browser')
 )
 export const driver: WebdriverIO.Browser = new Proxy(
-    class Browser {} as any as WebdriverIO.Browser,
+    {} as any as WebdriverIO.Browser,
     proxyHandler('driver')
 )
 export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
-    class Browser {} as any as WebdriverIO.MultiRemoteBrowser,
+    {} as any as WebdriverIO.MultiRemoteBrowser,
     proxyHandler('multiremotebrowser')
 )
 export const $: WebdriverIO.Browser['$'] = (...args: any) => {
