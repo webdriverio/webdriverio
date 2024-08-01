@@ -105,7 +105,12 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         const childProcess = this.childProcess = (() => {
-            const isLite = Array.isArray(this.config.runner) && this.config.runner[0] === 'local' && this.config.runner[1]?.useSingleProcess
+            let isLite = Array.isArray(this.config.runner) && this.config.runner[0] === 'local' && this.config.runner[1]?.useSingleProcess
+            if (isLite && this.config.framework !== 'cucumber') {
+                log.warn('Only cucumber is suporte in single process mode right now. Falling back to multi process')
+                isLite = false
+            }
+
             if (isLite) {
                 log.info(`Start lite worker ${cid}`)
                 return run(runnerEnv)

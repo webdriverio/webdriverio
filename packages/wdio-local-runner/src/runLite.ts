@@ -36,7 +36,7 @@ export function run (env: {[key: string]: string}) {
         send : (arg: unknown) => runWithProcessContext(internalChildProcess, () => internalChildProcessEvents.emit('message', arg)),
         stdout,
         stderr,
-        on: function() {externalChildProcessEvents.on.call(externalChildProcessEvents, ...arguments)},
+        on: (eventName: string | symbol, listener: (...args: any[]) => void) => externalChildProcessEvents.on(eventName, listener),
         kill: () => {}
     }
 
