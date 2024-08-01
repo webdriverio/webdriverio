@@ -303,6 +303,36 @@ const cucumberTestrunner = async () => {
 }
 
 /**
+ * Cucumber wdio single process testrunner tests
+ */
+const cucumberSingleProcessTestrunner = async () => {
+    const { skippedSpecs, failed, passed } = await launch(
+        'cucumberSingleProcessTestrunner',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            runner: ['local', {
+                useSingleProcess: true
+            }],
+            specs: [
+                path.resolve(__dirname, 'cucumber', 'simple-test.feature'),
+                path.resolve(__dirname, 'cucumber', 'test.feature'),
+                path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
+            ],
+            cucumberOpts: {
+                tags: '(not @SKIPPED_TAG)',
+                ignoreUndefinedDefinitions: true,
+                retry: 1,
+                retryTagFilter: '@retry',
+                scenarioLevelReporter: true
+            }
+        }
+    )
+    assert.strictEqual(skippedSpecs, 1)
+    assert.strictEqual(failed, 0)
+    assert.strictEqual(passed, 2)
+}
+
+/**
  * Cucumber wdio testrunner -- run single scenario by line number
  */
 const cucumberTestrunnerByLineNumber = async () => {
@@ -888,6 +918,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberTestrunnerByLineNumber,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
+        cucumberSingleProcessTestrunner,
         standaloneTest,
         mochaAsyncTestrunner,
         customService,

@@ -25,6 +25,6 @@ export const patchedProcess = new Proxy(
 
 globalThis.process = patchedProcess
 
-export function runWithProcessContext(ctx: {[key:string] : string}, callback: () => unknown) {
+export function runWithProcessContext(ctx: {[key:string] : any}, callback: () => unknown) {
     return processLocals.run(ctx, callback)
 }

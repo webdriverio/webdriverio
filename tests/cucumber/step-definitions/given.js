@@ -11,7 +11,9 @@ BeforeAll(async () => {
     // should resolve promises
     expect(await browser.pause(1)).toBe(undefined)
 
-    expect(await browser.rootLevel()).toBe(true)
+    if (!process.env.WDIO_SINGLE_PROCESS) {
+        expect(await browser.rootLevel()).toBe(true)
+    }
 })
 Before(async function (scenario) {
     // defined and modified in hooks

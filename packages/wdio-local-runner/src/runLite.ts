@@ -26,7 +26,7 @@ export function run (env: {[key: string]: string}) {
         send: (arg: unknown) => {
             runWithProcessContext({}, () => externalChildProcessEvents.emit('message', arg))
         },
-        env,
+        env: { ...env, WDIO_SINGLE_PROCESS: 'true' },
         stdout,
         stderr,
         kill: (arg: unknown) => runWithProcessContext({}, () => externalChildProcessEvents.emit('exit', arg)),
@@ -46,7 +46,7 @@ export function run (env: {[key: string]: string}) {
         if (typeof obj[p] === 'function') {
             const patchedFn = obj[p] as Function
             internalChildProcess[p] = function() {
-                runWithProcessContext({}, () => patchedFn.apply(internalChildProcessEvents, arguments))
+                return runWithProcessContext({}, () => patchedFn.apply(internalChildProcessEvents, arguments))
             }
         } else {
             internalChildProcess.p = obj[p]
@@ -59,6 +59,7 @@ export function run (env: {[key: string]: string}) {
         name: 'error',
         content: { name, message, stack }
     }))
+    runner.on('exit', (code) => externalChildProcessEvents.emit('exit', code))
 
     internalChildProcess.on('message', (m: Workers.WorkerCommand) => {
         if (!m || !m.command || !runner[m.command]) {
