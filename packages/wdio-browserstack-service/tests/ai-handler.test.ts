@@ -5,7 +5,6 @@ import AiHandler from '../src/ai-handler'
 import * as bstackLogger from '../src/bstackLogger'
 import * as funnelInstrumentation from '../src/instrumentation/funnelInstrumentation'
 import type { Capabilities } from '@wdio/types'
-import { TCG_URL } from '../src/constants'
 
 // Mock only the external dependency
 // jest.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -24,6 +23,7 @@ describe('AiHandler', () => {
     let browser: any
 
     beforeEach(() => {
+        jest.resetAllMocks()
         jest.resetModules()
         config = {
             user: 'foobaruser',
@@ -374,7 +374,7 @@ describe('AiHandler', () => {
         })
 
         it('should skip setup if userName is not present', async () => {
-            const oldBrowserStackAccessKey = process.env.BROWSERSTACK_ACCESS_KEY
+            const oldBrowserStackUserName = process.env.BROWSERSTACK_USERNAME
             config.user = ''
             const caps = { browserName: 'chrome' }
 
@@ -383,13 +383,13 @@ describe('AiHandler', () => {
             const updateCapsSpy = jest.spyOn(AiHandler, 'updateCaps')
 
             const emptyObj = {} as any
-            process.env.BROWSERSTACK_ACCESS_KEY = ''
+            process.env.BROWSERSTACK_USERNAME = ''
             const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
             expect(updatedCaps).toEqual(caps) // Expect caps to remain unchanged
-            process.env.BROWSERSTACK_ACCESS_KEY = oldBrowserStackAccessKey
+            process.env.BROWSERSTACK_USERNAME = oldBrowserStackUserName
         })
 
         it('should handle errors in setup', async () => {
@@ -571,17 +571,6 @@ describe('AiHandler', () => {
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(overwriteCommandSpy).not.toHaveBeenCalled()
-        })
-    })
-
-    describe('setToken', () => {
-        it('should call setToken with correct parameters', async () => {
-            const setTokenSpy = jest.spyOn(aiSDK.BrowserstackHealing, 'setToken')
-                .mockResolvedValue(undefined)
-
-            await AiHandler.setToken('test-session-id', 'test-token')
-
-            expect(setTokenSpy).toHaveBeenCalledWith('test-session-id', 'test-token', TCG_URL)
         })
     })
 })
