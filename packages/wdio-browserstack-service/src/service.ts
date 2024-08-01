@@ -111,7 +111,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         // Healing Support:
         if (!isBrowserstackSession(this._browser)) {
-            await AiHandler.selfHeal(this._config, caps, this._browser)
+            await AiHandler.selfHeal(this._options, caps, this._browser)
         }
 
         // Ensure capabilities are not null in case of multiremote

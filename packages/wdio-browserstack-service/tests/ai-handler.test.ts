@@ -29,6 +29,7 @@ describe('AiHandler', () => {
     let browser: any
 
     beforeEach(() => {
+        vi.resetModules()
         config = {
             user: 'foobaruser',
             key: '12345',
@@ -59,7 +60,7 @@ describe('AiHandler', () => {
             const initSpy = vi.spyOn(aiSDK.BrowserstackHealing, 'init')
                 .mockReturnValue(Promise.resolve(authResponse) as any)
 
-            const result = await AiHandler.authenticateUser(config)
+            const result = await AiHandler.authenticateUser(config.user, config.key)
 
             expect(initSpy).toHaveBeenCalledTimes(1)
             expect(initSpy).toHaveBeenCalledWith(
@@ -183,6 +184,18 @@ describe('AiHandler', () => {
                 'moz:firefoxOptions': { extensions: [mockFirefoxExtension] }
             })
         })
+
+        it('should update caps if selfHeal is true but defaultLogDataEnabled is false', async () => {
+            const authResult = {
+                isAuthenticated: true,
+                defaultLogDataEnabled: false,
+            } as any
+
+            const caps = { browserName: 'chrome' }
+            const updatedCaps = await AiHandler.updateCaps(authResult, config, caps)
+
+            expect(updatedCaps).not.toEqual(caps)
+        })
     })
 
     describe('handleHealing', () => {
@@ -263,6 +276,55 @@ describe('AiHandler', () => {
             expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Error in findElement'))
             expect(result).toEqual(undefined)
         })
+
+        it('should return original error if selfHeal is false', async () => {
+            const originalFunc = vi.fn().mockImplementationOnce(() => {
+                throw new Error('Some error occurred.')
+            })
+
+            config.selfHeal = false
+
+            const debugSpy = vi.spyOn(bstackLogger.BStackLogger, 'debug')
+
+            const result = await AiHandler.handleHealing(originalFunc, 'id', 'some-id', browser, config)
+
+            expect(originalFunc).toHaveBeenCalledTimes(2)
+            expect(debugSpy).toHaveBeenCalledTimes(1)
+            expect(result).toEqual(undefined)
+        })
+
+        it('should return original result error if healed element is also missing', async () => {
+
+            const originalFunc = vi.fn().mockReturnValueOnce({ error: 'no such element' })
+                .mockReturnValueOnce({ error: 'no such element' })
+
+            const healFailureResponse = { script: 'healing-script' }
+            const pollResultResponse = { selector: 'css selector', value: '.healed-element' }
+
+            AiHandler['authResult'] = {
+                isAuthenticated: true,
+                isHealingEnabled: true,
+                sessionToken: 'test-session-token',
+                groupId: 123123,
+                userId: 342423,
+                isGroupAIEnabled: true
+            } as any
+
+            vi.spyOn(aiSDK.BrowserstackHealing, 'healFailure')
+                .mockResolvedValue(healFailureResponse.script as string)
+            vi.spyOn(aiSDK.BrowserstackHealing, 'pollResult')
+                .mockResolvedValue(pollResultResponse as any)
+            vi.spyOn(aiSDK.BrowserstackHealing, 'logData')
+                .mockResolvedValue('logging-script' as string)
+
+            const result = await AiHandler.handleHealing(originalFunc, 'id', 'some-id', browser, config)
+
+            expect(aiSDK.BrowserstackHealing.healFailure).toHaveBeenCalledTimes(1)
+            expect(aiSDK.BrowserstackHealing.pollResult).toHaveBeenCalledTimes(1)
+            expect(originalFunc).toHaveBeenCalledTimes(2)
+            expect(browser.execute).toHaveBeenCalledWith('healing-script')
+            expect(result).toEqual({ error: 'no such element' })
+        })
     })
 
     describe('setup', () => {
@@ -306,8 +368,8 @@ describe('AiHandler', () => {
             const updateCapsSpy = vi.spyOn(AiHandler, 'updateCaps')
 
             const emptyObj = {} as any
+            vi.stubEnv('BROWSERSTACK_ACCESS_KEY', '')
             const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
-
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
@@ -323,8 +385,8 @@ describe('AiHandler', () => {
             const updateCapsSpy = vi.spyOn(AiHandler, 'updateCaps')
 
             const emptyObj = {} as any
+            vi.stubEnv('BROWSERSTACK_USERNAME', '')
             const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
-
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
