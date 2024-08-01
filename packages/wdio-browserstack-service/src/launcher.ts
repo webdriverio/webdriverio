@@ -15,7 +15,7 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 import { version as bstackServiceVersion } from '../package.json'
 import CrashReporter from './crash-reporter'
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper'
-import type { App, AppConfig, AppUploadResponse, BrowserstackConfig, UserConfig } from './types'
+import type { App, AppConfig, AppUploadResponse, BrowserstackConfig, BrowserstackOptions, UserConfig } from './types'
 import {
     VALID_APP_EXTENSION,
     NOT_ALLOWED_KEYS_IN_CAPS,
@@ -44,6 +44,7 @@ import { setupExitHandlers } from './exitHandler'
 import BrowserStackConfig from './config'
 import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation'
 import AiHandler from './ai-handler'
+import { BStackLogger } from './bstackLogger'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -64,7 +65,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private readonly browserStackConfig: BrowserStackConfig
 
     constructor (
-        private _options: BrowserstackConfig & Options.Testrunner,
+        private _options: BrowserstackConfig & BrowserstackOptions,
         capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
@@ -180,8 +181,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
 
-        if (!isBrowserstackInfra(this._config)){
-            caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps)
+        if (!isBrowserstackInfra(this._config)) {
+            try {
+                caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps)
+            } catch (err) {
+                if (this._options.selfHeal === true) {
+                    BStackLogger.debug(`Error while setting up Browserstack healing Extension ${err}. Disabling healing for this session.`)
+                }
+            }
         }
     }
 

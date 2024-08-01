@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import CrashReporter from './crash-reporter'
-import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types'
+import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types'
 import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants'
 
 import got from 'got'
@@ -25,6 +25,7 @@ import Listener from './testOps/listener'
 import { saveWorkerData } from './data-store'
 import UsageStats from './testOps/usageStats'
 import AiHandler from './ai-handler'
+import { BStackLogger } from './bstackLogger'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -36,7 +37,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _suiteTitle?: string
     private _fullTitle?: string
-    private _options: BrowserstackConfig & Options.Testrunner
+    private _options: BrowserstackConfig & BrowserstackOptions
     private _specsRan: boolean = false
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
@@ -114,7 +115,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._browser = browser ? browser : (global as any).browser
 
         if (!isBrowserstackSession(this._browser)) {
-            await AiHandler.selfHeal(this._options, caps, this._browser as Browser<'async'> | MultiRemoteBrowser<'async'>)
+            try {
+                await AiHandler.selfHeal(this._options, caps, this._browser as Browser<'async'> | MultiRemoteBrowser<'async'>)
+            } catch (err) {
+                if (this._options.selfHeal === true) {
+                    BStackLogger.debug(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
+                }
+            }
         }
 
         // Ensure capabilities are not null in case of multiremote
