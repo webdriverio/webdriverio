@@ -1,5 +1,5 @@
 import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/api/ElementHandle.js'
-import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/api/Frame.js'
 
 export default class ElementStore {
     private _index = 0
@@ -9,7 +9,7 @@ export default class ElementStore {
     set (elementHandle: ElementHandle) {
         const index = `ELEMENT-${++this._index}`
         this._elementMap.set(index, elementHandle)
-        const frame = elementHandle.executionContext()._world?.frame()
+        const frame = elementHandle.frame
         if (frame) {
             let elementIndexes = this._frameMap.get(frame)
             if (!elementIndexes) {

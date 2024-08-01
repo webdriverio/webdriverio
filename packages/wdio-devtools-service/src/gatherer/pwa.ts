@@ -8,7 +8,7 @@ import LinkElements from 'lighthouse/lighthouse-core/gather/gatherers/link-eleme
 import ViewportDimensions from 'lighthouse/lighthouse-core/gather/gatherers/viewport-dimensions.js'
 import serviceWorkers from 'lighthouse/lighthouse-core/gather/driver/service-workers.js'
 
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 
 import collectMetaElements from '../scripts/collectMetaElements.js'
