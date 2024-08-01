@@ -39,7 +39,7 @@ vi.mock('get-port', () => ({
 }))
 
 vi.mock('tree-kill', () => ({
-    default: vi.fn((pid, signal, callback) => callback(null))
+    default: vi.fn()
 }))
 
 class MockProcess {
@@ -627,12 +627,15 @@ describe('Appium launcher', () => {
     })
 
     describe('onComplete', () => {
-        test('should call process.kill', async () => {
+        test('should call treeKill', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
-            launcher['_process']!.kill = vi.fn()
+
+            // Call onComplete
             launcher.onComplete()
-            expect(treeKill).toHaveBeenCalled()
+
+            // Verify treeKill is called with correct parameters
+            expect(treeKill).toHaveBeenCalledWith()
         })
 
         test('should not call process.kill', () => {
