@@ -93,10 +93,10 @@ class AiHandler {
         } catch (err) {
             BStackLogger.debug('Error in findElement: ' + err + 'using: ' + using + 'value: ' + value)
             if (options.selfHeal === true) {
-                BStackLogger.debug('Healing disabled for this command')
+                BStackLogger.debug('Something went wrong while healing. Disabling healing for this command')
             }
-            return orginalFunc(using, value)
         }
+        return await orginalFunc(using, value)
     }
 
     async setup(

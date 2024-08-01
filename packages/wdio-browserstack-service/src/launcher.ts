@@ -16,7 +16,7 @@ import PerformanceTester from './performance-tester.js'
 
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
 
-import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig } from './types.js'
+import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig, BrowserstackOptions } from './types.js'
 import {
     BSTACK_SERVICE_VERSION,
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
@@ -67,7 +67,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private readonly browserStackConfig: BrowserStackConfig
 
     constructor (
-        private _options: BrowserstackConfig & Options.Testrunner,
+        private _options: BrowserstackConfig & BrowserstackOptions,
         capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
@@ -194,7 +194,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (!isBrowserstackInfra(this._config)) {
-            caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps)
+            try {
+                caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps)
+            } catch (err) {
+                if (this._options.selfHeal === true) {
+                    BStackLogger.debug(`Error while setting up Browserstack healing Extension ${err}. Disabling healing for this session.`)
+                }
+            }
         }
     }
 
