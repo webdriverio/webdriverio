@@ -1406,6 +1406,9 @@ importers:
       '@types/node':
         specifier: ^20.11.30
         version: 20.14.2
+      '@types/sinonjs__fake-timers':
+        specifier: ^8.1.5
+        version: 8.1.5
       '@wdio/config':
         specifier: workspace:*
         version: link:../wdio-config
@@ -1482,6 +1485,9 @@ importers:
         specifier: workspace:*
         version: link:../webdriver
     devDependencies:
+      '@sinonjs/fake-timers':
+        specifier: ^11.2.2
+        version: 11.2.2
       '@types/archiver':
         specifier: ^6.0.2
         version: 6.0.2
@@ -4337,6 +4343,12 @@ packages:
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
 
+  '@sinonjs/commons@3.0.1':
+    resolution: {integrity: sha512-K3mCHKQ9sVh8o1C9cxkwxaOmXoAMlDxC1mYyHrjqOWEcBjYr76t96zL2zlj5dUGZ3HSw240X1qgH3Mjf1yJWpQ==}
+
+  '@sinonjs/fake-timers@11.2.2':
+    resolution: {integrity: sha512-G2piCSxQ7oWOxwGSAyFHfPIsyeJGXYtc6mFbnFA+kRXkiEnTl8c/8jul2S329iFBnDI9HGoeWWAZvuvOkZccgw==}
+
   '@slorber/react-ideal-image@0.0.12':
     resolution: {integrity: sha512-u8KiDTEkMA7/KAeA5ywg/P7YG4zuKhWtswfVZDH8R8HXgQsFcHIYU2WaQnGuK/Du7Wdj90I+SdFmajSGFRvoKA==}
     engines: {node: '>= 8.9.0', npm: '> 3'}
@@ -5239,6 +5251,9 @@ packages:
 
   '@types/shelljs@0.8.15':
     resolution: {integrity: sha512-vzmnCHl6hViPu9GNLQJ+DZFd6BQI2DBTUeOvYHqkWQLMfKAAQYMb/xAmZkTogZI/vqXHCWkqDRymDI5p0QTi5Q==}
+
+  '@types/sinonjs__fake-timers@8.1.5':
+    resolution: {integrity: sha512-mQkU2jY8jJEF7YHjHvsQO8+3ughTL1mcnn96igfhONmR+fUPSKIkefQYpSe8bsly2Ep7oQbn/6VG5/9/0qcArQ==}
 
   '@types/sockjs@0.3.36':
     resolution: {integrity: sha512-MK9V6NzAS1+Ud7JV9lJLFqW85VbC9dq3LmwZCuBe4wBDgKC0Kj/jd8Xl+nSviU+Qc3+m7umHHyHg//2KSa0a0Q==}
@@ -17195,6 +17210,14 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
+  '@sinonjs/commons@3.0.1':
+    dependencies:
+      type-detect: 4.0.8
+
+  '@sinonjs/fake-timers@11.2.2':
+    dependencies:
+      '@sinonjs/commons': 3.0.1
+
   '@slorber/react-ideal-image@0.0.12(prop-types@15.8.1)(react-waypoint@10.3.0(react@18.3.1))(react@18.3.1)':
     dependencies:
       prop-types: 15.8.1
@@ -18371,6 +18394,8 @@ snapshots:
     dependencies:
       '@types/glob': 7.2.0
       '@types/node': 20.14.8
+
+  '@types/sinonjs__fake-timers@8.1.5': {}
 
   '@types/sockjs@0.3.36':
     dependencies:

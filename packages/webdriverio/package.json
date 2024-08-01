@@ -60,6 +60,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
+    "@sinonjs/fake-timers": "^11.2.2",
     "@types/archiver": "^6.0.2",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
@@ -68,6 +69,7 @@
   },
   "dependencies": {
     "@types/node": "^20.11.30",
+    "@types/sinonjs__fake-timers": "^8.1.5",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/protocols": "workspace:*",

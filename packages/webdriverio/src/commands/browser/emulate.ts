@@ -1,10 +1,19 @@
-type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine'
+import url from 'node:url'
+import path from 'node:path'
+import fs from 'node:fs/promises'
+import type { FakeTimerInstallOpts } from '@sinonjs/fake-timers'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+const rootDir = path.resolve(__dirname, '..', '..', '..')
+
+type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock'
 
 interface EmulationOptions {
     geolocation: Partial<GeolocationCoordinates>
     userAgent: string
     colorScheme: 'light' | 'dark'
     onLine: boolean
+    clock?: FakeTimerInstallOpts
 }
 
 /**
@@ -76,6 +85,16 @@ export async function emulate<Scope extends SupportedScopes> (
             }`
         })
         return
+    }
+
+    if (scope === 'clock') {
+        const scriptPath = path.join(rootDir, 'third_party', 'fake-timers.js')
+        const functionDeclaration = await fs.readFile(scriptPath, 'utf-8')
+        await this.scriptAddPreloadScript({ functionDeclaration })
+        await this.addInitScript((options) => {
+            // @ts-expect-error
+            window.__clock = window.__wdio_sinon.install(options)
+        }, options)
     }
 
     if (scope === 'colorScheme') {

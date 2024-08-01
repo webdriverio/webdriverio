@@ -85,9 +85,20 @@ export class BidiCore {
             throw new Error('No connection to WebDriver Bidi was established')
         }
 
-        log.info('BIDI COMMAND', params.method, JSON.stringify(params.params))
+        log.info('BIDI COMMAND', ...parseBidiCommand(params))
         const id = ++this.#id
         this.#ws.send(JSON.stringify({ id, ...params }))
         return id
     }
+}
+
+function parseBidiCommand (params:  Omit<CommandData, 'id'>) {
+    const commandName = params.method
+    if (commandName === 'script.addPreloadScript') {
+        const contexts: string[] = 'contexts' in params.params ? params.params.contexts : []
+        const param = '<PreloadScript>' + (contexts.length ? ` in ${contexts.join(', ')}` : '')
+        return [commandName, param]
+    }
+
+    return [commandName, JSON.stringify(params.params)]
 }
