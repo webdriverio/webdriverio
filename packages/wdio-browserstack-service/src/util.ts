@@ -740,8 +740,8 @@ export function isBStackSession(config: Options.Testrunner) {
     return false
 }
 
-export function isBrowserstackInfra(options: BrowserstackConfig & Options.Testrunner): boolean {
-    return (options.hostname && options.hostname.includes('browserstack.com')) || false
+export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner): boolean {
+    return config.hostname && config.hostname.includes('browserstack.com') || false
 }
 
 export function getBrowserStackUserAndKey(config: Options.Testrunner, options: Options.Testrunner) {
@@ -767,7 +767,7 @@ export function getBrowserStackUserAndKey(config: Options.Testrunner, options: O
 }
 
 export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
-    if (config.services && config.services.toString().includes('chromedriver') && testObservability != false) {
+    if ((config.services && config.services.toString().includes('chromedriver') && testObservability != false) || !isBrowserstackInfra(config)) {
         return false
     }
     return true
