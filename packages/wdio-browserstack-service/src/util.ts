@@ -1053,7 +1053,10 @@ export function isBStackSession(config: Options.Testrunner) {
 }
 
 export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner): boolean {
-    return config.hostname && config.hostname.includes('browserstack.com') || false
+    if (config.hostname && !config.hostname.includes('browserstack.com')) {
+        return false
+    }
+    return true
 }
 
 export function getBrowserStackUserAndKey(config: Options.Testrunner, options: Options.Testrunner) {
