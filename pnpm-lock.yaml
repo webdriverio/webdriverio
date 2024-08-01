@@ -597,8 +597,8 @@ importers:
   packages/wdio-browserstack-service:
     dependencies:
       '@browserstack/ai-sdk-node':
-        specifier: git+ssh://git@github.com/browserstack/ai-sdk-node.git#431416dcdf8a01644fb2e836d34b48d3dcf2034b
-        version: git+https://git@github.com:browserstack/ai-sdk-node.git#431416dcdf8a01644fb2e836d34b48d3dcf2034b
+        specifier: 1.0.4-beta
+        version: 1.0.4-beta
       '@percy/appium-app':
         specifier: ^2.0.1
         version: 2.0.6
@@ -3065,9 +3065,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@browserstack/ai-sdk-node@git+https://git@github.com:browserstack/ai-sdk-node.git#431416dcdf8a01644fb2e836d34b48d3dcf2034b':
-    resolution: {commit: 431416dcdf8a01644fb2e836d34b48d3dcf2034b, repo: git@github.com:browserstack/ai-sdk-node.git, type: git}
-    version: 1.5.4-beta
+  '@browserstack/ai-sdk-node@1.0.4-beta':
+    resolution: {integrity: sha512-dbouuO2nl6qWgDFaKV9/8nQ5HXwl0U89LD3wHle/PzhDK3hNV0A79s6jmd0IBfqfRkNgf9wB8beBpeyXFRnefA==}
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -15129,7 +15128,7 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@browserstack/ai-sdk-node@git+https://git@github.com:browserstack/ai-sdk-node.git#431416dcdf8a01644fb2e836d34b48d3dcf2034b':
+  '@browserstack/ai-sdk-node@1.0.4-beta':
     dependencies:
       axios: 1.7.2
       uuid: 9.0.1
