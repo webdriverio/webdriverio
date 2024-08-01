@@ -49,7 +49,7 @@ interface UrlCommandOptions {
      * from the Node.js context. Furthermore changes to the environment only apply for this specific page load.
      * Checkout `browser.addPreloadScript` for a more versatile way to mock the environment.
      */
-    onBeforeLoad?: (window: Window) => void
+    onBeforeLoad?: () => any
 }
 
 /**
@@ -166,26 +166,18 @@ export async function url (
     }
 
     if (this.isBidi) {
-        let preloadScriptId: string | undefined
+        let resetPreloadScript: () => Promise<any> = async () => {}
         const context = await this.getWindowHandle()
 
         /**
          * set up preload script if `onBeforeLoad` option is provided
          */
         if (options.onBeforeLoad) {
-            if (typeof options.onBeforeLoad !== 'function' && typeof options.onBeforeLoad !== 'string') {
-                throw new Error(`Option "onBeforeLoad" must be a function or string, but received: ${typeof options.onBeforeLoad}`)
+            if (typeof options.onBeforeLoad !== 'function') {
+                throw new Error(`Option "onBeforeLoad" must be a function, but received: ${typeof options.onBeforeLoad}`)
             }
 
-            const functionDeclaration = typeof options.onBeforeLoad === 'string'
-                ? options.onBeforeLoad
-                : `(function ${options.onBeforeLoad.toString()})(globalThis)`
-            const res = await this.scriptAddPreloadScript({
-                functionDeclaration,
-                arguments: [],
-                contexts: [context]
-            })
-            preloadScriptId = res.script
+            resetPreloadScript = await this.addInitScript(options.onBeforeLoad)
         }
 
         if (options.auth) {
@@ -230,8 +222,8 @@ export async function url (
         /**
          * clear up preload script
          */
-        if (preloadScriptId) {
-            await this.scriptRemovePreloadScript({ script: preloadScriptId })
+        if (resetPreloadScript) {
+            await resetPreloadScript()
         }
 
         return request
