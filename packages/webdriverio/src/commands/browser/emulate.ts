@@ -1,12 +1,21 @@
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs/promises'
-import type { FakeTimerInstallOpts } from '@sinonjs/fake-timers'
+import type { FakeTimerInstallOpts, InstalledClock, install } from '@sinonjs/fake-timers'
+
+import { type SupportedScopes, restoreFunctions } from '../constant.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const rootDir = path.resolve(__dirname, '..', '..', '..')
 
-type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock'
+declare global {
+    interface Window {
+        __clock: InstalledClock
+        __wdio_sinon: {
+            install: typeof install
+        }
+    }
+}
 
 interface EmulationOptions {
     geolocation: Partial<GeolocationCoordinates>
@@ -14,6 +23,24 @@ interface EmulationOptions {
     colorScheme: 'light' | 'dark'
     onLine: boolean
     clock?: FakeTimerInstallOpts
+}
+
+function installFakeTimers (options: FakeTimerInstallOpts) {
+    window.__clock = window.__wdio_sinon.install(options)
+}
+
+function uninstallFakeTimers () {
+    window.__clock.uninstall()
+}
+
+function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedScopes, fn: () => Promise<any>) {
+    if (!restoreFunctions.has(browser)) {
+        restoreFunctions.set(browser, new Map())
+    }
+
+    const restoreFunctionsList = restoreFunctions.get(browser)?.get(scope)
+    const updatedList = restoreFunctionsList ? [...restoreFunctionsList, fn] : [fn]
+    restoreFunctions.get(browser)?.set(scope, updatedList)
 }
 
 /**
@@ -24,7 +51,7 @@ interface EmulationOptions {
  *
  * :::info
  *
- * It is not possible to change the emulated value without reloading the page.
+ * Except for the `clock` scope it is not possible to change the emulated value without reloading the page.
  *
  * :::
  *
@@ -40,7 +67,7 @@ interface EmulationOptions {
  * @param {EmulationOptions} options emulation option for specific scope
  * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L4-L18
  * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L20-L36
- * @returns `void`
+ * @returns {Function}  a function to reset the emulation
  */
 export async function emulate<Scope extends SupportedScopes> (
     this: WebdriverIO.Browser,
@@ -62,14 +89,16 @@ export async function emulate<Scope extends SupportedScopes> (
                 coords: ${JSON.stringify(options)},
                 timestamp: Date.now()
             })`
-        await this.scriptAddPreloadScript({
+        const res = await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator.geolocation, 'getCurrentPosition', {
                     value: (cbSuccess, cbError) => ${patchedFn}
                 })
             }`
         })
-        return
+        const resetFn = async () => this.scriptRemovePreloadScript({ script: res.script })
+        storeRestoreFunction(this, 'geolocation', resetFn)
+        return resetFn
     }
 
     if (scope === 'userAgent') {
@@ -77,24 +106,49 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected userAgent emulation options to be a string, received ${typeof options}`)
         }
 
-        await this.scriptAddPreloadScript({
+        const res = await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator, 'userAgent', {
                     value: ${JSON.stringify(options)}
                 })
             }`
         })
-        return
+        const resetFn = async () => {
+            return this.scriptRemovePreloadScript({ script: res.script })
+        }
+        storeRestoreFunction(this, 'userAgent', resetFn)
+        return resetFn
     }
 
     if (scope === 'clock') {
+        const emulateOptions = options as FakeTimerInstallOpts
         const scriptPath = path.join(rootDir, 'third_party', 'fake-timers.js')
         const functionDeclaration = await fs.readFile(scriptPath, 'utf-8')
-        await this.scriptAddPreloadScript({ functionDeclaration })
-        await this.addInitScript((options) => {
-            // @ts-expect-error
-            window.__clock = window.__wdio_sinon.install(options)
-        }, options)
+        const installOptions: FakeTimerInstallOpts = {
+            ...emulateOptions,
+            now: emulateOptions.now && (emulateOptions.now instanceof Date) ? emulateOptions.now.getTime() : emulateOptions.now
+        }
+
+        const [, libScript, installScript] = await Promise.all([
+            /**
+             * install fake timers for current ex
+             */
+            this.execute(`return (${functionDeclaration}).apply(null, arguments)`, []).then(() => (
+                this.execute(installFakeTimers, installOptions)
+            )),
+            /**
+             * add preload script to to emulate clock for upcoming page loads
+             */
+            this.scriptAddPreloadScript({ functionDeclaration }),
+            this.addInitScript(installFakeTimers, installOptions)
+        ])
+        const resetFn = async () => Promise.all([
+            this.scriptRemovePreloadScript({ script: libScript.script }),
+            this.execute(uninstallFakeTimers),
+            installScript
+        ])
+        storeRestoreFunction(this, 'clock', resetFn)
+        return resetFn
     }
 
     if (scope === 'colorScheme') {
@@ -102,7 +156,7 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "colorScheme" emulation options to be either "light" or "dark", received "${options}"`)
         }
 
-        await this.scriptAddPreloadScript({
+        const res = await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 const originalMatchMedia = window.matchMedia
                 Object.defineProperty(window, 'matchMedia', {
@@ -123,7 +177,9 @@ export async function emulate<Scope extends SupportedScopes> (
                 })
             }`
         })
-        return
+        const resetFn = async () => this.scriptRemovePreloadScript({ script: res.script })
+        storeRestoreFunction(this, 'colorScheme', resetFn)
+        return resetFn
     }
 
     if (scope === 'onLine') {
@@ -131,15 +187,17 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "onLine" emulation options to be a boolean, received "${typeof options}"`)
         }
 
-        await this.scriptAddPreloadScript({
+        const res = await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator, 'onLine', {
                     value: ${options}
                 })
             }`
         })
-        return
+        const resetFn = async () => this.scriptRemovePreloadScript({ script: res.script })
+        storeRestoreFunction(this, 'onLine', resetFn)
+        return resetFn
     }
 
-    return
+    throw new Error(`Invalid scope "${scope}", expected one of "geolocation", "userAgent", "colorScheme", "onLine" or "clock"`)
 }
