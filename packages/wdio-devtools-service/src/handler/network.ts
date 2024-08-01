@@ -1,4 +1,4 @@
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Protocol } from 'devtools-protocol'
 
 import { IGNORED_URLS } from '../constants.js'
@@ -43,8 +43,8 @@ export default class NetworkHandler {
 
     constructor (session: CDPSession) {
         session.on('Network.dataReceived', this.onDataReceived.bind(this))
-        session.on('Network.responseReceived', this.onNetworkResponseReceived.bind(this))
-        session.on('Network.requestWillBeSent', this.onNetworkRequestWillBeSent.bind(this))
+        session.on('Network.responseReceived', this.onNetworkResponseReceived.bind(this) as any)
+        session.on('Network.requestWillBeSent', this.onNetworkRequestWillBeSent.bind(this) as any)
         session.on('Page.frameNavigated', this.onPageFrameNavigated.bind(this))
     }
 

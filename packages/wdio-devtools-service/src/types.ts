@@ -1,7 +1,7 @@
 import type { TraceStreamJson } from '@tracerbench/trace-event'
 import type { ReportOptions } from 'istanbul-reports'
 import type { Totals, CoverageSummaryData } from 'istanbul-lib-coverage'
-import type { Viewport } from 'puppeteer-core/lib/esm/puppeteer/common/PuppeteerViewport.js'
+import type { Viewport } from 'puppeteer-core/lib/esm/puppeteer/common/Viewport.js'
 import type { NETWORK_STATES, PWA_AUDITS } from './constants.js'
 
 export interface DevtoolsConfig {
