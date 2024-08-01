@@ -355,7 +355,7 @@ describe('AiHandler', () => {
         })
 
         it('should skip setup if accessKey is not present', async () => {
-            const oldBrowserStackAccessKey = process.env.BROWSERSTACK_ACCESS_KEY;
+            const oldBrowserStackAccessKey = process.env.BROWSERSTACK_ACCESS_KEY
             config.key = ''
             const caps = { browserName: 'chrome' }
 
@@ -370,11 +370,11 @@ describe('AiHandler', () => {
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
             expect(updatedCaps).toEqual(caps) // Expect caps to remain unchanged
-            process.env.BROWSERSTACK_ACCESS_KEY = oldBrowserStackAccessKey;
+            process.env.BROWSERSTACK_ACCESS_KEY = oldBrowserStackAccessKey
         })
 
         it('should skip setup if userName is not present', async () => {
-            const oldBrowserStackAccessKey = process.env.BROWSERSTACK_ACCESS_KEY;
+            const oldBrowserStackAccessKey = process.env.BROWSERSTACK_ACCESS_KEY
             config.user = ''
             const caps = { browserName: 'chrome' }
 
@@ -389,7 +389,7 @@ describe('AiHandler', () => {
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
             expect(updatedCaps).toEqual(caps) // Expect caps to remain unchanged
-            process.env.BROWSERSTACK_ACCESS_KEY = oldBrowserStackAccessKey;
+            process.env.BROWSERSTACK_ACCESS_KEY = oldBrowserStackAccessKey
         })
 
         it('should handle errors in setup', async () => {
