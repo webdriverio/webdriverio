@@ -4,7 +4,6 @@ import { TCG_URL, TCG_INFO, SUPPORTED_BROWSERS_FOR_AI } from './constants'
 import { handleHealingInstrumentation } from './instrumentation/funnelInstrumentation'
 
 import type { Capabilities } from '@wdio/types'
-import type { SelfHeal } from './types'
 import type BrowserStackConfig from './config'
 import type { Options } from '@wdio/types'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
@@ -27,7 +26,7 @@ class AiHandler {
 
     async updateCaps(
         authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse,
-        options: Options.Testrunner & SelfHeal,
+        options: BrowserstackOptions,
         caps: Array<Capabilities.RemoteCapability> | Capabilities.RemoteCapability
     ) {
         const installExtCondition = authResult.isAuthenticated === true && (authResult.defaultLogDataEnabled === true || options.selfHeal === true)
@@ -56,7 +55,7 @@ class AiHandler {
         await (browser as any).installAddOn(extFile.toString('base64'), true)
     }
 
-    async handleHealing(orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string, browser: Browser<'async'> | MultiRemoteBrowser<'async'>, options: Options.Testrunner & SelfHeal){
+    async handleHealing(orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string, browser: Browser<'async'> | MultiRemoteBrowser<'async'>, options: BrowserstackOptions){
         const sessionId = browser.sessionId as string
 
         let tcgDetails = `{"region": "${TCG_INFO.tcgRegion}", "tcgUrls": {"${TCG_INFO.tcgRegion}": {"endpoint": "${TCG_INFO.tcgUrl.split('s://')[1]}"}}}`
@@ -124,7 +123,7 @@ class AiHandler {
         return caps
     }
 
-    async selfHeal(options: Options.Testrunner & SelfHeal, caps: Capabilities.RemoteCapability, browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+    async selfHeal(options: BrowserstackOptions, caps: Capabilities.RemoteCapability, browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
         try {
 
             if (SUPPORTED_BROWSERS_FOR_AI.includes((caps as any).browserName)) {
