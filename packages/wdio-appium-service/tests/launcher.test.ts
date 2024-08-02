@@ -2,9 +2,10 @@ import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 import treeKill from 'tree-kill'
-import { spawn } from 'node:child_process'
+import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import type cp from 'node:child_process'
 import getPort from 'get-port'
+import { Readable, type Writable } from 'node:stream'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'
@@ -71,6 +72,46 @@ class MockFailingProcess extends MockProcess {
     stdout = {
         pipe: vi.fn(),
         on: vi.fn()
+    }
+}
+
+// MockProcess2 class. Mocks the entire _process object so we can set specific values on it, such as pid
+class MockProcess2 implements Partial<ChildProcessByStdio<null, Readable, Readable>> {
+    pid: number
+    exitCode: number | null = null
+    signalCode: null
+    spawnargs: string[] = []
+    spawnfile: string = ''
+    stdin: null = null
+    stdout: Readable = new Readable({
+        read() {
+            this.push(null)
+        }
+    })
+    stderr: Readable = new Readable({
+        read() {
+            this.push(null)
+        }
+    })
+    stdio: [null, Readable, Readable, Readable | Writable | null | undefined, Readable | Writable | null | undefined] = [null, this.stdout, this.stderr, null, null]
+    killed = false
+    connected = true
+    kill = vi.fn()
+    send = vi.fn()
+    disconnect = vi.fn()
+    unref = vi.fn()
+    ref = vi.fn()
+    addListener = vi.fn()
+    emit = vi.fn()
+    on = vi.fn()
+    once = vi.fn()
+    prependListener = vi.fn()
+    prependOnceListener = vi.fn()
+    removeAllListeners = vi.fn()
+    removeListener = vi.fn()
+
+    constructor(pid: number) {
+        this.pid = pid
     }
 }
 
@@ -630,6 +671,9 @@ describe('Appium launcher', () => {
         test('should call treeKill', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
+
+            // Mock the _process property using MockProcess2 class
+            launcher['_process'] = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
 
             // Call onComplete
             launcher.onComplete()
