@@ -48,6 +48,9 @@ export class ClockManager {
             return
         }
 
+        /**
+         * load Node.js specific modules dynamically to avoid loading them in the browser
+         */
         const url = await import('node:url')
         const path = await import('node:path')
         const fs = await import('node:fs/promises')
