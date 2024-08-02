@@ -139,6 +139,7 @@ describe('emulate', () => {
     })
 
     it('should allow to emulate the clock', async () => {
+        const now = new Date(2021, 3, 14)
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -157,7 +158,7 @@ describe('emulate', () => {
             }
         } as any as WebdriverIO.Browser
 
-        const restore = await browser.emulate.call(fakeScope, 'clock', { now: new Date(2021, 3, 14) })
+        const restore = await browser.emulate.call(fakeScope, 'clock', { now })
         expect(fakeScope.execute).toBeCalledTimes(2)
         expect(fakeScope.addInitScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
@@ -166,7 +167,7 @@ describe('emulate', () => {
         })
         expect(fakeScope.addInitScript).toBeCalledWith(
             expect.any(Function),
-            expect.objectContaining({ now: 1618383600000 })) // (new Date(2021, 3, 14)).getTime()
+            expect.objectContaining({ now: now.toString() }))
 
         expect(restore).toBeInstanceOf(Function)
         await restore()
