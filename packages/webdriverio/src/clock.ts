@@ -41,12 +41,12 @@ export class ClockManager {
      * @param options {FakeTimerInstallOpts} Options to pass to the fake clock
      * @returns {Promise<void>}
      */
-    async install(options: FakeTimerInstallOpts) {
+    async install(options?: FakeTimerInstallOpts) {
         if (this.#isInstalled) {
             return log.warn('Fake timers are already installed')
         }
 
-        const emulateOptions = options as FakeTimerInstallOpts
+        const emulateOptions = options || {} as FakeTimerInstallOpts
         const scriptPath = path.join(rootDir, 'third_party', 'fake-timers.js')
         const functionDeclaration = await fs.readFile(scriptPath, 'utf-8')
         const installOptions: FakeTimerInstallOpts = {

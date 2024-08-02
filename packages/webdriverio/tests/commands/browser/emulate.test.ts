@@ -5,27 +5,21 @@ import { remote } from '../../../src/index.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+const browser = await remote({
+    baseUrl: 'http://foobar.com',
+    capabilities: {
+        browserName: 'foobar'
+    }
+})
+
 describe('emulate', () => {
     it('should fail if bidi is not supported', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
-
         // @ts-expect-error invalid argument
         await expect(() => browser.emulate('geoLocation', {}))
             .rejects.toThrow(/emulate command is only supported for Bidi/)
     })
 
     it('should allow to emulate geolocation', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
         const fakeScope = {
             isBidi: true,
             scriptAddPreloadScript: vi.fn().mockResolvedValue({ script: 'foobar' }),
@@ -35,10 +29,11 @@ describe('emulate', () => {
                 afterCommand: vi.fn()
             }
         } as any as WebdriverIO.Browser
+        fakeScope.emulate = browser.emulate.bind(fakeScope)
 
         // @ts-expect-error missing argument
-        await expect(() => browser.emulate.call(fakeScope, 'geolocation')).rejects.toThrow(/Missing geolocation emulation options/)
-        const restore = await browser.emulate.call(fakeScope, 'geolocation', { latitude: 123, longitude: 456 })
+        await expect(() => fakeScope.emulate('geolocation')).rejects.toThrow(/Missing geolocation emulation options/)
+        const restore = await fakeScope.emulate('geolocation', { latitude: 123, longitude: 456 })
         expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
             functionDeclaration: expect.stringContaining('Object.defineProperty(navigator.geolocation, \'getCurrentPosition\', {')
@@ -50,12 +45,6 @@ describe('emulate', () => {
     })
 
     it('should allow to emulate userAgent', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
         const fakeScope = {
             isBidi: true,
             scriptAddPreloadScript: vi.fn().mockResolvedValue({ script: 'foobar' }),
@@ -65,9 +54,10 @@ describe('emulate', () => {
                 afterCommand: vi.fn()
             }
         } as any as WebdriverIO.Browser
+        fakeScope.emulate = browser.emulate.bind(fakeScope)
         // @ts-expect-error invalid argument
-        await expect(() => browser.emulate.call(fakeScope, 'userAgent', 123)).rejects.toThrow(/Expected userAgent emulation options to be a string/)
-        const restore = await browser.emulate.call(fakeScope, 'userAgent', 'foobar')
+        await expect(() => fakeScope.emulate('userAgent', 123)).rejects.toThrow(/Expected userAgent emulation options to be a string/)
+        const restore = await fakeScope.emulate('userAgent', 'foobar')
         expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
             functionDeclaration: expect.stringContaining('Object.defineProperty(navigator, \'userAgent\', {')
@@ -79,12 +69,6 @@ describe('emulate', () => {
     })
 
     it('should allow to emulate colorScheme', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
         const fakeScope = {
             isBidi: true,
             scriptAddPreloadScript: vi.fn().mockResolvedValue({ script: 'foobar' }),
@@ -94,10 +78,11 @@ describe('emulate', () => {
                 afterCommand: vi.fn()
             }
         } as any as WebdriverIO.Browser
+        fakeScope.emulate = browser.emulate.bind(fakeScope)
 
         // @ts-expect-error invalid argument
-        await expect(() => browser.emulate.call(fakeScope, 'colorScheme', 123)).rejects.toThrow(/Expected "colorScheme" emulation options to be either "light" or "dark"/)
-        const restore = await browser.emulate.call(fakeScope, 'colorScheme', 'light')
+        await expect(() => fakeScope.emulate('colorScheme', 123)).rejects.toThrow(/Expected "colorScheme" emulation options to be either "light" or "dark"/)
+        const restore = await fakeScope.emulate('colorScheme', 'light')
         expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
             functionDeclaration: expect.stringContaining('Object.defineProperty(window, \'matchMedia\', {')
@@ -124,10 +109,11 @@ describe('emulate', () => {
                 afterCommand: vi.fn()
             }
         } as any as WebdriverIO.Browser
+        fakeScope.emulate = browser.emulate.bind(fakeScope)
 
         // @ts-expect-error invalid
-        await expect(() => browser.emulate.call(fakeScope, 'onLine', 123)).rejects.toThrow(/Expected "onLine" emulation options to be a boolean/)
-        const restore = await browser.emulate.call(fakeScope, 'onLine', false)
+        await expect(() => fakeScope.emulate('onLine', 123)).rejects.toThrow(/Expected "onLine" emulation options to be a boolean/)
+        const restore = await fakeScope.emulate('onLine', false)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
             functionDeclaration: expect.stringContaining('Object.defineProperty(navigator, \'onLine\', {')
@@ -155,10 +141,11 @@ describe('emulate', () => {
             options: {
                 beforeCommand: vi.fn(),
                 afterCommand: vi.fn()
-            }
+            },
         } as any as WebdriverIO.Browser
+        fakeScope.emulate = browser.emulate.bind(fakeScope)
 
-        const restore = await browser.emulate.call(fakeScope, 'clock', { now })
+        const clock = await fakeScope.emulate('clock', { now })
         expect(fakeScope.execute).toBeCalledTimes(2)
         expect(fakeScope.addInitScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
@@ -167,10 +154,11 @@ describe('emulate', () => {
         })
         expect(fakeScope.addInitScript).toBeCalledWith(
             expect.any(Function),
-            expect.objectContaining({ now: now.toString() }))
+            expect.objectContaining({ now: now.getTime() })
+        )
 
-        expect(restore).toBeInstanceOf(Function)
-        await restore()
+        expect(clock.restore).toBeInstanceOf(Function)
+        await clock.restore()
         expect(fakeScope.scriptRemovePreloadScript).toBeCalledTimes(1)
     })
 })

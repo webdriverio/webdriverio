@@ -23,6 +23,12 @@ function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedSco
     restoreFunctions.get(browser)?.set(scope, updatedList)
 }
 
+export async function emulate(scope: 'clock', options?: FakeTimerInstallOpts): Promise<ClockManager>
+export async function emulate(scope: 'geolocation', geolocation: Partial<GeolocationCoordinates>): Promise<RestoreFunction>
+export async function emulate(scope: 'userAgent', userAgent: string): Promise<RestoreFunction>
+export async function emulate(scope: 'colorScheme', colorScheme: ColorScheme): Promise<RestoreFunction>
+export async function emulate(scope: 'onLine', state: boolean): Promise<RestoreFunction>
+
 /**
  * WebdriverIO allows you to emulate Web APIs using the `emulate` command. These Web APIs can then
  * behave exactly as you specify it. The following scopes are supported:
@@ -58,11 +64,6 @@ function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedSco
  * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L20-L36
  * @returns {Function}  a function to reset the emulation
  */
-export async function emulate(this: WebdriverIO.Browser, scope: 'geolocation', geolocation: Partial<GeolocationCoordinates>): Promise<RestoreFunction>
-export async function emulate(this: WebdriverIO.Browser, scope: 'userAgent', userAgent: string): Promise<RestoreFunction>
-export async function emulate(this: WebdriverIO.Browser, scope: 'colorScheme', colorScheme: ColorScheme): Promise<RestoreFunction>
-export async function emulate(this: WebdriverIO.Browser, scope: 'onLine', state: boolean): Promise<RestoreFunction>
-export async function emulate(this: WebdriverIO.Browser, scope: 'clock', options?: FakeTimerInstallOpts): Promise<ClockManager>
 export async function emulate<Scope extends SupportedScopes> (
     this: WebdriverIO.Browser,
     scope: Scope,
