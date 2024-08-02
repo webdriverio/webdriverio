@@ -1,11 +1,6 @@
-import url from 'node:url'
-import path from 'node:path'
-import fs from 'node:fs/promises'
 import logger from '@wdio/logger'
 import type { FakeTimerInstallOpts, InstalledClock, install } from '@sinonjs/fake-timers'
 
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const rootDir = path.resolve(__dirname, '..')
 const log = logger('webdriverio:ClockManager')
 
 declare global {
@@ -46,6 +41,19 @@ export class ClockManager {
             return log.warn('Fake timers are already installed')
         }
 
+        /**
+         * skip if we are not running in a Node.js environment
+         */
+        if (globalThis.window) {
+            return
+        }
+
+        const url = await import('node:url')
+        const path = await import('node:path')
+        const fs = await import('node:fs/promises')
+
+        const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+        const rootDir = path.resolve(__dirname, '..')
         const emulateOptions = options || {} as FakeTimerInstallOpts
         const scriptPath = path.join(rootDir, 'third_party', 'fake-timers.js')
         const functionDeclaration = await fs.readFile(scriptPath, 'utf-8')
