@@ -144,6 +144,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         this._config.framework,
                         this._caps
                     )
+                    process.env.BROWSERSTACK_OBSERVABILITY_PRODUCT = this._isAppAutomate() ? 'app-automate' : (process.env.BROWSERSTACK_TURBOSCALE === 'true' ? 'turboscale' : 'automate')
                     await this._insightsHandler.before()
                 }
 
