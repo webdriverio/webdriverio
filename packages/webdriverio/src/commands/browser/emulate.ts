@@ -58,6 +58,52 @@ export async function emulate(scope: 'onLine', state: boolean): Promise<RestoreF
  *
  * :::
  *
+ * Based on the scope you can pass different options:
+ *
+ * | Scope         | Options                                          |
+ * |---------------|--------------------------------------------------|
+ * | `geolocation` | `{ latitude: number, longitude: number }`        |
+ * | `userAgent`   | `string`                                         |
+ * | `colorScheme` | `'light' | 'dark'`                                 |
+ * | `onLine`      | `boolean`                                        |
+ * | `clock`       | `FakeTimerInstallOpts` |
+ *
+ * The `FakeTimerInstallOpts` object can have the following properties:
+ *
+ * ```ts
+ * interface FakeTimerInstallOpts {
+ *    // Installs fake timers with the specified unix epoch
+ *    // @default: 0
+ *    now?: number | Date | undefined;
+
+ *    // An array with names of global methods and APIs to fake. By default, WebdriverIO
+ *    // does not replace `nextTick()` and `queueMicrotask()`. For instance,
+ *    // `browser.emulate('clock', { toFake: ['setTimeout', 'nextTick'] })` will fake only
+ *    // `setTimeout()` and `nextTick()`
+ *    toFake?: FakeMethod[] | undefined;
+
+ *    // The maximum number of timers that will be run when calling runAll() (default: 1000)
+ *    loopLimit?: number | undefined;
+
+ *    // Tells WebdriverIO to increment mocked time automatically based on the real system
+ *    // time shift (e.g. the mocked time will be incremented by 20ms for every 20ms change
+ *    // in the real system time)
+ *    // @default false
+ *    shouldAdvanceTime?: boolean | undefined;
+
+ *    // Relevant only when using with shouldAdvanceTime: true. increment mocked time by
+ *    // advanceTimeDelta ms every advanceTimeDelta ms change in the real system time
+ *    // @default: 20
+ *    advanceTimeDelta?: number | undefined;
+
+ *    // Tells FakeTimers to clear 'native' (i.e. not fake) timers by delegating to their
+ *    // respective handlers. These are not cleared by default, leading to potentially
+ *    // unexpected behavior if timers existed prior to installing FakeTimers.
+ *    // @default: false
+ *    shouldClearNativeTimers?: boolean | undefined;
+ * }
+ * ```
+ *
  * @param {string} scope feature of the browser you like to emulate, can be either `clock`, `geolocation`, `userAgent`, `colorScheme` or `onLine`
  * @param {EmulationOptions} options emulation option for specific scope
  * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L4-L18
