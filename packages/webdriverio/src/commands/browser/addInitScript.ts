@@ -58,7 +58,7 @@ export async function addInitScript<ReturnValue, InnerArguments extends any[]> (
     const context = await this.getWindowHandle()
     const result = await this.scriptAddPreloadScript({
         functionDeclaration: `() => {
-            const closure = new Function('return ${script.toString()}')
+            const closure = new Function(\`return ${script.toString()}\`)
             return closure()(${serializedParameters.join(', ')})
         }`,
         arguments: [],

@@ -28,6 +28,7 @@ export async function generateWdioDocs (sidebars: any) {
         element: ['api/element', fs.readdirSync(path.join(COMMAND_DIR, 'element'))],
         mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))],
         dialog: ['api/dialog', fs.readdirSync(path.join(COMMAND_DIR, 'dialog'))],
+        clock: ['api/clock', fs.readdirSync(path.join(COMMAND_DIR, 'clock'))],
     }
 
     const apiDocs: NavbarItem[] = []
