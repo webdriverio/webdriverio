@@ -1054,25 +1054,25 @@ export function isBStackSession(config: Options.Testrunner) {
 
 export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner): boolean {
 
-    const isBrowserstack = (str: string | undefined): boolean => {
-        return typeof str === 'string' && str.includes('browserstack.com')
+    const isBrowserstack = (str: string ): boolean => {
+        return str.includes('browserstack.com')
     }
 
-    if (!isBrowserstack(config.hostname)) {
+    if ((config.hostname) && !isBrowserstack(config.hostname)) {
         return false
     }
 
     if (config.capabilities && typeof config.capabilities === 'object') {
         if (Array.isArray(config.capabilities)) {
             for (const capability of config.capabilities) {
-                if (!isBrowserstack((capability as Options.Testrunner).hostname)) {
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
                     return false
                 }
             }
         } else {
             for (const key in config.capabilities) {
                 const capability = config.capabilities[key]
-                if (!isBrowserstack((capability as Options.Testrunner).hostname)) {
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
                     return false
                 }
             }
