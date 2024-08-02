@@ -159,18 +159,6 @@ const sendEvent = {
     tcgAuthFailure: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestTcgAuthFailure', config),
     tcgtInitSuccessful: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestTcgtInitSuccessful', config),
     initFailed: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestInitFailedResponse', config),
-    tcgProxyFailure: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestTcgProxyFailure', config),
-}
-
-function isProxyError(authResult: any): boolean {
-    return (authResult as BrowserstackHealing.InitErrorResponse).status === 502
-}
-
-function handleProxyError(config: BrowserStackConfig, isSelfHealEnabled: boolean | undefined) {
-    sendEvent.tcgProxyFailure(config)
-    if (isSelfHealEnabled) {
-        BStackLogger.warn('Proxy Error. Disabling Healing for this session.')
-    }
 }
 
 function handleUpgradeRequired(isSelfHealEnabled: boolean | undefined) {
@@ -224,10 +212,6 @@ export function handleHealingInstrumentation(
     isSelfHealEnabled: boolean | undefined,
 ) {
     try {
-        if (isProxyError(authResult)) {
-            handleProxyError(config, isSelfHealEnabled)
-            return
-        }
 
         const { message, isAuthenticated, status, userId, groupId, isHealingEnabled: isHealingEnabledForUser } = authResult as any
 

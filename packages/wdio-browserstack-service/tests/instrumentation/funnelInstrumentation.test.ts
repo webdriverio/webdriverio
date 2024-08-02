@@ -141,45 +141,6 @@ describe('funnelInstrumentation', () => {
     })
 
     describe('Healing instrumentation', () => {
-        it('should send proxy failure event', async () => {
-            const authResult = { status: 502 } as BrowserstackHealing.InitErrorResponse
-
-            FunnelTestEvent.handleHealingInstrumentation(authResult, config as any, true)
-
-            // Assertions
-            expect(got.post).toHaveBeenCalledTimes(1)
-            expect(got.post).toHaveBeenCalledWith(FUNNEL_INSTRUMENTATION_URL, {
-                headers: {
-                    'content-type': 'application/json'
-                },
-                username: config.userName,
-                password: config.accessKey,
-                json: {
-                    userName: config.userName,
-                    accessKey: config.accessKey,
-                    event_type: 'SDKTestTcgProxyFailure',
-                    detectedFramework: 'WebdriverIO-framework',
-                    event_properties: {
-                        language_framework: 'WebdriverIO_framework',
-                        referrer: expect.stringContaining('WebdriverIO-'),
-                        language: 'WebdriverIO',
-                        languageVersion: process.version,
-                        buildName: config.buildName,
-                        buildIdentifier: config.buildIdentifier,
-                        os: expect.any(String),
-                        hostname: expect.any(String),
-                        productMap: {
-                            'observability': true,
-                            'accessibility': true,
-                            'percy': true,
-                            'automate': true,
-                            'app_automate': false
-                        },
-                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility'])
-                    }
-                }
-            })
-        })
 
         it('should display upgrade required warning', async () => {
             const authResult = { message: 'Upgrade required' } as BrowserstackHealing.InitErrorResponse
