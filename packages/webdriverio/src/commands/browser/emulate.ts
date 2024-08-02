@@ -1,39 +1,19 @@
-import url from 'node:url'
-import path from 'node:path'
-import fs from 'node:fs/promises'
-import type { FakeTimerInstallOpts, InstalledClock, install } from '@sinonjs/fake-timers'
+import type { FakeTimerInstallOpts } from '@sinonjs/fake-timers'
 
-import { type SupportedScopes, restoreFunctions } from '../constant.js'
+import { type SupportedScopes, restoreFunctions, ClockManager } from '../../clock.js'
 
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const rootDir = path.resolve(__dirname, '..', '..', '..')
-
-declare global {
-    interface Window {
-        __clock: InstalledClock
-        __wdio_sinon: {
-            install: typeof install
-        }
-    }
-}
+type RestoreFunction = () => Promise<any>
+type ColorScheme = 'light' | 'dark'
 
 interface EmulationOptions {
     geolocation: Partial<GeolocationCoordinates>
     userAgent: string
-    colorScheme: 'light' | 'dark'
+    colorScheme: ColorScheme
     onLine: boolean
     clock?: FakeTimerInstallOpts
 }
 
-function installFakeTimers (options: FakeTimerInstallOpts) {
-    window.__clock = window.__wdio_sinon.install(options)
-}
-
-function uninstallFakeTimers () {
-    window.__clock.uninstall()
-}
-
-function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedScopes, fn: () => Promise<any>) {
+function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedScopes, fn: RestoreFunction) {
     if (!restoreFunctions.has(browser)) {
         restoreFunctions.set(browser, new Map())
     }
@@ -45,7 +25,16 @@ function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedSco
 
 /**
  * WebdriverIO allows you to emulate Web APIs using the `emulate` command. These Web APIs can then
- * behave exactly as you specify it.
+ * behave exactly as you specify it. The following scopes are supported:
+ *
+ * - `geolocation`: Emulate the geolocation API
+ * - `userAgent`: Emulate the user agent
+ * - `colorScheme`: Emulate the color scheme
+ * - `onLine`: Emulate the online status
+ * - `clock`: Emulate the system clock
+ *
+ * The `emulate` command returns a function that can be called to reset the emulation. This is useful
+ * when you want to reset the emulation after a test or a suite of tests.
  *
  * Read more on this in the [Emulation](/docs/emulation) guidelines.
  *
@@ -63,12 +52,17 @@ function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedSco
  *
  * :::
  *
- * @param {string} scope feature of the browser you like to emulate, can be either `geolocation`, `userAgent`, `colorScheme` or `onLine`
+ * @param {string} scope feature of the browser you like to emulate, can be either `clock`, `geolocation`, `userAgent`, `colorScheme` or `onLine`
  * @param {EmulationOptions} options emulation option for specific scope
  * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L4-L18
  * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L20-L36
  * @returns {Function}  a function to reset the emulation
  */
+export async function emulate(this: WebdriverIO.Browser, scope: 'geolocation', geolocation: Partial<GeolocationCoordinates>): Promise<RestoreFunction>
+export async function emulate(this: WebdriverIO.Browser, scope: 'userAgent', userAgent: string): Promise<RestoreFunction>
+export async function emulate(this: WebdriverIO.Browser, scope: 'colorScheme', colorScheme: ColorScheme): Promise<RestoreFunction>
+export async function emulate(this: WebdriverIO.Browser, scope: 'onLine', state: boolean): Promise<RestoreFunction>
+export async function emulate(this: WebdriverIO.Browser, scope: 'clock', options?: FakeTimerInstallOpts): Promise<ClockManager>
 export async function emulate<Scope extends SupportedScopes> (
     this: WebdriverIO.Browser,
     scope: Scope,
@@ -121,34 +115,10 @@ export async function emulate<Scope extends SupportedScopes> (
     }
 
     if (scope === 'clock') {
-        const emulateOptions = options as FakeTimerInstallOpts
-        const scriptPath = path.join(rootDir, 'third_party', 'fake-timers.js')
-        const functionDeclaration = await fs.readFile(scriptPath, 'utf-8')
-        const installOptions: FakeTimerInstallOpts = {
-            ...emulateOptions,
-            now: emulateOptions.now && (emulateOptions.now instanceof Date) ? emulateOptions.now.getTime() : emulateOptions.now
-        }
-
-        const [, libScript, installScript] = await Promise.all([
-            /**
-             * install fake timers for current ex
-             */
-            this.execute(`return (${functionDeclaration}).apply(null, arguments)`, []).then(() => (
-                this.execute(installFakeTimers, installOptions)
-            )),
-            /**
-             * add preload script to to emulate clock for upcoming page loads
-             */
-            this.scriptAddPreloadScript({ functionDeclaration }),
-            this.addInitScript(installFakeTimers, installOptions)
-        ])
-        const resetFn = async () => Promise.all([
-            this.scriptRemovePreloadScript({ script: libScript.script }),
-            this.execute(uninstallFakeTimers),
-            installScript
-        ])
-        storeRestoreFunction(this, 'clock', resetFn)
-        return resetFn
+        const clock = new ClockManager(this)
+        await clock.install(options as FakeTimerInstallOpts)
+        storeRestoreFunction(this, 'clock', clock.restore.bind(clock))
+        return clock
     }
 
     if (scope === 'colorScheme') {

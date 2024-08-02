@@ -1,4 +1,4 @@
-import { type SupportedScopes, restoreFunctions } from '../constant.js'
+import { type SupportedScopes, restoreFunctions } from '../../clock.js'
 
 /**
  *
