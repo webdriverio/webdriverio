@@ -40,7 +40,10 @@ describe('AiHandler', () => {
             sessionId: 'test-session-id',
             execute: vi.fn(),
             installAddOn: vi.fn(),
-            overwriteCommand: vi.fn()
+            overwriteCommand: vi.fn(),
+            capabilities: {
+                browserName: 'chrome'
+            }
         }
     })
 
@@ -351,7 +354,7 @@ describe('AiHandler', () => {
                 .mockReturnValue({ ...caps, 'goog:chromeOptions': { extensions: [mockExtension] } })
 
             const emptyObj = {} as any
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
+            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
 
             expect(authenticateUserSpy).toHaveBeenCalledTimes(1)
             expect(handleHealingInstrumentationSpy).toHaveBeenCalledTimes(1)
@@ -369,7 +372,7 @@ describe('AiHandler', () => {
 
             const emptyObj = {} as any
             vi.stubEnv('BROWSERSTACK_ACCESS_KEY', '')
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
+            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
@@ -386,7 +389,7 @@ describe('AiHandler', () => {
 
             const emptyObj = {} as any
             vi.stubEnv('BROWSERSTACK_USERNAME', '')
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
+            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
@@ -401,7 +404,7 @@ describe('AiHandler', () => {
             const debugSpy = vi.spyOn(bstackLogger.BStackLogger, 'debug')
 
             const emptyObj = {} as any
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
+            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
 
             expect(authenticateUserSpy).toHaveBeenCalledTimes(1)
             expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Error while initiliazing Browserstack healing Extension'))
@@ -422,6 +425,7 @@ describe('AiHandler', () => {
             const setTokenSpy = vi.spyOn(AiHandler, 'setToken')
             const installFirefoxExtensionSpy = vi.spyOn(AiHandler, 'installFirefoxExtension')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
@@ -441,6 +445,7 @@ describe('AiHandler', () => {
 
             const setTokenSpy = vi.spyOn(AiHandler, 'setToken')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
@@ -473,6 +478,7 @@ describe('AiHandler', () => {
             vi.spyOn(aiSDK.BrowserstackHealing, 'logData')
                 .mockResolvedValue('logging-script')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
@@ -496,6 +502,7 @@ describe('AiHandler', () => {
             vi.spyOn(aiSDK.BrowserstackHealing, 'logData')
                 .mockResolvedValue('logging-script')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
@@ -511,6 +518,7 @@ describe('AiHandler', () => {
             const installFirefoxExtensionSpy = vi.spyOn(AiHandler, 'installFirefoxExtension')
             const overwriteCommandSpy = vi.spyOn(browser, 'overwriteCommand')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).not.toHaveBeenCalled()
@@ -548,6 +556,7 @@ describe('AiHandler', () => {
 
             const setTokenSpy = vi.spyOn(AiHandler, 'setToken')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).not.toHaveBeenCalled()
@@ -564,6 +573,7 @@ describe('AiHandler', () => {
 
             const overwriteCommandSpy = vi.spyOn(browser, 'overwriteCommand')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(overwriteCommandSpy).not.toHaveBeenCalled()

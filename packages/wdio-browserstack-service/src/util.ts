@@ -1052,27 +1052,27 @@ export function isBStackSession(config: Options.Testrunner) {
     return false
 }
 
-export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner): boolean {
+export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner, caps?: Capabilities.BrowserStackCapabilities): boolean {
 
-    const isBrowserstack = (str: string | undefined): boolean => {
-        return typeof str === 'string' && str.includes('browserstack.com')
+    const isBrowserstack = (str: string ): boolean => {
+        return str.includes('browserstack.com')
     }
 
-    if (!isBrowserstack(config.hostname)) {
+    if ((config.hostname) && !isBrowserstack(config.hostname)) {
         return false
     }
 
-    if (config.capabilities && typeof config.capabilities === 'object') {
-        if (Array.isArray(config.capabilities)) {
-            for (const capability of config.capabilities) {
-                if (!isBrowserstack((capability as Options.Testrunner).hostname)) {
+    if (caps && typeof caps === 'object') {
+        if (Array.isArray(caps)) {
+            for (const capability of caps) {
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
                     return false
                 }
             }
         } else {
-            for (const key in config.capabilities) {
-                const capability = config.capabilities[key]
-                if (!isBrowserstack((capability as Options.Testrunner).hostname)) {
+            for (const key in caps) {
+                const capability = (caps as any)[key]
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
                     return false
                 }
             }
@@ -1104,8 +1104,8 @@ export function getBrowserStackUserAndKey(config: Options.Testrunner, options: O
 
 }
 
-export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
-    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false) || !isBrowserstackInfra(config)) {
+export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false) || !isBrowserstackInfra(config, caps)) {
         return false
     }
     return true

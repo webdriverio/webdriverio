@@ -193,7 +193,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         // Setting up healing for those sessions where we don't add the service version capability as it indicates that the session is not being run on BrowserStack
-        if (!shouldAddServiceVersion(this._config, this._options.testObservability)) {
+        if (!shouldAddServiceVersion(this._config, this._options.testObservability, caps)) {
             try {
                 if (caps.browserName) {
                     caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps, false)
