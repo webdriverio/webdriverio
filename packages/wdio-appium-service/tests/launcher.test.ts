@@ -679,7 +679,7 @@ describe('Appium launcher', () => {
             launcher.onComplete()
 
             // Verify treeKill is called with correct parameters
-            expect(treeKill).toHaveBeenCalledWith()
+            expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
         })
 
         test('should not call process.kill', () => {
