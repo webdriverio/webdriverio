@@ -1,9 +1,10 @@
+import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import logger from '@wdio/logger'
 import type { FakeTimerInstallOpts, InstalledClock, install } from '@sinonjs/fake-timers'
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname)
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const rootDir = path.resolve(__dirname, '..')
 const log = logger('webdriverio:ClockManager')
 
