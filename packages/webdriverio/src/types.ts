@@ -534,6 +534,9 @@ export interface ExtendedElementReference {
     locator: remote.BrowsingContextLocator
 }
 
+export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock' | 'device'
+export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
+
 declare global {
     namespace WebdriverIO {
         /**
