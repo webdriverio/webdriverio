@@ -5,7 +5,9 @@ const maxWindowSize = Number.MAX_SAFE_INTEGER
 
 /**
  *
- * Resizes browser window outer size according to provided width and height.
+ * Resizes browser window outer size according to provided width and height. Based on your operating
+ * system some browser windows might now allow you so have a smaller width than `500px`. If you want
+ * to mimic the viewport of e.g. an iPhone you should consider using the `setViewport` command.
  *
  * <example>
  * :setWindowSize.js
