@@ -8,6 +8,11 @@ import type { Workers } from '@wdio/types'
 
 import Worker from '../src/worker.js'
 
+vi.mock('../src/runLite.js')
+// @ts-ignore mock exports instances, package doesn't
+import { run } from '../src/runLite.js'
+import EventEmitter from 'node:events'
+
 const workerConfig = {
     cid: '0-3',
     configFile: '/foobar',
@@ -90,6 +95,19 @@ describe('handleMessage', () => {
         }
         expect(worker.emit).toBeCalledWith('message', expectedMessage)
         expect(worker.childProcess.send).toBeCalledWith(expectedMessage)
+    })
+
+    it('should use lite runner', () => {
+        vi.mocked(run).mockReturnValue(new EventEmitter() as any)
+        const worker = new Worker({
+            runner: ['local', {
+                useSingleProcess: true
+            }],
+            framework: 'cucumber'
+        }, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        worker.isReady = Promise.resolve(true)
+        worker.startProcess()
+        expect(run).toBeCalledTimes(1)
     })
 })
 
