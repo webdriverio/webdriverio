@@ -42,9 +42,14 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                 return result
             } catch (err: any) {
                 if (err.name === 'element not interactable') {
-                    const elementHTML = await element.getHTML()
-                    err.message = `Element ${elementHTML} not interactable`
-                    err.stack = err.stack ?? Error.captureStackTrace(err)
+                    try {
+                        return await element.waitForClickable()
+                    } catch (error) {
+                        const elementHTML = await element.getHTML()
+                        err.name = 'webdriverio(middleware): element did not become interactable'
+                        err.message = `Element ${elementHTML} did not become interactable`
+                        err.stack = err.stack ?? Error.captureStackTrace(err)
+                    }
                 }
 
                 if (err.name === 'stale element reference' || isStaleElementError(err)) {
