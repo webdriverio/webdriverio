@@ -3,7 +3,7 @@ import { runWithProcessContext } from '../src/processProxy.js'
 
 describe('ProcessProxy', () => {
 
-    it('should allow overrigin global process in context', async() => {
+    it('should allow overriding global process in context', async() => {
         await runWithProcessContext({
             env: { SOME_ENV_VARIABLE: 'value' }
         }, async () => {
