@@ -21,6 +21,34 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.40.0 (2024-08-05)
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-devtools-service`, `webdriverio`
+  * [#13256](https://github.com/webdriverio/webdriverio/pull/13256) fix(webdriverio): update puppeteer-core ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`
+  * [#13179](https://github.com/webdriverio/webdriverio/pull/13179) fix-v8(@wdio/appium-service): add port to appium start command ([@vparlah](https://github.com/vparlah))
+* `wdio-config`
+  * [#12888](https://github.com/webdriverio/webdriverio/pull/12888) Dedupe Capabilities ([@EdmundasD](https://github.com/EdmundasD))
+* `wdio-utils`
+  * [#13208](https://github.com/webdriverio/webdriverio/pull/13208) fix(@wdio/utils): Don't download chromedriver with CHROMEDRIVER_PATH (v8 backport) ([@johnp](https://github.com/johnp))
+* `wdio-browserstack-service`
+  * [#13118](https://github.com/webdriverio/webdriverio/pull/13118) Support app inside appium options (v8) ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#13084](https://github.com/webdriverio/webdriverio/pull/13084) Fix reloadSession subsequent commands ([@ccharnkij](https://github.com/ccharnkij))
+
+#### Committers: 7
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Edmundas Daunoras ([@EdmundasD](https://github.com/EdmundasD))
+- Jochen ([@jochen-testingbot](https://github.com/jochen-testingbot))
+- Johannes Pfrang ([@johnp](https://github.com/johnp))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Volodymyr Parlah ([@vparlah](https://github.com/vparlah))
+
+
 ## v8.39.1 (2024-07-03)
 
 #### :bug: Bug Fix
