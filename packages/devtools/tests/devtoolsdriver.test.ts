@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
 import DevToolsDriver from '../src/devtoolsdriver.js'
-import type { Dialog } from 'puppeteer-core/lib/esm/puppeteer/common/Dialog.js'
-import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
+import type { Dialog } from 'puppeteer-core/lib/esm/puppeteer/api/Dialog.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/api/Frame.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('puppeteer-core', () => import(path.join(process.cwd(), '__mocks__', 'puppeteer-core')))
@@ -34,22 +34,18 @@ const setNormalPageLoadBehavior = () => executionContext.evaluate.mockImplementa
     : 'complete'
 ))
 
-const frame = {
-    executionContext: vi.fn().mockImplementation(() => Promise.resolve(executionContext))
-}
-
 const page = {
     on: vi.fn(),
     once: vi.fn(),
     setDefaultTimeout: vi.fn(),
-    mainFrame: vi.fn(),
-    frames: vi.fn().mockReturnValue([frame])
+    mainFrame: vi.fn().mockReturnValue(Promise.resolve(executionContext)),
+    frames: vi.fn().mockReturnValue([executionContext])
 }
 
 const browser = {
     on: vi.fn(),
     pages: vi.fn().mockImplementation(async () => {
-        page.mainFrame = vi.fn().mockImplementation(() => frame)
+        page.mainFrame = vi.fn().mockImplementation(() => executionContext)
         ++evaluateCommandCalls
         setNormalPageLoadBehavior()
         return [page]
@@ -83,7 +79,7 @@ beforeEach(() => {
     page.on.mockClear()
     page.once.mockClear()
     page.setDefaultTimeout.mockClear()
-    page.mainFrame.mockImplementation(() => frame)
+    page.mainFrame.mockImplementation(() => executionContext)
     executionContext.evaluate.mockClear()
     setNormalPageLoadBehavior()
     driver = new DevToolsDriver(browser as any, [page as any])
@@ -240,7 +236,7 @@ test('should wait for page load to be complete before executing the command', as
 })
 
 test('should use page from target if we are currently in a frame', async () => {
-    driver.getPageHandle = vi.fn().mockReturnValue(frame)
+    driver.getPageHandle = vi.fn().mockReturnValue(executionContext)
     executionContext.evaluate = vi.fn().mockReturnValueOnce('complete')
 
     driver.commands.elementClick = () => Promise.resolve(null)

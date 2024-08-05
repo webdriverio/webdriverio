@@ -5,7 +5,7 @@ import DevtoolsNetworkInterception from '../../utils/interception/devtools.js'
 import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
 import type { Mock } from '../../types.js'
 import type { MockFilterOptions } from '../../utils/interception/types.js'
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 
 export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
 export const CDP_SESSIONS: Record<string, CDPSession> = {}
@@ -168,7 +168,7 @@ export async function mock (
         client.on(
             'Fetch.requestPaused',
             (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
-                .handleRequestInterception(client, SESSION_MOCKS[handle])
+                .handleRequestInterception(client, SESSION_MOCKS[handle]) as any
         )
     }
 
