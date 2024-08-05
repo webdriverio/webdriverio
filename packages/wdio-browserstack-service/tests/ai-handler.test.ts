@@ -39,6 +39,26 @@ describe('AiHandler', () => {
         }
     })
 
+    describe('setToken', () => {
+        it('setToken calls aiSDK.BrowserstackHealing.setToken', async () => {
+            const setTokenSpy = jest.spyOn(aiSDK.BrowserstackHealing, 'setToken')
+            AiHandler.setToken('test-session-id', 'test-session-token')
+            expect(setTokenSpy).toHaveBeenCalledTimes(1)
+        })
+
+        it('should not call setToken if authResult is empty but selfHeal is true', async () => {
+            const caps = { browserName: 'chrome' } as Capabilities.RemoteCapability
+            AiHandler['authResult'] = {} as any
+
+            const setTokenSpy = jest.spyOn(AiHandler, 'setToken')
+            browser.capabilities = caps
+            config.selfHeal = true
+            await AiHandler.handleSelfHeal(config, browser)
+
+            expect(setTokenSpy).not.toHaveBeenCalled()
+        })
+    })
+
     describe('authenticateUser', () => {
         it('should authenticate user', async () => {
             const authResponse = {
