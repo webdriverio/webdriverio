@@ -181,7 +181,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 ## :page_facing_up: License
 
-[MIT](/LICENSE-MIT)
+[MIT](/LICENSE)
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio?ref=badge_large)
 
