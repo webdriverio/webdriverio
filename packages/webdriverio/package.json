@@ -86,7 +86,7 @@
     "jszip": "^3.10.1",
     "lodash.clonedeep": "^4.5.0",
     "lodash.zip": "^4.2.0",
-    "minimatch": "^9.0.0",
+    "minimatch": "^10.0.1",
     "puppeteer-core": "^21.11.0",
     "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
