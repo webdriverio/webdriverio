@@ -93,7 +93,7 @@
     "@typescript-eslint/utils": "^7.0.1",
     "@vitejs/plugin-react": "^4.2.1",
     "@vitejs/plugin-vue": "^5.0.4",
-    "@vitest/coverage-v8": "^1.2.2",
+    "@vitest/coverage-v8": "^2.0.5",
     "camelcase": "^8.0.0",
     "cddl": "^0.8.5",
     "cddl2ts": "^0.2.2",
@@ -127,6 +127,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "unzipper": "^0.12.1",
-    "vitest": "^1.2.2"
+    "vitest": "^2.0.5"
   }
 }
