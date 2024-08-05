@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 import type { ClientOptions, RawData, WebSocket } from 'ws'
 
 import Socket from './socket.js'
+import type * as remote from './remoteTypes.js'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse } from './localTypes.js'
 
@@ -46,7 +47,7 @@ export class BidiCore {
         const failError = new Error(`WebDriver Bidi command "${params.method}" failed`)
         return new Promise<CommandResponse>((resolve, reject) => {
             const t = setTimeout(() => {
-                reject(new Error(`Request with id ${id} timed out`))
+                reject(new Error(`Command ${params.method} with id ${id} (with the following parameter: ${JSON.stringify(params.params)}) timed out`))
                 h.off('message', listener)
             }, RESPONSE_TIMEOUT)
 
@@ -85,9 +86,20 @@ export class BidiCore {
             throw new Error('No connection to WebDriver Bidi was established')
         }
 
-        log.info('BIDI COMMAND', params.method, JSON.stringify(params.params))
+        log.info('BIDI COMMAND', ...parseBidiCommand(params))
         const id = ++this.#id
         this.#ws.send(JSON.stringify({ id, ...params }))
         return id
     }
+}
+
+function parseBidiCommand (params:  Omit<CommandData, 'id'>) {
+    const commandName = params.method
+    if (commandName === 'script.addPreloadScript') {
+        const param = params.params as remote.ScriptAddPreloadScriptParameters
+        const logString = `{ functionDeclaration: <PreloadScript[${Buffer.byteLength(param.functionDeclaration, 'utf-8')} bytes]>, contexts: ${JSON.stringify(param.contexts)} }`
+        return [commandName, logString]
+    }
+
+    return [commandName, JSON.stringify(params.params)]
 }

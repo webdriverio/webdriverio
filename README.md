@@ -168,6 +168,8 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 ### 🥈 Silver Sponsor
 
 <p align="center">
+    <a href="https://testingbot.com/"><img src="https://webdriver.io/img/sponsors/testingbot.svg" width="250" alt="TestingBot" /></a>
+    &nbsp; &nbsp; &nbsp;
     <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
@@ -179,7 +181,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 ## :page_facing_up: License
 
-[MIT](/LICENSE-MIT)
+[MIT](/LICENSE)
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio?ref=badge_large)
 

@@ -22,7 +22,7 @@ import {
     runAppiumInstaller,
 } from '../../src/utils.js'
 import { BackendChoice } from '../../src/constants.js'
-import type { Questionnair } from '../../build/types.js'
+import type { Questionnair } from '../../src/types.js'
 
 const consoleLog = console.log.bind(console)
 beforeEach(() => {
