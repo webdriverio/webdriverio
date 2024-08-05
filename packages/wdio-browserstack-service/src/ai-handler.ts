@@ -11,7 +11,7 @@ import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 import path from 'node:path'
 import fs from 'node:fs'
 import url from 'node:url'
-import { getBrowserStackUserAndKey } from './util.js'
+import { getBrowserStackUserAndKey, isBrowserstackInfra } from './util.js'
 import type { BrowserstackOptions } from './types.js'
 
 class AiHandler {
@@ -99,14 +99,52 @@ class AiHandler {
         return await orginalFunc(using, value)
     }
 
+    async addMultiRemoteCaps (
+        config: Options.Testrunner,
+        browserStackConfig: BrowserStackConfig,
+        options: BrowserstackOptions,
+        caps: any,
+        browser: string
+    ) {
+        if ( caps[browser].capabilities &&
+            !(isBrowserstackInfra(caps[browser])) &&
+            SUPPORTED_BROWSERS_FOR_AI.includes(caps[browser].capabilities.browserName)
+        ) {
+            const { user, key } = getBrowserStackUserAndKey(config, options)
+            if (user && key) {
+                const authResult = await this.authenticateUser(user, key)
+                process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
+                handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
+                caps[browser].capabilities = await this.updateCaps(authResult, options, caps[browser].capabilities)
+            }
+        }
+
+        return caps
+    }
+
+    async handleMultiRemoteSetup(
+        config: Options.Testrunner,
+        browserStackConfig: BrowserStackConfig,
+        options: BrowserstackOptions,
+        caps: any,
+    ) {
+        const browserNames = Object.keys(caps)
+        for (let i = 0; i < browserNames.length; i++) {
+            const browser = browserNames[i]
+            caps = await this.addMultiRemoteCaps(config, browserStackConfig, options, caps, browser)
+        }
+        return caps
+    }
+
     async setup(
         config: Options.Testrunner,
         browserStackConfig: BrowserStackConfig,
         options: BrowserstackOptions,
-        caps: any
+        caps: any,
+        isMultiremote: boolean
     ) {
         try {
-            if (SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName)) {
+            if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName)) {
                 const { user, key } = getBrowserStackUserAndKey(config, options)
                 if (user && key) {
 
@@ -118,6 +156,8 @@ class AiHandler {
                     caps = await this.updateCaps(authResult, options, caps)
 
                 }
+            } else if (isMultiremote) {
+                caps = await this.handleMultiRemoteSetup(config, browserStackConfig, options, caps)
             }
         } catch (err) {
             BStackLogger.debug(`Error while initiliazing Browserstack healing Extension ${err}`)
@@ -126,31 +166,45 @@ class AiHandler {
         return caps
     }
 
-    async selfHeal(options: BrowserstackOptions, caps: Capabilities.BrowserStackCapabilities, browser: WebdriverIO.Browser) {
+    async handleSelfHeal(options: BrowserstackOptions, browser: WebdriverIO.Browser) {
+
+        if (SUPPORTED_BROWSERS_FOR_AI.includes((browser.capabilities as Capabilities.BrowserStackCapabilities).browserName as string)) {
+            const authInfo = this.authResult as BrowserstackHealing.InitSuccessResponse
+
+            if (Object.keys(authInfo).length === 0 && options.selfHeal === true) {
+                BStackLogger.debug('TCG Auth result is empty')
+                return
+            }
+
+            const { isAuthenticated, sessionToken, defaultLogDataEnabled } = authInfo
+
+            if (isAuthenticated && (defaultLogDataEnabled === true || options.selfHeal === true)) {
+                await this.setToken(browser.sessionId, sessionToken)
+
+                if ((browser.capabilities as Capabilities.BrowserStackCapabilities).browserName === 'firefox') {
+                    await this.installFirefoxExtension(browser)
+                }
+
+                browser.overwriteCommand('findElement' as any, async (orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string) => {
+                    return await this.handleHealing(orginalFunc, using, value, browser, options)
+                })
+            }
+        }
+    }
+
+    async selfHeal(options: BrowserstackOptions, caps: Capabilities.ResolvedTestrunnerCapabilities, browser: WebdriverIO.Browser) {
         try {
 
-            if (SUPPORTED_BROWSERS_FOR_AI.includes((caps as any).browserName)) {
-                const authInfo = this.authResult as BrowserstackHealing.InitSuccessResponse
-
-                if (Object.keys(authInfo).length === 0 && options.selfHeal === true) {
-                    BStackLogger.debug('TCG Auth result is empty')
-                    return
+            const multiRemoteBrowsers = Object.keys(caps).filter(e => Object.keys(browser).includes(e))
+            if (multiRemoteBrowsers.length > 0) {
+                for (let i = 0; i < multiRemoteBrowsers.length; i++) {
+                    const remoteBrowser = (browser as any)[multiRemoteBrowsers[i]]
+                    await this.handleSelfHeal(options, remoteBrowser)
                 }
-
-                const { isAuthenticated, sessionToken, defaultLogDataEnabled } = authInfo
-
-                if (isAuthenticated && (defaultLogDataEnabled === true || options.selfHeal === true)) {
-                    await this.setToken(browser.sessionId, sessionToken)
-
-                    if ((caps as any).browserName === 'firefox') {
-                        await this.installFirefoxExtension(browser)
-                    }
-
-                    browser.overwriteCommand('findElement' as any, async (orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string) => {
-                        return await this.handleHealing(orginalFunc, using, value, browser, options)
-                    })
-                }
+            } else {
+                await this.handleSelfHeal(options, browser)
             }
+
         } catch (err) {
             BStackLogger.error('Error in setting up self-healing: ' + err)
         }
