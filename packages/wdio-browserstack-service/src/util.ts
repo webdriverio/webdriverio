@@ -740,10 +740,33 @@ export function isBStackSession(config: Options.Testrunner) {
     return false
 }
 
-export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner): boolean {
-    if (config.hostname && !config.hostname.includes('browserstack.com')) {
+export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner, caps?: Capabilities.BrowserStackCapabilities): boolean {
+
+    const isBrowserstack = (str: string ): boolean => {
+        return str.includes('browserstack.com')
+    }
+
+    if ((config.hostname) && !isBrowserstack(config.hostname)) {
         return false
     }
+
+    if (caps && typeof caps === 'object') {
+        if (Array.isArray(caps)) {
+            for (const capability of caps) {
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
+                    return false
+                }
+            }
+        } else {
+            for (const key in caps) {
+                const capability = (caps as any)[key]
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
+                    return false
+                }
+            }
+        }
+    }
+
     return true
 }
 
@@ -769,8 +792,8 @@ export function getBrowserStackUserAndKey(config: Options.Testrunner, options: O
 
 }
 
-export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
-    if ((config.services && config.services.toString().includes('chromedriver') && testObservability != false) || !isBrowserstackInfra(config)) {
+export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false) || !isBrowserstackInfra(config, caps)) {
         return false
     }
     return true

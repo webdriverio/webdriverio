@@ -34,8 +34,7 @@ import {
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
     ObjectsAreEqual,
-    isTrue,
-    isBrowserstackInfra
+    isTrue
 } from './util'
 import PerformanceTester from './performance-tester'
 import { PercyLogger } from './Percy/PercyLogger'
@@ -181,9 +180,22 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
 
-        if (!isBrowserstackInfra(this._config)) {
+        if (!shouldAddServiceVersion(this._config, this._options.testObservability, caps)) {
             try {
-                caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps)
+                if (caps.browserName) {
+                    caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps, false)
+                } else {  // setting up healing in case caps.xyz.capabilities.browserName where xyz can be anything:
+                    const hasBrowserName = (cap: Options.Testrunner) =>
+                        cap &&
+                        cap.capabilities &&
+                        (cap.capabilities as Capabilities.BrowserStackCapabilities).browserName
+
+                    const isValid = Object.values(caps).length > 0 && Object.values(caps).some(hasBrowserName)
+
+                    if (isValid) {
+                        caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps, true)
+                    }
+                }
             } catch (err) {
                 if (this._options.selfHeal === true) {
                     BStackLogger.debug(`Error while setting up Browserstack healing Extension ${err}. Disabling healing for this session.`)

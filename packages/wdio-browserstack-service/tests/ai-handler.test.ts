@@ -324,7 +324,7 @@ describe('AiHandler', () => {
 
     describe('setup', () => {
         it('should authenticate user and update capabilities for supported browser', async () => {
-            const caps = { browserName: 'chrome' }
+            const caps = { browserName: 'chrome', 'goog:chromeOptions': {} }
             const mockAuthResult = {
                 isAuthenticated: true,
                 sessionToken: 'mock-session-token',
@@ -339,19 +339,20 @@ describe('AiHandler', () => {
                 .mockResolvedValue(mockAuthResult as any)
             const handleHealingInstrumentationSpy = jest.spyOn(funnelInstrumentation, 'handleHealingInstrumentation')
             const updateCapsSpy = jest.spyOn(AiHandler, 'updateCaps')
-                .mockResolvedValue({ ...caps, 'goog:chromeOptions': { extensions: ['mock-extension'] } })
+                .mockReturnValue({ ...caps, 'goog:chromeOptions': { extensions: ['mock-extension'] } })
 
             const mockExtension = 'mock-extension'
             jest.spyOn(aiSDK.BrowserstackHealing, 'initializeCapabilities')
                 .mockReturnValue({ ...caps, 'goog:chromeOptions': { extensions: [mockExtension] } })
 
             const emptyObj = {} as any
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
+            const options = { selfHeal: true } as any
+            const updatedCaps = await AiHandler.setup(config, options, emptyObj, caps, false)
 
             expect(authenticateUserSpy).toHaveBeenCalledTimes(1)
             expect(handleHealingInstrumentationSpy).toHaveBeenCalledTimes(1)
             expect(updateCapsSpy).toHaveBeenCalledTimes(1)
-            expect(updatedCaps['goog:chromeOptions'].extensions).toEqual([mockExtension])
+            expect((updatedCaps['goog:chromeOptions'] as any).extensions).toEqual([mockExtension])
         })
 
         it('should skip setup if accessKey is not present', async () => {
@@ -365,7 +366,7 @@ describe('AiHandler', () => {
 
             const emptyObj = {} as any
             process.env.BROWSERSTACK_ACCESS_KEY = ''
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
+            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
@@ -384,7 +385,7 @@ describe('AiHandler', () => {
 
             const emptyObj = {} as any
             process.env.BROWSERSTACK_USERNAME = ''
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
+            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
@@ -400,7 +401,7 @@ describe('AiHandler', () => {
             const debugSpy = jest.spyOn(bstackLogger.BStackLogger, 'debug')
 
             const emptyObj = {} as any
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps)
+            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
 
             expect(authenticateUserSpy).toHaveBeenCalledTimes(1)
             expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Error while initiliazing Browserstack healing Extension'))
@@ -421,6 +422,7 @@ describe('AiHandler', () => {
             const setTokenSpy = jest.spyOn(AiHandler, 'setToken')
             const installFirefoxExtensionSpy = jest.spyOn(AiHandler, 'installFirefoxExtension')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
@@ -439,7 +441,7 @@ describe('AiHandler', () => {
             } as any
 
             const setTokenSpy = jest.spyOn(AiHandler, 'setToken')
-
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
@@ -472,6 +474,7 @@ describe('AiHandler', () => {
             jest.spyOn(aiSDK.BrowserstackHealing, 'logData')
                 .mockResolvedValue('logging-script')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
@@ -495,6 +498,7 @@ describe('AiHandler', () => {
             jest.spyOn(aiSDK.BrowserstackHealing, 'logData')
                 .mockResolvedValue('logging-script')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalled()
@@ -510,12 +514,7 @@ describe('AiHandler', () => {
             const installFirefoxExtensionSpy = jest.spyOn(AiHandler, 'installFirefoxExtension')
             const overwriteCommandSpy = jest.spyOn(browser, 'overwriteCommand')
 
-            console.log('Before selfHeal')
             await AiHandler.selfHeal(config, caps, browser)
-            console.log('After selfHeal')
-
-            console.log('setTokenSpy calls:', setTokenSpy.mock.calls)
-            // await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).not.toHaveBeenCalled()
             expect(installFirefoxExtensionSpy).not.toHaveBeenCalled()
@@ -537,6 +536,7 @@ describe('AiHandler', () => {
 
             const errorSpy = jest.spyOn(bstackLogger.BStackLogger, 'error')
 
+            browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
@@ -571,6 +571,168 @@ describe('AiHandler', () => {
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(overwriteCommandSpy).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('handle multi remote browser session', () => {
+        let config: any
+        let browserMock: any
+        let caps: any
+        const mockAuthResult = {
+            isAuthenticated: true,
+            sessionToken: 'mock-session-token',
+            defaultLogDataEnabled: true,
+            isHealingEnabled: true,
+            groupId: 123123,
+            userId: 342423,
+            isGroupAIEnabled: true,
+        }
+
+        beforeEach(() => {
+            config = {
+                capabilities: {
+                    myChromeBrowser: {
+                        hostname: 'localhost',
+                        port: 4444,
+                        protocol: 'http',
+                        capabilities: {
+                            browserName: 'chrome',
+                            'goog:chromeOptions': {}
+                        }
+                    },
+                    myFirefoxBrowser: {
+                        hostname: 'localhost',
+                        port: 4444,
+                        protocol: 'http',
+                        capabilities: {
+                            browserName: 'firefox',
+                            'moz:firefoxOptions': {}
+                        }
+                    }
+                },
+                maxInstances: 15,
+                user: 'foobaruser',
+                key: '12345',
+                selfHeal: true
+            }
+
+            caps = {
+                myChromeBrowser: {
+                    hostname: 'localhost',
+                    port: 4444,
+                    protocol: 'http',
+                    capabilities: {
+                        browserName: 'chrome',
+                        'goog:chromeOptions': {}
+                    }
+                },
+                myFirefoxBrowser: {
+                    hostname: 'localhost',
+                    port: 4444,
+                    protocol: 'http',
+                    capabilities: {
+                        browserName: 'firefox',
+                        'moz:firefoxOptions': {}
+                    }
+                }
+            }
+
+            browserMock = {
+                myChromeBrowser: {
+                    sessionId: 'chrome-session-id',
+                    capabilities: { browserName: 'chrome' },
+                    overwriteCommand: jest.fn(),
+                },
+                myFirefoxBrowser: {
+                    sessionId: 'firefox-session-id',
+                    capabilities: { browserName: 'firefox' },
+                    overwriteCommand: jest.fn(),
+                    installAddOn: jest.fn()
+                }
+            }
+        })
+
+        it('should setup capabilities for multiremote session not running on BrowserStack', async () => {
+            const mockExtension = 'mock-extension'
+
+            const handleHealingInstrumentationSpy = jest.spyOn(funnelInstrumentation, 'handleHealingInstrumentation')
+            const updateCapsSpy = jest.spyOn(AiHandler, 'updateCaps')
+                .mockReturnValue({ 'goog:chromeOptions': { extensions: [mockExtension] } })
+
+            jest.spyOn(aiSDK.BrowserstackHealing, 'initializeCapabilities')
+                .mockReturnValue({ 'goog:chromeOptions': { extensions: [mockExtension] } })
+
+            const emptyObj = {} as any
+            AiHandler.handleMultiRemoteSetup(mockAuthResult, config, emptyObj, emptyObj, config.capabilities)
+            expect(handleHealingInstrumentationSpy).toHaveBeenCalledTimes(2)
+            expect(updateCapsSpy).toHaveBeenCalledTimes(2)
+        })
+
+        it('should call handleSelfHeal for each browser in multiremote setup', async () => {
+            AiHandler['authResult'] = {
+                isAuthenticated: true,
+                sessionToken: 'mock-session-token',
+                defaultLogDataEnabled: true,
+                isHealingEnabled: true
+            } as any
+
+            const setTokenSpy = jest.spyOn(AiHandler, 'setToken')
+            const installFirefoxExtensionSpy = jest.spyOn(AiHandler, 'installFirefoxExtension')
+            const handleSelfHealSpy = jest.spyOn(AiHandler, 'handleSelfHeal')
+
+            await AiHandler.selfHeal(config, caps, browserMock)
+
+            expect(handleSelfHealSpy).toHaveBeenCalledTimes(2)
+            expect(handleSelfHealSpy).toHaveBeenCalledWith(config, browserMock.myChromeBrowser)
+            expect(handleSelfHealSpy).toHaveBeenCalledWith(config, browserMock.myFirefoxBrowser)
+            expect(setTokenSpy).toHaveBeenCalledWith('chrome-session-id', 'mock-session-token')
+            expect(setTokenSpy).toHaveBeenCalledWith('firefox-session-id', 'mock-session-token')
+            expect(installFirefoxExtensionSpy).toHaveBeenCalledTimes(1)
+            expect(installFirefoxExtensionSpy).toHaveBeenCalledWith(browserMock.myFirefoxBrowser)
+        })
+
+        it('should skip setup for multiremote session if accessKey is not present', async () => {
+            config.key = ''
+            process.env.BROWSERSTACK_ACCESS_KEY = '' // Set environment variable
+
+            const authenticateUserSpy = jest.spyOn(AiHandler, 'authenticateUser')
+                .mockResolvedValue(mockAuthResult as any)
+            const handleHealingInstrumentationSpy = jest.spyOn(funnelInstrumentation, 'handleHealingInstrumentation')
+            const updateCapsSpy = jest.spyOn(AiHandler, 'updateCaps')
+
+            const emptyObj = {} as any
+            const authResult = {
+                isAuthenticated: true,
+                sessionToken: 'mock-session-token',
+                defaultLogDataEnabled: true,
+                isHealingEnabled: true
+            } as any
+
+            AiHandler.handleMultiRemoteSetup(authResult, config, emptyObj, emptyObj, config.capabilities)
+
+            expect(authenticateUserSpy).not.toHaveBeenCalled()
+            expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
+            expect(updateCapsSpy).not.toHaveBeenCalled()
+        })
+
+        it('should handle multiremote setup', async () => {
+            const caps = {
+                browserA: {
+                    capabilities: { browserName: 'chrome' }
+                },
+                browserB: {
+                    capabilities: { browserName: 'firefox' }
+                }
+            } as any
+
+            const handleMultiRemoteSetupSpy = jest.spyOn(AiHandler, 'handleMultiRemoteSetup')
+
+            const emptyObj = {} as any
+            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, true)
+
+            expect(handleMultiRemoteSetupSpy).toHaveBeenCalledTimes(1)
+            expect(updatedCaps).toEqual(caps)
+
         })
     })
 })

@@ -9,7 +9,7 @@ import type { Options } from '@wdio/types'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 import fs from 'node:fs'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
-import { getBrowserStackUserAndKey } from './util'
+import { getBrowserStackUserAndKey, isBrowserstackInfra } from './util'
 import type { BrowserstackOptions } from './types'
 
 class AiHandler {
@@ -24,7 +24,7 @@ class AiHandler {
         return await aiSDK.BrowserstackHealing.init(key, user, TCG_URL, this.wdioBstackVersion)
     }
 
-    async updateCaps(
+    updateCaps(
         authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse,
         options: BrowserstackOptions,
         caps: Array<Capabilities.RemoteCapability> | Capabilities.RemoteCapability
@@ -96,26 +96,64 @@ class AiHandler {
         return await orginalFunc(using, value)
     }
 
+    addMultiRemoteCaps (
+        authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse,
+        config: Options.Testrunner,
+        browserStackConfig: BrowserStackConfig,
+        options: BrowserstackOptions,
+        caps: any,
+        browser: string
+    ) {
+        if ( caps[browser].capabilities &&
+            !(isBrowserstackInfra(caps[browser])) &&
+            SUPPORTED_BROWSERS_FOR_AI.includes(caps[browser].capabilities.browserName)
+        ) {
+            const { user, key } = getBrowserStackUserAndKey(config, options)
+            if (user && key) {
+                handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
+                caps[browser].capabilities = this.updateCaps(authResult, options, caps[browser].capabilities)
+            }
+        }
+    }
+
+    handleMultiRemoteSetup(
+        authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse,
+        config: Options.Testrunner,
+        browserStackConfig: BrowserStackConfig,
+        options: BrowserstackOptions,
+        caps: any,
+    ) {
+        const browserNames = Object.keys(caps)
+        for (let i = 0; i < browserNames.length; i++) {
+            const browser = browserNames[i]
+            this.addMultiRemoteCaps(authResult, config, browserStackConfig, options, caps, browser)
+        }
+    }
+
     async setup(
         config: Options.Testrunner,
         browserStackConfig: BrowserStackConfig,
         options: BrowserstackOptions,
-        caps: any
+        caps: any,
+        isMultiremote: boolean
     ) {
         try {
-            if (SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName)) {
-                const { user, key } = getBrowserStackUserAndKey(config, options)
-                if (user && key) {
-
-                    const authResult = await this.authenticateUser(user, key)
+            const { user, key } = getBrowserStackUserAndKey(config, options)
+            if (user && key) {
+                const authResult = await this.authenticateUser(user, key)
+                process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
+                if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName)) {
 
                     handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
                     process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
 
-                    caps = await this.updateCaps(authResult, options, caps)
+                    caps = this.updateCaps(authResult, options, caps)
 
+                } else if (isMultiremote) {
+                    this.handleMultiRemoteSetup(authResult, config, browserStackConfig, options, caps)
                 }
             }
+
         } catch (err) {
             BStackLogger.debug(`Error while initiliazing Browserstack healing Extension ${err}`)
         }
@@ -123,31 +161,45 @@ class AiHandler {
         return caps
     }
 
+    async handleSelfHeal(options: BrowserstackOptions, browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+
+        if (SUPPORTED_BROWSERS_FOR_AI.includes((browser.capabilities as Capabilities.BrowserStackCapabilities).browserName as string)) {
+            const authInfo = this.authResult as BrowserstackHealing.InitSuccessResponse
+
+            if (Object.keys(authInfo).length === 0 && options.selfHeal === true) {
+                BStackLogger.debug('TCG Auth result is empty')
+                return
+            }
+
+            const { isAuthenticated, sessionToken, defaultLogDataEnabled } = authInfo
+
+            if (isAuthenticated && (defaultLogDataEnabled === true || options.selfHeal === true)) {
+                await this.setToken(browser.sessionId as string, sessionToken)
+
+                if ((browser.capabilities as Capabilities.BrowserStackCapabilities).browserName === 'firefox') {
+                    await this.installFirefoxExtension(browser)
+                }
+
+                browser.overwriteCommand('findElement' as any, async (orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string) => {
+                    return await this.handleHealing(orginalFunc, using, value, browser, options)
+                })
+            }
+        }
+    }
+
     async selfHeal(options: BrowserstackOptions, caps: Capabilities.RemoteCapability, browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
         try {
 
-            if (SUPPORTED_BROWSERS_FOR_AI.includes((caps as any).browserName)) {
-                const authInfo = this.authResult as BrowserstackHealing.InitSuccessResponse
-
-                if (Object.keys(authInfo).length === 0 && options.selfHeal === true) {
-                    BStackLogger.debug('TCG Auth result is empty')
-                    return
+            const multiRemoteBrowsers = Object.keys(caps).filter(e => Object.keys(browser).includes(e))
+            if (multiRemoteBrowsers.length > 0) {
+                for (let i = 0; i < multiRemoteBrowsers.length; i++) {
+                    const remoteBrowser = (browser as any)[multiRemoteBrowsers[i]]
+                    await this.handleSelfHeal(options, remoteBrowser)
                 }
-
-                const { isAuthenticated, sessionToken, defaultLogDataEnabled } = authInfo
-
-                if (isAuthenticated && (defaultLogDataEnabled === true || options.selfHeal === true)) {
-                    await this.setToken(browser.sessionId as string, sessionToken)
-
-                    if ((caps as any).browserName === 'firefox') {
-                        await this.installFirefoxExtension(browser)
-                    }
-
-                    browser.overwriteCommand('findElement' as any, async (orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string) => {
-                        return await this.handleHealing(orginalFunc, using, value, browser, options)
-                    })
-                }
+            } else {
+                await this.handleSelfHeal(options, browser)
             }
+
         } catch (err) {
             BStackLogger.error('Error in setting up self-healing: ' + err)
         }
