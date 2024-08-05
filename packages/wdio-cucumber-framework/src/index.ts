@@ -54,6 +54,7 @@ import type {
 
 export const FILE_PROTOCOL = 'file://'
 
+let supportCodeLibrary: Promise<any>
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
@@ -236,21 +237,26 @@ class CucumberAdapter {
         let outStream
 
         try {
-            await this.registerRequiredModules()
-            supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
-                requireModules: this._cucumberOpts.requireModule,
-                requirePaths: this._cucumberOpts.require,
-                importPaths: this._cucumberOpts.import,
-                loaders: []
-            })
+            if (!supportCodeLibrary) {
+                supportCodeLibrary = (async () => {
+                    await this.registerRequiredModules()
+                    supportCodeLibraryBuilder.reset(this._cwd, this._newId, {
+                        requireModules: this._cucumberOpts.requireModule,
+                        requirePaths: this._cucumberOpts.require,
+                        importPaths: this._cucumberOpts.import,
+                        loaders: []
+                    })
 
-            this.addWdioHooks(this._config, supportCodeLibraryBuilder)
-            await this.loadFiles()
-            this.wrapSteps(this._config)
-            setUserHookNames(supportCodeLibraryBuilder)
-            setDefaultTimeout(this._cucumberOpts.timeout)
+                    this.addWdioHooks(this._config, supportCodeLibraryBuilder)
+                    await this.loadFiles()
+                    this.wrapSteps(this._config)
+                    setUserHookNames(supportCodeLibraryBuilder)
+                    setDefaultTimeout(this._cucumberOpts.timeout)
 
-            const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
+                    return supportCodeLibraryBuilder.finalize()
+
+                })()
+            }
 
             outStream = new Writable({
                 write(chunk, encoding, callback) {
@@ -276,7 +282,7 @@ class CucumberAdapter {
             const { success } = await runCucumber(
                 {
                     ...runConfiguration,
-                    support: supportCodeLibrary || runConfiguration.support,
+                    support: await supportCodeLibrary || runConfiguration.support,
                 },
                 environment
             )

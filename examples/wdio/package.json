@@ -8,6 +8,7 @@
     "test:mocha": "wdio run ./mocha/wdio.conf.ts",
     "test:jasmine": "wdio run ./jasmine/wdio.conf.ts",
     "test:cucumber": "wdio run ./cucumber/wdio.conf.ts",
+    "test:cucumberLiteLocal": "wdio run ./cucumber-lite-local/wdio.conf.ts",
     "test:multiremote": "wdio run ./multiremote/wdio.conf.js",
     "test:customReporter": "wdio run ./custom-reporter/wdio.conf.js",
     "test:customService": "wdio run ./custom-service/wdio.conf.js",

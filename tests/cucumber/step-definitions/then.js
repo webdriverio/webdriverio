@@ -20,6 +20,9 @@ Then('I should fail once but pass on the second run', { wrapperOptions: { retry:
 Then('this is ambiguous', () => {
 })
 
+Then('noop', () => {
+})
+
 Then('this test should fail', () => {
     console.log('This step should have never been executed :-(')
     expect(true).toBe(false)

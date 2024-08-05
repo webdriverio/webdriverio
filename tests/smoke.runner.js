@@ -140,11 +140,11 @@ const jasmineTestrunner = async () => {
             'expect(number).toBe(number)',
             'expect(object).toEqual(object)',
             'expect(object).toBeFalse(boolean)',
-            'expect(object).toHaveTitle(object)',
-            'expect(object).toHaveTitle(object)',
-            'expect(object).toHaveUrl(object)',
-            'expect(object).toHaveUrl(object)',
-            'expect(string).toHaveTitle(object)',
+            'expect(object).toHaveTitle(function)',
+            'expect(object).toHaveTitle(function)',
+            'expect(object).toHaveUrl(function)',
+            'expect(object).toHaveUrl(function)',
+            'expect(string).toHaveTitle(function)',
             'expect(object).toBeDisplayed(object)',
             'expect(object).toBeDisplayed(object)',
             'expect(number).toBe(number)',
@@ -300,6 +300,36 @@ const cucumberTestrunner = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 1)
+}
+
+/**
+ * Cucumber wdio single process testrunner tests
+ */
+const cucumberSingleProcessTestrunner = async () => {
+    const { skippedSpecs, failed, passed } = await launch(
+        'cucumberSingleProcessTestrunner',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            runner: ['local', {
+                useSingleProcess: true
+            }],
+            specs: [
+                path.resolve(__dirname, 'cucumber', 'simple-test.feature'),
+                path.resolve(__dirname, 'cucumber', 'test.feature'),
+                path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
+            ],
+            cucumberOpts: {
+                tags: '(not @SKIPPED_TAG)',
+                ignoreUndefinedDefinitions: true,
+                retry: 1,
+                retryTagFilter: '@retry',
+                scenarioLevelReporter: true
+            }
+        }
+    )
+    assert.strictEqual(skippedSpecs, 1)
+    assert.strictEqual(failed, 0)
+    assert.strictEqual(passed, 2)
 }
 
 /**
@@ -888,6 +918,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberTestrunnerByLineNumber,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
+        cucumberSingleProcessTestrunner,
         standaloneTest,
         mochaAsyncTestrunner,
         customService,

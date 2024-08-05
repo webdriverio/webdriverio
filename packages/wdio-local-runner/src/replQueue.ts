@@ -1,9 +1,8 @@
-import type { ChildProcess } from 'node:child_process'
-
+import type { IsolatedProcess } from './processProxy.js'
 import WDIORepl from './repl.js'
 
 interface Repl {
-    childProcess: ChildProcess
+    childProcess: IsolatedProcess
     options: any
     onStart: Function
     onEnd: Function
@@ -17,7 +16,7 @@ export default class ReplQueue {
     private _repls: Repl[] = []
     runningRepl?: WDIORepl
 
-    add (childProcess: ChildProcess, options: any, onStart: Function, onEnd: Function) {
+    add (childProcess: IsolatedProcess, options: any, onStart: Function, onEnd: Function) {
         this._repls.push({ childProcess, options, onStart, onEnd })
     }
 

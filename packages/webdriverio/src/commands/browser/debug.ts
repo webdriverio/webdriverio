@@ -80,7 +80,12 @@ export function debug(
 
         /* istanbul ignore if */
         if (m.name === 'eval') {
-            repl.eval(m.content.cmd, global, undefined, (err: Error | null, result: any) => {
+            repl.eval(m.content.cmd, {
+                browser: this,
+                driver: this,
+                $: this.$.bind(this),
+                $$: this.$$.bind(this)
+            }, undefined, (err: Error | null, result: any) => {
                 if (typeof process.send !== 'function') {
                     return
                 }

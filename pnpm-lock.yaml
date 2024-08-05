@@ -999,6 +999,9 @@ importers:
       '@types/node':
         specifier: ^20.1.0
         version: 20.14.2
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger

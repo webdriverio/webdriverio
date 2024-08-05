@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { browser, $, _setGlobal } from '../src/index.js'
+import { browser, $, _setGlobal, _runInGlobalStorage } from '../src/index.js'
 
 describe('global handler', () => {
     it('should allow to import without issues', () => {
@@ -25,5 +25,24 @@ describe('global handler', () => {
         expect(() => $$('foo')).toThrow()
         _setGlobal('$$', (param: string) => `foo${param}`, true)
         expect(() => $$('foo')).not.toThrow()
+    })
+
+    it('can set different global vars to be used by different functions', async () => {
+        let resolver:(value: any) => void
+        const stopper = new Promise(res => resolver = res)
+
+        const first = _runInGlobalStorage(new Map(), async () => {
+            _setGlobal('$$', (param: string) => `foo${param}`, false)
+            expect($$('bar')).toBe('foobar')
+            await stopper
+            expect($$('foo')).toBe('foofoo')
+        })
+        const seccond = _runInGlobalStorage(new Map(), async () => {
+            _setGlobal('$$', (param: string) => `bar${param}`, false)
+            expect($$('foo')).toBe('barfoo')
+            resolver({})
+        })
+        await first
+        await seccond
     })
 })

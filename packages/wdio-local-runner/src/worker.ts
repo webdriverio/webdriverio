@@ -2,7 +2,6 @@ import url from 'node:url'
 import path from 'node:path'
 import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
-import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
 import type { Options, Workers } from '@wdio/types'
 
@@ -11,6 +10,8 @@ import logger from '@wdio/logger'
 import runnerTransformStream from './transformStream.js'
 import ReplQueue from './replQueue.js'
 import RunnerStream from './stdStream.js'
+import { run } from './runLite.js'
+import type { IsolatedProcess } from './processProxy.js'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -40,7 +41,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     retries: number
     stdout: WritableStreamBuffer
     stderr: WritableStreamBuffer
-    childProcess?: ChildProcess
+    childProcess?: IsolatedProcess
     sessionId?: string
     server?: Record<string, any>
     logsAggregator: string[] = []
@@ -103,29 +104,43 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
         }
 
-        /**
-         * only attach ts loader if
-         */
-        if (
-            /**
-             * autoCompile feature is enabled
-             */
-            process.env.WDIO_LOAD_TSX === '1' &&
-            /**
-             * the `@wdio/cli` didn't already attached the loader to the environment
-             */
-            !(process.env.NODE_OPTIONS || '').includes('--import tsx')
-        ) {
-            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx'
-        }
+        const childProcess = this.childProcess = (() => {
+            let isLite = Array.isArray(this.config.runner) && this.config.runner[0] === 'local' && this.config.runner[1]?.useSingleProcess
+            if (isLite && this.config.framework !== 'cucumber') {
+                log.warn('Only cucumber is suporte in single process mode right now. Falling back to multi process')
+                isLite = false
+            }
 
-        log.info(`Start worker ${cid} with arg: ${argv}`)
-        const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
-            cwd: process.cwd(),
-            env: runnerEnv,
-            execArgv,
-            stdio: ['inherit', 'pipe', 'pipe', 'ipc']
-        })
+            if (isLite) {
+                log.info(`Start lite worker ${cid}`)
+                return run(runnerEnv)
+
+            }
+            /**
+                * only attach ts loader if
+                */
+            if (
+            /**
+                     * autoCompile feature is enabled
+                     */
+                process.env.WDIO_LOAD_TSX === '1' &&
+                    /**
+                     * the `@wdio/cli` didn't already attached the loader to the environment
+                     */
+                    !(process.env.NODE_OPTIONS || '').includes('--import tsx')
+            ) {
+                runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx'
+            }
+
+            log.info(`Start worker ${cid} with arg: ${argv}`)
+            return child.fork(path.join(__dirname, 'run.js'), argv, {
+                cwd: process.cwd(),
+                env: runnerEnv,
+                execArgv,
+                stdio: ['inherit', 'pipe', 'pipe', 'ipc']
+            })
+
+        })()
 
         childProcess.on('message', this._handleMessage.bind(this))
         childProcess.on('error', this._handleError.bind(this))
