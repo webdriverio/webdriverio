@@ -28,6 +28,8 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 ### 🥈 Silver Sponsor
 
 <p align="center">
+    <a href="https://testingbot.com"><img src="https://webdriver.io/img/sponsors/testingbot.svg" width="250" alt="TestingBot" /></a>
+    &nbsp; &nbsp; &nbsp;
     <a href="https://www.lambdatest.com/"><img src="./.github/sponsors/LambdaTest_Black_Logo.svg" width="300" alt="Lambdatest" /></a>
 </p>
 

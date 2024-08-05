@@ -42,10 +42,10 @@ export type BidiEventMap = {
 }
 
 type GetParam<T extends { method: string, params: any }, U extends string> = T extends { method: U } ? T['params'] : never
-type EventMap = {
+export type EventMap = {
     [Event in EventData['method']]: GetParam<EventData, Event>
 } & WebDriverClassicEvents
-export interface BidiEventHandler {
+interface BidiEventHandler {
     on<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this
     once<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this
 }

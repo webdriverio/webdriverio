@@ -2,11 +2,11 @@ import type { RectReturn } from '@wdio/protocols'
 
 import { getElementRect } from '../../utils/index.js'
 
-export type Size = Pick<RectReturn, 'width' | 'height'>;
+export type Size = Pick<RectReturn, 'width' | 'height'>
 
-export function getSize (this: WebdriverIO.Element): Promise<Size>;
-export function getSize (this: WebdriverIO.Element, prop: keyof RectReturn): Promise<number>;
-export function getSize (this: WebdriverIO.Element, prop?: keyof RectReturn): Promise<Size & number>;
+export function getSize (this: WebdriverIO.Element): Promise<Size>
+export function getSize (this: WebdriverIO.Element, prop: keyof RectReturn): Promise<number>
+export function getSize (this: WebdriverIO.Element, prop?: keyof RectReturn): Promise<Size & number>
 
 /**
  *

@@ -304,5 +304,79 @@ describe('main suite 1', () => {
             }
             expect(request.children!.length).toBe(0)
         })
+
+        it('should allow to load a script before loading the page', async () => {
+            await browser.url('https://webdriver.io', {
+                onBeforeLoad: () => {
+                    Math.random = () => 42
+                }
+            })
+            expect(await browser.execute(() => Math.random())).toBe(42)
+
+            await browser.url('https://webdriver.io')
+            expect(await browser.execute(() => Math.random())).not.toBe(42)
+        })
+    })
+
+    describe('dialog handling', () => {
+        it('should automatically accept alerts', async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+
+            await browser.execute(() => alert('123'))
+
+            /**
+             * in case the alert is not automatically accepted
+             * the following line would time out
+             */
+            await browser.$('div').click()
+        })
+
+        it('should be able to handle dialogs', async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+            browser.execute(() => alert('123'))
+            const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
+
+            expect(dialog.type()).toBe('alert')
+            expect(dialog.message()).toBe('123')
+            await dialog.dismiss()
+        })
+    })
+
+    describe('addInitScript', () => {
+        it('should allow to add an init script', async () => {
+            const reset = await browser.addInitScript((seed) => {
+                Math.random = () => seed
+            }, 42)
+
+            await browser.url('https://webdriver.io')
+            expect(await browser.execute(() => Math.random())).toBe(42)
+
+            await reset()
+            await browser.url('https://webdriver.io')
+            expect(await browser.execute(() => Math.random())).not.toBe(42)
+        })
+    })
+
+    describe('emulate clock', () => {
+        const now = new Date(2021, 3, 14)
+        const getDateString = () => (new Date()).toString()
+
+        it('should allow to mock the clock', async () => {
+            await browser.emulate('clock', { now })
+            expect(await browser.execute(getDateString))
+                .toBe(now.toString())
+            await browser.url('http://guinea-pig.webdriver.io')
+            expect(await browser.execute(getDateString))
+                .toBe(now.toString())
+        })
+
+        it('should allow to restore the clock', async () => {
+            await browser.restore('clock')
+            expect(await browser.execute(getDateString))
+                .not.toBe(now.toString())
+            await browser.url('http://guinea-pig.webdriver.io/pointer.html')
+            expect(await browser.execute(getDateString))
+                .not.toBe(now.toString())
+        })
     })
 })
