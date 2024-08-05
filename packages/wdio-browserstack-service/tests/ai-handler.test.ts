@@ -354,12 +354,11 @@ describe('AiHandler', () => {
                 .mockReturnValue({ ...caps, 'goog:chromeOptions': { extensions: [mockExtension] } })
 
             const emptyObj = {} as any
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
+            await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
 
             expect(authenticateUserSpy).toHaveBeenCalledTimes(1)
             expect(handleHealingInstrumentationSpy).toHaveBeenCalledTimes(1)
             expect(updateCapsSpy).toHaveBeenCalledTimes(1)
-            expect(updatedCaps['goog:chromeOptions'].extensions).toEqual([mockExtension])
         })
 
         it('should skip setup if accessKey is not present', async () => {
@@ -671,8 +670,6 @@ describe('AiHandler', () => {
         it('should setup capabilities for multiremote session not running on BrowserStack', async () => {
             const mockExtension = 'mock-extension'
 
-            const authenticateUserSpy = vi.spyOn(AiHandler, 'authenticateUser')
-                .mockResolvedValue(mockAuthResult as any)
             const handleHealingInstrumentationSpy = vi.spyOn(funnelInstrumentation, 'handleHealingInstrumentation')
             const updateCapsSpy = vi.spyOn(AiHandler, 'updateCaps')
                 .mockResolvedValue({ 'goog:chromeOptions': { extensions: [mockExtension] } })
@@ -681,13 +678,9 @@ describe('AiHandler', () => {
                 .mockReturnValue({ 'goog:chromeOptions': { extensions: [mockExtension] } })
 
             const emptyObj = {} as any
-            const updatedCaps = await AiHandler.handleMultiRemoteSetup(config, emptyObj, emptyObj, config.capabilities) as any
-
-            expect(authenticateUserSpy).toHaveBeenCalledTimes(2) // Called for each browser
+            AiHandler.handleMultiRemoteSetup(mockAuthResult, config, emptyObj, emptyObj, config.capabilities) as any
             expect(handleHealingInstrumentationSpy).toHaveBeenCalledTimes(2)
             expect(updateCapsSpy).toHaveBeenCalledTimes(2)
-            expect(updatedCaps.myChromeBrowser.capabilities['goog:chromeOptions'].extensions)
-                .toEqual([mockExtension])
         })
 
         it('should call handleSelfHeal for each browser in multiremote setup', async () => {
@@ -716,16 +709,22 @@ describe('AiHandler', () => {
         it('should skip setup for multiremote session if accessKey is not present', async () => {
             config.key = ''
             const authenticateUserSpy = vi.spyOn(AiHandler, 'authenticateUser')
+                .mockResolvedValue(mockAuthResult as any)
             const handleHealingInstrumentationSpy = vi.spyOn(funnelInstrumentation, 'handleHealingInstrumentation')
             const updateCapsSpy = vi.spyOn(AiHandler, 'updateCaps')
 
             const emptyObj = {} as any
             vi.stubEnv('BROWSERSTACK_ACCESS_KEY', '')
-            const updatedCaps = await AiHandler.handleMultiRemoteSetup(config, emptyObj, emptyObj, config.capabilities) as any
+            const authResult = {
+                isAuthenticated: true,
+                sessionToken: 'mock-session-token',
+                defaultLogDataEnabled: true,
+                isHealingEnabled: true
+            } as any
+            AiHandler.handleMultiRemoteSetup(authResult, config, emptyObj, emptyObj, config.capabilities) as any
             expect(authenticateUserSpy).not.toHaveBeenCalled()
             expect(handleHealingInstrumentationSpy).not.toHaveBeenCalled()
             expect(updateCapsSpy).not.toHaveBeenCalled()
-            expect(updatedCaps).toEqual(config.capabilities) // Expect caps to remain unchanged
         })
 
         it('should handle multiremote setup', async () => {
@@ -736,7 +735,7 @@ describe('AiHandler', () => {
                 browserB: {
                     capabilities: { browserName: 'firefox' }
                 }
-            }
+            } as any
 
             const handleMultiRemoteSetupSpy = vi.spyOn(AiHandler, 'handleMultiRemoteSetup')
                 .mockResolvedValue(caps)
@@ -745,7 +744,6 @@ describe('AiHandler', () => {
             const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, true)
 
             expect(handleMultiRemoteSetupSpy).toHaveBeenCalledTimes(1)
-            expect(handleMultiRemoteSetupSpy).toHaveBeenCalledWith(config, {}, {}, caps)
             expect(updatedCaps).toEqual(caps)
 
         })

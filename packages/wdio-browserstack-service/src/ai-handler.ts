@@ -26,7 +26,7 @@ class AiHandler {
         return await aiSDK.BrowserstackHealing.init(key, user, TCG_URL, this.wdioBstackVersion)
     }
 
-    async updateCaps(
+    updateCaps(
         authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse,
         options: BrowserstackOptions,
         caps: Array<Capabilities.RemoteCapability> | Capabilities.RemoteCapability
@@ -99,7 +99,8 @@ class AiHandler {
         return await orginalFunc(using, value)
     }
 
-    async addMultiRemoteCaps (
+    addMultiRemoteCaps (
+        authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse,
         config: Options.Testrunner,
         browserStackConfig: BrowserStackConfig,
         options: BrowserstackOptions,
@@ -112,17 +113,14 @@ class AiHandler {
         ) {
             const { user, key } = getBrowserStackUserAndKey(config, options)
             if (user && key) {
-                const authResult = await this.authenticateUser(user, key)
-                process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
                 handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
-                caps[browser].capabilities = await this.updateCaps(authResult, options, caps[browser].capabilities)
+                caps[browser].capabilities = this.updateCaps(authResult, options, caps[browser].capabilities)
             }
         }
-
-        return caps
     }
 
-    async handleMultiRemoteSetup(
+    handleMultiRemoteSetup(
+        authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse,
         config: Options.Testrunner,
         browserStackConfig: BrowserStackConfig,
         options: BrowserstackOptions,
@@ -131,9 +129,8 @@ class AiHandler {
         const browserNames = Object.keys(caps)
         for (let i = 0; i < browserNames.length; i++) {
             const browser = browserNames[i]
-            caps = await this.addMultiRemoteCaps(config, browserStackConfig, options, caps, browser)
+            this.addMultiRemoteCaps(authResult, config, browserStackConfig, options, caps, browser)
         }
-        return caps
     }
 
     async setup(
@@ -144,21 +141,22 @@ class AiHandler {
         isMultiremote: boolean
     ) {
         try {
-            if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName)) {
-                const { user, key } = getBrowserStackUserAndKey(config, options)
-                if (user && key) {
-
-                    const authResult = await this.authenticateUser(user, key)
+            const { user, key } = getBrowserStackUserAndKey(config, options)
+            if (user && key) {
+                const authResult = await this.authenticateUser(user, key)
+                process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
+                if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName)) {
 
                     handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
                     process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
 
-                    caps = await this.updateCaps(authResult, options, caps)
+                    this.updateCaps(authResult, options, caps)
 
+                } else if (isMultiremote) {
+                    this.handleMultiRemoteSetup(authResult, config, browserStackConfig, options, caps)
                 }
-            } else if (isMultiremote) {
-                caps = await this.handleMultiRemoteSetup(config, browserStackConfig, options, caps)
             }
+
         } catch (err) {
             BStackLogger.debug(`Error while initiliazing Browserstack healing Extension ${err}`)
         }
