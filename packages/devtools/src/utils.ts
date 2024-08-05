@@ -12,7 +12,7 @@ import { launch as launchChromeBrowser, type Options } from 'chrome-launcher'
 import type { Logger } from '@wdio/logger'
 import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/api/ElementHandle.js'
 import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
-import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/api/Frame.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 
 import cleanUp from './scripts/cleanUpSerializationSelector.js'

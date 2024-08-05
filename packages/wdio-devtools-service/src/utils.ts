@@ -1,5 +1,5 @@
-import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
-import type { Target } from 'puppeteer-core/lib/esm/puppeteer/common/Target.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
+import type { Target } from 'puppeteer-core/lib/esm/puppeteer/api/Target.js'
 import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
 
 import ChromeProtocol from './lighthouse/cri.js'
@@ -68,11 +68,13 @@ export async function getLighthouseDriver (session: CDPSession, target: Target):
     if (!cUrl.pathname.startsWith('/devtools/browser')) {
         await cdpConnection._connectToSocket({
             webSocketDebuggerUrl: connection.url(),
+            // @ts-expect-error
             id: target._targetId
         })
         const { sessionId } = await cdpConnection.sendCommand(
             'Target.attachToTarget',
             undefined,
+            // @ts-expect-error
             { targetId: target._targetId, flatten: true }
         )
         cdpConnection.setSessionId(sessionId)

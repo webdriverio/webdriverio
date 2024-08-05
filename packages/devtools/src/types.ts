@@ -53,7 +53,7 @@ export interface Client extends BaseClient, ProtocolCommands {
  */
 export interface ActiveListener {
     /** Event Emitter object emitting to the handler. */
-    emitter: PuppeteerEventEmitter
+    emitter: PuppeteerEventEmitter<any>
     /** Name of the event the handler is attached to. */
     eventName: string
     /** Event function handler, bound to the context of its class instance. */
