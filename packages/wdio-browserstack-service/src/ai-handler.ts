@@ -129,15 +129,9 @@ class AiHandler {
         caps: any,
     ) {
         const browserNames = Object.keys(caps)
-        if (Array.isArray(browserNames)) {
-            for (let i = 0; i < browserNames.length; i++) {
-                const browser = browserNames[i]
-                caps = await this.addMultiRemoteCaps(config, browserStackConfig, options, caps, browser)
-            }
-        } else {
-            for (const browser of Object.keys(browserNames)) {
-                caps = await this.addMultiRemoteCaps(config, browserStackConfig, options, caps, browser)
-            }
+        for (let i = 0; i < browserNames.length; i++) {
+            const browser = browserNames[i]
+            caps = await this.addMultiRemoteCaps(config, browserStackConfig, options, caps, browser)
         }
         return caps
     }
