@@ -59,6 +59,8 @@ class AiHandler {
 
     async handleHealing(orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string, browser: WebdriverIO.Browser, options: BrowserstackOptions){
         const sessionId = browser.sessionId
+
+        // a utility function to escape single and double quotes
         const escapeString = (str: string) => str.replace(/'/g, "\\'").replace(/"/g, '\\"')
 
         const tcgDetails = escapeString(JSON.stringify({
@@ -98,9 +100,10 @@ class AiHandler {
                 }
             }
         } catch (err) {
-            BStackLogger.debug('Error in findElement: ' + err + 'using: ' + using + 'value: ' + value)
             if (options.selfHeal === true) {
-                BStackLogger.debug('Something went wrong while healing. Disabling healing for this command')
+                BStackLogger.warn('Something went wrong while healing. Disabling healing for this command')
+            } else {
+                BStackLogger.warn('Error in findElement: ' + err + 'using: ' + using + 'value: ' + value)
             }
         }
         return await orginalFunc(using, value)
@@ -118,8 +121,8 @@ class AiHandler {
             !(isBrowserstackInfra(caps[browser])) &&
             SUPPORTED_BROWSERS_FOR_AI.includes(caps[browser]?.capabilities?.browserName?.toLowerCase())
         ) {
-            const { user, key } = getBrowserStackUserAndKey(config, options)
-            if (user && key) {
+            const innerConfig = getBrowserStackUserAndKey(config, options)
+            if (innerConfig?.user && innerConfig.key) {
                 handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
                 caps[browser].capabilities = this.updateCaps(authResult, options, caps[browser].capabilities)
             }
@@ -148,9 +151,9 @@ class AiHandler {
         isMultiremote: boolean
     ) {
         try {
-            const { user, key } = getBrowserStackUserAndKey(config, options)
-            if (user && key) {
-                const authResult = await this.authenticateUser(user, key)
+            const innerConfig = getBrowserStackUserAndKey(config, options)
+            if (innerConfig?.user && innerConfig.key) {
+                const authResult = await this.authenticateUser(innerConfig.user, innerConfig.key)
                 process.env.BSTACK_TCG_AUTH_RESULT = JSON.stringify(authResult)
                 if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps?.browserName?.toLowerCase())) {
 
@@ -163,7 +166,9 @@ class AiHandler {
             }
 
         } catch (err) {
-            BStackLogger.debug(`Error while initiliazing Browserstack healing Extension ${err}`)
+            if (options.selfHeal === true) {
+                BStackLogger.warn(`Error while initiliazing Browserstack healing Extension ${err}`)
+            }
         }
 
         return caps
@@ -210,7 +215,7 @@ class AiHandler {
 
         } catch (err) {
             if (options.selfHeal === true) {
-                BStackLogger.debug(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
+                BStackLogger.warn(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
             }
         }
     }

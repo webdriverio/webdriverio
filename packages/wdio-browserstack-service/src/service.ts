@@ -118,7 +118,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 await AiHandler.selfHeal(this._options, caps, this._browser)
             } catch (err) {
                 if (this._options.selfHeal === true) {
-                    BStackLogger.debug(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
+                    BStackLogger.warn(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
                 }
             }
         }

@@ -192,15 +192,20 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } catch (err: unknown) {
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
+    }
+
+    async onPrepare (config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities) {
+        // // Send Funnel start request
+        await sendStart(this.browserStackConfig)
 
         // Setting up healing for those sessions where we don't add the service version capability as it indicates that the session is not being run on BrowserStack
-        if (!shouldAddServiceVersion(this._config, this._options.testObservability, caps)) {
+        if (!shouldAddServiceVersion(this._config, this._options.testObservability, capabilities as Capabilities.BrowserStackCapabilities)) {
             try {
-                if (caps.browserName) {
-                    caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps, false)
-                } else if (isValidCapsForHealing(caps)) {
-                    // setting up healing in case caps.xyz.capabilities.browserName where xyz can be anything:
-                    caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps, true)
+                if ((capabilities as Capabilities.BrowserStackCapabilities).browserName) {
+                    capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities, false)
+                } else if (isValidCapsForHealing(capabilities as any)) {
+                    // setting up healing in case capabilities.xyz.capabilities.browserName where xyz can be anything:
+                    capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities, true)
                 }
             } catch (err) {
                 if (this._options.selfHeal === true) {
@@ -208,11 +213,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 }
             }
         }
-    }
-
-    async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
-        // // Send Funnel start request
-        await sendStart(this.browserStackConfig)
 
         /**
          * Upload app to BrowserStack if valid file path to app is given.

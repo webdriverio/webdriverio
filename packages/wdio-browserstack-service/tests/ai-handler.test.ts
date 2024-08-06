@@ -32,7 +32,7 @@ describe('AiHandler', () => {
         vi.resetModules()
         config = {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             selfHeal: true // Default to true
         }
 
@@ -271,12 +271,9 @@ describe('AiHandler', () => {
                 isGroupAIEnabled: true
             } as any
 
-            const debugSpy = vi.spyOn(bstackLogger.BStackLogger, 'debug')
-
             const result = await AiHandler.handleHealing(originalFunc, 'id', 'some-id', browser, config)
 
             expect(originalFunc).toHaveBeenCalledTimes(2)
-            expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Error in findElement'))
             expect(result).toEqual(undefined)
         })
 
@@ -287,12 +284,12 @@ describe('AiHandler', () => {
 
             config.selfHeal = false
 
-            const debugSpy = vi.spyOn(bstackLogger.BStackLogger, 'debug')
+            const warnSpy = vi.spyOn(bstackLogger.BStackLogger, 'warn')
 
             const result = await AiHandler.handleHealing(originalFunc, 'id', 'some-id', browser, config)
 
             expect(originalFunc).toHaveBeenCalledTimes(2)
-            expect(debugSpy).toHaveBeenCalledTimes(1)
+            expect(warnSpy).toHaveBeenCalledTimes(1)
             expect(result).toEqual(undefined)
         })
 
@@ -400,13 +397,14 @@ describe('AiHandler', () => {
             const authenticateUserSpy = vi.spyOn(AiHandler, 'authenticateUser')
                 .mockRejectedValue(new Error('Authentication failed'))
 
-            const debugSpy = vi.spyOn(bstackLogger.BStackLogger, 'debug')
+            const warnSpy = vi.spyOn(bstackLogger.BStackLogger, 'warn')
 
             const emptyObj = {} as any
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
+            const options = { selfHeal: true } as any
+            const updatedCaps = await AiHandler.setup(config, emptyObj, options, caps, false)
 
             expect(authenticateUserSpy).toHaveBeenCalledTimes(1)
-            expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Error while initiliazing Browserstack healing Extension'))
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Error while initiliazing Browserstack healing Extension'))
             expect(updatedCaps).toEqual(caps)
         })
     })
@@ -538,13 +536,13 @@ describe('AiHandler', () => {
                 throw new Error('Some error occurred in setToken')
             })
 
-            const debugSpy = vi.spyOn(bstackLogger.BStackLogger, 'debug')
+            const warnSpy = vi.spyOn(bstackLogger.BStackLogger, 'warn')
 
             config.selfHeal = true
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
-            expect(debugSpy).toHaveBeenCalledWith('Error while setting up self-healing: Error: Some error occurred in setToken. Disabling healing for this session.')
+            expect(warnSpy).toHaveBeenCalledWith('Error while setting up self-healing: Error: Some error occurred in setToken. Disabling healing for this session.')
         })
 
         it('should not set token if isAuthenticated is false', async () => {
@@ -628,7 +626,7 @@ describe('AiHandler', () => {
                 },
                 maxInstances: 15,
                 user: 'foobaruser',
-                key: '12345',
+                key: '12345678901234567890',
                 selfHeal: true
             }
 

@@ -1053,6 +1053,7 @@ export function isBStackSession(config: Options.Testrunner) {
 }
 
 export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    // a utility function to check if the hostname is browserstack
 
     const isBrowserstack = (str: string ): boolean => {
         return str.includes('browserstack.com')
@@ -1079,6 +1080,10 @@ export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrun
         }
     }
 
+    // if (!isBStackSession(config)) {
+    //     return false
+    // }
+
     return true
 }
 
@@ -1090,7 +1095,7 @@ export function getBrowserStackUserAndKey(config: Options.Testrunner, options: O
         user: getBrowserStackUser(options),
         key: getBrowserStackKey(options)
     }
-    if (envOrServiceVariables.user && envOrServiceVariables.key) {
+    if (isBStackSession(envOrServiceVariables as any)) {
         return envOrServiceVariables
     }
 
@@ -1100,7 +1105,9 @@ export function getBrowserStackUserAndKey(config: Options.Testrunner, options: O
         user: getObservabilityUser(options, config),
         key: getObservabilityKey(options, config)
     }
-    return o11yVariables
+    if (isBStackSession(o11yVariables as any)) {
+        return o11yVariables
+    }
 
 }
 
