@@ -535,15 +535,16 @@ describe('AiHandler', () => {
             } as any
 
             const setTokenSpy = vi.spyOn(AiHandler, 'setToken').mockImplementationOnce(() => {
-                throw new Error('Some error occurred in setToken.')
+                throw new Error('Some error occurred in setToken')
             })
 
-            const errorSpy = vi.spyOn(bstackLogger.BStackLogger, 'error')
+            const debugSpy = vi.spyOn(bstackLogger.BStackLogger, 'debug')
 
+            config.selfHeal = true
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
-            expect(errorSpy).toHaveBeenCalledWith('Error in setting up self-healing: Error: Some error occurred in setToken.')
+            expect(debugSpy).toHaveBeenCalledWith('Error while setting up self-healing: Error: Some error occurred in setToken. Disabling healing for this session.')
         })
 
         it('should not set token if isAuthenticated is false', async () => {

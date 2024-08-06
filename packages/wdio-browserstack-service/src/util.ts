@@ -1391,3 +1391,20 @@ export const getErrorString = (err: unknown) => {
         return err.message // works, `e` narrowed to Error
     }
 }
+
+export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner }): boolean => {
+    // Helper function to check if a capability has a browser name
+    const hasBrowserName = (cap: Options.Testrunner): boolean => {
+        if (!cap || !cap.capabilities) {
+            return false
+        }
+        const browserStackCapabilities = cap.capabilities as Capabilities.BrowserStackCapabilities
+        return browserStackCapabilities.browserName !== undefined
+    }
+
+    // Get all capability values
+    const capValues = Object.values(caps)
+
+    // Check if there are any capabilities and if at least one has a browser name
+    return capValues.length > 0 && capValues.some(hasBrowserName)
+}

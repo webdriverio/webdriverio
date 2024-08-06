@@ -38,6 +38,7 @@ import {
     getBrowserStackKey,
     uploadLogs,
     ObjectsAreEqual,
+    isValidCapsForHealing
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -197,17 +198,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             try {
                 if (caps.browserName) {
                     caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps, false)
-                } else {  // setting up healing in case caps.xyz.capabilities.browserName where xyz can be anything:
-                    const hasBrowserName = (cap: Options.Testrunner) =>
-                        cap &&
-                        cap.capabilities &&
-                        (cap.capabilities as Capabilities.BrowserStackCapabilities).browserName
-
-                    const isValid = Object.values(caps).length > 0 && Object.values(caps).some(hasBrowserName)
-
-                    if (isValid) {
-                        caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps, true)
-                    }
+                } else if (isValidCapsForHealing(caps)) {
+                    // setting up healing in case caps.xyz.capabilities.browserName where xyz can be anything:
+                    caps = await AiHandler.setup(this._config, this.browserStackConfig, this._options, caps, true)
                 }
             } catch (err) {
                 if (this._options.selfHeal === true) {
