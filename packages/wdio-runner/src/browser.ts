@@ -470,7 +470,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         /**
          * check for outdated optimize dep errors that occasionally happen in Vite
          */
-        const logs = await browser.getLogs('browser').catch(() => []) as LogMessage[]
+        const logs = (await browser.getLogs('browser').catch(() => [])).filter((log: LogMessage) => log.level === 'SEVERE') as LogMessage[]
         if (logs.length) {
             if (!this.#retryOutdatedOptimizeDep && logs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
                 log.info('Retry test run due to outdated optimize dep')
