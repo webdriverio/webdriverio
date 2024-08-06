@@ -9,7 +9,8 @@ import {
     isBrowserstackCapability,
     getParentSuiteName,
     isBrowserstackSession,
-    patchConsoleLogs
+    patchConsoleLogs,
+    shouldAddServiceVersion
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
@@ -112,7 +113,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._browser = browser ? browser : globalThis.browser
 
         // Healing Support:
-        if (!isBrowserstackSession(this._browser)) {
+        if (!shouldAddServiceVersion(this._config, this._options.testObservability, caps as any)) {
             try {
                 await AiHandler.selfHeal(this._options, caps, this._browser)
             } catch (err) {
