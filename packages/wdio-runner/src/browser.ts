@@ -441,9 +441,12 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         /**
          * check for outdated optimize dep errors that occasionally happen in Vite
          */
-        const logs = (await browser.getLogs('browser').catch(() => [])).filter((log: LogMessage) => log.level === 'SEVERE') as LogMessage[]
-        if (logs.length) {
-            if (!this.#retryOutdatedOptimizeDep && logs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
+        const logs = typeof browser.getLogs === 'function'
+            ? (await browser.getLogs('browser').catch(() => []))
+            : []
+        const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE') as LogMessage[]
+        if (severeLogs.length) {
+            if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
                 log.info('Retry test run due to outdated optimize dep')
                 this.#retryOutdatedOptimizeDep = true
                 return browser.refresh()
@@ -457,7 +460,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                  * error messages often look like:
                  * "http://localhost:40167/node_modules/.vite/deps/expect.js?v=bca8e2f3 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
                  */
-                errors: logs.map((log) => {
+                errors: severeLogs.map((log) => {
                     const [filename, message] = log.message!.split(' - ')
                     return {
                         filename: filename.startsWith('http') ? filename : undefined,
