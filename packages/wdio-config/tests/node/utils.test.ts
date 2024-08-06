@@ -10,10 +10,10 @@ vi.mock('import-meta-resolve', () => ({
 }))
 
 vi.mock('node:fs/promises', async () => {
-    const actualFsp = await vi.importActual<typeof fspType>('node:fs/promises')
+    const actualFsp = await vi.importActual<typeof fspType>('node:fs')
     return {
         ...actualFsp,
-        access: async (path: PathLike) => {
+        access: (path: PathLike) => {
             if (path instanceof URL) {
                 if (path.href === 'file:///some/path') {
                     return undefined
@@ -53,7 +53,7 @@ describe('loadTypeScriptCompiler', () => {
 
     it('should return false if tsx does not exist', async () => {
         const mock = vi.mocked(resolve)
-        mock.mockResolvedValue('file:///some/missing/path')
+        mock.mockReturnValue('file:///some/missing/path')
         expect(await loadTypeScriptCompiler()).toBe(false)
         expect(resolve).toBeCalledTimes(1)
         expect(mock).toBeCalledTimes(1)

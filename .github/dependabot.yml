@@ -10,6 +10,14 @@ updates:
   ignore:
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
+    # Eslint v9 comes with breaking changes that require manual upgrade
+    - dependency-name: "eslint"
+    - dependency-name: "@typescript-eslint/eslint-plugin"
+    - dependency-name: "@typescript-eslint/parser"
+    - dependency-name: "@typescript-eslint/utils"
+    # updates to Node.js requires update to .nvmrc
+    - dependency-name: "@types/node"
+      version-update: semver-major
 - package-ecosystem: npm
   directory: "/"
   target-branch: v8
