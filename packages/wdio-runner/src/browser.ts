@@ -482,10 +482,17 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 events: [],
                 failures: 1,
                 hasViteError: false,
-                errors: logs.map((log) => ({
-                    message: log.message,
-                    filename: log.message.split(' - ')[0] || 'unknown error',
-                }))
+                /**
+                 * error messages often look like:
+                 * "http://localhost:40167/node_modules/.vite/deps/expect.js?v=bca8e2f3 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
+                 */
+                errors: logs.map((log) => {
+                    const [filename, message] = log.message!.split(' - ')
+                    return {
+                        filename: filename.startsWith('http') ? filename : undefined,
+                        message
+                    }
+                })
             })
         }
     }
