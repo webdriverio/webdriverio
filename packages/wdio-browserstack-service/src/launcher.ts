@@ -209,7 +209,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 }
             } catch (err) {
                 if (this._options.selfHeal === true) {
-                    BStackLogger.debug(`Error while setting up Browserstack healing Extension ${err}. Disabling healing for this session.`)
+                    BStackLogger.warn(`Error while setting up Browserstack healing Extension ${err}. Disabling healing for this session.`)
                 }
             }
         }
