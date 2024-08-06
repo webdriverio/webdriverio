@@ -23,6 +23,10 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 ### 🥇 Gold Sponsor
 
+<p align="center">
+    <a href="https://www.route4me.com/"><img src="https://webdriver.io/img/sponsors/route4me.svg" width="250" alt="Route4Me" /></a>
+</p>
+
 [Become a Gold Sponsor](https://github.com/sponsors/christian-bromann/sponsorships?tier_id=303973&preview=false)
 
 ### 🥈 Silver Sponsor

@@ -165,6 +165,12 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
     <a href="https://saucelabs.com"><img src="https://webdriver.io/img/sponsors/saucelabs_black.svg" alt="Sauce Labs" width=400 /></a>
 </p>
 
+### 🥇 Gold Sponsor
+
+<p align="center">
+    <a href="https://www.route4me.com/"><img src="https://webdriver.io/img/sponsors/route4me.svg" width="250" alt="Route4Me" /></a>
+</p>
+
 ### 🥈 Silver Sponsor
 
 <p align="center">
