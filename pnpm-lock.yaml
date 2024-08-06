@@ -184,7 +184,7 @@ importers:
         version: 5.5.4
       unzipper:
         specifier: ^0.12.1
-        version: 0.12.2
+        version: 0.12.3
       vitest:
         specifier: ^1.2.2
         version: 1.6.0(@types/node@20.14.11)(jsdom@22.1.0)
@@ -5239,8 +5239,8 @@ packages:
     resolution: {integrity: sha512-KK8xQ1mkzZeg9inewmFVDNkg3l5LUhoq9kN6iWYB/CC9YMG8HA+c1Q8HwDe6dEX7kErrEVNVBO3fWsVq5iDgtw==}
     engines: {node: '>=8'}
 
-  unzipper@0.12.2:
-    resolution: {integrity: sha512-ecRhBc+ZfQkYnRr8L7OkxvAAWDkqP3Dun9CHUmYYZx/mErGdy7N7ju6ODJ7uKmm9PD99aAG8grxzl5y9lmEK2A==}
+  unzipper@0.12.3:
+    resolution: {integrity: sha512-PZ8hTS+AqcGxsaQntl3IRBw65QrBI6lxzqDEL7IAo/XCEqRTKGfOX56Vea5TH9SZczRVxuzk1re04z/YjuYCJA==}
 
   upath@2.0.1:
     resolution: {integrity: sha512-1uEe95xksV1O0CYKXo8vQvN1JEbtJp7lb7C5U9HMsIp6IVwntkH/oNUzyVNQSd4S1sYk2FpSSW44FqMc8qee5w==}
@@ -12163,7 +12163,7 @@ snapshots:
 
   untildify@4.0.0: {}
 
-  unzipper@0.12.2:
+  unzipper@0.12.3:
     dependencies:
       bluebird: 3.7.2
       duplexer2: 0.1.4
