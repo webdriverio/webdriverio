@@ -22,7 +22,7 @@ importers:
         version: 21.0.1
       '@preact/preset-vite':
         specifier: ^2.9.0
-        version: 2.9.0(@babel/core@7.24.7)(preact@10.22.0)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+        version: 2.9.0(@babel/core@7.24.7)(preact@10.22.0)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))
       '@serenity-js/core':
         specifier: ^3.25.3
         version: 3.25.3
@@ -31,7 +31,7 @@ importers:
         version: 4.20.0
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.1
-        version: 3.1.1(svelte@4.2.17)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+        version: 3.1.1(svelte@4.2.17)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))
       '@types/archiver':
         specifier: ^6.0.2
         version: 6.0.2
@@ -82,10 +82,10 @@ importers:
         version: 7.15.0(eslint@8.57.0)(typescript@5.5.4)
       '@vitejs/plugin-react':
         specifier: ^4.3.1
-        version: 4.3.1(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+        version: 4.3.1(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))
       '@vitejs/plugin-vue':
         specifier: ^5.1.2
-        version: 5.1.2(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))(vue@3.4.33(typescript@5.5.4))
+        version: 5.1.2(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))(vue@3.4.33(typescript@5.5.4))
       '@vitest/coverage-v8':
         specifier: ^2.0.5
         version: 2.0.5(vitest@2.0.5(@types/node@20.14.8)(jsdom@24.1.1)(terser@5.31.1))
@@ -409,7 +409,7 @@ importers:
         version: 5.0.5(vite@5.2.12(@types/node@20.14.10)(terser@5.31.1))(vue@3.4.27(typescript@5.4.5))
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0)(typescript@5.4.5))(@wdio/logger@9.0.0-alpha.0)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.15.0))
+        version: 5.0.0-alpha.2(@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.4.5))(@wdio/logger@8.38.0)(webdriverio@8.38.2(encoding@0.1.13)(typescript@5.4.5))
       mocha:
         specifier: ^10.2.0
         version: 10.4.0
@@ -873,7 +873,7 @@ importers:
     optionalDependencies:
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0)(typescript@5.5.4))(@wdio/logger@9.0.0-alpha.0)(webdriverio@packages+webdriverio)
+        version: 5.0.0-alpha.2(@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.5.4))(@wdio/logger@8.38.0)(webdriverio@packages+webdriverio)
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -899,7 +899,7 @@ importers:
         version: link:../wdio-utils
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.15.0))
+        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@8.38.2(encoding@0.1.13)(typescript@5.5.4))
       jasmine:
         specifier: ^5.0.0
         version: 5.1.0
@@ -1768,7 +1768,7 @@ importers:
         version: link:../../../packages/wdio-utils
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.0.0-alpha.0)(webdriverio@packages+webdriverio)
+        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@8.38.0)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
         version: link:../../../packages/webdriver
@@ -5361,55 +5361,28 @@ packages:
     resolution: {integrity: sha512-xlnapTr1vOA0h5HsHTIqj47729FbG3WjxmgHweDEQvcT4C1g9l+WKf+N3FM7DNNoIsAqxKi6rOHG02rJADQJtw==}
     engines: {node: ^16.13 || >=18}
 
-  '@wdio/config@9.0.0-alpha.0':
-    resolution: {integrity: sha512-mMYtci32n7QykjPrslVmwnP7GuOMzyKpCSs7wo9z8PUIS1fwvx+Jat0vOKl3qAxQDuVGdYHQ/ZK3p997w4YX3A==}
-    engines: {node: '>=18'}
-
   '@wdio/globals@8.38.2':
     resolution: {integrity: sha512-iIrUF1EODfHLh3V/CSNCqbNNxUTe3ND+c86zDjzJcPFjawLX1plvAApsU/eDmtsFShcOS2KHbfSjiydFoqQG1Q==}
     engines: {node: ^16.13 || >=18}
-
-  '@wdio/globals@9.0.0-alpha.0':
-    resolution: {integrity: sha512-c3LVQzuMPnvbM+T1+9xQijiBXv16E7wM4Dg7Iib2Yl+37qfdK1YfYvMEhxJ9BK1bcIkipzIGZen2TPOLEcDVYw==}
-    engines: {node: '>=18'}
 
   '@wdio/logger@8.38.0':
     resolution: {integrity: sha512-kcHL86RmNbcQP+Gq/vQUGlArfU6IIcbbnNp32rRIraitomZow+iEoc519rdQmSVusDozMS5DZthkgDdxK+vz6Q==}
     engines: {node: ^16.13 || >=18}
 
-  '@wdio/logger@9.0.0-alpha.0':
-    resolution: {integrity: sha512-kHNkK+1p87y70fQQx7ex13tA3lH3BTf+2Wfwn3yhvHxxEzS5ES+evAF9NDdUOd7Z2kLoZwmyMdOoQyh5PT1z4w==}
-    engines: {node: '>=18'}
-
   '@wdio/protocols@8.38.0':
     resolution: {integrity: sha512-7BPi7aXwUtnXZPeWJRmnCNFjyDvGrXlBmN9D4Pi58nILkyjVRQKEY9/qv/pcdyB0cvmIvw++Kl/1Lg+RxG++UA==}
-
-  '@wdio/protocols@9.0.0-alpha.0':
-    resolution: {integrity: sha512-wFXiXp/kjcHcgciuBWoDGMIiK9YLhwHoj3Pyzs0AY4ooSe+xSyTW0TkGsFfRC+07yyN4kUstzs3hPVUgsSXW/g==}
 
   '@wdio/repl@8.24.12':
     resolution: {integrity: sha512-321F3sWafnlw93uRTSjEBVuvWCxTkWNDs7ektQS15drrroL3TMeFOynu4rDrIz0jXD9Vas0HCD2Tq/P0uxFLdw==}
     engines: {node: ^16.13 || >=18}
 
-  '@wdio/repl@9.0.0-alpha.0':
-    resolution: {integrity: sha512-50S3/3lYPNRAznCYBgX+7zT9gZmDzKD10Qe/kfW4/t1WJfSijv0vNehZKHDsGuHyTSYBQMKdoYczGFFtPJjErQ==}
-    engines: {node: '>=18'}
-
   '@wdio/types@8.38.2':
     resolution: {integrity: sha512-+wj1c1OSLdnN4WO5b44Ih4263dTl/eSwMGSI4/pCgIyXIuYQH38JQ+6WRa+c8vJEskUzboq2cSgEQumVZ39ozQ==}
     engines: {node: ^16.13 || >=18}
 
-  '@wdio/types@9.0.0-alpha.0':
-    resolution: {integrity: sha512-ezgQvWTuxr2juJtSF6tVBZx7l2RgEBRwQJCnuceGTn+ePtoablfqMsq/PZbRzFACxpf1zOi+ytURZqUd+U8Q5Q==}
-    engines: {node: '>=18'}
-
   '@wdio/utils@8.38.2':
     resolution: {integrity: sha512-y5AnBwsGcu/XuCBGCgKmlvKdwEIFyzLA+Cr+denySxY3jbWDONtPUcGaVdFALwsIa5jcIjcATqGmZcCPGnkd7g==}
     engines: {node: ^16.13 || >=18}
-
-  '@wdio/utils@9.0.0-alpha.0':
-    resolution: {integrity: sha512-xPPjsnecaCAAFYxf2UqENMod/pUG5R24QGgVfaWac3xTmvCBs9+AgSpxgHMZQsIrsz7CZlHQdZF3PvwbpFrDTA==}
-    engines: {node: '>=18'}
 
   '@webassemblyjs/ast@1.12.1':
     resolution: {integrity: sha512-EKfMUOPRRUTy5UII4qJDGPpqfwjOmZ5jeGFwid9mnoqIFK+e0vqoi1qH56JpmZSzEL53jKnNzScdmftJyG5xWg==}
@@ -12689,6 +12662,34 @@ packages:
       terser:
         optional: true
 
+  vite@5.3.5:
+    resolution: {integrity: sha512-MdjglKR6AQXQb9JGiS7Rc2wC6uMjcm7Go/NHNO63EwiJXfuk9PgqiP/n5IDJCziMkfw9n4Ubp7lttNwz+8ZVKA==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || >=20.0.0
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+
   vitefu@0.2.5:
     resolution: {integrity: sha512-SgHtMLoqaeeGnd2evZ849ZbACbnwQCIwRH57t18FxcXoZop0uQu0uzlIhJBlF/eWVzuce0sHeqPcDo+evVcg8Q==}
     peerDependencies:
@@ -12790,10 +12791,6 @@ packages:
     resolution: {integrity: sha512-NGfjW0BDYwFgOIzeojOcWGn3tYloQdvHr+Y2xKKYVqa9Rs0x1mzlTjU1kWtC4DaV8DltskwaPa7o+s8hTNpuyA==}
     engines: {node: ^16.13 || >=18}
 
-  webdriver@9.0.0-alpha.0:
-    resolution: {integrity: sha512-ORm7evOuFp3p6mxiiBC47SrcKlhl2TteZTa2fQr1L7LPTNJF+vJQMbCc9OzR+NPm/td+eiwLToxvPlmmhPu2/A==}
-    engines: {node: '>=18'}
-
   webdriverio@8.38.2:
     resolution: {integrity: sha512-r09y5UfivyYh5JOzT2SpJJ1zDmQl/R4OTH12opUqkjvp21BibCQm/uu1mrxGy4lzSHljrvqSVrrcGI+6UA1O8w==}
     engines: {node: ^16.13 || >=18}
@@ -12801,15 +12798,6 @@ packages:
       devtools: ^8.14.0
     peerDependenciesMeta:
       devtools:
-        optional: true
-
-  webdriverio@9.0.0-alpha.0:
-    resolution: {integrity: sha512-hjHqUNvQjxth4TJif2y9C5vFXvi6nnPug3b/Hrh0K4tW/edxthJCLXc9fYbEgib03+hdAqLLosLEts/mRkNfIQ==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      puppeteer-core: ^22.3.0
-    peerDependenciesMeta:
-      puppeteer-core:
         optional: true
 
   webidl-conversions@3.0.1:
@@ -14778,7 +14766,7 @@ snapshots:
       '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.3.1(@cucumber/messages@24.1.0)
-      '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
+      '@cucumber/message-streams': 4.0.1(@cucumber/messages@25.0.1)
       '@cucumber/messages': 24.1.0
       '@cucumber/tag-expressions': 6.1.0
       assertion-error-formatter: 3.0.0
@@ -14817,7 +14805,7 @@ snapshots:
   '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
+      '@cucumber/message-streams': 4.0.1(@cucumber/messages@25.0.1)
       '@cucumber/messages': 24.1.0
       commander: 9.1.0
       source-map-support: 0.5.21
@@ -14838,9 +14826,9 @@ snapshots:
     dependencies:
       '@cucumber/messages': 24.1.0
 
-  '@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0)':
+  '@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1)':
     dependencies:
-      '@cucumber/messages': 24.1.0
+      '@cucumber/messages': 25.0.1
 
   '@cucumber/messages@24.1.0':
     dependencies:
@@ -14969,9 +14957,9 @@ snapshots:
 
   '@docusaurus/cssnano-preset@3.4.0':
     dependencies:
-      cssnano-preset-advanced: 6.1.2(postcss@8.4.38)
-      postcss: 8.4.38
-      postcss-sort-media-queries: 5.2.0(postcss@8.4.38)
+      cssnano-preset-advanced: 6.1.2(postcss@8.4.39)
+      postcss: 8.4.39
+      postcss-sort-media-queries: 5.2.0(postcss@8.4.39)
       tslib: 2.6.3
 
   '@docusaurus/logger@3.4.0':
@@ -15477,7 +15465,7 @@ snapshots:
       infima: 0.2.0-alpha.43
       lodash: 4.17.21
       nprogress: 0.2.0
-      postcss: 8.4.38
+      postcss: 8.4.39
       prism-react-renderer: 2.3.1(react@18.3.1)
       prismjs: 1.29.0
       react: 18.3.1
@@ -16499,13 +16487,13 @@ snapshots:
 
   '@polka/url@1.0.0-next.25': {}
 
-  '@preact/preset-vite@2.9.0(@babel/core@7.24.7)(preact@10.22.0)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))':
+  '@preact/preset-vite@2.9.0(@babel/core@7.24.7)(preact@10.22.0)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))':
     dependencies:
       '@babel/code-frame': 7.24.7
       '@babel/core': 7.24.7
       '@babel/plugin-transform-react-jsx': 7.24.7(@babel/core@7.24.7)
       '@babel/plugin-transform-react-jsx-development': 7.24.7(@babel/core@7.24.7)
-      '@prefresh/vite': 2.4.5(preact@10.22.0)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+      '@prefresh/vite': 2.4.5(preact@10.22.0)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))
       '@rollup/pluginutils': 4.2.1
       babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.24.7)
       debug: 4.3.5(supports-color@8.1.1)
@@ -16515,7 +16503,7 @@ snapshots:
       resolve: 1.22.8
       source-map: 0.7.4
       stack-trace: 1.0.0-pre2
-      vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.8)(terser@5.31.1)
     transitivePeerDependencies:
       - preact
       - supports-color
@@ -16528,7 +16516,7 @@ snapshots:
 
   '@prefresh/utils@1.2.0': {}
 
-  '@prefresh/vite@2.4.5(preact@10.22.0)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))':
+  '@prefresh/vite@2.4.5(preact@10.22.0)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))':
     dependencies:
       '@babel/core': 7.24.7
       '@prefresh/babel-plugin': 0.5.1
@@ -16536,7 +16524,7 @@ snapshots:
       '@prefresh/utils': 1.2.0
       '@rollup/pluginutils': 4.2.1
       preact: 10.22.0
-      vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.8)(terser@5.31.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -16559,7 +16547,6 @@ snapshots:
       typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
-    optional: true
 
   '@puppeteer/browsers@1.4.6(typescript@5.5.4)':
     dependencies:
@@ -17159,26 +17146,26 @@ snapshots:
       magic-string: 0.25.9
       string.prototype.matchall: 4.0.11
 
-  '@sveltejs/vite-plugin-svelte-inspector@2.1.0(@sveltejs/vite-plugin-svelte@3.1.1(svelte@4.2.17)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1)))(svelte@4.2.17)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))':
+  '@sveltejs/vite-plugin-svelte-inspector@2.1.0(@sveltejs/vite-plugin-svelte@3.1.1(svelte@4.2.17)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1)))(svelte@4.2.17)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 3.1.1(svelte@4.2.17)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+      '@sveltejs/vite-plugin-svelte': 3.1.1(svelte@4.2.17)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))
       debug: 4.3.5(supports-color@8.1.1)
       svelte: 4.2.17
-      vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.8)(terser@5.31.1)
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte@3.1.1(svelte@4.2.17)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))':
+  '@sveltejs/vite-plugin-svelte@3.1.1(svelte@4.2.17)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte-inspector': 2.1.0(@sveltejs/vite-plugin-svelte@3.1.1(svelte@4.2.17)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1)))(svelte@4.2.17)(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+      '@sveltejs/vite-plugin-svelte-inspector': 2.1.0(@sveltejs/vite-plugin-svelte@3.1.1(svelte@4.2.17)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1)))(svelte@4.2.17)(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))
       debug: 4.3.5(supports-color@8.1.1)
       deepmerge: 4.3.1
       kleur: 4.1.5
       magic-string: 0.30.10
       svelte: 4.2.17
       svelte-hmr: 0.16.0(svelte@4.2.17)
-      vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
-      vitefu: 0.2.5(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))
+      vite: 5.3.5(@types/node@20.14.8)(terser@5.31.1)
+      vitefu: 0.2.5(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -17978,14 +17965,14 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitejs/plugin-react@4.3.1(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))':
+  '@vitejs/plugin-react@4.3.1(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))':
     dependencies:
       '@babel/core': 7.24.7
       '@babel/plugin-transform-react-jsx-self': 7.24.7(@babel/core@7.24.7)
       '@babel/plugin-transform-react-jsx-source': 7.24.7(@babel/core@7.24.7)
       '@types/babel__core': 7.20.5
       react-refresh: 0.14.2
-      vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.8)(terser@5.31.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -17994,9 +17981,9 @@ snapshots:
       vite: 5.2.12(@types/node@20.14.10)(terser@5.31.1)
       vue: 3.4.27(typescript@5.4.5)
 
-  '@vitejs/plugin-vue@5.1.2(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1))(vue@3.4.33(typescript@5.5.4))':
+  '@vitejs/plugin-vue@5.1.2(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1))(vue@3.4.33(typescript@5.5.4))':
     dependencies:
-      vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.8)(terser@5.31.1)
       vue: 3.4.33(typescript@5.5.4)
 
   '@vitest/coverage-v8@2.0.5(vitest@2.0.5(@types/node@20.14.8)(jsdom@24.1.1)(terser@5.31.1))':
@@ -18122,7 +18109,7 @@ snapshots:
       '@vue/shared': 3.4.27
       estree-walker: 2.0.2
       magic-string: 0.30.10
-      postcss: 8.4.38
+      postcss: 8.4.39
       source-map-js: 1.2.0
 
   '@vue/compiler-sfc@3.4.33':
@@ -18265,18 +18252,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@wdio/config@9.0.0-alpha.0':
-    dependencies:
-      '@wdio/logger': 9.0.0-alpha.0
-      '@wdio/types': 9.0.0-alpha.0
-      '@wdio/utils': 9.0.0-alpha.0
-      decamelize: 6.0.0
-      deepmerge-ts: 5.1.0
-      glob: 10.4.2
-      import-meta-resolve: 4.1.0
-    transitivePeerDependencies:
-      - supports-color
-
   '@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.4.5)':
     optionalDependencies:
       expect-webdriverio: 4.15.1(encoding@0.1.13)(typescript@5.4.5)
@@ -18288,7 +18263,6 @@ snapshots:
       - supports-color
       - typescript
       - utf-8-validate
-    optional: true
 
   '@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.5.4)':
     optionalDependencies:
@@ -18302,41 +18276,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0)(typescript@5.4.5)':
-    optionalDependencies:
-      expect-webdriverio: 4.15.1(encoding@0.1.13)(typescript@5.4.5)
-      webdriverio: 9.0.0-alpha.0(puppeteer-core@22.15.0)
-    transitivePeerDependencies:
-      - bufferutil
-      - devtools
-      - encoding
-      - puppeteer-core
-      - supports-color
-      - typescript
-      - utf-8-validate
-
-  '@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0)(typescript@5.5.4)':
-    optionalDependencies:
-      expect-webdriverio: 4.15.1(encoding@0.1.13)(typescript@5.5.4)
-      webdriverio: 9.0.0-alpha.0(puppeteer-core@22.15.0)
-    transitivePeerDependencies:
-      - bufferutil
-      - devtools
-      - encoding
-      - puppeteer-core
-      - supports-color
-      - typescript
-      - utf-8-validate
-    optional: true
-
   '@wdio/logger@8.38.0':
-    dependencies:
-      chalk: 5.3.0
-      loglevel: 1.9.1
-      loglevel-plugin-prefix: 0.8.4
-      strip-ansi: 7.1.0
-
-  '@wdio/logger@9.0.0-alpha.0':
     dependencies:
       chalk: 5.3.0
       loglevel: 1.9.1
@@ -18345,21 +18285,11 @@ snapshots:
 
   '@wdio/protocols@8.38.0': {}
 
-  '@wdio/protocols@9.0.0-alpha.0': {}
-
   '@wdio/repl@8.24.12':
     dependencies:
       '@types/node': 20.14.10
 
-  '@wdio/repl@9.0.0-alpha.0':
-    dependencies:
-      '@types/node': 20.14.10
-
   '@wdio/types@8.38.2':
-    dependencies:
-      '@types/node': 20.14.10
-
-  '@wdio/types@9.0.0-alpha.0':
     dependencies:
       '@types/node': 20.14.10
 
@@ -18368,24 +18298,6 @@ snapshots:
       '@puppeteer/browsers': 1.9.1
       '@wdio/logger': 8.38.0
       '@wdio/types': 8.38.2
-      decamelize: 6.0.0
-      deepmerge-ts: 5.1.0
-      edgedriver: 5.6.1
-      geckodriver: 4.4.1
-      get-port: 7.1.0
-      import-meta-resolve: 4.1.0
-      locate-app: 2.4.15
-      safaridriver: 0.1.2
-      split2: 4.2.0
-      wait-port: 1.1.0
-    transitivePeerDependencies:
-      - supports-color
-
-  '@wdio/utils@9.0.0-alpha.0':
-    dependencies:
-      '@puppeteer/browsers': 2.2.3
-      '@wdio/logger': 9.0.0-alpha.0
-      '@wdio/types': 9.0.0-alpha.0
       decamelize: 6.0.0
       deepmerge-ts: 5.1.0
       edgedriver: 5.6.1
@@ -18786,6 +18698,16 @@ snapshots:
       normalize-range: 0.1.2
       picocolors: 1.0.1
       postcss: 8.4.38
+      postcss-value-parser: 4.2.0
+
+  autoprefixer@10.4.19(postcss@8.4.39):
+    dependencies:
+      browserslist: 4.23.0
+      caniuse-lite: 1.0.30001628
+      fraction.js: 4.3.7
+      normalize-range: 0.1.2
+      picocolors: 1.0.1
+      postcss: 8.4.39
       postcss-value-parser: 4.2.0
 
   available-typed-arrays@1.0.7:
@@ -19762,14 +19684,18 @@ snapshots:
     dependencies:
       postcss: 8.4.38
 
+  css-declaration-sorter@7.2.0(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+
   css-loader@6.11.0(webpack@5.91.0(@swc/core@1.5.27)):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.4.38)
-      postcss: 8.4.38
-      postcss-modules-extract-imports: 3.1.0(postcss@8.4.38)
-      postcss-modules-local-by-default: 4.0.5(postcss@8.4.38)
-      postcss-modules-scope: 3.2.0(postcss@8.4.38)
-      postcss-modules-values: 4.0.0(postcss@8.4.38)
+      icss-utils: 5.1.0(postcss@8.4.39)
+      postcss: 8.4.39
+      postcss-modules-extract-imports: 3.1.0(postcss@8.4.39)
+      postcss-modules-local-by-default: 4.0.5(postcss@8.4.39)
+      postcss-modules-scope: 3.2.0(postcss@8.4.39)
+      postcss-modules-values: 4.0.0(postcss@8.4.39)
       postcss-value-parser: 4.2.0
       semver: 7.6.2
     optionalDependencies:
@@ -19778,9 +19704,9 @@ snapshots:
   css-minimizer-webpack-plugin@5.0.1(clean-css@5.3.3)(webpack@5.91.0(@swc/core@1.5.27)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
-      cssnano: 6.1.2(postcss@8.4.38)
+      cssnano: 6.1.2(postcss@8.4.39)
       jest-worker: 29.7.0
-      postcss: 8.4.38
+      postcss: 8.4.39
       schema-utils: 4.2.0
       serialize-javascript: 6.0.2
       webpack: 5.91.0(@swc/core@1.5.27)
@@ -19823,16 +19749,16 @@ snapshots:
 
   cssesc@3.0.0: {}
 
-  cssnano-preset-advanced@6.1.2(postcss@8.4.38):
+  cssnano-preset-advanced@6.1.2(postcss@8.4.39):
     dependencies:
-      autoprefixer: 10.4.19(postcss@8.4.38)
+      autoprefixer: 10.4.19(postcss@8.4.39)
       browserslist: 4.23.0
-      cssnano-preset-default: 6.1.2(postcss@8.4.38)
-      postcss: 8.4.38
-      postcss-discard-unused: 6.0.5(postcss@8.4.38)
-      postcss-merge-idents: 6.0.3(postcss@8.4.38)
-      postcss-reduce-idents: 6.0.3(postcss@8.4.38)
-      postcss-zindex: 6.0.2(postcss@8.4.38)
+      cssnano-preset-default: 6.1.2(postcss@8.4.39)
+      postcss: 8.4.39
+      postcss-discard-unused: 6.0.5(postcss@8.4.39)
+      postcss-merge-idents: 6.0.3(postcss@8.4.39)
+      postcss-reduce-idents: 6.0.3(postcss@8.4.39)
+      postcss-zindex: 6.0.2(postcss@8.4.39)
 
   cssnano-preset-default@6.1.2(postcss@8.4.38):
     dependencies:
@@ -19868,15 +19794,59 @@ snapshots:
       postcss-svgo: 6.0.3(postcss@8.4.38)
       postcss-unique-selectors: 6.0.4(postcss@8.4.38)
 
+  cssnano-preset-default@6.1.2(postcss@8.4.39):
+    dependencies:
+      browserslist: 4.23.0
+      css-declaration-sorter: 7.2.0(postcss@8.4.39)
+      cssnano-utils: 4.0.2(postcss@8.4.39)
+      postcss: 8.4.39
+      postcss-calc: 9.0.1(postcss@8.4.39)
+      postcss-colormin: 6.1.0(postcss@8.4.39)
+      postcss-convert-values: 6.1.0(postcss@8.4.39)
+      postcss-discard-comments: 6.0.2(postcss@8.4.39)
+      postcss-discard-duplicates: 6.0.3(postcss@8.4.39)
+      postcss-discard-empty: 6.0.3(postcss@8.4.39)
+      postcss-discard-overridden: 6.0.2(postcss@8.4.39)
+      postcss-merge-longhand: 6.0.5(postcss@8.4.39)
+      postcss-merge-rules: 6.1.1(postcss@8.4.39)
+      postcss-minify-font-values: 6.1.0(postcss@8.4.39)
+      postcss-minify-gradients: 6.0.3(postcss@8.4.39)
+      postcss-minify-params: 6.1.0(postcss@8.4.39)
+      postcss-minify-selectors: 6.0.4(postcss@8.4.39)
+      postcss-normalize-charset: 6.0.2(postcss@8.4.39)
+      postcss-normalize-display-values: 6.0.2(postcss@8.4.39)
+      postcss-normalize-positions: 6.0.2(postcss@8.4.39)
+      postcss-normalize-repeat-style: 6.0.2(postcss@8.4.39)
+      postcss-normalize-string: 6.0.2(postcss@8.4.39)
+      postcss-normalize-timing-functions: 6.0.2(postcss@8.4.39)
+      postcss-normalize-unicode: 6.1.0(postcss@8.4.39)
+      postcss-normalize-url: 6.0.2(postcss@8.4.39)
+      postcss-normalize-whitespace: 6.0.2(postcss@8.4.39)
+      postcss-ordered-values: 6.0.2(postcss@8.4.39)
+      postcss-reduce-initial: 6.1.0(postcss@8.4.39)
+      postcss-reduce-transforms: 6.0.2(postcss@8.4.39)
+      postcss-svgo: 6.0.3(postcss@8.4.39)
+      postcss-unique-selectors: 6.0.4(postcss@8.4.39)
+
   cssnano-utils@4.0.2(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
+
+  cssnano-utils@4.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
 
   cssnano@6.1.2(postcss@8.4.38):
     dependencies:
       cssnano-preset-default: 6.1.2(postcss@8.4.38)
       lilconfig: 3.1.2
       postcss: 8.4.38
+
+  cssnano@6.1.2(postcss@8.4.39):
+    dependencies:
+      cssnano-preset-default: 6.1.2(postcss@8.4.39)
+      lilconfig: 3.1.2
+      postcss: 8.4.39
 
   csso@5.0.5:
     dependencies:
@@ -20981,38 +20951,38 @@ snapshots:
       - utf-8-validate
     optional: true
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0)(typescript@5.4.5))(@wdio/logger@9.0.0-alpha.0)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.15.0)):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.4.5))(@wdio/logger@8.38.0)(webdriverio@8.38.2(encoding@0.1.13)(typescript@5.4.5)):
     dependencies:
       '@vitest/snapshot': 1.6.0
-      '@wdio/globals': 9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0)(typescript@5.4.5)
-      '@wdio/logger': 9.0.0-alpha.0
+      '@wdio/globals': 8.38.2(encoding@0.1.13)(typescript@5.4.5)
+      '@wdio/logger': 8.38.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
-      webdriverio: 9.0.0-alpha.0(puppeteer-core@22.15.0)
+      webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.4.5)
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0)(typescript@5.5.4))(@wdio/logger@9.0.0-alpha.0)(webdriverio@packages+webdriverio):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.5.4))(@wdio/logger@8.38.0)(webdriverio@packages+webdriverio):
     dependencies:
       '@vitest/snapshot': 1.6.0
-      '@wdio/globals': 9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0)(typescript@5.5.4)
-      '@wdio/logger': 9.0.0-alpha.0
+      '@wdio/globals': 8.38.2(encoding@0.1.13)(typescript@5.5.4)
+      '@wdio/logger': 8.38.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
       webdriverio: link:packages/webdriverio
     optional: true
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.0.0-alpha.0)(webdriverio@packages+webdriverio):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@8.38.0)(webdriverio@packages+webdriverio):
     dependencies:
       '@vitest/snapshot': 1.6.0
       '@wdio/globals': link:packages/wdio-globals
-      '@wdio/logger': 9.0.0-alpha.0
+      '@wdio/logger': 8.38.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
       webdriverio: link:packages/webdriverio
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.15.0)):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@8.38.2(encoding@0.1.13)(typescript@5.5.4)):
     dependencies:
       '@vitest/snapshot': 1.6.0
       '@wdio/globals': link:packages/wdio-globals
@@ -21020,7 +20990,7 @@ snapshots:
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
-      webdriverio: 9.0.0-alpha.0(puppeteer-core@22.15.0)
+      webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.5.4)
 
   expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio):
     dependencies:
@@ -22112,9 +22082,9 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
-  icss-utils@5.1.0(postcss@8.4.38):
+  icss-utils@5.1.0(postcss@8.4.39):
     dependencies:
-      postcss: 8.4.38
+      postcss: 8.4.39
 
   idb@7.1.1: {}
 
@@ -24736,6 +24706,12 @@ snapshots:
       postcss-selector-parser: 6.1.0
       postcss-value-parser: 4.2.0
 
+  postcss-calc@9.0.1(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+      postcss-selector-parser: 6.1.0
+      postcss-value-parser: 4.2.0
+
   postcss-colormin@6.1.0(postcss@8.4.38):
     dependencies:
       browserslist: 4.23.0
@@ -24744,31 +24720,61 @@ snapshots:
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
+  postcss-colormin@6.1.0(postcss@8.4.39):
+    dependencies:
+      browserslist: 4.23.0
+      caniuse-api: 3.0.0
+      colord: 2.9.3
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+
   postcss-convert-values@6.1.0(postcss@8.4.38):
     dependencies:
       browserslist: 4.23.0
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
+  postcss-convert-values@6.1.0(postcss@8.4.39):
+    dependencies:
+      browserslist: 4.23.0
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+
   postcss-discard-comments@6.0.2(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
+
+  postcss-discard-comments@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
 
   postcss-discard-duplicates@6.0.3(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
 
+  postcss-discard-duplicates@6.0.3(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+
   postcss-discard-empty@6.0.3(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
+
+  postcss-discard-empty@6.0.3(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
 
   postcss-discard-overridden@6.0.2(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
 
-  postcss-discard-unused@6.0.5(postcss@8.4.38):
+  postcss-discard-overridden@6.0.2(postcss@8.4.39):
     dependencies:
-      postcss: 8.4.38
+      postcss: 8.4.39
+
+  postcss-discard-unused@6.0.5(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
       postcss-selector-parser: 6.1.0
 
   postcss-import@15.1.0(postcss@8.4.38):
@@ -24800,10 +24806,10 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  postcss-merge-idents@6.0.3(postcss@8.4.38):
+  postcss-merge-idents@6.0.3(postcss@8.4.39):
     dependencies:
-      cssnano-utils: 4.0.2(postcss@8.4.38)
-      postcss: 8.4.38
+      cssnano-utils: 4.0.2(postcss@8.4.39)
+      postcss: 8.4.39
       postcss-value-parser: 4.2.0
 
   postcss-merge-longhand@6.0.5(postcss@8.4.38):
@@ -24811,6 +24817,12 @@ snapshots:
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
       stylehacks: 6.1.1(postcss@8.4.38)
+
+  postcss-merge-longhand@6.0.5(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+      stylehacks: 6.1.1(postcss@8.4.39)
 
   postcss-merge-rules@6.1.1(postcss@8.4.38):
     dependencies:
@@ -24820,9 +24832,22 @@ snapshots:
       postcss: 8.4.38
       postcss-selector-parser: 6.1.0
 
+  postcss-merge-rules@6.1.1(postcss@8.4.39):
+    dependencies:
+      browserslist: 4.23.0
+      caniuse-api: 3.0.0
+      cssnano-utils: 4.0.2(postcss@8.4.39)
+      postcss: 8.4.39
+      postcss-selector-parser: 6.1.0
+
   postcss-minify-font-values@6.1.0(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
+      postcss-value-parser: 4.2.0
+
+  postcss-minify-font-values@6.1.0(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
       postcss-value-parser: 4.2.0
 
   postcss-minify-gradients@6.0.3(postcss@8.4.38):
@@ -24832,6 +24857,13 @@ snapshots:
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
+  postcss-minify-gradients@6.0.3(postcss@8.4.39):
+    dependencies:
+      colord: 2.9.3
+      cssnano-utils: 4.0.2(postcss@8.4.39)
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+
   postcss-minify-params@6.1.0(postcss@8.4.38):
     dependencies:
       browserslist: 4.23.0
@@ -24839,31 +24871,43 @@ snapshots:
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
+  postcss-minify-params@6.1.0(postcss@8.4.39):
+    dependencies:
+      browserslist: 4.23.0
+      cssnano-utils: 4.0.2(postcss@8.4.39)
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+
   postcss-minify-selectors@6.0.4(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
       postcss-selector-parser: 6.1.0
 
-  postcss-modules-extract-imports@3.1.0(postcss@8.4.38):
+  postcss-minify-selectors@6.0.4(postcss@8.4.39):
     dependencies:
-      postcss: 8.4.38
+      postcss: 8.4.39
+      postcss-selector-parser: 6.1.0
 
-  postcss-modules-local-by-default@4.0.5(postcss@8.4.38):
+  postcss-modules-extract-imports@3.1.0(postcss@8.4.39):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.4.38)
-      postcss: 8.4.38
+      postcss: 8.4.39
+
+  postcss-modules-local-by-default@4.0.5(postcss@8.4.39):
+    dependencies:
+      icss-utils: 5.1.0(postcss@8.4.39)
+      postcss: 8.4.39
       postcss-selector-parser: 6.1.0
       postcss-value-parser: 4.2.0
 
-  postcss-modules-scope@3.2.0(postcss@8.4.38):
+  postcss-modules-scope@3.2.0(postcss@8.4.39):
     dependencies:
-      postcss: 8.4.38
+      postcss: 8.4.39
       postcss-selector-parser: 6.1.0
 
-  postcss-modules-values@4.0.0(postcss@8.4.38):
+  postcss-modules-values@4.0.0(postcss@8.4.39):
     dependencies:
-      icss-utils: 5.1.0(postcss@8.4.38)
-      postcss: 8.4.38
+      icss-utils: 5.1.0(postcss@8.4.39)
+      postcss: 8.4.39
 
   postcss-nested@6.0.1(postcss@8.4.38):
     dependencies:
@@ -24874,9 +24918,18 @@ snapshots:
     dependencies:
       postcss: 8.4.38
 
+  postcss-normalize-charset@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+
   postcss-normalize-display-values@6.0.2(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
+      postcss-value-parser: 4.2.0
+
+  postcss-normalize-display-values@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
       postcss-value-parser: 4.2.0
 
   postcss-normalize-positions@6.0.2(postcss@8.4.38):
@@ -24884,9 +24937,19 @@ snapshots:
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
+  postcss-normalize-positions@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+
   postcss-normalize-repeat-style@6.0.2(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
+      postcss-value-parser: 4.2.0
+
+  postcss-normalize-repeat-style@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
       postcss-value-parser: 4.2.0
 
   postcss-normalize-string@6.0.2(postcss@8.4.38):
@@ -24894,9 +24957,19 @@ snapshots:
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
+  postcss-normalize-string@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+
   postcss-normalize-timing-functions@6.0.2(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
+      postcss-value-parser: 4.2.0
+
+  postcss-normalize-timing-functions@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
       postcss-value-parser: 4.2.0
 
   postcss-normalize-unicode@6.1.0(postcss@8.4.38):
@@ -24905,14 +24978,30 @@ snapshots:
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
+  postcss-normalize-unicode@6.1.0(postcss@8.4.39):
+    dependencies:
+      browserslist: 4.23.0
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+
   postcss-normalize-url@6.0.2(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
+  postcss-normalize-url@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+
   postcss-normalize-whitespace@6.0.2(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
+      postcss-value-parser: 4.2.0
+
+  postcss-normalize-whitespace@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
       postcss-value-parser: 4.2.0
 
   postcss-ordered-values@6.0.2(postcss@8.4.38):
@@ -24921,9 +25010,15 @@ snapshots:
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
-  postcss-reduce-idents@6.0.3(postcss@8.4.38):
+  postcss-ordered-values@6.0.2(postcss@8.4.39):
     dependencies:
-      postcss: 8.4.38
+      cssnano-utils: 4.0.2(postcss@8.4.39)
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+
+  postcss-reduce-idents@6.0.3(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
       postcss-value-parser: 4.2.0
 
   postcss-reduce-initial@6.1.0(postcss@8.4.38):
@@ -24932,9 +25027,20 @@ snapshots:
       caniuse-api: 3.0.0
       postcss: 8.4.38
 
+  postcss-reduce-initial@6.1.0(postcss@8.4.39):
+    dependencies:
+      browserslist: 4.23.0
+      caniuse-api: 3.0.0
+      postcss: 8.4.39
+
   postcss-reduce-transforms@6.0.2(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
+      postcss-value-parser: 4.2.0
+
+  postcss-reduce-transforms@6.0.2(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
       postcss-value-parser: 4.2.0
 
   postcss-selector-parser@6.1.0:
@@ -24942,9 +25048,9 @@ snapshots:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
 
-  postcss-sort-media-queries@5.2.0(postcss@8.4.38):
+  postcss-sort-media-queries@5.2.0(postcss@8.4.39):
     dependencies:
-      postcss: 8.4.38
+      postcss: 8.4.39
       sort-css-media-queries: 2.2.0
 
   postcss-svgo@6.0.3(postcss@8.4.38):
@@ -24953,16 +25059,27 @@ snapshots:
       postcss-value-parser: 4.2.0
       svgo: 3.3.2
 
+  postcss-svgo@6.0.3(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+      postcss-value-parser: 4.2.0
+      svgo: 3.3.2
+
   postcss-unique-selectors@6.0.4(postcss@8.4.38):
     dependencies:
       postcss: 8.4.38
       postcss-selector-parser: 6.1.0
 
+  postcss-unique-selectors@6.0.4(postcss@8.4.39):
+    dependencies:
+      postcss: 8.4.39
+      postcss-selector-parser: 6.1.0
+
   postcss-value-parser@4.2.0: {}
 
-  postcss-zindex@6.0.2(postcss@8.4.38):
+  postcss-zindex@6.0.2(postcss@8.4.39):
     dependencies:
-      postcss: 8.4.38
+      postcss: 8.4.39
 
   postcss@8.4.38:
     dependencies:
@@ -25173,7 +25290,6 @@ snapshots:
       - encoding
       - supports-color
       - utf-8-validate
-    optional: true
 
   puppeteer-core@20.9.0(encoding@0.1.13)(typescript@5.5.4):
     dependencies:
@@ -25802,7 +25918,7 @@ snapshots:
     dependencies:
       escalade: 3.1.2
       picocolors: 1.0.1
-      postcss: 8.4.38
+      postcss: 8.4.39
       strip-json-comments: 3.1.1
 
   run-async@2.4.1: {}
@@ -26435,6 +26551,12 @@ snapshots:
     dependencies:
       browserslist: 4.23.0
       postcss: 8.4.38
+      postcss-selector-parser: 6.1.0
+
+  stylehacks@6.1.1(postcss@8.4.39):
+    dependencies:
+      browserslist: 4.23.0
+      postcss: 8.4.39
       postcss-selector-parser: 6.1.0
 
   sucrase@3.35.0:
@@ -27148,7 +27270,7 @@ snapshots:
       debug: 4.3.5(supports-color@8.1.1)
       pathe: 1.1.2
       tinyrainbow: 1.2.0
-      vite: 5.3.1(@types/node@20.14.10)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.10)(terser@5.31.1)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -27166,7 +27288,7 @@ snapshots:
       debug: 4.3.5(supports-color@8.1.1)
       pathe: 1.1.2
       tinyrainbow: 1.2.0
-      vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.8)(terser@5.31.1)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -27219,19 +27341,30 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.31.1
 
-  vite@5.3.1(@types/node@20.14.8)(terser@5.31.1):
+  vite@5.3.5(@types/node@20.14.10)(terser@5.31.1):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.4.38
+      postcss: 8.4.39
+      rollup: 4.18.0
+    optionalDependencies:
+      '@types/node': 20.14.10
+      fsevents: 2.3.3
+      terser: 5.31.1
+    optional: true
+
+  vite@5.3.5(@types/node@20.14.8)(terser@5.31.1):
+    dependencies:
+      esbuild: 0.21.5
+      postcss: 8.4.39
       rollup: 4.18.0
     optionalDependencies:
       '@types/node': 20.14.8
       fsevents: 2.3.3
       terser: 5.31.1
 
-  vitefu@0.2.5(vite@5.3.1(@types/node@20.14.8)(terser@5.31.1)):
+  vitefu@0.2.5(vite@5.3.5(@types/node@20.14.8)(terser@5.31.1)):
     optionalDependencies:
-      vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.8)(terser@5.31.1)
 
   vitest@2.0.5(@types/node@20.14.10)(jsdom@24.1.1)(terser@5.31.1):
     dependencies:
@@ -27251,7 +27384,7 @@ snapshots:
       tinybench: 2.8.0
       tinypool: 1.0.0
       tinyrainbow: 1.2.0
-      vite: 5.3.1(@types/node@20.14.10)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.10)(terser@5.31.1)
       vite-node: 2.0.5(@types/node@20.14.10)(terser@5.31.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
@@ -27285,7 +27418,7 @@ snapshots:
       tinybench: 2.8.0
       tinypool: 1.0.0
       tinyrainbow: 1.2.0
-      vite: 5.3.1(@types/node@20.14.8)(terser@5.31.1)
+      vite: 5.3.5(@types/node@20.14.8)(terser@5.31.1)
       vite-node: 2.0.5(@types/node@20.14.8)(terser@5.31.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
@@ -27397,22 +27530,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  webdriver@9.0.0-alpha.0:
-    dependencies:
-      '@types/node': 20.14.10
-      '@types/ws': 8.5.10
-      '@wdio/config': 9.0.0-alpha.0
-      '@wdio/logger': 9.0.0-alpha.0
-      '@wdio/protocols': 9.0.0-alpha.0
-      '@wdio/types': 9.0.0-alpha.0
-      '@wdio/utils': 9.0.0-alpha.0
-      deepmerge-ts: 5.1.0
-      ws: 8.18.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
   webdriverio@8.38.2(encoding@0.1.13)(typescript@5.4.5):
     dependencies:
       '@types/node': 20.14.10
@@ -27446,7 +27563,6 @@ snapshots:
       - supports-color
       - typescript
       - utf-8-validate
-    optional: true
 
   webdriverio@8.38.2(encoding@0.1.13)(typescript@5.5.4):
     dependencies:
@@ -27480,37 +27596,6 @@ snapshots:
       - encoding
       - supports-color
       - typescript
-      - utf-8-validate
-
-  webdriverio@9.0.0-alpha.0(puppeteer-core@22.15.0):
-    dependencies:
-      '@types/node': 20.14.10
-      '@wdio/config': 9.0.0-alpha.0
-      '@wdio/logger': 9.0.0-alpha.0
-      '@wdio/protocols': 9.0.0-alpha.0
-      '@wdio/repl': 9.0.0-alpha.0
-      '@wdio/types': 9.0.0-alpha.0
-      '@wdio/utils': 9.0.0-alpha.0
-      archiver: 7.0.1
-      aria-query: 5.3.0
-      css-shorthand-properties: 1.1.1
-      css-value: 0.0.1
-      grapheme-splitter: 1.0.4
-      import-meta-resolve: 4.1.0
-      is-plain-obj: 4.1.0
-      lodash.clonedeep: 4.5.0
-      lodash.zip: 4.2.0
-      minimatch: 9.0.4
-      query-selector-shadow-dom: 1.0.1
-      resq: 1.11.0
-      rgb2hex: 0.2.5
-      serialize-error: 11.0.3
-      webdriver: 9.0.0-alpha.0
-    optionalDependencies:
-      puppeteer-core: 22.15.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
       - utf-8-validate
 
   webidl-conversions@3.0.1: {}
