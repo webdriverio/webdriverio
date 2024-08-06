@@ -1399,15 +1399,15 @@ export const getErrorString = (err: unknown) => {
     }
 }
 
-export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner }): boolean => {
-    // Helper function to check if a capability has a browser name
-    const hasBrowserName = (cap: Options.Testrunner): boolean => {
-        if (!cap || !cap.capabilities) {
-            return false
-        }
-        const browserStackCapabilities = cap.capabilities as Capabilities.BrowserStackCapabilities
-        return browserStackCapabilities.browserName !== undefined
+export const hasBrowserName = (cap: Options.Testrunner): boolean => {
+    if (!cap || !cap.capabilities) {
+        return false
     }
+    const browserStackCapabilities = cap.capabilities as Capabilities.BrowserStackCapabilities
+    return browserStackCapabilities.browserName !== undefined
+}
+
+export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner }): boolean => {
 
     // Get all capability values
     const capValues = Object.values(caps)
