@@ -48,6 +48,6 @@
     "access": "public"
   },
   "devDependencies": {
-    "minimatch": "^9.0.0"
+    "minimatch": "^10.0.1"
   }
 }
