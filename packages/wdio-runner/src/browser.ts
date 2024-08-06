@@ -25,6 +25,13 @@ interface TestState {
     hasViteError?: boolean
 }
 
+interface LogMessage {
+    level: string
+    message: string
+    source: string
+    timestamp: number
+}
+
 declare global {
     interface Window {
         __wdioErrors__: WDIOErrorEvent[]
@@ -35,6 +42,7 @@ declare global {
 }
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
+    #retryOutdatedOptimizeDep = false
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
 
@@ -94,6 +102,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #runSpec (spec: string, retried = false): Promise<number> {
+        this.#retryOutdatedOptimizeDep = false
         const timeout = this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
@@ -455,6 +464,28 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 events: [],
                 failures: 1,
                 ...testError
+            })
+        }
+
+        /**
+         * check for outdated optimize dep errors that occasionally happen in Vite
+         */
+        const logs = await browser.getLogs('browser').catch(() => []) as LogMessage[]
+        if (logs.length) {
+            if (!this.#retryOutdatedOptimizeDep && logs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
+                log.info('Retry test run due to outdated optimize dep')
+                this.#retryOutdatedOptimizeDep = true
+                return browser.refresh()
+            }
+
+            this.#resolveTestStatePromise?.({
+                events: [],
+                failures: 1,
+                hasViteError: false,
+                errors: logs.map((log) => ({
+                    message: log.message,
+                    filename: log.message.split(' - ')[0] || 'unknown error',
+                }))
             })
         }
     }
