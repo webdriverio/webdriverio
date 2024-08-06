@@ -154,11 +154,3 @@ export class ClockManager {
         await this.#browser.execute((date) => window.__clock.setSystemTime(date), serializableSystemTime)
     }
 }
-
-export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock'
-export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
-
-/**
- * store all preload scripts in a map (per instance) so that we can easily remove them
- */
-export const restoreFunctions = new Map<WebdriverIO.Browser, RestoreMap>()

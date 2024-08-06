@@ -1,6 +1,9 @@
 import type { FakeTimerInstallOpts } from '@sinonjs/fake-timers'
 
-import { type SupportedScopes, restoreFunctions, ClockManager } from '../../clock.js'
+import { ClockManager } from '../../clock.js'
+import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptorsSource.js'
+import { restoreFunctions } from '../../constants.js'
+import type { SupportedScopes } from '../../types.js'
 
 type RestoreFunction = () => Promise<any>
 type ColorScheme = 'light' | 'dark'
@@ -10,6 +13,7 @@ interface EmulationOptions {
     userAgent: string
     colorScheme: ColorScheme
     onLine: boolean
+    device: DeviceName
     clock?: FakeTimerInstallOpts
 }
 
@@ -26,6 +30,7 @@ function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedSco
 export async function emulate(scope: 'clock', options?: FakeTimerInstallOpts): Promise<ClockManager>
 export async function emulate(scope: 'geolocation', geolocation: Partial<GeolocationCoordinates>): Promise<RestoreFunction>
 export async function emulate(scope: 'userAgent', userAgent: string): Promise<RestoreFunction>
+export async function emulate(scope: 'device', userAgent: DeviceName): Promise<RestoreFunction>
 export async function emulate(scope: 'colorScheme', colorScheme: ColorScheme): Promise<RestoreFunction>
 export async function emulate(scope: 'onLine', state: boolean): Promise<RestoreFunction>
 
@@ -37,6 +42,7 @@ export async function emulate(scope: 'onLine', state: boolean): Promise<RestoreF
  * - `userAgent`: Emulate the user agent
  * - `colorScheme`: Emulate the color scheme
  * - `onLine`: Emulate the online status
+ * - `device`: Emulate a specific mobile or desktop device
  * - `clock`: Emulate the system clock
  *
  * The `emulate` command returns a function that can be called to reset the emulation. This is useful
@@ -58,51 +64,15 @@ export async function emulate(scope: 'onLine', state: boolean): Promise<RestoreF
  *
  * :::
  *
- * Based on the scope you can pass different options:
+ * The `EmulationOptions` object can have the following properties based on the scope:
  *
  * | Scope         | Options                                          |
  * |---------------|--------------------------------------------------|
  * | `geolocation` | `{ latitude: number, longitude: number }`        |
  * | `userAgent`   | `string`                                         |
- * | `colorScheme` | `'light' | 'dark'`                                 |
+ * | `colorScheme` | `'light' \| 'dark'`                              |
  * | `onLine`      | `boolean`                                        |
- * | `clock`       | `FakeTimerInstallOpts` |
- *
- * The `FakeTimerInstallOpts` object can have the following properties:
- *
- * ```ts
- * interface FakeTimerInstallOpts {
- *    // Installs fake timers with the specified unix epoch
- *    // @default: 0
- *    now?: number | Date | undefined;
-
- *    // An array with names of global methods and APIs to fake. By default, WebdriverIO
- *    // does not replace `nextTick()` and `queueMicrotask()`. For instance,
- *    // `browser.emulate('clock', { toFake: ['setTimeout', 'nextTick'] })` will fake only
- *    // `setTimeout()` and `nextTick()`
- *    toFake?: FakeMethod[] | undefined;
-
- *    // The maximum number of timers that will be run when calling runAll() (default: 1000)
- *    loopLimit?: number | undefined;
-
- *    // Tells WebdriverIO to increment mocked time automatically based on the real system
- *    // time shift (e.g. the mocked time will be incremented by 20ms for every 20ms change
- *    // in the real system time)
- *    // @default false
- *    shouldAdvanceTime?: boolean | undefined;
-
- *    // Relevant only when using with shouldAdvanceTime: true. increment mocked time by
- *    // advanceTimeDelta ms every advanceTimeDelta ms change in the real system time
- *    // @default: 20
- *    advanceTimeDelta?: number | undefined;
-
- *    // Tells FakeTimers to clear 'native' (i.e. not fake) timers by delegating to their
- *    // respective handlers. These are not cleared by default, leading to potentially
- *    // unexpected behavior if timers existed prior to installing FakeTimers.
- *    // @default: false
- *    shouldClearNativeTimers?: boolean | undefined;
- * }
- * ```
+ * | `clock`       | `FakeTimerInstallOpts`                           |
  *
  * @param {string} scope feature of the browser you like to emulate, can be either `clock`, `geolocation`, `userAgent`, `colorScheme` or `onLine`
  * @param {EmulationOptions} options emulation option for specific scope
@@ -216,5 +186,32 @@ export async function emulate<Scope extends SupportedScopes> (
         return resetFn
     }
 
-    throw new Error(`Invalid scope "${scope}", expected one of "geolocation", "userAgent", "colorScheme", "onLine" or "clock"`)
+    if (scope === 'device') {
+        if (typeof options !== 'string') {
+            throw new Error(`Expected "device" emulation options to be a string, received "${typeof options}"`)
+        }
+
+        const device = deviceDescriptorsSource[options as DeviceName]
+        if (!device) {
+            throw new Error(`Unknown device name "${options}", please use one of the following: ${Object.keys(deviceDescriptorsSource).join(', ')}`)
+        }
+
+        const [restoreUserAgent] = await Promise.all([
+            this.emulate('userAgent', device.userAgent),
+            this.setViewport({
+                ...device.viewport,
+                devicePixelRatio: device.deviceScaleFactor
+            })
+        ])
+
+        const desktopViewport = deviceDescriptorsSource['Desktop Chrome']
+        const restoreFn = async () => Promise.all([
+            restoreUserAgent(),
+            this.setViewport({ ...desktopViewport.viewport, devicePixelRatio: desktopViewport.deviceScaleFactor })
+        ])
+
+        return restoreFn
+    }
+
+    throw new Error(`Invalid scope "${scope}", expected one of "geolocation", "userAgent", "colorScheme", "onLine", "device" or "clock"`)
 }
