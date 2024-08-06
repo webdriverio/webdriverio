@@ -121,7 +121,7 @@ interface UrlCommandOptions {
             pass
         }
     });
-    await expect($('p=Congratulations! You must have the proper credentials.).toBeDisplayed();
+    await expect($('p=Congratulations! You must have the proper credentials.').toBeDisplayed();
 
     :onBeforeLoad.js
     // navigate to a URL and mock the battery API

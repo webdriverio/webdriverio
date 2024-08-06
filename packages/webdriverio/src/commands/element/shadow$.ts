@@ -14,6 +14,11 @@ const log = logger('webdriverio')
  * with lots of nested shadow roots, an alternative approach to `shadow$` is
  * to use the [deep selector](https://webdriver.io/docs/selectors#deep-selectors).
  *
+ * :::info
+ * Starting with WebdriverIO v9 the framework automatically pierces through the Shadow DOM
+ * making the use of this command obsolete. It is recommended to use the `$(selector)` command instead.
+ * :::
+ *
  * <example>
     :shadow$$.js
     it('should return an element inside a shadowRoot', async () => {
