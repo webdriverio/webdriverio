@@ -17,7 +17,7 @@ updates:
     - dependency-name: "@typescript-eslint/utils"
     # updates to Node.js requires update to .nvmrc
     - dependency-name: "@types/node"
-      version-update: semver-major
+      update-types: ["version-update:semver-major"]
 - package-ecosystem: npm
   directory: "/"
   target-branch: v8
