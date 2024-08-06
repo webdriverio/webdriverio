@@ -87,7 +87,7 @@ export const SUPPORTED_BROWSERNAMES = {
     safari: ['safari', 'safari technology preview']
 }
 
-export const DEFAULT_HOSTNAME = '0.0.0.0'
+export const DEFAULT_HOSTNAME = '127.0.0.1'
 export const DEFAULT_PROTOCOL = 'http'
 export const DEFAULT_PATH = '/'
 /* istanbul ignore next */
