@@ -11,8 +11,15 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'puppeteer.e2e.ts'),
         path.join(__dirname, 'headless', 'source-maps.e2e.ts'),
         path.join(__dirname, 'headless', 'reloadSession.e2e.ts'),
-        path.join(__dirname, 'headless', 'test.e2e.ts')
+        path.join(__dirname, 'headless', 'test.e2e.ts'),
+        path.join(__dirname, 'headless', 'execute-leak.e2e.ts'),
+        path.join(__dirname, 'headless', 'executeAsync-leak.e2e.ts'),
     ],
+
+    /**
+     * Allow manual garbage collection in worker
+     */
+    execArgv: ['--expose-gc'],
 
     /**
      * capabilities
