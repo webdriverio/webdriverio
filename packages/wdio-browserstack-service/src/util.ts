@@ -1053,6 +1053,8 @@ export function isBStackSession(config: Options.Testrunner) {
 }
 
 export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    // this is a utility function to check if the basic session or multi remote session is running on Browserstack, mainly by checking the hostname parameter in the given config
+    // In case hostname is not present anywhere in the config, it returns true by default as hostname is not a mandatory parameter in the config
 
     const isBrowserstack = (str: string ): boolean => {
         return str.includes('browserstack.com')
@@ -1078,6 +1080,10 @@ export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrun
             }
         }
     }
+
+    // if (!isBStackSession(config)) {
+    //     return false
+    // }
 
     return true
 }
@@ -1388,4 +1394,21 @@ export function checkAndTruncateVCSInfo(gitMetaData: GitMetaData): GitMetaData {
     }
 
     return gitMetaData
+}
+
+export const hasBrowserName = (cap: Capabilities.WebdriverIOConfig): boolean => {
+    if (!cap || !cap.capabilities) {
+        return false
+    }
+    const browserStackCapabilities = cap.capabilities as Capabilities.BrowserStackCapabilities
+    return browserStackCapabilities.browserName !== undefined
+}
+
+export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner }): boolean => {
+
+    // Get all capability values
+    const capValues = Object.values(caps)
+
+    // Check if there are any capabilities and if at least one has a browser name
+    return capValues.length > 0 && capValues.some(hasBrowserName)
 }

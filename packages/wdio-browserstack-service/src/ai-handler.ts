@@ -1,16 +1,15 @@
+import path from 'node:path'
+import fs from 'node:fs'
+import url from 'node:url'
 import aiSDK from '@browserstack/ai-sdk-node'
 import { BStackLogger } from './bstackLogger.js'
-import { TCG_URL, TCG_INFO, SUPPORTED_BROWSERS_FOR_AI } from './constants.js'
+import { TCG_URL, TCG_INFO, SUPPORTED_BROWSERS_FOR_AI, BSTACK_SERVICE_VERSION, BSTACK_TCG_AUTH_RESULT } from './constants.js'
 import { handleHealingInstrumentation } from './instrumentation/funnelInstrumentation.js'
-import { createRequire } from 'node:module'
 
 import type { Capabilities } from '@wdio/types'
 import type BrowserStackConfig from './config.js'
 import type { Options } from '@wdio/types'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
-import path from 'node:path'
-import fs from 'node:fs'
-import url from 'node:url'
 import { getBrowserStackUserAndKey, isBrowserstackInfra } from './util.js'
 import type { BrowserstackOptions } from './types.js'
 
@@ -18,8 +17,8 @@ class AiHandler {
     authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse
     wdioBstackVersion: string
     constructor() {
-        this.authResult = JSON.parse(process.env.TCG_AUTH_RESULT || '{}')
-        this.wdioBstackVersion = createRequire(import.meta.url)('../package.json').version
+        this.authResult = JSON.parse(process.env[BSTACK_TCG_AUTH_RESULT] || '{}')
+        this.wdioBstackVersion = BSTACK_SERVICE_VERSION
     }
 
     async authenticateUser(user: string, key: string) {
@@ -61,10 +60,20 @@ class AiHandler {
     async handleHealing(orginalFunc: (arg0: string, arg1: string) => any, using: string, value: string, browser: WebdriverIO.Browser, options: BrowserstackOptions){
         const sessionId = browser.sessionId
 
-        let tcgDetails = `{"region": "${TCG_INFO.tcgRegion}", "tcgUrls": {"${TCG_INFO.tcgRegion}": {"endpoint": "${TCG_INFO.tcgUrl.split('s://')[1]}"}}}`
-        tcgDetails = tcgDetails.replace(/'/g, '\\\'').replace(/"/g, '\\"')
-        const locatorType = using.replace(/'/g, '\\\'').replace(/"/g, '\\"')
-        const locatorValue = value.replace(/'/g, '\\\'').replace(/"/g, '\\"')
+        // a utility function to escape single and double quotes
+        const escapeString = (str: string) => str.replace(/'/g, "\\'").replace(/"/g, '\\"')
+
+        const tcgDetails = escapeString(JSON.stringify({
+            region: TCG_INFO.tcgRegion,
+            tcgUrls: {
+                [TCG_INFO.tcgRegion]: {
+                    endpoint: TCG_INFO.tcgUrl.split('://')[1]
+                }
+            }
+        }))
+
+        const locatorType = escapeString(using)
+        const locatorValue = escapeString(value)
 
         this.authResult = this.authResult as BrowserstackHealing.InitSuccessResponse
 
@@ -91,9 +100,10 @@ class AiHandler {
                 }
             }
         } catch (err) {
-            BStackLogger.debug('Error in findElement: ' + err + 'using: ' + using + 'value: ' + value)
             if (options.selfHeal === true) {
-                BStackLogger.debug('Something went wrong while healing. Disabling healing for this command')
+                BStackLogger.warn('Something went wrong while healing. Disabling healing for this command')
+            } else {
+                BStackLogger.warn('Error in findElement: ' + err + 'using: ' + using + 'value: ' + value)
             }
         }
         return await orginalFunc(using, value)
@@ -109,10 +119,10 @@ class AiHandler {
     ) {
         if ( caps[browser].capabilities &&
             !(isBrowserstackInfra(caps[browser])) &&
-            SUPPORTED_BROWSERS_FOR_AI.includes(caps[browser].capabilities.browserName)
+            SUPPORTED_BROWSERS_FOR_AI.includes(caps[browser]?.capabilities?.browserName?.toLowerCase())
         ) {
-            const { user, key } = getBrowserStackUserAndKey(config, options)
-            if (user && key) {
+            const innerConfig = getBrowserStackUserAndKey(config, options)
+            if (innerConfig?.user && innerConfig.key) {
                 handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
                 caps[browser].capabilities = this.updateCaps(authResult, options, caps[browser].capabilities)
             }
@@ -141,15 +151,13 @@ class AiHandler {
         isMultiremote: boolean
     ) {
         try {
-            const { user, key } = getBrowserStackUserAndKey(config, options)
-            if (user && key) {
-                const authResult = await this.authenticateUser(user, key)
-                process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
-                if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps.browserName)) {
+            const innerConfig = getBrowserStackUserAndKey(config, options)
+            if (innerConfig?.user && innerConfig.key) {
+                const authResult = await this.authenticateUser(innerConfig.user, innerConfig.key)
+                process.env[BSTACK_TCG_AUTH_RESULT] = JSON.stringify(authResult)
+                if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps?.browserName?.toLowerCase())) {
 
                     handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
-                    process.env.TCG_AUTH_RESULT = JSON.stringify(authResult)
-
                     this.updateCaps(authResult, options, caps)
 
                 } else if (isMultiremote) {
@@ -158,7 +166,9 @@ class AiHandler {
             }
 
         } catch (err) {
-            BStackLogger.debug(`Error while initiliazing Browserstack healing Extension ${err}`)
+            if (options.selfHeal === true) {
+                BStackLogger.warn(`Error while initiliazing Browserstack healing Extension ${err}`)
+            }
         }
 
         return caps
@@ -166,7 +176,7 @@ class AiHandler {
 
     async handleSelfHeal(options: BrowserstackOptions, browser: WebdriverIO.Browser) {
 
-        if (SUPPORTED_BROWSERS_FOR_AI.includes((browser.capabilities as Capabilities.BrowserStackCapabilities).browserName as string)) {
+        if (SUPPORTED_BROWSERS_FOR_AI.includes((browser.capabilities as Capabilities.BrowserStackCapabilities)?.browserName?.toLowerCase() as string)) {
             const authInfo = this.authResult as BrowserstackHealing.InitSuccessResponse
 
             if (Object.keys(authInfo).length === 0 && options.selfHeal === true) {
@@ -204,7 +214,9 @@ class AiHandler {
             }
 
         } catch (err) {
-            BStackLogger.error('Error in setting up self-healing: ' + err)
+            if (options.selfHeal === true) {
+                BStackLogger.warn(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
+            }
         }
     }
 }
