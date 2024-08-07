@@ -205,6 +205,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             try {
                 if ((capabilities as Capabilities.BrowserStackCapabilities).browserName) {
                     capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities, false)
+                } else if ( Array.isArray(capabilities)){
+
+                    for (let i = 0; i < capabilities.length; i++) {
+                        if ((capabilities[i] as Capabilities.BrowserStackCapabilities).browserName) {
+                            capabilities[i] = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities[i], false)
+                        }
+                    }
+
                 } else if (isValidCapsForHealing(capabilities as any)) {
                     // setting up healing in case capabilities.xyz.capabilities.browserName where xyz can be anything:
                     capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities, true)
