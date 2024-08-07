@@ -127,12 +127,6 @@ export default {
             ],
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L47-L51'],
             alternativeCommands: ['browser/url'],
-            returns: {
-                type: 'string',
-                name: 'url',
-                description:
-                    'current document URL of the top-level browsing context.',
-            },
         },
     },
     '/session/:sessionId/back': {
