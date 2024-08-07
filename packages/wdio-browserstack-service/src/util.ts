@@ -1081,9 +1081,9 @@ export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrun
         }
     }
 
-    // if (!isBStackSession(config)) {
-    //     return false
-    // }
+    if (!isBStackSession(config)) {
+        return false
+    }
 
     return true
 }

@@ -600,8 +600,8 @@ importers:
   packages/wdio-browserstack-service:
     dependencies:
       '@browserstack/ai-sdk-node':
-        specifier: 1.0.4-beta
-        version: 1.0.4-beta
+        specifier: 1.5.8
+        version: 1.5.8
       '@percy/appium-app':
         specifier: ^2.0.1
         version: 2.0.6
@@ -2968,8 +2968,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@browserstack/ai-sdk-node@1.0.4-beta':
-    resolution: {integrity: sha512-dbouuO2nl6qWgDFaKV9/8nQ5HXwl0U89LD3wHle/PzhDK3hNV0A79s6jmd0IBfqfRkNgf9wB8beBpeyXFRnefA==}
+  '@browserstack/ai-sdk-node@1.5.8':
+    resolution: {integrity: sha512-34snogSnvskHxUZYOX61ga1/oTlyXwneRtd7Epu2bEdSsRR1rMm8xXhO6DVrLsHPwPHz+ljAlwVwhcE2uKysxw==}
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -14360,9 +14360,9 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@browserstack/ai-sdk-node@1.0.4-beta':
+  '@browserstack/ai-sdk-node@1.5.8':
     dependencies:
-      axios: 1.7.2
+      axios: 1.7.3
       uuid: 9.0.1
     transitivePeerDependencies:
       - debug
@@ -14383,7 +14383,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.3.1(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -14422,7 +14422,7 @@ snapshots:
       yaml: 2.5.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
