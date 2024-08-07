@@ -74,9 +74,21 @@ await expect($('.battery-remaining')).toHaveText('01:00)
 Web Components [are definitely a thing today](https://arewebcomponentsathingyet.com/) but testing applications that heavily rely on Web Components has been very cumbersome due to the encapsulating nature of [Shadow Roots](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot). With WebdriverIO v9 this belongs to the past as the framework now automatically keeps track of all `ShadowRoot` nodes in the document and automatically searches across all of them,
 independant of the mode being `open` or `closed`.
 
-For example, let's say we want to automate the following Lit application:
+For example, let's say we want to automate the following Date Picker component that contains multiple nested shadow roots:
 
-<iframe title="Lit Project" src="https://playground.lit.dev/__playground_swfs_1dae6563/2vd1qn4/index.html"></iframe>
+<iframe title="Date Picker" height="400" width="100%" src="https://ionicframework.com/docs/usage/v8/datetime/basic/demo.html?ionic:mode=md"></iframe>
+
+In order to change the time, you can call:
+
+### Improved Argument Serialization
+
+...
+
+### Setting Viewports
+
+...
+
+
 
 While it took a bit longer than expected the WebdriverIO team is excited to announce that we finally released `v8` today!
 
