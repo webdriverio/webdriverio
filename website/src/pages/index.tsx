@@ -12,6 +12,7 @@ import Section from '../components/Section.tsx'
 import ImageSwitcher from '../components/ImageSwitcher.tsx'
 import Highlight from '../components/Highlight.tsx'
 import Robot from '../components/Robot.tsx'
+import Sponsors from '../components/Sponsors.tsx'
 import { CreateProjectAnimation } from '../components/CreateProjectAnimation.tsx'
 
 import styles from './styles.module.css'
@@ -314,6 +315,9 @@ function Home() {
                     </>} isDark={undefined} />
                 <Section isDark>
                     <LogoCarousel logos={logos}></LogoCarousel>
+                </Section>
+                <Section>
+                    <Sponsors />
                 </Section>
             </main>
         </Layout>

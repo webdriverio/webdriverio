@@ -38,13 +38,13 @@
     "@types/node": "^20.1.0",
     "@wdio/logger": "8.38.0",
     "@wdio/types": "8.39.0",
-    "babel-plugin-istanbul": "^6.1.1",
-    "devtools-protocol": "^0.0.1302984",
+    "babel-plugin-istanbul": "^7.0.0",
+    "devtools-protocol": "^0.0.1335233",
     "istanbul-lib-coverage": "^3.2.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
     "lighthouse": "8.6.0",
-    "puppeteer-core": "20.3.0",
+    "puppeteer-core": "^21.11.0",
     "webdriverio": "8.39.1"
   },
   "publishConfig": {
