@@ -15,7 +15,8 @@ import {
     getBrowserCapabilities,
     isBrowserstackCapability,
     getParentSuiteName,
-    isBrowserstackSession, patchConsoleLogs
+    isBrowserstackSession, patchConsoleLogs,
+    shouldAddServiceVersion
 } from './util'
 import TestReporter from './reporter'
 import PerformanceTester from './performance-tester'
@@ -114,12 +115,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : (global as any).browser
 
-        if (!isBrowserstackSession(this._browser)) {
+        // Healing Support:
+        if (!shouldAddServiceVersion(this._config, this._options.testObservability, caps as any)) {
             try {
                 await AiHandler.selfHeal(this._options, caps, this._browser as Browser<'async'> | MultiRemoteBrowser<'async'>)
             } catch (err) {
                 if (this._options.selfHeal === true) {
-                    BStackLogger.debug(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
+                    BStackLogger.warn(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
                 }
             }
         }

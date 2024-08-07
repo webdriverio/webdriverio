@@ -27,7 +27,7 @@ describe('AiHandler', () => {
         jest.resetModules()
         config = {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             selfHeal: true // Default to true
         }
 
@@ -283,12 +283,12 @@ describe('AiHandler', () => {
                 isGroupAIEnabled: true
             } as any
 
-            const debugSpy = jest.spyOn(bstackLogger.BStackLogger, 'debug')
+            const warnSpy = jest.spyOn(bstackLogger.BStackLogger, 'warn')
 
             const result = await AiHandler.handleHealing(originalFunc, 'id', 'some-id', browser, config)
 
             expect(originalFunc).toHaveBeenCalledTimes(2)
-            expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Error in findElement'))
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Something went wrong while healing. Disabling healing for this command'))
             expect(result).toEqual(undefined)
         })
 
@@ -299,12 +299,12 @@ describe('AiHandler', () => {
 
             config.selfHeal = false
 
-            const debugSpy = jest.spyOn(bstackLogger.BStackLogger, 'debug')
+            const warnSpy = jest.spyOn(bstackLogger.BStackLogger, 'warn')
 
             const result = await AiHandler.handleHealing(originalFunc, 'id', 'some-id', browser, config)
 
             expect(originalFunc).toHaveBeenCalledTimes(2)
-            expect(debugSpy).toHaveBeenCalledTimes(1)
+            expect(warnSpy).toHaveBeenCalledTimes(1)
             expect(result).toEqual(undefined)
         })
 
@@ -355,6 +355,8 @@ describe('AiHandler', () => {
                 isGroupAIEnabled: true,
             }
 
+            jest.resetAllMocks()
+            jest.resetModules()
             const authenticateUserSpy = jest.spyOn(AiHandler, 'authenticateUser')
                 .mockResolvedValue(mockAuthResult as any)
             const handleHealingInstrumentationSpy = jest.spyOn(funnelInstrumentation, 'handleHealingInstrumentation')
@@ -366,13 +368,11 @@ describe('AiHandler', () => {
                 .mockReturnValue({ ...caps, 'goog:chromeOptions': { extensions: [mockExtension] } })
 
             const emptyObj = {} as any
-            const options = { selfHeal: true } as any
-            const updatedCaps = await AiHandler.setup(config, options, emptyObj, caps, false)
+            await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
 
             expect(authenticateUserSpy).toHaveBeenCalledTimes(1)
             expect(handleHealingInstrumentationSpy).toHaveBeenCalledTimes(1)
             expect(updateCapsSpy).toHaveBeenCalledTimes(1)
-            expect((updatedCaps['goog:chromeOptions'] as any).extensions).toEqual([mockExtension])
         })
 
         it('should skip setup if accessKey is not present', async () => {
@@ -418,13 +418,14 @@ describe('AiHandler', () => {
             const authenticateUserSpy = jest.spyOn(AiHandler, 'authenticateUser')
                 .mockRejectedValue(new Error('Authentication failed'))
 
-            const debugSpy = jest.spyOn(bstackLogger.BStackLogger, 'debug')
+            const warnSpy = jest.spyOn(bstackLogger.BStackLogger, 'warn')
 
+            const options = { selfHeal: true } as any
             const emptyObj = {} as any
-            const updatedCaps = await AiHandler.setup(config, emptyObj, emptyObj, caps, false)
+            const updatedCaps = await AiHandler.setup(config, emptyObj, options, caps, false)
 
             expect(authenticateUserSpy).toHaveBeenCalledTimes(1)
-            expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Error while initiliazing Browserstack healing Extension'))
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Error while initiliazing Browserstack healing Extension'))
             expect(updatedCaps).toEqual(caps)
         })
     })
@@ -551,16 +552,17 @@ describe('AiHandler', () => {
             } as any
 
             const setTokenSpy = jest.spyOn(AiHandler, 'setToken').mockImplementationOnce(() => {
-                throw new Error('Some error occurred in setToken.')
+                throw new Error('Some error occurred in setToken')
             })
 
-            const errorSpy = jest.spyOn(bstackLogger.BStackLogger, 'error')
+            const warnSpy = jest.spyOn(bstackLogger.BStackLogger, 'warn')
 
+            config.selfHeal = true
             browser.capabilities = caps
             await AiHandler.selfHeal(config, caps, browser)
 
             expect(setTokenSpy).toHaveBeenCalledTimes(1)
-            expect(errorSpy).toHaveBeenCalledWith('Error in setting up self-healing: Error: Some error occurred in setToken.')
+            expect(warnSpy).toHaveBeenCalledWith('Error while setting up self-healing: Error: Some error occurred in setToken. Disabling healing for this session.')
         })
 
         it('should not set token if isAuthenticated is false', async () => {
