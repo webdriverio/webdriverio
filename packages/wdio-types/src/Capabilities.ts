@@ -352,6 +352,13 @@ export interface WebdriverIOCapabilities {
      * Exclude specs from test execution.
      */
     'wdio:exclude'?: string[]
+
+    /**
+     * If flag is set to `true` WebdriverIO will not automatically opt-in
+     * to the WebDriver BiDi protocol. This is useful if you want to use
+     * the WebDriver protocol only.
+     */
+    'wdio:enforceWebDriverClassic'?: boolean
 }
 
 export interface ChromeOptions {

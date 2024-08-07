@@ -118,9 +118,10 @@ export const downloadProgressCallback = (artifact: string, downloadedBytes: numb
  */
 const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
     await install(args).catch((err) => {
-        const error = `Failed downloading ${args.browser} v${args.buildId}: ${err.message}, retrying ...`
+        const error = `Failed downloading ${args.browser} v${args.buildId} using ${JSON.stringify(args)}: ${err.message}, retrying ...`
         if (retry) {
-            throw new Error(error)
+            err.message += '\n' + error.replace(', retrying ...', '')
+            throw new Error(err)
         }
         log.error(error)
         return _install(args, true)

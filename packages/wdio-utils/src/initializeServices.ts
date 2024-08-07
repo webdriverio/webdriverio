@@ -138,7 +138,7 @@ export async function initializeLauncherService (config: Omit<Options.Testrunner
             }
         }
     } catch (err: any) {
-        throw new Error(`Failed to initilialise launcher service ${serviceLabelToBeInitialised}: ${err.stack}`)
+        throw new Error(`Failed to initialise launcher service ${serviceLabelToBeInitialised}: ${err.stack}`)
     }
 
     return { ignoredWorkerServices, launcherServices }
@@ -185,6 +185,6 @@ export async function initializeWorkerService (
 
         return initializedServices
     } catch (err: any) {
-        throw new Error(`Failed to initilialise service ${serviceLabelToBeInitialised}: ${err.stack}`)
+        throw new Error(`Failed to initialise service ${serviceLabelToBeInitialised}: ${err.stack}`)
     }
 }

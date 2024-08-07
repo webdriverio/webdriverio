@@ -9,7 +9,7 @@ import {
 } from '@wdio/protocols'
 import { transformCommandLogResult } from '@wdio/utils'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options } from '@wdio/types'
 
 import Request from './request/request.js'
 import command from './command.js'
@@ -64,15 +64,25 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
-    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch
+    const [w3cCaps, jsonwpCaps] = params.capabilities && 'alwaysMatch' in params.capabilities
         /**
          * in case W3C compliant capabilities are provided
          */
-        ? [params.capabilities, (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch]
+        ? [params.capabilities, params.capabilities.alwaysMatch]
         /**
          * otherwise assume they passed in jsonwp-style caps (flat object)
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+
+    /**
+     * automatically opt-into WebDriver Bid (@ref https://w3c.github.io/webdriver-bidi/)
+     */
+    if (!w3cCaps.alwaysMatch['wdio:enforceWebDriverClassic'] && typeof w3cCaps.alwaysMatch.browserName === 'string' && w3cCaps.alwaysMatch.browserName !== 'safari') {
+        w3cCaps.alwaysMatch.webSocketUrl = true
+    }
+    if (!jsonwpCaps['wdio:enforceWebDriverClassic'] && typeof jsonwpCaps.browserName === 'string' && jsonwpCaps.browserName !== 'safari') {
+        jsonwpCaps.webSocketUrl = true
+    }
 
     const sessionRequest = new Request(
         'POST',
@@ -245,7 +255,19 @@ export function getErrorFromResponseBody (body: any, requestOptions: any) {
 export class CustomRequestError extends Error {
     constructor (body: WebDriverResponse, requestOptions: any) {
         const errorObj = body.value || body
-        let errorMessage = errorObj.message || errorObj.class || 'unknown error'
+        /**
+         * e.g. in Firefox or Safari, error are following the following structure:
+         * ```
+         * {
+         *   value: {
+         *     error: '...',
+         *     message: '...',
+         *     stacktrace: '...'
+         *   }
+         * }
+         * ```
+         */
+        let errorMessage = errorObj.message || errorObj.error || errorObj.class || 'unknown error'
 
         /**
          * Improve Chromedriver's error message for an invalid selector
@@ -260,7 +282,7 @@ export class CustomRequestError extends Error {
          *  error: 'timeout'
          *  message: ''
          */
-        if (typeof errorObj.message === 'string' && errorObj.message.includes('invalid locator')) {
+        if (typeof errorMessage === 'string' && errorMessage.includes('invalid locator')) {
             errorMessage = (
                 `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid!`
             )
@@ -269,7 +291,7 @@ export class CustomRequestError extends Error {
         super(errorMessage)
         if (errorObj.error) {
             this.name = errorObj.error
-        } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
+        } else if (errorMessage && errorMessage.includes('stale element reference')) {
             this.name = 'stale element reference'
         } else {
             this.name = errorObj.name || 'WebDriver Error'

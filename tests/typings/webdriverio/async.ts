@@ -526,6 +526,18 @@ async function bar() {
     const multiElementError = $$('selector').getElement()
     // @ts-expect-error
     const multiElementError2 = multiElements.getElement()
+
+    // Emulate tests
+    let restore = await browser.emulate('geolocation', { latitude: 1, longitude: 2 })
+    await restore()
+    restore = await browser.emulate('userAgent', 'foobar')
+    restore = await browser.emulate('onLine', true)
+    // @ts-expect-error invalid param
+    restore = await browser.emulate('onLine', 'dark')
+    // @ts-expect-error invalid scope
+    restore = await browser.emulate('foobar')
+    const clock = await browser.emulate('clock', { now: new Date(2021, 3, 14) })
+    await clock.restore()
 }
 
 function testSevereServiceError_noParameters() {

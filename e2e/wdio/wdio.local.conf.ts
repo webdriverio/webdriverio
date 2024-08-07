@@ -82,14 +82,16 @@ if (os.platform() !== 'win32') {
 
 /**
  * latest Firefox 124.0a1 is not available on Linux
+ * Disable FF nightly tests due to WebDriver Bidi command "browsingContext.navigate" failed with error: unknown error
+ * @see https://bugzilla.mozilla.org/show_bug.cgi?id=1908515
  */
-if (os.platform() === 'win32' || os.platform() === 'darwin') {
-    config.capabilities.push({
-        browserName: 'firefox',
-        webSocketUrl: true,
-        browserVersion: 'latest',
-        'moz:firefoxOptions': {
-            args: ['-headless']
-        }
-    })
-}
+// if (os.platform() === 'win32' || os.platform() === 'darwin') {
+//     config.capabilities.push({
+//         browserName: 'firefox',
+//         webSocketUrl: true,
+//         browserVersion: 'latest',
+//         'moz:firefoxOptions': {
+//             args: ['-headless']
+//         }
+//     })
+// }
