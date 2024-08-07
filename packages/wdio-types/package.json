@@ -29,6 +29,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "build": "rimraf build && rollup -c",
+    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
+  },
   "dependencies": {
     "@types/node": "^20.1.0"
   }

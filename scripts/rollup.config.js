@@ -30,20 +30,26 @@ export function getRollupConfig(pkgDir, pkg, opts = {}) {
         onwarn,
     }
 
-    /** @type {import('rollup').RollupOptions} */
-    const esmConfig = {
-        input: path.resolve(pkgDir, 'src', 'index.ts'),
-        output: {
-            file: path.resolve(pkgDir, 'build', 'index.js'),
-            format: 'es'
-        },
-        external,
-        plugins: [esbuild({ target: 'node18' }), ...(opts.esm?.plugins || [])],
-        onwarn,
-    }
-
     /** @type {import('rollup').RollupOptions[]} */
-    const builds = [esmConfig, typeConfig]
+    const builds = [typeConfig]
+
+    /**
+     * only build esm if there is an exports field in package.json
+     */
+    if (pkg.exports) {
+        /** @type {import('rollup').RollupOptions} */
+        const esmConfig = {
+            input: path.resolve(pkgDir, 'src', 'index.ts'),
+            output: {
+                dir: path.resolve(pkgDir, 'build'),
+                format: 'es'
+            },
+            external,
+            plugins: [esbuild({ target: 'node18' }), ...(opts.esm?.plugins || [])],
+            onwarn,
+        }
+        builds.unshift(esmConfig)
+    }
 
     /**
      * only build cjs if there is a main field in package.json
@@ -62,6 +68,28 @@ export function getRollupConfig(pkgDir, pkg, opts = {}) {
         }
 
         builds.push(cjsConfig)
+    }
+
+    /**
+     * create a browser optimized build if there is a browser field in package.json
+     */
+    if (typeof pkg.browser === 'string') {
+        /** @type {import('rollup').RollupOptions} */
+        const browserConfig = {
+            input: path.resolve(pkgDir, 'src', 'browser.ts'),
+            output: {
+                file: path.resolve(pkgDir, 'build', 'browser.js'),
+                format: 'es'
+            },
+            external,
+            plugins: [
+                esbuild({ target: ['es2020', 'chrome58', 'edge16', 'firefox57', 'safari11'] }),
+                ...(opts.browser?.plugins || [])
+            ],
+            onwarn,
+        }
+
+        builds.push(browserConfig)
     }
 
     return builds

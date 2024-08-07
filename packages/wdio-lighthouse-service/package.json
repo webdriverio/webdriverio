@@ -37,6 +37,10 @@
     "./package.json": "./package.json"
   },
   "typeScriptVersion": "3.8.3",
+  "scripts": {
+    "build": "rimraf build && rollup -c",
+    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
+  },
   "dependencies": {
     "@babel/core": "^7.18.0",
     "@tracerbench/trace-event": "^8.0.0",

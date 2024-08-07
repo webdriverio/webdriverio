@@ -11,9 +11,6 @@
   "engines": {
     "node": ">=18"
   },
-  "scripts": {
-    "copy": "copyfiles -u 1 -V \"src/templates/**/*\" ./build/"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git",
@@ -32,6 +29,11 @@
   "type": "module",
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
+  "scripts": {
+    "build": "rimraf build && rollup -c",
+    "copy": "copyfiles -u 1 -V \"src/templates/**/*\" ./build/",
+    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
+  },
   "exports": {
     ".": [
       {

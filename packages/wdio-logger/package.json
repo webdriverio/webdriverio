@@ -7,6 +7,8 @@
   "license": "MIT",
   "type": "module",
   "types": "./build/index.d.ts",
+  "main": "./build/index.cjs",
+  "browser": "./build/web.js",
   "exports": {
     ".": "./build/index.js",
     "./package.json": "./package.json"
@@ -27,6 +29,10 @@
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "scripts": {
+    "build": "rimraf build && rollup -c",
+    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
   },
   "dependencies": {
     "chalk": "^5.1.2",

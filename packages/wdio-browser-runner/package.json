@@ -33,6 +33,11 @@
     }
   },
   "typeScriptVersion": "3.8.3",
+  "scripts": {
+    "build": "rimraf build && rollup -c",
+    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline",
+    "prepare": "rimraf node_modules/@wdio/config node_modules/@wdio/repl node_modules/@wdio/utils"
+  },
   "dependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@types/istanbul-lib-source-maps": "^4.0.4",
@@ -64,9 +69,6 @@
     "vite-plugin-top-level-await": "^1.4.1",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
-  },
-  "scripts": {
-    "prepare": "rimraf node_modules/@wdio/config node_modules/@wdio/repl node_modules/@wdio/utils"
   },
   "publishConfig": {
     "access": "public"

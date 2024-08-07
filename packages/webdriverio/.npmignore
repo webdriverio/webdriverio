@@ -2,4 +2,4 @@ src
 tests
 tsconfig.json
 tsconfig.prod.json
-rollup.config.js
+rollup.config.jsrollup.config.js
