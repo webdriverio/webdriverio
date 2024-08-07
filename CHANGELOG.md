@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.40.2 (2024-08-07)
+
+#### :bug: Bug Fix
+* `wdio-utils`, `webdriver`
+  * [#13328](https://github.com/webdriverio/webdriverio/pull/13328) Fix VPN chromedriver connection issues by changing default hostname ([@DIFSRIP](https://github.com/DIFSRIP))
+
+#### Committers: 1
+- Benjamin Warth ([@DIFSRIP](https://github.com/DIFSRIP))
+
+
 ## v8.40.1 (2024-08-06)
 
 #### :bug: Bug Fix
