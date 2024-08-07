@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import url from 'node:url'
 import aiSDK from '@browserstack/ai-sdk-node'
 import { BStackLogger } from './bstackLogger.js'
-import { TCG_URL, TCG_INFO, SUPPORTED_BROWSERS_FOR_AI, BSTACK_SERVICE_VERSION } from './constants.js'
+import { TCG_URL, TCG_INFO, SUPPORTED_BROWSERS_FOR_AI, BSTACK_SERVICE_VERSION, BSTACK_TCG_AUTH_RESULT } from './constants.js'
 import { handleHealingInstrumentation } from './instrumentation/funnelInstrumentation.js'
 
 import type { Capabilities } from '@wdio/types'
@@ -17,7 +17,7 @@ class AiHandler {
     authResult: BrowserstackHealing.InitSuccessResponse | BrowserstackHealing.InitErrorResponse
     wdioBstackVersion: string
     constructor() {
-        this.authResult = JSON.parse(process.env.BSTACK_TCG_AUTH_RESULT || '{}')
+        this.authResult = JSON.parse(process.env[BSTACK_TCG_AUTH_RESULT] || '{}')
         this.wdioBstackVersion = BSTACK_SERVICE_VERSION
     }
 
@@ -154,7 +154,7 @@ class AiHandler {
             const innerConfig = getBrowserStackUserAndKey(config, options)
             if (innerConfig?.user && innerConfig.key) {
                 const authResult = await this.authenticateUser(innerConfig.user, innerConfig.key)
-                process.env.BSTACK_TCG_AUTH_RESULT = JSON.stringify(authResult)
+                process.env[BSTACK_TCG_AUTH_RESULT] = JSON.stringify(authResult)
                 if (!isMultiremote && SUPPORTED_BROWSERS_FOR_AI.includes(caps?.browserName?.toLowerCase())) {
 
                     handleHealingInstrumentation(authResult, browserStackConfig, options.selfHeal)
