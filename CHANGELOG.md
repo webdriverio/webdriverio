@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.40.1 (2024-08-06)
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#13331](https://github.com/webdriverio/webdriverio/pull/13331) fix(@wdio/runner): retry on Outdated Optimize Dep Vite errors (#13330) ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.40.0 (2024-08-05)
 
 #### :bug: Bug Fix
