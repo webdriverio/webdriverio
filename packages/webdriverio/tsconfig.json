@@ -8,11 +8,10 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.cts",
     "../../@types",
   ],
   "exclude": [
     "node_modules",
-    "build"
+    "build/**/*"
   ]
 }

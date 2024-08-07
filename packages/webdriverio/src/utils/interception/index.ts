@@ -41,7 +41,7 @@ export default class WebDriverInterception {
     #respondOverwrites: Overwrite[] = []
     #calls: local.NetworkResponseCompletedParameters[] = []
 
-    private constructor (
+    constructor (
         pattern: URLPattern,
         mockId: string,
         filterOptions: MockFilterOptions,
@@ -279,7 +279,7 @@ export default class WebDriverInterception {
     /**
      * allows access to all requests made with given pattern
      */
-    get calls() {
+    get calls(): local.NetworkResponseCompletedParameters[] {
         return this.#calls
     }
 

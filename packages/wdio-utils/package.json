@@ -36,6 +36,10 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "scripts": {
+    "build": "rimraf build && rollup -c",
+    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
+  },
   "dependencies": {
     "@puppeteer/browsers": "^2.2.0",
     "@wdio/logger": "workspace:*",
