@@ -259,7 +259,7 @@ describe('WebDriver', () => {
         it('should apply default connection details', () => {
             const client = WebDriver.attachToSession({ sessionId: '123', port: 4321 })
             expect(client.options.protocol).toBe('http')
-            expect(client.options.hostname).toBe('0.0.0.0')
+            expect(client.options.hostname).toBe('127.0.0.1')
             expect(client.options.port).toBe(4321)
             expect(client.options.path).toBe('/')
         })
@@ -298,7 +298,7 @@ describe('WebDriver', () => {
 
         it('starts a new driver process if browserName is given', async () => {
             vi.mocked(startWebDriver).mockImplementation((params) => {
-                params.hostname = '0.0.0.0'
+                params.hostname = '127.0.0.1'
                 params.port = 4444
                 return { pid: 1234 } as any
             })
@@ -324,10 +324,10 @@ describe('WebDriver', () => {
             expect(session.options.hostname).toBe('1.1.1.1')
             expect(session.options.port).toBe(5555)
 
-            await WebDriver.reloadSession(session, { protocol: 'http', hostname: '0.0.0.0', browserName: 'firefox' })
+            await WebDriver.reloadSession(session, { protocol: 'http', hostname: '127.0.0.1', browserName: 'firefox' })
             expect(startWebDriver).toHaveBeenCalledOnce()
             expect(session.options.protocol).toBe('http')
-            expect(session.options.hostname).toBe('0.0.0.0')
+            expect(session.options.hostname).toBe('127.0.0.1')
             expect((session.requestedCapabilities as WebdriverIO.Capabilities)['browserName']).toBe('firefox')
         })
     })

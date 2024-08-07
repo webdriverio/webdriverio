@@ -21,7 +21,7 @@ Default: `http`
 Host of your driver server.
 
 Type: `String`<br />
-Default: `0.0.0.0`
+Default: `127.0.0.1`
 
 ### port
 
