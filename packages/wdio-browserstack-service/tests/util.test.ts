@@ -924,15 +924,14 @@ describe('getObservabilityBuildTags', () => {
 })
 
 describe('shouldAddServiceVersion', () => {
-    // it('return true', () => {
-    //     const cfg = {
-    //         user: 'foo',
-    //         key: '12345678901234567890',
-    //         hostname: 'hub.browserstack.com',
-    //         services: ['chromedriver']
-    //     }
-    //     expect(shouldAddServiceVersion(cfg as any, true)).toEqual(true)
-    // })
+    it('return true', () => {
+        const cfg = {
+            user: 'foo',
+            key: '12345678901234567890',
+            services: ['chromedriver']
+        }
+        expect(shouldAddServiceVersion(cfg as any, false)).toEqual(true)
+    })
 
     it('return false', () => {
         expect(shouldAddServiceVersion({ services: ['chromedriver'] }, true)).toEqual(false)
