@@ -7,8 +7,8 @@ authorsImageURL: https://avatars.githubusercontent.com/u/48865319?s=400&u=e29230
 
 # Interacting with Chrome DevTools from WebDriverIO: A Guide
 
-One of WebDriverIO features is the ability to interact with Chrome DevTools, which can be extremely helpful for debugging and testing web applications and browser extensions. This guide will show you how to perform any interaction with DevTools using WebDriverIO v8 and will follow the WebDriverIO v7 guide. In this blog, we'll explore how to use WebDriverIO to interact with the Chrome DevTools, specifically focusing on interacting with the PixiJS extension.
-You can find a complete example in [Github](https://github.com/gromanas/wdio-devtools-demo)
+One of WebDriverIO features is the ability to interact with Chrome DevTools, which can be extremely helpful for debugging and testing web applications and browser extensions. In this blog, we'll explore how to use WebDriverIO to interact with the Chrome DevTools, specifically focusing on interacting with the PixiJS extension.
+You can find a complete example in [Github](https://github.com/gromanas/wdio-devtools-demo).
 
 # Devtools in WebdriverIO v8
 
@@ -51,9 +51,6 @@ export const config = {
           ),
         ],
       },
-      "goog:loggingPrefs": {
-        browser: "INFO",
-      },
     },
   ],
   logLevel: "debug",
@@ -75,6 +72,7 @@ Next, we write a test script to interact with the PixiJS extension through Chrom
 
 ```javascript
 import { $, browser } from "@wdio/globals";
+import { Key } from "webdriverio";
 
 describe("DevTools Test on latest chrome", function () {
   it("Devtools Navigation", async function () {
@@ -89,8 +87,9 @@ describe("DevTools Test on latest chrome", function () {
     // Switch to devtools window.
     await browser.switchToWindow(handles[1]);
 
-    // Navigate through devtool tabs (for Linux use ['Control', '[']).
-    await browser.keys(["Meta", "["]);
+    // Navigate through devtool tabs.
+    // For linux machines use [Key.Control, '['] .
+    await browser.keys([Key.Meta, "["]);
 
     // Switch to devtool extension iframe.
     await browser.switchToFrame(0);
