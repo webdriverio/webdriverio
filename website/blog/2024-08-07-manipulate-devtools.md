@@ -57,11 +57,10 @@ export const config = {
     },
   ],
   logLevel: "debug",
-  services: [["devtools"]],
   framework: "mocha",
   mochaOpts: {
     ui: "bdd",
-    timeout: 1000000,
+    timeout: 1000 * 60 * 5, // 5 min
   },
 };
 ```
