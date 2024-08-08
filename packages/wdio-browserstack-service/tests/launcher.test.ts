@@ -34,7 +34,7 @@ describe('onPrepare', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
     const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
@@ -443,7 +443,7 @@ describe('onPrepare', () => {
         const capabilities = [{ build: 'browserstack wdio build', 'browserstack.buildIdentifier': '#${BUILD_NUMBER}' }]
         const service = new BrowserstackLauncher(options, capabilities, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -461,7 +461,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         }, capabilities, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -479,7 +479,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         }, capabilities, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -496,7 +496,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         }, capabilities, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -615,7 +615,7 @@ describe('constructor', () => {
     const options: BrowserstackConfig = { }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: [],
         specs: []
     }
@@ -738,7 +738,7 @@ describe('_updateCaps', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -853,7 +853,7 @@ describe('_updateObjectTypeCaps', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -1031,7 +1031,7 @@ describe('_handleBuildIdentifier', () => {
     const options: BrowserstackConfig & Testrunner = { browserstackLocal: true, capabilities: [] }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 

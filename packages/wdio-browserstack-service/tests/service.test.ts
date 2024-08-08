@@ -376,7 +376,7 @@ describe('before', () => {
             [{ app: 'test-app' }] as any,
             {
                 user: 'foo',
-                key: 'bar',
+                key: '12345678901234567890',
                 capabilities: {
                     app: 'test-app'
                 } as any
@@ -400,7 +400,7 @@ describe('before', () => {
             app: 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
-            key: 'bar',
+            key: '12345678901234567890',
             capabilities: {
                 app: 'test-app' as any
             }
@@ -416,7 +416,7 @@ describe('before', () => {
             app: 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
-            key: 'bar',
+            key: '12345678901234567890',
             capabilities: {
                 ['appium:app']: 'test-app'
             }
@@ -441,7 +441,7 @@ describe('before', () => {
             turboScale: true
         }, {}, {
             user: 'foo',
-            key: 'bar',
+            key: '12345678901234567890',
             capabilities: {}
         })
         service.before(service['_config'], [], browser)
@@ -456,7 +456,7 @@ describe('before', () => {
             turboScale: true
         }, {}, {
             user: 'foo',
-            key: 'bar',
+            key: '12345678901234567890',
             capabilities: {}
         })
         service.before(service['_config'] as any, [], browser)
