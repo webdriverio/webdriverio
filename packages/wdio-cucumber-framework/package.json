@@ -21,7 +21,7 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "main": "./build/index.cjs",
+  "main": "./cjs/index.js",
   "type": "module",
   "module": "./build/index.js",
   "exports": {
@@ -29,9 +29,9 @@
       {
         "types": "./build/index.d.ts",
         "import": "./build/index.js",
-        "require": "./build/index.cjs"
+        "require": "./cjs/index.js"
       },
-      "./build/index.cjs"
+      "./cjs/index.js"
     ],
     "./package.json": "./package.json"
   },

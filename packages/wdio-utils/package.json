@@ -12,8 +12,8 @@
       "types": "./build/index.d.ts"
     },
     "./node": {
-      "import": "./build/node/index.js",
-      "types": "./build/node/index.d.ts"
+      "import": "./build/node.js",
+      "types": "./build/node.d.ts"
     },
     "./package.json": "./package.json"
   },

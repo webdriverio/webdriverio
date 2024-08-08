@@ -7,7 +7,7 @@
   "license": "MIT",
   "type": "module",
   "types": "./build/index.d.ts",
-  "main": "./build/index.cjs",
+  "main": "./cjs/index.js",
   "browser": "./build/web.js",
   "exports": {
     ".": "./build/index.js",

@@ -3,6 +3,16 @@ import path from 'node:path'
 import { builtinModules } from 'node:module'
 import esbuild from 'rollup-plugin-esbuild'
 import dts from 'rollup-plugin-dts'
+import json from '@rollup/plugin-json'
+
+export function getExternal(pkg) {
+    return [
+        ...builtinModules,
+        ...builtinModules.map((mod) => `node:${mod}`),
+        ...Object.keys(pkg.dependencies || {}),
+        ...Object.keys(pkg.peerDependencies || {}),
+    ]
+}
 
 /**
  * return the basic rollup config for a WebdriverIO package
@@ -11,12 +21,7 @@ import dts from 'rollup-plugin-dts'
  * @returns a rollup config
  */
 export function getRollupConfig(pkgDir, pkg, opts = {}) {
-    const external = [
-        ...builtinModules,
-        ...builtinModules.map((mod) => `node:${mod}`),
-        ...Object.keys(pkg.dependencies || {}),
-        ...Object.keys(pkg.peerDependencies || {}),
-    ]
+    const external = getExternal(pkg)
 
     /** @type {import('rollup').RollupOptions} */
     const typeConfig = {
@@ -45,7 +50,7 @@ export function getRollupConfig(pkgDir, pkg, opts = {}) {
                 format: 'es'
             },
             external,
-            plugins: [esbuild({ target: 'node18' }), ...(opts.esm?.plugins || [])],
+            plugins: [esbuild({ target: 'node18' }), ...(opts.esm?.plugins || []), json()],
             onwarn,
         }
         builds.unshift(esmConfig)
@@ -54,16 +59,16 @@ export function getRollupConfig(pkgDir, pkg, opts = {}) {
     /**
      * only build cjs if there is a main field in package.json
      */
-    if (typeof pkg.main === 'string') {
+    if (pkg.main) {
         /** @type {import('rollup').RollupOptions} */
         const cjsConfig = {
             input: path.resolve(pkgDir, 'src', 'index.ts'),
             output: {
-                file: path.resolve(pkgDir, 'build', 'index.cjs.js'),
+                dir: path.resolve(pkgDir, 'cjs'),
                 format: 'cjs'
             },
             external,
-            plugins: [esbuild({ target: 'node18' }), ...(opts.cjs?.plugins || [])],
+            plugins: [esbuild({ target: 'node18' }), ...(opts.cjs?.plugins || []), json()],
             onwarn,
         }
 

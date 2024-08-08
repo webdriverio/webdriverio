@@ -65,6 +65,7 @@
     "@aws-sdk/lib-storage": "^3.624.0",
     "@octokit/rest": "^21.0.1",
     "@preact/preset-vite": "^2.9.0",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-typescript": "^11.1.6",
     "@serenity-js/core": "^3.25.3",
     "@stencil/core": "^4.20.0",

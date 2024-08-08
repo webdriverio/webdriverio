@@ -1,3 +1,4 @@
+/// <reference types="@wdio/globals/types" />
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'

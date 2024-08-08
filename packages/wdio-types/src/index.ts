@@ -43,7 +43,7 @@ declare global {
         /**
          * Service option to be extended by ecosystem services
          */
-        interface ServiceOption extends Services.ServiceOption {}
+        interface ServiceOption extends Services.ServiceOptionType {}
         /**
          * Reporter option to be extended by ecosystem reporters
          */
@@ -68,7 +68,7 @@ declare global {
         /**
          * A network request during a WebDriver Bidi session
          */
-        interface Request extends Network.Request {}
+        interface Request extends Network.NetworkRequest {}
 
         /**
          * types to be extended by ecosystem framework adapters

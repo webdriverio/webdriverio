@@ -54,6 +54,8 @@ import type {
 
 export const FILE_PROTOCOL = 'file://'
 
+interface CucumberTestrunnerConfig extends Options.Testrunner, HookFunctionExtensionImport {}
+
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
@@ -81,7 +83,7 @@ class CucumberAdapter {
 
     constructor(
         private _cid: string,
-        private _config: Options.Testrunner,
+        private _config: CucumberTestrunnerConfig,
         private _specs: string[],
         private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _reporter: EventEmitter,
@@ -388,7 +390,7 @@ class CucumberAdapter {
      * @param {object} config config
      */
     addWdioHooks(
-        config: Options.Testrunner,
+        config: CucumberTestrunnerConfig,
         supportCodeLibraryBuilder: typeof Cucumber.supportCodeLibraryBuilder
     ) {
         const params: { uri?: string; feature?: Feature } = {}
