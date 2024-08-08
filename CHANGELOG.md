@@ -19,6 +19,24 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.38.0 (2024-08-07)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#13224](https://github.com/webdriverio/webdriverio/pull/13224) fix(wdio-browserstack-service): Fetching hostname in case of MultiRemote Browser  ([@akanksha1909](https://github.com/akanksha1909))
+  * [#12953](https://github.com/webdriverio/webdriverio/pull/12953) SDK-694: Fix for showing reason for passed test (v7) ([@TamsilAmani](https://github.com/TamsilAmani))
+  * [#12848](https://github.com/webdriverio/webdriverio/pull/12848) [browserstack-service] Minor Fix: Change log level  ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#12931](https://github.com/webdriverio/webdriverio/pull/12931) SDK-667 : Limit VCS info to 64kb v7 ([@TamsilAmani](https://github.com/TamsilAmani))
+
+#### Committers: 3
+- Akanksha singh ([@akanksha1909](https://github.com/akanksha1909))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Tamsil Sajid Amani ([@TamsilAmani](https://github.com/TamsilAmani))
+
+
 ## v7.37.1 (2024-04-20)
 
 #### :nail_care: Polish
