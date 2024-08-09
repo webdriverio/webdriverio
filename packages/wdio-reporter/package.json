@@ -29,21 +29,13 @@
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
-    "./package.json": "./package.json",
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./cjs/index.js"
-      },
-      "./cjs/index.js"
-    ]
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "require": "./build/index.cjs"
+    }
   },
   "typeScriptVersion": "3.8.3",
-  "scripts": {
-    "build": "rimraf build && rollup -c",
-    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
-  },
   "dependencies": {
     "@types/node": "^20.1.0",
     "@wdio/logger": "workspace:*",

@@ -1,4 +1,4 @@
-export interface NetworkRequest {
+export interface Request {
     id?: string
     url: string
     timestamp: number

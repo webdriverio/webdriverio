@@ -9,13 +9,10 @@
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
-    "import": {
+    ".": {
       "types": "./build/index.d.ts",
-      "default": "./build/index.js"
-    },
-    "require": {
-      "types": "./build/index.d.ts",
-      "default": "./cjs/index.js"
+      "import": "./build/index.js",
+      "require": "./build/index.cjs"
     }
   },
   "type": "module",
@@ -37,10 +34,6 @@
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
-  },
-  "scripts": {
-    "build": "rimraf build && rollup -c",
-    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
   },
   "devDependencies": {
     "@types/estree": "^1.0.1",

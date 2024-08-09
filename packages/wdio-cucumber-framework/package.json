@@ -25,22 +25,14 @@
   "type": "module",
   "module": "./build/index.js",
   "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./cjs/index.js"
-      },
-      "./cjs/index.js"
-    ],
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "require": "./build/index.cjs"
+    }
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
-  "scripts": {
-    "build": "rimraf build && rollup -c",
-    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
-  },
   "dependencies": {
     "@cucumber/cucumber": "^10.3.1",
     "@cucumber/gherkin": "28.0.0",
@@ -49,6 +41,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
+    "import-meta-resolve": "^4.1.0",
     "glob": "^10.2.2",
     "is-glob": "^4.0.0"
   },

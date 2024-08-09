@@ -13,10 +13,10 @@
       "types": "./build/index.d.ts"
     },
     "./node": {
-      "import": "./build/node.js",
-      "types": "./build/node.d.ts"
-    },
-    "./package.json": "./package.json"
+      "importSource": "./src/node/index.ts",
+      "import": "./build/node/index.js",
+      "types": "./build/node/index.d.ts"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
@@ -34,10 +34,6 @@
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
-  },
-  "scripts": {
-    "build": "rimraf build && rollup -c",
-    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
   },
   "dependencies": {
     "@wdio/logger": "workspace:*",

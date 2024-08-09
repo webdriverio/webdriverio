@@ -68,7 +68,7 @@ declare global {
         /**
          * A network request during a WebDriver Bidi session
          */
-        interface Request extends Network.NetworkRequest {}
+        interface Request extends Network.Request {}
 
         /**
          * types to be extended by ecosystem framework adapters
