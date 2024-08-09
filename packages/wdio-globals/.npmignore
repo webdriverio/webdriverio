@@ -1,5 +1,4 @@
 src
 tests
 tsconfig.json
-tsconfig.prod.json
-rollup.config.jstsconfig.cjs.json
+tsconfig.prod.jsontsconfig.cjs.json
