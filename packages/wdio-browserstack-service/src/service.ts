@@ -9,7 +9,7 @@ import {
     isBrowserstackSession,
     patchConsoleLogs
 } from './util.js'
-import type { BrowserstackConfig, MultiRemoteAction } from './types.js'
+import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
@@ -21,6 +21,7 @@ import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
 import { saveWorkerData } from './data-store.js'
 import UsageStats from './testOps/usageStats.js'
+import AiHandler from './ai-handler.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -31,7 +32,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _suiteTitle?: string
     private _suiteFile?: string
     private _fullTitle?: string
-    private _options: BrowserstackConfig & Options.Testrunner
+    private _options: BrowserstackConfig & BrowserstackOptions
     private _specsRan: boolean = false
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
@@ -107,6 +108,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async before(caps: Capabilities.ResolvedTestrunnerCapabilities, specs: string[], browser: WebdriverIO.Browser) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : globalThis.browser
+
+        // Healing Support:
+        if (!isBrowserstackSession(this._browser)) {
+            try {
+                await AiHandler.selfHeal(this._options, caps, this._browser)
+            } catch (err) {
+                if (this._options.selfHeal === true) {
+                    BStackLogger.warn(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
+                }
+            }
+        }
 
         // Ensure capabilities are not null in case of multiremote
 
