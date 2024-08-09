@@ -201,7 +201,7 @@ function fetchElementByJSFunction (
     if (referenceId) {
         args.push(referenceId)
     }
-    return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, ...args)
+    return getBrowserObject(scope).executeScript(`return (${script}).apply(null, arguments)`, args)
 }
 
 export function isElement (o: Selector){
@@ -491,7 +491,7 @@ export async function findElement(
         return getElementFromResponse(elem) ? elem : notFoundError
     }
 
-    throw new Error(INVALID_SELECTOR_ERROR)
+    throw new Error(`${INVALID_SELECTOR_ERROR}, but found: ${typeof selector}`)
 }
 
 /**
@@ -548,7 +548,7 @@ export async function findElements(
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
     }
 
-    throw new Error(INVALID_SELECTOR_ERROR)
+    throw new Error(`${INVALID_SELECTOR_ERROR}, but found: ${typeof selector}`)
 }
 
 /**

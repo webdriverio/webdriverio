@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ELEMENT_KEY } from 'webdriver'
 import stringify from 'safe-stable-stringify'
 
 import { deserializeValue } from '../../../src/utils/bidi/index.js'
@@ -16,7 +17,9 @@ describe('LocalValue', () => {
         BigInt(9007199254740991),
         new Map([[1, 2]]),
         new Set([1, new Map([['string', true]]), 3, new Map([[1, 2]])]),
-        /foobar/
+        /foobar/,
+        { 'foo': 'bar', nested: new Map([['this', 'works']]) },
+        { [ELEMENT_KEY]: 'foobar' }
     ])
 
     it('should be able to serialize it', () => {
@@ -117,6 +120,36 @@ describe('LocalValue', () => {
                   "flags": "",
                   "pattern": "foobar"
                 }
+              },
+              {
+                "type": "object",
+                "value": [
+                  [
+                    "foo",
+                    {
+                      "type": "string",
+                      "value": "bar"
+                    }
+                  ],
+                  [
+                    "nested",
+                    {
+                      "type": "map",
+                      "value": [
+                        [
+                          "this",
+                          {
+                            "type": "string",
+                            "value": "works"
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              },
+              {
+                "sharedId": "foobar"
               }
             ]
           }"
@@ -124,7 +157,7 @@ describe('LocalValue', () => {
     })
 
     it('should be able to deserialize it', () => {
-        expect(deserializeValue(value.asMap())).toMatchInlineSnapshot(`
+        expect(deserializeValue(value.asMap() as any)).toMatchInlineSnapshot(`
           [
             undefined,
             "string",
@@ -148,7 +181,28 @@ describe('LocalValue', () => {
               },
             },
             /foobar/,
+            {
+              "foo": "bar",
+              "nested": Map {
+                "this" => "works",
+              },
+            },
+            undefined,
           ]
         `)
+        expect(deserializeValue({
+            sharedId: 'f.44C98D3D1D8C6C82E24E94E038744493.d.123615DE0B294C5077D7F1903A856E6A.e.9',
+            type: 'node',
+            value: {
+                attributes: {},
+                childNodeCount: 9,
+                localName: 'body',
+                namespaceURI: 'http://www.w3.org/1999/xhtml',
+                nodeType: 1,
+                shadowRoot: null
+            }
+        })).toEqual({
+            [ELEMENT_KEY]: 'f.44C98D3D1D8C6C82E24E94E038744493.d.123615DE0B294C5077D7F1903A856E6A.e.9'
+        })
     })
 })

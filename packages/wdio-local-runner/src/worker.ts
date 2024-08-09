@@ -94,7 +94,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
-        const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
+        const runnerEnv = Object.assign({
+            NODE_OPTIONS: '--enable-source-maps',
+        }, process.env, this.config.runnerEnv, {
             WDIO_WORKER_ID: cid,
             NODE_ENV: process.env.NODE_ENV || 'test'
         })
