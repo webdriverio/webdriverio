@@ -82,33 +82,6 @@ export function generateDts(absWorkingDir: string): Plugin {
 }
 
 /**
- * Make the CJS build of the `webdriver` package always export the `ws` module
- * as we don't support the browser socket implementation in the CJS build
- * @returns {Plugin} an Esbuild plugin
- */
-export function exportNodeSocket(): Plugin {
-    let pluginWasUsed = false
-
-    return {
-        name: 'ExportBrowserSocket',
-        setup(build) {
-            build.onLoad({ filter: /src\/bidi\/socket\.ts$/ }, () => {
-                pluginWasUsed = true
-                return {
-                    contents: 'import ws from \'ws\'\nexport default ws'
-                }
-            })
-
-            build.onEnd(() => {
-                if (!pluginWasUsed) {
-                    throw new Error('Plugin was not used')
-                }
-            })
-        }
-    }
-}
-
-/**
  * Plugin to copy EJS templates from the `@wdio/cli` package to build directory
  * @returns {Plugin} an Esbuild plugin
  */

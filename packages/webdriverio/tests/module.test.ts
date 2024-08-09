@@ -63,6 +63,7 @@ vi.mock('http', () => {
 describe('WebdriverIO module interface', () => {
     beforeEach(() => {
         vi.mocked(WebDriver.newSession).mockClear()
+        vi.mocked(WebDriver.attachToSession).mockClear()
         vi.mocked(detectBackend).mockClear()
     })
 

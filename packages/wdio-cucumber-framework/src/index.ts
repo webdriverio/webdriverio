@@ -2,11 +2,11 @@ import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
 import { Writable } from 'node:stream'
 
 import isGlob from 'is-glob'
-import { resolve } from 'import-meta-resolve'
 import { sync as globSync } from 'glob'
 
 import logger from '@wdio/logger'
@@ -56,6 +56,8 @@ export const FILE_PROTOCOL = 'file://'
 
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
+const require = createRequire(import.meta.url)
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 function getResultObject(
     world: Cucumber.ITestCaseHookParameter
@@ -86,7 +88,7 @@ class CucumberAdapter {
         private _reporter: EventEmitter,
         private _eventEmitter: EventEmitter,
         private _generateSkipTags: boolean = true,
-        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(url.fileURLToPath(import.meta.url), '..', 'cucumberFormatter.js')).href
+        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(__dirname, 'cucumberFormatter.js')).href
     ) {
         this._eventEmitter = new EventEmitter()
         this._cucumberOpts = Object.assign(
@@ -356,7 +358,7 @@ class CucumberAdapter {
                 : url.pathToFileURL(path.join(process.cwd(), module)).href
             // This allows rerunning a stepDefinitions file
             const stepDefPath = url.pathToFileURL(
-                await resolve(url.fileURLToPath(filepath), import.meta.url)
+                require.resolve(url.fileURLToPath(filepath))
             ).href
             const cacheEntryToDelete = Object.keys(require.cache).find(
                 (u) => url.pathToFileURL(u).href === stepDefPath

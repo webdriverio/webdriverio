@@ -1620,6 +1620,9 @@ importers:
       '@wdio/shared-store-service':
         specifier: workspace:*
         version: link:../packages/wdio-shared-store-service
+      '@wdio/smoke-test-cjs-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-smoke-test-cjs-service
       '@wdio/smoke-test-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-smoke-test-reporter

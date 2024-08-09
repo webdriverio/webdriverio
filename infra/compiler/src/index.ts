@@ -6,7 +6,7 @@ import { build, context, type BuildOptions, type Plugin } from 'esbuild'
 import type { PackageJson } from 'type-fest'
 
 import { getExternal } from './utils.js'
-import { log, clear, generateDts, exportNodeSocket, copyEJSTemplates, externalScripts } from './plugins.js'
+import { log, clear, generateDts, copyEJSTemplates, externalScripts } from './plugins.js'
 import { generateTypes } from './type-generation/index.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -59,9 +59,7 @@ const esmPlugins: Record<string, Plugin[]> = {
 /**
  * plugins for the cjs build
  */
-const cjsPlugins: Record<string, Plugin[]> = {
-    'webdriver': [exportNodeSocket()]
-}
+const cjsPlugins: Record<string, Plugin[]> = {}
 /**
  * plugins for the browser build
  */
@@ -72,19 +70,23 @@ const browserPlugins: Record<string, Plugin[]> = {}
  */
 const configs = packages.map(([packageDir, pkg]) => {
     const packageBuilds: BuildOptions[] = []
+    const exports = (pkg.exports || {}) as PackageJson.ExportConditions
 
     if (!pkg.name) {
         throw new Error(`Package in ${packageDir} does not have a "name" field, which is required to build the package`)
     }
 
-    if (!pkg.exports) {
-        throw new Error(`Package ${pkg.name} does not have an "exports" field, which is required to build the package`)
+    /**
+     * in cases where we don't have an exports field but a main field
+     * we assume that the main field is the main entry point of the package
+     */
+    if (!pkg.exports && pkg.main) {
+        exports['.'] = {
+            require: pkg.main
+        }
     }
 
-    const exportedModules = typeof pkg.exports === 'object'
-        ? Object.entries(pkg.exports).filter?.(([, exp]) => typeof exp === 'object' && !Array.isArray(exp)) as [string, PackageJson.ExportConditions][]
-        : [] as [string, PackageJson.ExportConditions][]
-
+    const exportedModules = Object.entries(exports).filter?.(([, exp]) => typeof exp === 'object' && !Array.isArray(exp)) as [string, PackageJson.ExportConditions][]
     for (const [target, exp] of exportedModules) {
         const absWorkingDir = path.resolve(rootDir, 'packages', packageDir)
         const source = (exp.source as string | undefined) || './src/index.ts'
@@ -137,6 +139,7 @@ const configs = packages.map(([packageDir, pkg]) => {
             const requireSource = (exp.requireSource as string | undefined) || source
             const cjsBuild: BuildOptions = {
                 ...baseConfig,
+                external: getExternal(pkg),
                 entryPoints: [path.resolve(absWorkingDir, requireSource)],
                 platform: 'node',
                 format: 'cjs',
@@ -154,6 +157,15 @@ const configs = packages.map(([packageDir, pkg]) => {
                 cjsBuild.outdir = path.resolve(absWorkingDir, path.dirname(exp.require))
             } else {
                 cjsBuild.outfile = path.resolve(absWorkingDir, exp.require)
+            }
+
+            /**
+             * if we define an `index.cts` as require source it is suppose to be a small wrapper
+             * around the main source file that exports the main source file within the CJS context,
+             * hence we need to mark this export as external
+             */
+            if (requireSource.endsWith('.cts')) {
+                cjsBuild.external?.push('./index.js')
             }
 
             cjsBuild.plugins?.push(
