@@ -43,7 +43,7 @@ declare global {
         /**
          * Service option to be extended by ecosystem services
          */
-        interface ServiceOption extends Services.ServiceOptionType {}
+        interface ServiceOption extends Services.ServiceOption {}
         /**
          * Reporter option to be extended by ecosystem reporters
          */

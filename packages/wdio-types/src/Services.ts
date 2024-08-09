@@ -25,7 +25,7 @@ export interface RunnerPlugin extends RunnerClass {
     launcher?: RunnerClass
 }
 
-export interface ServiceOptionType {
+export interface ServiceOption {
     [key: string]: any
 }
 

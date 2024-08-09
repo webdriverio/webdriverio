@@ -24,10 +24,6 @@
   "main": "./build/index.cjs",
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
-  "scripts": {
-    "build": "rimraf build && rollup -c ./rollup.config.mjs",
-    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c ./rollup.config.mjs --watch -m inline"
-  },
   "dependencies": {
     "@types/node": "^20.1.0"
   }

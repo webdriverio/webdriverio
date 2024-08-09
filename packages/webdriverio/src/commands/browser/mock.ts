@@ -127,10 +127,5 @@ export async function mock(
     }
     const networkInterception = await WebDriverInterception.initiate(url, filterOptions || {}, this)
     SESSION_MOCKS[handle].add(networkInterception)
-
-    /**
-     * we have to explicitly cast here otherwise TS will complain:
-     * > Property '#private' is missing in type 'WebDriverInterception' but required in type 'Mock'.
-     */
-    return networkInterception as unknown as WebdriverIO.Mock
+    return networkInterception as WebdriverIO.Mock
 }

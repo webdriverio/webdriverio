@@ -1,4 +1,3 @@
-/// <reference types="@wdio/types" />
 import { validateUrl } from '../../utils/index.js'
 import { networkManager } from '../../networkManager.js'
 

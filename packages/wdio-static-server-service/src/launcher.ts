@@ -34,22 +34,18 @@ export default class StaticServerLauncher implements Services.ServiceInstance {
         if (outputDir) {
             const file = join(outputDir, DEFAULT_LOG_NAME)
             const stream = fs.createWriteStream(file)
-            // @ts-ignore
-            this._server!.use(morgan('tiny', { stream }))
+            this._server.use(morgan('tiny', { stream }))
         }
 
         this._folders.forEach((folder: FolderOption) => {
             log.info('Mounting folder `%s` at `%s`', resolve(folder.path), folder.mount)
-            // @ts-ignore
             this._server!.use(folder.mount, express.static(folder.path))
         })
 
         this._middleware.forEach(
-            // @ts-ignore
             (ware: MiddleWareOption) => this._server!.use(ware.mount, ware.middleware as unknown as express.Application))
 
-        // @ts-ignore
-        const listen = <(port: number) => Promise<any>> promisify(this._server?.listen.bind(this._server))
+        const listen = <(port: number) => Promise<any>> promisify(this._server.listen.bind(this._server))
         await listen(this._port)
         log.info(`Static server running at http://localhost:${this._port}`)
     }
