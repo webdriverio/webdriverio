@@ -17,7 +17,7 @@ export default class FetchRequest extends WebDriverRequest {
         super(method, endpoint, body, isHubCommand)
     }
 
-    protected async _libRequest (url: URL, opts: RequestInit) {
+    protected async _libRequest (url: URL, opts: RequestInit): Promise<Options.RequestLibResponse> {
         try {
             const response = await fetch(url, {
                 method: opts.method,

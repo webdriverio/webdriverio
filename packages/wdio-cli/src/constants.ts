@@ -1,6 +1,5 @@
-import fs from 'node:fs/promises'
+import fs from 'node:fs'
 import path from 'node:path'
-import { createRequire } from 'node:module'
 import { HOOK_DEFINITION } from '@wdio/utils'
 import type { Options, Services, Reporters } from '@wdio/types'
 
@@ -12,10 +11,9 @@ import {
     detectPackageManager,
 } from './utils.js'
 import type { Questionnair } from './types.js'
+import pkgJSON from '../package.json' with { type: 'json' }
 
-const require = createRequire(import.meta.url)
-export const pkg = require('../package.json')
-
+export const pkg = pkgJSON
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
 
 export const CONFIG_HELPER_INTRO = `
@@ -24,6 +22,7 @@ export const CONFIG_HELPER_INTRO = `
 ===============================
 `
 
+export const SUPPORTED_COMMANDS = ['run', 'install', 'config', 'repl']
 export const PMs = ['npm', 'yarn', 'pnpm', 'bun'] as const
 export const SUPPORTED_CONFIG_FILE_EXTENSION = ['js', 'ts', 'mjs', 'mts', 'cjs', 'cts']
 export const configHelperSuccessMessage = ({ projectRootDir, runScript, extraInfo = '' }: { projectRootDir: string, runScript: string, extraInfo: string }) => `
@@ -229,19 +228,19 @@ function getTestingPurpose (answers: Questionnair) {
     return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos'
 }
 
-export const isNuxtProject = await Promise.all(
-    [
-        path.join(process.cwd(), 'nuxt.config.js'),
-        path.join(process.cwd(), 'nuxt.config.ts'),
-        path.join(process.cwd(), 'nuxt.config.mjs'),
-        path.join(process.cwd(), 'nuxt.config.mts')
-    ].map(
-        (p) => fs.access(p).then(() => true, () => false)
-    )
-).then(
-    (res) => res.some(Boolean),
-    () => false
-)
+export const isNuxtProject = [
+    path.join(process.cwd(), 'nuxt.config.js'),
+    path.join(process.cwd(), 'nuxt.config.ts'),
+    path.join(process.cwd(), 'nuxt.config.mjs'),
+    path.join(process.cwd(), 'nuxt.config.mts')
+].map((p) => {
+    try {
+        fs.accessSync(p)
+        return true
+    } catch {
+        return false
+    }
+}).some(Boolean)
 
 function selectDefaultService (serviceNames: string | string[]) {
     serviceNames = Array.isArray(serviceNames) ? serviceNames : [serviceNames]

@@ -21,6 +21,7 @@ type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
 interface ParsedConfiguration extends Required<Options.Testrunner> {
     rootDir: string
+    mochaOpts: MochaOptsImport
 }
 
 /**

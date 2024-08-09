@@ -19,8 +19,9 @@
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
-    "./package.json": "./package.json"
+    ".": {
+      "import": "./build/index.js"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {

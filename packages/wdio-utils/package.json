@@ -12,10 +12,9 @@
       "types": "./build/index.d.ts"
     },
     "./node": {
-      "import": "./build/node/index.js",
-      "types": "./build/node/index.d.ts"
-    },
-    "./package.json": "./package.json"
+      "source": "./src/node/index.ts",
+      "import": "./build/node.js"
+    }
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
