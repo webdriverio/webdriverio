@@ -43,7 +43,7 @@
     "cucumber",
     "testingbot"
   ],
-  "main": "./cjs/index.js",
+  "main": "./build/index.cjs",
   "type": "module",
   "module": "./build/index.js",
   "exports": {

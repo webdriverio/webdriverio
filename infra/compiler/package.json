@@ -1,5 +1,5 @@
 {
-  "name": "@wdio/build",
+  "name": "@wdio/compiler",
   "private": true,
   "type": "module",
   "scripts": {

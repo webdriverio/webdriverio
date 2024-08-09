@@ -1256,8 +1256,6 @@ importers:
         specifier: ^20.1.0
         version: 20.14.14
 
-  packages/wdio-smoke-test-service/cjs: {}
-
   packages/wdio-spec-reporter:
     dependencies:
       '@wdio/reporter':

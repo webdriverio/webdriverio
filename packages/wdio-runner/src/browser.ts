@@ -474,7 +474,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             ? (await browser.getLogs('browser').catch(() => []))
             : []
         const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE') as LogMessage[]
-        if (logs.length) {
+        if (severeLogs.length) {
             if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
                 log.info('Retry test run due to outdated optimize dep')
                 this.#retryOutdatedOptimizeDep = true

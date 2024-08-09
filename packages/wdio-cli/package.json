@@ -25,15 +25,10 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "main": "./cjs/index.js",
+  "main": "./build/index.cjs",
   "type": "module",
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
-  "scripts": {
-    "build": "rimraf build && rollup -c",
-    "copy": "copyfiles -u 1 -V \"src/templates/**/*\" ./build/",
-    "dev": "NODE_OPTIONS=\"--max-old-space-size=8192\" rollup -c --watch -m inline"
-  },
   "exports": {
     ".": {
       "types": "./build/index.d.ts",

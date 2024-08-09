@@ -8,6 +8,12 @@ import type { PackageJson } from 'type-fest'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
+/**
+ * little logger plugin for Esbuild
+ * @param {BuildOptions} options  Esbuild options
+ * @param {PackageJson} pkg package.json of given project as object
+ * @returns
+ */
 export function log(options: BuildOptions, pkg: PackageJson): Plugin {
     const srcFile = path.relative(options.absWorkingDir || process.cwd(), (options.entryPoints as string[])[0])
     const outFile = path.relative(options.absWorkingDir || process.cwd(), options.outfile as string)
@@ -26,6 +32,11 @@ export function log(options: BuildOptions, pkg: PackageJson): Plugin {
     }
 }
 
+/**
+ * clear previously generated build files
+ * @param {string} outfile directory that Esbuild usually compiles to
+ * @returns an Esbuild plugin
+ */
 export function clear(outfile: string): Plugin {
     return {
         name: 'ClearPlugin',
@@ -37,6 +48,11 @@ export function clear(outfile: string): Plugin {
     }
 }
 
+/**
+ * generate type definition files (d.ts) for working dir
+ * @param {string} absWorkingDir absolute path to the working directory
+ * @returns an Esbuild plugin
+ */
 export function generateDts(absWorkingDir: string): Plugin {
     return {
         name: 'TypeScriptDeclarationsPlugin',
@@ -47,7 +63,7 @@ export function generateDts(absWorkingDir: string): Plugin {
                 }
 
                 try {
-                    cp.execSync('tsc --emitDeclarationOnly', {
+                    cp.execSync('tsc --emitDeclarationOnly --incremental', {
                         cwd: absWorkingDir,
                         stdio: 'inherit'
                     })
@@ -59,6 +75,11 @@ export function generateDts(absWorkingDir: string): Plugin {
     }
 }
 
+/**
+ * Make the CJS build of the `webdriver` package always export the `ws` module
+ * as we don't support the browser socket implementation in the CJS build
+ * @returns {Plugin} an Esbuild plugin
+ */
 export function exportNodeSocket(): Plugin {
     let pluginWasUsed = false
 
@@ -81,6 +102,10 @@ export function exportNodeSocket(): Plugin {
     }
 }
 
+/**
+ * Plugin to copy EJS templates from the `@wdio/cli` package to build directory
+ * @returns {Plugin} an Esbuild plugin
+ */
 export function copyEJSTemplates () {
     const cliPackage = path.resolve(__dirname, '..', '..', 'packages', 'wdio-cli')
     return copy({

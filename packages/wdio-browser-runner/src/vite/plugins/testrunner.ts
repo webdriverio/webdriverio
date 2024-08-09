@@ -91,6 +91,11 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                 return wdioExpectModulePath
             }
 
+            if (id === '@wdio/logger') {
+                const newId = url.fileURLToPath(await resolve(id, import.meta.url))
+                return path.resolve(path.dirname(newId), 'browser.js')
+            }
+
             /**
              * make sure WDIO imports are resolved properly as ESM module
              */

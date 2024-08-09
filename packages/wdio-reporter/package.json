@@ -25,7 +25,7 @@
     "access": "public"
   },
   "type": "module",
-  "main": "./cjs/index.js",
+  "main": "./build/index.cjs",
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {

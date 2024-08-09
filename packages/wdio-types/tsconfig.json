@@ -4,9 +4,7 @@
     "baseUrl": ".",
     "outDir": "build",
     "rootDir": "src",
-    "removeComments": false,
-    "declaration": true,
-    "declarationDir": "./build"
+    "removeComments": false
   },
   "include": [
     "src/**/*"

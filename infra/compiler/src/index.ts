@@ -142,7 +142,8 @@ const configs = packages.map(([packageDir, pkg]) => {
                     'js': 'const __importMetaUrl = require(\'url\').pathToFileURL(__filename).href;'
                 },
                 define: {
-                    'import.meta.url': '__importMetaUrl'
+                    'import.meta.url': '__importMetaUrl',
+                    'import.meta.resolve': 'require.resolve'
                 }
             }
             cjsBuild.plugins?.push(
