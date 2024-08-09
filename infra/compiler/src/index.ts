@@ -6,7 +6,7 @@ import { build, context, type BuildOptions, type Plugin } from 'esbuild'
 import type { PackageJson } from 'type-fest'
 
 import { getExternal } from './utils.js'
-import { log, clear, generateDts, exportNodeSocket, copyEJSTemplates } from './plugins.js'
+import { log, clear, generateDts, exportNodeSocket, copyEJSTemplates, externalScripts } from './plugins.js'
 import { generateTypes } from './type-generation/index.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -53,7 +53,8 @@ const packages = (
  */
 const esmPlugins: Record<string, Plugin[]> = {
     '@wdio/protocols': [generateTypes()],
-    '@wdio/cli': [copyEJSTemplates()]
+    '@wdio/cli': [copyEJSTemplates()],
+    'webdriverio': [externalScripts()]
 }
 /**
  * plugins for the cjs build
@@ -98,15 +99,19 @@ const configs = packages.map(([packageDir, pkg]) => {
         }
 
         if (typeof exp.import === 'string') {
-            const outfile = path.resolve(absWorkingDir, exp.import)
             const esmSource = (exp.importSource as string | undefined) || source
             const esmBuild: BuildOptions = {
                 ...baseConfig,
                 entryPoints: [path.resolve(absWorkingDir, esmSource)],
-                outfile: outfile,
                 platform: 'node',
                 format: 'esm',
                 plugins: []
+            }
+
+            if (exp.import.endsWith('*')) {
+                esmBuild.outdir = path.resolve(absWorkingDir, path.dirname(exp.import))
+            } else {
+                esmBuild.outfile = path.resolve(absWorkingDir, exp.import)
             }
 
             esmBuild.plugins?.push(
@@ -130,11 +135,9 @@ const configs = packages.map(([packageDir, pkg]) => {
 
         if (typeof exp.require === 'string') {
             const requireSource = (exp.requireSource as string | undefined) || source
-            const outfile = path.resolve(absWorkingDir, exp.require)
             const cjsBuild: BuildOptions = {
                 ...baseConfig,
                 entryPoints: [path.resolve(absWorkingDir, requireSource)],
-                outfile: outfile,
                 platform: 'node',
                 format: 'cjs',
                 plugins: [],
@@ -146,6 +149,13 @@ const configs = packages.map(([packageDir, pkg]) => {
                     'import.meta.resolve': 'require.resolve'
                 }
             }
+
+            if (exp.require.endsWith('*')) {
+                cjsBuild.outdir = path.resolve(absWorkingDir, path.dirname(exp.require))
+            } else {
+                cjsBuild.outfile = path.resolve(absWorkingDir, exp.require)
+            }
+
             cjsBuild.plugins?.push(
                 log(cjsBuild, pkg),
                 ...(cjsPlugins[pkg.name] || [])
@@ -154,12 +164,10 @@ const configs = packages.map(([packageDir, pkg]) => {
         }
 
         if (typeof exp.browser === 'string') {
-            const outfile = path.resolve(absWorkingDir, exp.browser)
             const browserSource = (exp.browserSource as string | undefined) || source
             const browserBuild: BuildOptions = {
                 ...baseConfig,
                 entryPoints: [path.resolve(absWorkingDir, browserSource)],
-                outfile: outfile,
                 platform: 'browser',
                 format: 'esm',
                 target: ['es2021', 'chrome90', 'edge90', 'firefox90', 'safari12'],
@@ -168,6 +176,13 @@ const configs = packages.map(([packageDir, pkg]) => {
                     'top-level-await': true //browsers can handle top-level-await features
                 }
             }
+
+            if (exp.browser.endsWith('*')) {
+                browserBuild.outdir = path.resolve(absWorkingDir, path.dirname(exp.browser))
+            } else {
+                browserBuild.outfile = path.resolve(absWorkingDir, exp.browser)
+            }
+
             browserBuild.plugins?.push(
                 log(browserBuild, pkg),
                 ...(browserPlugins[pkg.name] || [])

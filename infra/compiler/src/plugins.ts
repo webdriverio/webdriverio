@@ -16,7 +16,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
  */
 export function log(options: BuildOptions, pkg: PackageJson): Plugin {
     const srcFile = path.relative(options.absWorkingDir || process.cwd(), (options.entryPoints as string[])[0])
-    const outFile = path.relative(options.absWorkingDir || process.cwd(), options.outfile as string)
+    const outFile = path.relative(options.absWorkingDir || process.cwd(), options.outfile || options.outdir as string)
     return {
         name: 'LogPlugin',
         setup(build) {
@@ -122,4 +122,23 @@ export function copyEJSTemplates () {
             to: path.resolve(cliPackage, 'build', 'templates')
         }]
     })
+}
+
+/**
+ * Plugin to mark all WebdriverIO scripts in `packages/webdriverio/src/scripts` as external
+ */
+export function externalScripts(): Plugin {
+    const name = 'ExternalScripts'
+    return {
+        name,
+        setup(build) {
+            build.onResolve({ filter: /\/scripts\// }, (args) => {
+                return {
+                    path: args.path.replace('../../', './'),
+                    external: true,
+                    pluginName: name
+                }
+            })
+        }
+    }
 }

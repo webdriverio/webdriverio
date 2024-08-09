@@ -51,6 +51,10 @@
       "types": "./build/index.d.ts",
       "import": "./build/index.js",
       "require": "./build/index.cjs"
+    },
+    "./scripts/*": {
+      "source": "./src/scripts/*.ts",
+      "import": "./build/scripts/*"
     }
   },
   "types": "./build/index.d.ts",
