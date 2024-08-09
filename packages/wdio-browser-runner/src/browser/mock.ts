@@ -31,4 +31,5 @@ export const type = 'browser'
 export const sync = () => {}
 export const locateChrome = () => {}
 export const locateFirefox = () => {}
+export const locateApp = () => {}
 export default () => {}
