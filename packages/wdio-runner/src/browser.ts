@@ -120,7 +120,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * is no need to call the url command again
          */
         if (!this._config.sessionId) {
-            await browser.url(`/?cid=${this._cid}&spec=${url.parse(spec).pathname}`)
+            await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
         }
         // await browser.debug()
 
@@ -473,8 +473,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         const logs = typeof browser.getLogs === 'function'
             ? (await browser.getLogs('browser').catch(() => []))
             : []
-        const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE') as LogMessage[]
-        if (logs.length) {
+        const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE' && log.source !== 'deprecation') as LogMessage[]
+        if (severeLogs.length) {
             if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
                 log.info('Retry test run due to outdated optimize dep')
                 this.#retryOutdatedOptimizeDep = true

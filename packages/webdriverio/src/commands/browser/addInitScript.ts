@@ -36,7 +36,7 @@ export async function addInitScript<ReturnValue, InnerArguments extends any[]> (
     this: WebdriverIO.Browser,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments
-) {
+): Promise<() => Promise<void>> {
     /**
      * parameter check
      */
@@ -65,6 +65,7 @@ export async function addInitScript<ReturnValue, InnerArguments extends any[]> (
         contexts: [context]
     })
 
-    return () => this.scriptRemovePreloadScript({ script: result.script })
+    const resetFn = (() => this.scriptRemovePreloadScript({ script: result.script })) as unknown as () => Promise<void>
+    return resetFn
 }
 

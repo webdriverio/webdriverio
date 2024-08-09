@@ -30,7 +30,7 @@ export interface ServiceOption {
 }
 
 export interface ServiceClass {
-    new(options: ServiceOption, capabilities: ResolvedTestrunnerCapabilities, config: WebdriverIOOptions): ServiceInstance
+    new(options: WebdriverIO.ServiceOption, capabilities: ResolvedTestrunnerCapabilities, config: WebdriverIOOptions): ServiceInstance
 }
 
 export interface ServicePlugin extends ServiceClass {
