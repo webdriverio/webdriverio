@@ -5,20 +5,18 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-globals",
   "license": "MIT",
-  "main": "./cjs/index.js",
+  "main": "./build/index.cjs",
   "type": "module",
   "module": "./build/index.js",
   "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./cjs/index.js"
-      },
-      "./cjs/index.js"
-    ],
-    "./types": "./types.d.ts",
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "require": "./build/index.cjs"
+    },
+    "./types": {
+      "types": "./types.d.ts"
+    }
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",

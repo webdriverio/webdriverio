@@ -1,6 +1,8 @@
 import type { local, remote } from 'webdriver'
 import type { RequestWithOptions, RespondWithOptions } from './types.js'
 
+type Overwrite<T> = Omit<T extends RequestWithOptions ? remote.NetworkContinueRequestParameters : remote.NetworkContinueResponseParameters, 'request'>
+
 /**
  * parse request or response overwrites to make it compatible with Bidis protocol
  * @param overwrite request or response overwrite
@@ -11,8 +13,8 @@ export function parseOverwrite<
 >(
     overwrite: T,
     request: local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters
-) {
-    const result: Omit<T extends RequestWithOptions ? remote.NetworkContinueRequestParameters : remote.NetworkContinueResponseParameters, 'request'> = {} as any
+): Overwrite<T> {
+    const result: Overwrite<T> = {} as any
     if ('body' in overwrite && overwrite.body) {
         const bodyOverwrite = typeof overwrite.body === 'function'
             ? overwrite.body(request as local.NetworkBeforeRequestSentParameters)

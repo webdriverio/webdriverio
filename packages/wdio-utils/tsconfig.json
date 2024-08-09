@@ -5,6 +5,9 @@
     "outDir": "./build",
     "rootDir": "./src"
   },
+  "exclude": [
+    "build"
+  ],
   "include": [
     "src/**/*",
     "../../@types"

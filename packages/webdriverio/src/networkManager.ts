@@ -199,7 +199,7 @@ export class NetworkManager {
      * @param context browsing context id
      * @returns the number of requests that are currently pending
      */
-    getPendingRequests(context: Context) {
+    getPendingRequests(context: Context): WebdriverIO.Request[] {
         const request = this.#requests.get(context)
         if (!request) {
             throw new Error(`Couldn't find request for context ${context}`)

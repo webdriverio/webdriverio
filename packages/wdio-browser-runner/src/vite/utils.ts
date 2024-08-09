@@ -26,32 +26,6 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         delete env.config.runner
     }
 
-    let vueDeps = ''
-    if (options.preset === 'vue') {
-        try {
-            const vueDir = path.dirname(url.fileURLToPath(await resolve('vue', `${rootFileUrl}/node_modules`)))
-            const vueScript = (await fs.readFile(path.join(vueDir, 'dist', 'vue.global.prod.js'), 'utf-8')).toString()
-            vueDeps += /*html*/`
-            <script type="module">
-                ${vueScript}
-                window.Vue = Vue
-            </script>`
-            const vueCompilerDir = path.dirname(url.fileURLToPath(await resolve('@vue/compiler-dom', `${rootFileUrl}/node_modules`)))
-            const vueCompilerScript = (await fs.readFile(path.join(vueCompilerDir, 'dist', 'compiler-dom.global.prod.js'))).toString()
-            vueDeps += /*html*/`
-            <script type="module">
-                ${vueCompilerScript}
-                window.VueCompilerDOM = VueCompilerDOM
-            </script>`
-        } catch (err: any) {
-            throw new Error(
-                `Fail to set-up Vue environment: ${err.message}\n\n` +
-                'Make sure you have "vue" and "@vue/compiler-dom" installed as dependencies!\n' +
-                `Error: ${err.stack}`
-            )
-        }
-    }
-
     let sourceMapScript = ''
     let sourceMapSetupCommand = ''
     try {
@@ -141,7 +115,6 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                     margin: 0;
                 }
             </style>
-            ${vueDeps}
         </head>
         <body>
             <mocha-framework spec="${spec}" ${isHeadless ? 'style="display: none"' : ''}></mocha-framework>

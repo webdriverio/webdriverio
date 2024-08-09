@@ -50,7 +50,7 @@ const POLYFILLS = [
     ...builtinModules.map((m) => `node:${m}`)
 ]
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
-    const browserModules = path.resolve(__dirname, '..', '..', 'browser')
+    const browserModules = path.resolve(__dirname, 'browser')
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(browserModules, 'driver.js')).pathname}`
     const mockModulePath = path.resolve(browserModules, 'mock.js')
     const setupModulePath = path.resolve(browserModules, 'setup.js')
@@ -89,6 +89,11 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
              */
             if (id === 'expect-webdriverio') {
                 return wdioExpectModulePath
+            }
+
+            if (id === '@wdio/logger') {
+                const newId = url.fileURLToPath(await resolve(id, import.meta.url))
+                return path.resolve(path.dirname(newId), 'browser.js')
             }
 
             /**

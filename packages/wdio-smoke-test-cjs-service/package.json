@@ -21,7 +21,7 @@
     "access": "public"
   },
   "type": "commonjs",
-  "main": "./build/index.js",
+  "main": "./build/index.cjs",
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {

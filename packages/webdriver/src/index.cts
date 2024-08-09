@@ -8,9 +8,9 @@ function command (method: string, encodeUri: string, commandInfo: any, doubleEnc
 class WebDriver {
     static async newSession(
         options: any,
-        modifier?: (...args: any[]) => any,
+        modifier?: () => any,
         userPrototype = {},
-        customCommandWrapper?: (...args: any[]) => any
+        customCommandWrapper?: () => any
     ): Promise<any> {
         const WebDriver = (await import('./index.js')).default
         return WebDriver.newSession(options, modifier, userPrototype, customCommandWrapper)
@@ -21,9 +21,9 @@ class WebDriver {
      */
     static async attachToSession (
         options?: any,
-        modifier?: (...args: any[]) => any,
+        modifier?: () => any,
         userPrototype = {},
-        commandWrapper?: (...args: any[]) => any
+        commandWrapper?: () => any
     ): Promise<any> {
         const WebDriver = (await import('./index.js')).default
         return WebDriver.attachToSession(options, modifier, userPrototype, commandWrapper)

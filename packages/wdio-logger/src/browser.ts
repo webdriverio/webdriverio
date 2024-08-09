@@ -2,6 +2,12 @@
 
 const LOG_METHODS = ['error', 'warn', 'info', 'debug', 'trace', 'silent']
 
+export type { Logger } from './index.js'
+
+/**
+ * This implementation of the Logger package is a simple adptation to run it within
+ * a browser environment.
+ */
 export default function getLogger (component: string) {
     return LOG_METHODS.reduce((acc: Console, cur: string): Console => {
         const prop = cur as keyof Console

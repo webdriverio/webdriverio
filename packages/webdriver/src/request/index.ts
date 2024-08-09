@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
-import { createRequire } from 'node:module'
 import { WebDriverProtocol } from '@wdio/protocols'
 import { URL } from 'node:url'
 
@@ -10,12 +9,7 @@ import type { Options } from '@wdio/types'
 
 import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
-
-let pkg = { version: '' }
-if ('process' in globalThis && globalThis.process.versions?.node) {
-    const require = createRequire(import.meta.url)
-    pkg = require('../../package.json')
-}
+import pkg from '../../package.json' with { type: 'json' }
 
 type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>

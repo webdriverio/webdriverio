@@ -47,7 +47,7 @@ export async function optimizeForStencil(rootDir: string) {
 
 async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
     const { transpileSync, ts } = await import('@stencil/core/compiler/stencil.js')
-    const stencilHelperPath = path.resolve(__dirname, '..', '..', 'browser', 'integrations', 'stencil.js')
+    const stencilHelperPath = path.resolve(__dirname, 'browser', 'integrations', 'stencil.js')
     return {
         name: 'wdio-stencil',
         enforce: 'pre',

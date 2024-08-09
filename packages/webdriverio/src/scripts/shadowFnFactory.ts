@@ -9,5 +9,5 @@ export const shadowFnFactory = function(elementSelector: string, qsAll = false) 
       // fall back to querying the element directly if not
       return this.querySelector${qsAll ? 'All' : ''}('${elementSelector}')
     })`
-    return eval(strFn)
+    return (0, eval)(strFn)
 }

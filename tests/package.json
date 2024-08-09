@@ -35,6 +35,7 @@
     "@wdio/mocha-framework": "workspace:*",
     "@wdio/smoke-test-reporter": "workspace:*",
     "@wdio/smoke-test-service": "workspace:*",
+    "@wdio/smoke-test-cjs-service": "workspace:*",
     "@wdio/webdriver-mock-service": "workspace:*"
   }
 }

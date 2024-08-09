@@ -1,4 +1,5 @@
 /* istanbul ignore file */
+/// <reference types="@wdio/globals/types" />
 
 import TestingBotLauncher from './launcher.js'
 import TestingBotService from './service.js'

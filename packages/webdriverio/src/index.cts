@@ -80,13 +80,13 @@ exports.Key = {
  */
 exports.remote = async function(
     params: any,
-    remoteModifier?: (client: any, options: any) => any
-): Promise<WebdriverIO.Browser> {
+    remoteModifier?: () => any
+) {
     const { remote } = await import('./index.js')
     return remote(params, remoteModifier)
 }
 
-exports.attach = async function(attachOptions: any): Promise<WebdriverIO.Browser> {
+exports.attach = async function(attachOptions: any) {
     const { attach } = await import('./index.js')
     return attach(attachOptions)
 }
@@ -113,7 +113,7 @@ exports.attach = async function(attachOptions: any): Promise<WebdriverIO.Browser
 exports.multiremote = async function(
     params: any,
     { automationProtocol }: { automationProtocol?: string } = {}
-): Promise<WebdriverIO.MultiRemoteBrowser> {
+) {
     const { multiremote } = await import('./index.js')
     return multiremote(params, { automationProtocol })
 }

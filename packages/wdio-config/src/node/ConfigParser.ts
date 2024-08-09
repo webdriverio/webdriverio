@@ -418,7 +418,7 @@ export default class ConfigParser {
     /**
      * return capabilities
      */
-    getCapabilities(i?: number) {
+    getCapabilities(i?: number): Capabilities.TestrunnerCapabilities | Capabilities.RequestedStandaloneCapabilities {
         if (!this.#isInitialised) {
             throw new Error('ConfigParser was not initialized, call "await config.initialize()" first!')
         }
@@ -427,7 +427,7 @@ export default class ConfigParser {
             return this._capabilities[i]
         }
 
-        return this._capabilities
+        return this._capabilities!
     }
 
     /**

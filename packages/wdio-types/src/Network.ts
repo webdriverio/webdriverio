@@ -1,4 +1,5 @@
 export interface Request {
+    id?: string
     url: string
     timestamp: number
     navigation?: string
@@ -20,7 +21,7 @@ export interface Request {
      * Note: the list may be incomplete and does not contain request that were
      * made after the command has finished.
      */
-    children?: (Request & { id: string })[]
+    children?: Request[]
 }
 
 export type NetworkSameSite = 'strict' | 'lax' | 'none'

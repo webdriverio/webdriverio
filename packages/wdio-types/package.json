@@ -8,8 +8,10 @@
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
-    "./package.json": "./package.json"
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    }
   },
   "engines": {
     "node": ">=18"

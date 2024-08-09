@@ -328,7 +328,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
             // multiremote
             (requiredCaps as Capabilities.RequestedMultiremoteCapabilities)[arg.capabilities]
         )
-        const requiredW3CCaps = pickBy(requiredCaps, (_, key) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
+        const requiredW3CCaps = pickBy(requiredCaps, (_: never, key: string) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
         if (!Object.keys(requiredW3CCaps).length) {
             throw Error(`No capability found in given config file with the provided capability indexed/named property: ${arg.capabilities}. Please check the capability in your wdio config file.`)
         }

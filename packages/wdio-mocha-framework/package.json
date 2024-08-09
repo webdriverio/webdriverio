@@ -28,8 +28,8 @@
       "types": "./build/index.d.ts"
     },
     "./common": {
-      "import": "./build/common.js",
-      "types": "./build/common.d.ts"
+      "source": "./src/common.ts",
+      "import": "./build/common.js"
     },
     "./package.json": "./package.json"
   },

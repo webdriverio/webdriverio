@@ -1,4 +1,5 @@
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
+import type { ChainablePromiseElement } from '../../types.js'
 
 /**
  *

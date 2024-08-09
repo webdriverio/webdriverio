@@ -4,8 +4,7 @@ import path from 'node:path'
 import assert from 'node:assert'
 import { expect } from 'expect-webdriverio'
 
-import { sleep } from '../packages/wdio-utils/build/utils.js'
-import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
+import { SevereServiceError } from 'webdriverio'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
@@ -23,6 +22,8 @@ import {
     JASMINE_REPORTER_LOGS,
     CUCUMBER_REPORTER_LOGS,
 } from './helpers/fixtures.js'
+
+export const sleep = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 async function fileExists (path) {
     try {

@@ -13,10 +13,10 @@
       "types": "./build/index.d.ts"
     },
     "./node": {
+      "importSource": "./src/node/index.ts",
       "import": "./build/node/index.js",
       "types": "./build/node/index.d.ts"
-    },
-    "./package.json": "./package.json"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "engines": {

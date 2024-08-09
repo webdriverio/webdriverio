@@ -204,7 +204,7 @@ export function generateSkipTagsFromCapabilities(capabilities: Capabilities.Reso
             const pos = splitItem.indexOf('=')
             if (pos > 0) {
                 try {
-                    acc[splitItem.substring(0, pos)] = eval(
+                    acc[splitItem.substring(0, pos)] = (0, eval)(
                         splitItem.substring(pos + 1)
                     )
                 } catch (err: any) {
