@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsx ./index.ts"
+    "build": "tsx ./src/index.ts"
   },
   "dependencies": {
     "esbuild": "^0.23.0",

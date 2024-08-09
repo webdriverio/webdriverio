@@ -10,7 +10,7 @@ import { log, clear, generateDts, exportNodeSocket, copyEJSTemplates } from './p
 import { generateTypes } from './type-generation/index.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const rootDir = path.resolve(__dirname, '..', '..')
+const rootDir = path.resolve(__dirname, '..', '..', '..')
 const args = process.argv.slice(2)
 const options = {
     project: {
@@ -122,7 +122,7 @@ const configs = packages.map(([packageDir, pkg]) => {
             }
 
             if (values.clear) {
-                esmBuild.plugins?.push(clear(outfile))
+                esmBuild.plugins?.push(clear(esmBuild))
             }
 
             packageBuilds.push(esmBuild)

@@ -37,13 +37,20 @@ export function log(options: BuildOptions, pkg: PackageJson): Plugin {
  * @param {string} outfile directory that Esbuild usually compiles to
  * @returns an Esbuild plugin
  */
-export function clear(outfile: string): Plugin {
+export function clear(config: BuildOptions): Plugin {
+    const rimrafOptions = { maxRetries: 1 }
+    const outfile = config.outfile
+    if (!outfile) {
+        throw new Error('No outfile defined')
+    }
+
     return {
         name: 'ClearPlugin',
         async setup() {
-            await rimraf(path.dirname(outfile), {
-                maxRetries: 1
-            })
+            await Promise.all([
+                rimraf(path.dirname(outfile), rimrafOptions),
+                rimraf(path.join(config.absWorkingDir || process.cwd(), 'tsconfig.tsbuildinfo'), rimrafOptions)
+            ])
         }
     }
 }

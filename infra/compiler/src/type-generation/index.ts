@@ -7,10 +7,10 @@ import camelCase from 'camelcase'
 import { type Plugin } from 'esbuild'
 
 import { paramTypeMap, returnTypeMap } from './constants.js'
-import { PROTOCOLS } from '../../../scripts/protocols.js'
+import { PROTOCOLS } from '../../../../scripts/protocols.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const TYPINGS_PATH = path.join(__dirname, '..', '..', '..', 'packages', 'wdio-protocols', 'src', 'commands')
+const TYPINGS_PATH = path.join(__dirname, '..', '..', '..', '..', 'packages', 'wdio-protocols', 'src', 'commands')
 
 const INDENTATION = ' '.repeat(4)
 const EXAMPLE_INDENTATION = `${INDENTATION} * `
