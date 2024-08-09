@@ -39,7 +39,7 @@ export function log(options: BuildOptions, pkg: PackageJson): Plugin {
  */
 export function clear(config: BuildOptions): Plugin {
     const rimrafOptions = { maxRetries: 1 }
-    const outfile = config.outfile
+    const outfile = config.outfile || config.outdir
     if (!outfile) {
         throw new Error('No outfile defined')
     }
@@ -49,7 +49,6 @@ export function clear(config: BuildOptions): Plugin {
         async setup() {
             await Promise.all([
                 rimraf(path.dirname(outfile), rimrafOptions),
-                rimraf(path.join(config.absWorkingDir || process.cwd(), 'tsconfig.tsbuildinfo'), rimrafOptions)
             ])
         }
     }
@@ -70,7 +69,7 @@ export function generateDts(absWorkingDir: string): Plugin {
                 }
 
                 try {
-                    cp.execSync('tsc --emitDeclarationOnly --incremental', {
+                    cp.execSync('tsc --emitDeclarationOnly', {
                         cwd: absWorkingDir,
                         stdio: 'inherit'
                     })
