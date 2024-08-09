@@ -102,8 +102,7 @@
   "optionalDependencies": {
     "@nuxt/kit": "^3.12.4",
     "@stencil/core": "^4.20.0",
-    "unimport": "^3.10.0",
-    "virtual:wdio": "*"
+    "unimport": "^3.10.0"
   },
   "publishConfig": {
     "access": "public"
