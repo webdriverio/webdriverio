@@ -1,4 +1,4 @@
-import type { remote } from 'webdriver'
+import { ELEMENT_KEY, type remote } from 'webdriver'
 import { PrimitiveType, NonPrimitiveType } from './constants.js'
 
 const TYPE_CONSTANT = 'type'
@@ -151,8 +151,8 @@ export class LocalValue {
      */
     static createObjectValue(object: Record<string | number | symbol, unknown>) {
         const value: [Serializeable, Serializeable][] = []
-        Object.entries(object).forEach((entry) => {
-            value.push(entry)
+        Object.entries(object).forEach(([key, val]) => {
+            value.push([key, LocalValue.getArgument(val)])
         })
         return new LocalValue(NonPrimitiveType.Object, value)
     }
@@ -231,14 +231,14 @@ export class LocalValue {
                 return new LocalValue(NonPrimitiveType.Map, map)
             }
             if (argument instanceof Set) {
-                const set: ([unknown, unknown] | LocalValue)[] = []
+                const set: (any | LocalValue)[] = []
                 argument.forEach((value) => {
                     set.push(LocalValue.getArgument(value))
                 })
                 return LocalValue.createSetValue(set)
             }
             if (argument instanceof Array) {
-                const arr: ([unknown, unknown] | LocalValue)[] = []
+                const arr: (any | LocalValue)[] = []
                 argument.forEach((value) => {
                     arr.push(LocalValue.getArgument(value))
                 })
@@ -250,14 +250,14 @@ export class LocalValue {
                     flags: argument.flags,
                 })
             }
-
-            {
-                const value: ([unknown, unknown] | LocalValue)[] = []
-                Object.entries(argument).forEach((entry) => {
-                    value.push([LocalValue.getArgument(entry[0]), LocalValue.getArgument(entry[1])])
-                })
-                return new LocalValue(NonPrimitiveType.Object, value)
+            if (ELEMENT_KEY in argument) {
+                return LocalValue.createReferenceValue(
+                    RemoteReferenceType.SharedId,
+                    argument[ELEMENT_KEY]
+                )
             }
+
+            return LocalValue.createObjectValue(argument)
         }
 
         throw new Error(`Unsupported type: ${type}`)
@@ -278,8 +278,8 @@ export class LocalValue {
  * Described in https://w3c.github.io/webdriver-bidi/#type-script-RemoteReference.
  */
 class ReferenceValue {
-    #handle
-    #sharedId
+    handle?: string
+    sharedId?: string
 
     /**
      * Constructs a new ReferenceValue object.
@@ -288,23 +288,23 @@ class ReferenceValue {
      */
     constructor(handle: string, sharedId: string) {
         if (handle === RemoteReferenceType.Handle) {
-            this.#handle = sharedId
+            this.handle = sharedId
         } else if (handle === RemoteReferenceType.SharedId) {
-            this.#sharedId = sharedId
+            this.sharedId = sharedId
         } else {
-            this.#handle = handle
-            this.#sharedId = sharedId
+            this.handle = handle
+            this.sharedId = sharedId
         }
     }
 
     asMap() {
         const toReturn: { handle?: string, sharedId?: string } = {}
-        if (typeof this.#handle !== 'undefined') {
-            toReturn[RemoteReferenceType.Handle] = this.#handle
+        if (typeof this.handle !== 'undefined') {
+            toReturn[RemoteReferenceType.Handle] = this.handle
         }
 
-        if (typeof this.#sharedId !== 'undefined') {
-            toReturn[RemoteReferenceType.SharedId] = this.#sharedId
+        if (typeof this.sharedId !== 'undefined') {
+            toReturn[RemoteReferenceType.SharedId] = this.sharedId
         }
 
         return toReturn
