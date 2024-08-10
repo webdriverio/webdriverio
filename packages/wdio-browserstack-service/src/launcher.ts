@@ -15,7 +15,7 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 import { version as bstackServiceVersion } from '../package.json'
 import CrashReporter from './crash-reporter'
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper'
-import type { App, AppConfig, AppUploadResponse, BrowserstackConfig, UserConfig } from './types'
+import type { App, AppConfig, AppUploadResponse, BrowserstackConfig, BrowserstackOptions, UserConfig } from './types'
 import {
     VALID_APP_EXTENSION,
     NOT_ALLOWED_KEYS_IN_CAPS,
@@ -34,7 +34,8 @@ import {
     isAccessibilityAutomationSession,
     stopAccessibilityTestRun,
     ObjectsAreEqual,
-    isTrue
+    isTrue,
+    isValidCapsForHealing
 } from './util'
 import PerformanceTester from './performance-tester'
 import { PercyLogger } from './Percy/PercyLogger'
@@ -42,6 +43,8 @@ import type Percy from './Percy/Percy'
 import { setupExitHandlers } from './exitHandler'
 import BrowserStackConfig from './config'
 import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation'
+import AiHandler from './ai-handler'
+import { BStackLogger } from './bstackLogger'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -62,7 +65,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private readonly browserStackConfig: BrowserStackConfig
 
     constructor (
-        private _options: BrowserstackConfig & Options.Testrunner,
+        private _options: BrowserstackConfig & BrowserstackOptions,
         capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
@@ -179,9 +182,33 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
+    async onPrepare (config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities) {
         // // Send Funnel start request
         await sendStart(this.browserStackConfig)
+
+        // Setting up healing for those sessions where we don't add the service version capability as it indicates that the session is not being run on BrowserStack
+        if (!shouldAddServiceVersion(this._config, this._options.testObservability, capabilities as Capabilities.BrowserStackCapabilities)) {
+            try {
+                if ((capabilities as Capabilities.BrowserStackCapabilities).browserName) {
+                    capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities, false)
+                } else if ( Array.isArray(capabilities)){
+
+                    for (let i = 0; i < capabilities.length; i++) {
+                        if ((capabilities[i] as Capabilities.BrowserStackCapabilities).browserName) {
+                            capabilities[i] = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities[i], false)
+                        }
+                    }
+
+                } else if (isValidCapsForHealing(capabilities as any)) {
+                    // setting up healing in case capabilities.xyz.capabilities.browserName where xyz can be anything:
+                    capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities, true)
+                }
+            } catch (err) {
+                if (this._options.selfHeal === true) {
+                    BStackLogger.warn(`Error while setting up Browserstack healing Extension ${err}. Disabling healing for this session.`)
+                }
+            }
+        }
 
         /**
          * Upload app to BrowserStack if valid file path to app is given.

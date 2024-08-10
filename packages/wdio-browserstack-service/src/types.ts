@@ -20,7 +20,6 @@ export type AppConfig = {
     custom_id?: string,
     shareable_id?: string
 }
-
 export interface AppUploadResponse {
     app_url?: string,
     custom_id?: string,
@@ -38,6 +37,10 @@ export interface TestObservabilityOptions {
     buildTag?: string[],
     user?: string,
     key?: string
+}
+
+export interface BrowserstackOptions extends Options.Testrunner {
+    selfHeal?: boolean;
 }
 
 export interface BrowserstackConfig {

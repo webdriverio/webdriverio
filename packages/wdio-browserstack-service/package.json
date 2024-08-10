@@ -23,6 +23,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@browserstack/ai-sdk-node": "1.5.8",
     "@percy/appium-app": "^2.0.1",
     "@percy/selenium-webdriver": "^2.0.2",
     "@types/gitconfiglocal": "^2.0.1",

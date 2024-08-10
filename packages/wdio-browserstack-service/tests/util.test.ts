@@ -925,8 +925,12 @@ describe('getObservabilityBuildTags', () => {
 
 describe('shouldAddServiceVersion', () => {
     it('return true', () => {
-        expect(shouldAddServiceVersion({}, false)).toEqual(true)
-        expect(shouldAddServiceVersion({ services: ['chromedriver'] }, false)).toEqual(true)
+        const cfg = {
+            user: 'foo',
+            key: '12345678901234567890',
+            services: ['chromedriver']
+        }
+        expect(shouldAddServiceVersion(cfg as any, false)).toEqual(true)
     })
 
     it('return false', () => {

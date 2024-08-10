@@ -8,6 +8,7 @@ import { BStackLogger } from '../bstackLogger'
 import type BrowserStackConfig from '../config'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants'
 import { getDataFromWorkers } from '../data-store'
+import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -137,4 +138,107 @@ function getLanguageFramework(framework?: string) {
 function getReferrer(framework?: string) {
     const fullName = framework ? 'WebdriverIO-' + framework : 'WebdriverIO'
     return `${fullName}/${BSTACK_SERVICE_VERSION}`
+}
+
+const sendEvent = {
+    tcgDown: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestTcgDownResponse', config),
+    invalidTcgAuth: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestInvalidTcgAuthResponseWithUserImpact', config),
+    tcgAuthFailure: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestTcgAuthFailure', config),
+    tcgtInitSuccessful: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestTcgtInitSuccessful', config),
+    initFailed: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestInitFailedResponse', config),
+    tcgProxyFailure: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestTcgProxyFailure', config),
+}
+
+function isProxyError(authResult: any): boolean {
+    return (authResult as BrowserstackHealing.InitErrorResponse).status === 502
+}
+
+function handleProxyError(config: BrowserStackConfig, isSelfHealEnabled: boolean | undefined) {
+    sendEvent.tcgProxyFailure(config)
+    if (isSelfHealEnabled) {
+        BStackLogger.warn('Proxy Error. Disabling Healing for this session.')
+    }
+}
+
+function handleUpgradeRequired(isSelfHealEnabled: boolean | undefined) {
+    if (isSelfHealEnabled) {
+        BStackLogger.warn('Please upgrade Browserstack Service to the latest version to use the self-healing feature.')
+    }
+}
+
+function handleAuthenticationFailure(status: number, config: BrowserStackConfig, isSelfHealEnabled: boolean | undefined) {
+    if (status >= 500) {
+        if (isSelfHealEnabled) {
+            BStackLogger.warn('Something went wrong. Disabling healing for this session. Please try again later.')
+        }
+        sendEvent.tcgDown(config)
+    } else {
+        if (isSelfHealEnabled) {
+            BStackLogger.warn('Authentication Failed. Disabling Healing for this session.')
+        }
+        sendEvent.tcgAuthFailure(config)
+    }
+}
+
+function handleAuthenticationSuccess(
+    isHealingEnabledForUser: boolean,
+    userId: string,
+    config: BrowserStackConfig,
+    isSelfHealEnabled: boolean | undefined
+) {
+    if (!isHealingEnabledForUser && isSelfHealEnabled) {
+        BStackLogger.warn('Healing is not enabled for your group, please contact the admin')
+    } else if (userId && isHealingEnabledForUser) {
+        sendEvent.tcgtInitSuccessful(config)
+    }
+}
+
+function handleInitializationFailure(status: number, config: BrowserStackConfig, isSelfHealEnabled: boolean | undefined) {
+    if (status >= 400) {
+        sendEvent.initFailed(config)
+    } else if (!status && isSelfHealEnabled) {
+        sendEvent.invalidTcgAuth(config)
+    }
+
+    if (isSelfHealEnabled) {
+        BStackLogger.warn('Authentication Failed. Healing will be disabled for this session.')
+    }
+}
+
+export function handleHealingInstrumentation(
+    authResult: BrowserstackHealing.InitErrorResponse | BrowserstackHealing.InitSuccessResponse,
+    config: BrowserStackConfig,
+    isSelfHealEnabled: boolean | undefined,
+) {
+    try {
+        if (isProxyError(authResult)) {
+            handleProxyError(config, isSelfHealEnabled)
+            return
+        }
+
+        const { message, isAuthenticated, status, userId, groupId, isHealingEnabled: isHealingEnabledForUser } = authResult as any
+
+        if (message === 'Upgrade required') {
+            handleUpgradeRequired(isSelfHealEnabled)
+            return
+        }
+
+        if (!isAuthenticated) {
+            handleAuthenticationFailure(status, config, isSelfHealEnabled)
+            return
+        }
+
+        if (isAuthenticated && userId && groupId) {
+            handleAuthenticationSuccess(isHealingEnabledForUser, userId, config, isSelfHealEnabled)
+            return
+        }
+
+        if (status >= 400 || !status) {
+            handleInitializationFailure(status, config, isSelfHealEnabled)
+            return
+        }
+
+    } catch (err) {
+        BStackLogger.debug('Error in handling healing instrumentation: ' + err)
+    }
 }
