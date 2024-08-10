@@ -82,7 +82,25 @@ In order to change the time, you can call:
 
 ### Improved Argument Serialization
 
-...
+With WebDriver Classic the ability to move data objects from the Test to the browser environment was rather limited to DOM elements and serializable objects and types. With WebDriver Bidi we are now able to do a better job transforming non-serializable data objects to be used in the browser as the object that it is. Alongside known JavaScript primitives such as `Map` or `Set`, the protocol allows to serialize values such as `Infinity`, `null`, `undefined` and `BigInt`.
+
+Here is an example where we compose a JavaScript Map object in Node.js and pass it over to the browser where it gets automatically deserialzed back into a Map and vise versa:
+
+```ts
+const data = new Map([
+    ['username', 'Tony'],
+    ['password', 'secret']
+])
+const output = await browser.execute(
+    (data) => `${data.size} entrie(s), username: ${data.get('username')}, password: ${data.get('secret')}`,
+    data
+)
+
+console.log(output)
+// outputs: "1 entrie(s), username: Tony, password: secret"
+```
+
+This will make it easier pass data along and work with custom scripts that can now return rich data objects that will help better observe the state of your application. It will allow frameworks like WebdriverIO to integrate deeper with the browser environment and build more useful features in the future.
 
 ### Setting Viewports
 
