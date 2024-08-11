@@ -24,18 +24,18 @@ describe('`execute` memory leak check', () => {
         // @ts-expect-error gc is exposed
         globalThis.gc()
         const initialHeapUsage = getHeapUsageMiB()
-        log.info(`Initial heap usage ${initialHeapUsage.toFixed(2)} MiB (${heapSnapshot()})`)
+        log.debug(`Initial heap usage ${initialHeapUsage.toFixed(2)} MiB (${heapSnapshot()})`)
         let heapUsage = 0
         for (let i = 0; i < executeCalls; i++) {
             // use `scriptSize + i` to make each script unique
             await browser.execute(`{ let foo = "${'a'.repeat(scriptSize + i)}"; }`)
             heapUsage = getHeapUsageMiB()
-            log.trace(`[${i.toString().padStart(2, '0')}] Heap usage ${heapUsage.toFixed(2)} MiB`)
+            log.debug(`[${i.toString().padStart(2, '0')}] Heap usage ${heapUsage.toFixed(2)} MiB`)
         }
         // @ts-expect-error gc is exposed
         globalThis.gc()
         const finalHeapUsage = getHeapUsageMiB()
-        log.info(`Final heap usage ${finalHeapUsage.toFixed(2)} MiB (${heapSnapshot()})`)
+        log.debug(`Final heap usage ${finalHeapUsage.toFixed(2)} MiB (${heapSnapshot()})`)
         // 5% for variability / v8 internals + script size once
         await expect(finalHeapUsage).toBeLessThanOrEqual(1.05 * initialHeapUsage + scriptSize / 1024 / 1024)
     })
