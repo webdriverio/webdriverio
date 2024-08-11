@@ -1,6 +1,8 @@
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 
+const FIRST_FUNCTION_REGEX = /function (\w+)/
+
 /**
  * replaces whitespaces with underscore and removes dots
  * @param  {string} str  variable to sanitize
@@ -117,7 +119,9 @@ export function transformCommandScript (script?: string|Function) {
     }
     let name = undefined
     if (typeof script === 'string') {
-        name = /function (\w+)/.exec(script)
+        name = FIRST_FUNCTION_REGEX.exec(script)
+        // reset the static RegExp globals to avoid leaking `script`
+        FIRST_FUNCTION_REGEX.exec('')
     } else if (typeof script === 'function') {
         name = script.name
         script = script.toString()
