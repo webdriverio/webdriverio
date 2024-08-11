@@ -105,3 +105,28 @@ export function colorLines (name: keyof typeof COLORS, str: string) {
         .map((str) => color(name, str))
         .join('\n')
 }
+
+/**
+ * Transforms WebDriver execute command scripts to avoid accumulating
+ * long scripts in the default TestStats.
+ * @param script WebDriver command script
+ */
+export function transformCommandScript (script?: string|Function) {
+    if (!script) {
+        return script
+    }
+    let name = undefined
+    if (typeof script === 'string') {
+        name = /function (\w+)/.exec(script)
+    } else if (typeof script === 'function') {
+        name = script.name
+        script = script.toString()
+    } else {
+        return `<${typeof script}>`
+    }
+
+    if (typeof name === 'string' && name) {
+        return `<script fn ${name}(...)> [${Buffer.byteLength(script, 'utf-8')} bytes]`
+    }
+    return `<script> [${Buffer.byteLength(script, 'utf-8')} bytes]`
+}
