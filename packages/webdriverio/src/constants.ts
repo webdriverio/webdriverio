@@ -1,6 +1,8 @@
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from '@wdio/utils'
 import type { Options, Capabilities } from '@wdio/types'
 
+import type { RestoreMap } from './types.js'
+
 export enum SupportedAutomationProtocols {
     webdriver = 'webdriver',
     stub = './protocol-stub.js'
@@ -90,6 +92,11 @@ export const ERROR_REASON = [
     'ConnectionFailed', 'NameNotResolved', 'InternetDisconnected',
     'AddressUnreachable', 'BlockedByClient', 'BlockedByResponse'
 ]
+
+/**
+ * store all preload scripts in a map (per instance) so that we can easily remove them
+ */
+export const restoreFunctions = new Map<WebdriverIO.Browser, RestoreMap>()
 
 /**
  * Special Characters

@@ -44,7 +44,7 @@ const flatConfig = {
     },
 }
 
-export = {
+export default {
     ...index,
     configs: {
         'flat/recommended': flatConfig,

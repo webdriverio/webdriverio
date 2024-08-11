@@ -161,4 +161,35 @@ describe('emulate', () => {
         await clock.restore()
         expect(fakeScope.scriptRemovePreloadScript).toBeCalledTimes(1)
     })
+
+    it('should allow to emulate a device', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const fakeScope = {
+            isBidi: true,
+            scriptAddPreloadScript: vi.fn().mockResolvedValue({ script: 'foobar' }),
+            scriptRemovePreloadScript: vi.fn(),
+            addInitScript: vi.fn(),
+            execute: vi.fn().mockResolvedValue({}),
+            setViewport: vi.fn(),
+            options: {
+                beforeCommand: vi.fn(),
+                afterCommand: vi.fn()
+            },
+        } as any as WebdriverIO.Browser
+        fakeScope.emulate = browser.emulate.bind(fakeScope)
+
+        const restore = await fakeScope.emulate('device', 'iPhone 8')
+        expect(fakeScope.setViewport).toBeCalledTimes(1)
+        expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
+
+        expect(restore).toBeInstanceOf(Function)
+        await restore()
+        expect(fakeScope.scriptRemovePreloadScript).toBeCalledTimes(1)
+        expect(fakeScope.setViewport).toBeCalledTimes(2)
+    })
 })

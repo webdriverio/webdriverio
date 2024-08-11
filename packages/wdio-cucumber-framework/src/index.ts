@@ -57,6 +57,7 @@ export const FILE_PROTOCOL = 'file://'
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 function getResultObject(
     world: Cucumber.ITestCaseHookParameter
@@ -87,7 +88,7 @@ class CucumberAdapter {
         private _reporter: EventEmitter,
         private _eventEmitter: EventEmitter,
         private _generateSkipTags: boolean = true,
-        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(url.fileURLToPath(import.meta.url), '..', 'cucumberFormatter.js')).href
+        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(__dirname, 'cucumberFormatter.js')).href
     ) {
         this._eventEmitter = new EventEmitter()
         this._cucumberOpts = Object.assign(

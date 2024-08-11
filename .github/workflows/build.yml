@@ -21,10 +21,6 @@ jobs:
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🏗️ Generate Typings
-        run: pnpm run generate:typings
-        shell: bash
-
       - name: ⬆️ Upload Build Artifacts
         uses: ./.github/workflows/actions/upload-archive
         with:

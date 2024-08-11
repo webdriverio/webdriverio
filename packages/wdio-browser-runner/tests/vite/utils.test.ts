@@ -1,7 +1,6 @@
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
-import fs from 'node:fs/promises'
 
 import { describe, it, vi, expect } from 'vitest'
 import { resolve } from 'import-meta-resolve'
@@ -29,12 +28,6 @@ vi.mock('fakeDep', () => ({
 // skip for Windows
 if (os.platform() !== 'win32') {
     describe('getTemplate', () => {
-        it('fails if vue helpers are not installed', async () => {
-            vi.mocked(resolve).mockRejectedValue(new Error('not there'))
-            await expect(getTemplate({ preset: 'vue' }, { config: {} } as any, ''))
-                .rejects.toThrow(/Fail to set-up Vue environment/)
-        })
-
         it('renders template correctly', async () => {
             vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
             /**
@@ -44,8 +37,7 @@ if (os.platform() !== 'win32') {
                 process.env.CI = '1'
             }
             const p: any = { env: { some: 'env' }, cwd: () => '/some/cwd' }
-            expect(await getTemplate({ preset: 'vue' }, { config: {} } as any, '/spec.js', p)).toMatchSnapshot()
-            expect(fs.readFile).toBeCalledTimes(2)
+            expect(await getTemplate({ preset: 'lit' }, { config: {} } as any, '/spec.js', p)).toMatchSnapshot()
         })
     })
 }

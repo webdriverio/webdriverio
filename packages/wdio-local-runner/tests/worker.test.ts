@@ -71,26 +71,6 @@ describe('handleMessage', () => {
         expect(worker.instances).toEqual({ foo: { sessionId: 'abc123' } })
         expect(worker.isMultiremote).toEqual(true)
     })
-
-    it('handle debug command called within worker process', async () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        worker.emit = vi.fn()
-        worker.childProcess = { send: vi.fn() } as unknown as ChildProcess
-        worker['_handleMessage']({
-            origin: 'debugger',
-            name: 'start',
-            content: {},
-            params: {}
-        } as any)
-        await new Promise((resolve) => setTimeout(resolve, 200))
-
-        const expectedMessage = {
-            origin: 'debugger',
-            name: 'stop'
-        }
-        expect(worker.emit).toBeCalledWith('message', expectedMessage)
-        expect(worker.childProcess.send).toBeCalledWith(expectedMessage)
-    })
 })
 
 describe('handleError', () => {

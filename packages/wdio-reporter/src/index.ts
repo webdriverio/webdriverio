@@ -8,7 +8,7 @@ import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
 import HookStats from './stats/hook.js'
-import TestStats, { Test } from './stats/test.js'
+import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
 import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
 
