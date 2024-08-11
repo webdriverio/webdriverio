@@ -440,6 +440,20 @@ const customReporterObject = async () => {
 }
 
 /**
+ * wdio-reporter testrunner tests
+ */
+const reporterTestrunner = async () => {
+    const { skippedSpecs, passed, failed } = await launch('reporterTestrunner', baseConfig, {
+        specs: [
+            path.resolve(__dirname, 'reporter', 'memory.ts'),
+        ]
+    })
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(failed, 0)
+}
+
+/**
  * wdio test run with before/after Test/Hook
  */
 const wdioHooks = async () => {
@@ -902,6 +916,7 @@ const jasmineAfterHookArgsValidation = async () => {
         retryPass,
         customReporterString,
         customReporterObject,
+        reporterTestrunner,
         severeErrorTest,
         nonGlobalTestrunner,
         mochaHooksTestrunner,

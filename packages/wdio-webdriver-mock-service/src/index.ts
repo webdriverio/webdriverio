@@ -67,6 +67,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('asyncIterationScenario', this.asyncIterationScenario.bind(this))
         this._browser.addCommand('parentElementChaining', this.parentNextPreviousElementChaining.bind(this))
         this._browser.addCommand('refetchElementScenario', this.refetchElementScenario.bind(this))
+        this._browser.addCommand('executeMemLeakScenario', this.executeMemLeakScenario.bind(this))
     }
 
     clickScenario() {
@@ -235,6 +236,15 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.navigateTo().reply(200, { value: null })
         this._mock.command.findElement().times(4).reply(200, { value: elemResponse })
         this._mock.command.elementClick(ELEMENT_ID).reply(200, { value: null })
+    }
+
+    executeMemLeakScenario(executeCalls: number) {
+        this.nockReset()
+
+        this._mock.command.executeScript().times(executeCalls).reply(200, {
+            statusCode: 200,
+            value: 'mockResponse',
+        })
     }
 
     nockReset() {
