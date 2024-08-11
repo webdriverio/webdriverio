@@ -491,7 +491,7 @@ export async function findElement(
         return getElementFromResponse(elem) ? elem : notFoundError
     }
 
-    throw new Error(`${INVALID_SELECTOR_ERROR}, but found: ${typeof selector}`)
+    throw new Error(`${INVALID_SELECTOR_ERROR}, but found: \`${typeof selector}\``)
 }
 
 /**
@@ -548,7 +548,7 @@ export async function findElements(
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
     }
 
-    throw new Error(`${INVALID_SELECTOR_ERROR}, but found: ${typeof selector}`)
+    throw new Error(`${INVALID_SELECTOR_ERROR}, but found: \`${typeof selector}\``)
 }
 
 /**

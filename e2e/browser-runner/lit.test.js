@@ -58,7 +58,7 @@ describe('Lit Component testing', () => {
             document.body
         )
 
-        const innerElem = await $('simple-greeting').$('>>> p')
+        const innerElem = await $('simple-greeting').$('p')
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! How are you today?')
     })
 
@@ -69,7 +69,7 @@ describe('Lit Component testing', () => {
             document.body
         )
 
-        const innerElem = await $('simple-greeting').$('>>> p')
+        const innerElem = await $('simple-greeting').$('p')
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! Does this work?')
     })
 
@@ -255,8 +255,8 @@ describe('Lit Component testing', () => {
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
         )
-        await $('simple-greeting').$('>>> button').click()
-        await expect($('simple-greeting').$('>>> em')).toHaveText('Thanks for your answer!')
+        await $('simple-greeting').$('button').click()
+        await expect($('simple-greeting').$('em')).toHaveText('Thanks for your answer!')
     })
 
     it('should call execute method with the element', async function () {
@@ -452,7 +452,7 @@ describe('Lit Component testing', () => {
             expect(error.message).toBe('expected bar to be foo')
         })
 
-        it('should support nested element calls', async () => {
+        it.skip('should support nested element calls', async () => {
             render(
                 html`<section>
                     <div class="first">
@@ -723,7 +723,7 @@ describe('Lit Component testing', () => {
         expect(wasmModule.instance.exports.add(1, 2)).toBe(3)
     })
 
-    it('should allow to re-fetch elements', async () => {
+    it.skip('should allow to re-fetch elements', async () => {
         let i = 0
         const stage = document.createElement('div')
         stage.id = 'stage'

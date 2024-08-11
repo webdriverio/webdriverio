@@ -19,6 +19,7 @@ jobs:
         run: pnpm run setup
         shell: bash
         env:
+          NODE_ENV: production
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ⬆️ Upload Build Artifacts
