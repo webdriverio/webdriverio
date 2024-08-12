@@ -87,7 +87,7 @@
     "recast": "^0.23.6",
     "safe-stringify": "^1.1.0",
     "source-map-support": "^0.5.21",
-    "vite": "~5.3.1",
+    "vite": "~5.4.0",
     "vite-plugin-istanbul": "^6.0.0",
     "vite-plugin-top-level-await": "^1.4.1",
     "webdriver": "workspace:*",
