@@ -7,6 +7,8 @@ authorImageURL: https://avatars.githubusercontent.com/u/6512473?s=400&u=69d78167
 
 We are thrilled to announce the latest update to the WebdriverIO Visual Testing module. This release brings two significant enhancements: making the Visual Testing Module a pure JS module and the introduction of a new CLI argument for automatic baseline updates.
 
+<!-- truncate -->
+
 ### Making The Visual Testing Module a Pure JS module
 
 One of the major changes in this update is the replacement of the [Canvas](https://github.com/Automattic/node-canvas) library with [Jimp](https://github.com/jimp-dev/jimp). This shift eliminates the need for system dependencies, which often cause issues on local machines due to missing dependencies and complicate CI/CD pipelines. By using Jimp, we have streamlined the installation and setup process, making it more straightforward, less prone to errors and more important, a **pure JS module**.
