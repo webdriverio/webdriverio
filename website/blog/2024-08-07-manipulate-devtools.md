@@ -240,7 +240,7 @@ This will launch Chrome, open the specified URL, interact with the DevTools, and
 
 #### Demonstration
 
-![DevTools v8](assets/DevTools_v8.gif)
+![DevTools v8](assets/devTools_v8.gif)
 
 ## Conclusion
 
