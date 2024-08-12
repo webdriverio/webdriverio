@@ -7,6 +7,8 @@ authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s
 
 The WebdriverIO community is on the verge of an exciting new era, supported by strategic partnerships with [BrowserStack](https://www.browserstack.com/) and [Sauce Labs](https://saucelabs.com/), along with continuous support from other sponsors like [LambdaTest](https://www.lambdatest.com/). This collective endeavor signifies a crucial milestone for the WebdriverIO project, as we utilize these additional resources to foster the growth and enrichment of our ecosystem.
 
+<!-- truncate -->
+
 ## Towards a Sustainable Open Source Model
 
 WebdriverIO's story began with its inception into the JS Foundation in 2017, which later evolved into the OpenJS Foundation. Since then, it has thrived as an open-governed, community-driven endeavor, witnessing continuous growth in NPM downloads, the introduction of innovative plugins and reporters, and the rollout of new functionalities. This expansion is a testament to the hard work and dedication of the global testing community, including project users and contributors from leading testing cloud providers.

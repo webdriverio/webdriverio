@@ -8,6 +8,10 @@ authorsImageURL: https://avatars.githubusercontent.com/u/48865319?s=400&u=e29230
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+WebdriverIO is build to test various types of applications, from web or mobile applications towards native desktop apps or even VS Code extensions. But what about Chrome DevTools plugins? In this blog post we explore how one could interact with an extension build for Chrome Devtools.
+
+<!-- truncate -->
+
 # Interacting with Chrome DevTools from WebDriverIO: A Guide
 
 One of WebDriverIO features is the ability to interact with Chrome DevTools, which can be extremely helpful for debugging and testing web applications and browser extensions. In this blog, we'll explore how to use WebDriverIO to interact with the Chrome DevTools, specifically focusing on interacting with the PixiJS extension.
