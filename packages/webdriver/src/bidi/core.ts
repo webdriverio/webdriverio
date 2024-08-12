@@ -44,6 +44,14 @@ export class BidiCore {
         return this.#isConnected
     }
 
+    /**
+     * for testing purposes only
+     * @internal
+     */
+    get __handleResponse () {
+        return this.#handleResponse.bind(this)
+    }
+
     #handleResponse (data: RawData) {
         try {
             const payload = JSON.parse(data.toString()) as CommandResponse
