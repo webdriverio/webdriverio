@@ -1,8 +1,10 @@
 import { type local } from 'webdriver'
+import logger from '@wdio/logger'
 
 import customElementWrapper from './scripts/customElement.js'
 
 const shadowRootManager = new Map<WebdriverIO.Browser, ShadowRootManager>()
+const log = logger('webdriverio:ShadowRootManager')
 
 export function getShadowRootManager(browser: WebdriverIO.Browser) {
     const existingShadowRootManager = shadowRootManager.get(browser)
@@ -77,9 +79,9 @@ export class ShadowRootManager {
     /**
      * capture shadow root elements propagated through console.debug
      */
-    handleLogEntry(log: local.LogEntry) {
-        const args = 'args' in log && log.level === 'debug'
-            ? log.args
+    handleLogEntry(logEntry: local.LogEntry) {
+        const args = 'args' in logEntry && logEntry.level === 'debug'
+            ? logEntry.args
             : undefined
 
         /**
@@ -96,26 +98,26 @@ export class ShadowRootManager {
         /**
          * filter for log entry that was created in the right context
          */
-        if (!log.source.context) {
+        if (!logEntry.source.context) {
             return
         }
 
         const eventType = args[1].value
         if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
             const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem] = args
-            if (!this.#shadowRoots.has(log.source.context)) {
+            if (!this.#shadowRoots.has(logEntry.source.context)) {
                 /**
                  * initiate shadow tree for context
                  */
                 if (!rootElem.sharedId) {
                     throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
                 }
-                this.#shadowRoots.set(log.source.context, new ShadowRootTree(rootElem.sharedId))
+                this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
             }
 
-            const tree = this.#shadowRoots.get(log.source.context)
+            const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
-                throw new Error(`Couldn't find tree for context id ${log.source.context}`)
+                throw new Error(`Couldn't find tree for context id ${logEntry.source.context}`)
             }
             if (
                 // we expect an element id
@@ -128,6 +130,7 @@ export class ShadowRootManager {
                 throw new Error(`Expected element with shadow root but found ${JSON.stringify(shadowElem, null, 4)}`)
             }
 
+            log.info(`Registered new shadow root for element <${shadowElem.value.localName} /> with id ${shadowElem.value.shadowRoot.sharedId}`)
             const newTree = new ShadowRootTree(
                 shadowElem.sharedId,
                 shadowElem.value.shadowRoot.sharedId,
@@ -140,7 +143,7 @@ export class ShadowRootManager {
         }
 
         if (eventType === 'removeShadowRoot' && args[2].type === 'node' && args[2].sharedId) {
-            const tree = this.#shadowRoots.get(log.source.context)
+            const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
                 return
             }

@@ -13,6 +13,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
+import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
@@ -290,50 +291,44 @@ export async function findDeepElement(
     /**
      * look up selector within document and all shadow roots
      */
-    const deepElementResult = (await Promise.all([
-        /**
-         * fetch through all browsing contexts
-         */
-        browser.browsingContextLocateNodes({
-            locator,
-            context: handle,
-            maxNodeCount: 1,
-            ...((this as WebdriverIO.Element).elementId
-                ? { startNodes: [{ sharedId: (this as WebdriverIO.Element).elementId }] }
-                : {}
-            )
-        }).then((result) => {
-            const elementId = result.nodes[0]?.sharedId
-            if (!elementId) {
-                return undefined
-            }
-            const elem: ExtendedElementReference = {
-                [ELEMENT_KEY]: elementId,
-                locator
-            }
-            return elem
-        }, (err) => {
-            log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-            return browser.findElement(using, value).catch((err) => {
-                log.warn(`Failed to execute browser.findElement({ ... }) due to ${err}`)
-            })
-        }),
-        /**
-         * fetch through all shadow roots
-         */
-        ...shadowRoots.map((shadowRootNodeId) =>
-            browser.findElementFromShadowRoot(shadowRootNodeId, using, value).then(
-                elementPromiseHandler(handle, shadowRootManager),
-                elementPromiseHandler(handle, shadowRootManager)
-            )
-        )
-    ])).filter(Boolean)
+    const deepElementResult = await browser.browsingContextLocateNodes({
+        locator,
+        context: handle,
+        maxNodeCount: 1,
+        startNodes: shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+    }).then(async (result) => {
+        const nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
+            [ELEMENT_KEY]: node.sharedId as string,
+            locator
+        }))
 
-    if (deepElementResult.length === 0) {
+        if (!(this as WebdriverIO.Element).elementId) {
+            return nodes[0]
+        }
+
+        /**
+         * determine if node is within tree of current element
+         */
+        const scopedNodes = await Promise.all(nodes.map(async (node) => {
+            const isIn = await browser.execute(
+                elementContains,
+                { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
+                node as unknown as HTMLElement
+            )
+            return [isIn, node]
+        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem))
+
+        return scopedNodes[0]
+    }, (err) => {
+        log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+        return browser.findElement(using, value)
+    })
+
+    if (!deepElementResult) {
         return new Error(`Couldn't find element with selector "${selector}"`)
     }
 
-    return deepElementResult[0] as ElementReference
+    return deepElementResult as ElementReference
 }
 
 /**
@@ -361,38 +356,38 @@ export async function findDeepElements(
     /**
      * look up selector within document and all shadow roots
      */
-    const deepElementResult = (await Promise.all([
+    const deepElementResult = await browser.browsingContextLocateNodes({
+        locator,
+        context: handle,
+        startNodes: shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+    }).then(async (result) => {
+        const nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
+            [ELEMENT_KEY]: node.sharedId as string,
+            locator
+        }))
+
+        if (!(this as WebdriverIO.Element).elementId) {
+            return nodes
+        }
+
         /**
-         * fetch through all browsing contexts
+         * determine if node is within tree of current element
          */
-        browser.browsingContextLocateNodes({
-            locator,
-            context: handle,
-            ...((this as WebdriverIO.Element).elementId
-                ? { startNodes: [{ sharedId: (this as WebdriverIO.Element).elementId }] }
-                : {}
+        const scopedNodes = await Promise.all(nodes.map(async (node) => {
+            const isIn = await browser.execute(
+                elementContains,
+                { [ELEMENT_KEY]: (this as WebdriverIO.Element).elementId } as unknown as HTMLElement,
+                node as unknown as HTMLElement
             )
-        }).then(
-            (result) => result.nodes.map((node) => ({
-                [ELEMENT_KEY]: node.sharedId,
-                locator
-            })),
-            (err) => {
-                log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-                return browser.findElements(using, value)
-            }
-        ),
-        /**
-         * fetch through all shadow roots
-         */
-        ...shadowRoots.map((shadowRootNodeId) =>
-            browser.findElementsFromShadowRoot(shadowRootNodeId, using, value).then(
-                elementPromiseHandler(handle, shadowRootManager),
-                elementPromiseHandler(handle, shadowRootManager)
-            )
-        )
-    ])).filter(Boolean)
-    return deepElementResult.flat()
+            return [isIn, node]
+        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem))
+
+        return scopedNodes
+    }, (err) => {
+        log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+        return browser.findElements(using, value)
+    })
+    return deepElementResult as ElementReference[]
 }
 
 /**
