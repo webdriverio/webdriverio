@@ -1,6 +1,6 @@
 ---
-id: events
-title: Events
+id: أحداث
+title: أحداث
 ---
 
 # WebdriverIO Events
