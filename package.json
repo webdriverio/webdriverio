@@ -83,7 +83,7 @@
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
     "@types/mime-types": "^2.1.4",
-    "@types/node": "^20.11.17",
+    "@types/node": "^22.2.0",
     "@types/shelljs": "^0.8.15",
     "@types/split2": "^4.2.3",
     "@types/unzipper": "^0.10.9",

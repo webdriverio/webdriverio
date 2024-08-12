@@ -38,7 +38,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.2.0",
     "@wdio/config": "8.40.2",
     "@wdio/logger": "8.38.0",
     "@wdio/protocols": "8.38.0",

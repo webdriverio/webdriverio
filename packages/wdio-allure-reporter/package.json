@@ -39,7 +39,7 @@
     "node": "^16.13 || >=18"
   },
   "dependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.2.0",
     "@wdio/reporter": "8.39.0",
     "@wdio/types": "8.39.0",
     "allure-js-commons": "^2.5.0",
