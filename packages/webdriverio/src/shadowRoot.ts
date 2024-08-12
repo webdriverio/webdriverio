@@ -130,6 +130,7 @@ export class ShadowRootManager {
                 return log.warn(`Expected element with shadow root but found <${shadowElem.value?.localName} />`)
             }
 
+            log.info(`Registered new shadow root for element <${shadowElem.value.localName} /> with id ${shadowElem.value.shadowRoot.sharedId}`)
             const newTree = new ShadowRootTree(
                 shadowElem.sharedId,
                 shadowElem.value.shadowRoot.sharedId,

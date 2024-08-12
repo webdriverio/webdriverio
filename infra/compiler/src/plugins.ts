@@ -104,13 +104,11 @@ export function externalScripts(): Plugin {
     return {
         name,
         setup(build) {
-            build.onResolve({ filter: /\/scripts\// }, (args) => {
-                return {
-                    path: args.path.replace('../../', './'),
-                    external: true,
-                    pluginName: name
-                }
-            })
+            build.onResolve({ filter: /\/scripts\// }, (args) => ({
+                path: `./scripts/${path.basename(args.path)}`,
+                external: true,
+                pluginName: name
+            }))
         }
     }
 }
