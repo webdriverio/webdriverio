@@ -56,7 +56,6 @@ export class BidiCore {
         try {
             const payload = JSON.parse(data.toString()) as CommandResponse
             if (!payload.id) {
-                log.debug('BIDI EVENT', data.toString())
                 return
             }
 
