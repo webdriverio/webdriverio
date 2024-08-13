@@ -43,7 +43,7 @@ export class ShadowRootManager {
          * listen on required bidi events
          */
         this.#initialize = this.#browser.sessionSubscribe({
-            events: ['log.entryAdded', 'browsingContext.contextCreated', 'browsingContext.contextDestroyed']
+            events: ['log.entryAdded']
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
         this.#browser.on('result', this.#commandResultHandler.bind(this))
