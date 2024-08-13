@@ -96,9 +96,11 @@ mock.request({
 
 Testing applications with Web Components is now seamless with automatic shadow root piercing. WebdriverIO now keeps track of all [`ShadowRoot`](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot) nodes and searches across them.
 
-For example, let's say we want to automate the following Date Picker component that contains multiple nested shadow roots:
+For example, let's say we want to automate the following Date Picker component that contains multiple nested shadow roots, take a look with `Right Click > Inspect` on any of the elements in the application and observe how much they are nested within different shadow roots:
 
-<iframe title="Date Picker" height="400" width="100%" src="https://ionicframework.com/docs/usage/v8/datetime/basic/demo.html?ionic:mode=md"></iframe>
+<PhoneMock>
+    <iframe title="Date Picker" height="580" style={{ paddingTop: '40px' }} width="292px" src="https://ionicframework.com/docs/usage/v8/datetime/basic/demo.html?ionic:mode=md"></iframe>
+</PhoneMock>
 
 In order to change the date, you can now just call:
 
