@@ -53,6 +53,14 @@ describe('Lit Component testing', () => {
     })
 
     it('should render component', async () => {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         render(
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
@@ -63,6 +71,14 @@ describe('Lit Component testing', () => {
     })
 
     it('should render with mocked component function', async () => {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         getQuestionFn.mockReturnValue('Does this work?')
         render(
             html`<simple-greeting name="WebdriverIO" />`,
@@ -84,6 +100,14 @@ describe('Lit Component testing', () => {
 
     describe('shadow root piercing', () => {
         it('should allow to pierce into closed shadow roots', async () => {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return
+            }
+
             render(
                 html`<closed-node>Hello, </closed-node>`,
                 document.body
@@ -116,6 +140,14 @@ describe('Lit Component testing', () => {
         })
 
         it('can fetch multiple elements within various closed shadow roots', async () => {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return
+            }
+
             render(
                 html`<closed-node>Hello, </closed-node>`,
                 document.body
