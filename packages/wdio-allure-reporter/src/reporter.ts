@@ -10,16 +10,11 @@ import type {
     TestStats,
 } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-// import { WdioTestRuntime, ALLURE_RUNTIME_MESSAGE_EVENT } from './WdioTestRuntime.js'
+import { WdioTestRuntime, ALLURE_RUNTIME_MESSAGE_EVENT } from './WdioTestRuntime.js'
 import type { Capabilities, Options } from '@wdio/types'
-// import type { Label, MetadataMessage } from 'allure-js-commons'
-// import {
-//     AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName,
-//     LinkType, ContentType, AllureCommandStepExecutable, ExecutableItemWrapper, AllureStep, Status
-// } from 'allure-js-commons'
 import { ContentType, LabelName, LinkType, Stage, Status as AllureStatus } from 'allure-js-commons'
 import { FileSystemWriter, getSuiteLabels, ReporterRuntime } from 'allure-js-commons/sdk/reporter'
-// import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
+import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 import {
     addAllureId,
     addArgument,
@@ -50,6 +45,8 @@ import {
     convertSuiteTagsToLabels,
     isAllTypeHooks,
     isEachTypeHooks,
+    isScreenshotCommand,
+    isEmpty,
     last,
 } from './utils.js'
 import type {
@@ -71,9 +68,6 @@ import type {
     AddTestIdEventArgs,
     AllureReporterOptions,
 } from './types.js'
-// import { TYPE as DescriptionType } from './types.js'
-
-// TODO:
 
 export default class AllureReporter extends WDIOReporter {
     private _allureRuntime: ReporterRuntime
@@ -87,10 +81,6 @@ export default class AllureReporter extends WDIOReporter {
     private _consoleOutput: string
     private _originalStdoutWrite: Function
     private _currentFile?: string
-
-    // _state: AllureReporterState
-
-    // _runningUnits: Array<AllureGroup | AllureTest | AllureStep> = []
 
     constructor(options: AllureReporterOptions = {}) {
         const { outputDir = 'allure-results', ...rest } = options
@@ -112,9 +102,7 @@ export default class AllureReporter extends WDIOReporter {
 
         this._capabilities = {}
         this._options = options
-
-        // TODO: this thing will process events from TestRuntime, how do we can inject the runtime?
-        // this.registerListeners()
+        this._registerListeners()
 
         const processObj: any = process
 
@@ -134,24 +122,27 @@ export default class AllureReporter extends WDIOReporter {
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
         }
-
-        // setGlobalTestRuntime(new WdioTestRuntime())
     }
 
     attachFile(
         name: string,
-        content: string | Buffer,
+        content: Buffer,
         contentType: ContentType
     ) {
         const currentExecutableUuid = last(this._allureExecutablesStack)
-
         const attachmentStepUuid = this._allureRuntime.startStep(currentExecutableUuid, undefined, {
             name,
         })!
 
-        this._allureRuntime.writeAttachment(attachmentStepUuid, undefined, name, content, {
-            contentType,
-        })
+        this._allureRuntime.writeAttachment(
+            attachmentStepUuid,
+            undefined,
+            name,
+            content,
+            {
+                contentType,
+            },
+        )
         this._allureRuntime.stopStep(attachmentStepUuid)
     }
 
@@ -164,7 +155,7 @@ export default class AllureReporter extends WDIOReporter {
 
         const logsContent = `.........Console Logs.........\n\n${this._consoleOutput}`
 
-        this.attachFile('Console Logs', logsContent, ContentType.TEXT)
+        this.attachFile('Console Logs', Buffer.from(logsContent, 'utf8'), ContentType.TEXT)
     }
 
     attachJSON(name: string, json: any) {
@@ -173,7 +164,7 @@ export default class AllureReporter extends WDIOReporter {
 
         this.attachFile(
             name,
-            String(content),
+            Buffer.from(String(content), 'utf8'),
             isStr ? ContentType.JSON : ContentType.TEXT
         )
     }
@@ -182,7 +173,7 @@ export default class AllureReporter extends WDIOReporter {
         this.attachFile(name, content, ContentType.PNG)
     }
 
-    _startSuite() {
+    _openScope() {
         const scopeUuid = this._allureRuntime.startScope()
 
         this._allureScopesStack.push(scopeUuid)
@@ -190,8 +181,13 @@ export default class AllureReporter extends WDIOReporter {
         return scopeUuid
     }
 
-    _endSuite() {
-        const currentScopeUuid = this._allureScopesStack.pop()!
+    _closeScope() {
+        const currentScopeUuid = this._allureScopesStack.pop()
+
+        if (!currentScopeUuid) {
+            console.warn('AllureReporter: no active scope to write!')
+            return
+        }
 
         this._allureRuntime.writeScope(currentScopeUuid)
 
@@ -236,10 +232,8 @@ export default class AllureReporter extends WDIOReporter {
         fullTitle: string,
         cid?: string
     }) {
-        // const testScopeUuid = this._allureRuntime.startScope()
-
-        // don't forget to write the scope
-        // this._allureScopesStack.push(testScopeUuid)
+        // start scope for each test to bind hooks-fixtures to the test
+        this._openScope()
 
         const { title, fullTitle, cid } = payload
         const testPath = fullTitle.replace(title, '').split('.').filter(Boolean)
@@ -259,49 +253,28 @@ export default class AllureReporter extends WDIOReporter {
             ]
         }, this._allureScopesStack)
 
-        // this._allureRuntime.updateTest(currentTestUuid, (r) => {
-        //     if (cid) {
-        //         r.labels.push({
-        //             name: LabelName.THREAD,
-        //             value: cid,
-        //         })
-        //     }
-        //
-        //     if (this._currentFile) {
-        //         r.labels.push({
-        //             name: LabelName.PACKAGE,
-        //             value: this._currentFile.replace(sep, '.'),
-        //         })
-        //     }
-        // })
+        this._allureRuntime.updateTest(currentTestUuid, (r) => {
+            if (cid) {
+                r.labels.push({
+                    name: LabelName.THREAD,
+                    value: cid,
+                })
+            }
 
+            if (this._currentFile) {
+                r.labels.push({
+                    name: LabelName.PACKAGE,
+                    value: this._currentFile.replace(sep, '.'),
+                })
+            }
+        })
         this._allureExecutablesStack.push(currentTestUuid)
         this._setTestParameters(currentTestUuid, cid)
 
         return currentTestUuid
     }
 
-    _skipTest() {
-        this._endTest(AllureStatus.SKIPPED, undefined, Stage.PENDING)
-        // if (!this._state.currentAllureStepableEntity) {
-        //     return
-        // }
-        //
-        // const currentTest = this._state.pop() as AllureTest | AllureStep
-        //
-        // currentTest.stage = Stage.PENDING
-        // currentTest.status = AllureStatus.SKIPPED
-        //
-        // if (currentTest instanceof AllureTest) {
-        //     setAllureIds(currentTest, this._state.currentSuite)
-        //     currentTest.endTest()
-        // } else {
-        //     currentTest.endStep()
-        // }
-    }
-
     _endTest(status: AllureStatus, error?: Error, stage?: Stage) {
-        // TODO: test steps
         const currentTestUuid = this._allureExecutablesStack.pop()
 
         if (!currentTestUuid) {
@@ -323,12 +296,25 @@ export default class AllureReporter extends WDIOReporter {
         })
         this._allureRuntime.stopTest(currentTestUuid)
         this._allureRuntime.writeTest(currentTestUuid)
+        this._closeScope()
+    }
 
-        // if (currentSpec instanceof AllureTest) {
-        //     setAllureIds(currentSpec, this._state.currentSuite)
-        //     currentSpec.endTest()
-        // } else if (currentSpec instanceof AllureStep) {
-        //     currentSpec.endStep()
+    _skipTest() {
+        this._endTest(AllureStatus.SKIPPED, undefined, Stage.PENDING)
+        // if (!this._state.currentAllureStepableEntity) {
+        //     return
+        // }
+        //
+        // const currentTest = this._state.pop() as AllureTest | AllureStep
+        //
+        // currentTest.stage = Stage.PENDING
+        // currentTest.status = AllureStatus.SKIPPED
+        //
+        // if (currentTest instanceof AllureTest) {
+        //     setAllureIds(currentTest, this._state.currentSuite)
+        //     currentTest.endTest()
+        // } else {
+        //     currentTest.endStep()
         // }
     }
 
@@ -343,8 +329,32 @@ export default class AllureReporter extends WDIOReporter {
         return newStepUuid
     }
 
+    _endStep(status: AllureStatus, error?: Error, stage?: Stage) {
+        const lastExecutableUuid = this._allureExecutablesStack.pop()!
+
+        this._allureRuntime.updateStep(lastExecutableUuid, (r) => {
+            r.status = status
+
+            if (error) {
+                r.statusDetails = {
+                    message: error.message,
+                    trace: error.stack,
+                }
+            }
+
+            if (stage) {
+                r.stage = stage
+            }
+        })
+        this._allureRuntime.stopStep(lastExecutableUuid)
+    }
+
+    _skipStep() {
+        this._endStep(AllureStatus.SKIPPED, undefined, Stage.PENDING)
+    }
+
+    // TODO:
     _setTestParameters(uuid: string, cid?: string) {
-        // TODO:
         // if (!this._isMultiremote) {
         //     const caps = this._capabilities
         //     // @ts-expect-error outdated JSONWP capabilities
@@ -389,37 +399,19 @@ export default class AllureReporter extends WDIOReporter {
         // this._state.currentTest.addLabel(LabelName.FEATURE, this._state.currentSuite.name)
     }
 
-    // TODO:
-    // registerListeners() {
-    //     process.on(ALLURE_RUNTIME_MESSAGE_EVENT, (runtimeMessage) => {
-    //         console.log({ runtimeMessage })
-    //     })
-    //     // process.on(events.addLink, this.addLink.bind(this))
-    //     // process.on(events.addLabel, this.addLabel.bind(this))
-    //     // process.on(events.addAllureId, this.addAllureId.bind(this))
-    //     // process.on(events.addFeature, this.addFeature.bind(this))
-    //     // process.on(events.addStory, this.addStory.bind(this))
-    //     // process.on(events.addSeverity, this.addSeverity.bind(this))
-    //     // process.on(events.addSuite, this.addSuite.bind(this))
-    //     // process.on(events.addSubSuite, this.addSubSuite.bind(this))
-    //     // process.on(events.addOwner, this.addOwner.bind(this))
-    //     // process.on(events.addTag, this.addTag.bind(this))
-    //     // process.on(events.addParentSuite, this.addParentSuite.bind(this))
-    //     // process.on(events.addEpic, this.addEpic.bind(this))
-    //     // process.on(events.addIssue, this.addIssue.bind(this))
-    //     // process.on(events.addTestId, this.addTestId.bind(this))
-    //     // process.on(events.addAttachment, this.addAttachment.bind(this))
-    //     // process.on(events.addDescription, this.addDescription.bind(this))
-    //     // process.on(events.startStep, this.startStep.bind(this))
-    //     // process.on(events.endStep, this.endStep.bind(this))
-    //     // process.on(events.addStep, this.addStep.bind(this))
-    //     // process.on(events.addArgument, this.addArgument.bind(this))
-    //     // process.on(events.addAllureStep, this.addAllureStep.bind(this))
-    // }
+    _registerListeners() {
+        setGlobalTestRuntime(new WdioTestRuntime())
+
+        process.on(ALLURE_RUNTIME_MESSAGE_EVENT, (runtimeMessage) => {
+            const currentExecutableUuid = last(this._allureExecutablesStack)
+
+            this._allureRuntime.applyRuntimeMessages(currentExecutableUuid, [runtimeMessage])
+        })
+    }
 
     onRunnerStart(runner: RunnerStats) {
         // start root scope
-        this._startSuite()
+        this._openScope()
         this._config = runner.config
         this._capabilities = runner.capabilities
         this._isMultiremote = runner.isMultiremote || false
@@ -427,7 +419,7 @@ export default class AllureReporter extends WDIOReporter {
 
     onRunnerEnd() {
         // end root scope
-        this._endSuite()
+        this._closeScope()
     }
 
     onSuiteStart(suite: SuiteStats) {
@@ -440,7 +432,7 @@ export default class AllureReporter extends WDIOReporter {
             .replace(/^\//, '')
 
         if (processAsSuite) {
-            this._startSuite()
+            this._openScope()
             return
         }
 
@@ -478,17 +470,16 @@ export default class AllureReporter extends WDIOReporter {
         const processAsSuite = !useCucumberStepReporter || !isScenario
 
         if (processAsSuite) {
-            this._endSuite()
+            this._closeScope()
             return
         }
 
-        // TODO:
         // passing hooks are missing the 'state' property
-        // suite.hooks = suite.hooks!.map((hook) => {
-        //     hook.state = hook.state || AllureStatus.PASSED
-        //
-        //     return hook
-        // })
+        suite.hooks = suite.hooks!.map((hook) => {
+            hook.state = hook.state || AllureStatus.PASSED
+
+            return hook
+        })
 
         const suiteChildren = [...suite.tests!, ...suite.hooks]
         // A scenario is it skipped if every steps are skipped and hooks are passed or skipped
@@ -509,6 +500,7 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
+        // TODO:
         // const isPassed = suiteChildren.every(item => item.state === AllureStatus.PASSED)
         // A scenario is it passed if certain steps are passed and all other are skipped and every hooks are passed or skipped
         // const isPartiallySkipped = suiteChildren.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
@@ -554,7 +546,11 @@ export default class AllureReporter extends WDIOReporter {
         this._startStep(test.title)
 
         if (dataTable) {
-            this.attachFile('Data Table', stringify(dataTable), ContentType.CSV)
+            this.attachFile(
+                'Data Table',
+                Buffer.from(stringify(dataTable), 'utf8'),
+                ContentType.CSV,
+            )
         }
     }
 
@@ -620,53 +616,56 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onBeforeCommand(command: BeforeCommandArgs) {
-        console.log('before command', command)
-        // if (!this._state.currentAllureStepableEntity) {
-        //     return
-        // }
-        //
-        // const { disableWebdriverStepsReporting } = this._options
-        //
-        // if (disableWebdriverStepsReporting || this._isMultiremote) {
-        //     return
-        // }
-        // const { method, endpoint } = command
-        //
-        // const stepName = command.command ? command.command : `${method} ${endpoint}`
-        // const payload = command.body || command.params
-        //
-        // this._startStep(stepName as string)
-        //
-        // if (!isEmpty(payload)) {
-        //     this.attachJSON('Request', payload)
-        // }
+        const { disableWebdriverStepsReporting } = this._options
+        const currentExecutableUuid = last(this._allureExecutablesStack)
+
+        if (!currentExecutableUuid) {
+            return
+        }
+
+        if (disableWebdriverStepsReporting || this._isMultiremote) {
+            return
+        }
+
+        const { method, endpoint } = command
+        const stepName = command.command ? command.command : `${method} ${endpoint}`
+        const payload = command.body || command.params
+
+        this._startStep(stepName as string)
+
+        if (!isEmpty(payload)) {
+            this.attachJSON('Request', payload)
+        }
     }
 
     onAfterCommand(command: AfterCommandArgs) {
-        console.log('after command', command)
-        // const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
-        //
-        // const { value: commandResult } = command?.result || {}
-        // const isScreenshot = isScreenshotCommand(command)
-        // if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
-        //     this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
-        // }
-        //
-        // if (disableWebdriverStepsReporting || this._isMultiremote || !this._state.currentStep) {
-        //     return
-        // }
-        //
-        // this.attachJSON('Response', commandResult)
-        // this.endStep(AllureStatus.PASSED)
+        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
+        const currentExecutableUuid = last(this._allureExecutablesStack)
+
+        if (!currentExecutableUuid) {
+            return
+        }
+
+        const { value: commandResult } = command?.result || {}
+        const isScreenshot = isScreenshotCommand(command)
+
+        if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
+            this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
+        }
+
+        if (disableWebdriverStepsReporting || this._isMultiremote) {
+            return
+        }
+
+        this.attachJSON('Response', commandResult)
+        this._endStep(AllureStatus.PASSED)
     }
 
     onHookStart(hook: HookStats) {
         const { disableMochaHooks, useCucumberStepReporter } = this._options
         const currentScopeUuid = last(this._allureScopesStack)
 
-        // ignore global hooks or hooks when option is set in false
-        // any hook is skipped if there is not a suite created.
-        if (!hook.parent || !currentScopeUuid || disableMochaHooks) {
+        if (!currentScopeUuid || disableMochaHooks) {
             return
         }
 
@@ -703,9 +702,7 @@ export default class AllureReporter extends WDIOReporter {
         const currentScopeUuid = last(this._allureScopesStack)
         const { disableMochaHooks, useCucumberStepReporter } = this._options
 
-        // ignore global hooks
-        // any hook is skipped if there is not a suite created.
-        if (!hook.parent || !currentScopeUuid || disableMochaHooks) {
+        if (!currentScopeUuid || disableMochaHooks) {
             return
         }
 
