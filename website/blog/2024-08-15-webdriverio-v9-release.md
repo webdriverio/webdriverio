@@ -7,13 +7,19 @@ authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s
 
 The whole Webdriverio development team is stoked and proud to release WebdriverIO v9 today! 🎉 🎉 🎉
 
-This marks the begin of a new exciting era for all projects using WebdriverIO as their test automation tool. With the great work of browser teams that are working on e.g. Chrome and Firefox, we now enter a new era that offers much greater automation capabilities than ever before thanks to the new [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol. With WebdriverIO v9 we have been working to be at the forefront of adopters of this new era and allow you to leverage from the power of the protocol first.
+This marks the beginning of a new exciting era for all projects using WebdriverIO as their test automation tool. With the great work of browser teams that are working on e.g. Chrome and Firefox, we now enter a new era that offers much greater automation capabilities than ever before thanks to the new [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol. With WebdriverIO v9 we have been working to be at the forefront of adopters of this new era and allow you to leverage from the power of the protocol first.
 
 Let's explore the new features, updates, and optimizations in this release.
 
 ## New Features
 
 The majority of the new features in v9 are enabled by the WebDriver Bidi capabilities now available in browsers. Upon upgrading to v9, all sessions will automatically use Bidi unless you explicitly disable it via the new `wdio:enforceWebDriverClassic` capability.
+
+:::note
+
+These features unfortunately won't be available to you if your remote environment doesn't support WebDriver Bidi. You can check if Bidi is support in your session by looking into the `browser.isBidi` property.
+
+:::
 
 ### New `url` Command Parameters
 
