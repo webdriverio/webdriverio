@@ -156,7 +156,6 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     onComplete() {
         this._isShuttingDown = true
-      
         // Kill appium and all process' spawned from it
         if (this._process && this._process.pid) {
             // Ensure all child processes are also killed
