@@ -12,7 +12,7 @@ import ExampleComponent from './Component.svelte'
 import './Component.css'
 
 describe('Svelte Component Testing', () => {
-    
+
     it('should test component with Testing Library', async () => {
         const { getByText } = render(ExampleComponent)
 
@@ -24,7 +24,7 @@ describe('Svelte Component Testing', () => {
 
         expect(getByText(/count is 2/i)).toBeInTheDocument()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         render(ExampleComponent)
@@ -51,7 +51,7 @@ import ExampleComponent from './Component.svelte'
 import './Component.css'
 
 describe('Svelte Component Testing', () => {
-    
+
     let container: Element
 
     beforeEach(() => {
@@ -62,7 +62,7 @@ describe('Svelte Component Testing', () => {
     afterEach(() => {
         container?.remove()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         new ExampleComponent({ target: container, props: {} })
@@ -92,7 +92,7 @@ import ExampleComponent from './Component.vue'
 import './Component.css'
 
 describe('Vue Component Testing', () => {
-    
+
     it('should test component with Testing Library', async () => {
         // The render method returns a collection of utilities to query your component.
         const { getByText } = render(ExampleComponent, {
@@ -107,7 +107,7 @@ describe('Vue Component Testing', () => {
 
         expect(getByText(/count is 2/i)).toBeInTheDocument()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         render(ExampleComponent, { props: { msg: 'WebdriverIO Component Testing' } })
@@ -134,7 +134,7 @@ import ExampleComponent from './Component.vue'
 import './Component.css'
 
 describe('Vue Component Testing', () => {
-    
+
     let container: Element
 
     beforeEach(() => {
@@ -146,7 +146,7 @@ describe('Vue Component Testing', () => {
     afterEach(() => {
         container?.remove()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         createApp(ExampleComponent, { msg: 'WebdriverIO Component Testing' }).mount(container)
@@ -178,7 +178,7 @@ describe('Lit component testing', () => {
             document.body
         )
 
-        const button = await $('my-element').$('>>>button')
+        const button = await $('my-element').$('button')
         await expect(button).toHaveText('count is 0')
 
         await button.click()
@@ -202,7 +202,7 @@ expect.extend(matchers)
 import ExampleComponent from './Component'
 
 describe('Preact Component Tests', () => {
-    
+
     it('should test component with Testing Library', async () => {
         render(<ExampleComponent />)
         const component = screen.getByText(/count is 0/i)
@@ -213,7 +213,7 @@ describe('Preact Component Tests', () => {
 
         expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         render(<ExampleComponent />)
@@ -243,7 +243,7 @@ const html = htm.bind(h);
 import ExampleComponent from './Component'
 
 describe('Preact Component Tests', () => {
-    
+
     let container: Element
 
     beforeEach(() => {
@@ -254,7 +254,7 @@ describe('Preact Component Tests', () => {
     afterEach(() => {
         container?.remove()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         render(html\`<\${ExampleComponent} />\`, container)
@@ -284,7 +284,7 @@ expect.extend(matchers)
 import ExampleComponent from './Component'
 
 describe('React Component Tests', () => {
-    
+
     it('should test component with Testing Library', async () => {
         render(<ExampleComponent />)
         const component = screen.getByText(/count is 0/i)
@@ -295,7 +295,7 @@ describe('React Component Tests', () => {
 
         expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         render(<ExampleComponent />)
@@ -322,7 +322,7 @@ import { createRoot } from 'react-dom/client'
 import ExampleComponent from './Component'
 
 describe('React Component Tests', () => {
-    
+
     let container: Element
 
     beforeEach(() => {
@@ -333,7 +333,7 @@ describe('React Component Tests', () => {
     afterEach(() => {
         container?.remove()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         const root = createRoot(container)
@@ -363,7 +363,7 @@ expect.extend(matchers)
 import ExampleComponent from './Component'
 
 describe('Preact Component Tests', () => {
-    
+
     afterEach(cleanup)
 
     it('should test component with Testing Library', async () => {
@@ -376,7 +376,7 @@ describe('Preact Component Tests', () => {
 
         expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         render(() => <ExampleComponent />)
@@ -402,7 +402,7 @@ import { render } from 'solid-js/web'
 import ExampleComponent from './Component'
 
 describe('Preact Component Tests', () => {
-    
+
     let container: Element
 
     beforeEach(() => {
@@ -413,7 +413,7 @@ describe('Preact Component Tests', () => {
     afterEach(() => {
         container?.remove()
     })
-    
+
 
     it('should test component with WebdriverIO', async () => {
         render(<ExampleComponent />, container)

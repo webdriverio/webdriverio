@@ -30,7 +30,7 @@ describe('main suite 1', () => {
     it('can query shadow elements', async () => {
         await browser.url('https://the-internet.herokuapp.com/shadowdom')
         await $('h1').waitForDisplayed()
-        await expect($('>>>ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
+        await expect($('ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
     it('should be able to use async-iterators', async () => {
