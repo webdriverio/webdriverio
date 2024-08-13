@@ -41,6 +41,10 @@ describe('bidi e2e test', () => {
     const executeArgs = ['string', true, 42, -0, Infinity, -Infinity, NaN, [1, 2, 3], new Map([['foo', 'bar']]), new Set([]), /foobar/]
 
     it('can serialize function values (sync)', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+
         function validator (str: string, bool: boolean, number: number, negZero: number, infin: number, negInfin: number, notANumber: number, arr: number[], map: Map<string, unknown>, set: Set<unknown>, regex: RegExp) {
             return [
                 'validate string:', typeof str === 'string', '\n',
@@ -62,6 +66,10 @@ describe('bidi e2e test', () => {
     })
 
     it('can serialize function values (async)', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+
         async function asyncValidator (str: string, bool: boolean, number: number, negZero: number, infin: number, negInfin: number, notANumber: number, arr: number[], map: Map<string, unknown>, set: Set<unknown>, regex: RegExp) {
             return Promise.resolve([
                 'validate string:', typeof str === 'string', '\n',
