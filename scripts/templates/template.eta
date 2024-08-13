@@ -36,6 +36,11 @@ This protocol command is embedded in the following convenient method<%= it.alter
 $(selector).<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isMockScope) { %>
 mock.<%= it.command %>(<%= it.paramString %>)
+<% } else if (it.isDialogScope) { %>
+await dialog.<%= it.command %>(<%= it.paramString %>)
+<% } else if (it.isClockScope) { %>
+const clock = await browser.emulate('clock', { ... })
+await clock.<%= it.command %>(<%= it.paramString %>)
 <% } else { %>
 <%= it.isMobile ? 'driver' : 'browser' %>.<%= it.command %>(<%= it.paramString %>)
 <% } %>

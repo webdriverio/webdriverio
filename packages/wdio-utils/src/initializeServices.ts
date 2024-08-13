@@ -6,13 +6,13 @@ import initializePlugin from './initializePlugin.js'
 const log = logger('@wdio/utils:initializeServices')
 
 type IntialisedService = (
-    [Services.ServiceClass | { default: Function }, Services.ServiceOption, string] |
+    [Services.ServiceClass | { default: Function }, WebdriverIO.ServiceOption, string] |
     [Services.HookFunctions, Record<string, any>] |
-    [Services.ServiceClass, Services.ServiceOption]
+    [Services.ServiceClass, WebdriverIO.ServiceOption]
 )
 
 type Service = Services.ServiceEntry | Services.ServiceClass
-type ServiceWithOptions = [Service, Services.ServiceOption]
+type ServiceWithOptions = [Service, WebdriverIO.ServiceOption]
 
 /**
  * Maps list of services of a config file into a list of actionable objects
@@ -91,7 +91,13 @@ function sanitizeServiceArray (service: Services.ServiceEntry): ServiceWithOptio
  *                            as a list of services that don't need to be
  *                            required in the worker
  */
-export async function initializeLauncherService (config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>, caps: Capabilities.TestrunnerCapabilities) {
+export async function initializeLauncherService (
+    config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>,
+    caps: Capabilities.TestrunnerCapabilities
+): Promise<{
+    ignoredWorkerServices: string[];
+    launcherServices: Services.ServiceInstance[];
+}> {
     const ignoredWorkerServices = []
     const launcherServices: Services.ServiceInstance[] = []
     let serviceLabelToBeInitialised = 'unknown'
@@ -138,7 +144,7 @@ export async function initializeLauncherService (config: Omit<Options.Testrunner
             }
         }
     } catch (err: any) {
-        throw new Error(`Failed to initilialise launcher service ${serviceLabelToBeInitialised}: ${err.stack}`)
+        throw new Error(`Failed to initialise launcher service ${serviceLabelToBeInitialised}: ${err.stack}`)
     }
 
     return { ignoredWorkerServices, launcherServices }
@@ -185,6 +191,6 @@ export async function initializeWorkerService (
 
         return initializedServices
     } catch (err: any) {
-        throw new Error(`Failed to initilialise service ${serviceLabelToBeInitialised}: ${err.stack}`)
+        throw new Error(`Failed to initialise service ${serviceLabelToBeInitialised}: ${err.stack}`)
     }
 }

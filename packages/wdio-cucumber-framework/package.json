@@ -25,26 +25,28 @@
   "type": "module",
   "module": "./build/index.js",
   "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./build/index.cjs"
-      },
-      "./build/index.cjs"
-    ],
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "requireSource": "./src/index.cts",
+      "require": "./build/index.cjs"
+    },
+    "./formatter": {
+      "source": "./src/cucumberFormatter.ts",
+      "import": "./build/cucumberFormatter.js"
+    }
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@cucumber/cucumber": "^10.3.1",
     "@cucumber/gherkin": "28.0.0",
-    "@cucumber/messages": "24.1.0",
+    "@cucumber/messages": "25.0.1",
     "@types/node": "^20.1.0",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
+    "import-meta-resolve": "^4.1.0",
     "glob": "^10.2.2",
     "is-glob": "^4.0.0"
   },

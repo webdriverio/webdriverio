@@ -24,15 +24,12 @@
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./cjs/common/api.js"
-      },
-      "./cjs/common/api.js"
-    ],
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "requireSource": "./src/common/api.ts",
+      "require": "./build/index.cjs"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
@@ -50,6 +47,6 @@
     "access": "public"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5"
+    "rimraf": "^6.0.1"
   }
 }

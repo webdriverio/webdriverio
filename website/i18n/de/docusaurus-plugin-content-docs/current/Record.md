@@ -3,7 +3,7 @@ id: record
 title: Tests Aufzeichnen
 ---
 
-Chrome DevTools verfügt über ein _Recorder_ Panel, mit dem Benutzer automatisierte Schritte in Chrome aufzeichnen und wiedergeben können. Diese Schritte können mit einer Chrome-Erweiterung [in WebdriverIO-Tests exportiert](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn?hl=en&authuser=1) werden, was das Erstellen von Tests kinderleicht macht.
+Chrome DevTools verfügt über ein _Recorder_ Panel, mit dem Benutzer automatisierte Schritte in Chrome aufzeichnen und wiedergeben können. Diese Schritte können mit einer Chrome-Erweiterung [in WebdriverIO-Tests exportiert](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn?hl=en) werden, was das Erstellen von Tests kinderleicht macht.
 
 ## Was ist Chrome DevTools Recorder
 

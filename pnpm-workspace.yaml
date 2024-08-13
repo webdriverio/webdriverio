@@ -1,5 +1,6 @@
 packages:
   - 'packages/**'
+  - 'infra/**'
   - 'website/**'
   - 'e2e/**'
   - 'tests/**'

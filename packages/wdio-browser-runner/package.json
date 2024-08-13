@@ -25,11 +25,39 @@
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
-    "./package.json": "./package.json",
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    },
     "./stencil": {
+      "importSource": "./src/browser/integrations/stencil.ts",
       "import": "./build/browser/integrations/stencil.js",
-      "types": "./stencil/index.d.ts"
+      "types": "./build/browser/integrations/stencil.d.ts"
+    },
+    "./driver": {
+      "browserSource": "./src/browser/driver.ts",
+      "browser": "./build/browser/driver.js",
+      "types": "./build/browser/driver.d.ts"
+    },
+    "./mock": {
+      "browserSource": "./src/browser/mock.ts",
+      "browser": "./build/browser/mock.js",
+      "types": "./build/browser/mock.d.ts"
+    },
+    "./setup": {
+      "browserSource": "./src/browser/setup.ts",
+      "browser": "./build/browser/setup.js",
+      "types": "./build/browser/setup.d.ts"
+    },
+    "./spy": {
+      "browserSource": "./src/browser/spy.ts",
+      "browser": "./build/browser/spy.js",
+      "types": "./build/browser/spy.d.ts"
+    },
+    "./expect": {
+      "browserSource": "./src/browser/expect.ts",
+      "browser": "./build/browser/expect.js",
+      "types": "./build/browser/expect.d.ts"
     }
   },
   "typeScriptVersion": "3.8.3",
@@ -59,22 +87,24 @@
     "recast": "^0.23.6",
     "safe-stringify": "^1.1.0",
     "source-map-support": "^0.5.21",
-    "vite": "~5.3.1",
+    "vite": "~5.4.0",
     "vite-plugin-istanbul": "^6.0.0",
     "vite-plugin-top-level-await": "^1.4.1",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
-  },
-  "scripts": {
-    "prepare": "rimraf node_modules/@wdio/config node_modules/@wdio/repl node_modules/@wdio/utils"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "devDependencies": {
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",
     "esbuild": "^0.21.3"
+  },
+  "optionalDependencies": {
+    "@nuxt/kit": "^3.12.4",
+    "@stencil/core": "^4.20.0",
+    "unimport": "^3.10.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

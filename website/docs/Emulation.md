@@ -73,3 +73,93 @@ await browser.emulate('onLine', false)
 ```
 
 This will __not__ turn off network traffic between the browser and the internet and only changes the return value of [`navigator.onLine`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/onLine). If you are interested modifying network capabilities of the browser, look into the [`throttleNetwork`](/docs/api/browser/throttleNetwork) command.
+
+## Clock
+
+You can modify the browser system clock using the [`emulate`](/docs/emulation) command. It overrides native global functions related to time allowing them to be controlled synchronously via `clock.tick()` or the yielded clock object. This includes controlling:
+
+- `setTimeout`
+- `clearTimeout`
+- `setInterval`
+- `clearInterval`
+- `Date Objects`
+
+The clock starts at the unix epoch (timestamp of 0). This means that when you instantiate new Date in your application, it will have a time of January 1st, 1970 if you don't pass any other options to the `emulate` command.
+
+##### Example
+
+When calling `browser.emulate('clock', { ... })` it will immediately overwrite the global functions for the current page as well as all following pages, e.g.:
+
+```ts
+const clock = await browser.emulate('clock', { now: new Date(1989, 7, 4) })
+
+console.log(await browser.execute(() => (new Date()).toString()))
+// returns "Fri Aug 04 1989 00:00:00 GMT-0700 (Pacific Daylight Time)"
+
+await browser.url('https://webdriverio')
+console.log(await browser.execute(() => (new Date()).toString()))
+// returns "Fri Aug 04 1989 00:00:00 GMT-0700 (Pacific Daylight Time)"
+
+await clock.restore()
+
+console.log(await browser.execute(() => (new Date()).toString()))
+// returns "Thu Aug 01 2024 17:59:59 GMT-0700 (Pacific Daylight Time)"
+
+await browser.url('http://guinea-pig.webdriver.io/pointer.html')
+console.log(await browser.execute(() => (new Date()).toString()))
+// returns "Thu Aug 01 2024 17:59:59 GMT-0700 (Pacific Daylight Time)"
+```
+
+You can modify the system time by calling [`setSystemTime`](/docs/api/clock/setSystemTime) or [`tick`](/docs/api/clock/tick).
+
+The `FakeTimerInstallOpts` object can have the following properties:
+
+ ```ts
+interface FakeTimerInstallOpts {
+    // Installs fake timers with the specified unix epoch
+    // @default: 0
+    now?: number | Date | undefined;
+
+    // An array with names of global methods and APIs to fake. By default, WebdriverIO
+    // does not replace `nextTick()` and `queueMicrotask()`. For instance,
+    // `browser.emulate('clock', { toFake: ['setTimeout', 'nextTick'] })` will fake only
+    // `setTimeout()` and `nextTick()`
+    toFake?: FakeMethod[] | undefined;
+
+    // The maximum number of timers that will be run when calling runAll() (default: 1000)
+    loopLimit?: number | undefined;
+
+    // Tells WebdriverIO to increment mocked time automatically based on the real system
+    // time shift (e.g. the mocked time will be incremented by 20ms for every 20ms change
+    // in the real system time)
+    // @default false
+    shouldAdvanceTime?: boolean | undefined;
+
+    // Relevant only when using with shouldAdvanceTime: true. increment mocked time by
+    // advanceTimeDelta ms every advanceTimeDelta ms change in the real system time
+    // @default: 20
+    advanceTimeDelta?: number | undefined;
+
+    // Tells FakeTimers to clear 'native' (i.e. not fake) timers by delegating to their
+    // respective handlers. These are not cleared by default, leading to potentially
+    // unexpected behavior if timers existed prior to installing FakeTimers.
+    // @default: false
+    shouldClearNativeTimers?: boolean | undefined;
+}
+```
+
+## Device
+
+The `emulate` command also supports emulating a certain mobile or desktop device by changing the viewport, device scale factor and the user agent. This should, by no means, be used for mobile testing as desktop browser engines differ from mobile ones. This should only be used if your application offers a specific behavior for smaller viewport sizes.
+
+For example, to switch the user agent and viewport to an iPhone 15, just run:
+
+```ts
+const restore = await browser.emulate('iPhone 15')
+// test your application ...
+
+// reset to original viewport and user agent
+await restore()
+```
+
+WebdriverIO maintains a fixed list of [all defined devices](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/deviceDescriptorsSource.ts).

@@ -220,7 +220,9 @@ export default function (docfile: any) {
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',
         isNetworkScope : scope === 'network',
-        isMockScope : scope === 'mock'
+        isMockScope : scope === 'mock',
+        isDialogScope : scope === 'dialog',
+        isClockScope : scope === 'clock',
     }
 
     return commandDescription

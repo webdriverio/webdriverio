@@ -144,7 +144,7 @@ describe('initializeLauncherService', () => {
             }
         } as any)
         await expect(() => initializeLauncherService({ services: ['borked'] }, {}))
-            .rejects.toThrow(/Failed to initilialise launcher service "borked": Error: ups/)
+            .rejects.toThrow(/Failed to initialise launcher service "borked": Error: ups/)
     })
 })
 
@@ -210,6 +210,6 @@ describe('initializeWorkerService', () => {
         await expect(initializeWorkerService(
             { services: ['borked'] } as any,
             {}
-        )).rejects.toThrow(/Failed to initilialise service borked: Error: ups/)
+        )).rejects.toThrow(/Failed to initialise service borked: Error: ups/)
     })
 })

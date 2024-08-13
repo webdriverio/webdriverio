@@ -7,8 +7,15 @@
   "license": "MIT",
   "type": "module",
   "types": "./build/index.d.ts",
+  "main": "./build/index.cjs",
+  "browser": "./build/browser.js",
   "exports": {
-    ".": "./build/index.js",
+    ".": {
+      "browser": "./build/browser.js",
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts",
+      "browserSource": "./src/browser.ts"
+    },
     "./package.json": "./package.json"
   },
   "typeScriptVersion": "3.8.3",

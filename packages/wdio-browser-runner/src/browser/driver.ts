@@ -56,7 +56,7 @@ export default class ProxyDriver {
         const environment = sessionEnvironmentDetector({ capabilities: params.capabilities, requestedCapabilities: {} })
         const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(environment)
         // have debug command
-        const commandsProcessedInNodeWorld = [...commands, 'debug', 'saveScreenshot', 'savePDF']
+        const commandsProcessedInNodeWorld = [...commands, 'debug', 'saveScreenshot', 'savePDF', 'emulate', 'restore']
         const protocolCommands = commandsProcessedInNodeWorld.reduce((prev, commandName) => {
             prev[commandName] = {
                 value: this.#getMockedCommand(commandName)
