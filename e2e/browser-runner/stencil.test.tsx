@@ -7,6 +7,14 @@ import { NoShadowComponent } from './components/StencilComponentNoShadow.jsx'
 
 describe('Stencil Component Testing', () => {
     it('should render component correctly', async () => {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         const page = render({
             components: [AppProfile, NestedComponent],
             autoApplyChanges: true,
@@ -67,6 +75,14 @@ describe('Stencil Component Testing', () => {
     })
 
     it('can render via html', async () => {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         const page = render({
             components: [NestedComponent],
             html: '<nested-component></nested-component>'
@@ -98,7 +114,7 @@ describe('Stencil Component Testing', () => {
     })
 
     it('can auto peirce shadow dom', async () => {
-        if ((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase() === 'safari') {
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
             return
         }
         render({
