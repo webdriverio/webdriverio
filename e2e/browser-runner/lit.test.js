@@ -449,7 +449,7 @@ describe('Lit Component testing', () => {
             expect(error.message).toBe('expected bar to be foo')
         })
 
-        it.skip('should support nested element calls', async () => {
+        it('should support nested element calls', async () => {
             render(
                 html`<section>
                     <div class="first">

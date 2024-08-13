@@ -17,7 +17,7 @@ export default function customElementWrapper () {
                 while (parentNode.parentNode) {
                     parentNode = parentNode.parentNode
                 }
-                console.debug('[WDIO]', 'newShadowRoot', this, parentNode)
+                console.debug('[WDIO]', 'newShadowRoot', this, parentNode, parentNode === document)
             }
             disconnectedCallback() {
                 super.disconnectedCallback && super.disconnectedCallback()

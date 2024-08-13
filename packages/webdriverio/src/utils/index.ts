@@ -294,7 +294,6 @@ export async function findDeepElement(
     const deepElementResult = await browser.browsingContextLocateNodes({
         locator,
         context: handle,
-        maxNodeCount: 1,
         startNodes: shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
     }).then(async (result) => {
         const nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
