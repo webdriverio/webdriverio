@@ -121,7 +121,15 @@ export class ShadowRootManager {
                 if (!rootElem.sharedId) {
                     throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
                 }
-                this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
+
+                /**
+                 * only overwrite if `root.sharedId` is different, otherwise it's another shadow component
+                 * within the same context/document
+                 */
+                const tree = this.#shadowRoots.get(logEntry.source.context)
+                if (tree?.element !== rootElem.sharedId) {
+                    this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
+                }
             }
 
             const tree = this.#shadowRoots.get(logEntry.source.context)

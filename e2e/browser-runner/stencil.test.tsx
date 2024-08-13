@@ -1,4 +1,4 @@
-import { $, browser, expect } from '@wdio/globals'
+import { $, $$, browser, expect } from '@wdio/globals'
 import { render, waitForChanges } from '@wdio/browser-runner/stencil'
 
 import { AppProfile } from './components/StencilComponent.jsx'
@@ -97,7 +97,7 @@ describe('Stencil Component Testing', () => {
         await expect(page.root).not.toBeExisting()
     })
 
-    it.skip('can auto peirce shadow dom', async () => {
+    it('can auto peirce shadow dom', async () => {
         if ((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase() === 'safari') {
             return
         }

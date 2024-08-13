@@ -254,13 +254,21 @@ export function elementPromiseHandler <T extends object>(handle: string, shadowR
     }
 }
 
-export function transformClassicToBidiSelector (using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator {
+export function transformClassicToBidiSelector (using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
     if (using === 'css selector') {
-        return { type: 'css', value: value }
+        return { type: 'css', value }
     }
 
     if (using === 'xpath') {
-        return { type: 'xpath', value: value }
+        return { type: 'xpath', value }
+    }
+
+    if (using === 'link text') {
+        return { type: 'innerText', value }
+    }
+
+    if (using === 'partial link text') {
+        return { type: 'innerText', value, matchType: 'partial' }
     }
 
     throw new Error(`Can't transform classic selector ${using} to Bidi selector`)
