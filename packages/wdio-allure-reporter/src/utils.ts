@@ -1,8 +1,8 @@
 import stripAnsi from 'strip-ansi'
 import type { HookStats, TestStats, SuiteStats, CommandArgs, Tag } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
-import type { AllureGroup, AllureStep, AllureTest, ExecutableItemWrapper, FixtureResult, Label, TestResult } from 'allure-js-commons'
-import { LabelName, md5, Stage, Status, Status as AllureStatus } from 'allure-js-commons'
+import type { FixtureResult, Label, TestResult } from 'allure-js-commons'
+import { Status, Status as AllureStatus } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
 import { allHooks, eachHooks, linkPlaceholder } from './constants.js'
 
@@ -132,38 +132,38 @@ export const getErrorFromFailedTest = (
  *
  * @private
  */
-export const getHookStatus = (newHookStats: HookStats, hookElement: ExecutableItemWrapper, hookRootStep: AllureStep) => {
-    // stage to finish for all hook.
-    hookElement.stage = hookRootStep.stage =
-        Stage.FINISHED
-    // set error detail information
-    const formattedError = getErrorFromFailedTest(newHookStats)
-    hookElement.detailsMessage = hookRootStep.detailsMessage = formattedError?.message
-    hookElement.detailsTrace = hookRootStep.detailsTrace = formattedError?.stack
-
-    let finalStatus = Status.PASSED
-    // set status to hook root step
-    const hookSteps = hookRootStep.wrappedItem.steps
-    if (Array.isArray(hookSteps) && hookSteps.length) {
-        const statusPriority = {
-            [Status.FAILED]: 0,
-            [Status.BROKEN]: 1,
-            [Status.SKIPPED]: 2,
-            [Status.PASSED]: 3,
-        }
-        let stepStatus = Status.PASSED
-        for (const step of hookSteps) {
-            if (step.status && statusPriority[step.status] < statusPriority[finalStatus]) {
-                stepStatus = step.status
-            }
-        }
-        finalStatus = stepStatus === Status.FAILED? Status.BROKEN : stepStatus
-    } else if (newHookStats.error || (Array.isArray(newHookStats.errors) && newHookStats.errors.length)){
-        finalStatus = Status.BROKEN
-    }
-
-    hookElement.status = hookRootStep.status = finalStatus
-}
+// export const getHookStatus = (newHookStats: HookStats, hookElement: ExecutableItemWrapper, hookRootStep: AllureStep) => {
+//     // stage to finish for all hook.
+//     hookElement.stage = hookRootStep.stage =
+//         Stage.FINISHED
+//     // set error detail information
+//     const formattedError = getErrorFromFailedTest(newHookStats)
+//     hookElement.detailsMessage = hookRootStep.detailsMessage = formattedError?.message
+//     hookElement.detailsTrace = hookRootStep.detailsTrace = formattedError?.stack
+//
+//     let finalStatus = Status.PASSED
+//     // set status to hook root step
+//     const hookSteps = hookRootStep.wrappedItem.steps
+//     if (Array.isArray(hookSteps) && hookSteps.length) {
+//         const statusPriority = {
+//             [Status.FAILED]: 0,
+//             [Status.BROKEN]: 1,
+//             [Status.SKIPPED]: 2,
+//             [Status.PASSED]: 3,
+//         }
+//         let stepStatus = Status.PASSED
+//         for (const step of hookSteps) {
+//             if (step.status && statusPriority[step.status] < statusPriority[finalStatus]) {
+//                 stepStatus = step.status
+//             }
+//         }
+//         finalStatus = stepStatus === Status.FAILED? Status.BROKEN : stepStatus
+//     } else if (newHookStats.error || (Array.isArray(newHookStats.errors) && newHookStats.errors.length)){
+//         finalStatus = Status.BROKEN
+//     }
+//
+//     hookElement.status = hookRootStep.status = finalStatus
+// }
 
 export const cleanCucumberHooks = (hook:  FixtureResult | TestResult) => {
     const currentStep = hook.steps[hook.steps.length - 1]
@@ -226,7 +226,7 @@ export const isScreenshotCommand = (command: CommandArgs): boolean => {
     )
 }
 
-export const getSuiteLabels = ({ tags }: SuiteStats): Label[] => {
+export const convertSuiteTagsToLabels = (tags: string[] | Tag[]): Label[] => {
     if (!tags) {
         return []
     }
@@ -242,22 +242,24 @@ export const getSuiteLabels = ({ tags }: SuiteStats): Label[] => {
     }, [])
 }
 
-export const setAllureIds = (test: AllureTest | undefined, suite: AllureGroup | undefined) => {
-    if (!test) {
-        return
-    }
-    const params = test.wrappedItem.parameters.slice()
-    const paramsPart = params
-        .sort((a, b) => a.name?.localeCompare(b.name))
-        .map(it => it.name + it.value)
-        .join('')
-    const hash = md5(`${suite?.name}${test.wrappedItem.name}${paramsPart}`)
-    test.historyId = hash
-    if ('labels' in test.wrappedItem) {
-        if (test.wrappedItem.labels?.find((label: Label) => label.name === LabelName.AS_ID)) {
-            return
-        }
-    }
+// export const setAllureIds = (test: AllureTest | undefined, suite: AllureGroup | undefined) => {
+//     if (!test) {
+//         return
+//     }
+//     const params = test.wrappedItem.parameters.slice()
+//     const paramsPart = params
+//         .sort((a, b) => a.name?.localeCompare(b.name))
+//         .map(it => it.name + it.value)
+//         .join('')
+//     const hash = md5(`${suite?.name}${test.wrappedItem.name}${paramsPart}`)
+//     test.historyId = hash
+//     if ('labels' in test.wrappedItem) {
+//         if (test.wrappedItem.labels?.find((label: Label) => label.name === LabelName.AS_ID)) {
+//             return
+//         }
+//     }
+//
+//     test.testCaseId = hash
+// }
 
-    test.testCaseId = hash
-}
+export const last = <T>(arr: T[]): T => arr[arr.length - 1]
