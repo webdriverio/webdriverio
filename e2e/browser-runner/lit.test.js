@@ -159,6 +159,26 @@ describe('Lit Component testing', () => {
                 'Deep Closed Node'
             ])
         })
+
+        it('can pierce through dynamic created shadow roots', async () => {
+            const div = document.createElement('div')
+            div.id = 'stage'
+            document.documentElement.appendChild(div)
+            const shadowRoot = div.attachShadow({ mode: 'open' })
+            const div1 = document.createElement('div')
+            div1.textContent = 'Hello1'
+            div1.className = 'foo'
+            const div2 = document.createElement('div')
+            div2.textContent = 'World2'
+            div2.className = 'foo'
+            shadowRoot.appendChild(div1)
+            shadowRoot.appendChild(div2)
+
+            const divs = $('#stage').$$('div')
+            await expect(divs).toHaveChildren(2)
+            expect(await divs.map((elem) => elem.getText()))
+                .toEqual(['Hello1', 'World2'])
+        })
     })
 
     describe('snapshot testing', () => {
