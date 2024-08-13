@@ -161,6 +161,53 @@ console.log(await browser.execute(() => navigator.userAgent)) // returns `Mozill
 
 While we recommend to run mobile testing on actual mobile devices, as mobile browser engines differ from the ones used for desktop browser, this can be an easy escape hatch if we just quickly want to verify how the application renders in mobile viewports.
 
+## Notable Breaking Changes
+
+We strive to minimize breaking changes to avoid requiring significant time for upgrades to the latest version of WebdriverIO. However, major releases offer an opportunity to remove deprecated interfaces that we no longer recommend using.
+
+### Accessing Element Properties
+
+As you know, WebdriverIO allows you to fetch elements from the browser to interact with them in your tests. When you interact with an element, WebdriverIO holds a reference and additional metadata on the element to properly direct commands to the correct element and, for example, refetch an element if it becomes stale. You may have accessed some of these element properties, such as evaluating the selector via `$('elem').selector` or getting its reference via `$('elem').elementId`, among [others](/docs/api/element#properties).
+
+These properties are no longer accessible in this manner. Instead, you need to call [`getElement`](/docs/api/element/getElement) to access properties of `WebdriverIO.Element` and [`getElements`](/docs/api/element/getElements) to access properties for a `WebdriverIO.ElementArray`. Here is an example:
+
+```ts
+// WebdriverIO v8 and older
+const elem = await $('elem')
+console.log(elem.selector) // ❌ returns a `Promise<string>` now
+
+// WebdriverIO v9
+const elem = await $('elem').getElement()
+console.log(elem.selector) // ✅ returns "elem"
+```
+
+This change fixes a [very annoying bug](https://github.com/webdriverio/webdriverio/issues/12591) in IDEs that were misled into believing that `$('elem')` returns a promise, causing them to automatically wrap chained element calls in multiple `await` statements, e.g., `await (await $('elem')).getText()`. This improvement will make writing tests much easier.
+
+### Removal of `XXXContaining` Matcher
+
+In `expect-webdriverio`, we maintain custom matchers tailored for WebdriverIO elements and end-to-end testing scenarios. Previously, we provided `XXXContaining` versions of each matcher to allow partial value matching. However, the underlying [`expect`](https://www.npmjs.com/package/expect) package already supports this functionality via [asymmetric matchers](https://jestjs.io/docs/expect#asymmetric-matchers). To reduce the number of matchers we maintain, we have decided to remove our custom `XXXContaining` matchers in favor of using these asymmetric matchers.
+
+Migrating to asymmetric matchers is straightforward. Here is an example:
+
+```diff
+- await expect($('elem')).toHaveTextContaining('Hello')
++ await expect($('elem')).toHaveText(expect.stringContaining('Hello'))
+```
+
+### Removal of JSON Wire Protocol Commands
+
+The JSON Wire Protocol was the first automation protocol developed by Selenium, enabling remote browser automation using any language that supports HTTP. In 2012, the creators of Selenium began working on formally standardizing the protocol, which is now supported in all browsers. This effort culminated in the WebDriver protocol becoming a W3C Recommendation, leading browser drivers and cloud vendors to migrate to this official standard.
+
+We believe it is time to say farewell to the old JSON Wire Protocol and embrace the WebDriver future. If you are still testing on older browsers and require these protocol commands for your automation scripts, you can install the [`@wdio/jsonwp-service`](https://www.npmjs.com/package/@wdio/jsonwp-service) to continue using the necessary commands.
+
+### Removal of `devtools` and `@wdio/devtools-service` Packages
+
+With WebdriverIO `v8.15`, we [introduced](https://webdriver.io/blog/2023/07/31/driver-management) an automatic setup for browser drivers as a core feature. This change rendered the original purpose of the [`devtools`](https://www.npmjs.com/package/devtools) package obsolete. Initially, the devtools package was designed to implement the WebDriver specification through Puppeteer which handles the browser setup for you. This allowed using WebdriverIO without having to download any browser driver. As this functionality is no longer needed, we have decided to remove the `devtools` package along with the `automationProtocol` option.
+
+Furthermore, with the adoption of WebDriver Bidi, we now have a standardized protocol for most of our automation needs. Despite this, using [Chrome Devtools](https://developer.chrome.com/docs/devtools) for more complex browser introspection has been a popular feature in WebdriverIO. Previously, we recommended the `@wdio/devtools-service` package for these use cases. However, we found that most users prefer to use [Puppeteer](https://pptr.dev/) directly rather than our custom DevTools interfaces. WebdriverIO users can automate the browser using WebdriverIO primitives as well as Puppeteer simultaneously. By calling the `getPuppeteer` command, you can obtain a Puppeteer instance for the browser you are automating, granting you access to all Devtools capabilities through a more robust and maintained interface. As a result, users primarily utilize the `@wdio/devtools-service` package for testing performance and other [Google Lighthouse](https://developer.chrome.com/docs/lighthouse/overview) features. Moving on, these features will be available under a new service package called [`@wdio/lighthouse-service](https://www.npmjs.com/package/@wdio/lighthouse-service).
+
+Rest assured, we have already found a good use case for these packages and will not abandon them.
+
 ## Project Updates
 
 While we have been diligently adding new features to make WebdriverIO more effective for testing web and mobile applications, we have also been focusing on several internal initiatives to ensure a bright future for the project.
