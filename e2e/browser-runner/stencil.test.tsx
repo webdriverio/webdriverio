@@ -21,7 +21,7 @@ describe('Stencil Component Testing', () => {
         expect(typeof (await page.$container).elementId).toBe('string')
         expect(typeof (await page.$root).elementId).toBe('string')
 
-        await expect($('>>>.app-profile')).toHaveText(
+        await expect($('.app-profile')).toHaveText(
             expect.stringContaining('Hello! My name is Stencil.')
         )
 
@@ -29,12 +29,12 @@ describe('Stencil Component Testing', () => {
          * this assertion for Safari due to: https://github.com/w3c/webdriver/issues/1786
          */
         if ((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase() !== 'safari') {
-            await expect($('>>>.app-profile')).toHaveText(
+            await expect($('.app-profile')).toHaveText(
                 expect.stringContaining('I am a nested component!')
             )
         }
 
-        await expect($('>>>.app-profile').getCSSProperty('font-weight'))
+        await expect($('.app-profile').getCSSProperty('font-weight'))
             .toMatchInlineSnapshot(`
           {
             "parsed": {
@@ -72,7 +72,7 @@ describe('Stencil Component Testing', () => {
             html: '<nested-component></nested-component>'
         })
 
-        await expect(page.$root.$('>>> i')).toHaveText('I am a unknown!')
+        await expect(page.$root.$('i')).toHaveText('I am a unknown!')
     })
 
     it('can wait for changes', async () => {
