@@ -5,7 +5,7 @@ import type { Parameter, Label, Link } from 'allure-js-commons'
 import { Stage, Status, LabelName, LinkType, ContentType } from 'allure-js-commons'
 import AllureReporter from '../src/reporter.js'
 import { linkPlaceholder } from '../src/constants.js'
-import { TYPE } from '../src/types.js'
+import { DescriptionType } from '../src/types.js'
 import { getResults, clean } from './helpers/wdio-allure-helper.js'
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
@@ -224,7 +224,7 @@ describe('reporter runtime implementation', () => {
         reporter.onTestStart(testStart())
         reporter.addDescription({
             description: 'foo',
-            descriptionType: TYPE.MARKDOWN
+            descriptionType: DescriptionType.MARKDOWN
         })
         reporter.onTestPass()
         reporter.onRunnerEnd(runnerEnd())
@@ -242,7 +242,7 @@ describe('reporter runtime implementation', () => {
         reporter.onTestStart(testStart())
         reporter.addDescription({
             description: 'foo',
-            descriptionType: TYPE.HTML
+            descriptionType: DescriptionType.HTML
         })
         reporter.onTestPass()
         reporter.onRunnerEnd(runnerEnd())

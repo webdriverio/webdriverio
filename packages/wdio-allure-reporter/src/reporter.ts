@@ -12,7 +12,19 @@ import type {
 import WDIOReporter from '@wdio/reporter'
 import { WdioTestRuntime, ALLURE_RUNTIME_MESSAGE_EVENT } from './WdioTestRuntime.js'
 import type { Capabilities, Options } from '@wdio/types'
-import { ContentType, LabelName, LinkType, Stage, Status as AllureStatus } from 'allure-js-commons'
+import {
+    ContentType,
+    LabelName,
+    Stage,
+    Status as AllureStatus,
+    label,
+    link,
+    parameter,
+    description,
+    descriptionHtml,
+    issue,
+    tms
+} from 'allure-js-commons'
 import { FileSystemWriter, getSuiteLabels, ReporterRuntime } from 'allure-js-commons/sdk/reporter'
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
 import {
@@ -34,6 +46,8 @@ import {
     addSuite,
     addTag,
     addTestId,
+    addTestCaseId,
+    addHistoryId,
     endStep,
     startStep,
     step,
@@ -50,7 +64,7 @@ import {
     last,
 } from './utils.js'
 import type {
-    AddAllureIdEventArgs,
+    AddAllureIdEventArgs, AddArgumentEventArgs,
     AddAttachmentEventArgs,
     AddDescriptionEventArgs,
     AddEpicEventArgs,
@@ -60,7 +74,7 @@ import type {
     AddLinkEventArgs,
     AddOwnerEventArgs,
     AddParentSuiteEventArgs,
-    AddSeverityEventArgs,
+    AddSeverityEventArgs, AddStepEventArgs,
     AddStoryEventArgs,
     AddSubSuiteEventArgs,
     AddSuiteEventArgs,
@@ -68,6 +82,10 @@ import type {
     AddTestIdEventArgs,
     AllureReporterOptions,
 } from './types.js'
+import {
+    DescriptionType as DescriptionType,
+} from './types.js'
+import { events } from './constants.js'
 
 export default class AllureReporter extends WDIOReporter {
     private _allureRuntime: ReporterRuntime
@@ -84,6 +102,8 @@ export default class AllureReporter extends WDIOReporter {
 
     constructor(options: AllureReporterOptions = {}) {
         const { outputDir = 'allure-results', ...rest } = options
+
+        console.log('constructor allure report', rest)
 
         super({
             ...rest,
@@ -402,6 +422,9 @@ export default class AllureReporter extends WDIOReporter {
     _registerListeners() {
         setGlobalTestRuntime(new WdioTestRuntime())
 
+        process.on(events.startStep, this.startStep.bind(this))
+        process.on(events.endStep, this.endStep.bind(this))
+        process.on(events.addStep, this.addStep.bind(this))
         process.on(ALLURE_RUNTIME_MESSAGE_EVENT, (runtimeMessage) => {
             const currentExecutableUuid = last(this._allureExecutablesStack)
 
@@ -410,11 +433,18 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onRunnerStart(runner: RunnerStats) {
+        // TODO: temp solution
+        const [currentFile] = runner.specs
+
         // start root scope
         this._openScope()
         this._config = runner.config
         this._capabilities = runner.capabilities
         this._isMultiremote = runner.isMultiremote || false
+
+        this._currentFile = currentFile
+            .replace(runner.config.rootDir!, '')
+            .replace(/^file:\/{3}/, '')
     }
 
     onRunnerEnd() {
@@ -426,10 +456,6 @@ export default class AllureReporter extends WDIOReporter {
         const { useCucumberStepReporter } = this._options
         const isScenario = suite.type === 'scenario'
         const processAsSuite = !useCucumberStepReporter || !isScenario
-
-        this._currentFile = suite.file
-            .replace(this._config!.rootDir!, '')
-            .replace(/^\//, '')
 
         if (processAsSuite) {
             this._openScope()
@@ -520,10 +546,12 @@ export default class AllureReporter extends WDIOReporter {
         //
         // this._state.currentFile = undefined
 
-        this._currentFile = undefined
+        // this._currentFile = undefined
     }
 
     onTestStart(test: TestStats | HookStats) {
+        console.log('test start', test)
+
         const { useCucumberStepReporter } = this._options
 
         this._consoleOutput = ''
@@ -583,10 +611,10 @@ export default class AllureReporter extends WDIOReporter {
             this.onTestStart(test)
         }
 
-        // // TODO: do we need the logic?
-        // // else  if (this._state.currentAllureStepableEntity instanceof AllureTest){
-        // //     this._state.currentAllureStepableEntity.name = test.title
-        // // }
+        // TODO: do we need the logic?
+        // else  if (this._state.currentAllureStepableEntity instanceof AllureTest){
+        //     this._state.currentAllureStepableEntity.name = test.title
+        // }
 
         this.attachLogs()
 
@@ -840,203 +868,141 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     //#region Allure API methods
-    addLabel({ name, value }: AddLabelEventArgs) {
-        console.log('label', { name, value })
-        // const currentExecutableUuid = last(this._allureExecutablesStack)
-        //
-        // this._allureRuntime.updateTest(currentExecutableUuid, (r) => {
-        //     r.labels.push({ name, value })
-        // })
+    async addLabel({ name, value }: AddLabelEventArgs) {
+        await label(name, value)
     }
 
-    addLink({ name, url, type }: AddLinkEventArgs) {
-        console.log('link', { name, url, type })
-        // const currentExecutableUuid = last(this._allureExecutablesStack)
-        //
-        // this._allureRuntime.updateTest(currentExecutableUuid, (r) => {
-        //     r.links.push({ name, url, type })
-        // })
+    async addLink({ name, url, type }: AddLinkEventArgs) {
+        await link(url, name, type)
     }
 
-    addAllureId({ id }: AddAllureIdEventArgs) {
-        console.log('allure id', { id })
-        // this.addLabel({
-        //     name: LabelName.ALLURE_ID,
-        //     value: id,
-        // })
+    async addAllureId({ id }: AddAllureIdEventArgs) {
+        await this.addLabel({
+            name: LabelName.ALLURE_ID,
+            value: id,
+        })
     }
 
-    addStory({ storyName }: AddStoryEventArgs) {
-        this.addLabel({
+    async addStory({ storyName }: AddStoryEventArgs) {
+        await this.addLabel({
             name: LabelName.STORY,
             value: storyName,
         })
     }
 
-    addFeature({ featureName }: AddFeatureEventArgs) {
-        this.addLabel({
+    async addFeature({ featureName }: AddFeatureEventArgs) {
+        await this.addLabel({
             name: LabelName.FEATURE,
             value: featureName,
         })
     }
 
-    addSeverity({ severity }: AddSeverityEventArgs) {
-        this.addLabel({
+    async addSeverity({ severity }: AddSeverityEventArgs) {
+        await this.addLabel({
             name: LabelName.SEVERITY,
             value: severity,
         })
     }
 
-    addEpic({ epicName }: AddEpicEventArgs) {
-        this.addLabel({
+    async addEpic({ epicName }: AddEpicEventArgs) {
+        await this.addLabel({
             name: LabelName.EPIC,
             value: epicName,
         })
     }
 
-    addOwner({ owner }: AddOwnerEventArgs) {
-        this.addLabel({
+    async addOwner({ owner }: AddOwnerEventArgs) {
+        await this.addLabel({
             name: LabelName.OWNER,
             value: owner,
         })
     }
 
-    addSuite({ suiteName }: AddSuiteEventArgs) {
-        this.addLabel({
+    async addSuite({ suiteName }: AddSuiteEventArgs) {
+        await this.addLabel({
             name: LabelName.SUITE,
             value: suiteName,
         })
     }
 
-    addParentSuite({ suiteName }: AddParentSuiteEventArgs) {
-        this.addLabel({
+    async addParentSuite({ suiteName }: AddParentSuiteEventArgs) {
+        await this.addLabel({
             name: LabelName.PARENT_SUITE,
             value: suiteName,
         })
     }
 
-    addSubSuite({ suiteName }: AddSubSuiteEventArgs) {
-        this.addLabel({
+    async addSubSuite({ suiteName }: AddSubSuiteEventArgs) {
+        await this.addLabel({
             name: LabelName.SUB_SUITE,
             value: suiteName,
         })
     }
 
-    addTag({ tag }: AddTagEventArgs) {
-        this.addLabel({
+    async addTag({ tag }: AddTagEventArgs) {
+        await this.addLabel({
             name: LabelName.TAG,
             value: tag,
         })
     }
 
-    addTestId({ testId, linkName }: AddTestIdEventArgs) {
-        if (!this._options.tmsLinkTemplate) {
-            this.addLabel({
-                name: 'tms',
-                value: testId,
-            })
+    async addTestId({ testId, linkName }: AddTestIdEventArgs) {
+        await tms(testId, linkName)
+    }
+
+    async addIssue({ issue: issueUrl, linkName }: AddIssueEventArgs) {
+        await issue(issueUrl, linkName)
+    }
+
+    async addDescription(
+        { description: descriptionText, descriptionType }: AddDescriptionEventArgs
+    ) {
+        if (!descriptionText) {
             return
         }
 
-        const tmsLink = getLinkByTemplate(
-            this._options.tmsLinkTemplate,
-            testId
-        )
+        if (descriptionType === DescriptionType.HTML) {
+            await descriptionHtml(descriptionText)
+            return
+        }
 
-        this.addLink({
-            url: tmsLink,
-            name: linkName || 'tms',
-            type: LinkType.TMS,
-        })
+        await description(descriptionText)
     }
 
-    addIssue({ issue, linkName }: AddIssueEventArgs) {
-        console.log({ issue, linkName })
-        // if (!this._options.issueLinkTemplate) {
-        //     this.addLabel({
-        //         name: 'issue',
-        //         value: issue,
-        //     })
-        //     return
-        // }
-        //
-        // const issueLink = getLinkByTemplate(
-        //     this._options.issueLinkTemplate,
-        //     issue
-        // )
-        //
-        // this.addLink({
-        //     url: issueLink,
-        //     name: linkName,
-        //     type: LinkType.ISSUE,
-        // })
-    }
-
-    addDescription(
-        { description, descriptionType }: AddDescriptionEventArgs
-    ) {
-        console.log('description', { description, descriptionType })
-        // const currentExecutableUuid = last(this._allureExecutablesStack)
-        //
-        // this._allureRuntime.updateTest(currentExecutableUuid, (r) => {
-        //     if (descriptionType === DescriptionType.HTML) {
-        //         r.descriptionHtml = description
-        //         return
-        //     }
-        //
-        //     r.description = description
-        // })
-    }
-
-    addAttachment(
+    async addAttachment(
         { name, content, type = ContentType.TEXT }: AddAttachmentEventArgs
     ) {
-        console.log('attachment', { name, content, type })
-        // if (type === ContentType.JSON) {
-        //     this.attachJSON(name, content)
-        //     return
-        // }
-        //
-        // this.attachFile(name, Buffer.from(content as string), type as ContentType)
+        if (type === ContentType.JSON) {
+            this.attachJSON(name, content)
+            return
+        }
+
+        this.attachFile(name, Buffer.from(content as string), type as ContentType)
     }
 
-    addArgument({ name, value }: any) {
-        console.log('parameter', { name, value })
-        // const currentExecutableUuid = last(this._allureExecutablesStack)
-        //
-        // this._allureRuntime.updateTest(currentExecutableUuid, (r) => {
-        //     r.parameters.push({ name, value })
-        // })
+    async addArgument({ name, value }: AddArgumentEventArgs) {
+        await parameter(name, value)
     }
 
-    addStep({ step }: any) {
-        // if (!this._state.currentAllureStepableEntity) {
-        //     return
-        // }
-        //
-        // this._startStep(step.title)
-        //
-        // if (step.attachment) {
-        //     this.attachFile(step.attachment.name, step.attachment.content, step.attachment.type || ContentType.TEXT)
-        // }
-        //
-        // this._endTest(step.status)
+    async addStep({ step }: AddStepEventArgs) {
+        this._startStep(step.title)
+
+        if (step.attachment) {
+            const { name, content, type = ContentType.TEXT } = step.attachment
+            const attachmentContent = content instanceof Buffer ? content : Buffer.from(content, 'utf8')
+
+            this.attachFile(name, attachmentContent, type)
+        }
+
+        this._endTest(step.status)
     }
 
-    startStep(title: string) {
-        // if (!this._state.currentAllureStepableEntity) {
-        //     return
-        // }
-        //
-        // this._startStep(title)
+    async startStep(title: string) {
+        this._startStep(title)
     }
 
-    endStep(status: AllureStatus) {
-        // if (!this._state.currentAllureStepableEntity) {
-        //     return
-        // }
-        //
-        // this._endTest(status)
+    async endStep(status: AllureStatus) {
+        this._endStep(status)
     }
 
     // TODO:
@@ -1112,6 +1078,8 @@ export default class AllureReporter extends WDIOReporter {
     static addStep = addStep
     static addArgument = addArgument
     static addAllureId = addAllureId
+    static addHistoryId = addHistoryId
+    static addTestCaseId = addTestCaseId
     static step = step
     //#endregion
 }

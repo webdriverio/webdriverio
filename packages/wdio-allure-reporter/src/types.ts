@@ -1,3 +1,5 @@
+import type { Status as AllureStatus, ContentType } from 'allure-js-commons'
+
 /**
  * When you add a new option, please also update the docs at ./packages/wdio-allure-reporter/README.md
  */
@@ -110,7 +112,24 @@ export interface AddTestIdEventArgs {
     linkName?: string
 }
 
-export enum TYPE {
+export interface AddArgumentEventArgs {
+    name: string
+    value: string
+}
+
+export interface AddStepEventArgs {
+    step: {
+        title: string
+        status: AllureStatus
+        attachment?: {
+            name: string
+            content: Buffer | string
+            type: ContentType
+        }
+    }
+}
+
+export enum DescriptionType {
     TEXT = 'text',
     HTML = 'html',
     MARKDOWN = 'markdown'
@@ -118,12 +137,12 @@ export enum TYPE {
 
 export interface AddDescriptionEventArgs {
     description?: string
-    descriptionType?: TYPE
+    descriptionType?: DescriptionType
 }
 
 export interface AddAttachmentEventArgs {
     name: string
-    content: string | object
+    content: Buffer | string | object
     type: string
 }
 
@@ -136,14 +155,13 @@ export interface Step {
 }
 
 export type Status = 'passed' | 'pending' | 'skipped' | 'failed' | 'broken' | 'canceled';
+
 export interface Attachment {
     addStep(step: Step): void;
     addAttachment(attachment: Attachment): void;
     end(status: Status, error: Error, timestamp?: number): void;
     toXML(): string;
 }
-
-// export type AllureStepableUnit = AllureTest | AllureStep | ExecutableItemWrapper
 
 declare global {
     namespace WebdriverIO {

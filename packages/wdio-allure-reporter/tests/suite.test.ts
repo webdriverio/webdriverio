@@ -7,7 +7,7 @@ import { Status, LinkType, Stage } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
 
 import AllureReporter from '../src/reporter.js'
-import { TYPE } from '../src/types.js'
+import { DescriptionType } from '../src/types.js'
 
 /**
  * this is not a real package and only used to utilize helper
@@ -76,7 +76,7 @@ describe('Passing tests', () => {
         reporter.addSeverity({ severity: 'baz' })
         reporter.addIssue({ issue: '1' })
         reporter.addTestId({ testId: '2' })
-        reporter.addDescription({ description: 'functions', descriptionType: TYPE.HTML })
+        reporter.addDescription({ description: 'functions', descriptionType: DescriptionType.HTML })
         reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
         reporter.addArgument({ name: 'os', value: 'osx' })
         reporter.startStep('bar')
