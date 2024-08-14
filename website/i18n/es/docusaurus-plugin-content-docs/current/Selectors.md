@@ -273,6 +273,12 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## Selectores
 
+:::warning
+
+Starting with `v9` of WebdriverIO there is no need for this special selector as WebdriverIO automatically pierces through the Shadow DOM for you. It is recommended to migrate off this selector by removing the `>>>` in front it.
+
+:::
+
 Muchas aplicaciones de frontend dependen en gran medida de elementos con [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). Es técnicamente imposible consultar elementos dentro del DOM alternativo sin workarounds. La [`sombrea$`](https://webdriver.io/docs/api/element/shadow$) y [`sombrea$$`](https://webdriver.io/docs/api/element/shadow$$) han sido tales soluciones que tenían sus [limitaciones](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). Con el selector profundo ahora puede consultar todos los elementos dentro de cualquier DOM sombra usando el comando de consulta común.
 
 Dado que tenemos una aplicación con la siguiente estructura:
