@@ -273,6 +273,12 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## Глибокі селектори
 
+:::warning
+
+Starting with `v9` of WebdriverIO there is no need for this special selector as WebdriverIO automatically pierces through the Shadow DOM for you. It is recommended to migrate off this selector by removing the `>>>` in front it.
+
+:::
+
 Багато вебзастосунків інтегрують елементи із [тіньовим DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). Без обхідних шляхів пошук елементів у тіньовому DOM є технічно неможливим. [`shadow$`](https://webdriver.io/docs/api/element/shadow$) і [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) були такими обхідними шляхами, які мали свої [обмеження](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). Але тепер за допомогою глибокого селектора ви можете шукати елементи всередині будь-якого тіньового DOM використовуючи стандартну функцію для пошуку.
 
 Маючи вебзастосунок із такою структурою:
