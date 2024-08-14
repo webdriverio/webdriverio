@@ -43,7 +43,7 @@ describe('bidi e2e test', () => {
     /**
      * passed locally but not on CI
      */
-    it('can serialize function values (sync)', async function () {
+    it.skip('can serialize function values (sync)', async function () {
         if (!browser.isBidi) {
             return this.skip()
         }
@@ -108,7 +108,7 @@ describe('bidi e2e test', () => {
     /**
      * passed locally but not on CI
      */
-    it('can serialize function values (async)', async function () {
+    it.skip('can serialize function values (async)', async function () {
         if (!browser.isBidi) {
             return this.skip()
         }

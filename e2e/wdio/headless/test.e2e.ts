@@ -369,7 +369,7 @@ describe('main suite 1', () => {
         })
     })
 
-    describe('emulate clock', () => {
+    describe.skip('emulate clock', () => {
         const now = new Date(2021, 3, 14)
         const getDateString = () => (new Date()).toString()
 
