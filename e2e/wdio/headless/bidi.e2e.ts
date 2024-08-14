@@ -62,7 +62,44 @@ describe('bidi e2e test', () => {
             ]
         }
         const result = await browser.execute(validator, ...executeArgs as any)
-        expect(result).toMatchInlineSnapshot()
+        expect(result).toEqual([
+            'validate string:',
+            true,
+            '\n',
+            'validate boolean',
+            true,
+            '\n',
+            'validate number',
+            true,
+            '\n',
+            'valdiate negative zero',
+            false,
+            '\n',
+            'validate Infinity',
+            false,
+            '\n',
+            'validate negative Infinity',
+            false,
+            '\n',
+            'validate NaN',
+            false,
+            '\n',
+            'validate array',
+            true,
+            '\n',
+            'validate array items',
+            true,
+            '\n',
+            'validate map',
+            false,
+            '\n',
+            'validate set',
+            false,
+            '\n',
+            'validate regular expression',
+            false,
+            '\n'
+        ])
     })
 
     it('can serialize function values (async)', async function () {
@@ -86,7 +123,44 @@ describe('bidi e2e test', () => {
                 'validate regular expression', regex instanceof RegExp, '\n'
             ])
         }
-        const result = await browser.executeAsync(asyncValidator as any, ...executeArgs as any)
-        expect(result).toMatchInlineSnapshot()
+        const result = await browser.execute(asyncValidator as any, ...executeArgs as any)
+        expect(result).toEqual([
+            'validate string:',
+            true,
+            '\n',
+            'validate boolean async',
+            true,
+            '\n',
+            'validate number',
+            true,
+            '\n',
+            'valdiate negative zero',
+            false,
+            '\n',
+            'validate Infinity',
+            false,
+            '\n',
+            'validate negative Infinity',
+            false,
+            '\n',
+            'validate NaN',
+            false,
+            '\n',
+            'validate array',
+            true,
+            '\n',
+            'validate array items',
+            true,
+            '\n',
+            'validate map',
+            false,
+            '\n',
+            'validate set',
+            false,
+            '\n',
+            'validate regular expression',
+            false,
+            '\n'
+        ])
     })
 })
