@@ -1,8 +1,6 @@
 ---
 title: Enhanced Test Automation with WebdriverIO
-author: Larry Goddard
-authorURL: https://linkedin.com/in/larryg
-authorImageURL: https://avatars.githubusercontent.com/u/22198989?s=96&v=4
+authors: larry
 ---
 
 Embark on a transformative journey into the dynamic landscape of test automation with the compelling and instructive guide, "Enhanced Test Automation with WebdriverIO - Unlock the Superpowers of Hybrid Testing Frameworks." Authored with the dual purpose of empowering both newcomers and seasoned developers, this comprehensive book serves as an indispensable manual for mastering advanced WebdriverIO concepts, specifically tailored for end-to-end testing of web applications.
