@@ -31,6 +31,8 @@ Obiekty Mock dostarczają różne polecenia, wymienione w sekcji `mock`, które 
 - [`abort`](/docs/api/mock/abort)
 - [`abortOnce`](/docs/api/mock/abortOnce)
 - [`clear`](/docs/api/mock/clear)
+- [`request`](/docs/api/mock/request)
+- [`requestOnce`](/docs/api/mock/requestOnce)
 - [`respond`](/docs/api/mock/respond)
 - [`respondOnce`](/docs/api/mock/respondOnce)
 - [`restore`](/docs/api/mock/restore)
