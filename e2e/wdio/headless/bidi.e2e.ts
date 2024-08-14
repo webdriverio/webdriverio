@@ -40,6 +40,9 @@ describe('bidi e2e test', () => {
 
     const executeArgs = ['string', true, 42, -0, Infinity, -Infinity, NaN, [1, 2, 3], new Map([['foo', 'bar']]), new Set([]), /foobar/]
 
+    /**
+     * passed locally but not on CI
+     */
     it('can serialize function values (sync)', async function () {
         if (!browser.isBidi) {
             return this.skip()
@@ -102,6 +105,9 @@ describe('bidi e2e test', () => {
         ])
     })
 
+    /**
+     * passed locally but not on CI
+     */
     it('can serialize function values (async)', async function () {
         if (!browser.isBidi) {
             return this.skip()

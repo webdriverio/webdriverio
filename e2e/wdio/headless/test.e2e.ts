@@ -135,9 +135,15 @@ describe('main suite 1', () => {
                     document.mouseMoveTo = mouse
                 })
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectBefore = await browser.execute(
+                    // @ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectAfter = await browser.execute(
+                    // @ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -166,9 +172,15 @@ describe('main suite 1', () => {
                     document.mouseMoveTo = mouse
                 })
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectBefore = await browser.execute(
+                    //@ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectAfter = await browser.execute(
+                    //@ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
