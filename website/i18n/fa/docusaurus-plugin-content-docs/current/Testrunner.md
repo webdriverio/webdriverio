@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-عالی! اکنون باید یک فایل پیکربندی تعریف کنید که در آن تمام اطلاعات مربوط به تست ها، قابلیت ها و تنظیمات شما تنظیم شده باشد. Switch over to the [Configuration File](/configurationfile)  section to see what that file should look like.
+عالی! اکنون باید یک فایل پیکربندی تعریف کنید که در آن تمام اطلاعات مربوط به تست ها، قابلیت ها و تنظیمات شما تنظیم شده باشد. Switch over to the [Configuration File](/docs/configuration)  section to see what that file should look like.
 
 با کمک پیکربندی `wdio` ، تولید فایل پیکربندی بسیار آسان است. فقط خط زیر را اجرا کنید:
 
@@ -125,7 +125,7 @@ wdio run ./wdio.conf.js --watch
 --cucumberOpts        Cucumber options
 ```
 
-> Note: Autocompiling can be easily controlled with `tsx` ENV Vars. See also the [TypeScript documentation](typeScript).
+> Note: Autocompiling can be easily controlled with `tsx` ENV Vars. See also the [TypeScript documentation](/docs/typescript).
 
 ### `wdio install`
 دستور `install` به شما این امکان را می دهد که گزارشگران و خدمات را از طریق CLI به پروژه های WebdriverIO خود اضافه کنید.
