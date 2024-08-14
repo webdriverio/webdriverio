@@ -132,7 +132,7 @@ In v7 of WebdriverIO we made using compiler tools like Babel or TypeScript a lot
     },
 ```
 
-These settings need to be removed now as WebdriverIO automatically includes them. Read more about how to set up [Babel](/docs/babel) or [TypeScript](/docs/typescript) in our docs.
+These settings need to be removed now as WebdriverIO automatically includes them. Read more about how to set up Babel or [TypeScript](/docs/typescript) in our docs.
 
 ## Stricter Protocol Compliance
 

@@ -150,7 +150,7 @@ console.log(await browser.execute(() => window.innerWidth)) // returns `500`
 
 WebdriverIO v9 introduces the `setViewport` command, enabling you to adjust the application’s viewport to any size, including modifying the `devicePixelRatio`. Unlike `setWindowSize`, which changes the overall browser window size, `setViewport` specifically resizes the canvas where the application is rendered, leaving the browser window dimensions unchanged.
 
-To simplify mobile device emulation, we’ve enhanced the emulate command. This new capability allows you to simultaneously adjust the viewport size, device pixel ratio, and user agent for a specific [mobile device]((https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/deviceDescriptorsSource.ts)) by simply specifying its name. For example:
+To simplify mobile device emulation, we’ve enhanced the emulate command. This new capability allows you to simultaneously adjust the viewport size, device pixel ratio, and user agent for a specific mobile device by simply specifying its name. For example:
 
 ```ts
 await browser.url('https://webdriver.io')
