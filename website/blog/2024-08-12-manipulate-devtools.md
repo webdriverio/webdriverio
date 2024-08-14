@@ -1,12 +1,17 @@
 ---
 title: "Interacting with Chrome DevTools from WebDriverIO"
-authors: George Romanas & Nikos Lytras
-authorsImageURL: https://avatars.githubusercontent.com/u/48865319?s=400&u=e292306d956ecd6f5d94ff8cde2bc189841c270a&v=4
-                 https://avatars.githubusercontent.com/u/150701199?v=4
+authors:
+    - romanas
+    - lytras
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+WebdriverIO is build to test various types of applications, from web or mobile applications towards native desktop apps or even VS Code extensions. But what about Chrome DevTools plugins? In this blog post we explore how one could interact with an extension build for Chrome Devtools.
+
+<!-- truncate -->
+
+WebdriverIO is build to test various types of applications, from web or mobile applications towards native desktop apps or even VS Code extensions. But what about Chrome DevTools plugins? In this blog post we explore how one could interact with an extension build for Chrome Devtools.
+
+<!-- truncate -->
 
 # Interacting with Chrome DevTools from WebDriverIO: A Guide
 
@@ -73,7 +78,7 @@ We need also the `--auto-open-devtools-for-tabs` flag to automatically open the 
 Next, we write a test script to interact with the PixiJS extension through Chrome DevTools. Create a test file, for example, `devtools.test.js`, and add the following code:
 
 <Tabs
-defaultValue="WebDriver primitives"
+defaultValue="webdriver"
 values={[
 {label: 'WebDriver primitives', value: 'webdriver'},
 {label: 'Puppeteer', value: 'puppeteer'},
@@ -239,6 +244,7 @@ npx wdio run wdio.conf.js
 This will launch Chrome, open the specified URL, interact with the DevTools, and manipulate the PixiJS extension as defined in the test script.
 
 #### Demonstration
+
 ![DevTools v8](assets/DevTools_v8.gif)
 
 ## Conclusion

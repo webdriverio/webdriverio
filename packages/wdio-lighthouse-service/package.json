@@ -46,12 +46,12 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "babel-plugin-istanbul": "^6.1.1",
-    "devtools-protocol": "^0.0.1336433",
+    "devtools-protocol": "^0.0.1340018",
     "istanbul-lib-coverage": "^3.2.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
     "lighthouse": "8.6.0",
-    "puppeteer-core": "22.12.1",
+    "puppeteer-core": "23.0.2",
     "webdriverio": "workspace:*"
   },
   "publishConfig": {

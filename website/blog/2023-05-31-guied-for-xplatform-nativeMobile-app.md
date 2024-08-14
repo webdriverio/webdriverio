@@ -1,13 +1,13 @@
 ---
 title: Guide for Cross Platform E2E Test For Native Mobile APP
-author: Amr Salem
-authorURL: https://www.linkedin.com/in/amrsalem1/
-authorImageURL: https://avatars.githubusercontent.com/u/32042806?s=400&v=4
+authors: amr
 ---
 
-![Guide for Cross Platform E2E](assets/native-mobile-app-testing/ultimateGuide.png)
-
 This article is a must-read for those experiencing headaches with mobile automation testing in the context of Continuous Integration and Continuous Deployment (CICD), particularly when it involves native mobile Apps for Android and iOS. It’s quite challenging to find sufficient resources that cover this specific topic.
+
+<!-- truncate -->
+
+![Guide for Cross Platform E2E](assets/native-mobile-app-testing/ultimateGuide.png)
 
 Within this article, I will guide you through a detailed step-by-step process on how to create a comprehensive end-to-end test pipeline at no cost, utilizing GitHub Actions for both the iOS and Android platforms. We will be using our beloved WebdriverIO framework throughout the tutorial.
 
