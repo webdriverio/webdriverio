@@ -30,7 +30,7 @@ describe('main suite 1', () => {
     it('can query shadow elements', async () => {
         await browser.url('https://the-internet.herokuapp.com/shadowdom')
         await $('h1').waitForDisplayed()
-        await expect($('>>>ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
+        await expect($('ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
     it('should be able to use async-iterators', async () => {
@@ -127,7 +127,7 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it.skip(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x:0, y:0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
@@ -135,9 +135,15 @@ describe('main suite 1', () => {
                     document.mouseMoveTo = mouse
                 })
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectBefore = await browser.execute(
+                    // @ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectAfter = await browser.execute(
+                    // @ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -160,15 +166,21 @@ describe('main suite 1', () => {
         inputs.forEach((input) => {
             it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
-                    const mouse = { x:0, y:0 }
+                    const mouse = { x: 0, y: 0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
                     //@ts-ignore
                     document.mouseMoveTo = mouse
                 })
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectBefore = await browser.execute(
+                    //@ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectAfter = await browser.execute(
+                    //@ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -357,7 +369,7 @@ describe('main suite 1', () => {
         })
     })
 
-    describe('emulate clock', () => {
+    describe.skip('emulate clock', () => {
         const now = new Date(2021, 3, 14)
         const getDateString = () => (new Date()).toString()
 

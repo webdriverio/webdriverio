@@ -116,7 +116,7 @@ export default class CommandHandler {
             if (!traceBuffer) {
                 throw new Error('No tracebuffer captured')
             }
-            this._traceEvents = JSON.parse(traceBuffer.toString('utf8'))
+            this._traceEvents = JSON.parse(traceBuffer.toString())
             this._isTracing = false
         } catch (err: any) {
             throw new Error(`Couldn't parse trace events: ${err.message}`)

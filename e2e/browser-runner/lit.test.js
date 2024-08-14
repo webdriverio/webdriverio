@@ -53,23 +53,39 @@ describe('Lit Component testing', () => {
     })
 
     it('should render component', async () => {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         render(
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
         )
 
-        const innerElem = await $('simple-greeting').$('>>> p')
+        const innerElem = await $('simple-greeting').$('p')
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! How are you today?')
     })
 
     it('should render with mocked component function', async () => {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         getQuestionFn.mockReturnValue('Does this work?')
         render(
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
         )
 
-        const innerElem = await $('simple-greeting').$('>>> p')
+        const innerElem = await $('simple-greeting').$('p')
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! Does this work?')
     })
 
@@ -82,11 +98,16 @@ describe('Lit Component testing', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
-    /**
-     * Todo(@christian-bromann): fails when running `npm run test:browser` but passes when running `npm run test:browser:lit`
-     */
-    describe.skip('shadow root piercing', () => {
+    describe('shadow root piercing', () => {
         it('should allow to pierce into closed shadow roots', async () => {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return
+            }
+
             render(
                 html`<closed-node>Hello, </closed-node>`,
                 document.body
@@ -119,6 +140,14 @@ describe('Lit Component testing', () => {
         })
 
         it('can fetch multiple elements within various closed shadow roots', async () => {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return
+            }
+
             render(
                 html`<closed-node>Hello, </closed-node>`,
                 document.body
@@ -140,7 +169,7 @@ describe('Lit Component testing', () => {
             )
         })
 
-        it.skip('of elements', async () => {
+        it('of elements', async () => {
             /**
              * only run snapshot tests in non-Safari browsers as shadow dom piercing
              * is not yet supported in Safari
@@ -255,8 +284,8 @@ describe('Lit Component testing', () => {
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
         )
-        await $('simple-greeting').$('>>> button').click()
-        await expect($('simple-greeting').$('>>> em')).toHaveText('Thanks for your answer!')
+        await $('simple-greeting').$('button').click()
+        await expect($('simple-greeting').$('em')).toHaveText('Thanks for your answer!')
     })
 
     it('should call execute method with the element', async function () {
@@ -729,7 +758,7 @@ describe('Lit Component testing', () => {
         stage.id = 'stage'
         document.body.appendChild(stage)
 
-        setInterval(() => {
+        setInterval(async () => {
             const span = document.createElement('span')
             span.textContent = 'Hello, world! ' + ++i
             stage.appendChild(span)

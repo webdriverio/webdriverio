@@ -17,8 +17,11 @@ const log = logger('webdriverio')
  * is to use the [deep selector](https://webdriver.io/docs/selectors#deep-selectors).
  *
  * :::info
- * Starting with WebdriverIO v9 the framework automatically pierces through the Shadow DOM
- * making the use of this command obsolete. It is recommended to use the `$(selector)` command instead.
+ *
+ * WebdriverIO automatically pierces through shadow roots when using `$` or `$$` commands.
+ * This command is only needed if you automate within an environment that doesn't
+ * support WebDriver Bidi yet, e.g. mobile web testing with Appium.
+ *
  * :::
  *
  * <example>

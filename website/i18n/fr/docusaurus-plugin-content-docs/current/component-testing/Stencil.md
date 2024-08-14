@@ -79,7 +79,7 @@ describe('Stencil Component Testing', () => {
                 <my-name name={'stencil'}></my-name>
             )
         })
-        await expect($('>>>.text')).toHaveText('Hello! My name is Stencil.')
+        await expect($('.text')).toHaveText('Hello! My name is Stencil.')
     })
 })
 ```

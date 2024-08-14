@@ -457,7 +457,20 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 : null
             const errors = viteError || window.__wdioErrors__ || loadError
             return { errors, hasViteError: Boolean(viteError) }
+        }).catch((err) => {
+            /**
+             * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+             */
+            if (err.message.includes('Cannot find context with specified id')) {
+                return
+            }
+
+            throw err
         })
+
+        if (!testError) {
+            return
+        }
 
         if ((testError.errors && testError.errors.length > 0) || testError.hasViteError) {
             this.#resolveTestStatePromise?.({

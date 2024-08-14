@@ -51,12 +51,14 @@ export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
     class Browser {} as any as WebdriverIO.MultiRemoteBrowser,
     proxyHandler('multiremotebrowser')
 )
+// @ts-ignore
 export const $: WebdriverIO.Browser['$'] = (...args: any) => {
     if (!globals.has('$')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)
     }
     return globals.get('$')(...args)
 }
+// @ts-ignore
 export const $$: WebdriverIO.Browser['$$'] = (...args: any) => {
     if (!globals.has('$$')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)
