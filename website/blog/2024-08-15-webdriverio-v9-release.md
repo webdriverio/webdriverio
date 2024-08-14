@@ -1,13 +1,13 @@
 ---
 title: WebdriverIO v9 Released
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: wdio
 ---
 
-The whole Webdriverio development team is stoked and proud to release WebdriverIO v9 today! 🎉 🎉 🎉
+The whole Webdriverio development team is stoked and proud to release WebdriverIO v9 today!
 
 This marks the beginning of a new exciting era for all projects using WebdriverIO as their test automation tool. With the great work of browser teams that are working on e.g. Chrome and Firefox, we now enter a new era that offers much greater automation capabilities than ever before thanks to the new [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol. With WebdriverIO v9 we have been working to be at the forefront of adopters of this new era and allow you to leverage from the power of the protocol first.
+
+<!-- truncate -->
 
 Let's explore the new features, updates, and optimizations in this release.
 

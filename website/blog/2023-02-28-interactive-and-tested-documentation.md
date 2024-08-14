@@ -1,11 +1,11 @@
 ---
 title: Our Approach to Interactive and Tested Documentation
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 The WebdriverIO framework is a versatile tool that offers a lot of features for you to play around with. The goal of our [project documentation](https://webdriver.io) is to communicate these features well and give you an understanding, on how they could be applied in your project. A central contributor to this are code examples. Many times they can convey the principle idea of a feature like a picture that is worth a thousand words.
+
+<!-- truncate -->
 
 It is not a surprise that many projects out there have code examples embedded in their project documentation. Many of them are even interactive and allow users to fiddle around with the code in real time, e.g. the [new React Docs](https://beta.reactjs.org/learn/adding-interactivity), or provide "playgrounds" with live examples, like on [svelte.dev](https://svelte.dev/examples/hello-world).
 

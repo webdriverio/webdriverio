@@ -1,12 +1,13 @@
 ---
 title: "Interacting with Chrome DevTools from WebDriverIO"
-author: George Romanas & Nikos Lytras
-authorURL: https://github.com/gromanas
-authorsImageURL: https://avatars.githubusercontent.com/u/48865319?s=400&u=e292306d956ecd6f5d94ff8cde2bc189841c270a&v=4
+authors:
+    - romanas
+    - lytras
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+WebdriverIO is build to test various types of applications, from web or mobile applications towards native desktop apps or even VS Code extensions. But what about Chrome DevTools plugins? In this blog post we explore how one could interact with an extension build for Chrome Devtools.
+
+<!-- truncate -->
 
 WebdriverIO is build to test various types of applications, from web or mobile applications towards native desktop apps or even VS Code extensions. But what about Chrome DevTools plugins? In this blog post we explore how one could interact with an extension build for Chrome Devtools.
 

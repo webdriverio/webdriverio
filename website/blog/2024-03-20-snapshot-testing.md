@@ -1,8 +1,6 @@
 ---
 title: "Introducing DOM and Visual Snapshot Testing for Component, End-to-End and Mobile Testing"
-author: WebdriverIO Team
-authorURL: https://twitter.com/webdriverio
-authorImageURL: https://avatars.githubusercontent.com/u/6512473?s=400&u=69d781679fe5cda99067d8193890ad5cb7450e4a&v=4
+authors: wdio
 ---
 
 We're excited to announce support for DOM and Visual snapshot tests using a common set of primitives supporting all testing environments WebdriverIO offers. Our vision has always been to provide a comprehensive, versatile testing tool that simplifies your workflow. This update is a step towards creating a 'Swiss Army Knife' for unit and visual testing, catering to diverse requirements across platforms and extending our support to native mobile applications, making your testing process more efficient and seamless.
