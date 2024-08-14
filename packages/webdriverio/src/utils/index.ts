@@ -16,7 +16,7 @@ import * as elementCommands from '../commands/element.js'
 import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
-import { findStrategy } from './findStrategy.js'
+import { findStrategy, isExtendedXPathSelector, parseExtendedXPathSelector } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../shadowRoot.js'
 import { getContextManager } from '../context.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
@@ -257,8 +257,15 @@ export function elementPromiseHandler <T extends object>(handle: string, shadowR
     }
 }
 
-export function transformClassicToBidiSelector (using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
-    if (using === 'css selector' || using === 'tag name') {
+export function transformClassicToBidiSelector (selector: Selector, instance: WebdriverIO.Browser): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
+    if (typeof selector === 'string' && isExtendedXPathSelector(selector)) {
+        const { insensitive, partial, query } = parseExtendedXPathSelector(selector)
+        const matchType = partial ? 'partial' : 'full'
+        return { type: 'innerText', value: query, matchType, ignoreCase: Boolean(insensitive) }
+    }
+
+    const { using, value } = findStrategy(selector as string, instance.isW3C, instance.isMobile)
+    if (using === 'css selector') {
         return { type: 'css', value }
     }
 
@@ -297,8 +304,7 @@ export async function findDeepElement(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-    const locator = transformClassicToBidiSelector(using, value)
+    const locator = transformClassicToBidiSelector(selector, browser)
 
     /**
      * look up selector within document and all shadow roots
@@ -333,6 +339,7 @@ export async function findDeepElement(
         return scopedNodes[0]
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         return this && 'elementId' in this && this.elementId
             ? this.findElementFromElement(this.elementId, using, value)
             : browser.findElement(using, value)
@@ -365,8 +372,7 @@ export async function findDeepElements(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-    const locator = transformClassicToBidiSelector(using, value)
+    const locator = transformClassicToBidiSelector(selector, browser)
 
     /**
      * look up selector within document and all shadow roots
@@ -401,6 +407,7 @@ export async function findDeepElements(
         return scopedNodes
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         return this && 'elementId' in this && this.elementId
             ? this.findElementsFromElement(this.elementId, using, value)
             : browser.findElements(using, value)

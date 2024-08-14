@@ -61,11 +61,11 @@ export class BidiCore {
     #handleResponse (data: RawData) {
         try {
             const payload = JSON.parse(data.toString()) as CommandResponse
-            if (!payload.id) {
+            if (typeof payload.id === 'undefined') {
                 return
             }
 
-            log.debug('BIDI RESULT', data.toString())
+            log.info('BIDI RESULT', JSON.stringify(payload.result))
             this.client?.emit('bidiResult', payload)
             const resolve = this.#pendingCommands.get(payload.id)
             if (!resolve) {

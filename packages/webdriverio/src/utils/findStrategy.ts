@@ -248,19 +248,9 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     }
     case 'xpath extended': {
         using = 'xpath'
-        const match = stringSelector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))
-        if (!match) {
-            throw new Error(`InvalidSelectorMatch: Strategy 'xpath extended' has failed to match '${stringSelector}'`)
-        }
         const PREFIX_NAME: Record<string, string> = { '.': 'class', '#': 'id' }
         const conditions: Array<string> = []
-        const [
-            tag,
-            prefix, name,
-            attrName, attrValue,
-            insensitive,
-            partial, query
-        ] = match.slice(1)
+        const { tag, prefix, name, attrName, attrValue, insensitive, partial, query } = parseExtendedXPathSelector(stringSelector)
 
         if (prefix) {
             if (prefix === '.') {
@@ -343,4 +333,23 @@ const createRoleBaseXpathSelector = (role: ARIARoleDefinitionKey) => {
         xpathLocator += ',' + loc
     })
     return xpathLocator
+}
+
+export function isExtendedXPathSelector (selector: string) {
+    return Boolean(selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join(''))))
+}
+
+export function parseExtendedXPathSelector (selector: string) {
+    const match = selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))
+    if (!match) {
+        throw new Error(`InvalidSelectorMatch: Strategy 'xpath extended' has failed to match '${selector}'`)
+    }
+    const [
+        tag,
+        prefix, name,
+        attrName, attrValue,
+        insensitive,
+        partial, query
+    ] = match.slice(1)
+    return { tag, prefix, name, attrName, attrValue, insensitive, partial, query }
 }
