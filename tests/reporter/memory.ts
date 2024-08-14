@@ -32,7 +32,7 @@ describe('`execute` memory leak check', () => {
             heapUsage = getHeapUsageMiB()
             log.debug(`[${i.toString().padStart(2, '0')}] Heap usage ${heapUsage.toFixed(2)} MiB`)
         }
-        // @ts-ignore nock retains all timers event after they're finished, leading to a conflicting memory leak
+        // @ts-ignore nock retains all timers even after they're finished, leading to a conflicting memory leak
         nockReset()
         // @ts-expect-error gc is exposed
         globalThis.gc()
