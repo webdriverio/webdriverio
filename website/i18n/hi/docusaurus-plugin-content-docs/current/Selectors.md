@@ -273,6 +273,12 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## गहरे चयनकर्ता
 
+:::warning
+
+Starting with `v9` of WebdriverIO there is no need for this special selector as WebdriverIO automatically pierces through the Shadow DOM for you. It is recommended to migrate off this selector by removing the `>>>` in front it.
+
+:::
+
 कई फ्रंटएंड एप्लिकेशन [शैडो डोम](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM)वाले तत्वों पर बहुत अधिक निर्भर करते हैं। वर्कअराउंड के बिना शैडो डोम के भीतर तत्वों को क्वेरी करना तकनीकी रूप से असंभव है। [`shadow$`](https://webdriver.io/docs/api/element/shadow$) और [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) ऐसे वर्कअराउंड रहे हैं जिनकी [सीमाएं](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow)थीं। गहरे चयनकर्ता के साथ अब आप सामान्य क्वेरी कमांड का उपयोग करके किसी भी शैडो डोम के भीतर सभी तत्वों को क्वेरी कर सकते हैं।
 
 देखते हुए हमारे पास निम्नलिखित संरचना के साथ एक आवेदन है:
