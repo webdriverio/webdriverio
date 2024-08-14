@@ -275,6 +275,12 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## Tiefe Selektoren
 
+:::warning
+
+Starting with `v9` of WebdriverIO there is no need for this special selector as WebdriverIO automatically pierces through the Shadow DOM for you. It is recommended to migrate off this selector by removing the `>>>` in front it.
+
+:::
+
 Viele Frontend-Anwendungen verlassen sich stark auf Elemente mit [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). Es ist technisch nicht möglich, Elemente innerhalb des Shadow-DOM ohne Workarounds abzufragen. Die [`shadow$`](https://webdriver.io/docs/api/element/shadow$) und [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) waren Möglichkeiten, die ihre [Einschränkungen hatten](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). Mit dem Tiefenselektor können Sie jetzt alle Elemente in jedem Schatten-DOM mit dem allgemeinen Abfragebefehl abfragen.
 
 Angenommen, wir haben eine Anwendung mit der folgenden Struktur:
