@@ -245,10 +245,15 @@ export default class WebdriverMockService implements Services.ServiceInstance {
             statusCode: 200,
             value: 'mockResponse',
         })
+
+        // due to memory leaks in nock, we have to reset it from within the test
+        // before measuring our actual memory usage
+        return () => this.nockReset()
     }
 
     nockReset() {
         nock.cleanAll()
+        nock.abortPendingRequests()
         this.init()
     }
 }

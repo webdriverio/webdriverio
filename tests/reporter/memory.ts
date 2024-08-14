@@ -20,7 +20,7 @@ function heapSnapshot() {
 describe('`execute` memory leak check', () => {
     it('repeated large `execute` scripts should not lead to memory leak', async () => {
         // @ts-expect-error mock feature
-        await browser.executeMemLeakScenario(executeCalls)
+        const nockReset = await browser.executeMemLeakScenario(executeCalls)
         // @ts-expect-error gc is exposed
         globalThis.gc()
         const initialHeapUsage = getHeapUsageMiB()
@@ -32,11 +32,13 @@ describe('`execute` memory leak check', () => {
             heapUsage = getHeapUsageMiB()
             log.debug(`[${i.toString().padStart(2, '0')}] Heap usage ${heapUsage.toFixed(2)} MiB`)
         }
+        // @ts-ignore nock retains all timers event after they're finished, leading to a conflicting memory leak
+        nockReset()
         // @ts-expect-error gc is exposed
         globalThis.gc()
         const finalHeapUsage = getHeapUsageMiB()
         log.debug(`Final heap usage ${finalHeapUsage.toFixed(2)} MiB (${heapSnapshot()})`)
-        // 5% for variability / v8 internals + script size once
+        // 5% for variability / v8 internals + script size once due to nock interceptor leaking the last request+response (despite nockReset)
         await expect(finalHeapUsage).toBeLessThanOrEqual(1.05 * initialHeapUsage + scriptSize / 1024 / 1024)
     })
 })
