@@ -32,11 +32,6 @@ export function parseScriptResult(result: local.ScriptEvaluateResult) {
 export function deserializeValue(result: remote.ScriptLocalValue) {
     // @ts-expect-error
     const { type, value } = result
-    if (value === NonPrimitiveType.Object) {
-        return Object.fromEntries(value.map(([key, value]: [any, any]) => {
-            return [deserializeValue(key), deserializeValue(value)]
-        }))
-    }
     if (type === NonPrimitiveType.RegularExpression) {
         return new RegExp(value.pattern, value.flags)
     }
@@ -73,7 +68,7 @@ export function deserializeValue(result: remote.ScriptLocalValue) {
         return null
     }
     if (type === NonPrimitiveType.Object) {
-        return Object.fromEntries(value.map(([key, value]: [any, any]) => {
+        return Object.fromEntries((value || []).map(([key, value]: [any, any]) => {
             return [typeof key === 'string' ? key : deserializeValue(key), deserializeValue(value)]
         }))
     }

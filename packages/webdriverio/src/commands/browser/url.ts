@@ -1,5 +1,6 @@
 import { validateUrl } from '../../utils/index.js'
 import { networkManager } from '../../networkManager.js'
+import type { InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
 
@@ -166,7 +167,7 @@ export async function url (
     }
 
     if (this.isBidi) {
-        let resetPreloadScript: () => Promise<any> = async () => {}
+        let resetPreloadScript: InitScript | undefined
         const context = await this.getWindowHandle()
 
         /**
@@ -223,7 +224,7 @@ export async function url (
          * clear up preload script
          */
         if (resetPreloadScript) {
-            await resetPreloadScript()
+            await resetPreloadScript.remove()
         }
 
         return request

@@ -1,3 +1,13 @@
+import { EventEmitter } from 'node:events'
+import type { local } from 'webdriver'
+
+import { LocalValue } from '../../utils/bidi/value.js'
+import { deserializeValue } from '../../utils/bidi/index.js'
+
+export interface InitScript extends EventEmitter {
+    remove: () => Promise<void>
+}
+
 /**
  * Adds a script which would be evaluated in one of the following scenarios:
  *
@@ -36,7 +46,7 @@ export async function addInitScript<ReturnValue, InnerArguments extends any[]> (
     this: WebdriverIO.Browser,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments
-): Promise<() => Promise<void>> {
+): Promise<InitScript> {
     /**
      * parameter check
      */
@@ -48,24 +58,39 @@ export async function addInitScript<ReturnValue, InnerArguments extends any[]> (
         throw new Error('This command is only supported when automating browser using WebDriver Bidi protocol')
     }
 
-    let serializedParameters = []
-    try {
-        serializedParameters = args.map(arg => JSON.stringify(arg))
-    } catch (err) {
-        throw new Error('The `addInitScript` command requires all parameters to be JSON serializable: ${err.message}')
-    }
-
+    const serializedParameters = args.map((arg) => LocalValue.getArgument(arg))
     const context = await this.getWindowHandle()
+    const fn = `(emit) => {
+        const closure = new Function(\`return ${script.toString()}\`)
+        return closure()(${serializedParameters.length ? `${serializedParameters.join(', ')}, emit` : 'emit'})
+    }`
+    const channel = btoa(fn.toString())
     const result = await this.scriptAddPreloadScript({
-        functionDeclaration: `() => {
-            const closure = new Function(\`return ${script.toString()}\`)
-            return closure()(${serializedParameters.join(', ')})
-        }`,
-        arguments: [],
+        functionDeclaration: fn,
+        arguments: [{
+            type: 'channel',
+            value: { channel }
+        }],
         contexts: [context]
     })
 
-    const resetFn = (() => this.scriptRemovePreloadScript({ script: result.script })) as unknown as () => Promise<void>
-    return resetFn
+    await this.sessionSubscribe({
+        events: ['script.message']
+    })
+    const emitter = new EventEmitter()
+    const messageHandler = (msg: local.ScriptMessageParameters) => {
+        if (msg.channel === channel) {
+            emitter.emit('data', deserializeValue(msg.data as any))
+        }
+    }
+    this.on('script.message', messageHandler)
+    const resetFn = (() => {
+        this.off('script.message', messageHandler)
+        return this.scriptRemovePreloadScript({ script: result.script })
+    }) as unknown as () => Promise<void>
+
+    // @ts-expect-error
+    emitter.remove = resetFn
+    return emitter as unknown as InitScript
 }
 
