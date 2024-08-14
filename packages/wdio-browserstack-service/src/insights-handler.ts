@@ -350,7 +350,7 @@ class _InsightsHandler {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
-                testData.integrations[provider] = this.getIntegrationsObject() //
+                testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
 
@@ -665,7 +665,7 @@ class _InsightsHandler {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
-                testData.integrations[provider] = this.getIntegrationsObject() //
+                testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
 
@@ -766,7 +766,7 @@ class _InsightsHandler {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
-                testData.integrations[provider] = this.getIntegrationsObject() //
+                testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
 
