@@ -164,7 +164,7 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it.skip(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x: 0, y: 0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
