@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Großartig! Jetzt müssen Sie eine Konfigurationsdatei definieren, in der alle Informationen zu Ihren Tests, Fähigkeiten und Einstellungen festgelegt sind. Switch over to the [Configuration File](/configurationfile)  section to see what that file should look like.
+Großartig! Jetzt müssen Sie eine Konfigurationsdatei definieren, in der alle Informationen zu Ihren Tests, Fähigkeiten und Einstellungen festgelegt sind. Switch over to the [Configuration File](/docs/configuration)  section to see what that file should look like.
 
 Mit dem `wdio` Konfigurationshelfer ist es super einfach, Ihre Konfigurationsdatei zu generieren. Führen Sie einfach folgendes aus:
 
@@ -125,7 +125,7 @@ Optionen:
 --cucumberOpts        Cucumber options
 ```
 
-> Note: Autocompiling can be easily controlled with `tsx` ENV Vars. See also the [TypeScript documentation](typeScript).
+> Note: Autocompiling can be easily controlled with `tsx` ENV Vars. See also the [TypeScript documentation](/docs/typescript).
 
 ### `wdio install`
 Mit dem Befehl `install` können Sie Reporter und Dienste über die CLI zu Ihren WebdriverIO-Projekten hinzufügen.
