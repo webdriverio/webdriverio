@@ -186,6 +186,36 @@ console.log(await browser.execute(() => navigator.userAgent)) // returns `Mozill
 
 While we recommend to run mobile testing on actual mobile devices, as mobile browser engines differ from the ones used for desktop browser, this can be an easy escape hatch if we just quickly want to verify how the application renders in mobile viewports.
 
+### Fake Timers Support
+
+Want to change the time in the browser? With WebdriverIO v9, it's now possible to fake the time within the browser for your tests. We've enhanced the [`emulate`](/docs/emulation) command with a new property: `clock`. This allows you to set the date and time to whatever you need and control when time should advance. Here's how it works:
+
+```ts
+const clock = await browser.emulate('clock', { now: new Date(2021, 3, 14) })
+console.log(await browser.execute(() => new Date().getTime())) // returns 1618383600000
+
+await clock.tick(1000)
+console.log(await browser.execute(() => new Date().getTime())) // returns 1618383601000
+```
+
+The new `clock` emulation returns a [`Clock`](/docs/api/clock) object with methods like `tick`, `setSystemTime`, and `restore` for precise control over the time in your tests.
+
+### Automatic Dialog Handling
+
+If your application works with native browser dialogs, e.g. `alert` or `confirm`, it sometime can be tricky when these prompts show up unexpectedly. In previous versions all commands would fail if you don't handle them properly. With WebdriverIO v9 we will start automatically suppressing dialogs, unless you explicitly register a listener to it, e.g.:
+
+```ts
+await browser.url('https://webdriver.io')
+browser.on('dialog', async (dialog) => {
+    console.log(dialog.message()) // outputs: "Hello Dialog"
+    await dialog.dismiss()
+})
+
+await browser.execute(() => alert('Hello Dialog'))
+```
+
+The new `dialog` event gets a [dialog](/docs/api/dialog) object passed in that allows you to call `accept` or `dismiss` on it, get the type or message of the dialog as well as its default value. We hope this will break less tests in the future due to unexpected alerts by the browser.
+
 ## Notable Breaking Changes
 
 We strive to minimize breaking changes to avoid requiring significant time for upgrades to the latest version of WebdriverIO. However, major releases offer an opportunity to remove deprecated interfaces that we no longer recommend using.
