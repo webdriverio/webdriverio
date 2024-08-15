@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cucumber-framework",
-  "version": "9.0.0-alpha.0",
+  "version": "9.0.0",
   "description": "A WebdriverIO plugin. Adapter for Cucumber.js testing framework.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework",
@@ -46,8 +46,8 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "import-meta-resolve": "^4.1.0",
     "glob": "^10.2.2",
+    "import-meta-resolve": "^4.1.0",
     "is-glob": "^4.0.0"
   },
   "devDependencies": {
