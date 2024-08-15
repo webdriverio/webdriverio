@@ -94,7 +94,7 @@ describe('main suite 1', () => {
         ])
         expect(sameScrollPosition).toEqual([x, y])
 
-        browser.scroll(0, -y)
+        await browser.scroll(0, -y)
         const oldScrollPosition = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
