@@ -407,6 +407,9 @@ importers:
       '@vitejs/plugin-vue':
         specifier: ^5.0.3
         version: 5.1.2(vite@5.4.0(@types/node@22.2.0)(terser@5.31.6))(vue@3.4.37(typescript@5.5.4))
+      expect-webdriverio:
+        specifier: 5.0.0-alpha.2
+        version: 5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0-alpha.0)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.15.0))
       mocha:
         specifier: ^10.2.0
         version: 10.7.3
@@ -14785,7 +14788,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -14825,7 +14828,7 @@ snapshots:
       yaml: 2.5.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -18287,7 +18290,6 @@ snapshots:
       - puppeteer-core
       - supports-color
       - utf-8-validate
-    optional: true
 
   '@wdio/logger@8.38.0':
     dependencies:
@@ -21004,6 +21006,16 @@ snapshots:
       - supports-color
       - utf-8-validate
     optional: true
+
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0-alpha.0)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.15.0)):
+    dependencies:
+      '@vitest/snapshot': 1.6.0
+      '@wdio/globals': 9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0)
+      '@wdio/logger': 9.0.0-alpha.0
+      expect: 29.7.0
+      jest-matcher-utils: 29.7.0
+      lodash.isequal: 4.5.0
+      webdriverio: 9.0.0-alpha.0(puppeteer-core@22.15.0)
 
   expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0-alpha.0)(webdriverio@packages+webdriverio):
     dependencies:
