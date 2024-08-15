@@ -9,7 +9,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 console.log('Patching lerna command...')
 
 const rootDir = path.resolve(__dirname, '..', '..', '..')
-const lernaCommandPath = path.join(rootDir, 'node_modules', 'lerna', 'dist', 'commands', 'version', 'command.js')
+const lernaCommandPath = path.join(rootDir, 'node_modules', 'lerna', 'dist', 'index.js')
 const code = await fs.readFile(lernaCommandPath, 'utf-8')
 
 if (!code.includes(CODE_TO_REMOVE)) {

@@ -10,6 +10,6 @@ export const CODE_TO_REMOVE = `        if (this.options.npmClient === "pnpm") {
             ].filter(Boolean),
             this.execOpts
           );
-          const lockfilePath = import_path17.default.join(this.project.rootPath, "pnpm-lock.yaml");
+          const lockfilePath = import_path27.default.join(this.project.rootPath, "pnpm-lock.yaml");
           changedFiles.add(lockfilePath);
         }`
