@@ -137,6 +137,7 @@ describe('emulate', () => {
             scriptAddPreloadScript: vi.fn().mockResolvedValue({ script: 'foobar' }),
             scriptRemovePreloadScript: vi.fn(),
             addInitScript: vi.fn(),
+            executeScript: vi.fn().mockResolvedValue({}),
             execute: vi.fn().mockResolvedValue({}),
             options: {
                 beforeCommand: vi.fn(),
@@ -146,7 +147,8 @@ describe('emulate', () => {
         fakeScope.emulate = browser.emulate.bind(fakeScope)
 
         const clock = await fakeScope.emulate('clock', { now })
-        expect(fakeScope.execute).toBeCalledTimes(2)
+        expect(fakeScope.executeScript).toBeCalledTimes(1)
+        expect(fakeScope.execute).toBeCalledTimes(1)
         expect(fakeScope.addInitScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({

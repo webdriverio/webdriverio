@@ -69,7 +69,7 @@ export class ClockManager {
             /**
              * install fake timers for current ex
              */
-            this.#browser.execute(`return (${functionDeclaration}).apply(null, arguments)`, []).then(() => (
+            this.#browser.executeScript(`return (${functionDeclaration}).apply(null, arguments)`, []).then(() => (
                 this.#browser.execute(installFakeTimers, installOptions)
             )),
             /**

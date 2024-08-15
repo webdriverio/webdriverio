@@ -538,6 +538,26 @@ async function bar() {
     restore = await browser.emulate('foobar')
     const clock = await browser.emulate('clock', { now: new Date(2021, 3, 14) })
     await clock.restore()
+
+    browser.addInitScript(() => {
+        // nothing
+    })
+
+    browser.addInitScript((emit) => {
+        emit('hello')
+    })
+
+    browser.addInitScript((param, emit) => {
+        emit('hello' + param.toFixed())
+    }, 123)
+
+    browser.addInitScript((param, param2, emit) => {
+        emit('hello' + param.toFixed() + param2.charAt(1))
+    }, 123, 'hello')
+
+    browser.addInitScript((param, param2, param3, emit) => {
+        emit('hello' + param.toFixed() + param2.charAt(1) + param3.charAt(1))
+    }, 123, 'hello', 'true')
 }
 
 function testSevereServiceError_noParameters() {

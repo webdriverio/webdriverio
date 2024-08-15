@@ -356,20 +356,31 @@ describe('main suite 1', () => {
 
     describe('addInitScript', () => {
         it('should allow to add an init script', async () => {
-            const reset = await browser.addInitScript((seed) => {
+            const script = await browser.addInitScript((seed) => {
                 Math.random = () => seed
             }, 42)
 
             await browser.url('https://webdriver.io')
             expect(await browser.execute(() => Math.random())).toBe(42)
 
-            await reset()
+            await script.remove()
             await browser.url('https://webdriver.io')
             expect(await browser.execute(() => Math.random())).not.toBe(42)
         })
+
+        it('passed on callback function', async () => {
+            const script = await browser.addInitScript((num, str, bool, emit) => {
+                setTimeout(() => emit(JSON.stringify([num, str, bool])), 500)
+            }, 1, '2', true)
+            browser.url('https://webdriver.io')
+            const data = await new Promise<string[]>((resolve) => {
+                script.on('data', (data) => resolve(data))
+            })
+            expect(data).toBe('[1,"2",true]')
+        })
     })
 
-    describe.skip('emulate clock', () => {
+    describe('emulate clock', () => {
         const now = new Date(2021, 3, 14)
         const getDateString = () => (new Date()).toString()
 

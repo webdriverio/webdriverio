@@ -18,6 +18,10 @@ export * from './utils/interception/types.js'
  * re-export action primitives
  */
 export * from './utils/actions/index.js'
+/**
+ * re-export command types
+ */
+export { InitScript } from './commands/browser/addInitScript.js'
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
