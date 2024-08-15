@@ -94,7 +94,7 @@ describe('main suite 1', () => {
         ])
         expect(sameScrollPosition).toEqual([x, y])
 
-        browser.scroll(0, -y)
+        await browser.scroll(0, Math.floor(-y))
         const oldScrollPosition = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
@@ -202,8 +202,8 @@ describe('main suite 1', () => {
             expect(value.endsWith('center\n')).toBe(true)
         })
 
-        after(() => {
-            browser.switchToParentFrame()
+        after(async () => {
+            await browser.switchToParentFrame()
         })
     })
 
