@@ -18,7 +18,7 @@ WebdriverIO is build to test various types of applications, from web or mobile a
 One of WebDriverIO features is the ability to interact with Chrome DevTools, which can be extremely helpful for debugging and testing web applications and browser extensions. In this blog, we'll explore how to use WebDriverIO to interact with the Chrome DevTools, specifically focusing on interacting with the PixiJS extension.
 You can find a complete example in [Github](https://github.com/gromanas/wdio-devtools-demo).
 
-# Devtools in WebdriverIO v8
+# Devtools in WebdriverIO
 
 ## Setting Up Extension
 
@@ -245,7 +245,7 @@ This will launch Chrome, open the specified URL, interact with the DevTools, and
 
 #### Demonstration
 
-![DevTools v8](assets/DevTools_v8.gif)
+![Devtools](assets/devtools.gif)
 
 ## Conclusion
 
