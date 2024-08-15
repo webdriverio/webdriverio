@@ -21,6 +21,30 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.40.3 (2024-08-15)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#13339](https://github.com/webdriverio/webdriverio/pull/13339) V8 ai support ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#13365](https://github.com/webdriverio/webdriverio/pull/13365) [V8 PORT] In @wdio/appium-service, kill entire Appium process tree ([@samuelfreiberg](https://github.com/samuelfreiberg))
+* `wdio-protocols`
+  * [#13336](https://github.com/webdriverio/webdriverio/pull/13336) fix(@wdio/protocols): remove return value for navigateTo - v8 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#13344](https://github.com/webdriverio/webdriverio/pull/13344) Remove authuser=1 from url ([@fpereira1](https://github.com/fpereira1))
+* [#13334](https://github.com/webdriverio/webdriverio/pull/13334) docs(devtools manipulation): ([@gromanas](https://github.com/gromanas))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Filype ([@fpereira1](https://github.com/fpereira1))
+- George Romanas ([@gromanas](https://github.com/gromanas))
+- Samuel Freiberg ([@samuelfreiberg](https://github.com/samuelfreiberg))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+
 ## v8.40.2 (2024-08-07)
 
 #### :bug: Bug Fix
