@@ -23,7 +23,7 @@ These features unfortunately won't be available to you if your remote environmen
 
 ### New `url` Command Parameters
 
-The `url` command has evolved from a simple navigation tool to a powerful feature-packed command 💪.
+The `url` command has evolved from a simple navigation tool to a powerful feature-packed command.
 
 #### Passing in Custom Headers
 
@@ -78,6 +78,29 @@ await expect($('.battery-remaining')).toHaveText('01:00)
 ```
 
 In this example, we overwrite the [`getBattery`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getBattery) method of the `Navigator` interface.
+
+### New `addInitScript` Command
+
+The `addInitScript` command enables you to inject a script into the browser that is triggered every time a new browsing context is opened. This includes actions such as navigating to a URL or loading an iframe within an application. The script you pass to this command receives a callback as its last parameter, allowing you to send values from the browser back to your Node.js environment.
+
+For instance, to get notified whenever an element is added or removed from a node in the application, you can use the following example:
+
+```ts
+const script = await browser.addInitScript((myParam, callback) => {
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            emit(mutation.target.nodeName)
+        }
+    })
+    observer.observe(document, { childList: true, subtree: true })
+})
+
+script.on('data', (data) => {
+    console.log(data) // prints: BODY, DIV, P, ...
+})
+```
+
+This initialization script can modify global variables and overwrite built-in Web API primitives, allowing you to configure the test environment to meet your specific requirements.
 
 ### Cross Browser Request Mocking
 
