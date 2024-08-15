@@ -409,7 +409,7 @@ importers:
         version: 5.1.2(vite@5.4.0(@types/node@22.2.0)(terser@5.31.6))(vue@3.4.37(typescript@5.5.4))
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@9.0.0(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@9.0.0(puppeteer-core@22.15.0))
+        version: 5.0.0-alpha.2(@wdio/globals@9.0.1(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@9.0.1(puppeteer-core@22.15.0))
       mocha:
         specifier: ^10.2.0
         version: 10.7.3
@@ -641,7 +641,7 @@ importers:
         specifier: ^2.0.1
         version: 2.0.3
       '@wdio/cli':
-        specifier: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
+        specifier: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
         version: 8.40.2(encoding@0.1.13)
       '@wdio/logger':
         specifier: workspace:*
@@ -908,7 +908,7 @@ importers:
     optionalDependencies:
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@9.0.0(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@packages+webdriverio)
+        version: 5.0.0-alpha.2(@wdio/globals@9.0.1(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@packages+webdriverio)
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -932,7 +932,7 @@ importers:
         version: link:../wdio-utils
       expect-webdriverio:
         specifier: 5.0.0-alpha.2
-        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.0.0(puppeteer-core@22.15.0))
+        version: 5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.0.1(puppeteer-core@22.15.0))
       jasmine:
         specifier: ^5.0.0
         version: 5.2.0
@@ -1148,7 +1148,7 @@ importers:
         specifier: workspace:9.0.0
         version: link:../wdio-config
       '@wdio/globals':
-        specifier: workspace:9.0.0
+        specifier: workspace:9.0.1
         version: link:../wdio-globals
       '@wdio/logger':
         specifier: workspace:9.0.0
@@ -1172,7 +1172,7 @@ importers:
         specifier: workspace:9.0.0
         version: link:../webdriver
       webdriverio:
-        specifier: workspace:9.0.0
+        specifier: workspace:9.0.1
         version: link:../webdriverio
 
   packages/wdio-sauce-service:
@@ -5369,8 +5369,8 @@ packages:
     resolution: {integrity: sha512-eF47oRE79JY2Cgl0/OCpCLdEAh4eNgU11e4O8fvkPrwbPgW6gcS8xG23ZmNGc3EjhHUZUOzrm7uJ8ymcRPIuoA==}
     engines: {node: ^16.13 || >=18}
 
-  '@wdio/globals@9.0.0':
-    resolution: {integrity: sha512-/48UBDHJKqpW30TxwbFS5N6oJM8SZDJ2MQRY6cHJy/80GdnOMSnwGYLCOuO0vTiC7nMbwSScr0SUBtAU021T5A==}
+  '@wdio/globals@9.0.1':
+    resolution: {integrity: sha512-/ji9YwisAMwtrtXtXfpzU7tDdF031xwHGgQ5zOnUZoDmtV6g8afvzT4SdB8KNgNAOn82uyOp1ycZNZQxsg4VpA==}
     engines: {node: '>=18'}
 
   '@wdio/logger@8.38.0':
@@ -12831,8 +12831,8 @@ packages:
       devtools:
         optional: true
 
-  webdriverio@9.0.0:
-    resolution: {integrity: sha512-cwuFjD63wph921gcD47RorlEVrbVVwTzTtNKLamhKR8lfhnI7S9n4hnCs2DYKzAEpzY7kf5cHx5Mkh6UamwJ1g==}
+  webdriverio@9.0.1:
+    resolution: {integrity: sha512-8RJhRxt9ZIcdp5KR6gSZjdeATfAHp+sfOp9dY/y6gZy9iYpD3EGZa6I9vhb2n4PulaX84SxHlNCwOQ+GOUZFSw==}
     engines: {node: '>=18'}
     peerDependencies:
       puppeteer-core: ^22.3.0
@@ -18279,10 +18279,10 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@wdio/globals@9.0.0(@wdio/logger@9.0.0)(puppeteer-core@22.15.0)':
+  '@wdio/globals@9.0.1(@wdio/logger@9.0.0)(puppeteer-core@22.15.0)':
     optionalDependencies:
-      expect-webdriverio: 5.0.0-alpha.2(@wdio/globals@9.0.0(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@9.0.0(puppeteer-core@22.15.0))
-      webdriverio: 9.0.0(puppeteer-core@22.15.0)
+      expect-webdriverio: 5.0.0-alpha.2(@wdio/globals@9.0.1(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@9.0.1(puppeteer-core@22.15.0))
+      webdriverio: 9.0.1(puppeteer-core@22.15.0)
     transitivePeerDependencies:
       - '@wdio/logger'
       - bufferutil
@@ -21006,20 +21006,20 @@ snapshots:
       - utf-8-validate
     optional: true
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.0(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@9.0.0(puppeteer-core@22.15.0)):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.1(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@9.0.1(puppeteer-core@22.15.0)):
     dependencies:
       '@vitest/snapshot': 1.6.0
-      '@wdio/globals': 9.0.0(@wdio/logger@9.0.0)(puppeteer-core@22.15.0)
+      '@wdio/globals': 9.0.1(@wdio/logger@9.0.0)(puppeteer-core@22.15.0)
       '@wdio/logger': 9.0.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
-      webdriverio: 9.0.0(puppeteer-core@22.15.0)
+      webdriverio: 9.0.1(puppeteer-core@22.15.0)
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.0(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@packages+webdriverio):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.1(@wdio/logger@9.0.0)(puppeteer-core@22.15.0))(@wdio/logger@9.0.0)(webdriverio@packages+webdriverio):
     dependencies:
       '@vitest/snapshot': 1.6.0
-      '@wdio/globals': 9.0.0(@wdio/logger@9.0.0)(puppeteer-core@22.15.0)
+      '@wdio/globals': 9.0.1(@wdio/logger@9.0.0)(puppeteer-core@22.15.0)
       '@wdio/logger': 9.0.0
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
@@ -21037,7 +21037,7 @@ snapshots:
       lodash.isequal: 4.5.0
       webdriverio: link:packages/webdriverio
 
-  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.0.0(puppeteer-core@22.15.0)):
+  expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.0.1(puppeteer-core@22.15.0)):
     dependencies:
       '@vitest/snapshot': 1.6.0
       '@wdio/globals': link:packages/wdio-globals
@@ -21045,7 +21045,7 @@ snapshots:
       expect: 29.7.0
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
-      webdriverio: 9.0.0(puppeteer-core@22.15.0)
+      webdriverio: 9.0.1(puppeteer-core@22.15.0)
 
   expect-webdriverio@5.0.0-alpha.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio):
     dependencies:
@@ -24433,9 +24433,9 @@ snapshots:
   ora@5.3.0:
     dependencies:
       bl: 4.1.0
-      chalk: 4.1.0
+      chalk: 4.1.2
       cli-cursor: 3.1.0
-      cli-spinners: 2.6.1
+      cli-spinners: 2.9.2
       is-interactive: 1.0.0
       log-symbols: 4.1.0
       strip-ansi: 6.0.1
@@ -25164,7 +25164,7 @@ snapshots:
   proxy-agent@6.3.1:
     dependencies:
       agent-base: 7.1.1
-      debug: 4.3.4
+      debug: 4.3.6(supports-color@8.1.1)
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.5
       lru-cache: 7.18.3
@@ -27433,7 +27433,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  webdriverio@9.0.0(puppeteer-core@22.15.0):
+  webdriverio@9.0.1(puppeteer-core@22.15.0):
     dependencies:
       '@types/node': 20.14.15
       '@types/sinonjs__fake-timers': 8.1.5
