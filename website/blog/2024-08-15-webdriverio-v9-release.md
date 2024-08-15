@@ -216,6 +216,23 @@ await browser.execute(() => alert('Hello Dialog'))
 
 The new `dialog` event gets a [dialog](/docs/api/dialog) object passed in that allows you to call `accept` or `dismiss` on it, get the type or message of the dialog as well as its default value. We hope this will break less tests in the future due to unexpected alerts by the browser.
 
+### Automatic waiting for elements to become interactable
+
+An element is considered not to be interactable when it is either not displayed, cannot be scrolled into the viewport or is disabled and previously WebdriverIO would would throw an error when this would happen. In v8 we already made an improvement of showing the html of the element but in v9 we now automatically wait for elements to become interactable when executing a direct action on the element, like a click or using setValue!
+
+This means that you no longer need to write code like this:
+```ts
+const submitButton = await $('button[type="submit"]');
+await submitButton.waitForEnabled(); // validation of the form takes time, during which the button is disabled
+await submitButton.click();
+```
+
+Instead you can now slim this down to:
+```ts
+const submitButton = await $('button[type="submit"]');
+await submitButton.click(); // automatically waits for the button to become enabled
+```
+
 ## Notable Breaking Changes
 
 We strive to minimize breaking changes to avoid requiring significant time for upgrades to the latest version of WebdriverIO. However, major releases offer an opportunity to remove deprecated interfaces that we no longer recommend using.
