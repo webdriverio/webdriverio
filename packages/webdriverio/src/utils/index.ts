@@ -287,10 +287,10 @@ export async function findDeepElement(
 ): Promise<ElementReference | Error> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
-    const handle = await browser.getWindowHandle()
+    const context = await browser.getWindowHandle()
 
     const shadowRoots = shadowRootManager.getShadowElementsByContextId(
-        handle,
+        context,
         (this as WebdriverIO.Element).elementId
     )
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
@@ -299,11 +299,12 @@ export async function findDeepElement(
     /**
      * look up selector within document and all shadow roots
      */
-    const deepElementResult = await browser.browsingContextLocateNodes({
-        locator,
-        context: handle,
-        startNodes: shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
-    }).then(async (result) => {
+    const startNodes = shadowRoots.length > 0
+        ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+        : (this as WebdriverIO.Element).elementId
+            ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
+            : undefined
+    const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
         const nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
             [ELEMENT_KEY]: node.sharedId as string,
             locator
@@ -351,10 +352,10 @@ export async function findDeepElements(
 ): Promise<ElementReference[]> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
-    const handle = await browser.getWindowHandle()
+    const context = await browser.getWindowHandle()
 
     const shadowRoots = shadowRootManager.getShadowElementsByContextId(
-        handle,
+        context,
         (this as WebdriverIO.Element).elementId
     )
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
@@ -363,11 +364,12 @@ export async function findDeepElements(
     /**
      * look up selector within document and all shadow roots
      */
-    const deepElementResult = await browser.browsingContextLocateNodes({
-        locator,
-        context: handle,
-        startNodes: shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
-    }).then(async (result) => {
+    const startNodes = shadowRoots.length > 0
+        ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
+        : (this as WebdriverIO.Element).elementId
+            ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
+            : undefined
+    const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
         const nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
             [ELEMENT_KEY]: node.sharedId as string,
             locator
