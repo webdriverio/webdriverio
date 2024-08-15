@@ -210,7 +210,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                     log.info(`Appium started with ID: ${process.pid}`)
                     clearTimeout(timeoutId)
                     resolve(process)
-                }
+                }s
             })
 
             /**
