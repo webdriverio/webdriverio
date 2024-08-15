@@ -441,6 +441,8 @@ importers:
         specifier: ^4.24.0
         version: 4.24.0
 
+  infra/lernaPatch: {}
+
   packages/eslint-plugin-wdio:
     devDependencies:
       '@types/estree':
