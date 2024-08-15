@@ -1,7 +1,6 @@
 import { EventEmitter } from 'node:events'
 import type { local } from 'webdriver'
 
-import { LocalValue } from '../../utils/bidi/value.js'
 import { deserializeValue } from '../../utils/bidi/index.js'
 
 export interface InitScript<Payload = undefined> {
@@ -80,8 +79,8 @@ type InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> = ((arg1: Arg
  * </example>
  *
  * @alias browser.addInitScript
- * @param {Function} script  function to be injected as initialization script
- * @param {any}      args    parameters for the script
+ * @param {Function}              script  function to be injected as initialization script
+ * @param {number|string|boolean} args    parameters for the script
  * @type utility
  *
  */
@@ -128,7 +127,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     this: WebdriverIO.Browser,
     script: string | InitScriptFunction<Payload> | InitScriptFunctionArg1<Payload, Arg1> | InitScriptFunctionArg2<Payload, Arg1, Arg2> | InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> | InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> | InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5>,
-    args?: any
+    ...args: any
 ): Promise<InitScript<Payload>> {
     /**
      * parameter check
@@ -141,7 +140,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
         throw new Error('This command is only supported when automating browser using WebDriver Bidi protocol')
     }
 
-    const serializedParameters = (args || []).map((arg: any) => LocalValue.getArgument(arg))
+    const serializedParameters = (args || []).map((arg: any) => JSON.stringify(arg))
     const context = await this.getWindowHandle()
     const fn = `(emit) => {
         const closure = new Function(\`return ${script.toString()}\`)
