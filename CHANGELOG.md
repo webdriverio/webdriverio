@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.0.3 (2024-08-16)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#13381](https://github.com/webdriverio/webdriverio/pull/13381) fix(@wdio/cli): fix path for copy templates ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v9.0.2 (2024-08-16)
 
 #### :bug: Bug Fix
