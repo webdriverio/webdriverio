@@ -565,6 +565,7 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
         ),
         ...QUESTIONNAIRE
     ]
+    // @ts-expect-error
     return inquirer.prompt(questions)
 }
 
@@ -1039,6 +1040,7 @@ export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
 
     const answer = await inquirer.prompt({
         name: 'continueWithAppiumSetup',
+        // @ts-expect-error
         message: 'Continue with Appium setup using appium-installer (https://github.com/AppiumTestDistribution/appium-installer)?',
         type: 'confirm',
         default: true
