@@ -23,6 +23,17 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.0.2 (2024-08-16)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#13374](https://github.com/webdriverio/webdriverio/pull/13374) fix(@wdio/browserstack-service): support v9 of WebdriverIO ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
 ## v9.0.1 (2024-08-15)
 
 #### :bug: Bug Fix
