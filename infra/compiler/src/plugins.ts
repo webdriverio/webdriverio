@@ -86,7 +86,7 @@ export function generateDts(absWorkingDir: string): Plugin {
  * @returns {Plugin} an Esbuild plugin
  */
 export function copyEJSTemplates () {
-    const cliPackage = path.resolve(__dirname, '..', '..', 'packages', 'wdio-cli')
+    const cliPackage = path.resolve(__dirname, '..', '..', '..', 'packages', 'wdio-cli')
     return copy({
         resolveFrom: cliPackage,
         assets: [{

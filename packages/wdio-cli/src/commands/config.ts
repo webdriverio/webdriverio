@@ -221,12 +221,13 @@ export async function missingConfigurationPrompt(command: string, configPath: st
         'Would you like to create one?'
     )
 
-    const { config } = await inquirer.prompt([{
+    const { config } = await inquirer.prompt({
         type: 'confirm',
         name: 'config',
-        message: message,
+        // @ts-expect-error
+        message,
         default: false
-    }])
+    })
 
     /**
      * don't exit if running unit tests
