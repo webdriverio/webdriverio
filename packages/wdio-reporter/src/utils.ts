@@ -1,6 +1,8 @@
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
 
+const FIRST_FUNCTION_REGEX = /function (\w+)/
+
 /**
  * replaces whitespaces with underscore and removes dots
  * @param  {string} str  variable to sanitize
@@ -104,4 +106,31 @@ export function colorLines (name: keyof typeof COLORS, str: string) {
         .split('\n')
         .map((str) => color(name, str))
         .join('\n')
+}
+
+/**
+ * Transforms WebDriver execute command scripts to avoid accumulating
+ * long scripts in the default TestStats.
+ * @param script WebDriver command script
+ */
+export function transformCommandScript (script?: string|Function) {
+    if (!script) {
+        return script
+    }
+    let name = undefined
+    if (typeof script === 'string') {
+        name = FIRST_FUNCTION_REGEX.exec(script)
+        // reset the static RegExp globals to avoid leaking `script`
+        FIRST_FUNCTION_REGEX.exec('')
+    } else if (typeof script === 'function') {
+        name = script.name
+        script = script.toString()
+    } else {
+        return `<${typeof script}>`
+    }
+
+    if (typeof name === 'string' && name) {
+        return `<script fn ${name}(...)> [${Buffer.byteLength(script, 'utf-8')} bytes]`
+    }
+    return `<script> [${Buffer.byteLength(script, 'utf-8')} bytes]`
 }
