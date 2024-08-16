@@ -32,6 +32,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _appiumCliArgs: string[] = []
     private readonly _args: AppiumServerArguments
     private _process?: ChildProcessByStdio<null, Readable, Readable>
+    private _isShuttingDown: boolean = false
 
     constructor(
         private _options: AppiumServiceConfig,
@@ -154,6 +155,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
 
     onComplete() {
+        this._isShuttingDown = true
         // Kill appium and all process' spawned from it
         if (this._process && this._process.pid) {
             // Ensure all child processes are also killed
@@ -223,6 +225,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             })
 
             process.once('exit', (exitCode: number) => {
+                if (this._isShuttingDown) {
+                    return
+                }
                 let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
                 if (exitCode === 2) {
                     errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')
