@@ -92,6 +92,9 @@ export function copyEJSTemplates () {
         assets: [{
             from: [path.resolve(cliPackage, 'src', 'templates', '**', '*.ejs')],
             to: path.resolve(cliPackage, 'build', 'templates')
+        }, {
+            from: [path.resolve(cliPackage, 'src', 'templates', '**', '*.feature')],
+            to: path.resolve(cliPackage, 'build', 'templates')
         }]
     })
 }
