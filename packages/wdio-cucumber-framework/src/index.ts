@@ -1,3 +1,4 @@
+import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -341,8 +342,12 @@ class CucumberAdapter {
 
     async loadFilesWithType(fileList: string[]) {
         return fileList.reduce(
-            (files: string[], file: string) =>
-                files.concat(isGlob(file) ? globSync(file) : [file]),
+            (files: string[], file: string) => {
+                const filePath = os.platform() === 'win32'
+                    ? url.pathToFileURL(file).href
+                    : file
+                return files.concat(isGlob(filePath) ? globSync(filePath) : [filePath])
+            },
             []
         )
     }

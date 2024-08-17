@@ -74,7 +74,7 @@ export function clear(config: BuildOptions): Plugin {
  * @return {Promise<void>} A promise that resolves when the types are generated.
  */
 function generateTypes(cwd: string, pkg: PackageJson, retry = MAX_RETRIES): Promise<void> {
-    const child = exec(`${tscPath} --emitDeclarationOnly`, { cwd })
+    const child = exec(`node ${tscPath} --emitDeclarationOnly`, { cwd })
     return child.then(() => {}, (err) => {
         if (retry > 0) {
             console.log(`${l.name(pkg.name)} ↻ Retrying (${MAX_RETRIES - (retry - 1)}/${MAX_RETRIES}) building types for ${pkg.name}`)
