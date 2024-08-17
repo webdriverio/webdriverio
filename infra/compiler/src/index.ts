@@ -125,7 +125,7 @@ const configs = packages.map(([packageDir, pkg]) => {
              * if types field is a string, generate TypeScript declarations
              */
             if (typeof exp.types === 'string' && target === '.') {
-                esmBuild.plugins?.push(generateDts(absWorkingDir))
+                esmBuild.plugins?.push(generateDts(absWorkingDir, pkg))
             }
 
             if (values.clear) {

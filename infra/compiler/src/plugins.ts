@@ -1,12 +1,23 @@
-import cp from 'node:child_process'
+import cp, { type ExecException } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
+import util from 'node:util'
+import chalk from 'chalk'
 import { rimraf } from 'rimraf'
 import { copy } from 'esbuild-plugin-copy'
 import type { Plugin, BuildOptions } from 'esbuild'
 import type { PackageJson } from 'type-fest'
 
+const MAX_RETRIES = 3
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+const exec = util.promisify(cp.exec)
+const tscPath = path.resolve(path.dirname(url.fileURLToPath(import.meta.resolve('typescript'))), '..', 'bin', 'tsc')
+
+const l = {
+    format: (format: string = 'unknown') => chalk.yellowBright(format),
+    file: (file: string = 'unknown') => chalk.blueBright(file),
+    name: (name: string = 'unknown') => chalk.hex('#EA5907')(`[${name}]`)
+}
 
 /**
  * little logger plugin for Esbuild
@@ -21,11 +32,11 @@ export function log(options: BuildOptions, pkg: PackageJson): Plugin {
         name: 'LogPlugin',
         setup(build) {
             build.onStart(() => {
-                console.log(`🏗️ Building "${pkg.name}" for ${options.format}: ${srcFile} → ${outFile}`)
+                console.log(`${l.name(pkg.name)} 🏗️ Building ${l.format(options.format)} package: ${l.file(srcFile)} → ${l.file(outFile)}`)
             })
             build.onEnd((result) => {
                 if (result.errors.length === 0) {
-                    console.log(`✅ Success building "${pkg.name}" for ${options.format}: ${srcFile} → ${outFile}`)
+                    console.log(`${l.name(pkg.name)} ✅ Success building ${l.format(options.format)} package: ${l.file(srcFile)} → ${l.file(outFile)}`)
                 }
             })
         }
@@ -55,27 +66,43 @@ export function clear(config: BuildOptions): Plugin {
 }
 
 /**
+ * Generates type definition files (d.ts) for a given package.
+ *
+ * @param {string} cwd - The current working directory.
+ * @param {PackageJson} pkg - The package JSON object.
+ * @param {number} [retry=MAX_RETRIES] - The number of retries.
+ * @return {Promise<void>} A promise that resolves when the types are generated.
+ */
+function generateTypes(cwd: string, pkg: PackageJson, retry = MAX_RETRIES): Promise<void> {
+    const child = exec(`${tscPath} --emitDeclarationOnly`, { cwd })
+    return child.then(() => {}, (err) => {
+        if (retry > 0) {
+            console.log(`${l.name(pkg.name)} ↻ Retrying (${MAX_RETRIES - (retry - 1)}/${MAX_RETRIES}) building types for ${pkg.name}`)
+            return generateTypes(cwd, pkg, retry - 1)
+        }
+        const error: ExecException = err instanceof Error ? err : new Error(`unknown error: ${err}`)
+        throw new Error(`[${pkg.name}] Failed to generate d.ts files: ${error.message}\n${error.stdout}`)
+    })
+}
+
+/**
  * generate type definition files (d.ts) for working dir
  * @param {string} absWorkingDir absolute path to the working directory
  * @returns an Esbuild plugin
  */
-export function generateDts(absWorkingDir: string): Plugin {
+export function generateDts(absWorkingDir: string, pkg: PackageJson): Plugin {
     return {
         name: 'TypeScriptDeclarationsPlugin',
         setup(build) {
-            build.onEnd((result) => {
+            build.onEnd(async (result) => {
+                /**
+                 * don't build types if we failed already somewhere else
+                 */
                 if (result.errors.length > 0) {
                     return
                 }
 
-                try {
-                    cp.execSync('tsc --emitDeclarationOnly', {
-                        cwd: absWorkingDir,
-                        stdio: 'inherit'
-                    })
-                } catch {
-                    console.log('Failed to generate TypeScript declarations')
-                }
+                await generateTypes(absWorkingDir, pkg)
             })
         }
     }
