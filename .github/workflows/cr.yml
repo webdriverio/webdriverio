@@ -1,6 +1,6 @@
 name: Continuous Releases
 
-on: 
+on:
   push:
     branches:
       - main
@@ -30,4 +30,4 @@ jobs:
         run: pnpm build
 
       - name: Publish
-        run: pnpx pkg-pr-new publish './packages/*'
+        run: pnpx pkg-pr-new publish './packages/*' --pnpm --compact
