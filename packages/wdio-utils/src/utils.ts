@@ -1,5 +1,7 @@
 import fs from 'node:fs/promises'
+import url from 'node:url'
 import path from 'node:path'
+
 import type { Options, Services } from '@wdio/types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
@@ -219,11 +221,9 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
             try {
                 importPath = await resolve(name, import.meta.url)
             } catch (err: any) {
-                const { join } = await import('node:path')
-                const { pathToFileURL } = await import('node:url')
-                const localNodeModules = join(process.cwd(), 'node_modules')
+                const localNodeModules = path.join(process.cwd(), 'node_modules')
                 try {
-                    importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
+                    importPath = await resolve(name, url.pathToFileURL(localNodeModules).toString())
                 } catch (err: any) {
                     return null
                 }

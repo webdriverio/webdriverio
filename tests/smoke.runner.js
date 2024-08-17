@@ -68,7 +68,7 @@ async function runTests (tests) {
 const mochaTestrunner = async () => {
     const { skippedSpecs } = await launch('mochaTestrunner', baseConfig, {
         specs: [
-            '../mocha/test.ts',
+            './mocha/test.ts',
             path.resolve(__dirname, 'mocha', 'test-middleware.ts'),
             path.resolve(__dirname, 'mocha', 'test-waitForElement.ts'),
             path.resolve(__dirname, 'mocha', 'test-skipped.ts'),
@@ -95,7 +95,7 @@ const mochaAsyncTestrunner = async () => {
         'mochaAsyncTestrunner',
         path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
         {
-            spec: ['./tests/mocha/test-async.ts']
+            spec: ['./mocha/test-async.ts']
         }
     )
     assert.strictEqual(skippedSpecs, 0)
@@ -707,7 +707,7 @@ const runSpecsWithFlagDirectPath = async () => {
         'runSpecsWithFlagDirectPath',
         path.resolve(severalPassedConfig),
         {
-            spec: ['./tests/tests-cli-spec-arg/mocha.test03.js']
+            spec: ['./tests-cli-spec-arg/mocha.test03.js']
         }
     )
     assert.strictEqual(passed, 1)

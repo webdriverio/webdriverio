@@ -261,9 +261,15 @@ importers:
       '@wdio/cli':
         specifier: workspace:*
         version: link:../packages/wdio-cli
+      '@wdio/dot-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-dot-reporter
       '@wdio/globals':
         specifier: workspace:*
         version: link:../packages/wdio-globals
+      '@wdio/junit-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-junit-reporter
       '@wdio/lighthouse-service':
         specifier: workspace:*
         version: link:../packages/wdio-lighthouse-service

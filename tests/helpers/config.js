@@ -39,6 +39,6 @@ export const config = {
     cucumberOpts: {
         timeout: 5000,
         requireModule: ['tsx'],
-        require: ['./tests/cucumber/step-definitions/*.js']
+        require: [path.resolve(__dirname, '..', 'cucumber', 'step-definitions', '*.js')]
     }
 }
