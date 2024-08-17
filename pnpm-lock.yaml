@@ -89,6 +89,12 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^2.0.5
         version: 2.0.5(vitest@2.0.5(@types/node@20.14.15)(jsdom@24.1.1)(terser@5.31.6))
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:packages/wdio-config
+      '@wdio/repl':
+        specifier: workspace:*
+        version: link:packages/wdio-repl
       camelcase:
         specifier: ^8.0.0
         version: 8.0.0
@@ -261,6 +267,9 @@ importers:
       '@wdio/cli':
         specifier: workspace:*
         version: link:../packages/wdio-cli
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:../packages/wdio-config
       '@wdio/dot-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-dot-reporter
@@ -279,6 +288,9 @@ importers:
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../packages/wdio-mocha-framework
+      '@wdio/repl':
+        specifier: workspace:*
+        version: link:../packages/wdio-repl
       '@wdio/shared-store-service':
         specifier: workspace:*
         version: link:../packages/wdio-shared-store-service

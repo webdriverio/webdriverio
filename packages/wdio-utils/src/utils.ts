@@ -179,7 +179,7 @@ export function getArgumentType (arg: any) {
  */
 export async function userImport<T> (moduleName: string, namedImport = 'default'): Promise<T> {
     try {
-        const mod = await import(moduleName)
+        const mod = await import(/* @vite-ignore */moduleName)
         if (namedImport in mod) {
             return mod[namedImport]
         }
@@ -234,7 +234,7 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
     }
 
     try {
-        const pkg = await import(importPath)
+        const pkg = await import(/* @vite-ignore */importPath)
 
         /**
          * CJS packages build with TS imported through an ESM context can end up being this:
