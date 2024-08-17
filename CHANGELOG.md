@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.40.4 (2024-08-17)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#13379](https://github.com/webdriverio/webdriverio/pull/13379) [V8 Backport] Fix Appium Shutdown Error ([@samuelfreiberg](https://github.com/samuelfreiberg))
+
+#### Committers: 1
+- Samuel Freiberg ([@samuelfreiberg](https://github.com/samuelfreiberg))
+
+
 ## v8.40.3 (2024-08-15)
 
 #### :rocket: New Feature
