@@ -16,7 +16,7 @@
   "typeScriptVersion": "3.8.3",
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-protocols"
   },
   "keywords": [
