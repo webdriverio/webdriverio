@@ -92,7 +92,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             }
 
             if (id === '@wdio/logger') {
-                const newId = resolveWDIOModule(id)
+                const newId = await resolveWDIOModule(id)
                 return path.resolve(path.dirname(newId), 'browser.js')
             }
 
@@ -100,7 +100,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
              * make sure WDIO imports are resolved properly as ESM module
              */
             if (id.startsWith('@wdio') || WDIO_PACKAGES.includes(id)) {
-                const resolvedId = resolveWDIOModule(id)
+                const resolvedId = await resolveWDIOModule(id)
                 return resolvedId
             }
 
@@ -201,12 +201,12 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
  * @param {string} pkgName - The name of the WDIO module to resolve.
  * @return {string} The resolved path of the WDIO module.
  */
-function resolveWDIOModule (pkgName: string) {
+async function resolveWDIOModule (pkgName: string) {
     try {
-        const pkgPath = resolve(pkgName, import.meta.url)
+        const pkgPath = await resolve(pkgName, import.meta.url)
         return url.fileURLToPath(pkgPath)
     } catch {
-        const pkgPath = resolve(pkgName, url.pathToFileURL(path.resolve(process.cwd())).href)
+        const pkgPath = await resolve(pkgName, url.pathToFileURL(path.resolve(process.cwd())).href)
         return url.fileURLToPath(pkgPath)
     }
 }

@@ -39,6 +39,6 @@ export const config = {
     cucumberOpts: {
         timeout: 5000,
         requireModule: ['tsx'],
-        require: [url.pathToFileURL(path.resolve(__dirname, '..', 'cucumber', 'step-definitions', '*.js')).href]
+        require: [path.resolve(__dirname, '..', 'cucumber', 'step-definitions', '*.js')]
     }
 }
