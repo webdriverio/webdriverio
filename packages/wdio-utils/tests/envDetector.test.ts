@@ -123,6 +123,9 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isBidi).toBe(false)
         // @ts-expect-error JSON import is not properly typed
         expect(sessionEnvironmentDetector({ capabilities: bidiResponse, requestedCapabilities }).isBidi).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: {
+            webSocketUrl: true
+        }, requestedCapabilities: {} }).isBidi).toBe(false)
     })
 
     it('isSauce', () => {
