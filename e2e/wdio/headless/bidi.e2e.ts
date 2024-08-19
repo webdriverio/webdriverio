@@ -1,4 +1,4 @@
-import { browser } from '@wdio/globals'
+import { browser, expect } from '@wdio/globals'
 import type { local } from 'webdriver'
 
 describe('bidi e2e test', () => {
@@ -168,5 +168,37 @@ describe('bidi e2e test', () => {
             false,
             '\n'
         ])
+    })
+
+    it('supports execute with bidi on element scope', async () => {
+        await browser.url('http://guinea-pig.webdriver.io')
+        const result = await browser.$('.findme').execute(function (elem, a, b, c, d) {
+            return (elem as unknown as HTMLElement).innerText.length + a + b + c + d
+        }, 1, 2, 3, 4)
+        expect(result).toBe(29)
+    })
+
+    describe('executeAsync', () => {
+        it('works in browser scope', async () => {
+            const result = await browser.executeAsync(function (a, b, c, d, done) {
+                // browser context - you may not access client or console
+                setTimeout(() => {
+                    done(a + b + c + d)
+                }, 3000)
+            }, 1, 2, 3, 4)
+            expect(result).toBe(10)
+        })
+
+        it('works on element scope', async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+            const result = await browser.$('.findme').executeAsync(function (elem, a, b, c, d, done) {
+                // browser context - you may not access client or console
+                setTimeout(() => {
+                    // "Test CSS Attributes" = 19 + 1 + 2 + 3 + 4 = 29
+                    done((elem as unknown as HTMLElement).innerText.length + a + b + c + d)
+                }, 3000)
+            }, 1, 2, 3, 4)
+            expect(result).toBe(29)
+        })
     })
 })
