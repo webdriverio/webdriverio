@@ -168,7 +168,7 @@ export const multiremote = async function (
     }
 
     const ProtocolDriver = automationProtocol && isStub(automationProtocol)
-        ? (await import(automationProtocol)).default
+        ? (await import(/* @vite-ignore */automationProtocol)).default
         : WebDriver
     const driver = ProtocolDriver.attachToSession(
         sessionParams,

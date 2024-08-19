@@ -24,9 +24,7 @@ jobs:
           filename: webdriverio-build.zip
 
       - name: CJS Interoperability Tests
-        run: |
-          pnpm run link
-          pnpm run test:interop
+        run: pnpm run test:interop
         shell: bash
 
       - name: Check Git Context

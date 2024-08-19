@@ -38,7 +38,12 @@ const projects = (await fs.readdir(
 const packages = (
     await Promise.all(
         projects.map(async (project) => {
-            const pkg = await import(path.resolve(rootDir, 'packages', project, 'package.json'), { assert: { type: 'json' } })
+            const pkg = await import(
+                url.pathToFileURL(
+                    path.resolve(rootDir, 'packages', project, 'package.json')
+                ).href,
+                { assert: { type: 'json' } }
+            )
             return [project, pkg.default]
         })
     ) as [string, PackageJson][]
@@ -125,7 +130,7 @@ const configs = packages.map(([packageDir, pkg]) => {
              * if types field is a string, generate TypeScript declarations
              */
             if (typeof exp.types === 'string' && target === '.') {
-                esmBuild.plugins?.push(generateDts(absWorkingDir))
+                esmBuild.plugins?.push(generateDts(absWorkingDir, pkg))
             }
 
             if (values.clear) {

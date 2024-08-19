@@ -89,6 +89,12 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^2.0.5
         version: 2.0.5(vitest@2.0.5(@types/node@20.14.15)(jsdom@24.1.1)(terser@5.31.6))
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:packages/wdio-config
+      '@wdio/repl':
+        specifier: workspace:*
+        version: link:packages/wdio-repl
       camelcase:
         specifier: ^8.0.0
         version: 8.0.0
@@ -176,9 +182,6 @@ importers:
       shelljs:
         specifier: ^0.8.5
         version: 0.8.5
-      shx:
-        specifier: ^0.3.4
-        version: 0.3.4
       tempy:
         specifier: ^3.1.0
         version: 3.1.0
@@ -261,9 +264,18 @@ importers:
       '@wdio/cli':
         specifier: workspace:*
         version: link:../packages/wdio-cli
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:../packages/wdio-config
+      '@wdio/dot-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-dot-reporter
       '@wdio/globals':
         specifier: workspace:*
         version: link:../packages/wdio-globals
+      '@wdio/junit-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-junit-reporter
       '@wdio/lighthouse-service':
         specifier: workspace:*
         version: link:../packages/wdio-lighthouse-service
@@ -273,6 +285,9 @@ importers:
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../packages/wdio-mocha-framework
+      '@wdio/repl':
+        specifier: workspace:*
+        version: link:../packages/wdio-repl
       '@wdio/shared-store-service':
         specifier: workspace:*
         version: link:../packages/wdio-shared-store-service
@@ -11645,11 +11660,6 @@ packages:
   shelljs@0.8.5:
     resolution: {integrity: sha512-TiwcRcrkhHvbrZbnRcFYMLl30Dfov3HKqzp5tO5b4pt6G/SezKcYhmDg15zXVBswHmctSAQKznqNW2LO5tTDow==}
     engines: {node: '>=4'}
-    hasBin: true
-
-  shx@0.3.4:
-    resolution: {integrity: sha512-N6A9MLVqjxZYcVn8hLmtneQWIJtp8IKzMP4eMnx+nqkvXoqinUPCbUFLp2UcWTEIUONhlk0ewxr/jaVGlc+J+g==}
-    engines: {node: '>=6'}
     hasBin: true
 
   side-channel@1.0.6:
@@ -26072,11 +26082,6 @@ snapshots:
       glob: 7.2.3
       interpret: 1.4.0
       rechoir: 0.6.2
-
-  shx@0.3.4:
-    dependencies:
-      minimist: 1.2.8
-      shelljs: 0.8.5
 
   side-channel@1.0.6:
     dependencies:

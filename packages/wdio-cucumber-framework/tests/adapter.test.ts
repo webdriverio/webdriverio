@@ -199,7 +199,7 @@ describe('CucumberAdapter', () => {
 
     it('loadSpecFiles', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
-        adapter.loadFilesWithType = vi.fn().mockReturnValue([process.cwd() + '/__mocks__/moduleC.ts'])
+        adapter.loadFilesWithType = vi.fn().mockReturnValue([path.resolve(process.cwd(), '__mocks__', 'moduleC.ts')])
 
         expect(global.MODULE_C_WAS_LOADED).toBe(undefined)
         await adapter.loadFiles()

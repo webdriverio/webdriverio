@@ -36,6 +36,6 @@ export async function getProtocolDriver (options: Capabilities.WebdriverIOConfig
         Object.assign(options, detectBackend(options))
     }
 
-    const Driver = webdriverImport || (await import(options.automationProtocol || 'webdriver')).default
+    const Driver = webdriverImport || (await import(/* @vite-ignore */options.automationProtocol || 'webdriver')).default
     return { Driver, options }
 }

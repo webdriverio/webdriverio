@@ -27,10 +27,6 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
-      - name: Link Packages
-        run: pnpm run link
-        shell: bash
-
       - name: Testrunner Multiremote Tests
         run: pnpm run test:e2e:multiremote
         shell: bash
