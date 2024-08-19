@@ -23,6 +23,27 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.0.4 (2024-08-19)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13389](https://github.com/webdriverio/webdriverio/pull/13389) fix(webdriverio): execute command when using bidi ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13388](https://github.com/webdriverio/webdriverio/pull/13388) fix(webdriverio): update getHTML docs ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-reporter`, `wdio-webdriver-mock-service`
+  * [#13219](https://github.com/webdriverio/webdriverio/pull/13219) fix(@wdio/reporter): transform scripts in TestStats (#13209) ([@johnp](https://github.com/johnp))
+
+#### :house: Internal
+* `wdio-browser-runner`, `wdio-cucumber-framework`, `wdio-mocha-framework`, `wdio-smoke-test-cjs-service`, `wdio-smoke-test-service`, `wdio-utils`, `webdriverio`
+  * [#13385](https://github.com/webdriverio/webdriverio/pull/13385) fix(infra): retry type generation ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#13383](https://github.com/webdriverio/webdriverio/pull/13383) feat: pkg.pr.new ([@Aslemammad](https://github.com/Aslemammad))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Johannes Pfrang ([@johnp](https://github.com/johnp))
+- Mohammad Bagher Abiyat ([@Aslemammad](https://github.com/Aslemammad))
+
+
 ## v9.0.3 (2024-08-16)
 
 #### :bug: Bug Fix
