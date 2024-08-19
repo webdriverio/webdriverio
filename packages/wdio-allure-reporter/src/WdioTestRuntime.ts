@@ -1,11 +1,13 @@
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
 import { MessageTestRuntime } from 'allure-js-commons/sdk/runtime'
-
-export const ALLURE_RUNTIME_MESSAGE_EVENT = 'allure_runtime_message'
+import { events } from './constants.js'
 
 export class WdioTestRuntime extends MessageTestRuntime {
     async sendMessage(message: RuntimeMessage) {
-        process.emit(ALLURE_RUNTIME_MESSAGE_EVENT as any, message as any)
+        process.emit(events.runtimeMessage as any, {
+            cid: process.env.WDIO_WORKER_ID,
+            message,
+        } as any)
 
         return Promise.resolve()
     }

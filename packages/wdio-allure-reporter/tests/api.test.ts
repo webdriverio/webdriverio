@@ -1,11 +1,11 @@
 import path from 'node:path'
 import type { SpyInstance } from 'vitest'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { Status, ContentType } from 'allure-js-commons'
+import { Status, ContentType, LabelName, LinkType } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
 import { clean } from './helpers/wdio-allure-helper.js'
 import AllureReporter, {
-    addEpic, addOwner, addSuite, addSubSuite, addParentSuite, addLink, addTag,
+    addHistoryId, addTestCaseId, addEpic, addOwner, addSuite, addSubSuite, addParentSuite, addLink, addTag,
     addFeature, addLabel, addSeverity, addIssue, addTestId, addStory,
     addDescription, addAttachment, startStep, endStep,
     addStep, addArgument, addAllureId, step,
@@ -40,6 +40,8 @@ describe('reporter api', () => {
     })
 
     it('exports correct API', () => {
+        expect(typeof addHistoryId).toBe('function')
+        expect(typeof addTestCaseId).toBe('function')
         expect(typeof addEpic).toBe('function')
         expect(typeof addOwner).toBe('function')
         expect(typeof addSuite).toBe('function')
@@ -66,91 +68,238 @@ describe('reporter api', () => {
     it('should pass correct data from addEpic', () => {
         AllureReporter.addEpic('EpicName')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addEpic, { epicName: 'EpicName' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.EPIC,
+                        value: 'EpicName'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addOwner', () => {
         AllureReporter.addOwner('Owner')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addOwner, { owner: 'Owner' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.OWNER,
+                        value: 'Owner'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addSuite', () => {
         AllureReporter.addSuite('Suite')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addSuite, { suiteName: 'Suite' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.SUITE,
+                        value: 'Suite'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addSubSuite', () => {
         AllureReporter.addSubSuite('SubSuite')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addSubSuite, { suiteName: 'SubSuite' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.SUB_SUITE,
+                        value: 'SubSuite'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addParentSuite', () => {
         AllureReporter.addParentSuite('ParentSuite')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addParentSuite, { suiteName: 'ParentSuite' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.PARENT_SUITE,
+                        value: 'ParentSuite'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addLink', () => {
         AllureReporter.addLink('http://example.org', 'LinkName', 'LinkType')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addLink, { name: 'LinkName', type: 'LinkType', url: 'http://example.org' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                links: [
+                    {
+                        name: 'LinkName',
+                        url: 'http://example.org',
+                        type: 'LinkType',
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addTag', () => {
         AllureReporter.addTag('Tag')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addTag, { tag: 'Tag' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.TAG,
+                        value: 'Tag'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addLabel', () => {
         AllureReporter.addLabel('customLabel', 'Label')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addLabel, { name: 'customLabel', value: 'Label' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: 'customLabel',
+                        value: 'Label'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addStory', () => {
         AllureReporter.addStory('Story')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addStory, { storyName: 'Story' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.STORY,
+                        value: 'Story'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addFeature', () => {
         AllureReporter.addFeature('foo')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addFeature, { featureName: 'foo' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.FEATURE,
+                        value: 'foo'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addSeverity', () => {
         AllureReporter.addSeverity('foo')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addSeverity, { severity: 'foo' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.SEVERITY,
+                        value: 'foo'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addIssue', () => {
         AllureReporter.addIssue('1')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addIssue, { issue: '1' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                links: [
+                    {
+                        type: LinkType.ISSUE,
+                        url: '1'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addAllureId', () => {
         AllureReporter.addAllureId('1')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addAllureId, { id: '1' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                labels: [
+                    {
+                        name: LabelName.ALLURE_ID,
+                        value: '1'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addTestId', () => {
         AllureReporter.addTestId('2')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addTestId, { testId: '2' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                links: [
+                    {
+                        type: LinkType.TMS,
+                        url: '2'
+                    }
+                ]
+            }
+        })
     })
 
     it('should pass correct data from addDescription', () => {
         AllureReporter.addDescription('foo', 'html')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addDescription, { description: 'foo', descriptionType: 'html' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                descriptionHtml: 'foo'
+            }
+        })
     })
 
     it('should pass correct data from addStep', () => {
@@ -215,7 +364,17 @@ describe('reporter api', () => {
     it('should pass correct data from addArgument', () => {
         AllureReporter.addArgument('os', 'osx')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.addArgument, { name: 'os', value: 'osx' })
+        expect(process.emit).toHaveBeenCalledWith(events.runtimeMessage, {
+            type: 'metadata',
+            data: {
+                parameters: [
+                    {
+                        name: 'os',
+                        value: 'osx'
+                    }
+                ]
+            }
+        })
     })
 
     describe('addAttachment', () => {
@@ -248,7 +407,9 @@ describe('reporter api', () => {
         scenarios.forEach(({ title, actualType, content, name, type }) => {
             it(title, () => {
                 AllureReporter.addAttachment(name, content, actualType!)
-                expect(process.emit).toBeCalledWith(events.addAttachment, { name, content, type })
+                expect(process.emit).toBeCalledWith(events.runtimeMessage, {
+                    data: { name, content, type }
+                })
             })
         })
     })
@@ -289,19 +450,19 @@ describe('attachJSON', () => {
     it('writes json file for string content', () => {
         const fixture = JSON.stringify({ foo: 'bar' })
 
-        reporterInstance.attachJSON('foobar', fixture)
+        reporterInstance._attachJSON('foobar', fixture)
 
         expect(writeAttachmentSpy).toBeCalledWith(fixture, ContentType.JSON)
     })
 
     it('writes txt file for rest content types', () => {
-        reporterInstance.attachJSON('foobar', { foo: 'bar' })
+        reporterInstance._attachJSON('foobar', { foo: 'bar' })
 
         expect(writeAttachmentSpy).toBeCalledWith(JSON.stringify({ foo: 'bar' }, null, 2), ContentType.TEXT)
     })
 
     it('writes txt file for undefined value', () => {
-        reporterInstance.attachJSON('foobar', undefined)
+        reporterInstance._attachJSON('foobar', undefined)
 
         expect(writeAttachmentSpy).toBeCalledWith('undefined', ContentType.TEXT)
     })
@@ -332,7 +493,7 @@ describe('attachScreenshot', () => {
     it('writes content as png file', () => {
         const fixture = Buffer.from('0x1')
 
-        reporterInstance.attachScreenshot('foobar', fixture)
+        reporterInstance._attachScreenshot('foobar', fixture)
 
         expect(writeAttachmentSpy).toBeCalledWith(fixture, ContentType.PNG)
     })
@@ -356,7 +517,7 @@ describe('attachLogs', () => {
 
         reporterInstance.onTestStart(fixtures.testStats)
         process.stdout.write('hello world')
-        reporterInstance.attachLogs()
+        reporterInstance._attachLogs()
 
         expect(writeAttachmentSpy).not.toBeCalled()
     })
@@ -370,7 +531,7 @@ describe('attachLogs', () => {
 
         reporterInstance.onTestStart(fixtures.testStats)
         process.stdout.write('hello world')
-        reporterInstance.attachLogs()
+        reporterInstance._attachLogs()
 
         expect(writeAttachmentSpy).toBeCalledWith('.........Console Logs.........\n\nhello world', ContentType.TEXT)
     })

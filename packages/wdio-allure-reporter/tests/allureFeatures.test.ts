@@ -255,7 +255,7 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add attachment', () => {
         const reporter = new AllureReporter({ outputDir })
-        const attachFileSpy = vi.spyOn(reporter, 'attachFile')
+        const attachFileSpy = vi.spyOn(reporter, '_attachFile')
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
@@ -277,7 +277,7 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add "application/json" attachment', () => {
         const reporter = new AllureReporter({ outputDir })
-        const attachJSONSpy = vi.spyOn(reporter, 'attachJSON')
+        const attachJSONSpy = vi.spyOn(reporter, '_attachJSON')
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
@@ -322,7 +322,7 @@ describe('reporter runtime implementation', () => {
             title: 'foo'
         }
         const reporter = new AllureReporter({ outputDir })
-        const attachFileSpy = vi.spyOn(reporter, 'attachFile')
+        const attachFileSpy = vi.spyOn(reporter, '_attachFile')
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
