@@ -143,7 +143,9 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 
 These packages are not released to NPM and used to work on this codebase.
 
-- [@wdio/compiler](https://github.com/webdriverio/webdriverio/tree/main/infa/compiler) - Esbuild script to compile the source code all of all packages
+- [@wdio/compiler](https://github.com/webdriverio/webdriverio/tree/main/infa/compiler) - Esbuild script to
+compile the source code all of all packages
+- [@wdio/lerna-patch](https://github.com/webdriverio/webdriverio/tree/main/infa/lernaPatch) - This sub-package is being used to patch Lerna to not run `pnpm install` after it prepared all packages for release
 
 ## :handshake: Project Governance
 

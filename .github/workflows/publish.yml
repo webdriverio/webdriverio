@@ -62,6 +62,7 @@ jobs:
       - name: Release
         run: |
           pnpm run setup
+          pnpm -r --filter=@wdio/lerna-patch run patch
           pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           pnpm run pushReleaseTag
         env:
