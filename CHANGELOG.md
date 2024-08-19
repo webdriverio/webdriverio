@@ -64,6 +64,8 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
   * [#11942](https://github.com/webdriverio/webdriverio/pull/11942) breaking(*): V9 migrate from got to fetch ([@tamil777selvan](https://github.com/tamil777selvan))
 * `@wdio/protocols`
   * [#12006](https://github.com/webdriverio/webdriverio/pull/12006) breaking(@wdio/protocols): V9 Remove JSONWireProtocol ([@tamil777selvan](https://github.com/tamil777selvan))
+* `webdriverio`
+  * [#12490](https://github.com/webdriverio/webdriverio/pull/12490) allow getHTML to pierce through Shadow DOM ([@christian-bromann](https://github.com/christian-bromann))
 
 #### :rocket: New Feature
 * `webdriverio`

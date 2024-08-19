@@ -233,6 +233,38 @@ const submitButton = await $('button[type="submit"]');
 await submitButton.click(); // automatically waits for the button to become enabled
 ```
 
+### Snapshot Testing of Web Components
+
+If your application uses a lot of web components, using the snapshot feature turned out to be not possible due to the fact that WebdriverIO struggled to look inside the [Shadow Root](https://www.google.com/search?q=shadow+root+mdn&sourceid=chrome&ie=UTF-8). With v9 WebdriverIO has now total visibility into all elements an allows to snapshot open and closed web components by transforming them into a [Declarative Shadow DOM](https://web.dev/articles/declarative-shadow-dom), e.g.:
+
+```ts
+await browser.url('https://ionicframework.com/docs/usage/v8/button/basic/demo.html?ionic:mode=md')
+
+// get snapshot of web component without its styles
+const snapshot = await $('ion-button').getHTML({ excludeElements: ['style'] })
+
+// assert snapshot
+await expect(snapshot).toMatchInlineSnapshot(`
+    <ion-button class="md button button-solid ion-activatable ion-focusable hydrated">Default
+        <template shadowrootmode="open">
+            <button type="button" class="button-native" part="native">
+            <span class="button-inner">
+                <slot name="icon-only"></slot>
+                <slot name="start"></slot>
+                <slot></slot>
+                <slot name="end"></slot>
+            </span>
+            <ion-ripple-effect role="presentation" class="md hydrated">
+                <template shadowrootmode="open"></template>
+            </ion-ripple-effect>
+            </button>
+        </template>
+    </ion-button>
+`)
+```
+
+To enable this feature we enhanced the `getHTML` command and replaced its previous boolean parameter with an object that allows better control about the command behavior. Read more about the new `GetHTMLOptions` options in the [`getHTML`](/docs/api/element/getHTML) command docs.
+
 ## Notable Breaking Changes
 
 We strive to minimize breaking changes to avoid requiring significant time for upgrades to the latest version of WebdriverIO. However, major releases offer an opportunity to remove deprecated interfaces that we no longer recommend using.

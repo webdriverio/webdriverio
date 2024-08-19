@@ -10,30 +10,6 @@ import getHTMLShadowScript from '../../scripts/getHTMLShadow.js'
 const SHADOW_ID_ATTR_NAME = 'data-wdio-shadow-id'
 const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
 
-export interface GetHTMLOptions {
-    /**
-     * if true, it includes the selector element tag (default: true)
-     * @default true
-     */
-    includeSelectorTag?: boolean
-    /**
-     * if true, it includes content of the shadow roots of all web
-     * components in the DOM (default: true if WebDriver Bidi is enabled)
-     * @default true
-     */
-    pierceShadowRoot?: boolean
-    /**
-     * if true, it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->`
-     * @default true
-     */
-    removeCommentNodes?: boolean
-    /**
-     * if true, the html output will be prettified
-     * @default true
-     */
-    prettify?: boolean
-}
-
 /**
  *
  * Get source code of specified DOM element by selector. By default, it automatically
@@ -55,6 +31,32 @@ export interface GetHTMLOptions {
         console.log(innerHTML);
         // outputs:
         // "<span>Lorem ipsum dolor amet</span>"
+    });
+    :getHTMLShadow.js
+    it('allows to snapshot shadow dom', async () => {
+        await browser.url('https://ionicframework.com/docs/usage/v8/button/basic/demo.html?ionic:mode=md')
+
+        // get snapshot of web component without its styles
+        const snapshot = await $('ion-button').getHTML({ excludeElements: ['style'] })
+
+        // assert snapshot
+        await expect(snapshot).toMatchInlineSnapshot(`
+            <ion-button class="md button button-solid ion-activatable ion-focusable hydrated">Default
+                <template shadowrootmode="open">
+                    <button type="button" class="button-native" part="native">
+                    <span class="button-inner">
+                        <slot name="icon-only"></slot>
+                        <slot name="start"></slot>
+                        <slot></slot>
+                        <slot name="end"></slot>
+                    </span>
+                    <ion-ripple-effect role="presentation" class="md hydrated">
+                        <template shadowrootmode="open"></template>
+                    </ion-ripple-effect>
+                    </button>
+                </template>
+            </ion-button>
+        `)
     });
  * </example>
  *
@@ -85,11 +87,12 @@ export async function getHTML(
         throw new Error('The `getHTML` options parameter must be an object')
     }
 
-    const { includeSelectorTag, pierceShadowRoot, removeCommentNodes, prettify } = Object.assign({
+    const { includeSelectorTag, pierceShadowRoot, removeCommentNodes, prettify, excludeElements } = Object.assign({
         includeSelectorTag: true,
         pierceShadowRoot: true,
         removeCommentNodes: true,
-        prettify: true
+        prettify: true,
+        excludeElements: []
     }, options)
 
     const basicGetHTML = (elementId: string, includeSelectorTag: boolean) => {
@@ -150,7 +153,7 @@ export async function getHTML(
             mode: shadowRootManager.getShadowRootModeById(handle, id) || 'open'
         })))
 
-        return sanitizeHTML($, { removeCommentNodes, prettify })
+        return sanitizeHTML($, { removeCommentNodes, prettify, excludeElements })
     }
 
     const returnHTML = await basicGetHTML(this.elementId, includeSelectorTag)
@@ -203,6 +206,16 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
      * can cause failures when taking a snapshot of a Shadow DOM element
      */
     const isCheerioObject = $ && typeof $ !== 'string'
+
+    /**
+     * allow user to remove bloated or unwanted elements from the snapshot
+     */
+    if (isCheerioObject) {
+        for (const elemToRemove of (options.excludeElements || [])) {
+            $(elemToRemove).remove()
+        }
+    }
+
     let returnHTML = isCheerioObject ? $('body').html() as string : $
     if (options.removeCommentNodes) {
         returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
@@ -210,4 +223,33 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
     return options.prettify
         ? prettifyFn(returnHTML)
         : returnHTML
+}
+
+export interface GetHTMLOptions {
+    /**
+     * if true, it includes the selector element tag (default: true)
+     * @default true
+     */
+    includeSelectorTag?: boolean
+    /**
+     * if true, it includes content of the shadow roots of all web
+     * components in the DOM (default: true if WebDriver Bidi is enabled)
+     * @default true
+     */
+    pierceShadowRoot?: boolean
+    /**
+     * if true, it removes all comment nodes from the HTML, e.g. `<!--?lit$206212805$--><!--?lit$206212805$-->`
+     * @default true
+     */
+    removeCommentNodes?: boolean
+    /**
+     * if true, the html output will be prettified
+     * @default true
+     */
+    prettify?: boolean
+    /**
+     * remove certain elements from the output, e.g. style tags or svg elements
+     * @default []
+     */
+    excludeElements?: string[]
 }
