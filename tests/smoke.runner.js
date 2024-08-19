@@ -169,7 +169,7 @@ const jasmineReporter = async () => {
         outputDir: __dirname + '/jasmine'
     }).catch((err) => err) // error expected
     await sleep(100)
-    const reporterLogsPath = path.join(__dirname, 'jasmine', 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogsPath = path.resolve(__dirname, 'jasmine', 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
     expect(reporterLogs.toString()).toEqual(JASMINE_REPORTER_LOGS)
     await fs.unlink(reporterLogsPath)
@@ -179,7 +179,7 @@ const jasmineReporter = async () => {
  * Jasmine timeout test
  */
 const jasmineTimeout = async () => {
-    const logFile = path.join(__dirname, 'jasmineTimeout.spec.log')
+    const logFile = path.resolve(__dirname, 'jasmineTimeout.spec.log')
     await launch('jasmineTimeout', baseConfig, {
         specs: [path.resolve(__dirname, 'jasmine', 'test-timeout.js')],
         reporters: [
@@ -217,7 +217,7 @@ const jasmineTimeout = async () => {
  * https://github.com/webdriverio/webdriverio/issues/8979
  */
 const jasmineAfterAll = async () => {
-    const logFile = path.join(__dirname, 'jasmineAfterAll.spec.log')
+    const logFile = path.resolve(__dirname, 'jasmineAfterAll.spec.log')
     await launch('jasmineAfterAll', baseConfig, {
         specs: [path.resolve(__dirname, 'jasmine', 'afterAll-report.js')],
         reporters: [
@@ -255,7 +255,7 @@ const jasmineAfterAll = async () => {
  * Jasmine verify failSpecWithNoExpectations support
  */
 const jasmineFailSpecWithNoExpectations = async () => {
-    const logFile = path.join(__dirname, 'jasmineWithNoExpectations.spec.log')
+    const logFile = path.resolve(__dirname, 'jasmineWithNoExpectations.spec.log')
     await launch('jasmineAfterAll', baseConfig, {
         specs: [path.resolve(__dirname, 'jasmine', 'jasmineWithNoExpectations.js')],
         reporters: [
@@ -307,7 +307,7 @@ const cucumberTestrunner = async () => {
  * Cucumber wdio testrunner -- run single scenario by line number
  */
 const cucumberTestrunnerByLineNumber = async () => {
-    const logFile = path.join(__dirname, 'cucumber', 'cucumberTestrunnerByLineNumber.log')
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberTestrunnerByLineNumber.log')
     await fs.rm(logFile, { force: true })
     await launch(
         'cucumberTestrunnerByLineNumber',
@@ -389,9 +389,9 @@ const customService = async () => {
         services: [['smoke-test', { foo: 'bar' }]]
     })
     await sleep(100)
-    const serviceLogs = await fs.readFile(path.join(__dirname, 'helpers', 'service.log'))
+    const serviceLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'service.log'))
     assert.equal(serviceLogs.toString(), SERVICE_LOGS)
-    const launcherLogs = await fs.readFile(path.join(__dirname, 'helpers', 'launcher.log'))
+    const launcherLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'launcher.log'))
     assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
 }
 
@@ -404,9 +404,9 @@ const customCJSService = async () => {
         services: [['smoke-test-cjs', { foo: 'bar' }]]
     })
     await sleep(100)
-    const serviceLogs = await fs.readFile(path.join(__dirname, 'helpers', 'service.log'))
+    const serviceLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'service.log'))
     assert.equal(serviceLogs.toString(), SERVICE_LOGS)
-    const launcherLogs = await fs.readFile(path.join(__dirname, 'helpers', 'launcher.log'))
+    const launcherLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'launcher.log'))
     assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
 }
 
@@ -419,7 +419,7 @@ const customReporterString = async () => {
         reporters: [['smoke-test', { foo: 'bar' }]]
     })
     await sleep(100)
-    const reporterLogsPath = path.join(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogsPath = path.resolve(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
     assert.equal(reporterLogs.toString(), REPORTER_LOGS)
     await fs.unlink(reporterLogsPath)
@@ -434,7 +434,7 @@ const customReporterObject = async () => {
         path.resolve(__dirname, 'helpers', 'reporter.conf.js'),
     )
     await sleep(100)
-    const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
+    const reporterLogsWithReporterAsObjectPath = path.resolve(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
     const reporterLogsWithReporterAsObject = await fs.readFile(reporterLogsWithReporterAsObjectPath)
     assert.equal(reporterLogsWithReporterAsObject.toString(), REPORTER_LOGS)
     await fs.unlink(reporterLogsWithReporterAsObjectPath)
@@ -512,7 +512,7 @@ const retryFail = async () => {
  * specfile-level retries (pass)
  */
 const retryPass = async () => {
-    const retryFilename = path.join(__dirname, '.retry_succeeded')
+    const retryFilename = path.resolve(__dirname, '.retry_succeeded')
     const logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
     const rmfiles = [retryFilename, ...logfiles]
     for (const filename of rmfiles) {
@@ -815,7 +815,7 @@ const cliExcludeParamValidationExcludeMultipleSpecsByPath = async () => {
 // *** Tests for Jasmine ***
 // *************************
 const jasmineHooksTestrunner = async () => {
-    const logFile = path.join(__dirname, 'jasmineHooksTestrunner.spec.log')
+    const logFile = path.resolve(__dirname, 'jasmineHooksTestrunner.spec.log')
     await launch('jasmineHooksTestrunner',
         path.resolve(__dirname, 'helpers', 'jasmine-hooks.conf.js'),
         {
@@ -838,12 +838,12 @@ const jasmineHooksTestrunner = async () => {
 }
 
 const jasmineAfterHookArgsValidation = async () => {
-    const expectedPassedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestPassed.json')
-    const expectedFailedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestFailed.json')
+    const expectedPassedTestResultPath = path.resolve(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestPassed.json')
+    const expectedFailedTestResultPath = path.resolve(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestFailed.json')
 
     // Actual test results are written to files in tests\helpers\jasmine.after-hook-validation.conf.js - afterTest()
-    const actualPassedTestResultPath = path.join(__dirname, 'helpers', 'actualResultsPassed.log')
-    const actualFailedTestResultPath = path.join(__dirname, 'helpers', 'actualResultsFailed.log')
+    const actualPassedTestResultPath = path.resolve(__dirname, 'helpers', 'actualResultsPassed.log')
+    const actualFailedTestResultPath = path.resolve(__dirname, 'helpers', 'actualResultsFailed.log')
 
     await launch('jasmineAfterHookArgsValidation',
         path.resolve(__dirname, 'helpers', 'jasmine.after-hook-validation.conf.js'),
