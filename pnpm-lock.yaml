@@ -25,7 +25,7 @@ importers:
         version: 2.9.0(@babel/core@7.25.2)(preact@10.23.2)(vite@5.4.1(@types/node@20.14.15)(terser@5.31.6))
       '@serenity-js/core':
         specifier: ^3.25.3
-        version: 3.25.4
+        version: 3.25.5
       '@stencil/core':
         specifier: ^4.20.0
         version: 4.20.0
@@ -4359,8 +4359,8 @@ packages:
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
 
-  '@serenity-js/core@3.25.4':
-    resolution: {integrity: sha512-u6miDMvTe91GConb07mBegmKujZQyg3CIgvdO2azr1flmfUgUbsttomjvnufS12tGFJKiLwnPhWva+XVskgjFw==}
+  '@serenity-js/core@3.25.5':
+    resolution: {integrity: sha512-b6lXShxQpcO4CACuQ4v2PUWviMH1oeF+zFKe017JSvfTzGlQyXeikXiEjXEwT9de219q4KCbDDDZyR6I2Dm8IQ==}
     engines: {node: ^16.13 || ^18.12 || ^20}
 
   '@sideway/address@4.1.5':
@@ -12285,9 +12285,9 @@ packages:
   tiny-invariant@1.3.3:
     resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
 
-  tiny-types@1.22.0:
-    resolution: {integrity: sha512-NQZpeRLP+jbw1iZ/PCNDmAWmm5anY6WpDTQeVfFbu7dmumLQLkcvBFTpBXLwChFp1/U+Mv0DF51KelSIvHP2FA==}
-    engines: {node: ^16 || ^18 || ^20, npm: ^8 || ^9 || ^10}
+  tiny-types@1.23.0:
+    resolution: {integrity: sha512-MLLNTCDWF3dJTNZul/oBOFVZlI22iTtEga/BZqeb2VGXo+Ue5Oz6p0I6qIY5Z6jpiYV4lUsEwg3dZUb4vOOBQQ==}
+    engines: {node: ^16 || ^18 || ^20 || ^22}
 
   tiny-warning@1.0.3:
     resolution: {integrity: sha512-lBN9zLN/oAf68o3zNXYrdCt1kP8WsiGW8Oo2ka41b2IM5JL/S1CTyX1rW0mb/zSuJun0ZUrDxx4sqvYS2FWzPA==}
@@ -17226,7 +17226,7 @@ snapshots:
 
   '@sec-ant/readable-stream@0.4.1': {}
 
-  '@serenity-js/core@3.25.4':
+  '@serenity-js/core@3.25.5':
     dependencies:
       '@paralleldrive/cuid2': 2.2.2
       chalk: 4.1.2
@@ -17236,7 +17236,7 @@ snapshots:
       filenamify: 4.3.0
       graceful-fs: 4.2.11
       semver: 7.6.3
-      tiny-types: 1.22.0
+      tiny-types: 1.23.0
       upath: 2.0.1
       validate-npm-package-name: 5.0.1
 
@@ -22974,7 +22974,7 @@ snapshots:
 
   jest-diff@29.7.0:
     dependencies:
-      chalk: 4.1.0
+      chalk: 4.1.2
       diff-sequences: 29.6.3
       jest-get-type: 29.6.3
       pretty-format: 29.7.0
@@ -24651,7 +24651,7 @@ snapshots:
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.7
       axios: 1.7.4
-      chalk: 4.1.0
+      chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
       cliui: 8.0.1
@@ -27084,7 +27084,7 @@ snapshots:
 
   tiny-invariant@1.3.3: {}
 
-  tiny-types@1.22.0: {}
+  tiny-types@1.23.0: {}
 
   tiny-warning@1.0.3: {}
 
