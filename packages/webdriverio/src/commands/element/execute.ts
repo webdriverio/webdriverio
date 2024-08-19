@@ -1,5 +1,7 @@
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
-import type { ChainablePromiseElement } from '../../types.js'
+import { LocalValue } from '../../utils/bidi/value.js'
+import { parseScriptResult } from '../../utils/bidi/index.js'
+import type { Browser } from '../../types.js'
 
 /**
  *
@@ -38,7 +40,7 @@ import type { ChainablePromiseElement } from '../../types.js'
  *
  */
 export async function execute<ReturnValue, InnerArguments extends any[]> (
-    this: ChainablePromiseElement,
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
     script: string | ((...innerArgs: [WebdriverIO.Element, ...InnerArguments]) => ReturnValue),
     ...args: InnerArguments): Promise<ReturnValue> {
     /**
@@ -46,6 +48,19 @@ export async function execute<ReturnValue, InnerArguments extends any[]> (
      */
     if ((typeof script !== 'string' && typeof script !== 'function')) {
         throw new Error('number or type of arguments don\'t agree with execute protocol command')
+    }
+
+    if (this.isBidi) {
+        const context = await this.getWindowHandle() as string
+        const result: any = await (this as Browser).scriptCallFunction({
+            functionDeclaration: script.toString(),
+            awaitPromise: false,
+            arguments: [this, ...args].map((arg) => LocalValue.getArgument(arg)) as any,
+            target: {
+                context
+            }
+        })
+        return parseScriptResult(result)
     }
 
     /**

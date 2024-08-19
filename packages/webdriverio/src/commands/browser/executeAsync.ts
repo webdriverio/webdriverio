@@ -62,8 +62,17 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]>(
 
     if (this.isBidi) {
         const context = await this.getWindowHandle() as string
+        const functionDeclaration = `function (...args) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    await ${script.toString()}.call(this, ...args, resolve)
+                } catch (err) {
+                    return reject(err)
+                }
+            })
+        }`
         const result: any = await (this as Browser).scriptCallFunction({
-            functionDeclaration: script.toString(),
+            functionDeclaration,
             awaitPromise: true,
             arguments: args.map((arg) => LocalValue.getArgument(arg)) as any,
             target: {
