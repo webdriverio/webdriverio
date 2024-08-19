@@ -356,15 +356,13 @@ class CucumberAdapter {
         const importedModules = []
 
         for (const module of modules) {
-            const filepath = path.isAbsolute(module)
-                ? module.startsWith(FILE_PROTOCOL)
-                    ? module
-                    : url.pathToFileURL(module).href
-                : url.pathToFileURL(path.join(process.cwd(), module)).href
+            const filepath = module.startsWith(FILE_PROTOCOL)
+                ? module
+                : path.isAbsolute(module)
+                    ? url.pathToFileURL(module).href
+                    : url.pathToFileURL(path.join(process.cwd(), module)).href
             // This allows rerunning a stepDefinitions file
-            const stepDefPath = url.pathToFileURL(
-                require.resolve(url.fileURLToPath(filepath))
-            ).href
+            const stepDefPath = url.pathToFileURL(require.resolve(filepath)).href
             const cacheEntryToDelete = Object.keys(require.cache).find(
                 (u) => url.pathToFileURL(u).href === stepDefPath
             )
