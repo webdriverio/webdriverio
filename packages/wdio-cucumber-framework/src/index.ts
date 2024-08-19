@@ -361,15 +361,21 @@ class CucumberAdapter {
                 : path.isAbsolute(module)
                     ? url.pathToFileURL(module).href
                     : url.pathToFileURL(path.join(process.cwd(), module)).href
+            /**
+             * Windows requires imported file path to be in URL format
+             */
+            const crossOsFilePath = os.platform() === 'win32'
+                ? url.pathToFileURL(filepath).href
+                : url.fileURLToPath(filepath)
             // This allows rerunning a stepDefinitions file
-            const stepDefPath = url.pathToFileURL(require.resolve(filepath)).href
+            const stepDefPath = url.pathToFileURL(require.resolve(crossOsFilePath)).href
             const cacheEntryToDelete = Object.keys(require.cache).find(
                 (u) => url.pathToFileURL(u).href === stepDefPath
             )
             if (cacheEntryToDelete) {
                 delete require.cache[cacheEntryToDelete]
             }
-            const importedModule = await import(filepath)
+            const importedModule = await import(crossOsFilePath)
             importedModules.push(importedModule)
         }
 
