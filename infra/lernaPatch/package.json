@@ -1,8 +1,0 @@
-{
-  "name": "@wdio/lerna-patch",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "patch": "tsx ./src/index.ts"
-  }
-}
