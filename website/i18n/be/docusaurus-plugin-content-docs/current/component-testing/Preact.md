@@ -75,11 +75,11 @@ import { Counter } from './components/PreactComponent.js'
 describe('Preact Component Testing', () => {
     it('should increment after "Increment" button is clicked', async () => {
         const component = await $(render(<Counter initialCount={5} />))
-        await expect(component).toHaveTextContaining('Current value: 5')
+        await expect(component).toHaveText(expect.stringContaining('Current value: 5'))
 
         const incrElem = await $(screen.getByText('Increment'))
         await incrElem.click()
-        await expect(component).toHaveTextContaining('Current value: 6')
+        await expect(component).toHaveText(expect.stringContaining('Current value: 6'))
     })
 })
 ```
