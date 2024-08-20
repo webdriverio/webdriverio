@@ -8,8 +8,7 @@ import type { Capabilities, Options } from '@wdio/types'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
-    getTimeoutError,
-    setupDirectConnect
+    getTimeoutError, setupDirectConnect, validateCapabilities
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
@@ -509,6 +508,38 @@ describe('utils', () => {
                     expect.stringMatching(/when running .+ with method .+ and args "<Screenshot\[base64\]>"/)
                 )
             })
+        })
+    })
+
+    describe('validateCapabilities', () => {
+        it('should throw an error if incognito is defined', () => {
+            expect(() => {
+                validateCapabilities({
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        args: ['--incognito']
+                    }
+                })
+            }).toThrow('Please remove "incognito" from `"goog:chromeOptions".args`')
+        })
+
+        it('should throw an error if incognito is defined as string', () => {
+            expect(() => {
+                validateCapabilities({
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        args: ['incognito']
+                    }
+                })
+            }).toThrow('Please remove "incognito" from `"goog:chromeOptions".args`')
+        })
+
+        it('should not throw an error if incognito is not defined', () => {
+            expect(() => {
+                validateCapabilities({
+                    browserName: 'chrome'
+                })
+            }).not.toThrow()
         })
     })
 })
