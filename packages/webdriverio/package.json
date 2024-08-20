@@ -56,6 +56,10 @@
     "./scripts/*": {
       "source": "./src/scripts/*.ts",
       "import": "./build/scripts/*"
+    },
+    "./protocol-stub": {
+      "source": "./src/protocol-stub.ts",
+      "import": "./build/protocol-stub.js"
     }
   },
   "types": "./build/index.d.ts",

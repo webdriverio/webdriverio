@@ -162,7 +162,7 @@ export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
     { name: 'StencilJS (https://stenciljs.com/)', value: '$--$stencil' },
     { name: 'React (https://reactjs.org/)', value: '@vitejs/plugin-react$--$react' },
     { name: 'Preact (https://preactjs.com/)', value: '@preact/preset-vite$--$preact' },
-    { name: 'Other', value: false }
+    { name: 'Other', value: null }
 ]
 
 export const TESTING_LIBRARY_PACKAGES: Record<string, string> = {
