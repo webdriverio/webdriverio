@@ -21,7 +21,7 @@ const downloadPath = '/path/to/downloads';
 const downloadPath = path.join(__dirname, 'downloads');
 ```
 
-## Wait Strategies
+## إستراتيجيات الإنتظار
 
 Failing to implement proper wait strategies can lead to race conditions or unreliable tests, especially for download completion. Implement **explicit** wait strategies to wait for file downloads to complete, ensuring synchronization between test steps.
 
