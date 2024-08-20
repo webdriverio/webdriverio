@@ -142,32 +142,6 @@ npm install @wdio/jasmine-framework --save-dev
 
 A continuación, puede configurar su entorno Jasmine configurando una propiedad `jasmineOpts` en su configuración. Puede encontrar una lista de todas las opciones en el sitio web [del proyecto Mocha](https://jasmine.github.io/api/3.5/Configuration.html).
 
-### Interceptar Aserción
-
-El framework de Jasmine le permite interceptar cada afirmación para registrar el estado de la aplicación o sitio web, dependiendo del resultado.
-
-Por ejemplo, es bastante práctico tomar una captura de pantalla cada vez que una afirmación falla. En tu `jasmineOpts` puedes añadir una propiedad llamada `expectationResultHandler` que toma una función para ejecutar. Los parámetros de la función proporcionan información acerca del resultado de la afirmación.
-
-El siguiente ejemplo muestra cómo tomar una captura de pantalla si una afirmación falla:
-
-```js
-jasmineOpts: {
-    defaultTimeoutInterval: 10000,
-    expectationResultHandler: function(passed, assertion) {
-        /**
-         * only take screenshot if assertion failed
-         */
-        if(passed) {
-            return
-        }
-
-        browser.saveScreenshot(`assertionError_${assertion.error.message}.png`)
-    }
-},
-```
-
-**Nota:** No se puede detener la ejecución de la prueba para hacer algo asíncrono. Puede suceder que el comando tome demasiado tiempo y el estado del sitio web haya cambiado. (Aunque normalmente, después de otros 2 comandos se hace la captura de pantalla de todos modos, lo que sigue proporcionando _alguna información valiosa sobre el error_)
-
 ### Opciones de Jasmine
 
 Las siguientes opciones pueden ser aplicadas en su `wdio.conf.js` para configurar su entorno de Jasmine utilizando la propiedad `jasmineOpts`. Para obtener más información sobre estas opciones de configuración, consulte la [documentación de Jasmine](https://jasmine.github.io/api/edge/Configuration).
