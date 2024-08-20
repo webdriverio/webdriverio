@@ -40,7 +40,7 @@
     "access": "public"
   },
   "optionalDependencies": {
-    "expect-webdriverio": "5.0.0-alpha.2",
+    "expect-webdriverio": "^5.0.1",
     "webdriverio": "workspace:*"
   }
 }
