@@ -60,7 +60,9 @@ function isChrome(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
-    return Boolean(capabilities['goog:chromeOptions'] && capabilities.browserName === 'chrome')
+    return Boolean(capabilities['goog:chromeOptions'] &&
+        (capabilities.browserName === 'chrome' || capabilities.browserName === 'chrome-headless-shell')
+    )
 }
 
 /**
