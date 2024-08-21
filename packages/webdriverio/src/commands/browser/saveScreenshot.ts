@@ -1,4 +1,6 @@
 import fs from 'node:fs'
+import { getBrowserObject } from '@wdio/utils'
+
 import { getContextManager } from '../../context.js'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
 
@@ -44,6 +46,7 @@ export async function saveScreenshot (
 
     let screenBuffer: string
     if (this.isBidi) {
+        const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
         const { data } = await this.browsingContextCaptureScreenshot({ context })
