@@ -55,7 +55,7 @@ class _InsightsHandler {
             platformName: browserCaps?.platformName,
             caps: browserCaps,
             sessionId: sessionId,
-            product: isAppAutomate ? 'app-automate' : 'automate'
+            product: process.env.BROWSERSTACK_OBSERVABILITY_PRODUCT
         }
 
         this._userCaps = _userCaps

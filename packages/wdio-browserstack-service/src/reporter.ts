@@ -241,6 +241,7 @@ class _TestReporter extends WDIOReporter {
                 browser: this._capabilities?.browserName,
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
+                product: process.env.BROWSERSTACK_OBSERVABILITY_PRODUCT,
                 platform_version: getPlatformVersion(this._userCaps as Capabilities.Capabilities)
             }
         }
