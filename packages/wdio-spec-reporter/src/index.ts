@@ -600,7 +600,7 @@ export default class SpecReporter extends WDIOReporter {
         const device = caps['appium:deviceName']
         // @ts-expect-error outdated JSONWP capabilities
         const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
-        const appName = app || caps['appium:bundleId'] || (caps as any).bundleId
+        const appName = app || caps['appium:bundleId'] || caps['appium:appPackage']
         // @ts-expect-error outdated JSONWP capabilities
         const browser = caps.browserName || caps.browser || appName
         /**
