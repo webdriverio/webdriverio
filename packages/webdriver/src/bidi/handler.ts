@@ -474,13 +474,13 @@ export class BidiHandler extends BidiCore {
      * @param params `remote.ScriptCallFunctionParameters` {@link https://w3c.github.io/webdriver-bidi/#command-script-callFunction | command parameter}
      * @returns `Promise<local.EmptyResult>`
      **/
-    async scriptCallFunction(params: remote.ScriptCallFunctionParameters): Promise<local.EmptyResult> {
+    async scriptCallFunction(params: remote.ScriptCallFunctionParameters): Promise<local.ScriptEvaluateResult> {
         const result = await this.send({
             method: 'script.callFunction',
             params
         })
 
-        return result.result as local.EmptyResult
+        return result.result as local.ScriptEvaluateResult
     }
 
     /**

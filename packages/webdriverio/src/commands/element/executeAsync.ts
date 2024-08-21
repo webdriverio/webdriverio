@@ -1,8 +1,9 @@
+import { getBrowserObject } from '@wdio/utils'
+
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../context.js'
-import type { Browser } from '../../types.js'
 
 /**
  *
@@ -65,6 +66,7 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
     }
 
     if (this.isBidi) {
+        const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
         const functionDeclaration = `function (...args) {
@@ -76,7 +78,7 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
                 }
             })
         }`
-        const result: any = await (this as Browser).scriptCallFunction({
+        const result = await browser.scriptCallFunction({
             functionDeclaration,
             awaitPromise: true,
             arguments: [this, ...args].map((arg) => LocalValue.getArgument(arg)) as any,

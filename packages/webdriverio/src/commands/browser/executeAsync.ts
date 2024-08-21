@@ -1,8 +1,9 @@
+import { getBrowserObject } from '@wdio/utils'
+
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../context.js'
-import type { Browser } from '../../types.js'
 
 /**
  *
@@ -48,7 +49,7 @@ import type { Browser } from '../../types.js'
  *
  */
 export async function executeAsync<ReturnValue, InnerArguments extends any[]>(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     script:
         string |
         ((...args: [...innerArgs: InnerArguments, callback: (result?: ReturnValue) => void]) => void),
@@ -61,7 +62,8 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]>(
         throw new Error('number or type of arguments don\'t agree with execute protocol command')
     }
 
-    if (this.isBidi) {
+    if (this.isBidi && !this.isMultiremote) {
+        const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
         const functionDeclaration = `function (...args) {
@@ -73,7 +75,7 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]>(
                 }
             })
         }`
-        const result: any = await (this as Browser).scriptCallFunction({
+        const result = await browser.scriptCallFunction({
             functionDeclaration,
             awaitPromise: true,
             arguments: args.map((arg) => LocalValue.getArgument(arg)) as any,
