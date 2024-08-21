@@ -169,7 +169,7 @@ export async function url (
 
     if (this.isBidi) {
         let resetPreloadScript: InitScript | undefined
-        const contextManager = getContextManager(browser)
+        const contextManager = getContextManager(this)
         const context = await contextManager.getCurrentContext()
 
         /**
