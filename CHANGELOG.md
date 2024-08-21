@@ -23,6 +23,18 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.0.7 (2024-08-21)
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#13435](https://github.com/webdriverio/webdriverio/pull/13435) fix(@wdio/spec-reporter): recognise appPackage capability in spec reporter ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#13434](https://github.com/webdriverio/webdriverio/pull/13434) fix(webdriverio): don't have commands rely on browser global ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v9.0.6 (2024-08-21)
 
 #### :bug: Bug Fix
