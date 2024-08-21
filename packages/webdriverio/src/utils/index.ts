@@ -18,6 +18,7 @@ import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../shadowRoot.js'
+import { getContextManager } from '../context.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -287,7 +288,8 @@ export async function findDeepElement(
 ): Promise<ElementReference | Error> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
-    const context = await browser.getWindowHandle()
+    const contextManager = getContextManager(browser)
+    const context = await contextManager.getCurrentContext()
 
     const shadowRoots = shadowRootManager.getShadowElementsByContextId(
         context,
@@ -352,7 +354,8 @@ export async function findDeepElements(
 ): Promise<ElementReference[]> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
-    const context = await browser.getWindowHandle()
+    const contextManager = getContextManager(browser)
+    const context = await contextManager.getCurrentContext()
 
     const shadowRoots = shadowRootManager.getShadowElementsByContextId(
         context,

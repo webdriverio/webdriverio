@@ -4,6 +4,7 @@ import { prettify as prettifyFn } from 'htmlfy'
 
 import { getBrowserObject } from '@wdio/utils'
 import { getShadowRootManager } from '../../shadowRoot.js'
+import { getContextManager } from '../../context.js'
 import getHTMLScript from '../../scripts/getHTML.js'
 import getHTMLShadowScript from '../../scripts/getHTMLShadow.js'
 
@@ -115,8 +116,9 @@ export async function getHTML(
 
         const { load } = await import('cheerio')
         const shadowRootManager = getShadowRootManager(browser)
-        const handle = await browser.getWindowHandle()
-        const shadowRootElementPairs = shadowRootManager.getShadowElementPairsByContextId(handle, (this as WebdriverIO.Element).elementId)
+        const contextManager = getContextManager(browser)
+        const context = await contextManager.getCurrentContext()
+        const shadowRootElementPairs = shadowRootManager.getShadowElementPairsByContextId(context, (this as WebdriverIO.Element).elementId)
 
         /**
          * verify that shadow elements captured by the shadow root manager is still attached to the DOM
@@ -150,7 +152,7 @@ export async function getHTML(
         populateHTML($, shadowElementHTML.map(({ id, ...props }) => ({
             ...props,
             id,
-            mode: shadowRootManager.getShadowRootModeById(handle, id) || 'open'
+            mode: shadowRootManager.getShadowRootModeById(context, id) || 'open'
         })))
 
         return sanitizeHTML($, { removeCommentNodes, prettify, excludeElements })

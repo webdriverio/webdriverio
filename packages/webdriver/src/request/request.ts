@@ -35,7 +35,7 @@ export default class FetchRequest extends WebDriverRequest {
             } as Options.RequestLibResponse
         } catch (err: any) {
             if (!(err instanceof Error)) {
-                throw new RequestLibError(`Failed to fetch ${url.href}: ${err.message || err}`)
+                throw new RequestLibError(`Failed to fetch ${url.href}: ${err.message || err || 'Unknown error'}`)
             }
             throw err
         }

@@ -1,6 +1,7 @@
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
+import { getContextManager } from '../../context.js'
 import type { Browser } from '../../types.js'
 
 /**
@@ -51,7 +52,8 @@ export async function execute<ReturnValue, InnerArguments extends any[]> (
     }
 
     if (this.isBidi) {
-        const context = await this.getWindowHandle() as string
+        const contextManager = getContextManager(browser)
+        const context = await contextManager.getCurrentContext()
         const result: any = await (this as Browser).scriptCallFunction({
             functionDeclaration: script.toString(),
             awaitPromise: false,
