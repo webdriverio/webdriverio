@@ -1,5 +1,6 @@
 import { validateUrl } from '../../utils/index.js'
 import { networkManager } from '../../networkManager.js'
+import { getContextManager } from '../../context.js'
 import type { InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
@@ -168,7 +169,8 @@ export async function url (
 
     if (this.isBidi) {
         let resetPreloadScript: InitScript | undefined
-        const context = await this.getWindowHandle()
+        const contextManager = getContextManager(browser)
+        const context = await contextManager.getCurrentContext()
 
         /**
          * set up preload script if `onBeforeLoad` option is provided

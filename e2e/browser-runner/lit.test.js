@@ -791,4 +791,11 @@ describe('Lit Component testing', () => {
         }, 500)
         await expect($('#stage').$$('span')[4]).toHaveText('Hello, world! 5')
     })
+
+    it('can initiate web component elements with new keyword', () => {
+        class Foo extends HTMLElement {}
+        customElements.define('x-foo', Foo)
+        const a = new Foo ()
+        expect(a.tagName).toBe('X-FOO')
+    })
 })

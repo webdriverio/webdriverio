@@ -15,6 +15,7 @@ import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.j
 import { getShadowRootManager } from './shadowRoot.js'
 import { getNetworkManager } from './networkManager.js'
 import { getDialogManager } from './dialog.js'
+import { getContextManager } from './context.js'
 import type { AttachOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
@@ -83,7 +84,8 @@ export const remote = async function(
     await Promise.all([
         getShadowRootManager(instance).initialize(),
         getNetworkManager(instance).initialize(),
-        getDialogManager(instance).initialize()
+        getDialogManager(instance).initialize(),
+        getContextManager(instance).initialize()
     ])
     return instance
 }
@@ -115,7 +117,8 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
         Promise.all([
             getShadowRootManager(driver).initialize(),
             getNetworkManager(driver).initialize(),
-            getDialogManager(driver).initialize()
+            getDialogManager(driver).initialize(),
+            getContextManager(driver).initialize()
         ])
     ))
     return driver

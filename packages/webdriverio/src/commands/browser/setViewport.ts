@@ -1,6 +1,8 @@
 /// <reference path="../../types.ts" />
 import { getBrowserObject } from '@wdio/utils'
 
+import { getContextManager } from '../../context.js'
+
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER
 
@@ -56,7 +58,8 @@ export async function setViewport(
     }
 
     const browser = getBrowserObject(this)
-    const context = await browser.getWindowHandle()
+    const contextManager = getContextManager(browser)
+    const context = await contextManager.getCurrentContext()
 
     await browser.browsingContextSetViewport({
         context,
