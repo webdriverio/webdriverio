@@ -52,11 +52,8 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     /**
      * automatically opt-into WebDriver Bid (@ref https://w3c.github.io/webdriver-bidi/)
      */
-    if (!w3cCaps.alwaysMatch['wdio:enforceWebDriverClassic'] && typeof w3cCaps.alwaysMatch.browserName === 'string' && w3cCaps.alwaysMatch.browserName !== 'safari') {
+    if (!w3cCaps.alwaysMatch['wdio:enforceWebDriverClassic'] && typeof w3cCaps.alwaysMatch.browserName === 'string' && w3cCaps.alwaysMatch.browserName.toLowerCase() !== 'safari') {
         w3cCaps.alwaysMatch.webSocketUrl = true
-    }
-    if (!jsonwpCaps['wdio:enforceWebDriverClassic'] && typeof jsonwpCaps.browserName === 'string' && jsonwpCaps.browserName !== 'safari') {
-        jsonwpCaps.webSocketUrl = true
     }
 
     validateCapabilities(w3cCaps.alwaysMatch)
