@@ -23,6 +23,21 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.0.6 (2024-08-21)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#13431](https://github.com/webdriverio/webdriverio/pull/13431) fix(webdriver): lowercase browserName when checking whether to opt-in for bidi ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#13430](https://github.com/webdriverio/webdriverio/pull/13430) fix(webdriverio): better approach to amend custom component prototype ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#13426](https://github.com/webdriverio/webdriverio/pull/13426) fix(@wdio/cli): correctly detect chrome headless shell as chrome #13390 ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### Committers: 2
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v9.0.5 (2024-08-20)
 
 #### :bug: Bug Fix
