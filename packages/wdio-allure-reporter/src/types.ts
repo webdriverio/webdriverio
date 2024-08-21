@@ -1,4 +1,5 @@
-import type { Status as AllureStatus, ContentType } from 'allure-js-commons'
+import type { Status as AllureStatus, ContentType, Stage, StatusDetails } from 'allure-js-commons'
+import type { RuntimeMessage } from 'allure-js-commons/sdk'
 
 /**
  * When you add a new option, please also update the docs at ./packages/wdio-allure-reporter/README.md
@@ -49,6 +50,18 @@ export interface AllureReporterOptions {
     * Note that setting this does not modify the actual environment variables.
     */
     reportedEnvironmentVars?: Record<string, string>
+}
+
+export interface WDIORunnable {
+    title: string
+    file: string
+    parent?: WDIORunnable
+}
+
+export interface AddTestInfoEventArgs {
+    file: string
+    testPath: string[]
+    cid: string
 }
 
 export interface AddLabelEventArgs {
@@ -168,3 +181,70 @@ declare global {
         interface ReporterOption extends AllureReporterOptions { }
     }
 }
+
+export type WDIOSuiteStartMessage = {
+    type: 'allure:suite:start'
+    data: {
+        title: string
+    }
+}
+
+export type WDIOSuiteEndMessage = {
+    type: 'allure:suite:end'
+    data: {}
+}
+
+export type WDIOTestStartMessage = {
+    type: 'allure:test:start'
+    data: {
+        title: string
+        fullTitle: string
+        start: number
+    }
+}
+
+export type WDIOTestInfoMessage = {
+    type: 'allure:test:info'
+    data: {
+        fullName: string
+    }
+}
+
+export type WDIOTestEndMessage = {
+    type: 'allure:test:end'
+    data: {
+        status: AllureStatus
+        end: number
+        stage?: Stage
+        error?: Error
+    }
+}
+
+// TODO: maybe we don't need this
+// export type WDIOStepStartMessage = RuntimeMessage<'allure:step:start'> & {
+//
+// }
+//
+// export type WDIOStepEndMessage = RuntimeMessage<'allure:step:end'> & {
+//
+// }
+
+export type WDIOHookStartMessage = {
+    type: 'allure:hook:start'
+    data: {
+        title: string
+        type: 'before' | 'after'
+        start: number
+    }
+}
+
+export type WDIOHookEndMessage = {
+    type: 'allure:hook:end'
+    data: {
+        status: AllureStatus
+        statusDetails?: StatusDetails
+        stop: number
+    }
+}
+
+export type WDIORuntimeMessage = RuntimeMessage | WDIOSuiteStartMessage | WDIOSuiteEndMessage | WDIOTestStartMessage | WDIOTestEndMessage | WDIOTestInfoMessage | WDIOHookStartMessage | WDIOHookEndMessage

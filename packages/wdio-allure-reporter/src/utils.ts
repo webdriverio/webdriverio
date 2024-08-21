@@ -5,6 +5,7 @@ import type { FixtureResult, Label, TestResult } from 'allure-js-commons'
 import { Status, Status as AllureStatus } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
 import { allHooks, eachHooks, linkPlaceholder } from './constants.js'
+import type { WDIORunnable } from './types.js'
 
 /**
  * Get allure test status by TestStat object
@@ -199,6 +200,14 @@ export const getLinkByTemplate = (template: string | undefined, id: string) => {
     return template.replace(linkPlaceholder, id)
 }
 
+export const getRunnablePath = (runnable: WDIORunnable): string[] => {
+    if (runnable.parent) {
+        return  [...getRunnablePath(runnable.parent), runnable.title]
+    }
+
+    return [runnable.title]
+}
+
 export const findLast = <T>(
     arr: Array<T>,
     predicate: (el: T) => boolean
@@ -213,6 +222,16 @@ export const findLast = <T>(
     }
 
     return result
+}
+
+export const findLastIndex = <T>(arr: T[], predicate: (el: T) => boolean): number => {
+    for (let i = arr.length - 1; i >= 0; i--) {
+        if (predicate(arr[i])) {
+            return i
+        }
+    }
+
+    return -1
 }
 
 export const isScreenshotCommand = (command: CommandArgs): boolean => {
