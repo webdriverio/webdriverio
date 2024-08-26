@@ -8017,6 +8017,11 @@ packages:
     engines: {node: ^16.13 || >=18 || >=20}
     hasBin: true
 
+  geckodriver@4.4.3:
+    resolution: {integrity: sha512-79rvaq8pvKVUtuM9XBjQApb04kOVkl3TFRX+zTt1wlmL+wqpt85ocWCdqiENU/3zIzg2Me21eClUcnE7F1kL2w==}
+    engines: {node: ^16.13 || >=18 || >=20}
+    hasBin: true
+
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
     engines: {node: '>=6.9.0'}
@@ -17006,7 +17011,7 @@ snapshots:
       '@octokit/request-error': 3.0.3
       '@octokit/types': 9.3.2
       is-plain-object: 5.0.0
-      node-fetch: 2.6.7(encoding@0.1.13)
+      node-fetch: 2.7.0(encoding@0.1.13)
       universal-user-agent: 6.0.1
     transitivePeerDependencies:
       - encoding
@@ -18878,7 +18883,7 @@ snapshots:
       decamelize: 6.0.0
       deepmerge-ts: 7.1.0
       edgedriver: 5.6.1
-      geckodriver: 4.4.2
+      geckodriver: 4.4.3
       get-port: 7.1.0
       import-meta-resolve: 4.1.0
       locate-app: 2.4.31
@@ -21920,6 +21925,19 @@ snapshots:
   geckodriver@4.4.2:
     dependencies:
       '@wdio/logger': 8.38.0
+      '@zip.js/zip.js': 2.7.48
+      decamelize: 6.0.0
+      http-proxy-agent: 7.0.2
+      https-proxy-agent: 7.0.5
+      node-fetch: 3.3.2
+      tar-fs: 3.0.6
+      which: 4.0.0
+    transitivePeerDependencies:
+      - supports-color
+
+  geckodriver@4.4.3:
+    dependencies:
+      '@wdio/logger': 9.0.4
       '@zip.js/zip.js': 2.7.48
       decamelize: 6.0.0
       http-proxy-agent: 7.0.2
