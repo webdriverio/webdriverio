@@ -88,7 +88,7 @@ importers:
         version: 5.1.2(vite@5.4.1(@types/node@20.14.15)(terser@5.31.6))(vue@3.4.38(typescript@5.5.4))
       '@vitest/coverage-v8':
         specifier: ^2.0.5
-        version: 2.0.5(vitest@2.0.5(@types/node@20.14.15)(jsdom@24.1.1)(terser@5.31.6))
+        version: 2.0.5(vitest@2.0.5(@types/node@20.14.15)(jsdom@25.0.0)(terser@5.31.6))
       '@wdio/config':
         specifier: workspace:*
         version: link:packages/wdio-config
@@ -153,8 +153,8 @@ importers:
         specifier: ^10.1.8
         version: 10.1.8
       jsdom:
-        specifier: ^24.1.1
-        version: 24.1.1
+        specifier: ^25.0.0
+        version: 25.0.0
       lerna:
         specifier: 8.1.8
         version: 8.1.8(@swc/core@1.7.10)(encoding@0.1.13)
@@ -199,7 +199,7 @@ importers:
         version: 0.12.3
       vitest:
         specifier: ^2.0.5
-        version: 2.0.5(@types/node@20.14.15)(jsdom@24.1.1)(terser@5.31.6)
+        version: 2.0.5(@types/node@20.14.15)(jsdom@25.0.0)(terser@5.31.6)
 
   e2e:
     dependencies:
@@ -9096,8 +9096,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  jsdom@24.1.1:
-    resolution: {integrity: sha512-5O1wWV99Jhq4DV7rCLIoZ/UIhyQeDR7wHVyZAHAshbrvZsLs+Xzz7gtwnlJTJDjleiTKh54F4dXrX70vJQTyJQ==}
+  jsdom@25.0.0:
+    resolution: {integrity: sha512-OhoFVT59T7aEq75TVw9xxEfkXgacpqAhQaYgP9y/fDqWQCMB/b1H66RfmPm/MaeaAIU9nDwMOVTlPN51+ao6CQ==}
     engines: {node: '>=18'}
     peerDependencies:
       canvas: ^2.11.2
@@ -18421,7 +18421,7 @@ snapshots:
       vite: 5.4.1(@types/node@20.14.15)(terser@5.31.6)
       vue: 3.4.38(typescript@5.5.4)
 
-  '@vitest/coverage-v8@2.0.5(vitest@2.0.5(@types/node@20.14.15)(jsdom@24.1.1)(terser@5.31.6))':
+  '@vitest/coverage-v8@2.0.5(vitest@2.0.5(@types/node@20.14.15)(jsdom@25.0.0)(terser@5.31.6))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 0.2.3
@@ -18435,7 +18435,7 @@ snapshots:
       std-env: 3.7.0
       test-exclude: 7.0.1
       tinyrainbow: 1.2.0
-      vitest: 2.0.5(@types/node@20.14.15)(jsdom@24.1.1)(terser@5.31.6)
+      vitest: 2.0.5(@types/node@20.14.15)(jsdom@25.0.0)(terser@5.31.6)
     transitivePeerDependencies:
       - supports-color
 
@@ -23083,7 +23083,7 @@ snapshots:
 
   jsdoctypeparser@9.0.0: {}
 
-  jsdom@24.1.1:
+  jsdom@25.0.0:
     dependencies:
       cssstyle: 4.0.1
       data-urls: 5.0.0
@@ -27667,7 +27667,7 @@ snapshots:
     optionalDependencies:
       vite: 5.4.1(@types/node@20.14.15)(terser@5.31.6)
 
-  vitest@2.0.5(@types/node@20.14.15)(jsdom@24.1.1)(terser@5.31.6):
+  vitest@2.0.5(@types/node@20.14.15)(jsdom@25.0.0)(terser@5.31.6):
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@vitest/expect': 2.0.5
@@ -27690,7 +27690,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.14.15
-      jsdom: 24.1.1
+      jsdom: 25.0.0
     transitivePeerDependencies:
       - less
       - lightningcss
