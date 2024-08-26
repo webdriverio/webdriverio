@@ -130,7 +130,7 @@ importers:
         version: 8.37.0
       eta:
         specifier: ^3.2.0
-        version: 3.4.1
+        version: 3.5.0
       glob:
         specifier: ^10.3.10
         version: 10.4.3
@@ -7495,8 +7495,8 @@ packages:
     resolution: {integrity: sha512-UVQ72Rqjy/ZKQalzV5dCCJP80GrmPrMxh6NlNf+erV6ObL0ZFkhCstWRawS85z3smdr3d2wXPsZEY7rDPfGd2g==}
     engines: {node: '>=6.0.0'}
 
-  eta@3.4.1:
-    resolution: {integrity: sha512-a5+UIcEuj3wYx3FoXFh05O5GAs10uTd2GTEYlaCALE2Ds03ZkKlAXzHpXA/6ZSZ6Xwka/IuDjFY+wKDmw2RNDg==}
+  eta@3.5.0:
+    resolution: {integrity: sha512-e3x3FBvGzeCIHhF+zhK8FZA2vC5uFn6b4HJjegUbIWrDb4mJ7JjTGMJY9VGIbRVpmSwHopNiaJibhjIr+HfLug==}
     engines: {node: '>=6.0.0'}
 
   etag@1.8.1:
@@ -21098,7 +21098,7 @@ snapshots:
 
   eta@2.2.0: {}
 
-  eta@3.4.1: {}
+  eta@3.5.0: {}
 
   etag@1.8.1: {}
 
