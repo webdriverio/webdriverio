@@ -1205,8 +1205,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       saucelabs:
-        specifier: 7.5.0
-        version: 7.5.0
+        specifier: 8.0.0
+        version: 8.0.0
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -11597,8 +11597,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  saucelabs@7.5.0:
-    resolution: {integrity: sha512-wq89BtE7xb4ns7ApbgAshaUgXHlPoseytPTNwaVQNPwAaD+0klYpBrsCy/Lj77EJ+kf/vKvX1tjhRT67eDyCXg==}
+  saucelabs@8.0.0:
+    resolution: {integrity: sha512-Rj9m4OCniYk+c4MFuZGqvz64RPX6oRzMqt0bTr9T27IXGnA7Ic7Ms/VHgPtRcJFP6H3sQ169WOzazPZcW4BIAg==}
     hasBin: true
 
   sax@1.4.1:
@@ -26269,7 +26269,7 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  saucelabs@7.5.0:
+  saucelabs@8.0.0:
     dependencies:
       change-case: 4.1.2
       compressing: 1.10.1

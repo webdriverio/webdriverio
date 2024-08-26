@@ -36,7 +36,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "ip": "^2.0.1",
-    "saucelabs": "7.5.0",
+    "saucelabs": "8.0.0",
     "webdriverio": "workspace:*"
   },
   "devDependencies": {
