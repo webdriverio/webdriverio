@@ -7,20 +7,12 @@
         "type": "doc",
         "id": "gettingstarted"
       },
-      "items": [
-        "why-webdriverio",
-        "boilerplates"
-      ]
+      "items": ["why-webdriverio", "boilerplates"]
     },
     {
       "type": "category",
       "label": "Core Concepts",
-      "items": [
-        "setuptypes",
-        "automationProtocols",
-        "multiremote",
-        "autowait"
-      ]
+      "items": ["setuptypes", "automationProtocols", "multiremote", "autowait"]
     },
     {
       "type": "category",
@@ -48,9 +40,7 @@
             "type": "doc",
             "id": "bestpractices"
           },
-          "items": [
-            "best-practices/file-download"
-          ]
+          "items": ["best-practices/file-download"]
         },
         "selectors",
         "timeouts",
@@ -202,6 +192,7 @@
             "visual-testing/integrate-with-app-percy"
           ]
         },
+        { "type": "doc", "id": "visual-testing/argos", "label": "Argos" },
         "visual-testing/faq"
       ],
       "link": {
