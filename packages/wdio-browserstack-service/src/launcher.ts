@@ -81,7 +81,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         if (extensionCaps.length) {
                             capability['bstack:options'] = { wdioService: bstackServiceVersion }
                             if (!isUndefined(capability['browserstack.accessibility'])) {
-                                this._accessibilityAutomation ||= isTrue(capability['browserstack.accessibility']) 
+                                this._accessibilityAutomation ||= isTrue(capability['browserstack.accessibility'])
                             } else if (isTrue(this._options.accessibility)) {
                                 capability['bstack:options'].accessibility = true
                             }
