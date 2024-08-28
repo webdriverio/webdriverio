@@ -81,7 +81,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         if (extensionCaps.length) {
                             capability['bstack:options'] = { wdioService: bstackServiceVersion }
                             if (!isUndefined(capability['browserstack.accessibility'])) {
-                                this._accessibilityAutomation ||= isTrue(capability['browserstack.accessibility'])
+                                this._accessibilityAutomation ||= isTrue(capability['browserstack.accessibility']) 
                             } else if (isTrue(this._options.accessibility)) {
                                 capability['bstack:options'].accessibility = true
                             }
@@ -91,6 +91,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     }
                     this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                     this._buildName = capability['build']?.toString()
+                    // @ts-ignore
+                    this._projectName = capability['project']?.toString()
                 } else {
                     capability['bstack:options'].wdioService = bstackServiceVersion
                     this._buildName = capability['bstack:options'].buildName
