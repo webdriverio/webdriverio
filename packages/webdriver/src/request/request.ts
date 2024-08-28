@@ -17,7 +17,7 @@ export default class FetchRequest extends WebDriverRequest {
         super(method, endpoint, body, isHubCommand)
     }
 
-    protected async _libRequest (url: URL, opts: RequestInit) {
+    protected async _libRequest (url: URL, opts: RequestInit): Promise<Options.RequestLibResponse> {
         try {
             const response = await fetch(url, {
                 method: opts.method,
@@ -35,7 +35,7 @@ export default class FetchRequest extends WebDriverRequest {
             } as Options.RequestLibResponse
         } catch (err: any) {
             if (!(err instanceof Error)) {
-                throw new RequestLibError(err.message || err)
+                throw new RequestLibError(`Failed to fetch ${url.href}: ${err.message || err || 'Unknown error'}`)
             }
             throw err
         }

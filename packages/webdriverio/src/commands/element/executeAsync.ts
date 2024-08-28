@@ -1,4 +1,9 @@
+import { getBrowserObject } from '@wdio/utils'
+
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
+import { LocalValue } from '../../utils/bidi/value.js'
+import { parseScriptResult } from '../../utils/bidi/index.js'
+import { getContextManager } from '../../context.js'
 
 /**
  *
@@ -47,7 +52,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  *
  */
 export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
-    this: ChainablePromiseElement,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     script:
         string |
         ((...args: [...innerArgs: [WebdriverIO.Element, ...InnerArguments], callback: (result?: ReturnValue) => void]) => void),
@@ -58,6 +63,30 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
      */
     if ((typeof script !== 'string' && typeof script !== 'function')) {
         throw new Error('number or type of arguments don\'t agree with execute protocol command')
+    }
+
+    if (this.isBidi) {
+        const browser = getBrowserObject(this)
+        const contextManager = getContextManager(browser)
+        const context = await contextManager.getCurrentContext()
+        const functionDeclaration = `function (...args) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    await ${script.toString()}.call(this, ...args, resolve)
+                } catch (err) {
+                    return reject(err)
+                }
+            })
+        }`
+        const result = await browser.scriptCallFunction({
+            functionDeclaration,
+            awaitPromise: true,
+            arguments: [this, ...args].map((arg) => LocalValue.getArgument(arg)) as any,
+            target: {
+                context
+            }
+        })
+        return parseScriptResult(result)
     }
 
     /**

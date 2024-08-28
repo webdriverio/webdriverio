@@ -1,3 +1,4 @@
+import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -57,6 +58,7 @@ export const FILE_PROTOCOL = 'file://'
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 function getResultObject(
     world: Cucumber.ITestCaseHookParameter
@@ -87,7 +89,7 @@ class CucumberAdapter {
         private _reporter: EventEmitter,
         private _eventEmitter: EventEmitter,
         private _generateSkipTags: boolean = true,
-        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(url.fileURLToPath(import.meta.url), '..', 'cucumberFormatter.js')).href
+        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(__dirname, 'cucumberFormatter.js')).href
     ) {
         this._eventEmitter = new EventEmitter()
         this._cucumberOpts = Object.assign(
@@ -340,8 +342,12 @@ class CucumberAdapter {
 
     async loadFilesWithType(fileList: string[]) {
         return fileList.reduce(
-            (files: string[], file: string) =>
-                files.concat(isGlob(file) ? globSync(file) : [file]),
+            (files: string[], file: string) => {
+                const filePath = os.platform() === 'win32'
+                    ? url.pathToFileURL(file).href
+                    : file
+                return files.concat(isGlob(filePath) ? globSync(filePath) : [filePath])
+            },
             []
         )
     }
@@ -350,11 +356,11 @@ class CucumberAdapter {
         const importedModules = []
 
         for (const module of modules) {
-            const filepath = path.isAbsolute(module)
-                ? module.startsWith(FILE_PROTOCOL)
-                    ? module
-                    : url.pathToFileURL(module).href
-                : url.pathToFileURL(path.join(process.cwd(), module)).href
+            const filepath = module.startsWith(FILE_PROTOCOL)
+                ? module
+                : path.isAbsolute(module)
+                    ? url.pathToFileURL(module).href
+                    : url.pathToFileURL(path.join(process.cwd(), module)).href
             // This allows rerunning a stepDefinitions file
             const stepDefPath = url.pathToFileURL(
                 require.resolve(url.fileURLToPath(filepath))

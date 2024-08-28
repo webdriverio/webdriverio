@@ -30,7 +30,7 @@ describe('main suite 1', () => {
     it('can query shadow elements', async () => {
         await browser.url('https://the-internet.herokuapp.com/shadowdom')
         await $('h1').waitForDisplayed()
-        await expect($('>>>ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
+        await expect($('ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
     it('should be able to use async-iterators', async () => {
@@ -94,7 +94,7 @@ describe('main suite 1', () => {
         ])
         expect(sameScrollPosition).toEqual([x, y])
 
-        browser.scroll(0, -y)
+        await browser.scroll(0, Math.floor(-y))
         const oldScrollPosition = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
@@ -127,7 +127,7 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it.skip(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x:0, y:0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
@@ -135,9 +135,15 @@ describe('main suite 1', () => {
                     document.mouseMoveTo = mouse
                 })
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectBefore = await browser.execute(
+                    // @ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectAfter = await browser.execute(
+                    // @ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -158,17 +164,23 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it.skip(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
-                    const mouse = { x:0, y:0 }
+                    const mouse = { x: 0, y: 0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
                     //@ts-ignore
                     document.mouseMoveTo = mouse
                 })
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectBefore = await browser.execute(
+                    //@ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectAfter = await browser.execute(
+                    //@ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -188,6 +200,10 @@ describe('main suite 1', () => {
             await browser.$('#parent').moveTo()
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
+        })
+
+        after(async () => {
+            await browser.switchToParentFrame()
         })
     })
 
@@ -268,5 +284,122 @@ describe('main suite 1', () => {
         for (const input of inputs) {
             await scrollAndCheck(input)
         }
+    })
+
+    describe('url command', () => {
+        it('supports basic auth', async () => {
+            await browser.url('https://the-internet.herokuapp.com/basic_auth', {
+                auth: {
+                    user: 'admin',
+                    pass: 'admin'
+
+                }
+            })
+            await expect($('p=Congratulations! You must have the proper credentials.')).toBeDisplayed()
+        })
+
+        it('should return a request object', async () => {
+            const request = await browser.url('http://guinea-pig.webdriver.io/')
+            if (!request) {
+                throw new Error('Request object is not defined')
+            }
+            expect(request.children!.length > 0).toBe(true)
+            expect(Object.keys(request.response?.headers || {})).toContain('x-amz-request-id')
+        })
+
+        it('should not contain any children due to "none" wait property', async () => {
+            const request = await browser.url('http://guinea-pig.webdriver.io/', {
+                wait: 'none'
+            })
+            if (!request) {
+                throw new Error('Request object is not defined')
+            }
+            expect(request.children!.length).toBe(0)
+        })
+
+        it('should allow to load a script before loading the page', async () => {
+            await browser.url('https://webdriver.io', {
+                onBeforeLoad: () => {
+                    Math.random = () => 42
+                }
+            })
+            expect(await browser.execute(() => Math.random())).toBe(42)
+
+            await browser.url('https://webdriver.io')
+            expect(await browser.execute(() => Math.random())).not.toBe(42)
+        })
+    })
+
+    describe('dialog handling', () => {
+        it('should automatically accept alerts', async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+
+            await browser.execute(() => alert('123'))
+
+            /**
+             * in case the alert is not automatically accepted
+             * the following line would time out
+             */
+            await browser.$('div').click()
+        })
+
+        it('should be able to handle dialogs', async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+            browser.execute(() => alert('123'))
+            const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
+
+            expect(dialog.type()).toBe('alert')
+            expect(dialog.message()).toBe('123')
+            await dialog.dismiss()
+        })
+    })
+
+    describe('addInitScript', () => {
+        it('should allow to add an init script', async () => {
+            const script = await browser.addInitScript((seed) => {
+                Math.random = () => seed
+            }, 42)
+
+            await browser.url('https://webdriver.io')
+            expect(await browser.execute(() => Math.random())).toBe(42)
+
+            await script.remove()
+            await browser.url('https://webdriver.io')
+            expect(await browser.execute(() => Math.random())).not.toBe(42)
+        })
+
+        it('passed on callback function', async () => {
+            const script = await browser.addInitScript((num, str, bool, emit) => {
+                setTimeout(() => emit(JSON.stringify([num, str, bool])), 500)
+            }, 1, '2', true)
+            browser.url('https://webdriver.io')
+            const data = await new Promise<string[]>((resolve) => {
+                script.on('data', (data) => resolve(data))
+            })
+            expect(data).toBe('[1,"2",true]')
+        })
+    })
+
+    describe('emulate clock', () => {
+        const now = new Date(2021, 3, 14)
+        const getDateString = () => (new Date()).toString()
+
+        it('should allow to mock the clock', async () => {
+            await browser.emulate('clock', { now })
+            expect(await browser.execute(getDateString))
+                .toBe(now.toString())
+            await browser.url('http://guinea-pig.webdriver.io')
+            expect(await browser.execute(getDateString))
+                .toBe(now.toString())
+        })
+
+        it('should allow to restore the clock', async () => {
+            await browser.restore('clock')
+            expect(await browser.execute(getDateString))
+                .not.toBe(now.toString())
+            await browser.url('http://guinea-pig.webdriver.io/pointer.html')
+            expect(await browser.execute(getDateString))
+                .not.toBe(now.toString())
+        })
     })
 })

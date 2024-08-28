@@ -20,7 +20,11 @@ on:
 
 env:
   NPM_TOKEN: ${{secrets.NPM_TOKEN}}
-  NPM_CONFIG_PROVENANCE: true
+  # disable provenance check as it stopped working with Lerna:
+  #   > lerna ERR! E422 Error verifying sigstore provenance bundle: Failed to validate the provenance
+  #   > subject against the package name, version and tarball integrity. Please try re-publishing with
+  #   > the latest stable version of npm
+  # NPM_CONFIG_PROVENANCE: true
 
 jobs:
   authorize:
@@ -45,6 +49,7 @@ jobs:
           cache: 'pnpm'
       - name: NPM Setup
         run: |
+          npm i -g npm
           npm set registry "https://registry.npmjs.org/"
           npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
           npm whoami
@@ -57,7 +62,7 @@ jobs:
       - name: Release
         run: |
           pnpm run setup
-          pnpm run generate:typings
+          pnpm -r --filter=@wdio/lerna-patch run patch
           pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           pnpm run pushReleaseTag
         env:

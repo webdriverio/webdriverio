@@ -1052,8 +1052,66 @@ export function isBStackSession(config: Options.Testrunner) {
     return false
 }
 
-export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
-    if (config.services && config.services.toString().includes('chromedriver') && testObservability !== false) {
+export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    // this is a utility function to check if the basic session or multi remote session is running on Browserstack, mainly by checking the hostname parameter in the given config
+    // In case hostname is not present anywhere in the config, it returns true by default as hostname is not a mandatory parameter in the config
+
+    const isBrowserstack = (str: string ): boolean => {
+        return str.includes('browserstack.com')
+    }
+
+    if ((config.hostname) && !isBrowserstack(config.hostname)) {
+        return false
+    }
+
+    if (caps && typeof caps === 'object') {
+        if (Array.isArray(caps)) {
+            for (const capability of caps) {
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
+                    return false
+                }
+            }
+        } else {
+            for (const key in caps) {
+                const capability = (caps as any)[key]
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
+                    return false
+                }
+            }
+        }
+    }
+
+    if (!isBStackSession(config)) {
+        return false
+    }
+
+    return true
+}
+
+export function getBrowserStackUserAndKey(config: Options.Testrunner, options: Options.Testrunner) {
+
+    // Fallback 1: Env variables
+    // Fallback 2: Service variables in wdio.conf.js (that are received inside options object)
+    const envOrServiceVariables = {
+        user: getBrowserStackUser(options),
+        key: getBrowserStackKey(options)
+    }
+    if (envOrServiceVariables.user && envOrServiceVariables.key) {
+        return envOrServiceVariables
+    }
+
+    // Fallback 3: Service variables in testObservabilityOptions object
+    // Fallback 4: Service variables in the top level config object
+    const o11yVariables = {
+        user: getObservabilityUser(options, config),
+        key: getObservabilityKey(options, config)
+    }
+    return o11yVariables
+
+}
+
+export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false) || !isBrowserstackInfra(config, caps)) {
         return false
     }
     return true
@@ -1336,4 +1394,21 @@ export function checkAndTruncateVCSInfo(gitMetaData: GitMetaData): GitMetaData {
     }
 
     return gitMetaData
+}
+
+export const hasBrowserName = (cap: Capabilities.WebdriverIOConfig): boolean => {
+    if (!cap || !cap.capabilities) {
+        return false
+    }
+    const browserStackCapabilities = cap.capabilities as Capabilities.BrowserStackCapabilities
+    return browserStackCapabilities.browserName !== undefined
+}
+
+export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner }): boolean => {
+
+    // Get all capability values
+    const capValues = Object.values(caps)
+
+    // Check if there are any capabilities and if at least one has a browser name
+    return capValues.length > 0 && capValues.some(hasBrowserName)
 }

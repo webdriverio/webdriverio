@@ -34,31 +34,6 @@ const BROWSER_DRIVER_ERRORS = [
  */
 export async function startWebDriverSession (params: RemoteConfig): Promise<{ sessionId: string, capabilities: WebdriverIO.Capabilities }> {
     /**
-     * validate capabilities to check if there are no obvious mix between
-     * JSONWireProtocol and WebDriver protocol, e.g.
-     */
-    if (params.capabilities) {
-        const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
-        const invalidWebDriverCaps = Object.keys(params.capabilities)
-            .filter((cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'))
-
-        /**
-         * if there are vendor extensions, e.g. sauce:options or appium:app
-         * used (only WebDriver compatible) and caps that aren't defined
-         * in the WebDriver spec
-         */
-        if (extensionCaps.length && invalidWebDriverCaps.length) {
-            throw new Error(
-                `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
-                'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).' +
-                'If you run your tests on a remote vendor, like Sauce Labs or BrowserStack, make sure that you put them ' +
-                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out ' +
-                'to your vendor support team if you have further questions.'
-            )
-        }
-    }
-
-    /**
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need
      * to check what style the user sent in so we know how to construct the
@@ -77,13 +52,11 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     /**
      * automatically opt-into WebDriver Bid (@ref https://w3c.github.io/webdriver-bidi/)
      */
-    if (!w3cCaps.alwaysMatch['wdio:enforceWebDriverClassic'] && typeof w3cCaps.alwaysMatch.browserName === 'string' && w3cCaps.alwaysMatch.browserName !== 'safari') {
+    if (!w3cCaps.alwaysMatch['wdio:enforceWebDriverClassic'] && typeof w3cCaps.alwaysMatch.browserName === 'string' && w3cCaps.alwaysMatch.browserName.toLowerCase() !== 'safari') {
         w3cCaps.alwaysMatch.webSocketUrl = true
     }
-    if (!jsonwpCaps['wdio:enforceWebDriverClassic'] && typeof jsonwpCaps.browserName === 'string' && jsonwpCaps.browserName !== 'safari') {
-        jsonwpCaps.webSocketUrl = true
-    }
 
+    validateCapabilities(w3cCaps.alwaysMatch)
     const sessionRequest = new Request(
         'POST',
         '/session',
@@ -109,6 +82,47 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     params.capabilities = (response.value.capabilities || response.value) as WebdriverIO.Capabilities
 
     return { sessionId, capabilities: params.capabilities }
+}
+
+/**
+ * Validates the given WebdriverIO capabilities.
+ *
+ * @param {WebdriverIO.Capabilities} capabilities - The capabilities to validate.
+ * @throws {Error} If the capabilities contain incognito mode.
+ */
+export function validateCapabilities (capabilities: WebdriverIO.Capabilities) {
+    const chromeArgs = capabilities['goog:chromeOptions']?.args || []
+    if (chromeArgs.includes('incognito') || chromeArgs.includes('--incognito')) {
+        throw new Error(
+            'Please remove "incognito" from `"goog:chromeOptions".args` as it is not supported running Chrome with WebDriver. ' +
+            'WebDriver sessions are always incognito mode and do not persist across browser sessions.'
+        )
+    }
+
+    /**
+     * validate capabilities to check if there are no obvious mix between
+     * JSONWireProtocol and WebDriver protocol, e.g.
+     */
+    if (capabilities) {
+        const extensionCaps = Object.keys(capabilities).filter((cap) => cap.includes(':'))
+        const invalidWebDriverCaps = Object.keys(capabilities)
+            .filter((cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'))
+
+        /**
+         * if there are vendor extensions, e.g. sauce:options or appium:app
+         * used (only WebDriver compatible) and caps that aren't defined
+         * in the WebDriver spec
+         */
+        if (extensionCaps.length && invalidWebDriverCaps.length) {
+            throw new Error(
+                `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
+                'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).' +
+                'If you run your tests on a remote vendor, like Sauce Labs or BrowserStack, make sure that you put them ' +
+                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out ' +
+                'to your vendor support team if you have further questions.'
+            )
+        }
+    }
 }
 
 /**

@@ -1,3 +1,4 @@
+/// <reference types="@wdio/globals/types" />
 import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
 import type { Argv, Options } from 'yargs'

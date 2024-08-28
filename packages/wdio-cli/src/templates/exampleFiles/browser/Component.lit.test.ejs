@@ -11,7 +11,7 @@ describe('Lit component testing', () => {
             document.body
         )
 
-        const button = await $('my-element').$('>>>button')
+        const button = await $('my-element').$('button')
         await expect(button).toHaveText('count is 0')
 
         await button.click()

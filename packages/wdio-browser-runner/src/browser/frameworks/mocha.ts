@@ -88,7 +88,7 @@ export class MochaFramework extends HTMLElement {
         const globalTeardownScripts: Function[] = []
         const globalSetupScripts: Function[] = []
         for (const r of this.#require) {
-            const { mochaGlobalSetup, mochaGlobalTeardown } = (await import(r)) || {}
+            const { mochaGlobalSetup, mochaGlobalTeardown } = (await import(/* @vite-ignore */r)) || {}
             if (typeof mochaGlobalSetup === 'function') {
                 globalSetupScripts.push(mochaGlobalSetup)
             }
@@ -112,7 +112,7 @@ export class MochaFramework extends HTMLElement {
          * import test case (order is important here)
          */
         const file = this.#spec
-        await import(file)
+        await import(/* @vite-ignore */file)
 
         /**
          * run setup scripts

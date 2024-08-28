@@ -1,6 +1,6 @@
 {
   "name": "@wdio/reporter",
-  "version": "9.0.0-alpha.0",
+  "version": "9.0.4",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-reporter",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-reporter"
   },
   "keywords": [
@@ -25,19 +25,15 @@
     "access": "public"
   },
   "type": "module",
-  "main": "./cjs/index.js",
+  "main": "./build/index.cjs",
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
-    "./package.json": "./package.json",
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./cjs/index.js"
-      },
-      "./cjs/index.js"
-    ]
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "require": "./build/index.cjs"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {

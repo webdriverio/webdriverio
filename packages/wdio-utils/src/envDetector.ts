@@ -60,7 +60,9 @@ function isChrome(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
-    return Boolean(capabilities['goog:chromeOptions'] && capabilities.browserName === 'chrome')
+    return Boolean(capabilities['goog:chromeOptions'] &&
+        (capabilities.browserName === 'chrome' || capabilities.browserName === 'chrome-headless-shell')
+    )
 }
 
 /**
@@ -198,12 +200,12 @@ function isSauce(capabilities?: Capabilities.WithRequestedCapabilities['capabili
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session has WebDriver Bidi support
  */
-function isBidi(capabilities?: WebdriverIO.Capabilities) {
+export function isBidi(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
 
-    return Boolean(capabilities.webSocketUrl)
+    return typeof capabilities.webSocketUrl === 'string'
 }
 
 /**

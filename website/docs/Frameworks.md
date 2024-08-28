@@ -162,34 +162,6 @@ npm install @wdio/jasmine-framework --save-dev
 
 You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
 
-### Intercept Assertion
-
-The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result.
-
-For example, it is pretty handy to take a screenshot every time an assertion fails. In your `jasmineOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
-
-The following example demonstrates how to take a screenshot if an assertion fails:
-
-```js
-jasmineOpts: {
-    defaultTimeoutInterval: 10000,
-    expectationResultHandler: function(passed, assertion) {
-        /**
-         * only take screenshot if assertion failed
-         */
-        if(passed) {
-            return
-        }
-
-        browser.saveScreenshot(`assertionError_${assertion.error.message}.png`)
-    }
-},
-```
-
-**Note:** You cannot stop test execution to do something async. It might happen that
-the command takes too much time and the website state has changed. (Though usually, after another 2
-commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.)
-
 ### Jasmine Options
 
 The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
@@ -345,7 +317,7 @@ Paths to where your support code is, for ESM.
 
 Type: `String[]`<br />
 Default: `[]`
-Example: 
+Example:
 
 ```js
 cucumberOpts: {

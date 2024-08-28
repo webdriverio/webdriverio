@@ -42,7 +42,7 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
 const MODULES_TO_MOCK = [
     'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'ws', 'decamelize',
     'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port',
-    'lodash.isequal', '@wdio/repl'
+    'lodash.isequal', '@wdio/repl', 'jszip'
 ]
 
 const POLYFILLS = [
@@ -50,7 +50,7 @@ const POLYFILLS = [
     ...builtinModules.map((m) => `node:${m}`)
 ]
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
-    const browserModules = path.resolve(__dirname, '..', '..', 'browser')
+    const browserModules = path.resolve(__dirname, 'browser')
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(browserModules, 'driver.js')).pathname}`
     const mockModulePath = path.resolve(browserModules, 'mock.js')
     const setupModulePath = path.resolve(browserModules, 'setup.js')
@@ -91,11 +91,17 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                 return wdioExpectModulePath
             }
 
+            if (id === '@wdio/logger') {
+                const newId = await resolveWDIOModule(id)
+                return path.resolve(path.dirname(newId), 'browser.js')
+            }
+
             /**
              * make sure WDIO imports are resolved properly as ESM module
              */
             if (id.startsWith('@wdio') || WDIO_PACKAGES.includes(id)) {
-                return url.fileURLToPath(await resolve(id, import.meta.url))
+                const resolvedId = await resolveWDIOModule(id)
+                return resolvedId
             }
 
             /**
@@ -187,4 +193,20 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             return { id: await polyfillPath(id), moduleSideEffects: false }
         },
     }]
+}
+
+/**
+ * Resolves the path of a WDIO module.
+ *
+ * @param {string} pkgName - The name of the WDIO module to resolve.
+ * @return {string} The resolved path of the WDIO module.
+ */
+async function resolveWDIOModule (pkgName: string) {
+    try {
+        const pkgPath = await resolve(pkgName, import.meta.url)
+        return url.fileURLToPath(pkgPath)
+    } catch {
+        const pkgPath = await resolve(pkgName, url.pathToFileURL(path.resolve(process.cwd())).href)
+        return url.fileURLToPath(pkgPath)
+    }
 }

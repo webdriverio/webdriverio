@@ -164,7 +164,13 @@ export default class SpecReporter extends WDIOReporter {
                     ? `${this._preface} Hook executed: ${title}`
                     : undefined
 
-        if (process.send && content) {
+        /**
+         * only send event upstream,
+         *   - if we are in a child process
+         *   - there is content to send
+         *   - we are not running a unit test
+         */
+        if (process.send && content && !process.env.VITEST_WORKER_ID) {
             process.send({ name: 'reporterRealTime', content })
         }
     }
@@ -594,7 +600,7 @@ export default class SpecReporter extends WDIOReporter {
         const device = caps['appium:deviceName']
         // @ts-expect-error outdated JSONWP capabilities
         const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
-        const appName = app || caps['appium:bundleId'] || (caps as any).bundleId
+        const appName = app || caps['appium:bundleId'] || caps['appium:appPackage']
         // @ts-expect-error outdated JSONWP capabilities
         const browser = caps.browserName || caps.browser || appName
         /**

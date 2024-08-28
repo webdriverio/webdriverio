@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import { it, describe, expect, vi, afterEach, beforeEach, afterAll } from 'vitest'
 
-import nodeLogger from '../src/node.js'
-import nodeLogger2 from '../build/node.js'
+import nodeLogger from '../src/index.js'
+import nodeLogger2 from '../build/index.js'
 
 import type log from 'loglevel'
 
@@ -151,7 +151,6 @@ describe('wdio-logger node', () => {
                 // @ts-ignore
                 return writableBuffer
             },
-            // @ts-expect-error
             end: vi.fn()
         }))
 

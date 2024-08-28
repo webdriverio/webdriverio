@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
+import treeKill from 'tree-kill'
 import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
 
@@ -31,6 +32,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _appiumCliArgs: string[] = []
     private readonly _args: AppiumServerArguments
     private _process?: ChildProcessByStdio<null, Readable, Readable>
+    private _isShuttingDown: boolean = false
 
     constructor(
         private _options: AppiumServiceConfig,
@@ -153,9 +155,20 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
 
     onComplete() {
-        if (this._process) {
-            log.info(`Appium (pid: ${this._process.pid}) killed`)
-            this._process.kill()
+        this._isShuttingDown = true
+        // Kill appium and all process' spawned from it
+        if (this._process && this._process.pid) {
+            // Ensure all child processes are also killed
+            log.info('Killing entire Appium tree')
+            treeKill(this._process.pid, 'SIGTERM', (err) => {
+                if (err) {
+                    log.warn('Failed to kill process:', err)
+                } else {
+                    log.info(
+                        'Process and its children successfully terminated'
+                    )
+                }
+            })
         }
     }
     private _startAppium(command: string, args: Array<string>, timeout = APPIUM_START_TIMEOUT) {
@@ -212,6 +225,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             })
 
             process.once('exit', (exitCode: number) => {
+                if (this._isShuttingDown) {
+                    return
+                }
                 let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
                 if (exitCode === 2) {
                     errorMessage += '\n' + (error?.toString() || 'Check that you don\'t already have a running Appium service.')

@@ -1,11 +1,11 @@
 ---
 title: "Introducing Major Updates to WebdriverIO's Visual Testing Module"
-author: WebdriverIO Team
-authorURL: https://twitter.com/webdriverio
-authorImageURL: https://avatars.githubusercontent.com/u/6512473?s=400&u=69d781679fe5cda99067d8193890ad5cb7450e4a&v=4
+authors: wdio
 ---
 
 We are thrilled to announce the latest update to the WebdriverIO Visual Testing module. This release brings two significant enhancements: making the Visual Testing Module a pure JS module and the introduction of a new CLI argument for automatic baseline updates.
+
+<!-- truncate -->
 
 ### Making The Visual Testing Module a Pure JS module
 

@@ -3,7 +3,7 @@ id: record
 title: रिकॉर्ड परीक्षण
 ---
 
-क्रोम देवटूल में _रिकॉर्डर_ पैनल है जो उपयोगकर्ताओं को क्रोम के भीतर स्वचालित चरणों को रिकॉर्ड करने और प्लेबैक करने की अनुमति देता है। इन चरणों को [एक्सटेंशन](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn?hl=en&authuser=1) के साथ WebdriverIO परीक्षणों में निर्यात किया जा सकता है, जिससे लेखन परीक्षण बहुत आसान हो जाता है।
+क्रोम देवटूल में _रिकॉर्डर_ पैनल है जो उपयोगकर्ताओं को क्रोम के भीतर स्वचालित चरणों को रिकॉर्ड करने और प्लेबैक करने की अनुमति देता है। इन चरणों को [एक्सटेंशन](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn?hl=en) के साथ WebdriverIO परीक्षणों में निर्यात किया जा सकता है, जिससे लेखन परीक्षण बहुत आसान हो जाता है।
 
 ## क्रोम देवटूल रिकॉर्डर क्या है
 

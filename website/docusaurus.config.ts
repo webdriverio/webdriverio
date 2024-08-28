@@ -92,7 +92,7 @@ const config: Config = {
                 label: 'Sponsor',
                 position: 'left'
             }, {
-                label: 'v8',
+                label: 'v9',
                 position: 'right',
                 to: '/versions'
             }, {

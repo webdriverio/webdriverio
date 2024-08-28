@@ -1,4 +1,3 @@
-/// <reference types="@wdio/globals/types" />
 import logger from '@wdio/logger'
 import type { Frameworks } from '@wdio/types'
 

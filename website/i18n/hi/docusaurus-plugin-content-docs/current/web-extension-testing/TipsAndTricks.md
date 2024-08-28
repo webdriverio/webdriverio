@@ -20,7 +20,7 @@ export async function openExtensionPopup (this: WebdriverIO.Browser, extensionNa
   }
   await this.url('chrome://extensions/')
 
-  const extensions = await this.$$('>>> extensions-item')
+  const extensions = await this.$$('extensions-item')
   const extension = await extensions.find(async (ext) => (
     await ext.$('#name').getText()) === extensionName
   )

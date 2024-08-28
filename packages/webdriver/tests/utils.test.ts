@@ -8,8 +8,7 @@ import type { Capabilities, Options } from '@wdio/types'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
-    getTimeoutError,
-    setupDirectConnect
+    getTimeoutError, setupDirectConnect, validateCapabilities
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
@@ -371,6 +370,21 @@ describe('utils', () => {
                 .toBe(undefined)
         })
 
+        it('should not opt-in for Safari as it is not supported', async () => {
+            const params: RemoteConfig = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                capabilities: {
+                    browserName: 'Safari'
+                }
+            }
+            await startWebDriverSession(params)
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(undefined)
+        })
+
         it('should allow to opt-out from bidi when using alwaysMatch', async () => {
             const params: RemoteConfig = {
                 hostname: 'localhost',
@@ -509,6 +523,38 @@ describe('utils', () => {
                     expect.stringMatching(/when running .+ with method .+ and args "<Screenshot\[base64\]>"/)
                 )
             })
+        })
+    })
+
+    describe('validateCapabilities', () => {
+        it('should throw an error if incognito is defined', () => {
+            expect(() => {
+                validateCapabilities({
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        args: ['--incognito']
+                    }
+                })
+            }).toThrow('Please remove "incognito" from `"goog:chromeOptions".args`')
+        })
+
+        it('should throw an error if incognito is defined as string', () => {
+            expect(() => {
+                validateCapabilities({
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        args: ['incognito']
+                    }
+                })
+            }).toThrow('Please remove "incognito" from `"goog:chromeOptions".args`')
+        })
+
+        it('should not throw an error if incognito is not defined', () => {
+            expect(() => {
+                validateCapabilities({
+                    browserName: 'chrome'
+                })
+            }).not.toThrow()
         })
     })
 })

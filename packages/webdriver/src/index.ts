@@ -2,7 +2,7 @@ import type { ChildProcess } from 'node:child_process'
 
 import logger from '@wdio/logger'
 
-import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
+import { webdriverMonad, sessionEnvironmentDetector, startWebDriver, isBidi } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { Capabilities, Options } from '@wdio/types'
 
@@ -48,7 +48,7 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        if (capabilities.webSocketUrl) {
+        if (isBidi(capabilities)) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
             Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string, options.strictSSL))
         }
@@ -68,7 +68,7 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (capabilities.webSocketUrl) {
+        if (isBidi(capabilities)) {
             // make sure the Bidi connection is established before returning
             await client._bidiHandler.connect()
             client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
@@ -122,8 +122,8 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        const webSocketUrl = options.capabilities?.webSocketUrl as unknown as string
-        if (typeof webSocketUrl === 'string') {
+        if (isBidi(options.capabilities)) {
+            const webSocketUrl = options.capabilities?.webSocketUrl as unknown as string
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
             Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string, options.strictSSL))
         }
@@ -135,7 +135,7 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (webSocketUrl) {
+        if (isBidi(options.capabilities)) {
             client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
         }
         return client

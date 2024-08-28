@@ -93,6 +93,8 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChrome).toBe(false)
+        const chromeHeadlessShellCaps = { ...chromeCaps, 'browserName': 'chrome-headless-shell' }
+        expect(sessionEnvironmentDetector({ capabilities: chromeHeadlessShellCaps, requestedCapabilities }).isChrome).toBe(true)
     })
 
     it('isChromium', () => {
@@ -123,6 +125,9 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isBidi).toBe(false)
         // @ts-expect-error JSON import is not properly typed
         expect(sessionEnvironmentDetector({ capabilities: bidiResponse, requestedCapabilities }).isBidi).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: {
+            webSocketUrl: true
+        }, requestedCapabilities: {} }).isBidi).toBe(false)
     })
 
     it('isSauce', () => {

@@ -51,7 +51,7 @@ The only time you should use chaining is when you want to combine different [sel
 
 ``` js
 // 👍
-await $('custom-datepicker').$('>>>#calendar').$('aria/Select');
+await $('custom-datepicker').$('#calendar').$('aria/Select');
 ```
 
 ### Prefer locating a single element instead of taking one from a list

@@ -1,14 +1,21 @@
 {
   "name": "@wdio/logger",
-  "version": "9.0.0-alpha.0",
+  "version": "9.0.4",
   "description": "A helper utility for logging of WebdriverIO packages",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger",
   "license": "MIT",
   "type": "module",
   "types": "./build/index.d.ts",
+  "main": "./build/index.cjs",
+  "browser": "./build/browser.js",
   "exports": {
-    ".": "./build/index.js",
+    ".": {
+      "browser": "./build/browser.js",
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts",
+      "browserSource": "./src/browser.ts"
+    },
     "./package.json": "./package.json"
   },
   "typeScriptVersion": "3.8.3",
@@ -17,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-logger"
   },
   "keywords": [

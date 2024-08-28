@@ -1,11 +1,11 @@
 ---
 title: WebdriverIO Opens an OpenCollective
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 Today the WebdriverIO team announced in their [OpenJS Foundation](https://openjsf.org/) Q&A session that the project opens an [OpenCollective](https://opencollective.com/webdriverio) to allow users and companies to donate to the development of the project and support community members to run WebdriverIO workshops and other types of events. This allows everyone to be paid to work on features and bug fixes as well as help the community to pay for pizza or rental space when hosting WebdriverIO workshops or meetups.
+
+<!-- truncate -->
 
 If your company uses WebdriverIO and benefits from it, please ask your manager or your marketing team to support the project by donating to the collective. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
 

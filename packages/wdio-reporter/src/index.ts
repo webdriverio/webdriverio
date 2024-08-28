@@ -3,12 +3,12 @@ import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
 
-import { getErrorsFromEvent } from './utils.js'
+import { getErrorsFromEvent, transformCommandScript } from './utils.js'
 import type { Suite } from './stats/suite.js'
 import SuiteStats from './stats/suite.js'
 import type { Hook } from './stats/hook.js'
 import HookStats from './stats/hook.js'
-import TestStats, { Test } from './stats/test.js'
+import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
 import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
 
@@ -214,11 +214,23 @@ export default class WDIOReporter extends EventEmitter {
             if (!currentTest) {
                 return
             }
+            if (payload.body?.script) {
+                payload.body = {
+                    ...payload.body,
+                    script: transformCommandScript(payload.body.script)
+                }
+            }
             currentTest.output.push(Object.assign(payload, { type: 'command' }))
         })
         this.on('client:afterCommand',  /* istanbul ignore next */(payload) => {
             if (!currentTest) {
                 return
+            }
+            if (payload.body?.script) {
+                payload.body = {
+                    ...payload.body,
+                    script: transformCommandScript(payload.body.script)
+                }
             }
             currentTest.output.push(Object.assign(payload, { type: 'result' }))
         })

@@ -1,0 +1,104 @@
+wdio:
+    name: WebdriverIO Team
+    url: https://twitter.com/webdriverio
+    image_url: https://avatars.githubusercontent.com/u/6512473?s=400&u=69d781679fe5cda99067d8193890ad5cb7450e4a&v=4
+    socials:
+        github: webdriverio
+        x: webdriverio
+
+bromann:
+    name: Christian Bromann
+    url: http://twitter.com/bromann
+    image_url: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+    socials:
+        x: bromann
+        github: christian-bromann
+
+wim:
+    name: Wim Selles
+    url: http://github.com/wswebcreation
+    image_url: https://avatars2.githubusercontent.com/u/11979740?s=460&v=4
+    socials:
+        github: wswebcreation
+        x: wswebcreation
+
+erwin:
+    name: Erwin Heitzman
+    url: http://github.com/erwinheitzman
+    image_url: https://avatars1.githubusercontent.com/u/15839059?s=80&v=4
+    socials:
+        github: erwinheitzman
+
+jan:
+    name: Jan Molak
+    url: https://www.linkedin.com/in/janmolak/
+    image_url: https://avatars.githubusercontent.com/u/1089173?s=400&v=4
+    socials:
+        linkedin: janmolak
+        github: jan-molak
+        x: JanMolak
+
+mgrybyk:
+    name: Mykola Grybyk
+    url: http://github.com/mgrybyk
+    image_url: https://avatars.githubusercontent.com/u/25589559?v=4
+    socials:
+        github: mgrybyk
+
+robinson:
+    name: John Robinson
+    url: https://www.github.com/jrobinson01
+    image_url: https://avatars0.githubusercontent.com/u/1584296?s=460&v=4
+    socials:
+        github: jrobinson01
+
+barry:
+    name: Baruch Velez
+    url: http://github.com/baruchvlz
+    image_url: https://avatars1.githubusercontent.com/u/14321495?s=460&v=4
+    socials:
+        github: baruchvlz
+
+ross:
+    name: Ross Addinall
+    url: http://twitter.com/rossaddinall
+    image_url: https://s.gravatar.com/avatar/340d9dcc2c732de725ea9d94bdfcfe82?s=80
+    socials:
+        x: rossaddinall
+
+eric:
+    name: Eric Saari
+    url: https://www.linkedin.com/in/esaari/
+    image_url: https://avatars.githubusercontent.com/u/5210550?s=400&u=a7918ea7b425d621b2252f6e963b8657acdd1b0c&v=4
+    socials:
+        linkedin: esaari
+        github: esaari
+        x: esaari
+
+amr:
+    name: Amr Salem
+    url: https://www.linkedin.com/in/amrsalem1/
+    image_url: https://avatars.githubusercontent.com/u/32042806?s=400&v=4
+    socials:
+        linkedin: amrsalem1
+
+larry:
+    name: Larry Goddard
+    url: https://linkedin.com/in/larryg
+    image_url: https://avatars.githubusercontent.com/u/22198989?s=96&v=4
+    socials:
+        linkedin: larryg
+
+romanas:
+    name: George Romanas
+    url: https://github.com/gromanas
+    image_url: https://avatars.githubusercontent.com/u/48865319?s=400&u=e292306d956ecd6f5d94ff8cde2bc189841c270a&v=4
+    socials:
+        github: gromanas
+
+lytras:
+    name: Nikos Lytras
+    url: https://github.com/nikoslytr
+    image_url: https://avatars.githubusercontent.com/u/150701199?v=4
+    socials:
+        github: nikoslytr
