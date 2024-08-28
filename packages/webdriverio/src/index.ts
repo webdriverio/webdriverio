@@ -16,6 +16,7 @@ import { getShadowRootManager } from './shadowRoot.js'
 import { getNetworkManager } from './networkManager.js'
 import { getDialogManager } from './dialog.js'
 import { getContextManager } from './context.js'
+import { getPolyfillManager } from './polyfill.js'
 import type { AttachOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
@@ -82,6 +83,7 @@ export const remote = async function(
 
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
     await Promise.all([
+        getPolyfillManager(instance).initialize(),
         getShadowRootManager(instance).initialize(),
         getNetworkManager(instance).initialize(),
         getDialogManager(instance).initialize(),
@@ -115,6 +117,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     // @ts-expect-error `bidiHandler` is a private property
     await driver._bidiHandler?.connect().then(() => (
         Promise.all([
+            getPolyfillManager(driver).initialize(),
             getShadowRootManager(driver).initialize(),
             getNetworkManager(driver).initialize(),
             getDialogManager(driver).initialize(),

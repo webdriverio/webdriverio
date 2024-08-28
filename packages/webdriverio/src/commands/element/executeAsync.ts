@@ -1,11 +1,11 @@
 import { getBrowserObject } from '@wdio/utils'
 
-import { verifyArgsAndStripIfElement } from '../../utils/index.js'
-import { LocalValue } from '../../utils/bidi/value.js'
-import { parseScriptResult } from '../../utils/bidi/index.js'
-import { getContextManager } from '../../context.js'
-
 /**
+ * :::warning
+ * The `executeAsync` command is deprecated and will be removed in a future version.
+ * Please use the `execute` command instead as it provides better support for
+ * error handling via `async`/`await`.
+ * :::
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected
  * frame using the given element as scope, because it is on the element scope it means that WebdriverIO will
@@ -49,7 +49,7 @@ import { getContextManager } from '../../context.js'
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-execute-async-script
  * @type protocol
- *
+ * @deprecated Please use `execute` instead
  */
 export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
     this: WebdriverIO.Browser | WebdriverIO.Element,
@@ -58,44 +58,6 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
         ((...args: [...innerArgs: [WebdriverIO.Element, ...InnerArguments], callback: (result?: ReturnValue) => void]) => void),
     ...args: InnerArguments
 ): Promise<ReturnValue> {
-    /**
-     * parameter check
-     */
-    if ((typeof script !== 'string' && typeof script !== 'function')) {
-        throw new Error('number or type of arguments don\'t agree with execute protocol command')
-    }
-
-    if (this.isBidi) {
-        const browser = getBrowserObject(this)
-        const contextManager = getContextManager(browser)
-        const context = await contextManager.getCurrentContext()
-        const functionDeclaration = `function (...args) {
-            return new Promise(async (resolve, reject) => {
-                try {
-                    await ${script.toString()}.call(this, ...args, resolve)
-                } catch (err) {
-                    return reject(err)
-                }
-            })
-        }`
-        const result = await browser.scriptCallFunction({
-            functionDeclaration,
-            awaitPromise: true,
-            arguments: [this, ...args].map((arg) => LocalValue.getArgument(arg)) as any,
-            target: {
-                context
-            }
-        })
-        return parseScriptResult(result)
-    }
-
-    /**
-     * instances started as multibrowserinstance can't getting called with
-     * a function parameter, therefore we need to check if it starts with "function () {"
-     */
-    if (typeof script === 'function') {
-        script = `return (${script}).apply(null, arguments)`
-    }
-
-    return this.executeAsyncScript(script, verifyArgsAndStripIfElement([this, ...args]))
+    const browser = getBrowserObject(this)
+    return browser.executeAsync(script, this, ...args)
 }
