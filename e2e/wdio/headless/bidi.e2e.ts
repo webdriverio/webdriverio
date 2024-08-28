@@ -214,6 +214,17 @@ describe('bidi e2e test', () => {
                 }
             }).catch(err => err)
             expect(result.stack).toContain('207 │ if(a){if(a){throw new Error("Hello Bidi")}}}')
+
+            const result2 = await browser.execute(async () => {
+                const a: number = 1
+                console.log('Hello Bidi')
+                if (a) {
+                    if (a) {
+                        await Promise.reject(new Error('Hello Bidi'))
+                    }
+                }
+            }).catch(err => err)
+            expect(result2.stack).toContain('218 │ if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
         })
     })
 })
