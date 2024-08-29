@@ -27,4 +27,15 @@ export default function customElementWrapper () {
         }
         return origFn(name, Constructor, options)
     }
+
+    const origAttachShadow = Element.prototype.attachShadow
+    Element.prototype.attachShadow = function (this: HTMLElement, init: ShadowRootInit) {
+        const shadowRoot = origAttachShadow.call(this, init)
+        let parentNode: ParentNode | null = this
+        while (parentNode.parentNode) {
+            parentNode = parentNode.parentNode
+        }
+        console.debug('[WDIO]', 'newShadowRoot', this, parentNode, parentNode === document)
+        return shadowRoot
+    }
 }
