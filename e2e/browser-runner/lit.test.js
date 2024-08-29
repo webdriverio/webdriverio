@@ -226,6 +226,30 @@ describe('Lit Component testing', () => {
               }
             `)
         })
+
+        it('should be able to fetch elements that created without registering to the element registry', async () => {
+            const shadowResult = await browser.execute(() => {
+                const shadowElement = document.createElement('div')
+                shadowElement.id = 'helloshadow'
+                document.body.appendChild(shadowElement)
+
+                const shadowCreated = shadowElement.attachShadow({ mode: 'open' })
+                shadowCreated.innerHTML = '<p id=\'shadowelement\'>Hello World</p>'
+                const shadowExists = document.querySelector('#helloshadow')?.shadowRoot
+                return shadowExists ? 'created' : 'failed'
+            })
+            expect(shadowResult).toBe('created')
+            const shadowRoot = await browser.execute(() =>
+                Boolean(document.querySelector('#helloshadow')?.shadowRoot)
+            )
+            expect(shadowRoot).toBe(true)
+            const shadowElement = await browser.execute(() =>
+                Boolean(document.querySelector('#helloshadow')?.shadowRoot?.querySelector('#shadowelement'))
+            )
+            expect(shadowElement).toBe(true)
+            await browser.$('#helloshadow').waitForDisplayed()
+            await browser.$('#shadowelement').waitForExist()
+        })
     })
 
     it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
