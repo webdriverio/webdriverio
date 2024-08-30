@@ -233,7 +233,7 @@ await expect($('th=Prices')).toExist();
 
 ```js
 // 👍 use unique identifiers (often used for custom elements)
-await expect($('[data-testid="Products"')).toHaveText('Products');
+await expect($('[data-testid="Products"]')).toHaveText('Products');
 // 👍 accessibility names (often used for native html elements)
 await expect($('aria/Product Prices')).toHaveText('Prices');
 ```
