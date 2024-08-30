@@ -166,7 +166,7 @@ async function bar() {
         domain: '',
         path: '',
         expiry: 1,
-        sameSite: 'Lax',
+        sameSite: 'lax',
         secure: true,
         httpOnly: true
     }])
