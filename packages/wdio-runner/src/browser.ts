@@ -181,7 +181,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
              */
             if (!retried && errors.some((err) => (
                 err.includes('Failed to fetch dynamically imported module') ||
-                err.includes('the server responded with a status of 504 (Outdated Optimize Dep)')
+                err.includes('the server responded with a status of 504 (Outdated Optimize Dep)') ||
+                /**
+                 * this is specific to Preact and can bre resolved by rerunning the spec
+                 */
+                err.includes('undefined is not an object (evaluating \'r.__H\')')
             ))) {
                 log.info('Retry test run due to dynamic import error')
                 return this.#runSpec(spec, true)
