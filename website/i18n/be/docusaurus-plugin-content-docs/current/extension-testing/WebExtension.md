@@ -137,12 +137,11 @@ declare global {
 In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
 
 ```ts wdio.conf.ts
-import type { Options } from '@wdio/testrunner'
 import { browser } from '@wdio/globals'
 
 import { openExtensionPopup } from './support/customCommands'
 
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
   // ...
   before: () => {
     browser.addCommand('openExtensionPopup', openExtensionPopup)
