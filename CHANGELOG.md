@@ -19,6 +19,17 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.38.1 (2024-09-02)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#13341](https://github.com/webdriverio/webdriverio/pull/13341) V7 ai support ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### Committers: 2
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v7.38.0 (2024-08-07)
 
 #### :bug: Bug Fix
