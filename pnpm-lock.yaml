@@ -647,8 +647,8 @@ importers:
   packages/wdio-browserstack-service:
     dependencies:
       '@browserstack/ai-sdk-node':
-        specifier: 1.5.8
-        version: 1.5.8
+        specifier: 1.5.9
+        version: 1.5.9
       '@percy/appium-app':
         specifier: ^2.0.1
         version: 2.0.6
@@ -3069,8 +3069,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@browserstack/ai-sdk-node@1.5.8':
-    resolution: {integrity: sha512-34snogSnvskHxUZYOX61ga1/oTlyXwneRtd7Epu2bEdSsRR1rMm8xXhO6DVrLsHPwPHz+ljAlwVwhcE2uKysxw==}
+  '@browserstack/ai-sdk-node@1.5.9':
+    resolution: {integrity: sha512-RGLWcxadVEkafFaoeAPnIGxS/C+DtHDYWZ3Sy+P5VvWlDWhN9hZU5lZGMsUZg+XmrnuhodEEaZnJQV9P0IEeMQ==}
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -15184,7 +15184,7 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@browserstack/ai-sdk-node@1.5.8':
+  '@browserstack/ai-sdk-node@1.5.9':
     dependencies:
       axios: 1.7.4
       uuid: 9.0.1
