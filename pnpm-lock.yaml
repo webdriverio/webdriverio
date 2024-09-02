@@ -5216,11 +5216,17 @@ packages:
   '@vitest/expect@1.6.0':
     resolution: {integrity: sha512-ixEvFVQjycy/oNgHjqsL6AZCDduC+tflRluaHIzKIsdbzkLn2U/iBnVeJwB6HsIjQBdfMR8Z0tRxKUsvFJEeWQ==}
 
+  '@vitest/pretty-format@2.0.5':
+    resolution: {integrity: sha512-h8k+1oWHfwTkyTkb9egzwNMfJAEx4veaPSnMeKbVSjp4euqGSbQlm5+6VHwTr7u4FJslVVsUG5nopCaAYdOmSQ==}
+
   '@vitest/runner@1.6.0':
     resolution: {integrity: sha512-P4xgwPjwesuBiHisAVz/LSSZtDjOTPYZVmNAnpHHSR6ONrf8eCJOFRvUwdHn30F5M1fxhqtl7QZQUk2dprIXAg==}
 
   '@vitest/snapshot@1.6.0':
     resolution: {integrity: sha512-+Hx43f8Chus+DCmygqqfetcAZrDJwvTj0ymqjQq4CvmpKFSTVteEOBzCusu1x2tt4OJcvBflyHUE0DZSLgEMtQ==}
+
+  '@vitest/snapshot@2.0.5':
+    resolution: {integrity: sha512-SgCPUeDFLaM0mIUHfaArq8fD2WbaXG/zVXjRupthYfYGzc8ztbFbu6dUNOblBG7XLMR1kEhS/DNnfCZ2IhdDew==}
 
   '@vitest/spy@1.6.0':
     resolution: {integrity: sha512-leUTap6B/cqi/bQkXUu6bQV5TZPx7pmMBKBQiI0rJA8c3pB56ZsaTbREnF7CJfmvAS4V2cXIBAh/3rVwrrCYgw==}
@@ -7547,6 +7553,10 @@ packages:
 
   expect-webdriverio@4.15.1:
     resolution: {integrity: sha512-xtBSidt7Whs1fsUC+utxVzfmkmaStXWW17b+BcMCiCltx0Yku6l7BTv1Y14DEKX8L6rttaDQobYyRtBKbi4ssg==}
+    engines: {node: '>=16 || >=18 || >=20'}
+
+  expect-webdriverio@4.15.4:
+    resolution: {integrity: sha512-Op1xZoevlv1pohCq7g2Og5Gr3xP2NhY7MQueOApmopVxgweoJ/BqJxyvMNP0A//QsMg8v0WsN/1j81Sx2er9Wg==}
     engines: {node: '>=16 || >=18 || >=20'}
 
   expect-webdriverio@5.0.0-alpha.2:
@@ -12306,6 +12316,10 @@ packages:
     resolution: {integrity: sha512-i11VH5gS6IFeLY3gMBQ00/MmLncVP7JLXOw1vlgkytLmJK7QnEr7NXf0LBdxfmNPAeyetukOk0bOYrJrFGjYJQ==}
     engines: {node: '>=14.0.0'}
 
+  tinyrainbow@1.2.0:
+    resolution: {integrity: sha512-weEDEq7Z5eTHPDh4xjX789+fHfF+P8boiFB+0vbWzpbnbsEr/GRaohi/uMKxg8RZMXnl1ItAi/IUHWMsjDV7kQ==}
+    engines: {node: '>=14.0.0'}
+
   tinyspy@2.2.1:
     resolution: {integrity: sha512-KYad6Vy5VDWV4GH3fjpseMQ/XU2BhIYP7Vzd0LG44qRWm/Yt2WCOTicFdvmgo6gWaqooMQCawTtILVQJupKu7A==}
     engines: {node: '>=14.0.0'}
@@ -16229,7 +16243,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 20.14.10
+      '@types/node': 22.2.0
       '@types/yargs': 17.0.32
       chalk: 4.1.2
 
@@ -16725,7 +16739,7 @@ snapshots:
 
   '@puppeteer/browsers@1.4.6(typescript@5.5.4)':
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       extract-zip: 2.0.1
       progress: 2.0.3
       proxy-agent: 6.3.0
@@ -16739,7 +16753,7 @@ snapshots:
 
   '@puppeteer/browsers@1.9.1':
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       extract-zip: 2.0.1
       progress: 2.0.3
       proxy-agent: 6.3.1
@@ -17990,7 +18004,7 @@ snapshots:
 
   '@types/ws@8.5.10':
     dependencies:
-      '@types/node': 20.14.2
+      '@types/node': 22.2.0
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -18000,7 +18014,7 @@ snapshots:
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 20.14.2
+      '@types/node': 22.2.0
 
   '@typescript-eslint/eslint-plugin@7.17.0(@typescript-eslint/parser@7.15.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
@@ -18196,6 +18210,11 @@ snapshots:
       '@vitest/utils': 1.6.0
       chai: 4.4.1
 
+  '@vitest/pretty-format@2.0.5':
+    dependencies:
+      tinyrainbow: 1.2.0
+    optional: true
+
   '@vitest/runner@1.6.0':
     dependencies:
       '@vitest/utils': 1.6.0
@@ -18207,6 +18226,13 @@ snapshots:
       magic-string: 0.30.10
       pathe: 1.1.2
       pretty-format: 29.7.0
+
+  '@vitest/snapshot@2.0.5':
+    dependencies:
+      '@vitest/pretty-format': 2.0.5
+      magic-string: 0.30.10
+      pathe: 1.1.2
+    optional: true
 
   '@vitest/spy@1.6.0':
     dependencies:
@@ -18406,7 +18432,7 @@ snapshots:
       '@wdio/utils': 8.38.2
       decamelize: 6.0.0
       deepmerge-ts: 5.1.0
-      glob: 10.4.2
+      glob: 10.4.3
       import-meta-resolve: 4.1.0
     transitivePeerDependencies:
       - supports-color
@@ -18438,7 +18464,7 @@ snapshots:
 
   '@wdio/globals@8.38.2(encoding@0.1.13)(typescript@5.5.4)':
     optionalDependencies:
-      expect-webdriverio: 4.15.1(encoding@0.1.13)(typescript@5.5.4)
+      expect-webdriverio: 4.15.4(encoding@0.1.13)(typescript@5.5.4)
       webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.5.4)
     transitivePeerDependencies:
       - bufferutil
@@ -18495,7 +18521,7 @@ snapshots:
 
   '@wdio/repl@8.24.12':
     dependencies:
-      '@types/node': 20.14.10
+      '@types/node': 20.14.11
 
   '@wdio/repl@9.0.0-alpha.0':
     dependencies:
@@ -18503,7 +18529,7 @@ snapshots:
 
   '@wdio/types@8.38.2':
     dependencies:
-      '@types/node': 20.14.10
+      '@types/node': 20.14.11
 
   '@wdio/types@9.0.0-alpha.0':
     dependencies:
@@ -18804,7 +18830,7 @@ snapshots:
 
   archiver-utils@5.0.2:
     dependencies:
-      glob: 10.4.2
+      glob: 10.4.3
       graceful-fs: 4.2.11
       is-stream: 2.0.1
       lazystream: 1.0.1
@@ -20176,6 +20202,10 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
+  debug@4.3.4:
+    dependencies:
+      ms: 2.1.2
+
   debug@4.3.4(supports-color@8.1.1):
     dependencies:
       ms: 2.1.2
@@ -21218,6 +21248,25 @@ snapshots:
       - utf-8-validate
     optional: true
 
+  expect-webdriverio@4.15.4(encoding@0.1.13)(typescript@5.5.4):
+    dependencies:
+      '@vitest/snapshot': 2.0.5
+      expect: 29.7.0
+      jest-matcher-utils: 29.7.0
+      lodash.isequal: 4.5.0
+    optionalDependencies:
+      '@wdio/globals': 8.38.2(encoding@0.1.13)(typescript@5.5.4)
+      '@wdio/logger': 8.38.0
+      webdriverio: 8.38.2(encoding@0.1.13)(typescript@5.5.4)
+    transitivePeerDependencies:
+      - bufferutil
+      - devtools
+      - encoding
+      - supports-color
+      - typescript
+      - utf-8-validate
+    optional: true
+
   expect-webdriverio@5.0.0-alpha.2(@wdio/globals@9.0.0-alpha.0(encoding@0.1.13)(puppeteer-core@22.12.1)(typescript@5.4.5))(@wdio/logger@9.0.0-alpha.0)(webdriverio@9.0.0-alpha.0(puppeteer-core@22.12.1)):
     dependencies:
       '@vitest/snapshot': 1.6.0
@@ -21329,7 +21378,7 @@ snapshots:
 
   extract-zip@2.0.1:
     dependencies:
-      debug: 4.3.5(supports-color@8.1.1)
+      debug: 4.3.5
       get-stream: 5.2.0
       yauzl: 2.10.0
     optionalDependencies:
@@ -21730,7 +21779,7 @@ snapshots:
     dependencies:
       basic-ftp: 5.0.5
       data-uri-to-buffer: 6.0.2
-      debug: 4.3.5(supports-color@8.1.1)
+      debug: 4.3.5
       fs-extra: 11.2.0
     transitivePeerDependencies:
       - supports-color
@@ -22917,7 +22966,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.14.10
+      '@types/node': 22.2.0
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -24888,7 +24937,7 @@ snapshots:
     dependencies:
       '@tootallnate/quickjs-emscripten': 0.23.0
       agent-base: 7.1.1
-      debug: 4.3.5(supports-color@8.1.1)
+      debug: 4.3.5
       get-uri: 6.0.3
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.4
@@ -25500,7 +25549,7 @@ snapshots:
   proxy-agent@6.3.0:
     dependencies:
       agent-base: 7.1.1
-      debug: 4.3.5(supports-color@8.1.1)
+      debug: 4.3.5
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.4
       lru-cache: 7.18.3
@@ -25513,7 +25562,7 @@ snapshots:
   proxy-agent@6.3.1:
     dependencies:
       agent-base: 7.1.1
-      debug: 4.3.5(supports-color@8.1.1)
+      debug: 4.3.5
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.4
       lru-cache: 7.18.3
@@ -25585,7 +25634,7 @@ snapshots:
       '@puppeteer/browsers': 1.4.6(typescript@5.5.4)
       chromium-bidi: 0.4.16(devtools-protocol@0.0.1147663)
       cross-fetch: 4.0.0(encoding@0.1.13)
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       devtools-protocol: 0.0.1147663
       ws: 8.13.0
     optionalDependencies:
@@ -27169,6 +27218,9 @@ snapshots:
 
   tinypool@0.8.4: {}
 
+  tinyrainbow@1.2.0:
+    optional: true
+
   tinyspy@2.2.1: {}
 
   tinyspy@3.0.0: {}
@@ -27878,7 +27930,7 @@ snapshots:
     dependencies:
       chalk: 4.1.2
       commander: 9.4.0
-      debug: 4.3.5(supports-color@8.1.1)
+      debug: 4.3.5
     transitivePeerDependencies:
       - supports-color
 
@@ -27903,7 +27955,7 @@ snapshots:
 
   webdriver@8.38.2:
     dependencies:
-      '@types/node': 20.14.10
+      '@types/node': 20.14.11
       '@types/ws': 8.5.10
       '@wdio/config': 8.38.2
       '@wdio/logger': 8.38.0
@@ -27972,7 +28024,7 @@ snapshots:
 
   webdriverio@8.38.2(encoding@0.1.13)(typescript@5.5.4):
     dependencies:
-      '@types/node': 20.14.10
+      '@types/node': 20.14.11
       '@wdio/config': 8.38.2
       '@wdio/logger': 8.38.0
       '@wdio/protocols': 8.38.0
@@ -27990,7 +28042,7 @@ snapshots:
       jszip: 3.10.1
       lodash.clonedeep: 4.5.0
       lodash.zip: 4.2.0
-      minimatch: 9.0.4
+      minimatch: 9.0.5
       puppeteer-core: 20.9.0(encoding@0.1.13)(typescript@5.5.4)
       query-selector-shadow-dom: 1.0.1
       resq: 1.11.0
