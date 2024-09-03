@@ -1,11 +1,10 @@
 import url from 'node:url'
-import type { Options } from '@wdio/types'
 
 import viteConfig from './vite.config.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
     //
     // ====================
     // Runner Configuration
