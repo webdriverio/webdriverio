@@ -86,7 +86,7 @@ The `addInitScript` command enables you to inject a script into the browser that
 For instance, to get notified whenever an element is added or removed from a node in the application, you can use the following example:
 
 ```ts
-const script = await browser.addInitScript((myParam, callback) => {
+const script = await browser.addInitScript((myParam, emit) => {
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
             emit(mutation.target.nodeName)

@@ -118,6 +118,8 @@ export class ViteServer extends EventEmitter {
         this.#server = await createServer(this.#viteConfig)
         await this.#server.listen()
         log.info(`Vite server started successfully on port ${vitePort}, root directory: ${this.#viteConfig.root}`)
+
+        return vitePort
     }
 
     async close () {

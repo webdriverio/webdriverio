@@ -40,7 +40,7 @@ class WebDriverError extends Error {
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
  */
-export const getElement = function findElement(
+export function getElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector?: Selector,
     res?: ElementReference | ExtendedElementReference | Error,

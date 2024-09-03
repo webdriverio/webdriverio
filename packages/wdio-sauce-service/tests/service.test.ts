@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { expect, test, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import SauceService from '../src/index.js'
 import { isRDC } from '../src/utils.js'
@@ -91,7 +91,7 @@ test('beforeSuite', () => {
 })
 
 test('beforeSession should set to unknown creds if no sauce user and key are found', () => {
-    const config: Options.Testrunner = { capabilities: [] }
+    const config: WebdriverIO.Config = { capabilities: [] }
     const service = new SauceService({}, {}, config)
     service['_browser'] = browser
     // @ts-expect-error

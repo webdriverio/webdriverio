@@ -228,6 +228,14 @@ describe('Lit Component testing', () => {
         })
 
         it('should be able to fetch elements that created without registering to the element registry', async () => {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return
+            }
+
             const shadowResult = await browser.execute(() => {
                 const shadowElement = document.createElement('div')
                 shadowElement.id = 'helloshadow'
