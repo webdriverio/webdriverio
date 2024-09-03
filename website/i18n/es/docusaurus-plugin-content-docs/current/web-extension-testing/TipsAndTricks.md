@@ -44,12 +44,11 @@ declare global {
 En su `wdio.conf.js` puede importar este archivo y registrar el comando personalizado en su `antes del gancho` , por ejemplo:
 
 ```ts wdio.conf.ts
-import type { Options } from '@wdio/testrunner'
 import { browser } from '@wdio/globals'
 
 import { openExtensionPopup } from './support/customCommands'
 
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
   // ...
   before: () => {
     browser.addCommand('openExtensionPopup', openExtensionPopup)

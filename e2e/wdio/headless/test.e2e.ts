@@ -33,14 +33,27 @@ describe('main suite 1', () => {
         await expect($('ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
-    it('should be able to use async-iterators', async () => {
-        await browser.url('https://webdriver.io')
-        await browser.$('aria/Toggle navigation bar').click()
-        const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find<WebdriverIO.Element>(
-            async (link) => await link.getText() === 'Contribute')
-        expect(contributeLink).toBeDefined()
-        await contributeLink.click()
-        await expect(browser).toHaveTitle('Contribute | WebdriverIO')
+    describe('async/iterators', () => {
+        /**
+         * this test requires the website to be rendered in mobile view
+         */
+        before(async () => {
+            await browser.setViewport({ width: 900, height: 600 })
+        })
+
+        it('should be able to use async-iterators', async () => {
+            await browser.url('https://webdriver.io')
+            await browser.$('aria/Toggle navigation bar').click()
+            const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find<WebdriverIO.Element>(
+                async (link) => await link.getText() === 'Contribute')
+            expect(contributeLink).toBeDefined()
+            await contributeLink.click()
+            await expect(browser).toHaveTitle('Contribute | WebdriverIO')
+        })
+
+        after(async () => {
+            await browser.setViewport({ width: 900, height: 600 })
+        })
     })
 
     describe('Lighthouse Service Performance Testing capabilities', () => {
@@ -343,7 +356,10 @@ describe('main suite 1', () => {
             await browser.$('div').click()
         })
 
-        it('should be able to handle dialogs', async () => {
+        /**
+         * fails due to https://github.com/GoogleChromeLabs/chromium-bidi/issues/2556
+         */
+        it.skip('should be able to handle dialogs', async () => {
             await browser.url('http://guinea-pig.webdriver.io')
             browser.execute(() => alert('123'))
             const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))

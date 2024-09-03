@@ -20,7 +20,7 @@ vi.mock('../src/communicator.js', () => ({
 }))
 vi.mock('../src/vite/server.js', () => ({
     ViteServer: class {
-        start = vi.fn()
+        start = vi.fn().mockResolvedValue(1234)
         close = vi.fn()
         onBrowserEvent = vi.fn()
         config = { server: { port: 1234 } }
@@ -93,7 +93,21 @@ describe('BrowserRunner', () => {
             command: 'run'
         })
         expect(runner['_servers'].size).toBe(1)
-        expect(runner['_servers'].values().next().value.start).toHaveBeenCalledTimes(1)
+        expect(runner['_servers'].values().next().value!.start).toHaveBeenCalledTimes(1)
+    })
+
+    it('modifies runArgs to set allowOrigins', async () => {
+        const runner = new BrowserRunner({}, {
+            rootDir: '/foo/bar',
+            framework: 'mocha'
+        } as any)
+        await runner.initialize()
+
+        const on = vi.fn()
+        vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on } as any)
+        const runArgs = { caps: { browserName: 'firefox' }, command: 'run', args: {} } as any
+        await runner.run(runArgs)
+        expect(runArgs.caps['wdio:geckodriverOptions'].allowOrigins).toEqual(['http://localhost:1234'])
     })
 
     it('shutdown', async () => {
