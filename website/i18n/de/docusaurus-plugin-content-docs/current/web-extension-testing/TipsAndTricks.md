@@ -44,12 +44,11 @@ declare global {
 In Ihre `wdio.conf.js` können Sie diese Datei importieren und den benutzerdefinierten Befehl in Ihrem `before` Hook registrieren, z.B.:
 
 ```ts wdio.conf.ts
-import type { Options } from '@wdio/testrunner'
 import { browser } from '@wdio/globals'
 
 import { openExtensionPopup } from './support/customCommands'
 
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
   // ...
   before: () => {
     browser.addCommand('openExtensionPopup', openExtensionPopup)
