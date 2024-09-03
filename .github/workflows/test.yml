@@ -69,12 +69,13 @@ jobs:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
       - name: Lint / Typings / Unit / Smoke / Component Tests
         run: npm run test
-      - name: E2E Protocol Tests
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 20
-          max_attempts: 3
-          command: npm run test:e2e
+      # disabled tests due to high flakiness
+      # - name: E2E Protocol Tests
+      #   uses: nick-fields/retry@v3
+      #   with:
+      #     timeout_minutes: 20
+      #     max_attempts: 3
+      #     command: npm run test:e2e
       - name: E2E Launch Tests
         run: |
           npm run test:e2e:edge
@@ -105,6 +106,7 @@ jobs:
         run: npm run setup
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+        # disabled tests due to high flakiness
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v3
         with:
