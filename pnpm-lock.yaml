@@ -1536,8 +1536,8 @@ importers:
         version: link:../webdriver
     devDependencies:
       '@sinonjs/fake-timers':
-        specifier: ^11.2.2
-        version: 11.2.2
+        specifier: ^13.0.1
+        version: 13.0.1
       '@types/archiver':
         specifier: ^6.0.2
         version: 6.0.2
@@ -4449,8 +4449,8 @@ packages:
   '@sinonjs/commons@3.0.1':
     resolution: {integrity: sha512-K3mCHKQ9sVh8o1C9cxkwxaOmXoAMlDxC1mYyHrjqOWEcBjYr76t96zL2zlj5dUGZ3HSw240X1qgH3Mjf1yJWpQ==}
 
-  '@sinonjs/fake-timers@11.2.2':
-    resolution: {integrity: sha512-G2piCSxQ7oWOxwGSAyFHfPIsyeJGXYtc6mFbnFA+kRXkiEnTl8c/8jul2S329iFBnDI9HGoeWWAZvuvOkZccgw==}
+  '@sinonjs/fake-timers@13.0.1':
+    resolution: {integrity: sha512-ZEbLYOvZQHccQJzbg2E5r+/Mdjb6BMdjToL4r8WwUw0VTjTnyY3gCnwLeiovcXI3/Uo25exmqmiwsjL/eE/rSg==}
 
   '@slorber/react-ideal-image@0.0.12':
     resolution: {integrity: sha512-u8KiDTEkMA7/KAeA5ywg/P7YG4zuKhWtswfVZDH8R8HXgQsFcHIYU2WaQnGuK/Du7Wdj90I+SdFmajSGFRvoKA==}
@@ -17430,7 +17430,7 @@ snapshots:
     dependencies:
       type-detect: 4.0.8
 
-  '@sinonjs/fake-timers@11.2.2':
+  '@sinonjs/fake-timers@13.0.1':
     dependencies:
       '@sinonjs/commons': 3.0.1
 
