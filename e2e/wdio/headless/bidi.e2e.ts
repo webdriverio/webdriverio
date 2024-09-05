@@ -7,7 +7,7 @@ describe('bidi e2e test', () => {
             /**
              * bidi feature
              */
-            if (browser.capabilities.browserName === 'safari') {
+            if (!browser.isBidi) {
                 return this.skip()
             }
 
