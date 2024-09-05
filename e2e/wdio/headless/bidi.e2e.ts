@@ -203,7 +203,14 @@ describe('bidi e2e test', () => {
     })
 
     describe('execute', () => {
-        it('generates a nice stack trace', async () => {
+        it('generates a nice stack trace', async function () {
+            /**
+             * bidi feature
+             */
+            if (browser.capabilities.browserName === 'safari') {
+                return this.skip()
+            }
+
             const result = await browser.execute(async () => {
                 const a: number = 1
                 console.log('Hello Bidi')
