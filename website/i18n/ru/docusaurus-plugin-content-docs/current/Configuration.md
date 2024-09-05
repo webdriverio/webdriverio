@@ -254,7 +254,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
 
 To increase the timeout for a _test_, please see the framework docs.
 
@@ -416,7 +416,7 @@ List of reporters to use. A reporter can be either a string, or an array of `['r
 
 Type: `String[]|Object[]`<br /> Default: `[]`
 
-Пример:
+Example:
 
 ```js
 reporters: [
@@ -491,7 +491,7 @@ Every hook has as parameter specific information about the lifecycle (e.g. infor
 
 Gets executed once before all workers get launched.
 
-Параметры:
+Parameters:
 
 - `config` (`object`): WebdriverIO configuration object
 - `param` (`object[]`): list of capabilities details
@@ -500,7 +500,7 @@ Gets executed once before all workers get launched.
 
 Gets executed before a worker process is spawned and can be used to initialize specific service for that worker as well as modify runtime environments in an async fashion.
 
-Параметры:
+Parameters:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -512,7 +512,7 @@ Gets executed before a worker process is spawned and can be used to initialize s
 
 Gets executed just after a worker process has exited.
 
-Параметры:
+Parameters:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `exitCode` (`number`): 0 - success, 1 - fail
@@ -523,7 +523,7 @@ Gets executed just after a worker process has exited.
 
 Gets executed just before initializing the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
 
-Параметры:
+Parameters:
 
 - `config` (`object`): WebdriverIO configuration object
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -533,7 +533,7 @@ Gets executed just before initializing the webdriver session and test framework.
 
 Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
 
-Параметры:
+Parameters:
 
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
 - `specs` (`string[]`): specs to be run in the worker process
@@ -599,7 +599,7 @@ Parameters:
 
 Function to be executed after a test (in Mocha/Jasmine) ends.
 
-Параметры:
+Parameters:
 
 - `test` (`object`): test details
 - `context` (`object`): scope object the test was executed with
@@ -614,7 +614,7 @@ Function to be executed after a test (in Mocha/Jasmine) ends.
 
 Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
-Параметры:
+Parameters:
 
 - `suite` (`object`): suite details
 
@@ -651,7 +651,7 @@ Parameters:
 
 ### onReload
 
-Выполняется, когда происходит обновление.
+Gets executed when a refresh happens.
 
 Parameters:
 
@@ -662,7 +662,7 @@ Parameters:
 
 Runs before a Cucumber Feature.
 
-Параметры:
+Parameters:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
@@ -671,7 +671,7 @@ Runs before a Cucumber Feature.
 
 Runs after a Cucumber Feature.
 
-Параметры:
+Parameters:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
