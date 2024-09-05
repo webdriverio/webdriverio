@@ -121,13 +121,27 @@ Type: `Object`<br /> Default:
 
 ### headers
 
-Specify custom `headers` to pass into every WebDriver request and when connect to browser through Puppeteer using CDP protocol.
+Specify custom `headers` to pass into every WebDriver request. If your Selenium Grid requires Basic Authentification we recommend to pass in an `Authorization` header through this option to authenticate your WebDriver requests, e.g.:
 
-:::caution
+```ts wdio.conf.ts
+import { Buffer } from 'buffer';
+// Read the username and password from environment variables
+const username = process.env.SELENIUM_GRID_USERNAME;
+const password = process.env.SELENIUM_GRID_PASSWORD;
 
-These headers __aren't__ passed into browser request. If you are looking for modifying request headers of browser requests, please get involved in [#6361](https://github.com/webdriverio/webdriverio/issues/6361)!
+// Combine the username and password with a colon separator
+const credentials = `${username}:${password}`;
+// Encode the credentials using Base64
+const encodedCredentials = Buffer.from(credentials).toString('base64');
 
-:::
+export const config: WebdriverIO.Config = {
+    // ...
+    headers: {
+        Authorization: `Basic ${encodedCredentials}`
+    }
+    // ...
+}
+```
 
 Type: `Object`<br /> Default: `{}`
 
