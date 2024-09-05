@@ -35,7 +35,7 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 * Other
   * [#13478](https://github.com/webdriverio/webdriverio/pull/13478) fix(webdriverio): better detect manually created shadow roots ([@christian-bromann](https://github.com/christian-bromann))
 * `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-cucumber-framework`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-lighthouse-service`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-shared-store-service`, `wdio-smoke-test-cjs-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-testingbot-service`, `wdio-types`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
-  * [#13482](https://github.com/webdriverio/webdriverio/pull/13482) fix(core): specify minimum node version to be 18.18.0 or higher ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13482](https://github.com/webdriverio/webdriverio/pull/13482) fix(core): specify minimum node version to be 18.20.0 or higher ([@christian-bromann](https://github.com/christian-bromann))
 * `wdio-browser-runner`
   * [#13489](https://github.com/webdriverio/webdriverio/pull/13489) fix(@wdio/browser-runner): support Firefox using Bidi ([@christian-bromann](https://github.com/christian-bromann))
 
