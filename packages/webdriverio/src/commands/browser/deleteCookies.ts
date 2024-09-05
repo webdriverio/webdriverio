@@ -5,7 +5,7 @@ import type { remote } from 'webdriver'
  * just removes the single cookie or more when multiple names are passed.
  *
  * @alias browser.deleteCookies
- * @param {remote.StorageCookieFilter[]} filter  Use the filter property to identify and delete specific cookies based on matching criteria.
+ * @param {StorageCookieFilter[]} filter  Use the filter property to identify and delete specific cookies based on matching criteria.
  * @example https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/deleteCookies/example.js#L9-L29
  * @example https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/deleteCookies/example.js#L31-L35
  */
