@@ -515,7 +515,7 @@ export async function findElements(
      */
     if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const elems: ElementReference | ElementReference[] = await browserObject.execute(
-            `return (${querySelectorAllDeep}).apply(null, arguments)`,
+            querySelectorAllDeep,
             true,
             selector.slice(DEEP_SELECTOR.length),
             // hard conversion from element id to Element is done by browser driver
