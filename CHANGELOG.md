@@ -23,6 +23,45 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.0.8 (2024-09-05)
+
+#### :rocket: New Feature
+* `wdio-protocols`, `webdriverio`
+  * [#13481](https://github.com/webdriverio/webdriverio/pull/13481) feat(webdriverio): set cookies via Bidi if supported ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13470](https://github.com/webdriverio/webdriverio/pull/13470) fix(webdriverio): fix script execution ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#13478](https://github.com/webdriverio/webdriverio/pull/13478) fix(webdriverio): better detect manually created shadow roots ([@christian-bromann](https://github.com/christian-bromann))
+* `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-cucumber-framework`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-lighthouse-service`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-shared-store-service`, `wdio-smoke-test-cjs-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-testingbot-service`, `wdio-types`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#13482](https://github.com/webdriverio/webdriverio/pull/13482) fix(core): specify minimum node version to be 18.18.0 or higher ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`
+  * [#13489](https://github.com/webdriverio/webdriverio/pull/13489) fix(@wdio/browser-runner): support Firefox using Bidi ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#13437](https://github.com/webdriverio/webdriverio/pull/13437) Browserstack Turboscale Observability Integration ([@amaanbs](https://github.com/amaanbs))
+
+#### :memo: Documentation
+* `wdio-shared-store-service`
+  * [#13514](https://github.com/webdriverio/webdriverio/pull/13514) Added information on typescript types for wdio-shared-store-service ([@sauterl](https://github.com/sauterl))
+* Other
+  * [#13486](https://github.com/webdriverio/webdriverio/pull/13486) Fix `addInitScript` example in v9 blog post ([@Mr0grog](https://github.com/Mr0grog))
+  * [#13483](https://github.com/webdriverio/webdriverio/pull/13483) docs: small typo in BestPractices.md ([@alcpereira](https://github.com/alcpereira))
+  * [#13466](https://github.com/webdriverio/webdriverio/pull/13466) Argos visual testing page ([@gregberge](https://github.com/gregberge))
+
+#### Committers: 8
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Greg Bergé ([@gregberge](https://github.com/gregberge))
+- Loris Sauter ([@sauterl](https://github.com/sauterl))
+- Rob Brackett ([@Mr0grog](https://github.com/Mr0grog))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@alcpereira](https://github.com/alcpereira)
+
+
 ## v9.0.7 (2024-08-21)
 
 #### :bug: Bug Fix
