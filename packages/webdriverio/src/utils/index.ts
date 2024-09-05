@@ -430,7 +430,7 @@ export async function findElement(
     if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
         let elem: ElementReference | ElementReference[] = await browserObject.execute(
-            `return (${querySelectorAllDeep}).apply(null, arguments)`,
+            querySelectorAllDeep,
             false,
             selector.slice(DEEP_SELECTOR.length),
             // hard conversion from element id to Element is done by browser driver
