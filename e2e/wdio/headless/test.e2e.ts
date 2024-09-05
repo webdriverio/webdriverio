@@ -1,6 +1,10 @@
+/// <reference types="@wdio/lighthouse-service" />
+import { browser, $, expect } from '@wdio/globals'
 import os from 'node:os'
 
 describe('main suite 1', () => {
+    afterEach(() => browser.setViewport({ width: 1200, height: 900 }))
+
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
@@ -390,7 +394,7 @@ describe('main suite 1', () => {
             }, 1, '2', true)
             browser.url('https://webdriver.io')
             const data = await new Promise<string[]>((resolve) => {
-                script.on('data', (data) => resolve(data))
+                script.on('data', (data) => resolve(data as string[]))
             })
             expect(data).toBe('[1,"2",true]')
         })

@@ -5,7 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test:mocha": "wdio run ./mocha/wdio.conf.ts",
+    "test:mocha": "wdio run ./mocha/wdio.conf.js",
     "test:jasmine": "wdio run ./jasmine/wdio.conf.ts",
     "test:cucumber": "wdio run ./cucumber/wdio.conf.ts",
     "test:multiremote": "wdio run ./multiremote/wdio.conf.js",
@@ -14,13 +14,20 @@
     "test:viteVue": "cd ./vite-vue-example && npm run wdio"
   },
   "dependencies": {
+    "@wdio/browser-runner": "workspace:*",
+    "@wdio/config": "workspace:*",
     "@wdio/cli": "workspace:*",
-    "@wdio/reporter": "workspace:*",
+    "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
+    "@wdio/junit-reporter": "workspace:*",
+    "@wdio/lighthouse-service": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
-    "@wdio/jasmine-framework": "workspace:*",
-    "@wdio/cucumber-framework": "workspace:*",
+    "@wdio/repl": "workspace:*",
+    "@wdio/shared-store-service": "workspace:*",
+    "@wdio/spec-reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   }
 }
