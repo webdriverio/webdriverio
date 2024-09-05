@@ -181,7 +181,7 @@ WebdriverIO ابزارهایی را ارائه می دهد که به شما کم
 
 شما نیاز به نصب [Node.js](http://nodejs.org) دارید.
 
-- حداقل v16.x یا بالاتر را نصب کنید زیرا این قدیمی ترین نسخه فعال LTS است
+- Install at least v18.20.0 or higher as this is the oldest active LTS version
 - فقط نسخه هایی که نسخه LTS هستند یا خواهند شد، رسما پشتیبانی می شوند
 
 اگر Node در حال حاضر روی سیستم شما نصب نیست، پیشنهاد می کنیم از ابزاری مانند [NVM](https://github.com/creationix/nvm) یا [Volta](https://volta.sh/) برای مدیریت چندین نسخه فعال Node.js استفاده کنید. NVM یک انتخاب محبوب است، در حالی که Volta نیز جایگزین خوبی است.
