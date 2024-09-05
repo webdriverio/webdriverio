@@ -270,6 +270,31 @@ module.exports = {
 };
 ```
 
+### addConsoleLogs
+
+Optional parameter (`false` by default), set this parameter to true in order to attach console logs from step to the reporter.
+
+Type: `Boolean`<br />
+Default: `false`<br />
+Example:
+
+```js
+// wdio.conf.js
+module.exports = {
+    // ...
+    reporters: [
+        'dot',
+        ['junit', {
+            outputDir: './',
+            addConsoleLogs: true
+        }]
+    ],
+    // ...
+};
+```
+
+
+
 ## Jenkins Setup
 
 Last but not least you need to tell your CI job (e.g. Jenkins) where it can find the xml file. To do that, add a post-build action to your job that gets executed after the test has run and point Jenkins (or your desired CI system) to your XML test results:

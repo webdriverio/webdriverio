@@ -25,21 +25,48 @@ class JunitReporter extends WDIOReporter {
     private _fileNameLabel?: string
     private _activeFeature?: any
     private _activeFeatureName?: any
+    private _testToConsoleOutput: { [keys: string]: string }
+    private _currentTest?: TestStats
+    private _originalStdoutWrite: Function
+    private _addConsoleLogs: boolean
 
-    constructor (public options: JUnitReporterOptions) {
+    constructor(public options: JUnitReporterOptions) {
         super(options)
+        this._addConsoleLogs = options.addConsoleLogs ?? false
+        this._testToConsoleOutput = {}
+        this._originalStdoutWrite = process.stdout.write.bind(process.stdout)
         this._suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp
             ? this.options.suiteNameFormat
             : /[^a-zA-Z0-9@]+/ // Reason for ignoring @ is; reporters like wdio-report-portal will fetch the tags from testcase name given as @foo @bar
+
+        const processObj: any = process
+        if (this._addConsoleLogs) {
+            processObj.stdout.write = this._appendConsoleLog
+        }
     }
 
     onTestRetry (testStats: TestStats) {
         testStats.skip('Retry')
     }
 
+    onTestStart(test: TestStats) {
+        // Reset stdout when a test starts
+        this._currentTest = test
+        this._testToConsoleOutput[test.cid] = ''
+    }
+
     onRunnerEnd (runner: RunnerStats) {
         const xml = this._buildJunitXml(runner)
         this.write(xml)
+    }
+
+    private _appendConsoleLog(chunk: string, encoding: BufferEncoding, callback: ((err?: Error) => void)) {
+        if (this._currentTest?.cid) {
+            if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+                this._testToConsoleOutput[this._currentTest.cid] = (this._testToConsoleOutput[this._currentTest.cid] ?? '') + '\n' + chunk
+            }
+        }
+        return this._originalStdoutWrite(chunk, encoding, callback)
     }
 
     private _prepareName (name = 'Skipped test') {
@@ -281,7 +308,11 @@ class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    private _getStandardOutput (test: TestStats) {
+    private _getStandardOutput(test: TestStats) {
+        return (this._addConsoleLogs ? (this._testToConsoleOutput[test.cid] + '\n\n...Command output...\n\n') : '') + this._getCommandStandardOutput(test)
+    }
+
+    private _getCommandStandardOutput(test: TestStats) {
         const standardOutput: string[] = []
         test.output.forEach((data) => {
             switch (data.type) {
