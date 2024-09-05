@@ -181,7 +181,7 @@ WebdriverIO は、画面上でテスト アクションを記録し、WebdriverI
 
 [Node.js](http://nodejs.org) がインストールされている必要があります。
 
-- すくなくとも現在一番古いLTS であるv16.x 以降をインストールしてください
+- Install at least v18.20.0 or higher as this is the oldest active LTS version
 - LTS リリースもしくはLTS リリースとなるリリースのみが正式にサポートされます。
 
 現在のシステムに Node がインストールされていない場合は、 [NVM](https://github.com/creationix/nvm) または [Volta](https://volta.sh/) などのバージョン管理ツールを利用して、複数のアクティブな Node.js バージョンの管理を支援することをお勧めします。 NVM は一般的な選択肢ですが、Volta も優れた代替手段です。
