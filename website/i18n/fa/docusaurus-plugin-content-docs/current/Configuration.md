@@ -121,37 +121,51 @@ Type: `Object`<br /> Default:
 
 ### headers
 
-مشخص کردن `headers` های سفارشی برای ارسال با هر درخواست WebDriver و هنگام اتصال به مرورگر از طریق Puppeteer با استفاده از پروتکل CDP.
+Specify custom `headers` to pass into every WebDriver request. If your Selenium Grid requires Basic Authentification we recommend to pass in an `Authorization` header through this option to authenticate your WebDriver requests, e.g.:
 
-:::caution
+```ts wdio.conf.ts
+import { Buffer } from 'buffer';
+// Read the username and password from environment variables
+const username = process.env.SELENIUM_GRID_USERNAME;
+const password = process.env.SELENIUM_GRID_PASSWORD;
 
-این header ها به درخواست مرورگر منتقل __نمی شوند__. اگر به دنبال اصلاح هدر درخواست، برای درخواست های مرورگر هستید، لطفاً در [#6361](https://github.com/webdriverio/webdriverio/issues/6361) شرکت کنید!
+// Combine the username and password with a colon separator
+const credentials = `${username}:${password}`;
+// Encode the credentials using Base64
+const encodedCredentials = Buffer.from(credentials).toString('base64');
 
-:::
+export const config: WebdriverIO.Config = {
+    // ...
+    headers: {
+        Authorization: `Basic ${encodedCredentials}`
+    }
+    // ...
+}
+```
 
 Type: `Object`<br /> Default: `{}`
 
 ### transformRequest
 
-تابعی برای intercept کردن [ویژگی های درخواست HTTP](https://github.com/sindresorhus/got#options) قبل از درخواست WebDriver
+Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made
 
 Type: `(RequestOptions) => RequestOptions`<br /> Default: *none*
 
 ### transformResponse
 
-تابعی برای intercept اشیاء در پاسخ HTTP پس از رسیدن پاسخ WebDriver. تابع به شیء پاسخ اصلی به عنوان اولین و `RequestOptions` مربوطه به عنوان آرگومان دوم ارسال می شود.
+Function intercepting HTTP response objects after a WebDriver response has arrived. The function is passed the original response object as the first and the corresponding `RequestOptions` as the second argument.
 
 Type: `(Response, RequestOptions) => Response`<br /> Default: *none*
 
 ### strictSSL
 
-آیا برای معتبر بودن به گواهی SSL نیاز هست یا خیر. می توان آن را از طریق متغیرهای محیطی به صورت `STRICT_SSL` یا `strict_ssl` تنظیم کرد.
+Whether it does not require SSL certificate to be valid. It can be set via an environment variables as `STRICT_SSL` or `strict_ssl`.
 
 Type: `Boolean`<br /> Default: `true`
 
 ### enableDirectConnect
 
-فعال کردن [ویژگی اتصال مستقیم Appium](https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments). اگر در حالی که پرچم فعال است، پاسخ کلیدهای مناسبی نداشته باشد، کاری انجام نمی دهد.
+Whether enable [Appium direct connection feature](https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments). It does nothing if the response did not have proper keys while the flag is enabled.
 
 Type: `Boolean`<br /> Default: `true`
 
@@ -165,7 +179,7 @@ Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
 ## WebdriverIO
 
-گزینه های زیر (از جمله موارد ذکر شده در بالا) را می توان با WebdriverIO به صورت مستقل استفاده کرد:
+The following options (including the ones listed above) can be used with WebdriverIO in standalone:
 
 ### automationProtocol
 
@@ -175,15 +189,15 @@ WebdriverIO is deprecating the use of Chrome Devtools as automation protocol thr
 
 :::
 
-تعریف پروتکلی که می خواهید برای اتوماسیون مرورگر خود استفاده کنید. در حال حاضر فقط [`webdriver`](https://www.npmjs.com/package/webdriver) و [`devtools`](https://www.npmjs.com/package/devtools) پشتیبانی می شوند، زیرا اینها فناوری های اصلی اتوماسیون مرورگر موجود هستند.
+Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
 
-اگر می‌خواهید مرورگر را با استفاده از `devtools` خودکار کنید، مطمئن شوید که بسته NPM را نصب کرده‌اید (`$ npm install --save-dev devtools`).
+If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
 
 Type: `String`<br /> Default: `webdriver`
 
 ### baseUrl
 
-با تنظیم یک URL پایه، فراخوانی دستور های `url` را کوتاه کنید.
+Shorten `url` command calls by setting a base URL.
 - اگر پارامتر `url` شما با `/`شروع می شود، `baseUrl` به قبل اضافه می شود (به جز مسیر `baseUrl`، اگر مسیری وجود داشته باشد دارد).
 - اگر پارامتر `url` بدون شماتیک یا `/` (مثل`some/path`) شروع می شود، سپس `baseUrl` کامل مستقیما اضافه می شود.
 
@@ -191,65 +205,65 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-مهلت زمانی پیش‌فرض برای همه دستورات ` waitFor*`. (به کوچک بودن حرف `f` در نام گزینه توجه کنید.) این مهلت __فقط__ بر دستوراتی که با `waitFor*` شروع می شوند و در زمان انتظار پیش فرض آنها تأثیر می گذارد.
+Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
 
-برای افزایش زمان برای _یک تست_، لطفاً به اسناد فریمورک مراجعه کنید.
+To increase the timeout for a _test_, please see the framework docs.
 
 Type: `Number`<br /> Default: `5000`
 
 ### waitforInterval
 
-فاصله پیش‌فرض برای همه دستورات `waitFor*` برای بررسی اینکه آیا وضعیت مورد انتظار (مثلاً visibility) تغییر کرده است یا خیر.
+Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
 
 Type: `Number`<br /> Default: `100`
 
 ### region
 
-If running on Sauce Labs, you can choose to run tests between different data centers: US or EU. برای تغییر منطقه خود به اتحادیه اروپا، `region: 'eu'` را به پیکربندی خود اضافه کنید.
+If running on Sauce Labs, you can choose to run tests between different data centers: US or EU. To change your region to EU, add `region: 'eu'` to your config.
 
-__توجه:__ این فقط در صورتی تأثیر می گذارد که `user` و `key` را ارائه دهید که به حساب Sauce Labs شما متصل شده باشند.
+__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
 Type: `String`<br /> Default: `us`
 
-*(فقط برای vm و یا em/شبیه سازها)*
+*(only for vm and or em/simulators)*
 
 ---
 
 ## Testrunner Options
 
-گزینه‌های زیر (از جمله موارد ذکر شده در بالا) فقط برای اجرای WebdriverIO با تست‌کننده WDIO تعریف شده‌اند:
+The following options (including the ones listed above) are defined only for running WebdriverIO with the WDIO testrunner:
 
 ### specs
 
-تعریف spec ها برای اجرای تست. یک الگوی glob را برای مطابقت با چندین فایل به صورت یکباره مشخص کنید، یا یک glob یا مجموعه ای از مسیرها را در یک آرایه جمع کنید تا آنها را در یک worker process اجرا کنید. All paths are seen as relative from the config file path.
+Define specs for test execution. You can either specify a glob pattern to match multiple files at once or wrap a glob or set of paths into an array to run them within a single worker process. All paths are seen as relative from the config file path.
 
 Type: `(String | String[])[]`<br /> Default: `[]`
 
 ### exclude
 
-مستثنی کردن spec ها برای اجرای تست. All paths are seen as relative from the config file path.
+Exclude specs from test execution. All paths are seen as relative from the config file path.
 
 Type: `String[]`<br /> Default: `[]`
 
 ### suites
 
-یک شی که مجموعه های مختلفی را توصیف می کند، که سپس می توانید با گزینه `--suite` در `wdio` CLI آن را مشخص کنید.
+An object describing various of suites, which you can then specify with the `--suite` option on the `wdio` CLI.
 
 Type: `Object`<br /> Default: `{}`
 
 ### capabilities
 
-مانند بخش `capabilities` که در بالا توضیح داده شد. با این تفاوت که گزینه ای وجود دارد برای تعیین گزینه [`multiremote`](multiremote) شیء و یا چندین WebDriver Session در یک آرایه برای اجرای موازی.
+The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
 
-می‌توانید همان قابلیت‌های خاص سازنده و مرورگر را که [در بالا](/docs/configuration#capabilities) توضیح داده شده است، اعمال کنید.
+You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
 
 Type: `Object`|`Object[]`<br /> Default: `[{ 'wdio:maxInstances': 5, browserName: 'firefox' }]`
 
 ### maxInstances
 
-حداکثر تعداد کل worker ها در حال اجرا موازی.
+Maximum number of total parallel running workers.
 
-__توجه:__ ممکن است عددی به زیادی `100`باشد، زمانی که تست ها بر روی برخی از فروشندگان خارجی مانند دستگاه های Sauce Labs انجام می شود. در آنجا، تست ها بر روی یک ماشین واحد آزمایش نمی شوند، بلکه روی چندین ماشین مجازی تست می شوند. اگر قرار است آزمایش‌ها روی یک ماشین توسعه محلی اجرا شوند، از عددی استفاده کنید که معقول‌تر است، مانند `4`، `3`، یا `5`. اساساً، این تعداد مرورگرهایی است که همزمان راه‌اندازی می‌شوند و آزمایش‌های شما را همزمان اجرا می‌کنند، بنابراین بستگی به میزان رم دستگاه شما و تعداد برنامه‌های دیگر در حال اجرا در دستگاه شما دارد.
+__Note:__ that it may be a number as high as `100`, when the tests are being performed on some external vendors such as Sauce Labs's machines. There, the tests are not tested on a single machine, but rather, on multiple VMs. If the tests are to be run on a local development machine, use a number that is more reasonable, such as `3`, `4`, or `5`. Essentially, this is the number of browsers that will be concurrently started and running your tests at the same time, so it depends on how much RAM there is on your machine, and how many other apps are running on your machine.
 
 You can also apply `maxInstances` within your capability objects using the `wdio:maxInstances` capability. This will limit the amount of parallel sessions for that particular capability.
 
@@ -257,37 +271,37 @@ Type: `Number`<br /> Default: `100`
 
 ### maxInstancesPerCapability
 
-حداکثر تعداد کل worker ها در حال اجرا موازی در هر capability.
+Maximum number of total parallel running workers per capability.
 
 Type: `Number`<br /> Default: `100`
 
 ### injectGlobals
 
-اضافه کردن متغییر های جهانی WebdriverIO (مثلاً `browser`، `$` و `$$`). اگر روی `false`تنظیم کنید، باید آنها را از `@wdio/globals` وارد کنید، به عنوان مثال:
+Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment. If you set to `false`, you should import from `@wdio/globals`, e.g.:
 
 ```ts
 import { browser, $, $$, expect } from '@wdio/globals'
 ```
 
-توجه: WebdriverIO کاری با تزریق متغیر های جهانی فریمورک ها ندارد.
+Note: WebdriverIO doesn't handle injection of test framework specific globals.
 
 Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-اگر می خواهید اجرای تست‌های شما پس از تعداد معینی از شکست متوقف شود، از `bail` استفاده کنید. (به طور پیش‌فرض روی `0`قرار می‌گیرد، که همه تست‌ها را بدون توجه به هر اتفاقی اجرا می‌کند.) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
+If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
 ### specFileRetries
 
-تعداد دفعات امتحان مجدد کل یک فایل زمانی که به طور کلی ناموفق است.
+The number of times to retry an entire specfile when it fails as a whole.
 
 Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDelay
 
-چند ثانیه تأخیر بین تلاش‌های مجدد فایل تست
+Delay in seconds between the spec file retry attempts
 
 Type: `Number`<br /> Default: `0`
 
@@ -325,13 +339,13 @@ Type: `Boolean`<br /> Default: `false`
 
 ### services
 
-سرویس ها کار خاصی را به عهده می گیرند که شما نمی خواهید از آن مراقبت کنید. آنها تقریباً بدون هیچ تلاشی تنظیمات تست شما را بهبود می بخشند.
+Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
 
 Type: `String[]|Object[]`<br /> Default: `[]`
 
 ### framework
 
-فریمورک تستی را برای استفاده توسط اجرا کننده تست WDIO تعریف می‌کند.
+Defines the test framework to be used by the WDIO testrunner.
 
 Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 
