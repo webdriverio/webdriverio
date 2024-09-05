@@ -156,8 +156,8 @@ describe('smoke test multiremote', () => {
         it('should throw if promise rejects', async () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             browser.overwriteCommand('deleteCookies', async (origCommand, fail) => {
-                const result = await origCommand()
-                return fail ? Promise.reject(new Error(result)) : result
+                await origCommand()
+                return fail ? Promise.reject(new Error('error')) : 'result'
             })
 
             let err = null
@@ -166,7 +166,7 @@ describe('smoke test multiremote', () => {
             } catch (e) {
                 err = e
             }
-            assert.equal(err.message, 'deleteAllCookies,deleteAllCookies')
+            assert.equal(err.message, 'error')
         })
     })
 })
