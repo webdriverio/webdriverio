@@ -2,6 +2,39 @@ import { browser, expect } from '@wdio/globals'
 import type { local } from 'webdriver'
 
 describe('bidi e2e test', () => {
+    describe('execute', () => {
+        it('generates a nice stack trace', async function () {
+            /**
+             * bidi feature
+             */
+            if (browser.capabilities.browserName === 'safari') {
+                return this.skip()
+            }
+
+            const result = await browser.execute(async () => {
+                const a: number = 1
+                console.log('Hello Bidi')
+                if (a) {
+                    if (a) {
+                        throw new Error('Hello Bidi')
+                    }
+                }
+            }).catch(err => err)
+            expect(result.stack).toContain('14 │ if(a){if(a){throw new Error("Hello Bidi")}}}')
+
+            const result2 = await browser.execute(async () => {
+                const a: number = 1
+                console.log('Hello Bidi')
+                if (a) {
+                    if (a) {
+                        await Promise.reject(new Error('Hello Bidi'))
+                    }
+                }
+            }).catch(err => err)
+            expect(result2.stack).toContain('25 │ if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
+        })
+    })
+
     it('can send bidi commands', async function () {
         /**
          * skip in case of Safari
@@ -199,39 +232,6 @@ describe('bidi e2e test', () => {
                 }, 3000)
             }, 1, 2, 3, 4)
             expect(result).toBe(29)
-        })
-    })
-
-    describe('execute', () => {
-        it('generates a nice stack trace', async function () {
-            /**
-             * bidi feature
-             */
-            if (browser.capabilities.browserName === 'safari') {
-                return this.skip()
-            }
-
-            const result = await browser.execute(async () => {
-                const a: number = 1
-                console.log('Hello Bidi')
-                if (a) {
-                    if (a) {
-                        throw new Error('Hello Bidi')
-                    }
-                }
-            }).catch(err => err)
-            expect(result.stack).toContain('207 │ if(a){if(a){throw new Error("Hello Bidi")}}}')
-
-            const result2 = await browser.execute(async () => {
-                const a: number = 1
-                console.log('Hello Bidi')
-                if (a) {
-                    if (a) {
-                        await Promise.reject(new Error('Hello Bidi'))
-                    }
-                }
-            }).catch(err => err)
-            expect(result2.stack).toContain('218 │ if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
         })
     })
 })
