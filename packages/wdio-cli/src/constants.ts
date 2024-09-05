@@ -148,7 +148,6 @@ export const SUPPORTED_PACKAGES = {
         { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' },
         { name: 'google-Chat', value: 'wdio-google-chat-service$--$google-chat' },
         { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service$--$qmate-service' },
-        { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai' },
         { name: 'robonut', value: 'wdio-robonut-service$--$robonut' },
         { name: 'qunit', value: 'wdio-qunit-service$--$qunit' }
     ]
