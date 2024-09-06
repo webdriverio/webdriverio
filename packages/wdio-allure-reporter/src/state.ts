@@ -2,19 +2,54 @@ import type { ReporterRuntime } from 'allure-js-commons/sdk/reporter'
 import type {
     WDIOHookEndMessage,
     WDIOHookStartMessage,
-    WDIORuntimeMessage,
+    WDIORuntimeMessage, WDIOSuiteStartMessage,
     WDIOTestEndMessage, WDIOTestInfoMessage,
     WDIOTestStartMessage
 } from './types.js'
-import { last } from './utils.js'
+import { findLast, findLastIndex, last } from './utils.js'
 
 export class AllureReportState {
+    _messages: WDIORuntimeMessage[] = []
     _scopesStack: string[] = []
     _executablesStack: string[] = []
     _fixturesStack: string[] = []
     _currentTestUuid?: string
 
     constructor(private allureRuntime: ReporterRuntime) {
+    }
+
+    get hasPendingSuite() {
+        const lastSuiteStartMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:suite:start')
+        const lastSuiteEndMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:suite:end')
+
+        return lastSuiteStartMessage > lastSuiteEndMessage
+    }
+
+    get hasPendingTest() {
+        const lastTestStartMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:test:start')
+        const lastTestEndMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:test:end')
+
+        return lastTestStartMessage > lastTestEndMessage
+    }
+
+    get hasPendingStep() {
+        const lastStepStartMessage = findLastIndex(this._messages, ({ type }) => type === 'step_start')
+        const lastStepEndMessage = findLastIndex(this._messages, ({ type }) => type === 'step_stop')
+
+        return lastStepStartMessage > lastStepEndMessage
+    }
+
+    get hasPendingHook() {
+        const lastHookStartMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:hook:start')
+        const lastHookEndMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:hook:end')
+
+        return lastHookStartMessage > lastHookEndMessage
+    }
+
+    get currentFeature() {
+        const featureSuiteMessage = findLast(this._messages, ({ type, data }) => type === 'allure:suite:start' && Boolean(data.feature)) as WDIOSuiteStartMessage | undefined
+
+        return featureSuiteMessage?.data?.name
     }
 
     _openScope() {
@@ -47,8 +82,14 @@ export class AllureReportState {
         this._openScope()
     }
 
-    _endSuite() {
+    _endSuite(write: boolean = false) {
         this._closeScope()
+
+        if (!write) {
+            return
+        }
+
+        this._writeLastTest()
     }
 
     _startTest(message: WDIOTestStartMessage) {
@@ -58,9 +99,9 @@ export class AllureReportState {
 
         this._openScope()
 
-        const { title, start } = message.data
+        const { name, start } = message.data
         const testUuid = this.allureRuntime.startTest({
-            name: title,
+            name,
             start
         }, this._scopesStack)
 
@@ -77,8 +118,8 @@ export class AllureReportState {
         })
     }
 
-    _endTest(message: WDIOTestEndMessage) {
-        const { status, stage, end, error } = message.data
+    _endTest(message: WDIOTestEndMessage, write: boolean = false) {
+        const { status, stage, stop, duration, statusDetails } = message.data
         const testUuid = this._executablesStack.pop()!
 
         this.allureRuntime.updateTest(testUuid, (r) => {
@@ -88,27 +129,30 @@ export class AllureReportState {
                 r.stage = stage
             }
 
-            if (error) {
-                r.statusDetails = {
-                    message: error.message,
-                    trace: error.stack
-                }
+            if (statusDetails) {
+                r.statusDetails = statusDetails
             }
 
         })
-        this.allureRuntime.stopTest(testUuid, { stop: end })
+        this.allureRuntime.stopTest(testUuid, { stop, duration })
+
+        if (!write) {
+            return
+        }
+
+        this._writeLastTest()
     }
 
     _startHook(message: WDIOHookStartMessage) {
-        const { title, type, start } = message.data
+        const { name, type, start } = message.data
 
-        if (/after all/i.test(title) && this._currentTestUuid) {
+        if (/after all/i.test(name) && this._currentTestUuid) {
             this._writeLastTest()
         }
 
         const scopeUuid = last(this._scopesStack)
         const hookUuid = this.allureRuntime.startFixture(scopeUuid, type, {
-            name: title,
+            name,
             start
         })!
 
@@ -116,7 +160,7 @@ export class AllureReportState {
     }
 
     _endHook(message: WDIOHookEndMessage) {
-        const { status, statusDetails, stop } = message.data
+        const { status, statusDetails, duration, stop } = message.data
         const hookUuid = this._fixturesStack.pop()!
 
         this.allureRuntime.updateFixture(hookUuid, (r) => {
@@ -126,18 +170,26 @@ export class AllureReportState {
                 r.statusDetails = statusDetails
             }
         })
-        this.allureRuntime.stopFixture(hookUuid, { stop })
+        this.allureRuntime.stopFixture(hookUuid, { stop, duration })
     }
 
-    processRuntimeMessage(messages: WDIORuntimeMessage[]) {
-        messages.forEach((message) => {
+    pushRuntimeMessage(message: WDIORuntimeMessage) {
+        this._messages.push(message)
+    }
+
+    processRuntimeMessage() {
+        // console.log(this._messages)
+
+        this._messages.forEach((message, i) => {
+            const lastMessage = i === this._messages.length - 1
+
             if (message.type === 'allure:suite:start') {
                 this._startSuite()
                 return
             }
 
             if (message.type === 'allure:suite:end') {
-                this._endSuite()
+                this._endSuite(lastMessage)
                 return
             }
 
@@ -152,7 +204,7 @@ export class AllureReportState {
             }
 
             if (message.type === 'allure:test:end') {
-                this._endTest(message)
+                this._endTest(message, lastMessage)
                 return
             }
 

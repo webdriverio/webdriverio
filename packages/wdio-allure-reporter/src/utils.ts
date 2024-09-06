@@ -1,10 +1,10 @@
 import stripAnsi from 'strip-ansi'
-import type { HookStats, TestStats, SuiteStats, CommandArgs, Tag } from '@wdio/reporter'
+import type { HookStats, TestStats, CommandArgs, Tag } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
-import type { FixtureResult, Label, TestResult } from 'allure-js-commons'
+import type { FixtureResult, Label, StatusDetails, TestResult } from 'allure-js-commons'
 import { Status, Status as AllureStatus } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
-import { allHooks, eachHooks, linkPlaceholder } from './constants.js'
+import { allHooks, DEFAULT_CID, eachHooks, linkPlaceholder } from './constants.js'
 import type { WDIORunnable } from './types.js'
 
 /**
@@ -123,6 +123,19 @@ export const getErrorFromFailedTest = (
     }
 
     return test.error
+}
+
+export const getStatusDetailsFromFailedTest = (test: TestStats | HookStats): StatusDetails | undefined => {
+    const error = getErrorFromFailedTest(test)
+
+    if (!error) {
+        return undefined
+    }
+
+    return {
+        message: error.message,
+        trace: error.stack,
+    }
 }
 
 /**
@@ -261,24 +274,10 @@ export const convertSuiteTagsToLabels = (tags: string[] | Tag[]): Label[] => {
     }, [])
 }
 
-// export const setAllureIds = (test: AllureTest | undefined, suite: AllureGroup | undefined) => {
-//     if (!test) {
-//         return
-//     }
-//     const params = test.wrappedItem.parameters.slice()
-//     const paramsPart = params
-//         .sort((a, b) => a.name?.localeCompare(b.name))
-//         .map(it => it.name + it.value)
-//         .join('')
-//     const hash = md5(`${suite?.name}${test.wrappedItem.name}${paramsPart}`)
-//     test.historyId = hash
-//     if ('labels' in test.wrappedItem) {
-//         if (test.wrappedItem.labels?.find((label: Label) => label.name === LabelName.AS_ID)) {
-//             return
-//         }
-//     }
-//
-//     test.testCaseId = hash
-// }
-
 export const last = <T>(arr: T[]): T => arr[arr.length - 1]
+
+export const getCid = () => {
+    const cid = process.env.WDIO_WORKER
+
+    return cid ?? DEFAULT_CID
+}

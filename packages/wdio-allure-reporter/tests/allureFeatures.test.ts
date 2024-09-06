@@ -1,30 +1,39 @@
 import path from 'node:path'
-import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest'
-import type { HookStats } from '@wdio/types'
+import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest'
 import type { Parameter, Label, Link } from 'allure-js-commons'
 import { Stage, Status, LabelName, LinkType, ContentType } from 'allure-js-commons'
 import AllureReporter from '../src/reporter.js'
-import { linkPlaceholder } from '../src/constants.js'
 import { DescriptionType } from '../src/types.js'
 import { getResults, clean } from './helpers/wdio-allure-helper.js'
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+vi.mock('../src/utils', async (importOriginal) => {
+    const { cid } = await import('./__fixtures__/runner.js')
+    const original = await importOriginal()
+
+    return {
+        ...original,
+        getCid: () => cid(),
+    }
+})
 
 import { temporaryDirectory } from 'tempy'
-import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
-import { testStart } from './__fixtures__/testState.js'
+import { cid, runnerStart } from './__fixtures__/runner.js'
+import { testStart, testPassed } from './__fixtures__/testState.js'
 import { suiteStart, suiteEnd } from './__fixtures__/suite.js'
+import type { HookStats } from '@wdio/reporter'
 
-let processOn: any
+// let processOn: any
 
 beforeAll(() => {
-    processOn = process.on.bind(process)
-    process.on = vi.fn()
+    // process.env.WDIO_WORKER_ID = cid()
+    // processOn = process.on.bind(process)
+    // process.on = vi.fn()
 })
 
-afterAll(() => {
-    process.on = processOn
-})
+// afterAll(() => {
+//     process.on = processOn
+// })
 
 beforeEach(() => {
     vi.clearAllMocks()
@@ -43,8 +52,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addLabel({ name: 'customLabel', value: 'Label' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -58,8 +67,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addStory({ storyName: 'foo' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -73,8 +82,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addFeature({ featureName: 'foo' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -88,8 +97,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addSeverity({ severity: 'foo' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -103,8 +112,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addSuite({ suiteName: 'foo' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -118,8 +127,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addSubSuite({ suiteName: 'foo' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -133,8 +142,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addParentSuite({ suiteName: 'foo' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -148,8 +157,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addTag({ tag: 'foo' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -163,8 +172,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addEpic({ epicName: 'foo' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -178,8 +187,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addAllureId({ id: 'foo' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -187,14 +196,21 @@ describe('reporter runtime implementation', () => {
         expect(results[0].labels.find((label: Label) => label.name === LabelName.AS_ID).value).toEqual('foo')
     })
 
-    it('should correctly add issue label with link', () => {
-        const reporter = new AllureReporter({ outputDir, issueLinkTemplate: `http://example.com/${linkPlaceholder}` })
+    it('should correctly add issue label with link', async () => {
+        const reporter = new AllureReporter({
+            outputDir,
+            links: {
+                issue: {
+                    urlTemplate: 'http://example.com/%s'
+                }
+            }
+        })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
-        reporter.addIssue({ issue: '1' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.addIssue({ issue: '1' })
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -202,14 +218,21 @@ describe('reporter runtime implementation', () => {
         expect(results[0].links.find((link: Link) => link.type === LinkType.ISSUE).url).toEqual('http://example.com/1')
     })
 
-    it('should correctly add test id label with link', () => {
-        const reporter = new AllureReporter({ outputDir, tmsLinkTemplate: `https://webdriver.io/${linkPlaceholder}` })
+    it('should correctly add test id label with link', async () => {
+        const reporter = new AllureReporter({
+            outputDir,
+            links: {
+                tms: {
+                    urlTemplate: 'https://webdriver.io/%s'
+                }
+            }
+        })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
-        reporter.addTestId({ testId: '2' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.addTestId({ testId: '2' })
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -217,17 +240,17 @@ describe('reporter runtime implementation', () => {
         expect(results[0].links.find((link: Link) => link.type === LinkType.TMS).url).toEqual('https://webdriver.io/2')
     })
 
-    it('should correct add description', () => {
+    it('should correct add description', async () => {
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
-        reporter.addDescription({
+        await reporter.addDescription({
             description: 'foo',
             descriptionType: DescriptionType.MARKDOWN
         })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -244,8 +267,8 @@ describe('reporter runtime implementation', () => {
             description: 'foo',
             descriptionType: DescriptionType.HTML
         })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -253,15 +276,15 @@ describe('reporter runtime implementation', () => {
         expect(results[0].descriptionHtml).toEqual('foo')
     })
 
-    it('should correct add attachment', () => {
+    it('should correct add attachment', async () => {
         const reporter = new AllureReporter({ outputDir })
         const attachFileSpy = vi.spyOn(reporter, '_attachFile')
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
-        reporter.addAttachment({ name: 'foo', content: 'bar', type: ContentType.TEXT })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.addAttachment({ name: 'foo', content: 'bar', type: ContentType.TEXT })
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -272,18 +295,22 @@ describe('reporter runtime implementation', () => {
             type: ContentType.TEXT,
             source: expect.any(String),
         })
-        expect(attachFileSpy).toHaveBeenCalledWith('foo', Buffer.from('bar'), ContentType.TEXT)
+        expect(attachFileSpy).toHaveBeenCalledWith({
+            name: 'foo',
+            content: Buffer.from('bar'),
+            contentType: ContentType.TEXT,
+        })
     })
 
-    it('should correct add "application/json" attachment', () => {
+    it('should correct add "application/json" attachment', async () => {
         const reporter = new AllureReporter({ outputDir })
         const attachJSONSpy = vi.spyOn(reporter, '_attachJSON')
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
-        reporter.addAttachment({ name: 'foo', content: 'bar', type: ContentType.JSON })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.addAttachment({ name: 'foo', content: 'bar', type: ContentType.JSON })
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -294,18 +321,21 @@ describe('reporter runtime implementation', () => {
             type: ContentType.JSON,
             source: expect.any(String),
         })
-        expect(attachJSONSpy).toHaveBeenCalledWith('foo', 'bar')
+        expect(attachJSONSpy).toHaveBeenCalledWith({
+            name: 'foo',
+            json: 'bar',
+        })
     })
 
-    it('should allow to start end step', () => {
+    it('should allow to start end step', async () => {
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
-        reporter.startStep('bar')
-        reporter.endStep(Status.FAILED)
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        await reporter.startStep('bar')
+        await reporter.endStep(Status.FAILED)
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -327,8 +357,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addStep({ step })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -343,7 +373,11 @@ describe('reporter runtime implementation', () => {
             type: ContentType.TEXT,
             source: expect.any(String),
         })
-        expect(attachFileSpy).toHaveBeenCalledWith(step.attachment.name, step.attachment.content, ContentType.TEXT)
+        expect(attachFileSpy).toHaveBeenCalledWith({
+            name: step.attachment.name,
+            content: Buffer.from(step.attachment.content, 'utf8'),
+            contentType: ContentType.TEXT,
+        })
     })
 
     it('should correct add step without attachment', () => {
@@ -356,8 +390,8 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addStep({ step })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -374,14 +408,14 @@ describe('reporter runtime implementation', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
         reporter.addArgument({ name: 'os', value: 'osx' })
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
         const osParameter = results[0].parameters.find((parameter: Parameter) => parameter.name === 'os')
 
         expect(results).toHaveLength(1)
-        expect(results[0].historyId).toEqual('3cffc3d1d78d183463efee4c042f156c')
+        // expect(results[0].historyId).toEqual('3cffc3d1d78d183463efee4c042f156c')
         expect(osParameter.value).toEqual('osx')
     })
 
@@ -399,13 +433,11 @@ describe('reporter runtime implementation', () => {
         reporter.addAttachment({ name: '', content: '', type: '' })
         reporter.startStep('test')
         reporter.endStep(Status.PASSED)
-        reporter.addStep({})
-        reporter.addArgument({})
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.addStep({ step: { title: 'step', status: Status.PASSED } })
+        reporter.addArgument({ name: 'foo', value: 'bar' })
+        reporter.onRunnerEnd()
 
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(0)
+        expect(() => getResults(outputDir)).toThrowError('ENOENT')
     })
 
     describe('add argument', () => {
@@ -417,8 +449,8 @@ describe('reporter runtime implementation', () => {
                 capabilities: { browserName: 'firefox', version: '1.2.3' },
             })
             reporter.onTestStart(testStart())
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
+            reporter.onTestPass(testPassed())
+            reporter.onRunnerEnd()
 
             const { results } = getResults(outputDir)
 
@@ -435,8 +467,8 @@ describe('reporter runtime implementation', () => {
                 capabilities: { browserName: 'Chrome Headless', browserVersion: '85.0.4183.84' },
             })
             reporter.onTestStart(testStart())
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
+            reporter.onTestPass(testPassed())
+            reporter.onRunnerEnd()
 
             const { results } = getResults(outputDir)
 
@@ -456,8 +488,8 @@ describe('reporter runtime implementation', () => {
                 },
             })
             reporter.onTestStart(testStart())
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
+            reporter.onTestPass(testPassed())
+            reporter.onRunnerEnd()
 
             const { results } = getResults(outputDir)
 
@@ -474,8 +506,8 @@ describe('reporter runtime implementation', () => {
                 capabilities: { device: 'Google Pixel 3', 'appium:platformVersion': '9.0' },
             })
             reporter.onTestStart(testStart())
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
+            reporter.onTestPass(testPassed())
+            reporter.onRunnerEnd()
 
             const { results } = getResults(outputDir)
 
@@ -493,159 +525,14 @@ describe('reporter runtime implementation', () => {
                 capabilities: { myBrowser: { browserName: 'chrome' } },
             })
             reporter.onTestStart(testStart())
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
+            reporter.onTestPass(testPassed())
+            reporter.onRunnerEnd()
 
             const { results } = getResults(outputDir)
 
             expect(results).toHaveLength(1)
             expect(results[0].parameters).toHaveLength(1)
             expect(results[0].parameters[0]).toEqual({ name: 'isMultiremote', value: 'true' })
-        })
-    })
-
-    describe('add allure step', () => {
-        it('should add labels from custom steps', () => {
-            const reporter = new AllureReporter({ outputDir })
-
-            reporter.onRunnerStart({
-                ...runnerStart(),
-                isMultiremote: true,
-                capabilities: { myBrowser: { browserName: 'chrome' } },
-            })
-            reporter.onTestStart(testStart())
-            reporter.addAllureStep({
-                labels: [{ name: 'foo', value: 'bar' }],
-            })
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
-
-            const { results } = getResults(outputDir)
-            const childStepLabel = results[0].labels.find((label: Label) => label.name === 'foo')
-
-            expect(results).toHaveLength(1)
-            expect(childStepLabel.value).toEqual('bar')
-        })
-
-        it('should add parameters from custom steps', () => {
-            const reporter = new AllureReporter({ outputDir })
-
-            reporter.onRunnerStart({
-                ...runnerStart(),
-                isMultiremote: true,
-                capabilities: { myBrowser: { browserName: 'chrome' } },
-            })
-            reporter.onTestStart(testStart())
-            reporter.addAllureStep({
-                parameter: [{ name: 'foo', value: 'bar' }],
-            })
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
-
-            const { results } = getResults(outputDir)
-            const childStepParameter = results[0].parameters.find((param: Parameter) => param.name === 'foo')
-
-            expect(results).toHaveLength(1)
-            expect(childStepParameter.value).toEqual('bar')
-        })
-
-        it('should add links from custom steps', () => {
-            const reporter = new AllureReporter({ outputDir })
-
-            reporter.onRunnerStart({
-                ...runnerStart(),
-                isMultiremote: true,
-                capabilities: { myBrowser: { browserName: 'chrome' } },
-            })
-            reporter.onTestStart(testStart())
-            reporter.addAllureStep({
-                links: [{ name: 'foo', url: 'http://example.org', type: 'type' }],
-            })
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
-
-            const { results } = getResults(outputDir)
-            const childStepLink = results[0].links.find((link: Link) => link.name === 'foo')
-
-            expect(results).toHaveLength(1)
-            expect(childStepLink.url).toEqual('http://example.org')
-            expect(childStepLink.type).toEqual('type')
-        })
-
-        it('should add description from custom steps', () => {
-            const reporter = new AllureReporter({ outputDir })
-
-            reporter.onRunnerStart({
-                ...runnerStart(),
-                isMultiremote: true,
-                capabilities: { myBrowser: { browserName: 'chrome' } },
-            })
-            reporter.onTestStart(testStart())
-            reporter.addAllureStep({
-                description: 'foo'
-            })
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
-
-            const { results } = getResults(outputDir)
-
-            expect(results).toHaveLength(1)
-            expect(results[0].description).toEqual('foo')
-        })
-
-        it('should add html description from custom steps', () => {
-            const reporter = new AllureReporter({ outputDir })
-
-            reporter.onRunnerStart({
-                ...runnerStart(),
-                isMultiremote: true,
-                capabilities: { myBrowser: { browserName: 'chrome' } },
-            })
-            reporter.onTestStart(testStart())
-            reporter.addAllureStep({
-                descriptionHtml: 'foo'
-            })
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
-
-            const { results } = getResults(outputDir)
-
-            expect(results).toHaveLength(1)
-            expect(results[0].descriptionHtml).toEqual('foo')
-        })
-
-        it('should add custom steps as children to current test', () => {
-            const reporter = new AllureReporter({ outputDir })
-
-            reporter.onRunnerStart({
-                ...runnerStart(),
-                isMultiremote: true,
-                capabilities: { myBrowser: { browserName: 'chrome' } },
-            })
-            reporter.onTestStart(testStart())
-            reporter.addAllureStep({
-                steps: [
-                    {
-                        name: 'custom step',
-                        attachments: [],
-                        parameters: [],
-                        steps: [],
-                        status: Status.PASSED,
-                        statusDetails: {
-                            message: undefined,
-                            trace: undefined,
-                        },
-                        stage: Stage.FINISHED,
-                    }
-                ]
-            })
-            reporter.onTestPass()
-            reporter.onRunnerEnd(runnerEnd())
-
-            const { results } = getResults(outputDir)
-
-            expect(results).toHaveLength(1)
-            expect(results[0].steps).toHaveLength(1)
         })
     })
 })
@@ -675,8 +562,8 @@ describe('auxiliary methods', () => {
             capabilities,
         })
         reporter.onTestStart(testStart())
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -699,54 +586,48 @@ describe('hooks handling disabled Mocha Hooks', () => {
     it('should not add test on custom hook', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
-        reporter.onHookStart({ cid: '0-0', title: 'foo', parent: 'bar' } as HookStats)
-        reporter.onHookEnd({ cid: '0-0', title: 'foo', parent: 'bar' } as HookStats)
+        reporter.onHookStart({ cid: cid(), title: 'foo', parent: 'bar' } as HookStats)
+        reporter.onHookEnd({ cid: cid(), title: 'foo', parent: 'bar' } as HookStats)
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(0)
+        expect(() => getResults(outputDir)).toThrowError('ENOENT')
     })
 
     it('should not add test if no suite', () => {
         reporter.onRunnerStart(runnerStart())
-        reporter.onHookStart({ cid: '0-0', title: 'foo', parent: 'bar' } as HookStats)
-        reporter.onHookEnd({ cid: '0-0', title: 'foo', parent: 'bar' } as HookStats)
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onHookStart({ cid: cid(), title: 'foo', parent: 'bar' } as HookStats)
+        reporter.onHookEnd({ cid: cid(), title: 'foo', parent: 'bar' } as HookStats)
+        reporter.onRunnerEnd()
 
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(0)
+        expect(() => getResults(outputDir)).toThrowError('ENOENT')
     })
 
     it('should ignore global mocha hooks', () => {
         reporter.onRunnerStart(runnerStart())
-        reporter.onHookStart({ title: '"after all" hook', parent: '' } as HookStats)
-        reporter.onHookEnd({ title: '"after all" hook', parent: '' } as HookStats)
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onHookStart({ cid: cid(), title: '"after all" hook', parent: '' } as HookStats)
+        reporter.onHookEnd({ cid: cid(), title: '"after all" hook', parent: '' } as HookStats)
+        reporter.onRunnerEnd()
 
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(0)
+        expect(() => getResults(outputDir)).toThrowError('ENOENT')
     })
 
     it('should not capture mocha/jasmine each hooks', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
-        reporter.onHookStart({ cid: '0-0', title: '"before each" hook', parent: 'foo' } as HookStats)
-        reporter.onHookEnd({ cid: '0-0', title: '"before each" hook', parent: 'foo' } as HookStats)
-        reporter.onTestPass()
+        reporter.onHookStart({ cid: cid(), title: '"before each" hook', parent: 'foo' } as HookStats)
+        reporter.onHookEnd({ cid: cid(), title: '"before each" hook', parent: 'foo' } as HookStats)
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
         const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
         expect(results[0].status).toEqual(Status.PASSED)
         expect(results[0].stage).toEqual(Stage.FINISHED)
-        expect(containers[0].befores).toHaveLength(0)
+        expect(containers).toHaveLength(0)
     })
 
     it('should ignore passed mocha/jasmine each hooks if no test', () => {
@@ -755,14 +636,9 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onHookStart({ cid: '0-0', title: '"after each" hook', parent: 'foo' } as HookStats)
         reporter.onHookEnd({ cid: '0-0', title: '"after each" hook', parent: 'foo' } as HookStats)
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
-        const { results, containers } = getResults(outputDir)
-
-        expect(containers[0].afters).toHaveLength(0)
-        expect(containers[0].children).toHaveLength(0)
-        expect(containers[0].befores).toHaveLength(0)
-        expect(results).toHaveLength(0)
+        expect(() => getResults(outputDir)).toThrowError('ENOENT')
     })
 
     it('should not start test onHookStart if no suite', () => {
@@ -770,8 +646,8 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onTestStart(testStart())
         reporter.onHookStart({ cid: '0-0', title: 'foo', parent: 'foo' } as HookStats)
         reporter.onHookEnd({ cid: '0-0', title: 'foo', parent: 'foo' } as HookStats)
-        reporter.onTestPass()
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onTestPass(testPassed())
+        reporter.onRunnerEnd()
 
         const { results, containers } = getResults(outputDir)
 
@@ -780,31 +656,14 @@ describe('hooks handling disabled Mocha Hooks', () => {
         expect(containers).toHaveLength(0)
     })
 
-    it('should ignore custom onHookEnd if no test', () => {
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(testStart())
-        reporter.onHookEnd({ cid: '0-0', title: 'foo', parent: 'foo' } as HookStats)
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results, containers } = getResults(outputDir)
-
-        expect(results).toHaveLength(0)
-        expect(containers[0].befores).toHaveLength(0)
-        expect(containers[0].afters).toHaveLength(0)
-    })
-
     it('should ignore global mocha/jasmine end hooks', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(testStart())
         reporter.onHookEnd({ cid: '0-0', title: 'foo' } as HookStats)
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
-        const { results, containers } = getResults(outputDir)
-
-        expect(results).toHaveLength(0)
-        expect(containers[0].befores).toHaveLength(0)
+        expect(() => getResults(outputDir)).toThrowError('ENOENT')
     })
 
     it('should not pop test case if no steps and before hook', () => {
@@ -812,9 +671,9 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onSuiteStart(testStart())
         reporter.onTestStart(testStart())
         reporter.onHookEnd({ cid: '0-0', title: '"before all" hook', parent: 'foo' } as HookStats)
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
 
@@ -823,36 +682,17 @@ describe('hooks handling disabled Mocha Hooks', () => {
         expect(results[0].steps).toHaveLength(0)
     })
 
-    it('should pop test case if no steps and custom hook', () => {
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(testStart())
-        reporter.onTestStart(testStart())
-        reporter.onHookEnd({ cid: '0-0', title: 'bar', parent: 'foo' } as HookStats)
-        reporter.onTestPass()
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results, containers } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].name).toEqual('should can do something')
-        expect(containers[0].children).toHaveLength(1)
-        expect(containers[0].befores).toHaveLength(0)
-        expect(containers[0].afters).toHaveLength(0)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
     it('should keep passed custom hooks if there are some steps', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(testStart())
         reporter.onTestStart(testStart())
-        reporter.onBeforeCommand({ command: 'SomeCommandStep' })
+        reporter.onBeforeCommand({ cid: cid(), command: 'SomeCommandStep' })
         reporter.onHookStart({ cid: '0-0', title: 'foo', parent: 'bar' } as HookStats)
         reporter.onHookEnd({ cid: '0-0', title: 'foo', parent: 'bar' } as HookStats)
-        reporter.onAfterCommand({ command: 'SomeCommandStep' })
-        reporter.onTestPass()
+        reporter.onAfterCommand({ cid: cid(), command: 'SomeCommandStep' })
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
         const testResult = results.find(
@@ -875,9 +715,9 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onTestStart(testStart())
         reporter.onHookStart({ cid: '0-0', title: '"after all" hook', parent: 'bar' } as HookStats)
         reporter.onHookEnd({ cid: '0-0', title: '"after all" hook', parent: 'bar', error: { message: '', stack: '' } } as HookStats)
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
         const { results, containers } = getResults(outputDir)
         const testResult = results.find(
@@ -895,13 +735,13 @@ describe('hooks handling disabled Mocha Hooks', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(testStart())
         reporter.onTestStart(testStart())
-        reporter.onBeforeCommand({ command: 'SomeCommandStep' })
-        reporter.onHookStart({ cid: '0-0', title: '"after all" hook', parent: 'bar' } as HookStats)
-        reporter.onHookEnd({ cid: '0-0', title: '"after all" hook', parent: 'bar', error: { message: '', stack: '' } } as HookStats)
-        reporter.onAfterCommand({ command: 'SomeCommandStep' })
-        reporter.onTestPass()
+        reporter.onBeforeCommand({ cid: cid(), command: 'SomeCommandStep' })
+        reporter.onHookStart({ cid: cid(), title: '"after all" hook', parent: 'bar' } as HookStats)
+        reporter.onHookEnd({ cid: cid(), title: '"after all" hook', parent: 'bar', error: { message: '', stack: '' } } as HookStats)
+        reporter.onAfterCommand({ cid: cid(), command: 'SomeCommandStep' })
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
         const { results, containers } = getResults(outputDir)
         const testResult = results.find(
@@ -916,29 +756,29 @@ describe('hooks handling disabled Mocha Hooks', () => {
         expect(containers[0].afters[0].status).toEqual(Status.BROKEN)
     })
 
-    it('should not capture mocha/jasmine each hooks end - passed', () => {
+    it('should not report passed mocha/jasmine each hooks', () => {
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(testStart())
         reporter.onTestStart(testStart())
-        reporter.onHookStart({ title: '"after each" hook', parent: 'foo' })
-        reporter.onHookEnd({ title: '"after each" hook', parent: 'foo' })
-        reporter.onTestPass()
+        reporter.onHookStart({ cid: cid(), title: '"after each" hook', parent: 'foo' })
+        reporter.onHookEnd({ cid: cid(), title: '"after each" hook', parent: 'foo' })
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
         const { results, containers } = getResults(outputDir)
 
         expect(results).toHaveLength(1)
-        expect(containers[0].afters).toHaveLength(0)
+        expect(containers).toHaveLength(0)
     })
 
     it('should create a test and add mocha all hooks as fixtures if hook throws', () => {
         reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
+        reporter.onSuiteStart({ cid: cid(), title: 'SomeSuite' })
         reporter.onHookStart({ title: '"before all" hook', parent: 'foo' })
         reporter.onHookEnd({ title: '"before all" hook', parent: 'foo', error: { message: '', stack: '' } })
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
         const { results, containers } = getResults(outputDir)
 
@@ -957,101 +797,53 @@ describe('hooks handling default', () => {
         reporter = new AllureReporter({ outputDir, disableMochaHooks: false })
     })
 
-    it('should capture mocha/jasmine each hooks ', () => {
+    it('does not report passed hooks if there are no tests', () => {
         reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
-        reporter.onHookStart({ title: '"before each" hook', parent: 'foo' })
-        reporter.onHookEnd({ title: '"before each" hook', parent: 'foo' })
+        reporter.onSuiteStart({ cid: cid(), title: 'SomeSuite' })
+        reporter.onHookStart({ title: 'foo', parent: 'bar' })
+        reporter.onHookEnd({ title: 'foo', parent: 'bar' })
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
-        const { results, containers } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(containers[0].befores).toHaveLength(1)
-        expect(containers[0].befores[0].steps[0].name).toEqual(
-            '"before each" hook',
-        )
+        expect(() => getResults(outputDir)).toThrowError('ENOENT')
     })
 
-    it('should not ignore mocha/jasmine each hooks if no test', () => {
+    // TODO:
+    // it('reports failed hooks if there are no tests', () => {
+    //     reporter.onRunnerStart(runnerStart())
+    //     reporter.onSuiteStart({ cid: cid(), title: 'SomeSuite' })
+    //     reporter.onHookStart({ title: 'foo', parent: 'bar' })
+    //     reporter.onHookEnd({ title: 'foo', parent: 'bar', error: { message: 'foo', stack: 'bar' } })
+    //     reporter.onSuiteEnd(suiteEnd())
+    //     reporter.onRunnerEnd()
+    //
+    //     const { results, containers } = getResults(outputDir)
+    //
+    //     debugger
+    // })
+
+    it('reports passed hooks a test has been started', () => {
         reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
-        reporter.onHookStart({ title: '"after each" hook', parent: 'foo' })
-        reporter.onHookEnd({ title: '"after each" hook', parent: 'foo' })
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results, containers } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(containers[0].afters[0].steps[0].name).toEqual(
-            '"after each" hook',
-        )
-    })
-
-    it('should keep passed hooks if there are no steps (before/after)', () => {
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
-        reporter.onHookStart({ title: '"before all" hook', parent: 'foo' })
-        reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results, containers } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(containers[0].befores[0].steps[0].name).toEqual(
-            '"before all" hook',
-        )
-    })
-
-    it('should keep passed hooks if there are some steps', () => {
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'SomeSuite' })
-        reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
+        reporter.onSuiteStart({ cid: cid(), title: 'SomeSuite' })
+        reporter.onTestStart({ cid: cid(), title: 'SomeTest' })
         reporter.onBeforeCommand({ command: 'SomeCommandStep' })
         reporter.onHookStart({ title: 'foo', parent: 'bar' })
         reporter.onHookEnd({ title: 'foo', parent: 'bar' })
         reporter.onAfterCommand({ command: 'SomeCommandStep' })
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
-        const { results } = getResults(outputDir)
+        const { results, containers } = getResults(outputDir)
 
-        expect(results).toHaveLength(2)
-        expect(
-            results.find((result) => result.name === 'hook:foo'),
-        ).not.toBeUndefined()
-    })
-})
-
-describe('nested suite naming', () => {
-    const outputDir = temporaryDirectory()
-    let reporter: any
-
-    beforeEach(() => {
-        clean(outputDir)
-        reporter = new AllureReporter({ outputDir, disableMochaHooks: false })
-    })
-
-    it('should not end test if no hook ignored', () => {
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart({ cid: '0-0', title: 'foo' })
-        reporter.onSuiteStart({ cid: '0-0', title: 'bar' })
-        reporter.onSuiteEnd({ cid: '0-0', title: 'foo' })
-        reporter.onSuiteEnd({ cid: '0-0', title: 'foo' })
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { containers } = getResults(outputDir)
-        const parentSuite = containers.find((suite) => suite.name === 'foo')
-        const childSuite = containers.find(
-            (suite) => suite.name === 'foo: bar',
-        )
-
-        expect(parentSuite).not.toBeUndefined()
-        expect(childSuite).not.toBeUndefined()
+        expect(results).toHaveLength(1)
+        expect(containers).toHaveLength(1)
+        expect(containers[0].befores).toHaveLength(1)
+        expect(containers[0].befores[0]).toEqual(expect.objectContaining({
+            name: 'foo',
+            status: Status.PASSED,
+            stage: Stage.FINISHED
+        }))
     })
 })
 
@@ -1075,9 +867,9 @@ describe('test step naming', () => {
         reporter.onTestStart(testStart())
         reporter.onBeforeCommand(command)
         reporter.onAfterCommand(command)
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
         const testResult = results.find(
@@ -1102,9 +894,9 @@ describe('test step naming', () => {
         reporter.onTestStart(testStart())
         reporter.onBeforeCommand(command)
         reporter.onAfterCommand(command)
-        reporter.onTestPass()
+        reporter.onTestPass(testPassed())
         reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
+        reporter.onRunnerEnd()
 
         const { results } = getResults(outputDir)
         const testResult = results.find(

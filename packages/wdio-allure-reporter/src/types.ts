@@ -1,10 +1,11 @@
 import type { Status as AllureStatus, ContentType, Stage, StatusDetails } from 'allure-js-commons'
 import type { RuntimeMessage } from 'allure-js-commons/sdk'
+import type { ReporterConfig } from 'allure-js-commons/sdk/reporter'
 
 /**
  * When you add a new option, please also update the docs at ./packages/wdio-allure-reporter/README.md
  */
-export interface AllureReporterOptions {
+export interface AllureReporterOptions extends ReporterConfig {
     /**
      * defaults to `./allure-results`. After a test run is complete, you will find that this directory
      * has been populated with an `.xml` file for each spec, plus a number of `.txt` and `.png`
@@ -185,7 +186,8 @@ declare global {
 export type WDIOSuiteStartMessage = {
     type: 'allure:suite:start'
     data: {
-        title: string
+        name: string
+        feature?: boolean
     }
 }
 
@@ -197,8 +199,7 @@ export type WDIOSuiteEndMessage = {
 export type WDIOTestStartMessage = {
     type: 'allure:test:start'
     data: {
-        title: string
-        fullTitle: string
+        name: string
         start: number
     }
 }
@@ -214,25 +215,17 @@ export type WDIOTestEndMessage = {
     type: 'allure:test:end'
     data: {
         status: AllureStatus
-        end: number
+        statusDetails?: StatusDetails
+        stop?: number
+        duration?: number
         stage?: Stage
-        error?: Error
     }
 }
-
-// TODO: maybe we don't need this
-// export type WDIOStepStartMessage = RuntimeMessage<'allure:step:start'> & {
-//
-// }
-//
-// export type WDIOStepEndMessage = RuntimeMessage<'allure:step:end'> & {
-//
-// }
 
 export type WDIOHookStartMessage = {
     type: 'allure:hook:start'
     data: {
-        title: string
+        name: string
         type: 'before' | 'after'
         start: number
     }
@@ -243,7 +236,8 @@ export type WDIOHookEndMessage = {
     data: {
         status: AllureStatus
         statusDetails?: StatusDetails
-        stop: number
+        stop?: number
+        duration?: number
     }
 }
 
