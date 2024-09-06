@@ -17,13 +17,13 @@ export default function customElementWrapper () {
                 parentNode = parentNode.parentNode
             }
             console.debug('[WDIO]', 'newShadowRoot', this, parentNode, parentNode === document)
-            return origConnectedCallback && origConnectedCallback.call(this)
+            return origConnectedCallback?.call(this)
         }
 
         const origDisconnectedCallback = Constructor.prototype.disconnectedCallback
         Constructor.prototype.disconnectedCallback = function(this: HTMLElement) {
             console.debug('[WDIO]', 'removeShadowRoot', this)
-            return origDisconnectedCallback && origDisconnectedCallback.call(this)
+            return origDisconnectedCallback?.call(this)
         }
         return origFn(name, Constructor, options)
     }
