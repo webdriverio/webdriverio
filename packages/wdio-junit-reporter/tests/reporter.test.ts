@@ -374,9 +374,7 @@ describe('wdio-junit-reporter', () => {
         const suite = Object.values(suitesLog)[0] as SuiteStats
         reporter.onSuiteStart(suite)
         const test1 = suite.tests[0]
-        test1.cid = '0-0'
         const test2 = suite.tests[1]
-        test2.cid = '0-1'
         reporter.onTestStart(test1)
         reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => {})
         reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => {})
