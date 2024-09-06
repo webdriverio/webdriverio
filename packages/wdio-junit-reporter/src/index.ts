@@ -41,7 +41,7 @@ class JunitReporter extends WDIOReporter {
 
         const processObj: any = process
         if (this._addConsoleLogs) {
-            processObj.stdout.write = this._appendConsoleLog
+            processObj.stdout.write = this._appendConsoleLog.bind(this)
         }
     }
 
@@ -52,7 +52,7 @@ class JunitReporter extends WDIOReporter {
     onTestStart(test: TestStats) {
         // Reset stdout when a test starts
         this._currentTest = test
-        this._testToConsoleOutput[test.cid] = ''
+        this._testToConsoleOutput[test.uid] = ''
     }
 
     onRunnerEnd (runner: RunnerStats) {
@@ -61,9 +61,9 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _appendConsoleLog(chunk: string, encoding: BufferEncoding, callback: ((err?: Error) => void)) {
-        if (this._currentTest?.cid) {
+        if (this._currentTest?.uid) {
             if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
-                this._testToConsoleOutput[this._currentTest.cid] = (this._testToConsoleOutput[this._currentTest.cid] ?? '') + '\n' + chunk
+                this._testToConsoleOutput[this._currentTest.uid] = (this._testToConsoleOutput[this._currentTest.uid] ?? '') + chunk
             }
         }
         return this._originalStdoutWrite(chunk, encoding, callback)
@@ -309,7 +309,21 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _getStandardOutput(test: TestStats) {
-        return (this._addConsoleLogs ? (this._testToConsoleOutput[test.cid] + '\n\n...Command output...\n\n') : '') + this._getCommandStandardOutput(test)
+        let consoleOutput = ''
+        if (this._addConsoleLogs) {
+            consoleOutput = this._testToConsoleOutput[test.uid] ?? ''
+        }
+        const commandText = this._getCommandStandardOutput(test)
+        let result = ''
+        if (consoleOutput !== '') {
+            result += consoleOutput
+        }
+        if (commandText !== '' && consoleOutput !== '') {
+            result += '\n...command output...\n\n'
+        }
+        result += commandText
+
+        return result
     }
 
     private _getCommandStandardOutput(test: TestStats) {
