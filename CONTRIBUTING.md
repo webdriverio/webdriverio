@@ -163,14 +163,14 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 If you start making changes to specific packages, make sure you listen to file changes and transpile the code every time you press save. To do that for all packages, run:
 
 ```sh
-npm run watch
+npm run dev
 ```
 
 If you only work on a single package, you can watch only for that one by calling:
 
 ```sh
-# e.g. `$ pnpm run watch wdio-runner`
-$ pnpm run watch <package-name>
+# e.g. `$ pnpm run dev wdio-runner`
+$ pnpm run dev <package-name>
 ```
 
 It is also a good idea to run vitest in watch mode while developing on a single package to see if changes affect any tests:

@@ -36,7 +36,7 @@
   "postCreateCommand": "npm install && npm run setup",
   "waitFor": "postCreateCommand",
   "postAttachCommand": {
-    "WebdriverIO Development Environment": "npm run watch",
+    "WebdriverIO Development Environment": "npm run dev",
     "Preview of the Documentation Page": "cd website && npm install && npm start -- --host 0.0.0.0",
     "Code Coverage Overview": "npm run test:unit && cd coverage && http-server -p 8000"
   },
