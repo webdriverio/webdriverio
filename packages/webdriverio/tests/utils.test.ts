@@ -239,7 +239,7 @@ describe('utils', () => {
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 false,
                 '.foobar',
                 undefined
@@ -254,7 +254,7 @@ describe('utils', () => {
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 false,
                 '.foobar',
                 scope
@@ -360,7 +360,7 @@ describe('utils', () => {
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 true,
                 '.foobar',
                 undefined
@@ -376,7 +376,7 @@ describe('utils', () => {
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 true,
                 '.foobar',
                 scope
