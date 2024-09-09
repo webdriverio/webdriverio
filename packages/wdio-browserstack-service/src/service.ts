@@ -72,7 +72,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (process.env.BROWSERSTACK_TURBOSCALE) {
             this._turboScale = process.env.BROWSERSTACK_TURBOSCALE === 'true'
         }
-        process.env.BROWSERSTACK_TURBOSCALE_INTERNAL = this._turboScale + ''
+        process.env.BROWSERSTACK_TURBOSCALE_INTERNAL = String(this._turboScale)
 
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
@@ -154,15 +154,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 if (this._observability) {
                     patchConsoleLogs()
 
-                    process.env.BROWSERSTACK_OBSERVABILITY_PRODUCT = this._isAppAutomate() ? 'app-automate' : (process.env.BROWSERSTACK_TURBOSCALE_INTERNAL === 'true' ? 'turboscale' : 'automate')
-
                     this._insightsHandler = new InsightsHandler(
                         this._browser,
                         this._browser.capabilities as Capabilities.Capabilities,
-                        this._isAppAutomate(),
                         this._browser.sessionId as string,
                         this._config.framework,
-                        this._caps
+                        this._caps,
+                        this._options
                     )
                     await this._insightsHandler.before()
                 }

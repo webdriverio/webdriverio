@@ -24,8 +24,9 @@ import {
     o11yClassErrorHandler,
     removeAnsiColors,
     getFailureObject, GitMetaData, isObjectEmpty,
+    getObservabilityProduct
 } from './util'
-import type { TestData, TestMeta, PlatformMeta, CurrentRunInfo, StdLog } from './types'
+import type { TestData, TestMeta, PlatformMeta, CurrentRunInfo, StdLog, BrowserstackConfig, BrowserstackOptions } from './types'
 import Listener from './testOps/listener'
 import { TESTOPS_SCREENSHOT_ENV } from './constants'
 
@@ -48,19 +49,25 @@ class _InsightsHandler {
     private _userCaps?: Capabilities.RemoteCapability = {}
     private listener = Listener.getInstance()
 
-    constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
+    constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, sessionId?: string, private _framework?: string, _userCaps?: Capabilities.RemoteCapability, _options?: BrowserstackConfig & BrowserstackOptions) {
+        this._userCaps = _userCaps  
+        
         this._platformMeta = {
             browserName: browserCaps?.browserName,
             browserVersion: browserCaps?.browserVersion,
             platformName: browserCaps?.platformName,
             caps: browserCaps,
             sessionId: sessionId,
-            product: process.env.BROWSERSTACK_OBSERVABILITY_PRODUCT
+            product: getObservabilityProduct(_options, this._isAppAutomate())
         }
 
-        this._userCaps = _userCaps
-
         this.registerListeners()
+    }
+
+    _isAppAutomate(): boolean {
+        const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
+        const desiredCapabilities = (this._userCaps ?? {})  as Capabilities.DesiredCapabilities
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!browserDesiredCapabilities.app || !!desiredCapabilities.app || !!desiredCapabilities['appium:options']?.app
     }
 
     registerListeners() {
