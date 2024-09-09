@@ -18,7 +18,7 @@ import type { Capabilities, Options } from '@wdio/types'
 
 import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
-import { SUPPORTED_BROWSERNAMES } from '../constants.js'
+import { DEFAULT_HOSTNAME, SUPPORTED_BROWSERNAMES } from '../constants.js'
 
 export type ChromedriverParameters = Partial<InstallOptions> & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
 declare global {
@@ -38,7 +38,7 @@ export async function startWebDriver (options: Options.WebDriver) {
      * in case we are running unit tests, just return
      */
     if (process.env.WDIO_SKIP_DRIVER_SETUP) {
-        options.hostname = '0.0.0.0'
+        options.hostname = DEFAULT_HOSTNAME
         options.port = 4321
         return
     }
@@ -179,7 +179,7 @@ export async function startWebDriver (options: Options.WebDriver) {
     await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
         .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
 
-    options.hostname = '0.0.0.0'
+    options.hostname = DEFAULT_HOSTNAME
     options.port = port
     log.info(`Started ${driver} in ${Date.now() - start}ms on port ${port}`)
     return driverProcess

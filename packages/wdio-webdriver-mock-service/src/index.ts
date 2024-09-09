@@ -67,6 +67,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('asyncIterationScenario', this.asyncIterationScenario.bind(this))
         this._browser.addCommand('parentElementChaining', this.parentNextPreviousElementChaining.bind(this))
         this._browser.addCommand('refetchElementScenario', this.refetchElementScenario.bind(this))
+        this._browser.addCommand('executeMemLeakScenario', this.executeMemLeakScenario.bind(this))
     }
 
     clickScenario() {
@@ -237,8 +238,22 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.elementClick(ELEMENT_ID).reply(200, { value: null })
     }
 
+    executeMemLeakScenario(executeCalls: number) {
+        this.nockReset()
+
+        this._mock.command.executeScript().times(executeCalls).reply(200, {
+            statusCode: 200,
+            value: 'mockResponse',
+        })
+
+        // due to memory leaks in nock, we have to reset it from within the test
+        // before measuring our actual memory usage
+        return () => this.nockReset()
+    }
+
     nockReset() {
         nock.cleanAll()
+        nock.abortPendingRequests()
         this.init()
     }
 }
