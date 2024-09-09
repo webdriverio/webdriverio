@@ -179,10 +179,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    async onWorkerStart (cid: any, caps: any) {
+    async onWorkerStart (cid: any, caps: any, specs: any, args: any) {
         try {
             if (this._options.percy && this._percyBestPlatformCaps) {
                 const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
+                args.percyCaptureMode = this._percy?.percyCaptureMode
                 if (isThisBestPercyPlatform) {
                     process.env.BEST_PLATFORM_CID = cid
                 }
@@ -287,8 +288,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildIdentifier: this._buildIdentifier
             })
         }
-
-        if (this._options.percy) {
+        const shouldSetupPercy = this._options.percy || (this._options.percy === undefined && this._options.app)
+        if (shouldSetupPercy) {
             try {
                 const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
                 this._percyBestPlatformCaps = bestPlatformPercyCaps

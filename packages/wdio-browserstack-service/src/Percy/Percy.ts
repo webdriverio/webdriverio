@@ -26,12 +26,14 @@ class Percy {
     #projectName: string | undefined = undefined
 
     isProcessRunning = false
+    percyCaptureMode: string | undefined = undefined
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
         this.#options = options
         this.#config = config
         this.#isApp = Boolean(options.app)
         this.#projectName = bsConfig.projectName
+        this.percyCaptureMode = options.percyCaptureMode
     }
 
     async #getBinaryPath(): Promise<string> {
@@ -56,12 +58,13 @@ class Percy {
     async start() {
         const binaryPath: string = await this.#getBinaryPath()
         const logStream = fs.createWriteStream(this.#logfile, { flags: 'a' })
-        const token = await this.fetchPercyToken()
+        const { enabled, token, percyCaptureMode } = await this.fetchPercyToken()
         const configPath = await this.createPercyConfig()
 
-        if (!token) {
+        if (!token || !enabled) {
             return false
         }
+        this.percyCaptureMode = percyCaptureMode
 
         const commandArgs = [`${this.#isApp ? 'app:exec' : 'exec'}:start`]
 
@@ -114,7 +117,11 @@ class Percy {
 
     async fetchPercyToken() {
         const projectName = this.#projectName
-
+        let data = {
+            enabled: false,
+            token: null,
+            percyCaptureMode: undefined
+        }
         try {
             const type = this.#isApp ? 'app' : 'automate'
             const response = await nodeRequest(
@@ -127,11 +134,15 @@ class Percy {
                 'https://api.browserstack.com'
             )
             PercyLogger.debug('Percy fetch token success : ' + response.token)
-            return response.token
+            data = {
+                enabled: response.success,
+                token: response.token,
+                percyCaptureMode: response.percy_capture_mode
+            }
         } catch (err: any) {
             PercyLogger.error(`Percy unable to fetch project token: ${err}`)
-            return null
         }
+        return data
     }
 
     async createPercyConfig() {
