@@ -1331,3 +1331,13 @@ export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner 
     // Check if there are any capabilities and if at least one has a browser name
     return capValues.length > 0 && capValues.some(hasBrowserName)
 }
+
+export function isTurboScale(options: (BrowserstackConfig & Options.Testrunner) | undefined): boolean {
+    return Boolean(options?.turboScale)
+}
+
+export function getObservabilityProduct(options: (BrowserstackConfig & Options.Testrunner) | undefined, isAppAutomate: boolean | undefined): string {
+    return isAppAutomate
+        ? 'app-automate'
+        : (isTurboScale(options) ? 'turboscale' : 'automate')
+}
