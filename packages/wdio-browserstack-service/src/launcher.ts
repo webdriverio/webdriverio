@@ -179,11 +179,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    async onWorkerStart (cid: any, caps: any, specs: any, args: any) {
+    async onWorkerStart (cid: any, caps: any) {
         try {
             if (this._options.percy && this._percyBestPlatformCaps) {
                 const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
-                args.percyCaptureMode = this._percy?.percyCaptureMode
+                // args.percyCaptureMode = this._percy?.percyCaptureMode
+                process.env.PERCY_CAPTURE_MODE = this._percy?.percyCaptureMode
                 if (isThisBestPercyPlatform) {
                     process.env.BEST_PLATFORM_CID = cid
                 }
