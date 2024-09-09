@@ -94,6 +94,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     }
                     this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                     this._buildName = capability['build']?.toString()
+                    // @ts-ignore
+                    this._projectName = capability['project']?.toString()
                 } else {
                     capability['bstack:options'].wdioService = bstackServiceVersion
                     this._buildName = capability['bstack:options'].buildName
@@ -125,6 +127,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         }
                     }
                     this._buildIdentifier = (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
+                    // @ts-ignore
+                    this._buildName = (caps.capabilities as Capabilities.Capabilities)['build']
+                    // @ts-ignore
+                    this._projectName = (caps.capabilities as Capabilities.Capabilities)['project']
                 } else {
                     const bstackOptions = (caps.capabilities as Capabilities.Capabilities)['bstack:options']
                     bstackOptions!.wdioService = bstackServiceVersion
