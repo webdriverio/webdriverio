@@ -50,8 +50,8 @@ class _InsightsHandler {
     private listener = Listener.getInstance()
 
     constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, sessionId?: string, private _framework?: string, _userCaps?: Capabilities.RemoteCapability, _options?: BrowserstackConfig & BrowserstackOptions) {
-        this._userCaps = _userCaps  
-        
+        this._userCaps = _userCaps
+
         this._platformMeta = {
             browserName: browserCaps?.browserName,
             browserVersion: browserCaps?.browserVersion,

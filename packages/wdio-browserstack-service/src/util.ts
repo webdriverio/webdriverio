@@ -1333,11 +1333,11 @@ export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner 
 }
 
 export function isTurboScale(options: (BrowserstackConfig & Options.Testrunner) | undefined): boolean {
-  return Boolean(options?.turboScale)
+    return Boolean(options?.turboScale)
 }
 
 export function getObservabilityProduct(options: (BrowserstackConfig & Options.Testrunner) | undefined, isAppAutomate: boolean | undefined): string {
-  return isAppAutomate
-      ? 'app-automate'
-      : (isTurboScale(options) ? 'turboscale' : 'automate')
+    return isAppAutomate
+        ? 'app-automate'
+        : (isTurboScale(options) ? 'turboscale' : 'automate')
 }
