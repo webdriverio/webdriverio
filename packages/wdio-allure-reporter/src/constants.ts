@@ -3,7 +3,6 @@ export const events = {
     addTestInfo: 'allure:addTestInfo',
     startStep: 'allure:startStep',
     endStep: 'allure:endStep',
-    addStep: 'allure:addStep',
 } as const
 
 export const DEFAULT_CID = 'default'

@@ -1,24 +1,27 @@
 import {
-    Status,
+    allureId,
+    attachment as allureAttachment,
+    ContentType,
+    description,
+    descriptionHtml,
+    epic,
+    feature,
+    historyId,
+    issue,
     label,
     link,
-    allureId,
-    feature,
-    epic,
-    tag,
-    severity,
     owner,
-    issue,
-    tms,
-    suite,
-    subSuite,
-    parentSuite,
     parameter,
-    description,
+    parentSuite,
+    severity,
+    Status,
     step as allureStep,
     story,
-    historyId,
-    testCaseId, descriptionHtml, attachment,
+    subSuite,
+    suite,
+    tag,
+    testCaseId,
+    tms
 } from 'allure-js-commons'
 import { events } from '../constants.js'
 
@@ -177,7 +180,7 @@ export async function addEnvironment (name: string, value: string) {
  * @param {string} descriptionText - description for test
  * @param {string} descriptionType - description type 'text'\'html'\'markdown'
  */
-export async function addDescription (descriptionText: string, descriptionType: string) {
+export async function addDescription (descriptionText: string, descriptionType?: string) {
     if (descriptionType === 'html') {
         await descriptionHtml(descriptionText)
         return
@@ -191,17 +194,17 @@ export async function addDescription (descriptionText: string, descriptionType: 
  * @name addAttachment
  * @param {string} name         - attachment file name
  * @param {*} content           - attachment content
- * @param {string=} mimeType    - attachment mime type
+ * @param {string=} type - attachment mime type
  */
 export async function addAttachment (name: string, content: string | Buffer | object, type: string) {
     if (content instanceof Buffer) {
-        await attachment(name, content, type)
+        await allureAttachment(name, content, type)
         return
     }
 
     const contentString = typeof content === 'string' ? content : JSON.stringify(content)
 
-    await attachment(name, contentString, type)
+    await allureAttachment(name, contentString, type)
 }
 
 /**
@@ -244,7 +247,7 @@ export async function startStep (title: string) {
 /**
  * End current allure step
  * @name endStep
- * @param {StepStatus} [status='passed'] - step status
+ * @param {status} [status='passed'] - step status
  */
 export async function endStep (status: Status = Status.PASSED) {
     if (!Object.values(Status).includes(status)) {
@@ -257,28 +260,32 @@ export async function endStep (status: Status = Status.PASSED) {
  * Create allure step
  * @name addStep
  * @param {string} title - step name in report
- * @param {object} [attachmentObject={}] - attachment for step
- * @param {string} attachmentObject.content - attachment content
- * @param {string} [attachmentObject.name='attachment'] - attachment name
- * @param {string} [attachmentObject.type='text/plain'] - attachment type
+ * @param {object} [attachment={}] - attachment for step
+ * @param {string} attachment.content - attachment content
+ * @param {string} [attachment.name='attachment'] - attachment name
+ * @param {string} [attachment.type='text/plain'] - attachment type
  * @param {string} [status='passed'] - step status
  */
 export async function addStep (
     title: string,
-    {
-        content,
-        name = 'attachment',
-        type = 'text/plain'
-    }: any = {},
+    attachment: { content: string, name?: string, type?: ContentType } | undefined = undefined,
     status: Status = Status.PASSED
 ) {
     if (!Object.values(Status).includes(status)) {
         throw new Error(`Step status must be ${Object.values(Status).join(' or ')}. You tried to set "${status}"`)
     }
 
-    const step = content ? { title, attachment: { content, name, type }, status } : { title, status }
+    tellReporter(events.startStep, title)
 
-    tellReporter(events.addStep, { step })
+    if (attachment?.content) {
+        await allureAttachment(
+            attachment.name || 'Attachment',
+            Buffer.from(attachment.content, 'utf8'),
+            attachment.type || ContentType.TEXT,
+        )
+    }
+
+    tellReporter(events.endStep, status)
 }
 
 /**
@@ -295,9 +302,9 @@ export async function addStep (
  * })
  * ```
  * @param {string} name - the step name
- * @param {StepBodyFunction} body - the step content function
+ * @param {() => Promise<any>} body - the step content function
  */
-export async function step(name: string, body: any) {
+export async function step(name: string, body: () => Promise<any>) {
     await allureStep(name, body)
 }
 

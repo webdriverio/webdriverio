@@ -458,12 +458,28 @@ export default class AllureReporter extends WDIOReporter {
                 })
             }
         })
+        process.on(events.startStep, (name: string) => {
+            this._pushRuntimeMessage({
+                type: 'step_start',
+                data: {
+                    name,
+                    start: Date.now()
+                }
+            })
+        })
+        process.on(events.endStep, (status: AllureStatus) => {
+            this._pushRuntimeMessage({
+                type: 'step_stop',
+                data: {
+                    status,
+                    stop: Date.now()
+                }
+            })
+        })
         process.on(
             events.runtimeMessage,
-            (payload: { cid?: string; message: RuntimeMessage }) => {
-                const { message } = payload
-
-                this._pushRuntimeMessage(message)
+            (payload: RuntimeMessage) => {
+                this._pushRuntimeMessage(payload)
             }
         )
     }
@@ -491,7 +507,7 @@ export default class AllureReporter extends WDIOReporter {
             const message: AddTestInfoEventArgs = {
                 file: testFile,
                 testPath,
-                cid: process.env.WDIO_WORKER_ID || DEFAULT_CID
+                cid: getCid(),
             }
 
             // @ts-ignore
@@ -767,7 +783,7 @@ export default class AllureReporter extends WDIOReporter {
         this._skipTest()
     }
 
-    onBeforeCommand(command: BeforeCommandArgs & { cid?: string }) {
+    onBeforeCommand(command: BeforeCommandArgs) {
         const { disableWebdriverStepsReporting } = this._options
 
         if (disableWebdriverStepsReporting || this._isMultiremote) {
@@ -793,7 +809,7 @@ export default class AllureReporter extends WDIOReporter {
         }
     }
 
-    onAfterCommand(command: AfterCommandArgs & { cid?: string }) {
+    onAfterCommand(command: AfterCommandArgs) {
         const {
             disableWebdriverStepsReporting,
             disableWebdriverScreenshotsReporting,
