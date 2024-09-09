@@ -1339,3 +1339,13 @@ export const getErrorString = (err: unknown) => {
         return err.message // works, `e` narrowed to Error
     }
 }
+
+export function isTurboScale(options: (BrowserstackConfig & Options.Testrunner) | undefined): boolean {
+    return Boolean(options?.turboScale)
+}
+
+export function getObservabilityProduct(options: (BrowserstackConfig & Options.Testrunner) | undefined, isAppAutomate: boolean | undefined): string {
+    return isAppAutomate
+        ? 'app-automate'
+        : (isTurboScale(options) ? 'turboscale' : 'automate')
+}
