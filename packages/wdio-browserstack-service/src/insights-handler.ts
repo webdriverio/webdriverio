@@ -1,11 +1,13 @@
 import path from 'node:path'
 
-import type { Frameworks } from '@wdio/types'
+import type { Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { CucumberStore, Feature, Scenario, Step, FeatureChild, CucumberHook, CucumberHookParams, Pickle, ITestCaseHookParameter } from './cucumber-types.js'
 import TestReporter from './reporter.js'
+
+import type { BrowserstackConfig } from './types.js'
 
 import {
     frameworkSupportsHook,
@@ -20,6 +22,7 @@ import {
     isUndefined,
     o11yClassErrorHandler,
     removeAnsiColors,
+    getObservabilityProduct
 } from './util.js'
 import type {
     TestData,
@@ -53,9 +56,11 @@ class _InsightsHandler {
     private _currentTestId: string | undefined
     private _cbtQueue: Array<CBTData> = []
 
-    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
+    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.RemoteCapability, _options?: BrowserstackConfig & Options.Testrunner) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
+
+        this._userCaps = _userCaps
 
         this._platformMeta = {
             browserName: caps.browserName,
@@ -63,12 +68,16 @@ class _InsightsHandler {
             platformName: caps?.platformName,
             caps: caps,
             sessionId,
-            product: isAppAutomate ? 'app-automate' : 'automate'
+            product: getObservabilityProduct(_options, this._isAppAutomate())
         }
 
-        this._userCaps = _userCaps
-
         this.registerListeners()
+    }
+
+    _isAppAutomate(): boolean {
+        const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
+        const desiredCapabilities = (this._userCaps ?? {})  as Capabilities.DesiredCapabilities
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)
     }
 
     registerListeners() {

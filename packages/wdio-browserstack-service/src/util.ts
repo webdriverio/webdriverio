@@ -1399,6 +1399,16 @@ export const getErrorString = (err: unknown) => {
     }
 }
 
+export function isTurboScale(options: (BrowserstackConfig & Options.Testrunner) | undefined): boolean {
+    return Boolean(options?.turboScale)
+}
+
+export function getObservabilityProduct(options: (BrowserstackConfig & Options.Testrunner) | undefined, isAppAutomate: boolean | undefined): string {
+    return isAppAutomate
+        ? 'app-automate'
+        : (isTurboScale(options) ? 'turboscale' : 'automate')
+}
+
 export const hasBrowserName = (cap: Options.Testrunner): boolean => {
     if (!cap || !cap.capabilities) {
         return false
