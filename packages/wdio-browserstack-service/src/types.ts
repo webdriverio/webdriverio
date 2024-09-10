@@ -41,6 +41,10 @@ export interface TestObservabilityOptions {
     key?: string
 }
 
+export interface BrowserstackOptions extends Options.Testrunner {
+    selfHeal?: boolean;
+}
+
 export interface BrowserstackConfig {
     /**
      *`buildIdentifier` is a unique id to differentiate every execution that gets appended to

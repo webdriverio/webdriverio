@@ -1,20 +1,18 @@
 import path from 'node:path'
 import { expect, test, vi } from 'vitest'
 import ElementStore from '../src/elementstore.js'
-import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/common/ElementHandle.js'
-import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
+import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/api/ElementHandle.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/api/Frame.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const elementHandleFactory = (
     { isConnected = true, frame = Symbol() }: { isConnected?: boolean, frame?: symbol } = {}
 ) => ({
+    frame,
     id: Math.random(),
     async evaluate(cb: any) {
         return cb({ isConnected })
-    },
-    executionContext() {
-        return { _world: { frame: () => frame } }
     }
 })
 

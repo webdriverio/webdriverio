@@ -20,6 +20,7 @@ export const config = {
 
     reporters: ['spec'],
     services: ['webdriver-mock'],
+    execArgv: ['--expose-gc'],
 
     mochaOpts: {
         ui: 'bdd',

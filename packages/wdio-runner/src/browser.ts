@@ -24,6 +24,13 @@ interface TestState {
     hasViteError?: boolean
 }
 
+interface LogMessage {
+    level: string
+    message: string
+    source: string
+    timestamp: number
+}
+
 declare global {
     interface Window {
         __wdioErrors__: WDIOErrorEvent[]
@@ -34,6 +41,7 @@ declare global {
 }
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
+    #retryOutdatedOptimizeDep = false
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
 
@@ -94,6 +102,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #runSpec (spec: string, retried = false): Promise<number> {
+        this.#retryOutdatedOptimizeDep = false
         const timeout = this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
@@ -426,6 +435,38 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 events: [],
                 failures: 1,
                 ...testError
+            })
+        }
+
+        /**
+         * check for outdated optimize dep errors that occasionally happen in Vite
+         */
+        const logs = typeof browser.getLogs === 'function'
+            ? (await browser.getLogs('browser').catch(() => []))
+            : []
+        const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE') as LogMessage[]
+        if (severeLogs.length) {
+            if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
+                log.info('Retry test run due to outdated optimize dep')
+                this.#retryOutdatedOptimizeDep = true
+                return browser.refresh()
+            }
+
+            this.#resolveTestStatePromise?.({
+                events: [],
+                failures: 1,
+                hasViteError: false,
+                /**
+                 * error messages often look like:
+                 * "http://localhost:40167/node_modules/.vite/deps/expect.js?v=bca8e2f3 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
+                 */
+                errors: severeLogs.map((log) => {
+                    const [filename, message] = log.message!.split(' - ')
+                    return {
+                        filename: filename.startsWith('http') ? filename : undefined,
+                        message
+                    }
+                })
             })
         }
     }

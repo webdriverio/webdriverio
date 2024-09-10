@@ -21,6 +21,88 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.40.4 (2024-08-17)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#13379](https://github.com/webdriverio/webdriverio/pull/13379) [V8 Backport] Fix Appium Shutdown Error ([@samuelfreiberg](https://github.com/samuelfreiberg))
+
+#### Committers: 1
+- Samuel Freiberg ([@samuelfreiberg](https://github.com/samuelfreiberg))
+
+
+## v8.40.3 (2024-08-15)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#13339](https://github.com/webdriverio/webdriverio/pull/13339) V8 ai support ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#13365](https://github.com/webdriverio/webdriverio/pull/13365) [V8 PORT] In @wdio/appium-service, kill entire Appium process tree ([@samuelfreiberg](https://github.com/samuelfreiberg))
+* `wdio-protocols`
+  * [#13336](https://github.com/webdriverio/webdriverio/pull/13336) fix(@wdio/protocols): remove return value for navigateTo - v8 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#13344](https://github.com/webdriverio/webdriverio/pull/13344) Remove authuser=1 from url ([@fpereira1](https://github.com/fpereira1))
+* [#13334](https://github.com/webdriverio/webdriverio/pull/13334) docs(devtools manipulation): ([@gromanas](https://github.com/gromanas))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Filype ([@fpereira1](https://github.com/fpereira1))
+- George Romanas ([@gromanas](https://github.com/gromanas))
+- Samuel Freiberg ([@samuelfreiberg](https://github.com/samuelfreiberg))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+
+## v8.40.2 (2024-08-07)
+
+#### :bug: Bug Fix
+* `wdio-utils`, `webdriver`
+  * [#13328](https://github.com/webdriverio/webdriverio/pull/13328) Fix VPN chromedriver connection issues by changing default hostname ([@DIFSRIP](https://github.com/DIFSRIP))
+
+#### Committers: 1
+- Benjamin Warth ([@DIFSRIP](https://github.com/DIFSRIP))
+
+
+## v8.40.1 (2024-08-06)
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#13331](https://github.com/webdriverio/webdriverio/pull/13331) fix(@wdio/runner): retry on Outdated Optimize Dep Vite errors (#13330) ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.40.0 (2024-08-05)
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-devtools-service`, `webdriverio`
+  * [#13256](https://github.com/webdriverio/webdriverio/pull/13256) fix(webdriverio): update puppeteer-core ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`
+  * [#13179](https://github.com/webdriverio/webdriverio/pull/13179) fix-v8(@wdio/appium-service): add port to appium start command ([@vparlah](https://github.com/vparlah))
+* `wdio-config`
+  * [#12888](https://github.com/webdriverio/webdriverio/pull/12888) Dedupe Capabilities ([@EdmundasD](https://github.com/EdmundasD))
+* `wdio-utils`
+  * [#13208](https://github.com/webdriverio/webdriverio/pull/13208) fix(@wdio/utils): Don't download chromedriver with CHROMEDRIVER_PATH (v8 backport) ([@johnp](https://github.com/johnp))
+* `wdio-browserstack-service`
+  * [#13118](https://github.com/webdriverio/webdriverio/pull/13118) Support app inside appium options (v8) ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#13084](https://github.com/webdriverio/webdriverio/pull/13084) Fix reloadSession subsequent commands ([@ccharnkij](https://github.com/ccharnkij))
+
+#### Committers: 7
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Edmundas Daunoras ([@EdmundasD](https://github.com/EdmundasD))
+- Jochen ([@jochen-testingbot](https://github.com/jochen-testingbot))
+- Johannes Pfrang ([@johnp](https://github.com/johnp))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Volodymyr Parlah ([@vparlah](https://github.com/vparlah))
+
+
 ## v8.39.1 (2024-07-03)
 
 #### :bug: Bug Fix
