@@ -321,9 +321,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 await this.setupPercy(this._options, this._config, {
                     projectName: this._projectName
                 })
-                this.browserStackConfig.percyCaptureMode = this._percy?.percyCaptureMode
-                this.browserStackConfig.percyBuildId = this._percy?.buildId
-                process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = this._percy?.percyCaptureMode
+                this._updateBrowserStackPercyConfig()
             } catch (err: unknown) {
                 PercyLogger.error(`Error while setting up Percy ${err}`)
             }
@@ -718,6 +716,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } else {
             throw new SevereServiceError('Capabilities should be an object or Array!')
         }
+    }
+
+    _updateBrowserStackPercyConfig() {
+        this.browserStackConfig.percyCaptureMode = this._percy?.percyCaptureMode
+        this.browserStackConfig.percyBuildId = this._percy?.buildId
+        this.browserStackConfig.percy = true
+        process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = this._percy?.percyCaptureMode
     }
 
     _handleBuildIdentifier(capabilities?: Capabilities.RemoteCapabilities) {

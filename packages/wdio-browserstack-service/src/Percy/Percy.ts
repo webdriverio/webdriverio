@@ -27,7 +27,7 @@ class Percy {
 
     isProcessRunning = false
     percyCaptureMode: string | undefined = undefined
-    buildId: BigInteger | null
+    buildId: number | null
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
         this.#options = options

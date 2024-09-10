@@ -28,7 +28,7 @@ class BrowserStackConfig {
     public funnelDataSent: boolean = false
     public sdkRunID: string
     public killSignal?: string
-    public percyBuildId?: BigInteger | null
+    public percyBuildId?: number | null
 
     private constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
         this.framework = config.framework
