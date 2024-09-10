@@ -4,10 +4,8 @@ export const isCommand = function(expression: any, command: 'pause' | 'debug', i
     return (
         callee &&
         instances.some(instance =>
-            // Checking for all configured possible browser instances
-            (callee?.object?.name === instance && callee?.property?.name === command) ||
-            (callee?.object?.type === 'ThisExpression' && callee?.property?.name === instance &&
-                expression?.parent?.property?.name === command)
+            // Checking for other possible browser instances as member (customizable)
+            ((callee?.object?.name === instance || callee?.object?.property?.name === instance) && callee?.property?.name === command)
         )
     )
 }
