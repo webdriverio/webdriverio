@@ -185,8 +185,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         try {
             if (this._options.percy && this._percyBestPlatformCaps) {
                 const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
-                // args.percyCaptureMode = this._percy?.percyCaptureMode
-                process.env.PERCY_CAPTURE_MODE = this._percy?.percyCaptureMode
                 if (isThisBestPercyPlatform) {
                     process.env.BEST_PLATFORM_CID = cid
                 }
@@ -325,6 +323,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 })
                 this.browserStackConfig.percyCaptureMode = this._percy?.percyCaptureMode
                 this.browserStackConfig.percyBuildId = this._percy?.buildId
+                process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = this._percy?.percyCaptureMode
             } catch (err: unknown) {
                 PercyLogger.error(`Error while setting up Percy ${err}`)
             }
