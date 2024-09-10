@@ -27,6 +27,7 @@ class Percy {
 
     isProcessRunning = false
     percyCaptureMode: string | undefined = undefined
+    buildId: BigInteger | null
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
         this.#options = options
@@ -34,6 +35,7 @@ class Percy {
         this.#isApp = Boolean(options.app)
         this.#projectName = bsConfig.projectName
         this.percyCaptureMode = options.percyCaptureMode
+        this.buildId = null;
     }
 
     async #getBinaryPath(): Promise<string> {
@@ -48,6 +50,7 @@ class Percy {
         try {
             const resp = await nodeRequest('GET', 'percy/healthcheck', null, this.#address)
             if (resp) {
+                this.buildId = resp.build.id
                 return true
             }
         } catch (err) {

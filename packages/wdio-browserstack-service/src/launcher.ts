@@ -297,6 +297,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 await this.setupPercy(this._options, this._config, {
                     projectName: this._projectName
                 })
+                this.browserStackConfig.percyCaptureMode = this._percy?.percyCaptureMode
+                this.browserStackConfig.percyBuildId = this._percy?.buildId
             } catch (err: unknown) {
                 PercyLogger.error(`Error while setting up Percy ${err}`)
             }
