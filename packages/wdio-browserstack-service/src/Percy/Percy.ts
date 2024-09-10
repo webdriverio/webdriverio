@@ -35,7 +35,7 @@ class Percy {
         this.#isApp = Boolean(options.app)
         this.#projectName = bsConfig.projectName
         this.percyCaptureMode = options.percyCaptureMode
-        this.buildId = null;
+        this.buildId = null
     }
 
     async #getBinaryPath(): Promise<string> {
