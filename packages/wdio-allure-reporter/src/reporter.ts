@@ -1,6 +1,7 @@
 import { sep } from 'node:path'
 import type {
-    AfterCommandArgs, Argument,
+    AfterCommandArgs,
+    Argument,
     BeforeCommandArgs,
     HookStats,
     RunnerStats,
@@ -10,47 +11,25 @@ import type {
 import WDIOReporter from '@wdio/reporter'
 import { WdioTestRuntime } from './WdioTestRuntime.js'
 import type { Capabilities, Options } from '@wdio/types'
-import type { StatusDetails } from 'allure-js-commons'
+import type {
+    StatusDetails } from 'allure-js-commons'
 import {
     ContentType,
+    LabelName,
+    Stage,
+    Status as AllureStatus,
     description,
     descriptionHtml,
     issue,
+    step,
     label,
-    LabelName,
+    logStep,
     link,
     parameter,
-    Stage,
-    Status as AllureStatus,
     tms
 } from 'allure-js-commons'
 import { FileSystemWriter, getSuiteLabels, ReporterRuntime, } from 'allure-js-commons/sdk/reporter'
 import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
-import {
-    addAllureId,
-    addArgument,
-    addAttachment,
-    addDescription,
-    addEpic,
-    addFeature,
-    addHistoryId,
-    addIssue,
-    addLabel,
-    addLink,
-    addOwner,
-    addParentSuite,
-    addSeverity,
-    addStep,
-    addStory,
-    addSubSuite,
-    addSuite,
-    addTag,
-    addTestCaseId,
-    addTestId,
-    endStep,
-    startStep,
-    step,
-} from './common/api.js'
 import { AllureReportState } from './state.js'
 import {
     convertSuiteTagsToLabels,
@@ -58,7 +37,9 @@ import {
     getErrorFromFailedTest,
     getRunnablePath,
     getStatusDetailsFromFailedTest,
-    getTestStatus, isEmpty, isScreenshotCommand,
+    getTestStatus,
+    isEmpty,
+    isScreenshotCommand,
 } from './utils.js'
 import type {
     AddAllureIdEventArgs,
@@ -73,7 +54,6 @@ import type {
     AddOwnerEventArgs,
     AddParentSuiteEventArgs,
     AddSeverityEventArgs,
-    AddStepEventArgs,
     AddStoryEventArgs,
     AddSubSuiteEventArgs,
     AddSuiteEventArgs,
@@ -92,13 +72,14 @@ import { stringify } from 'csv-stringify/sync'
 export default class AllureReporter extends WDIOReporter {
     private _allureRuntime: ReporterRuntime
     private _allureState: AllureReportState
-    private _allureStatesByCid: Map<string, AllureReportState> = new Map()
     private _capabilities: Capabilities.ResolvedTestrunnerCapabilities
     private _isMultiremote?: boolean
     private _config?: Options.Testrunner
     private _options: AllureReporterOptions
     private _consoleOutput: string
     private _originalStdoutWrite: Function
+
+    allureStatesByCid: Map<string, AllureReportState> = new Map()
 
     constructor(options: AllureReporterOptions) {
         const { outputDir, resultsDir, ...rest } = options
@@ -145,28 +126,28 @@ export default class AllureReporter extends WDIOReporter {
 
     get _hasPendingSuite() {
         const cid = getCid()
-        const currentState = this._allureStatesByCid.get(cid)
+        const currentState = this.allureStatesByCid.get(cid)
 
         return currentState?.hasPendingSuite
     }
 
     get _hasPendingTest() {
         const cid = getCid()
-        const currentState = this._allureStatesByCid.get(cid)
+        const currentState = this.allureStatesByCid.get(cid)
 
         return currentState?.hasPendingTest
     }
 
     get _hasPendingStep() {
         const cid = getCid()
-        const currentState = this._allureStatesByCid.get(cid)
+        const currentState = this.allureStatesByCid.get(cid)
 
         return currentState?.hasPendingStep
     }
 
     get _hasPendingHook() {
         const cid = getCid()
-        const currentState = this._allureStatesByCid.get(cid)
+        const currentState = this.allureStatesByCid.get(cid)
 
         return currentState?.hasPendingHook
     }
@@ -181,18 +162,17 @@ export default class AllureReporter extends WDIOReporter {
     _pushRuntimeMessage(message: WDIORuntimeMessage) {
         const cid = getCid()
 
-        if (!this._allureStatesByCid.has(cid)) {
-            this._allureStatesByCid.set(cid, new AllureReportState(this._allureRuntime))
+        if (!this.allureStatesByCid.has(cid)) {
+            this.allureStatesByCid.set(cid, new AllureReportState(this._allureRuntime))
         }
 
-        this._allureStatesByCid.get(cid)!.pushRuntimeMessage(message)
+        this.allureStatesByCid.get(cid)!.pushRuntimeMessage(message)
     }
 
     _attachFile(payload: {
         name: string;
         content: Buffer;
         contentType: ContentType;
-        cid?: string;
     }) {
         const { name, content, contentType } = payload
 
@@ -229,7 +209,7 @@ export default class AllureReporter extends WDIOReporter {
         this._attachFile({
             name,
             content: Buffer.from(String(content), 'utf8'),
-            contentType: isStr ? ContentType.JSON : ContentType.TEXT,
+            contentType: ContentType.JSON,
         })
     }
 
@@ -297,7 +277,6 @@ export default class AllureReporter extends WDIOReporter {
         status: AllureStatus;
         stop: number;
         statusDetails?: StatusDetails;
-        stage?: Stage;
     }) {
         this._pushRuntimeMessage({
             type: 'step_stop',
@@ -308,7 +287,6 @@ export default class AllureReporter extends WDIOReporter {
     _skipStep() {
         this._endStep({
             status: AllureStatus.SKIPPED,
-            stage: Stage.PENDING,
             stop: Date.now(),
         })
     }
@@ -513,17 +491,6 @@ export default class AllureReporter extends WDIOReporter {
             // @ts-ignore
             process.emit(events.addTestInfo, message)
         })
-        // @ts-ignore
-        // runner.config.beforeStep.push((step: any, ctx: any) => {
-        //     const message: AddTestInfoEventArgs = {
-        //         file: ctx.uri as string,
-        //         testPath: [ctx.name, step.text],
-        //         cid: process.env.WDIO_WORKER_ID || DEFAULT_CID
-        //     }
-        //
-        //     // @ts-ignore
-        //     process.emit(events.addTestInfo, message)
-        // })
         this._config = runner.config
         this._capabilities = runner.capabilities
         this._isMultiremote = runner.isMultiremote || false
@@ -532,8 +499,8 @@ export default class AllureReporter extends WDIOReporter {
     onRunnerEnd() {
         const cid = getCid()
 
-        this._allureStatesByCid.get(cid)?.processRuntimeMessage?.()
-        this._allureStatesByCid.delete(cid)
+        this.allureStatesByCid.get(cid)?.processRuntimeMessage?.()
+        this.allureStatesByCid.delete(cid)
     }
 
     onSuiteStart(suite: SuiteStats & { start: Date }) {
@@ -1003,7 +970,7 @@ export default class AllureReporter extends WDIOReporter {
         // }
     }
 
-    //#region Runtime API
+    // TODO: remove all these methods
     async addLabel({ name, value }: AddLabelEventArgs) {
         await label(name, value)
     }
@@ -1130,29 +1097,6 @@ export default class AllureReporter extends WDIOReporter {
         await parameter(name, value)
     }
 
-    async addStep({ step }: AddStepEventArgs) {
-        this._startStep({
-            name: step.title,
-            start: Date.now(),
-        })
-
-        if (step.attachment) {
-            const { name, content, type = ContentType.TEXT } = step.attachment
-            const attachmentContent = content instanceof Buffer ? content : Buffer.from(content, 'utf8')
-
-            this._attachFile({
-                name,
-                content: attachmentContent,
-                contentType: type,
-            })
-        }
-
-        this._endStep({
-            status: step.status,
-            stop: Date.now(),
-        })
-    }
-
     async startStep(name: string) {
         this._startStep({
             name,
@@ -1167,32 +1111,7 @@ export default class AllureReporter extends WDIOReporter {
         })
     }
 
-    /**
-     * public API attached to the reporter
-     * deprecated approach and only here for backwards compatibility
-     */
-    static addFeature = addFeature
-    static addLink = addLink
-    static addEpic = addEpic
-    static addOwner = addOwner
-    static addTag = addTag
-    static addLabel = addLabel
-    static addSeverity = addSeverity
-    static addIssue = addIssue
-    static addSuite = addSuite
-    static addSubSuite = addSubSuite
-    static addParentSuite = addParentSuite
-    static addTestId = addTestId
-    static addStory = addStory
-    static addDescription = addDescription
-    static addAttachment = addAttachment
-    static startStep = startStep
-    static endStep = endStep
-    static addStep = addStep
-    static addArgument = addArgument
-    static addAllureId = addAllureId
-    static addHistoryId = addHistoryId
-    static addTestCaseId = addTestCaseId
-    static step = step
-    //#endregion
+    async addStep(name: string, body: () => Promise<any>) {
+        await step(name, body)
+    }
 }

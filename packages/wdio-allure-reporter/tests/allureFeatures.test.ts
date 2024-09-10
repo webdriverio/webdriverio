@@ -1,7 +1,14 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest'
 import type { Parameter, Label, Link } from 'allure-js-commons'
-import { Stage, Status, LabelName, LinkType, ContentType } from 'allure-js-commons'
+import {
+    Stage,
+    Status,
+    LabelName,
+    LinkType,
+    ContentType,
+    label as allureLabel,
+} from 'allure-js-commons'
 import AllureReporter from '../src/reporter.js'
 import { DescriptionType } from '../src/types.js'
 import { getResults, clean } from './helpers/wdio-allure-helper.js'
@@ -12,6 +19,7 @@ vi.mock('../src/utils', async (importOriginal) => {
     const original = await importOriginal()
 
     return {
+        // @ts-ignore
         ...original,
         getCid: () => cid(),
     }
@@ -46,12 +54,12 @@ describe('reporter runtime implementation', () => {
         clean(outputDir)
     })
 
-    it('should correct add custom label', () => {
+    it('should correct add custom label', async () => {
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
-        reporter.addLabel({ name: 'customLabel', value: 'Label' })
+        await allureLabel('customLabel', 'Label')
         reporter.onTestPass(testPassed())
         reporter.onRunnerEnd()
 
@@ -345,63 +353,6 @@ describe('reporter runtime implementation', () => {
         expect(results[0].steps[0].stage).toEqual(Stage.FINISHED)
     })
 
-    it('should correct add step with attachment', () => {
-        const step = {
-            attachment: { content: 'baz', name: 'attachment' },
-            status: Status.PASSED,
-            title: 'foo'
-        }
-        const reporter = new AllureReporter({ outputDir })
-        const attachFileSpy = vi.spyOn(reporter, '_attachFile')
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onTestStart(testStart())
-        reporter.addStep({ step })
-        reporter.onTestPass(testPassed())
-        reporter.onRunnerEnd()
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(1)
-        expect(results[0].steps[0].name).toEqual(step.title)
-        expect(results[0].steps[0].status).toEqual(step.status)
-        expect(results[0].steps[0].stage).toEqual(Stage.FINISHED)
-        expect(results[0].steps[0].attachments).toHaveLength(1)
-        expect(results[0].steps[0].attachments[0]).toEqual({
-            name: step.attachment.name,
-            type: ContentType.TEXT,
-            source: expect.any(String),
-        })
-        expect(attachFileSpy).toHaveBeenCalledWith({
-            name: step.attachment.name,
-            content: Buffer.from(step.attachment.content, 'utf8'),
-            contentType: ContentType.TEXT,
-        })
-    })
-
-    it('should correct add step without attachment', () => {
-        const step = {
-            status: Status.PASSED,
-            title: 'foo'
-        }
-        const reporter = new AllureReporter({ outputDir })
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onTestStart(testStart())
-        reporter.addStep({ step })
-        reporter.onTestPass(testPassed())
-        reporter.onRunnerEnd()
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(1)
-        expect(results[0].steps[0].name).toEqual(step.title)
-        expect(results[0].steps[0].status).toEqual(step.status)
-        expect(results[0].steps[0].stage).toEqual(Stage.FINISHED)
-    })
-
     it('should correctly add parameter', () => {
         const reporter = new AllureReporter({ outputDir })
 
@@ -417,27 +368,6 @@ describe('reporter runtime implementation', () => {
         expect(results).toHaveLength(1)
         // expect(results[0].historyId).toEqual('3cffc3d1d78d183463efee4c042f156c')
         expect(osParameter.value).toEqual('osx')
-    })
-
-    it('should do nothing if no tests run', () => {
-        const reporter = new AllureReporter({ outputDir })
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.addLabel({ name: 'foo', value: 'bar' })
-        reporter.addStory({ storyName: 'foobar' })
-        reporter.addFeature({ featureName: 'foobar' })
-        reporter.addSeverity({ severity: 'foobar' })
-        reporter.addIssue({ issue: 'foobar' })
-        reporter.addTestId({ testId: '123' })
-        reporter.addDescription({ description: 'foobar' })
-        reporter.addAttachment({ name: '', content: '', type: '' })
-        reporter.startStep('test')
-        reporter.endStep(Status.PASSED)
-        reporter.addStep({ step: { title: 'step', status: Status.PASSED } })
-        reporter.addArgument({ name: 'foo', value: 'bar' })
-        reporter.onRunnerEnd()
-
-        expect(() => getResults(outputDir)).toThrowError('ENOENT')
     })
 
     describe('add argument', () => {

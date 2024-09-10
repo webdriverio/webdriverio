@@ -9,45 +9,45 @@ import type {
 import { findLast, findLastIndex, last } from './utils.js'
 
 export class AllureReportState {
-    _messages: WDIORuntimeMessage[] = []
     _scopesStack: string[] = []
     _executablesStack: string[] = []
     _fixturesStack: string[] = []
     _currentTestUuid?: string
+    messages: WDIORuntimeMessage[] = []
 
     constructor(private allureRuntime: ReporterRuntime) {
     }
 
     get hasPendingSuite() {
-        const lastSuiteStartMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:suite:start')
-        const lastSuiteEndMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:suite:end')
+        const lastSuiteStartMessage = findLastIndex(this.messages, ({ type }) => type === 'allure:suite:start')
+        const lastSuiteEndMessage = findLastIndex(this.messages, ({ type }) => type === 'allure:suite:end')
 
         return lastSuiteStartMessage > lastSuiteEndMessage
     }
 
     get hasPendingTest() {
-        const lastTestStartMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:test:start')
-        const lastTestEndMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:test:end')
+        const lastTestStartMessage = findLastIndex(this.messages, ({ type }) => type === 'allure:test:start')
+        const lastTestEndMessage = findLastIndex(this.messages, ({ type }) => type === 'allure:test:end')
 
         return lastTestStartMessage > lastTestEndMessage
     }
 
     get hasPendingStep() {
-        const lastStepStartMessage = findLastIndex(this._messages, ({ type }) => type === 'step_start')
-        const lastStepEndMessage = findLastIndex(this._messages, ({ type }) => type === 'step_stop')
+        const lastStepStartMessage = findLastIndex(this.messages, ({ type }) => type === 'step_start')
+        const lastStepEndMessage = findLastIndex(this.messages, ({ type }) => type === 'step_stop')
 
         return lastStepStartMessage > lastStepEndMessage
     }
 
     get hasPendingHook() {
-        const lastHookStartMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:hook:start')
-        const lastHookEndMessage = findLastIndex(this._messages, ({ type }) => type === 'allure:hook:end')
+        const lastHookStartMessage = findLastIndex(this.messages, ({ type }) => type === 'allure:hook:start')
+        const lastHookEndMessage = findLastIndex(this.messages, ({ type }) => type === 'allure:hook:end')
 
         return lastHookStartMessage > lastHookEndMessage
     }
 
     get currentFeature() {
-        const featureSuiteMessage = findLast(this._messages, ({ type, data }) => type === 'allure:suite:start' && Boolean(data.feature)) as WDIOSuiteStartMessage | undefined
+        const featureSuiteMessage = findLast(this.messages, ({ type, data }) => type === 'allure:suite:start' && Boolean(data.feature)) as WDIOSuiteStartMessage | undefined
 
         return featureSuiteMessage?.data?.name
     }
@@ -174,14 +174,14 @@ export class AllureReportState {
     }
 
     pushRuntimeMessage(message: WDIORuntimeMessage) {
-        this._messages.push(message)
+        this.messages.push(message)
     }
 
     processRuntimeMessage() {
         // console.log(this._messages)
 
-        this._messages.forEach((message, i) => {
-            const lastMessage = i === this._messages.length - 1
+        this.messages.forEach((message, i) => {
+            const lastMessage = i === this.messages.length - 1
 
             if (message.type === 'allure:suite:start') {
                 this._startSuite()
