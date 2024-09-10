@@ -58,7 +58,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
         this._percy = this._options.percy
-        this._percyCaptureMode = process.env.PERCY_CAPTURE_MODE
+        this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
         if (this._observability) {
