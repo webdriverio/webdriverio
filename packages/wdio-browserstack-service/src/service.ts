@@ -43,6 +43,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
     private _insightsHandler?: InsightsHandler
+    private _percyCaptureMode: string | undefined = undefined
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
     private _turboScale
@@ -59,7 +60,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
-        this._percy = this._options.percy
+        this._percy =  process.env.BROWSERSTACK_PERCY_AUTO_ENABLED === 'true'
+        this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
         if (this._observability) {
@@ -142,7 +144,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._browser) {
             if (this._percy) {
                 this._percyHandler = new PercyHandler(
-                    this._options.percyCaptureMode,
+                    this._percyCaptureMode,
                     this._browser,
                     this._caps,
                     this._isAppAutomate(),

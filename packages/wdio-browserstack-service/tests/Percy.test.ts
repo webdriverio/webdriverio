@@ -57,7 +57,8 @@ describe('Percy Class', () => {
     describe('health check method', () => {
         it('should return true if running', async () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
-            const nodeRequestSpy = jest.spyOn(utils, 'nodeRequest').mockReturnValue(true)
+            const response = { build: { id: '123' } }
+            const nodeRequestSpy = jest.spyOn(utils, 'nodeRequest').mockReturnValue(response)
             const res = await percyInstance.healthcheck()
             expect(nodeRequestSpy).toBeCalledTimes(1)
             expect(res).toEqual(true)
@@ -72,17 +73,24 @@ describe('Percy Class', () => {
     })
 
     describe('fetchPercyToken method', () => {
-        it('should return false if running', async () => {
+        it('should return the correct response when token is fetched successfully', async () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
             percyInstance['_projectName'] = 'project_name'
             percyInstance['_isApp'] = true
             const response = {
+                success: true,
+                percy_capture_mode: 'auto',
                 token: 'token'
             }
             const nodeRequestSpy = jest.spyOn(utils, 'nodeRequest').mockReturnValue(response)
+            const expectedResponse = {
+                enabled: true,   // response.success
+                token: 'token',  // response.token
+                percyCaptureMode: 'auto'  // response.percy_capture_mode
+            }
             const res = await percyInstance.fetchPercyToken()
             expect(nodeRequestSpy).toBeCalledTimes(1)
-            expect(res).toEqual('token')
+            expect(res).toEqual(expectedResponse)
         })
     })
 
@@ -167,7 +175,11 @@ describe('Percy Class', () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
             percyInstance['_logfile'] = 'log_file'
             const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath').mockReturnValue('mock_binary_path')
-            const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue(null)
+            const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue({
+                enabled: false,
+                token: null,
+                percyCaptureMode: 'auto'
+            })
 
             const res = await percyInstance.start()
             expect(res).toEqual(false)
@@ -180,7 +192,11 @@ describe('Percy Class', () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
             percyInstance['_logfile'] = 'log_file'
             const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath').mockReturnValue('mock_binary_path')
-            const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue('token')
+            const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue({
+                enabled: true,
+                token: 'token',
+                percyCaptureMode: 'auto'
+            })
             const createPercyConfigSpy = jest.spyOn(percyInstance, 'createPercyConfig').mockReturnValue('config_path')
 
             const mockSpawn = {
@@ -216,15 +232,21 @@ describe('Percy Class', () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
             percyInstance['_logfile'] = 'log_file'
             const getBinaryPathSpy = jest.spyOn(percyInstance, 'getBinaryPath').mockReturnValue('getBinaryPath_path')
-            const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue('token')
+            const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue({
+                enabled: true,
+                token: 'token',
+                percyCaptureMode: 'auto'
+            })
             const createPercyConfigSpy = jest.spyOn(percyInstance, 'createPercyConfig').mockReturnValue('config_path')
             const sleepSpy = jest.spyOn(percyInstance, 'sleep')
+            const healthcheckSpy = jest.spyOn(percyInstance, 'healthcheck').mockResolvedValue(true)
 
             const res = await percyInstance.start()
             expect(res).toEqual(true)
             expect(getBinaryPathSpy).toBeCalledTimes(1)
             expect(fetchPercyTokenSpy).toBeCalledTimes(1)
             expect(createPercyConfigSpy).toBeCalledTimes(1)
+            expect(healthcheckSpy).toBeCalledTimes(1)
             expect(sleepSpy).toBeCalledTimes(0)
         })
     })

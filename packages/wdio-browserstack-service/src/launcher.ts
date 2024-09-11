@@ -308,13 +308,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })
         }
 
-        if (this._options.percy) {
+        const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
+        if (shouldSetupPercy) {
             try {
                 const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
                 this._percyBestPlatformCaps = bestPlatformPercyCaps
                 await this.setupPercy(this._options, this._config, {
                     projectName: this._projectName
                 })
+                this._updateBrowserStackPercyConfig()
             } catch (err: unknown) {
                 PercyLogger.error(`Error while setting up Percy ${err}`)
             }
@@ -396,9 +398,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         if (this._options.percy) {
             await this.stopPercy()
+            PercyLogger.clearLogger()
         }
-
-        PercyLogger.clearLogger()
 
         await sendFinish(this.browserStackConfig)
 
@@ -725,6 +726,22 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
             }
         }
+    }
+
+    _updateBrowserStackPercyConfig() {
+        const percyAutoEnabled = this._percy?.percyAutoEnabled ?? false
+
+        // Setting to browserStackConfig for populating data in funnel instrumentaion
+        this.browserStackConfig.percyCaptureMode = this._percy?.percyCaptureMode
+        this.browserStackConfig.percyBuildId = this._percy?.buildId
+        this.browserStackConfig.percy = Boolean(percyAutoEnabled)
+
+        // To handle stop percy build
+        this._options.percy = Boolean(percyAutoEnabled)
+
+        // To pass data to workers
+        process.env.BROWSERSTACK_PERCY_AUTO_ENABLED = percyAutoEnabled !== false ? String(percyAutoEnabled) : undefined
+        process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = this._percy?.percyCaptureMode
     }
 
     /**

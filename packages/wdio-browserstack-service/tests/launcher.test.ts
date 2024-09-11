@@ -50,7 +50,7 @@ describe('onPrepare', () => {
     })
 
     it('should not call local if browserstackLocal is undefined', async () => {
-        const service = new BrowserstackLauncher({ testObservability: false }, caps, {
+        const service = new BrowserstackLauncher({ testObservability: false, percy: false }, caps, {
             user: 'foobaruser',
             key: '12345',
             capabilities: []
@@ -64,7 +64,8 @@ describe('onPrepare', () => {
     it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
-            testObservability: false
+            testObservability: false,
+            percy: false
         }, caps, {
             user: 'foobaruser',
             key: '12345',
