@@ -313,7 +313,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildIdentifier: this._buildIdentifier
             })
         }
-        const shouldSetupPercy = this._options.percy || (this._options.percy === undefined && this._options.app)
+        const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
         if (shouldSetupPercy) {
             try {
                 const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
