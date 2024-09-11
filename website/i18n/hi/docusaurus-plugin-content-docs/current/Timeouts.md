@@ -82,7 +82,7 @@ WebdriverIO के साथ आप जिस परीक्षण ढांच
 मोचा में एक भी परीक्षण ऐसा दिखता है:
 
 ```js
-it('should login into the application', () => {
+it('should login into the application', async () => {
     await browser.url('/login')
 
     const form = await $('form')
