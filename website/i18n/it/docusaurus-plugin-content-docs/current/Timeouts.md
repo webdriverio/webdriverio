@@ -82,7 +82,7 @@ By default, the timeout is 10 seconds, which means that a single test should not
 A single test in Mocha looks like:
 
 ```js
-it('should login into the application', () => {
+it('should login into the application', async () => {
     await browser.url('/login')
 
     const form = await $('form')
