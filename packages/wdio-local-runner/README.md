@@ -45,7 +45,7 @@ export const {
 }
 ```
 
-Note this might save a lot of memory if you're running tenths of paralel executions, but care should be taken to avoid polluting the global scope. Also some third party wdio services might not work propoerly under this context.
+Note that this might save a lot of memory if you're running tenths of parallel executions, but care should be taken to avoid polluting the global scope. Also, some third-party wdio services might not work properly under this context.
 
 ---
 
