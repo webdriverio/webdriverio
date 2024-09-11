@@ -127,10 +127,12 @@ class Percy {
         }
         try {
             const type = this.#isApp ? 'app' : 'automate'
-            const response = await nodeRequest(
-                'GET',
-                `api/app_percy/get_project_token?name=${projectName}&type=${type}`,
-                {
+            let query = `api/app_percy/get_project_token?`
+            if (projectName) query += `name=${projectName}&`
+            if (type) query += `type=${type}&`
+            if (this.#options.percy !== undefined) query += `percy=${this.#options.percy}&`
+            if (this.#options.percyCaptureMode) query += `percy_capture_mode=${this.#options.percyCaptureMode}`
+            const response = await nodeRequest('GET', query, {
                     username: getBrowserStackUser(this.#config),
                     password: getBrowserStackKey(this.#config)
                 },
