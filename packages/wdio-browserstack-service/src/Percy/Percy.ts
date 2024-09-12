@@ -137,12 +137,10 @@ class Percy {
             if (type) {
                 query += `type=${type}&`
             }
-            if (this.#options.percy !== undefined) {
-                query += `percy=${this.#options.percy}&`
-            }
             if (this.#options.percyCaptureMode) {
-                query += `percy_capture_mode=${this.#options.percyCaptureMode}`
+                query += `percy_capture_mode=${this.#options.percyCaptureMode}&`
             }
+            query += `percy=${this.#options.percy}`
             const response = await nodeRequest('GET', query,
                 {
                     username: getBrowserStackUser(this.#config),
