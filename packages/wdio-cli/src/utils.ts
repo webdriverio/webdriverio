@@ -863,8 +863,9 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
 
     const types = [
         'node',
+        ...(parsedAnswers.framework === 'jasmine' ? ['jasmine'] : []),
         '@wdio/globals/types',
-        'expect-webdriverio',
+        ...(parsedAnswers.framework === 'jasmine' ? ['expect-webdriverio/jasmine'] : ['expect-webdriverio']),
         ...(parsedAnswers.serenityAdapter ? serenityTypes : [frameworkPackage.package]),
         ...(parsedAnswers.runner === 'browser' ? ['@wdio/browser-runner'] : []),
         ...servicePackages
