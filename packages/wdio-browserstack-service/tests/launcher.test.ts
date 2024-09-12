@@ -215,7 +215,7 @@ describe('onPrepare', () => {
     })
 
     it('should throw SevereServiceError if _validateApp fails', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>',  percy: false  }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = { samsungGalaxy: { capabilities: {} } }
 
@@ -229,7 +229,7 @@ describe('onPrepare', () => {
     })
 
     it('should throw SevereServiceError if fs.existsSync fails', async () => {
-        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk', custom_id: 'custom_id' },  percy: false  }
+        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk', custom_id: 'custom_id' } }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = { samsungGalaxy: { capabilities: {} } }
 
