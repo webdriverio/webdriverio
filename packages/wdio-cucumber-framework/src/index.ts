@@ -214,9 +214,11 @@ class CucumberAdapter {
         })
         this._specs = plan?.map((pl) => path.resolve(pl.uri))
 
-        // Filter the specs according to line numbers
+        // Filter features (of which at least some have line numbers) against the already filtered specs
         if (this._config.cucumberFeaturesWithLineNumbers?.length! > 0) {
-            this._specs = this._config.cucumberFeaturesWithLineNumbers!
+            this._specs = this._config.cucumberFeaturesWithLineNumbers!.filter(feature =>
+                this._specs.some(spec => path.resolve(feature).startsWith(spec))
+            )
         }
 
         this._specs = [...new Set(this._specs)]
