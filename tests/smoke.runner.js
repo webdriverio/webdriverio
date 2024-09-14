@@ -339,6 +339,31 @@ const cucumberTestrunnerByLineNumber = async () => {
 }
 
 /**
+ * Cucumber wdio testrunner -- run three features (by line number) and verify each only runs once
+ */
+const cucumberTestrunnerMultipleByLineNumber = async () => {
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberTestrunnerMultipleByLineNumber.log')
+    await fs.rm(logFile, { force: true })
+    await launch(
+        'cucumberTestrunnerMultipleByLineNumber',
+        path.resolve(__dirname, 'helpers', 'cucumber-features.conf.js'),
+        {
+            spec: [
+                path.resolve(__dirname, 'cucumber', 'features', 'test1.feature:4'),
+                path.resolve(__dirname, 'cucumber', 'features', 'test2.feature'), // deliberately w/o line number
+                path.resolve(__dirname, 'cucumber', 'features', 'test3.feature:4'),
+            ],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile,
+                }]]
+        }
+    )
+}
+
+/**
  * Cucumber fail due to failAmbiguousDefinitions
  */
 const cucumberFailAmbiguousDefinitions = async () => {
@@ -901,6 +926,7 @@ const jasmineAfterHookArgsValidation = async () => {
         mochaSpecGrouping,
         cucumberTestrunner,
         cucumberTestrunnerByLineNumber,
+        cucumberTestrunnerMultipleByLineNumber,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
         standaloneTest,
