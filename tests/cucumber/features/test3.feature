@@ -3,3 +3,6 @@ Feature: The third feature
 
     Scenario: Executed with line number
         Given test3
+
+    Scenario: Dummy Scenario which ought not be executed
+        Given test1
