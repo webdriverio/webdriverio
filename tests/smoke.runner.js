@@ -14,6 +14,9 @@ const allPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-al
 const noArgConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-no-arg.conf.js')
 const severalPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-failed.conf.js')
 
+// eslint-disable-next-line no-control-regex
+const ansiColorRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
+
 import launch from './helpers/launch.js'
 import {
     SERVICE_LOGS,
@@ -194,8 +197,7 @@ const jasmineTimeout = async () => {
         framework: 'jasmine'
     }).catch((err) => err) // error expected
 
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
     assert.ok(
         specLogs.includes('Error: Timeout - Async function did not complete within 1000ms (custom timeout)'),
         'spec was not failing due to timeout error'
@@ -233,8 +235,7 @@ const jasmineAfterAll = async () => {
         framework: 'jasmine'
     }).catch((err) => err) // error expected
 
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
 
     assert.ok(
         specLogs.includes('Testing after all hook'),
@@ -275,8 +276,7 @@ const jasmineFailSpecWithNoExpectations = async () => {
         }
     }).catch((err) => err) // error expected
 
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
     assert.ok(
         specLogs.includes('No assertions found in test'),
         'spec did not fail with the expected check'
@@ -332,8 +332,7 @@ const cucumberTestrunnerByLineNumber = async () => {
                 }]]
         }
     )
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
     assert.ok(
         specLogs.includes('Sync Execution'),
         'scenario not executed in feature by line number'
@@ -348,24 +347,49 @@ const cucumberTestrunnerByLineNumber = async () => {
  * Cucumber wdio testrunner -- run three features (by line number) and verify each only runs once
  */
 const cucumberTestrunnerMultipleByLineNumber = async () => {
-    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberTestrunnerMultipleByLineNumber.log')
-    await fs.rm(logFile, { force: true })
-    await launch(
+    const featureDir = path.resolve(__dirname, 'cucumber', 'features')
+    const log0 = path.resolve(featureDir, 'wdio-0-0-spec-reporter.log')
+    const log1 = path.resolve(featureDir, 'wdio-0-1-spec-reporter.log')
+    const log2 = path.resolve(featureDir, 'wdio-0-2-spec-reporter.log')
+    await Promise.all([fs.rm(log0, { force: true }), fs.rm(log1, { force: true }), fs.rm(log2, { force: true })])
+    const { failed, passed, skippedSpecs } = await launch(
         'cucumberTestrunnerMultipleByLineNumber',
         path.resolve(__dirname, 'helpers', 'cucumber-features.conf.js'),
         {
             spec: [
-                path.resolve(__dirname, 'cucumber', 'features', 'test1.feature:4'),
-                path.resolve(__dirname, 'cucumber', 'features', 'test2.feature'), // deliberately w/o line number
-                path.resolve(__dirname, 'cucumber', 'features', 'test3.feature:4'),
+                path.resolve(featureDir, 'test1.feature:4'),
+                // deliberately w/o line number to capture more potential bugs
+                path.resolve(featureDir, 'test2.feature'),
+                path.resolve(featureDir, 'test3.feature:4'),
             ],
             reporters: [
                 ['spec', {
-                    outputDir: __dirname,
+                    outputDir: featureDir,
                     stdout: false,
-                    logFile,
                 }]]
         }
+    )
+    assert.strictEqual(failed, 0)
+    assert.strictEqual(passed, 3)
+    assert.strictEqual(skippedSpecs, 0)
+    const [spec0, spec1, spec2] = (await Promise.all([fs.readFile(log0), fs.readFile(log1), fs.readFile(log2)]))
+        .map((buf) => buf.toString().replace(ansiColorRegex, ''))
+    const test1 = /Given test1/g
+    const test2 = /Given test2/g
+    const test3 = /Given test3/g
+    const once = (test, spec) => test.exec(spec).length === 1
+    const never = (test, spec) => test.exec(spec) === null
+    assert.ok(
+        once(test1, spec0) && never(test2, spec0) && never(test3, spec0),
+        'worker 0 did not (only) run test1'
+    )
+    assert.ok(
+        never(test1, spec1) && once(test2, spec1) && never(test3, spec1),
+        'worker 1 did not (only) run test2'
+    )
+    assert.ok(
+        never(test1, spec2) && never(test2, spec2) && once(test3, spec2),
+        'worker 2 did not (only) run test3'
     )
 }
 
@@ -884,8 +908,7 @@ const jasmineHooksTestrunner = async () => {
             framework: 'jasmine',
         }).catch((err) => err) // error expected
 
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
     assert.ok(
         specLogs.includes('skip test'),
     )
