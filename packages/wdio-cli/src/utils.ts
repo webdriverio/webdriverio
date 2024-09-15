@@ -825,16 +825,18 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
 
 /**
  * detect the package manager that was used
+ * uses the environment variable `npm_config_user_agent` to detect the package manager
+ * falls back to `npm` if no package manager could be detected
  */
-export function detectPackageManager(argv = process.argv) {
-    return PMs.find((pm) => (
-        // for pnpm check "~/Library/pnpm/store/v3/..."
-        // for NPM check "~/.npm/npx/..."
-        // for Yarn check "~/.yarn/bin/create-wdio"
-        // for Bun check "~/.bun/bin/create-wdio"
-        argv[1].includes(`${path.sep}${pm}${path.sep}`) ||
-        argv[1].includes(`${path.sep}.${pm}${path.sep}`)
-    )) || 'npm'
+export function detectPackageManager() {
+    if (!process.env.npm_config_user_agent) {
+        return 'npm'
+    }
+    const detectedPM = process.env.npm_config_user_agent.split('/')[0].toLowerCase()
+
+    const matchedPM = PMs.find(pm => pm.toLowerCase() === detectedPM)
+
+    return matchedPM || 'npm'
 }
 
 /**
