@@ -1,5 +1,5 @@
 import { browser } from '@wdio/globals'
-import { Given } from '../../../packages/wdio-cucumber-framework/build/index.js'
+import { Given } from '@wdio/cucumber-framework'
 
 Given('test1', () => {
     browser.assertExecutingFeatureFileOnce('test1.feature')
