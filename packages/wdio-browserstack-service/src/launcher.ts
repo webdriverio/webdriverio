@@ -723,7 +723,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // Setting to browserStackConfig for populating data in funnel instrumentaion
         this.browserStackConfig.percyCaptureMode = this._percy?.percyCaptureMode
         this.browserStackConfig.percyBuildId = this._percy?.buildId
-        this.browserStackConfig.percy = Boolean(percyAutoEnabled)
+        this.browserStackConfig.isPercyAutoEnabled = Boolean(percyAutoEnabled)
 
         // To handle stop percy build
         this._options.percy = Boolean(percyAutoEnabled)

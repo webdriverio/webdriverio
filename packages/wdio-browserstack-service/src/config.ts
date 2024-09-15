@@ -29,6 +29,7 @@ class BrowserStackConfig {
     public sdkRunID: string
     public killSignal?: string
     public percyBuildId?: number | null
+    public isPercyAutoEnabled: boolean = false
 
     private constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
         this.framework = config.framework
