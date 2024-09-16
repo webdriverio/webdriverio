@@ -22,7 +22,7 @@ importers:
         version: 21.0.2
       '@preact/preset-vite':
         specifier: ^2.9.0
-        version: 2.9.0(@babel/core@7.25.2)(preact@10.23.2)(vite@5.4.5(@types/node@20.14.15)(terser@5.31.6))
+        version: 2.9.1(@babel/core@7.25.2)(preact@10.23.2)(vite@5.4.5(@types/node@20.14.15)(terser@5.31.6))
       '@serenity-js/core':
         specifier: ^3.25.3
         version: 3.25.5
@@ -4219,8 +4219,8 @@ packages:
   '@polka/url@1.0.0-next.25':
     resolution: {integrity: sha512-j7P6Rgr3mmtdkeDGTe0E/aYyWEWVtc5yFXtHCRHs28/jptDEWfaVOc5T7cblqy1XKPPfCxJc/8DwQ5YgLOZOVQ==}
 
-  '@preact/preset-vite@2.9.0':
-    resolution: {integrity: sha512-B9yVT7AkR6owrt84K3pLNyaKSvlioKdw65VqE/zMiR6HMovPekpsrwBNs5DJhBFEd5cvLMtCjHNHZ9P7Oblveg==}
+  '@preact/preset-vite@2.9.1':
+    resolution: {integrity: sha512-JecWzrOx7ogFhklSMhY+aH/24pajL0Vx+beEgau3WDMUUAo32cpUo/UqerPhLOyhCKXlxK9a3cRoa8g68ZAp5g==}
     peerDependencies:
       '@babel/core': 7.x
       vite: 2.x || 3.x || 4.x || 5.x
@@ -17207,7 +17207,7 @@ snapshots:
 
   '@polka/url@1.0.0-next.25': {}
 
-  '@preact/preset-vite@2.9.0(@babel/core@7.25.2)(preact@10.23.2)(vite@5.4.5(@types/node@20.14.15)(terser@5.31.6))':
+  '@preact/preset-vite@2.9.1(@babel/core@7.25.2)(preact@10.23.2)(vite@5.4.5(@types/node@20.14.15)(terser@5.31.6))':
     dependencies:
       '@babel/code-frame': 7.24.7
       '@babel/core': 7.25.2
@@ -17220,7 +17220,6 @@ snapshots:
       kolorist: 1.8.0
       magic-string: 0.30.5
       node-html-parser: 6.1.13
-      resolve: 1.22.8
       source-map: 0.7.4
       stack-trace: 1.0.0-pre2
       vite: 5.4.5(@types/node@20.14.15)(terser@5.31.6)
