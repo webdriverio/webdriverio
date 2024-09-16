@@ -879,8 +879,8 @@ importers:
   packages/wdio-cucumber-framework:
     dependencies:
       '@cucumber/cucumber':
-        specifier: ^10.3.1
-        version: 10.9.0
+        specifier: ^11.0.1
+        version: 11.0.1
       '@cucumber/gherkin':
         specifier: 29.0.0
         version: 29.0.0
@@ -3105,9 +3105,9 @@ packages:
   '@cucumber/cucumber-expressions@17.1.0':
     resolution: {integrity: sha512-PCv/ppsPynniKPWJr5v566daCVe+pbxQpHGrIu/Ev57cCH9Rv+X0F6lio4Id3Z64TaG7btCRLUGewIgLwmrwOA==}
 
-  '@cucumber/cucumber@10.9.0':
-    resolution: {integrity: sha512-7XHJ6nmr9IkIag0nv6or82HfelbSInrEe3H4aT6dMHyTehwFLUifG6eQQ+uE4LZIOXAnzLPH37YmqygEO67vCA==}
-    engines: {node: 18 || >=20}
+  '@cucumber/cucumber@11.0.1':
+    resolution: {integrity: sha512-8ypR+tQiY0sZSzQ5WS+RIKL0rUI38skRuyIK0g/crP/JmDAovG6KNJ6t0YLnGQ43UofG9jR8HWt/EPz2mtZD0w==}
+    engines: {node: 18 || 20 || >=22}
     hasBin: true
 
   '@cucumber/gherkin-streams@5.0.1':
@@ -15266,7 +15266,7 @@ snapshots:
     dependencies:
       regexp-match-indices: 1.0.2
 
-  '@cucumber/cucumber@10.9.0':
+  '@cucumber/cucumber@11.0.1':
     dependencies:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
