@@ -307,7 +307,7 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_buildJunitXml'](mochaRunnerNestedArrayOfSuitesLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
-    it( 'generates xml output correctly when having classNameFormat override with mocha',  () => {
+    it('generates xml output correctly when having classNameFormat override with mocha', () => {
         reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, suite }) => `foo-${packageName}-${suite!.fullTitle}` })
         reporter.suites = suitesErrorLog as any
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
@@ -320,7 +320,7 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace('C:/', '')).toMatchSnapshot()
     })
 
-    it( 'generates xml output correctly when having testSuiteNameFormat override with mocha',  () => {
+    it('generates xml output correctly when having testSuiteNameFormat override with mocha', () => {
         reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: ({ name, suite }) => `foo ${name} ${suite.title}` })
         reporter.suites = suitesErrorLog as any
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace('file://', '').replace('C:/', '')).toMatchSnapshot()
@@ -376,17 +376,35 @@ describe('wdio-junit-reporter', () => {
         const test1 = suite.tests[0]
         const test2 = suite.tests[1]
         reporter.onTestStart(test1)
-        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => {})
-        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => { })
+        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => { })
         reporter.onTestPass(test1)
         reporter.onTestStart(test2)
-        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => {})
-        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => { })
+        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => { })
         reporter.onTestPass(suite.tests[0])
         expect(reporter['_getStandardOutput'](test1).toString()).toContain('0 - line 1')
         expect(reporter['_getStandardOutput'](test2).toString()).toContain('1 - line 1')
 
         expect(reporter['_getStandardOutput'](test1).toString()).not.toContain('1 - line 1')
         expect(reporter['_getStandardOutput'](test2).toString()).not.toContain('0 - line 1')
+    })
+
+    it('addProperty adds a property to currently running testcase', () => {
+        reporter = new WDIOJunitReporter(options)
+        reporter.suites = suitesLog as any
+        const suite = Object.values(suitesLog)[0] as SuiteStats
+        reporter.onSuiteStart(suite)
+        const test1 = suite.tests[0]
+        const test2 = suite.tests[1]
+        reporter.onTestStart(test1)
+        reporter['_addPropertyToCurrentTest']({ name: '0-prop1', value: '0-value' })
+        reporter.onTestPass(test1)
+        reporter.onTestStart(test2)
+        reporter['_addPropertyToCurrentTest']({ name: '1-prop1', value: '1-value' })
+        reporter.onTestPass(suite.tests[0])
+        const output = reporter['_buildJunitXml'](mochaRunnerLog).toString()
+        console.log(output)
+        expect(output).toContain('0-value')
     })
 })

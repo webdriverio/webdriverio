@@ -76,9 +76,9 @@ class JunitReporter extends WDIOReporter {
         this.write(xml)
     }
 
-    private _addPropertyToCurrentTest(pDataObj: { name: string, value: string }) {
+    private _addPropertyToCurrentTest(dataObj: { name: string, value: string }) {
         if (this._currentTest?.uid) {
-            this._testToAdditionalInformation[this._currentTest.uid].properties[pDataObj.name] = pDataObj.value
+            this._testToAdditionalInformation[this._currentTest.uid].properties[dataObj.name] = dataObj.value
         }
     }
 
