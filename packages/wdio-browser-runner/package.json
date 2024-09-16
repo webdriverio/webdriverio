@@ -105,6 +105,14 @@
     "@stencil/core": "^4.20.0",
     "unimport": "^3.10.0"
   },
+  "peerDependencies": {
+    "mocha": "^10.7.3"
+  },
+  "peerDependenciesMeta": {
+    "mocha": {
+      "optional": false
+    }
+  },
   "publishConfig": {
     "access": "public"
   }
