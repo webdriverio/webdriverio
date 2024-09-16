@@ -404,7 +404,6 @@ describe('wdio-junit-reporter', () => {
         reporter['_addPropertyToCurrentTest']({ name: '1-prop1', value: '1-value' })
         reporter.onTestPass(suite.tests[0])
         const output = reporter['_buildJunitXml'](mochaRunnerLog).toString()
-        console.log(output)
-        expect(output).toContain('0-value')
+        expect(output).toContain('<property name="0-prop1" value="0-value"/>')
     })
 })
