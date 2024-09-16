@@ -29,6 +29,7 @@ class Percy {
     percyCaptureMode: string | undefined = undefined
     buildId: number | null
     percyAutoEnabled: boolean
+    percy: boolean
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
         this.#options = options
@@ -38,6 +39,7 @@ class Percy {
         this.percyCaptureMode = options.percyCaptureMode
         this.buildId = null
         this.percyAutoEnabled = false
+        this.percy = options.percy ?? false
     }
 
     async #getBinaryPath(): Promise<string> {
@@ -145,6 +147,7 @@ class Percy {
                 this.percyAutoEnabled = response.success
             }
             this.percyCaptureMode = response.percy_capture_mode
+            this.percy = response.success
             return response.token
         } catch (err: any) {
             PercyLogger.error(`Percy unable to fetch project token: ${err}`)

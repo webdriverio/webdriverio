@@ -718,19 +718,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     _updateBrowserStackPercyConfig() {
-        const percyAutoEnabled = this._percy?.percyAutoEnabled ?? false
+        const { percyAutoEnabled = false, percyCaptureMode, buildId, percy } = this._percy || {}
 
         // Setting to browserStackConfig for populating data in funnel instrumentaion
-        this.browserStackConfig.percyCaptureMode = this._percy?.percyCaptureMode
-        this.browserStackConfig.percyBuildId = this._percy?.buildId
-        this.browserStackConfig.isPercyAutoEnabled = Boolean(percyAutoEnabled)
+        this.browserStackConfig.percyCaptureMode = percyCaptureMode
+        this.browserStackConfig.percyBuildId = buildId
+        this.browserStackConfig.isPercyAutoEnabled = percyAutoEnabled
 
         // To handle stop percy build
-        this._options.percy = Boolean(percyAutoEnabled)
+        this._options.percy = percy
 
         // To pass data to workers
-        process.env.BROWSERSTACK_PERCY_AUTO_ENABLED = percyAutoEnabled !== false ? String(percyAutoEnabled) : undefined
-        process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = this._percy?.percyCaptureMode
+        process.env.BROWSERSTACK_PERCY = String(percy)
+        process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = percyCaptureMode
     }
 
     _handleBuildIdentifier(capabilities?: Capabilities.RemoteCapabilities) {
