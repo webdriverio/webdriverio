@@ -272,7 +272,7 @@ module.exports = {
 
 ### addWorkerLogs
 
-Optional parameter, set this parameter to true in order to attach console logs from step to the reporter.
+Optional parameter, set this parameter to true in order to attach console logs from the test in the reporter.
 
 Type: `Boolean`<br />
 Default: `false`<br />

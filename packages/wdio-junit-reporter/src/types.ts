@@ -115,7 +115,7 @@ export interface JUnitReporterOptions extends Reporters.Options {
     errorOptions?: Record<string, string>
 
     /**
-     * Optional parameter, set this parameter to true in order to attach console logs from step to the reporter.
+     * Optional parameter, set this parameter to true in order to attach console logs from the test in the reporter.
      * @default false
      *
      * @example
