@@ -3,16 +3,12 @@ if (answers.isUsingTypeScript && answers.purpose === 'electron') {
     %>/// <reference types="wdio-electron-service" />
 <% }
 
-if (answers.isUsingTypeScript && !answers.serenityAdapter) {
-    %>import type { Options } from '@wdio/types'
-<% }
-
 if (answers.isUsingTypeScript && answers.serenityAdapter) {
     %>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
 <% }
 
 if (answers.isUsingTypeScript) {
-    %>export const config: <%= answers.serenityAdapter ? 'WebdriverIOConfig' : 'Options.Testrunner' %> = {<%
+    %>export const config: <%= answers.serenityAdapter ? 'WebdriverIOConfig' : 'WebdriverIO.Config' %> = {<%
 } else if (answers.esmSupport) {
     %>export const config = {<%
 } else {
