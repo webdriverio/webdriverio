@@ -28,7 +28,8 @@ class Percy {
     isProcessRunning = false
     percyCaptureMode: string | undefined = undefined
     buildId: number | null
-    percyAutoEnabled: boolean | undefined = undefined
+    percyAutoEnabled: boolean
+    percy: boolean
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
         this.#options = options
@@ -37,7 +38,8 @@ class Percy {
         this.#projectName = bsConfig.projectName
         this.percyCaptureMode = options.percyCaptureMode
         this.buildId = null
-        this.percyAutoEnabled = options.percy
+        this.percyAutoEnabled = false
+        this.percy = options.percy ?? false
     }
 
     async #getBinaryPath(): Promise<string> {
@@ -63,11 +65,10 @@ class Percy {
     async start() {
         const binaryPath: string = await this.#getBinaryPath()
         const logStream = fs.createWriteStream(this.#logfile, { flags: 'a' })
-        const { enabled, token, percyCaptureMode } = await this.fetchPercyToken()
+        const token = await this.fetchPercyToken()
         const configPath = await this.createPercyConfig()
 
-        this.percyAutoEnabled = enabled
-        if (!token || !enabled) {
+        if (!token) {
             return false
         }
 
@@ -122,11 +123,6 @@ class Percy {
 
     async fetchPercyToken() {
         const projectName = this.#projectName
-        let data = {
-            enabled: this.percyAutoEnabled,
-            token: null,
-            percyCaptureMode: this.percyCaptureMode
-        }
         try {
             const type = this.#isApp ? 'app' : 'automate'
             let query = 'api/app_percy/get_project_token?'
@@ -148,15 +144,15 @@ class Percy {
                 'https://api.browserstack.com'
             )
             PercyLogger.debug('Percy fetch token success : ' + response.token)
-            data = {
-                enabled: response.success,
-                token: response.token,
-                percyCaptureMode: response.percy_capture_mode
+            if (!this.#options.percy && response.success) {
+                this.percyAutoEnabled = response.success
             }
+            this.percyCaptureMode = response.percy_capture_mode
+            this.percy = response.success
         } catch (err: any) {
             PercyLogger.error(`Percy unable to fetch project token: ${err}`)
+            return null
         }
-        return data
     }
 
     async createPercyConfig() {

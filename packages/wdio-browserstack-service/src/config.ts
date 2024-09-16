@@ -26,6 +26,7 @@ class BrowserStackConfig {
     public automate: boolean
     public funnelDataSent: boolean = false
     public percyBuildId?: number | null
+    public isPercyAutoEnabled: boolean = false
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
         this.framework = config.framework
