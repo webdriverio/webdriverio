@@ -220,6 +220,7 @@ describe('Percy Class', () => {
             const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue('token')
             const createPercyConfigSpy = jest.spyOn(percyInstance, 'createPercyConfig').mockReturnValue('config_path')
             const sleepSpy = jest.spyOn(percyInstance, 'sleep')
+            const healthcheckSpy = jest.spyOn(percyInstance, 'healthcheck').mockResolvedValue(true)
 
             const res = await percyInstance.start()
             expect(res).toEqual(true)
@@ -227,6 +228,7 @@ describe('Percy Class', () => {
             expect(fetchPercyTokenSpy).toBeCalledTimes(1)
             expect(createPercyConfigSpy).toBeCalledTimes(1)
             expect(sleepSpy).toBeCalledTimes(0)
+            expect(healthcheckSpy).toBeCalledTimes(1)
         })
     })
 })
