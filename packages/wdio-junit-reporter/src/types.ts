@@ -115,7 +115,7 @@ export interface JUnitReporterOptions extends Reporters.Options {
     errorOptions?: Record<string, string>
 
     /**
-     * Optional parameter (`false` by default), set this parameter to true in order to attach console logs from step to the reporter.
+     * Optional parameter, set this parameter to true in order to attach console logs from step to the reporter.
      * @default false
      *
      * @example
@@ -128,12 +128,12 @@ export interface JUnitReporterOptions extends Reporters.Options {
      *         'dot',
      *         ['junit', {
      *             outputDir: './',
-     *             addConsoleLogs: true
+     *             addWorkerLogs: true
      *         }]
      *     ],
      *     // ...
      * };
      * ```
      */
-    addConsoleLogs?: boolean
+    addWorkerLogs?: boolean
 }

@@ -270,9 +270,9 @@ module.exports = {
 };
 ```
 
-### addConsoleLogs
+### addWorkerLogs
 
-Optional parameter (`false` by default), set this parameter to true in order to attach console logs from step to the reporter.
+Optional parameter, set this parameter to true in order to attach console logs from step to the reporter.
 
 Type: `Boolean`<br />
 Default: `false`<br />
@@ -286,7 +286,7 @@ module.exports = {
         'dot',
         ['junit', {
             outputDir: './',
-            addConsoleLogs: true
+            addWorkerLogs: true
         }]
     ],
     // ...

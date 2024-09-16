@@ -367,9 +367,9 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_sameFileName'](undefined, undefined)).toBeTruthy()
     })
 
-    const options = { stdout: true, addConsoleLogs: true }
+    const options = { stdout: true, addWorkerLogs: true }
 
-    it('addConsoleLogs: should add console log to report for test if activated', () => {
+    it('addWorkerLogs: should add worker console log to report for test if activated', () => {
         reporter = new WDIOJunitReporter(options)
         const suite = Object.values(suitesLog)[0] as SuiteStats
         reporter.onSuiteStart(suite)
