@@ -4248,6 +4248,9 @@ packages:
   '@promptbook/utils@0.67.2':
     resolution: {integrity: sha512-if73lNrGoRJkAZSf6Vc6gyfvShaYM6x26tm/WVmdoGwES6fDWzFeCqwYWENx3rVUd3qkT0+Z4MhmLOJzcjLTig==}
 
+  '@promptbook/utils@0.70.0-1':
+    resolution: {integrity: sha512-qd2lLRRN+sE6UuNMi2tEeUUeb4zmXnxY5EMdfHVXNE+bqBDpUC7/aEfXgA3jnUXEr+xFjQ8PTFQgWvBMaKvw0g==}
+
   '@puppeteer/browsers@1.9.1':
     resolution: {integrity: sha512-PuvK6xZzGhKPvlx3fpfdM2kYY3P/hB1URtK8wA7XUJ6prn6pp22zvJHu48th0SGcHL9SutbPHrFuQgfXTFobWA==}
     engines: {node: '>=16.3.0'}
@@ -9435,6 +9438,9 @@ packages:
 
   locate-app@2.4.31:
     resolution: {integrity: sha512-fwc8SGUxNhgHA2Z6Sr8sW60eUOdxEsXJpjf3xrAIFr/cxCYSWOHLDGltxcMQf5dZg+39I05lWA3i8e5jb5eXOg==}
+
+  locate-app@2.4.41:
+    resolution: {integrity: sha512-viAOUsdA8QNM+p823ymlxPGXo+ePPZ8r9yhFoyFGUN6/ORE6uMZrKN8hPSKiPZMhFCeoZ5nfp4qEQvaMyPY46A==}
 
   locate-character@3.0.0:
     resolution: {integrity: sha512-SW13ws7BjaeJ6p7Q6CO2nchbYEc3X3J6WrmTTDto7yMPqVSZTUyY5Tjbid+Ab8gLnATtygYtiDIJGQRRn2ZOiA==}
@@ -17250,6 +17256,10 @@ snapshots:
     dependencies:
       spacetrim: 0.11.39
 
+  '@promptbook/utils@0.70.0-1':
+    dependencies:
+      spacetrim: 0.11.39
+
   '@puppeteer/browsers@1.9.1':
     dependencies:
       debug: 4.3.4
@@ -18993,7 +19003,7 @@ snapshots:
       geckodriver: 4.4.4
       get-port: 7.1.0
       import-meta-resolve: 4.1.0
-      locate-app: 2.4.26
+      locate-app: 2.4.31
       safaridriver: 0.1.2
       split2: 4.2.0
       wait-port: 1.1.0
@@ -19011,7 +19021,7 @@ snapshots:
       geckodriver: 4.4.4
       get-port: 7.1.0
       import-meta-resolve: 4.1.0
-      locate-app: 2.4.31
+      locate-app: 2.4.41
       safaridriver: 0.1.2
       split2: 4.2.0
       wait-port: 1.1.0
@@ -23787,6 +23797,12 @@ snapshots:
   locate-app@2.4.31:
     dependencies:
       '@promptbook/utils': 0.67.2
+      type-fest: 2.13.0
+      userhome: 1.0.0
+
+  locate-app@2.4.41:
+    dependencies:
+      '@promptbook/utils': 0.70.0-1
       type-fest: 2.13.0
       userhome: 1.0.0
 
