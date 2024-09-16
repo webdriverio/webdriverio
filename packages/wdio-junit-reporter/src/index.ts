@@ -6,6 +6,7 @@ import junit from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
 import { limit } from './utils.js'
+import { events } from './common/api.js'
 
 const ansiRegex = new RegExp([
     '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
@@ -18,6 +19,8 @@ interface JunitReporterAdditionalInformation {
     uid: string
     /** Worker console log for this test. only filled if addWorkerLogs is true */
     workerConsoleLog: string
+    /** Additional properties for junit reporting */
+    properties: { [keys: string]: string }
 }
 
 /**
@@ -51,6 +54,7 @@ class JunitReporter extends WDIOReporter {
         if (this._addWorkerLogs) {
             processObj.stdout.write = this._appendConsoleLog.bind(this)
         }
+        processObj.on(events.addProperty, this._addPropertyToCurrentTest.bind(this))
     }
 
     onTestRetry(testStats: TestStats) {
@@ -62,6 +66,7 @@ class JunitReporter extends WDIOReporter {
         this._currentTest = test
         this._testToAdditionalInformation[test.uid] = {
             workerConsoleLog: '',
+            properties: {},
             uid: test.uid
         }
     }
@@ -69,6 +74,12 @@ class JunitReporter extends WDIOReporter {
     onRunnerEnd(runner: RunnerStats) {
         const xml = this._buildJunitXml(runner)
         this.write(xml)
+    }
+
+    private _addPropertyToCurrentTest(pDataObj: { name: string, value: string }) {
+        if (this._currentTest?.uid) {
+            this._testToAdditionalInformation[this._currentTest.uid].properties[pDataObj.name] = pDataObj.value
+        }
     }
 
     private _appendConsoleLog(chunk: string, encoding: BufferEncoding, callback: ((err?: Error) => void)) {
@@ -248,6 +259,10 @@ class JunitReporter extends WDIOReporter {
                 }
             }
 
+            for (const propName of Object.keys(this._testToAdditionalInformation[test.uid]?.properties ?? {})) {
+                testCase.property(propName, this._testToAdditionalInformation[test.uid].properties[propName])
+            }
+
             const output = this._getStandardOutput(test)
             if (output) {
                 testCase.standardOutput(`\n${output}\n`)
@@ -369,4 +384,5 @@ class JunitReporter extends WDIOReporter {
     }
 }
 
+export * from './common/api.js'
 export default JunitReporter

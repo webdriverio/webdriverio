@@ -293,7 +293,26 @@ module.exports = {
 };
 ```
 
+## Adding custom properties to testcases
 
+This plugin provides a function `addProperty(name, value)`. This function may be used to add additional junit testcase properties to the currently running test step. These properties will be reported in the resulting xml as `<property name="${name}" value="${value}" />`.
+
+Typical usecase for this is adding a link to an issue or a testcase.
+
+
+### Usage example
+
+An example for mocha:
+
+```js
+import { addProperty } from '@wdio/junit-reporter'
+
+describe('Suite', () => {
+    it('Case', () => {
+        addProperty('test_case', 'TC-1234')
+    })
+})
+```
 
 ## Jenkins Setup
 
