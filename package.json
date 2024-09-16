@@ -108,7 +108,7 @@
     "eta": "^3.4.0",
     "glob": "^11.0.0",
     "husky": "^9.1.4",
-    "inquirer": "^10.1.8",
+    "inquirer": "^11.0.1",
     "jsdom": "^25.0.0",
     "lerna": "8.1.8",
     "lerna-changelog": "^2.2.0",
