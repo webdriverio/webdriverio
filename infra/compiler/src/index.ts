@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
 import { parseArgs } from 'node:util'
@@ -33,7 +34,8 @@ const { values } = parseArgs({ args, options })
  */
 const projects = (await fs.readdir(
     path.resolve(rootDir, 'packages')
-)).filter((dir) => dir !== 'node_modules')
+    // ignore potential stale/empty package directories left over when switching between branches
+)).filter((dir) => dir !== 'node_modules' && existsSync(path.resolve(rootDir, 'packages', dir, 'package.json')))
 
 const packages = (
     await Promise.all(
