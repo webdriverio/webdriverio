@@ -224,7 +224,6 @@ export async function missingConfigurationPrompt(command: string, configPath: st
     const { config } = await inquirer.prompt({
         type: 'confirm',
         name: 'config',
-        // @ts-expect-error
         message,
         default: false
     })
