@@ -307,7 +307,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     // and is being returns as string (e.g. "<host>:<port>") when session capabilities
     // are returned from the driver
     // see https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html#moz-debuggeraddress
-    'moz:debuggerAddress'?: string | number
+    'moz:debuggerAddress'?: string | boolean
     'ms:edgeOptions'?: MicrosoftEdgeOptions
     'ms:edgeChromium'?: MicrosoftEdgeOptions
 
