@@ -12,6 +12,14 @@ const ansiRegex = new RegExp([
     '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'
 ].join('|'), 'g')
 
+/** Interface to store additional information for a given testcase */
+interface JunitReporterAdditionalInformation {
+    /** uid of the test case */
+    uid: string
+    /** Worker console log for this test. only filled if addWorkerLogs is true */
+    workerConsoleLog: string
+}
+
 /**
  * Reporter that converts test results from a single instance/runner into an XML JUnit report. This class
  * uses junit-report-builder (https://github.com/davidparsson/junit-report-builder) to build report.The report
@@ -25,24 +33,54 @@ class JunitReporter extends WDIOReporter {
     private _fileNameLabel?: string
     private _activeFeature?: any
     private _activeFeatureName?: any
+    private _testToAdditionalInformation: { [keys: string]: JunitReporterAdditionalInformation }
+    private _currentTest?: TestStats
+    private _originalStdoutWrite: Function
+    private _addWorkerLogs: boolean
 
-    constructor (public options: JUnitReporterOptions) {
+    constructor(public options: JUnitReporterOptions) {
         super(options)
+        this._addWorkerLogs = options.addWorkerLogs ?? false
+        this._testToAdditionalInformation = {}
+        this._originalStdoutWrite = process.stdout.write.bind(process.stdout)
         this._suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp
             ? this.options.suiteNameFormat
             : /[^a-zA-Z0-9@]+/ // Reason for ignoring @ is; reporters like wdio-report-portal will fetch the tags from testcase name given as @foo @bar
+
+        const processObj: any = process
+        if (this._addWorkerLogs) {
+            processObj.stdout.write = this._appendConsoleLog.bind(this)
+        }
     }
 
-    onTestRetry (testStats: TestStats) {
+    onTestRetry(testStats: TestStats) {
         testStats.skip('Retry')
     }
 
-    onRunnerEnd (runner: RunnerStats) {
+    onTestStart(test: TestStats) {
+        // Reset stdout when a test starts
+        this._currentTest = test
+        this._testToAdditionalInformation[test.uid] = {
+            workerConsoleLog: '',
+            uid: test.uid
+        }
+    }
+
+    onRunnerEnd(runner: RunnerStats) {
         const xml = this._buildJunitXml(runner)
         this.write(xml)
     }
 
-    private _prepareName (name = 'Skipped test') {
+    private _appendConsoleLog(chunk: string, encoding: BufferEncoding, callback: ((err?: Error) => void)) {
+        if (this._currentTest?.uid) {
+            if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+                this._testToAdditionalInformation[this._currentTest.uid].workerConsoleLog = (this._testToAdditionalInformation[this._currentTest.uid].workerConsoleLog ?? '') + chunk
+            }
+        }
+        return this._originalStdoutWrite(chunk, encoding, callback)
+    }
+
+    private _prepareName(name = 'Skipped test') {
         return name.split(this._suiteNameRegEx).filter(
             (item) => item && item.length
         ).join(' ')
@@ -87,7 +125,7 @@ class JunitReporter extends WDIOReporter {
         } else if (this._activeFeature) {
             let scenario = suite
             const testName = this._prepareName(suite.title)
-            const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: this._activeFeatureName }): `${this._packageName}.${this._activeFeatureName}`
+            const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: this._activeFeatureName }) : `${this._packageName}.${this._activeFeatureName}`
             const testCase = this._activeFeature.testCase()
                 .className(classNameFormat)
                 .name(`${testName}`)
@@ -191,7 +229,7 @@ class JunitReporter extends WDIOReporter {
                 }
             } else if (test.state === 'failed') {
                 if (test.error) {
-                    if (test.error.message){
+                    if (test.error.message) {
                         test.error.message = test.error.message.replace(ansiRegex, '')
                     }
 
@@ -218,7 +256,7 @@ class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    private _buildJunitXml (runner: RunnerStats) {
+    private _buildJunitXml(runner: RunnerStats) {
         const builder = junit.newBuilder()
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
@@ -281,7 +319,25 @@ class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    private _getStandardOutput (test: TestStats) {
+    private _getStandardOutput(test: TestStats) {
+        let consoleOutput = ''
+        if (this._addWorkerLogs) {
+            consoleOutput = this._testToAdditionalInformation[test.uid]?.workerConsoleLog ?? ''
+        }
+        const commandText = this._getCommandStandardOutput(test)
+        let result = ''
+        if (consoleOutput !== '') {
+            result += consoleOutput
+        }
+        if (commandText !== '' && consoleOutput !== '') {
+            result += '\n...command output...\n\n'
+        }
+        result += commandText
+
+        return result
+    }
+
+    private _getCommandStandardOutput(test: TestStats) {
         const standardOutput: string[] = []
         test.output.forEach((data) => {
             switch (data.type) {
@@ -289,7 +345,7 @@ class JunitReporter extends WDIOReporter {
                 standardOutput.push(
                     data.method
                         ? `COMMAND: ${data.method.toUpperCase()} ` +
-                          `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this._format(data.body)}`
+                            `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this._format(data.body)}`
                         : `COMMAND: ${data.command} - ${this._format(data.params)}`
                 )
                 break
@@ -301,7 +357,7 @@ class JunitReporter extends WDIOReporter {
         return standardOutput.length ? standardOutput.join('\n') : ''
     }
 
-    private _format (val: any) {
+    private _format(val: any) {
         return JSON.stringify(limit(val))
     }
 

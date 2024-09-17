@@ -4,6 +4,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { TestStats } from '@wdio/reporter'
 
 import WDIOJunitReporter from '../src/index.js'
+import type { SuiteStats } from '@wdio/reporter'
 
 const mochaRunnerLog = (await vi.importActual('./__fixtures__/mocha-runner.json') as any).default
 const mochaRunnerNestedArrayOfSuitesLog = (await vi.importActual('./__fixtures__/mocha-runner-nested-array-specs.json') as any).default
@@ -364,5 +365,28 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_sameFileName'](file1URL, undefined)).toBeFalsy()
         expect(reporter['_sameFileName'](file1Path, undefined)).toBeFalsy()
         expect(reporter['_sameFileName'](undefined, undefined)).toBeTruthy()
+    })
+
+    const options = { stdout: true, addWorkerLogs: true }
+
+    it('addWorkerLogs: should add worker console log to report for test if activated', () => {
+        reporter = new WDIOJunitReporter(options)
+        const suite = Object.values(suitesLog)[0] as SuiteStats
+        reporter.onSuiteStart(suite)
+        const test1 = suite.tests[0]
+        const test2 = suite.tests[1]
+        reporter.onTestStart(test1)
+        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => {})
+        reporter.onTestPass(test1)
+        reporter.onTestStart(test2)
+        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => {})
+        reporter.onTestPass(suite.tests[0])
+        expect(reporter['_getStandardOutput'](test1).toString()).toContain('0 - line 1')
+        expect(reporter['_getStandardOutput'](test2).toString()).toContain('1 - line 1')
+
+        expect(reporter['_getStandardOutput'](test1).toString()).not.toContain('1 - line 1')
+        expect(reporter['_getStandardOutput'](test2).toString()).not.toContain('0 - line 1')
     })
 })
