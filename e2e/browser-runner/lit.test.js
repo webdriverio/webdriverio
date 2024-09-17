@@ -831,7 +831,7 @@ describe('Lit Component testing', () => {
         expect(a.tagName).toBe('X-FOO')
     })
 
-    it('connectedCallback should not fail if no original connectedCallback is defined', () => {
+    it('connectedCallback should not fail if no original connectedCallback is defined', function(){
         // only in bidi the customElementWrapper is not available
         if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
             return this.skip()
@@ -843,7 +843,7 @@ describe('Lit Component testing', () => {
         a.connectedCallback()
     })
 
-    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', () => {
+    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function() {
         // only in bidi the customElementWrapper is not available
         if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
             return this.skip()
