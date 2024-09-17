@@ -125,7 +125,7 @@ pnpm create wdio@latest . --yes
 ```
 
 </TabItem>
-<TabItem value="pnpm">
+<TabItem value="bun">
 
 ```sh
 bun create wdio@latest . --yes

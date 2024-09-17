@@ -830,4 +830,18 @@ describe('Lit Component testing', () => {
         const a = new Foo ()
         expect(a.tagName).toBe('X-FOO')
     })
+
+    it('connectedCallback should not fail if no original connectedCallback is defined', () => {
+        class Foo extends HTMLElement {}
+        customElements.define('y-foo', Foo)
+        const a = new Foo ()
+        a.connectedCallback()
+    })
+
+    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', () => {
+        class Foo extends HTMLElement {}
+        customElements.define('z-foo', Foo)
+        const a = new Foo ()
+        a.disconnectedCallback()
+    })
 })

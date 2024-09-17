@@ -376,12 +376,12 @@ describe('wdio-junit-reporter', () => {
         const test1 = suite.tests[0]
         const test2 = suite.tests[1]
         reporter.onTestStart(test1)
-        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => { })
-        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => { })
+        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => {})
         reporter.onTestPass(test1)
         reporter.onTestStart(test2)
-        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => { })
-        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => { })
+        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => {})
+        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => {})
         reporter.onTestPass(suite.tests[0])
         expect(reporter['_getStandardOutput'](test1).toString()).toContain('0 - line 1')
         expect(reporter['_getStandardOutput'](test2).toString()).toContain('1 - line 1')
