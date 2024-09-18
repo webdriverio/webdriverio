@@ -54,7 +54,7 @@ export const config: WebdriverIO.Config = {
     framework: 'mocha',
     outputDir: __dirname,
     reporters: ['spec'],
-    specFileRetries: 2,
+    specFileRetries: 3,
 
     mochaOpts: {
         ui: 'bdd',

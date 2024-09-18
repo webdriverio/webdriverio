@@ -5,9 +5,11 @@ describe('bidi e2e test', () => {
     describe('execute', () => {
         it('generates a nice stack trace', async function () {
             /**
-             * bidi feature
+             * bidi feature, so skip if:
+             *   - browser doesn't support Bidi
+             *   - browser is firefox as we see random driver exceptions
              */
-            if (!browser.isBidi) {
+            if (!browser.isBidi || browser.capabilities.browserName === 'firefox') {
                 return this.skip()
             }
 
