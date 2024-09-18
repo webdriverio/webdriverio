@@ -50,7 +50,7 @@ describe('onPrepare', () => {
     })
 
     it('should not call local if browserstackLocal is undefined', async () => {
-        const service = new BrowserstackLauncher({ testObservability: false }, caps, {
+        const service = new BrowserstackLauncher({ testObservability: false, percy: false }, caps, {
             user: 'foobaruser',
             key: '12345',
             capabilities: []
@@ -64,7 +64,8 @@ describe('onPrepare', () => {
     it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
-            testObservability: false
+            testObservability: false,
+            percy: false
         }, caps, {
             user: 'foobaruser',
             key: '12345',
@@ -77,7 +78,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "app" property to a multiremote capability if no "bstack:options"', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>', percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = { samsungGalaxy: { capabilities: {} } }
 
@@ -86,7 +87,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" property to a multiremote capability if "bstack:options" present', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>', percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = { samsungGalaxy: { capabilities: { 'bstack:options': {} } } }
 
@@ -95,7 +96,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" property to a multiremote capability if any extension cap present', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>',  percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = { samsungGalaxy: { capabilities: { 'appium:chromeOptions': {} } } }
 
@@ -104,7 +105,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "app" property to an array of capabilities if no "bstack:options"', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>',  percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{}, {}, {}]
 
@@ -117,7 +118,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" property to an array of capabilities if "bstack:options" present', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>', percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
 
@@ -130,7 +131,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" property to an array of capabilities if any extension cap present', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>',  percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'appium:chromeOptions': {} }, { 'appium:chromeOptions': {} }]
 
@@ -142,7 +143,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" as custom_id of app to capability object', async () => {
-        const options: BrowserstackConfig = { app: 'custom_id' }
+        const options: BrowserstackConfig = { app: 'custom_id',  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'appium:chromeOptions': {} }, { 'appium:chromeOptions': {} }]
 
@@ -154,7 +155,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" as shareable_id of app to capability object', async () => {
-        const options: BrowserstackConfig = { app: 'user/custom_id' }
+        const options: BrowserstackConfig = { app: 'user/custom_id',  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'appium:chromeOptions': {} }, { 'appium:chromeOptions': {} }]
 
@@ -166,7 +167,7 @@ describe('onPrepare', () => {
     })
 
     it('should add "appium:app" property with value returned from app upload to capabilities', async () => {
-        const options: BrowserstackConfig = { app: '/some/dummy/file.apk' }
+        const options: BrowserstackConfig = { app: '/some/dummy/file.apk',  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
 
@@ -182,7 +183,7 @@ describe('onPrepare', () => {
     })
 
     it('should upload app if path property present in appConfig', async() => {
-        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk' } }
+        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk' },  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
 
@@ -198,7 +199,7 @@ describe('onPrepare', () => {
     })
 
     it('should upload app along with custom_id if path and custom_id property present in appConfig', async() => {
-        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk', custom_id: 'custom_id' } }
+        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk', custom_id: 'custom_id' },  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
 

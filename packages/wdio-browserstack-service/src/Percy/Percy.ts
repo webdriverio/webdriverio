@@ -26,12 +26,18 @@ class Percy {
     _projectName: string | undefined = undefined
 
     isProcessRunning = false
+    percyCaptureMode?: string
+    buildId: number | null = null
+    percyAutoEnabled = false
+    percy: boolean
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
         this._options = options
         this._config = config
         this._isApp = Boolean(options.app)
         this._projectName = bsConfig.projectName
+        this.percyCaptureMode = options.percyCaptureMode
+        this.percy = options.percy ?? false
     }
 
     private async getBinaryPath(): Promise<string> {
@@ -50,6 +56,8 @@ class Percy {
         try {
             const resp = await nodeRequest('GET', 'percy/healthcheck', null, this._address)
             if (resp) {
+                // @ts-ignore
+                this.buildId = resp.build.id
                 return true
             }
         } catch (err) {
@@ -66,7 +74,6 @@ class Percy {
         if (!token) {
             return false
         }
-
         const commandArgs = [`${this._isApp ? 'app:exec' : 'exec'}:start`]
 
         if (configPath) {
@@ -118,12 +125,21 @@ class Percy {
 
     async fetchPercyToken() {
         const projectName = this._projectName
-
         try {
             const type = this._isApp ? 'app' : 'automate'
-            const response: any = await nodeRequest(
-                'GET',
-                `api/app_percy/get_project_token?name=${projectName}&type=${type}`,
+            const params = new URLSearchParams()
+            if (projectName) {
+                params.set('name', projectName)
+            }
+            if (type) {
+                params.set('type', type)
+            }
+            if (this._options.percyCaptureMode) {
+                params.set('percy_capture_mode', this._options.percyCaptureMode)
+            }
+            params.set('percy', String(this._options.percy))
+            const query = `api/app_percy/get_project_token?${params.toString()}`
+            const response: any = await nodeRequest('GET', query,
                 {
                     username: getBrowserStackUser(this._config),
                     password: getBrowserStackKey(this._config)
@@ -131,6 +147,11 @@ class Percy {
                 'https://api.browserstack.com'
             )
             PercyLogger.debug('Percy fetch token success : ' + response.token)
+            if (!this._options.percy && response.success) {
+                this.percyAutoEnabled = response.success
+            }
+            this.percyCaptureMode = response.percy_capture_mode
+            this.percy = response.success
             return response.token
         } catch (err: any) {
             PercyLogger.error(`Percy unable to fetch project token: ${err}`)
