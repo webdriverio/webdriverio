@@ -19,7 +19,7 @@ class BrowserStackConfig {
     public buildIdentifier?: string
     public testObservability: TestOpsConfig
     public percy: boolean
-    public percyCaptureMode: string | undefined = undefined
+    public percyCaptureMode?: string
     public accessibility: boolean
     public app?: string|AppConfig
     private static _instance: BrowserStackConfig
@@ -29,7 +29,7 @@ class BrowserStackConfig {
     public sdkRunID: string
     public killSignal?: string
     public percyBuildId?: number | null
-    public isPercyAutoEnabled: boolean = false
+    public isPercyAutoEnabled = false
 
     private constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
         this.framework = config.framework

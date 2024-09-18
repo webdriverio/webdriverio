@@ -26,9 +26,9 @@ class Percy {
     #projectName: string | undefined = undefined
 
     isProcessRunning = false
-    percyCaptureMode: string | undefined = undefined
-    buildId: number | null
-    percyAutoEnabled: boolean
+    percyCaptureMode?: string
+    buildId: number | null = null
+    percyAutoEnabled = false
     percy: boolean
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
@@ -37,8 +37,6 @@ class Percy {
         this.#isApp = Boolean(options.app)
         this.#projectName = bsConfig.projectName
         this.percyCaptureMode = options.percyCaptureMode
-        this.buildId = null
-        this.percyAutoEnabled = false
         this.percy = options.percy ?? false
     }
 
@@ -124,17 +122,18 @@ class Percy {
         const projectName = this.#projectName
         try {
             const type = this.#isApp ? 'app' : 'automate'
-            let query = 'api/app_percy/get_project_token?'
+            const params = new URLSearchParams()
             if (projectName) {
-                query += `name=${projectName}&`
+                params.set('name', projectName)
             }
             if (type) {
-                query += `type=${type}&`
+                params.set('type', type)
             }
             if (this.#options.percyCaptureMode) {
-                query += `percy_capture_mode=${this.#options.percyCaptureMode}&`
+                params.set('percy_capture_mode', this.#options.percyCaptureMode)
             }
-            query += `percy=${this.#options.percy}`
+            params.set('percy', String(this.#options.percy))
+            const query = `api/app_percy/get_project_token?${params.toString()}`
             const response = await nodeRequest('GET', query,
                 {
                     username: getBrowserStackUser(this.#config),
