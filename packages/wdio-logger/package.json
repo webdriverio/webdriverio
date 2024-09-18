@@ -11,11 +11,11 @@
   "browser": "./build/browser.js",
   "exports": {
     ".": {
+      "browserSource": "./src/browser.ts",
+      "types": "./build/index.d.ts",
       "browser": "./build/browser.js",
       "import": "./build/index.js",
-      "require": "./build/index.cjs",
-      "types": "./build/index.d.ts",
-      "browserSource": "./src/browser.ts"
+      "require": "./build/index.cjs"
     },
     "./package.json": "./package.json"
   },
