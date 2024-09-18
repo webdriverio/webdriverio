@@ -1695,6 +1695,9 @@ importers:
       '@wdio/cucumber-framework':
         specifier: workspace:*
         version: link:../../packages/wdio-cucumber-framework
+      '@wdio/junit-reporter':
+        specifier: workspace:*
+        version: link:../../packages/wdio-junit-reporter
       '@wdio/local-runner':
         specifier: workspace:*
         version: link:../../packages/wdio-local-runner
@@ -1704,6 +1707,9 @@ importers:
       '@wdio/shared-store-service':
         specifier: workspace:*
         version: link:../../packages/wdio-shared-store-service
+      npm-run-all2:
+        specifier: ^6.2.3
+        version: 6.2.3
       webdriver:
         specifier: workspace:*
         version: link:../../packages/webdriver
