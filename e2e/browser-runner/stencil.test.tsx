@@ -99,7 +99,7 @@ describe('Stencil Component Testing', () => {
 
         expect(page.root.outerHTML).toBe('<no-shadow-component></no-shadow-component>')
         await waitForChanges()
-        expect(page.root.outerHTML).toBe('<no-shadow-component>Hello World!</no-shadow-component>')
+        expect(page.root.outerHTML).toBe('<no-shadow-component class="hydrated">Hello World!</no-shadow-component>')
     })
 
     it('can unmount', async () => {

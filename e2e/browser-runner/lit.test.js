@@ -825,23 +825,32 @@ describe('Lit Component testing', () => {
     })
 
     it('can initiate web component elements with new keyword', () => {
-        class Foo extends HTMLElement {}
+        class Foo extends HTMLElement { }
         customElements.define('x-foo', Foo)
-        const a = new Foo ()
+        const a = new Foo()
         expect(a.tagName).toBe('X-FOO')
     })
 
-    it('connectedCallback should not fail if no original connectedCallback is defined', () => {
-        class Foo extends HTMLElement {}
+    it('connectedCallback should not fail if no original connectedCallback is defined', function(){
+        // only in bidi the customElementWrapper is not available
+        if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
+            return this.skip()
+        }
+
+        class Foo extends HTMLElement { }
         customElements.define('y-foo', Foo)
-        const a = new Foo ()
+        const a = new Foo()
         a.connectedCallback()
     })
 
-    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', () => {
-        class Foo extends HTMLElement {}
+    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function() {
+        // only in bidi the customElementWrapper is not available
+        if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
+            return this.skip()
+        }
+        class Foo extends HTMLElement { }
         customElements.define('z-foo', Foo)
-        const a = new Foo ()
+        const a = new Foo()
         a.disconnectedCallback()
     })
 })
