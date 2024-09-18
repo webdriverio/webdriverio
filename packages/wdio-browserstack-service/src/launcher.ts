@@ -418,7 +418,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PercyLogger.clearLogger()
         }
 
-
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
