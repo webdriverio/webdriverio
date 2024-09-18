@@ -294,7 +294,7 @@ describe('SpecReporter', () => {
                 printReporter.write.mockClear()
 
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.us-east-1.saucelabs.com',
+                    hostname: 'ondemand.us-east-4.saucelabs.com',
                     user: 'foobar',
                     key: '123'
                 }
