@@ -27,8 +27,10 @@
   "types": "./build/index.d.ts",
   "exports": {
     ".": {
+      "types": "./build/index.d.ts",
       "import": "./build/index.js",
-      "types": "./build/index.d.ts"
+      "requireSource": "./src/common/api.ts",
+      "require": "./build/index.cjs"
     }
   },
   "typeScriptVersion": "3.8.3",

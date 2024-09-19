@@ -5,9 +5,11 @@ describe('bidi e2e test', () => {
     describe('execute', () => {
         it('generates a nice stack trace', async function () {
             /**
-             * bidi feature
+             * bidi feature, so skip if:
+             *   - browser doesn't support Bidi
+             *   - browser is firefox as we see random driver exceptions
              */
-            if (!browser.isBidi) {
+            if (!browser.isBidi || browser.capabilities.browserName === 'firefox') {
                 return this.skip()
             }
 
@@ -20,7 +22,7 @@ describe('bidi e2e test', () => {
                     }
                 }
             }).catch(err => err)
-            expect(result.stack).toContain('14 │ if(a){if(a){throw new Error("Hello Bidi")}}}')
+            expect(result.stack).toContain('16 │ if(a){if(a){throw new Error("Hello Bidi")}}}')
 
             const result2 = await browser.execute(async () => {
                 const a: number = 1
@@ -31,7 +33,7 @@ describe('bidi e2e test', () => {
                     }
                 }
             }).catch(err => err)
-            expect(result2.stack).toContain('25 │ if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
+            expect(result2.stack).toContain('27 │ if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
         })
     })
 
