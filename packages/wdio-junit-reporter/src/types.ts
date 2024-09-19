@@ -113,4 +113,27 @@ export interface JUnitReporterOptions extends Reporters.Options {
      * ```
      */
     errorOptions?: Record<string, string>
+
+    /**
+     * Optional parameter, set this parameter to true in order to attach console logs from the test in the reporter.
+     * @default false
+     *
+     * @example
+     *
+     * ```js
+     * // wdio.conf.js
+     * module.exports = {
+     *     // ...
+     *     reporters: [
+     *         'dot',
+     *         ['junit', {
+     *             outputDir: './',
+     *             addWorkerLogs: true
+     *         }]
+     *     ],
+     *     // ...
+     * };
+     * ```
+     */
+    addWorkerLogs?: boolean
 }
