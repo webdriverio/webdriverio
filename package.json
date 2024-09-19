@@ -36,7 +36,7 @@
     "test:depcheck": "tsx ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:ejslint": "ejslint packages/wdio-cli/src/templates/**/*",
-    "test:interop": "pnpm install && cd ./tests && node ./interop/webdriverio.e2e.js && node ./interop/webdriver.e2e.js && node ./interop/cucumber-framework.e2e.js && node ./interop/allure-reporter.e2e.js && node ./interop/shared-store.e2e.js && node ./interop/wdio-cli.e2e.js && node ./interop/wdio-reporter.e2e.js",
+    "test:interop": "pnpm -r --filter=@wdio/test-interop-cjs run test",
     "test:typings": "pnpm install && run-p test:typings:*",
     "test:typings:webdriver": "cd tests/typings/webdriver && npx tsc --skipLibCheck",
     "test:typings:webdriverio": "cd tests/typings/webdriverio && npx tsc --skipLibCheck",
