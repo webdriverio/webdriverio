@@ -407,6 +407,42 @@ const cucumberReporter = async () => {
 }
 
 /**
+ * Cucumber file option
+ */
+const cucumberFileOption = async () => {
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberFileOption.log')
+    await fs.rm(logFile, { force: true })
+    const { passed } = await launch(
+        'cucumberFileOption',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'cucumber', 'test.feature'),
+            ],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]],
+            cucumberOpts: {
+                ignoreUndefinedDefinitions: true,
+                scenarioLevelReporter: true,
+                retry: 1,
+                retryTagFilter: '@retry',
+                file: './cucumber/cucumber.js'
+            }
+        }
+    )
+    assert.strictEqual(passed, 1)
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+    assert.ok(
+        specLogs.includes('test-skipped.feature'),
+        'scenario not included according to cucumber config'
+    )
+}
+
+/**
  * wdio test run with custom service
  */
 const customService = async () => {
@@ -929,6 +965,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberTestrunnerMultipleByLineNumber,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
+        cucumberFileOption,
         standaloneTest,
         mochaAsyncTestrunner,
         customService,
