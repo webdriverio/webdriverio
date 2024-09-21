@@ -223,7 +223,9 @@ export function isStaleElementError (err: Error) {
         // Safari
         err.message.toLowerCase().includes('stale element found') ||
         // Chrome through JS execution
-        err.message.includes('stale element not found in the current frame')
+        err.message.includes('stale element not found in the current frame') ||
+        // BIDI
+        err.message.includes('belongs to different document')
     )
 }
 
