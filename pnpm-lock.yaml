@@ -25,7 +25,7 @@ importers:
         version: 2.9.0(@babel/core@7.24.9)(preact@10.22.0)(vite@5.3.1(@types/node@22.5.4)(terser@5.31.1))
       '@serenity-js/core':
         specifier: ^3.17.0
-        version: 3.25.5
+        version: 3.28.0
       '@stencil/core':
         specifier: ^4.12.2
         version: 4.21.0
@@ -4157,9 +4157,9 @@ packages:
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
 
-  '@serenity-js/core@3.25.5':
-    resolution: {integrity: sha512-b6lXShxQpcO4CACuQ4v2PUWviMH1oeF+zFKe017JSvfTzGlQyXeikXiEjXEwT9de219q4KCbDDDZyR6I2Dm8IQ==}
-    engines: {node: ^16.13 || ^18.12 || ^20}
+  '@serenity-js/core@3.28.0':
+    resolution: {integrity: sha512-xxoE3pz+awT4Mezlkk0MiAO8yRaUEmDNxkCIT4Nsp/uWCZLOAr3yDgwzWRzZo1vTBnCe7oQAhtaP8lJQgkmoNQ==}
+    engines: {node: ^18.12 || ^20 || ^22}
 
   '@sideway/address@4.1.5':
     resolution: {integrity: sha512-IqO/DUQHUkPeixNQ8n0JA6102hT9CmaljNTPmQ1u8MEhBo/R4Q8eKLN/vGZxuebwOroDB4cbpjheD4+/sKFK4Q==}
@@ -7050,6 +7050,10 @@ packages:
 
   diff@5.2.0:
     resolution: {integrity: sha512-uIFDxqpRZGZ6ThOk84hEfqWoHx2devRFvpTZcTHur85vImfaxUbTW9Ryh4CpCuDnToOP1CEtXKIgytHBPVff5A==}
+    engines: {node: '>=0.3.1'}
+
+  diff@6.0.0:
+    resolution: {integrity: sha512-NbGtgPSw7il+jeajji1H6iKjCk3r/ANQKw3FFUhGV50+MH5MKIMeUmi53piTr7jlkWcq9eS858qbkRzkehwe+w==}
     engines: {node: '>=0.3.1'}
 
   dir-glob@3.0.1:
@@ -17016,11 +17020,11 @@ snapshots:
 
   '@sec-ant/readable-stream@0.4.1': {}
 
-  '@serenity-js/core@3.25.5':
+  '@serenity-js/core@3.28.0':
     dependencies:
       '@paralleldrive/cuid2': 2.2.2
       chalk: 4.1.2
-      diff: 5.2.0
+      diff: 6.0.0
       error-stack-parser: 2.1.4
       fast-glob: 3.3.2
       filenamify: 4.3.0
@@ -20629,6 +20633,8 @@ snapshots:
   diff@5.0.0: {}
 
   diff@5.2.0: {}
+
+  diff@6.0.0: {}
 
   dir-glob@3.0.1:
     dependencies:
