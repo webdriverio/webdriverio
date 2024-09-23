@@ -9,7 +9,7 @@ import { Readable, type Writable } from 'node:stream'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import AppiumLauncher from '../src/launcher.js'
 
@@ -79,7 +79,7 @@ class MockFailingProcess extends MockProcess {
 class MockProcess2 implements Partial<ChildProcessByStdio<null, Readable, Readable>> {
     pid: number
     exitCode: number | null = null
-    signalCode: null
+    signalCode?: null
     spawnargs: string[] = []
     spawnfile: string = ''
     stdin: null = null
@@ -145,7 +145,7 @@ describe('Appium launcher', () => {
                 command:'path/to/my_custom_appium',
                 args: { address: 'bar', defaultCapabilities: { 'foo': 'bar' } },
             }
-            const capabilities = [{ port: 1234, deviceName: 'baz' }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
+            const capabilities = [{ port: 1234, 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
 
@@ -197,9 +197,9 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities = {
-                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
-                browserB: { capabilities: { deviceName: 'baz' } }
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+                browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
+                browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -219,9 +219,9 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
                 browserA: { port: 1234, capabilities: { browserName: 'chrome' } },
-                browserB: { capabilities: { deviceName: 'baz' } }
+                browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -241,12 +241,12 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
-                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
-                browserB: { capabilities: { deviceName: 'baz' } }
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities[] = [{
+                browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
+                browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }, {
-                browserC: { port: 5678, capabilities: { deviceName: 'baz' } },
-                browserD: { capabilities: { deviceName: 'baz' } }
+                browserC: { port: 5678, capabilities: { 'appium:deviceName': 'baz' } },
+                browserD: { capabilities: { 'appium:deviceName': 'baz' } }
             }]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -274,8 +274,8 @@ describe('Appium launcher', () => {
                 args : { address: 'foo' },
                 installArgs : { bar : 'bar' },
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities = {
-                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+                browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -297,7 +297,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address:'bar', port: 1234 }
             }
-            const capabilities = [{ deviceName: 'baz' } as Capabilities.DesiredCapabilities]
+            const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
 
@@ -342,7 +342,7 @@ describe('Appium launcher', () => {
         test('should respect random Appium port', async () => {
             vi.mocked(getPort).mockResolvedValueOnce(567567)
 
-            const capabilities = [{ deviceName: 'baz' } as Capabilities.DesiredCapabilities]
+            const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher({}, capabilities, {} as any)
             await launcher.onPrepare()
 
@@ -387,7 +387,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
             }
-            const capabilities = [{ port: 4321, deviceName: 'baz' } as Capabilities.DesiredCapabilities]
+            const capabilities = [{ port: 4321, 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
 
@@ -598,7 +598,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
             }
-            const capabilities = [{ browserName: 'baz' } as Capabilities.DesiredCapabilities]
+            const capabilities = [{ browserName: 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
@@ -617,9 +617,9 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
                 browserA: { capabilities: { browserName: 'baz' } },
-                browserB: { capabilities: { deviceName: 'baz' } }
+                browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -639,12 +639,12 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
-                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities[] = [{
+                browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { capabilities: { browserName: 'baz' } }
             }, {
                 browserC: { port: 5678, capabilities: { browserName: 'baz' } },
-                browserD: { capabilities: { deviceName: 'baz' } }
+                browserD: { capabilities: { 'appium:deviceName': 'baz' } }
             }]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
