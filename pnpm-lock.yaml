@@ -1430,8 +1430,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-types
       nock:
-        specifier: 14.0.0-beta.13
-        version: 14.0.0-beta.13
+        specifier: 14.0.0-beta.14
+        version: 14.0.0-beta.14
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
@@ -10022,8 +10022,8 @@ packages:
   no-case@3.0.4:
     resolution: {integrity: sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg==}
 
-  nock@14.0.0-beta.13:
-    resolution: {integrity: sha512-dBuonA2N0JGmCAh8OK7oHzM8cmBsN2OlfT4/vxYrG4mdAm7mpZlr9/xO1NxFxcRg8EX85U0vA9uo/DvuhfF9Mg==}
+  nock@14.0.0-beta.14:
+    resolution: {integrity: sha512-nbUIuqYkixyazl4hWBQ+EJzb5F0/NJabIQFEEIQwBHPaG+RxvVSs4uSCasHMnCrNuCmOndxgUBqS860g6/OwJw==}
     engines: {node: '>= 18'}
 
   node-abi@3.67.0:
@@ -24126,7 +24126,7 @@ snapshots:
       lower-case: 2.0.2
       tslib: 2.7.0
 
-  nock@14.0.0-beta.13:
+  nock@14.0.0-beta.14:
     dependencies:
       '@mswjs/interceptors': 0.35.6
       json-stringify-safe: 5.0.1
