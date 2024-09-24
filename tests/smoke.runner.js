@@ -69,9 +69,9 @@ async function runTests (tests) {
  * Mocha wdio testrunner tests
  */
 const mochaTestrunner = async () => {
-    const { skippedSpecs } = await launch('mochaTestrunner', baseConfig, {
+    const { skippedSpecs, passed } = await launch('mochaTestrunner', baseConfig, {
         specs: [
-            './mocha/test.ts',
+            '../mocha/test.ts',
             path.resolve(__dirname, 'mocha', 'test-middleware.ts'),
             path.resolve(__dirname, 'mocha', 'test-waitForElement.ts'),
             path.resolve(__dirname, 'mocha', 'test-skipped.ts'),
@@ -87,6 +87,7 @@ const mochaTestrunner = async () => {
         return
     }
     assert.strictEqual(skippedSpecs, 1)
+    assert.strictEqual(passed, 4)
 }
 
 /**
