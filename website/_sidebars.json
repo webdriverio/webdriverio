@@ -219,7 +219,8 @@
         "docker",
         "githubactions",
         "jenkins",
-        "bamboo"
+        "bamboo",
+        "seleniumgrid"
       ]
     }
   ],
