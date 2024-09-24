@@ -205,7 +205,7 @@ function isAppiumCapability(capabilityName: string) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session has WebDriver Bidi support
  */
-export function isBidi(requestedCapabilities: Capabilities.RequestedStandaloneCapabilities, capabilities?: WebdriverIO.Capabilities) {
+export function isBidi(requestedCapabilities: Capabilities.RequestedStandaloneCapabilities, capabilities: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
@@ -264,7 +264,7 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(capabilities),
-        isBidi: isBidi(capabilities),
+        isBidi: isBidi({}, capabilities),
         isChromium: isChromium(capabilities)
     }
 }

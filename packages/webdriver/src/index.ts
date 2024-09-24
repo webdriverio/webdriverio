@@ -48,7 +48,7 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        if (isBidi(capabilities)) {
+        if (isBidi(requestedCapabilities, capabilities)) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
             Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string, options.strictSSL))
         }
@@ -68,10 +68,10 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (isBidi(params.capabilities, capabilities)) {
+        if (isBidi(requestedCapabilities, capabilities)) {
             // make sure the Bidi connection is established before returning
             await client._bidiHandler.connect()
-            client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+            client._bidiHandler.socket.on('message', parseBidiMessage.bind(client))
         }
 
         /**
