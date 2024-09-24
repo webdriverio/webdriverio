@@ -118,13 +118,23 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isBidi', () => {
         const requestedCapabilities = { browserName: '' }
+        const requestedAppiumCapabilities = {
+            browserName: 'chrome',
+            platformName: 'windows',
+            'appium:automationName': 'Chromium',
+            'goog:chromeOptions': {
+                args: ['user-data-dir=C:/Users/me/AppData/Local/Google/Chrome/User Data'],
+            }
+        }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isBidi).toBe(false)
-        // @ts-expect-error JSON import is not properly typed
-        expect(sessionEnvironmentDetector({ capabilities: bidiResponse, requestedCapabilities }).isBidi).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: bidiResponse as any as WebdriverIO.Capabilities, requestedCapabilities }).isBidi)
+            .toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: bidiResponse as any as WebdriverIO.Capabilities, requestedCapabilities: requestedAppiumCapabilities }).isBidi)
+            .toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: {
             webSocketUrl: true
         }, requestedCapabilities: {} }).isBidi).toBe(false)
