@@ -7,34 +7,28 @@ You can use WebdriverIO with your existing Selenium Grid instance. To connect yo
 
 Here is a code snippet from sample wdio.conf.ts.
 
-```ts
-// wdio.conf.ts
-
+```ts title=wdio.conf.ts
 export const config: Options.Testrunner = {
-    runner: 'local',
-// ...
+    // ...
     protocol: 'https',
     hostname: 'yourseleniumgridhost.yourdomain.com',
     port: 443,
     path: '/wd/hub',
-// ...
+    // ...
 
 }
 ```
 You need to provide the appropriate values for the protocol, hostname, port, and path based on your Selenium Grid setup.
 If you are running Selenium Grid on the same machine as your test scripts, here are some typical options:
 
-```ts
-// wdio.conf.ts
-
+```ts title=wdio.conf.ts
 export const config: Options.Testrunner = {
-    runner: 'local',
-// ...
+    // ...
     protocol: 'http',
     hostname: 'localhost',
     port: 4444,
     path: '/wd/hub',
-// ...
+    // ...
 
 }
 ```
@@ -64,32 +58,19 @@ When running test cases with a remote Selenium Grid, the browser runs on a remot
 
 For Chromium-based browsers, you can refer to the [Download file](https://webdriver.io/docs/api/browser/downloadFile) documentation. If your test scripts need to read the content of a downloaded file, you need to download it from the remote Selenium node to the test runner machine. Here is an example code snippet from the sample `wdio.conf.ts` configuration for the Chrome browser:
 
-```ts
-// wdio.conf.ts
-
-const chromeCapabilities = {
-    browserName: 'chrome',
-    'goog:chromeOptions': {
-         args: ['--headless=new', '--disable-gpu'],
-    },
-};
-
-let capability
-capability = { ...chromeCapabilities }
-//Added capability for selenium grid managed downloads.
-capability['se:downloadsEnabled'] = true
-
-export const config: Options.Testrunner = {
-    runner: 'local',
-// ...
+```ts title=wdio.conf.ts
+export const config: WebdriverIO.Config = {
+    // ...
     protocol: 'https',
     hostname: 'yourseleniumgridhost.yourdomain.com',
     port: 443,
     path: '/wd/hub',
-// ...
-    capabilities: [capability],
-//...
-
+    // ...
+    capabilities: [{
+        browserName: 'chrome',
+        'se:downloadsEnabled': true
+    }],
+    //...
 }
 ```
 
