@@ -8,7 +8,7 @@ import type { Capabilities, Options } from '@wdio/types'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
-    getTimeoutError, setupDirectConnect, validateCapabilities
+    getRequestError, setupDirectConnect, validateCapabilities
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
@@ -436,7 +436,7 @@ describe('utils', () => {
         })
     })
 
-    describe('getTimeoutError', () => {
+    describe('getRequestError', () => {
         const mkReqOpts = (opts = {}) => {
             return {
                 method: 'GET',
@@ -449,7 +449,7 @@ describe('utils', () => {
                 const err = new Error('Timeout')
                 const reqOpts = mkReqOpts({})
 
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/wd/hub/session'))
+                const timeoutErr = getRequestError(err, reqOpts, new URL('https://localhost:4445/wd/hub/session'))
 
                 expect(timeoutErr.message).toEqual(expect.stringMatching('when running "https://localhost:4445/wd/hub/session"'))
             })
@@ -458,7 +458,7 @@ describe('utils', () => {
                 const err = new Error('Timeout')
                 const reqOpts = mkReqOpts({})
 
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/wd/hub/session/abc123/url'))
+                const timeoutErr = getRequestError(err, reqOpts, new URL('https://localhost:4445/wd/hub/session/abc123/url'))
 
                 expect(timeoutErr.message).toEqual(expect.stringMatching('when running "url"'))
             })
@@ -467,7 +467,7 @@ describe('utils', () => {
                 const err = new Error('Timeout')
                 const reqOpts = mkReqOpts({ method: 'GET' })
 
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
+                const timeoutErr = getRequestError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(expect.stringMatching(/when running .+ with method "GET"/))
             })
@@ -477,7 +477,7 @@ describe('utils', () => {
                 const cmdArgs = { foo: 'bar' }
                 const reqOpts = mkReqOpts({ body: cmdArgs })
 
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
+                const timeoutErr = getRequestError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(
                     expect.stringMatching(new RegExp(`when running .+ with method .+ and args "${JSON.stringify(cmdArgs)}"`))
@@ -491,7 +491,7 @@ describe('utils', () => {
                 const cmdArgs = { script: Buffer.from('script').toString('base64') }
                 const reqOpts = mkReqOpts({ body: cmdArgs })
 
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
+                const timeoutErr = getRequestError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(
                     expect.stringMatching(/when running .+ with method .+ and args "<Script\[base64\]>"/)
@@ -503,7 +503,7 @@ describe('utils', () => {
                 const cmdArgs = { script: 'return (function() {\nconsole.log("hi")\n}).apply(null, arguments)' }
                 const reqOpts = mkReqOpts({ body: cmdArgs })
 
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
+                const timeoutErr = getRequestError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(
                     expect.stringMatching(/when running .+ with method .+ and args "function\(\) {\nconsole\.log\("hi"\)\n}/)
@@ -517,7 +517,7 @@ describe('utils', () => {
                 const cmdArgs = { file: Buffer.from('screen').toString('base64') }
                 const reqOpts = mkReqOpts({ body: cmdArgs })
 
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
+                const timeoutErr = getRequestError(err, reqOpts, new URL('https://localhost:4445/default/method'))
 
                 expect(timeoutErr.message).toEqual(
                     expect.stringMatching(/when running .+ with method .+ and args "<Screenshot\[base64\]>"/)

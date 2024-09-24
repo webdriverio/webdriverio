@@ -356,9 +356,9 @@ describe('webdriver request', () => {
                 expect(reqRetryCnt).toBeCalledTimes(retryCnt)
             })
 
-            it('should use error from "getTimeoutError" helper', async () => {
+            it('should use error from "getRequestError" helper', async () => {
                 const timeoutErr = new Error('Timeout')
-                const spy = vi.spyOn(utils, 'getTimeoutError').mockReturnValue(timeoutErr)
+                const spy = vi.spyOn(utils, 'getRequestError').mockReturnValue(timeoutErr)
 
                 const req = new WebDriverRequest('GET', '/timeout', {}, true)
                 req.emit = vi.fn()

@@ -426,7 +426,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 /**
  * return timeout error with information about the executing command on which the test hangs
  */
-export function getTimeoutError(error: Error, requestOptions: RequestInit, url: URL): Error {
+export function getRequestError(error: Error, requestOptions: RequestInit, url: URL): Error {
     const cmdName = getExecCmdName(url)
     const cmdArgs = getExecCmdArgs(requestOptions)
 
