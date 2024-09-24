@@ -314,8 +314,17 @@ export const sleep = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 export function isAppiumCapability(caps: WebdriverIO.Capabilities): boolean {
     return Boolean(
         caps &&
-        // @ts-expect-error outdated jsonwp cap
-        (caps.automationName || caps['appium:automationName'] || caps.deviceName || caps.appiumVersion)
+        (
+            // @ts-expect-error outdated jsonwp cap
+            caps.automationName ||
+            caps['appium:automationName'] ||
+            // @ts-expect-error outdated jsonwp cap
+            caps.deviceName ||
+            caps['appium:deviceName'] ||
+            // @ts-expect-error outdated jsonwp cap
+            caps.appiumVersion ||
+            caps['appium:appiumVersion']
+        )
     )
 }
 

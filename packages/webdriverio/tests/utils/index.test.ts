@@ -119,6 +119,8 @@ it('isStaleElementError', () => {
     expect(isStaleElementError(staleElementSafariError)).toBe(true)
     const staleElementJSError = new Error('javascript error: {"status":10,"value":"stale element not found in the current frame"}')
     expect(isStaleElementError(staleElementJSError)).toBe(true)
+    const staleElementBidiError = new Error('belongs to different document. Current document is')
+    expect(isStaleElementError(staleElementBidiError)).toBe(true)
     const otherError = new Error('something else')
     expect(isStaleElementError(otherError)).toBe(false)
 })

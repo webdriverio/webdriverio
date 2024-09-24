@@ -39,31 +39,38 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
-    const [w3cCaps, jsonwpCaps] = params.capabilities && 'alwaysMatch' in params.capabilities
+    const capabilities = params.capabilities && 'alwaysMatch' in params.capabilities
         /**
          * in case W3C compliant capabilities are provided
          */
-        ? [params.capabilities, params.capabilities.alwaysMatch]
+        ? params.capabilities
         /**
          * otherwise assume they passed in jsonwp-style caps (flat object)
          */
-        : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+        : { alwaysMatch: params.capabilities, firstMatch: [{}] }
 
     /**
-     * automatically opt-into WebDriver Bid (@ref https://w3c.github.io/webdriver-bidi/)
+     * automatically opt-into WebDriver Bidi (@ref https://w3c.github.io/webdriver-bidi/)
      */
-    if (!w3cCaps.alwaysMatch['wdio:enforceWebDriverClassic'] && typeof w3cCaps.alwaysMatch.browserName === 'string' && w3cCaps.alwaysMatch.browserName.toLowerCase() !== 'safari') {
-        w3cCaps.alwaysMatch.webSocketUrl = true
+    if (
+        /**
+         * except, if user does not want to opt-in
+         */
+        !capabilities.alwaysMatch['wdio:enforceWebDriverClassic'] &&
+        /**
+         * or user requests a Safari session which does not support Bidi
+         */
+        typeof capabilities.alwaysMatch.browserName === 'string' &&
+        capabilities.alwaysMatch.browserName.toLowerCase() !== 'safari'
+    ) {
+        capabilities.alwaysMatch.webSocketUrl = true
     }
 
-    validateCapabilities(w3cCaps.alwaysMatch)
+    validateCapabilities(capabilities.alwaysMatch)
     const sessionRequest = new Request(
         'POST',
         '/session',
-        {
-            capabilities: w3cCaps, // W3C compliant
-            desiredCapabilities: jsonwpCaps // JSONWP compliant
-        }
+        { capabilities }
     )
 
     let response

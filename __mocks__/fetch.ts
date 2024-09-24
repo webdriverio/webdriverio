@@ -96,14 +96,6 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         sessionResponse.capabilities.browserName = body.capabilities.alwaysMatch.browserName
     }
 
-    if (
-        body &&
-        body.desiredCapabilities &&
-        body.desiredCapabilities['sauce:options']
-    ) {
-        sessionResponse.capabilities['sauce:options'] = body.desiredCapabilities['sauce:options']
-    }
-
     if (body?.capabilities?.alwaysMatch?.browserName === 'bidi') {
         sessionResponse.capabilities.webSocketUrl = 'ws://webdriver.io'
     }
@@ -111,11 +103,6 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     switch (uri.pathname) {
     case path:
         value = sessionResponse
-
-        if (body.capabilities.alwaysMatch.browserName && body.capabilities.alwaysMatch.browserName.includes('noW3C')) {
-            value.desiredCapabilities = { browserName: 'mockBrowser' }
-            delete value.capabilities
-        }
 
         if (body.capabilities.alwaysMatch.browserName && body.capabilities.alwaysMatch.browserName.includes('devtools')) {
             value.capabilities['goog:chromeOptions'] = {

@@ -1,16 +1,16 @@
 import path from 'node:path'
 import { describe, test, expect, vi } from 'vitest'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import { remote, multiremote } from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-const remoteConfig: Options.WebdriverIO = {
+const remoteConfig: Capabilities.WebdriverIOConfig = {
     baseUrl: 'http://foobar.com',
     capabilities: {
-        browserName: 'foobar-noW3C'
+        browserName: 'foobar'
     }
 }
 
@@ -31,7 +31,7 @@ declare global {
     }
 }
 
-const multiremoteConfig: Capabilities.MultiRemoteCapabilities = {
+const multiremoteConfig: Capabilities.RequestedMultiremoteCapabilities = {
     browserA: {
         logLevel: 'debug',
         capabilities: {

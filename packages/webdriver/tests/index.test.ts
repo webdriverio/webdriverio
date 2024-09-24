@@ -93,10 +93,6 @@ describe('WebDriver', () => {
                             webSocketUrl: true
                         },
                         firstMatch: [{}]
-                    },
-                    desiredCapabilities: {
-                        browserName: 'firefox',
-                        webSocketUrl: true
                     }
                 }) })
             )
@@ -120,10 +116,6 @@ describe('WebDriver', () => {
                             webSocketUrl: true
                         },
                         firstMatch: [{}]
-                    },
-                    desiredCapabilities: {
-                        browserName: 'firefox',
-                        webSocketUrl: true
                     }
                 }) })
             )

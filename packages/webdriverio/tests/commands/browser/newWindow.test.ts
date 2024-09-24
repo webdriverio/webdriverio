@@ -6,8 +6,6 @@ import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
 
-import type { Capabilities } from '@wdio/types'
-
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -101,7 +99,7 @@ describe('newWindow', () => {
                 browserName: 'ipad',
                 // @ts-ignore mock feature
                 mobileMode: true
-            } as Capabilities.DesiredCapabilities
+            }
         })
 
         const error = await browser.newWindow('https://webdriver.io', {
