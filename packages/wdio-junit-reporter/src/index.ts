@@ -1,4 +1,5 @@
 import url from 'node:url'
+import os from 'node:os'
 
 import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
@@ -40,9 +41,11 @@ class JunitReporter extends WDIOReporter {
     private _currentTest?: TestStats
     private _originalStdoutWrite: Function
     private _addWorkerLogs: boolean
+    private _isWindows: boolean
 
     constructor(public options: JUnitReporterOptions) {
         super(options)
+        this._isWindows = os.platform() === 'win32'
         this._addWorkerLogs = options.addWorkerLogs ?? false
         this._testToAdditionalInformation = {}
         this._originalStdoutWrite = process.stdout.write.bind(process.stdout)
@@ -377,10 +380,20 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _sameFileName(file1?: string, file2?: string) {
+        if (!file1 && !file2) {
+            // both null -> same
+            return true
+        }
+        if (!file1 || !file2) {
+            // only one null -> not the same
+            return false
+        }
+
         // ensure both files are not a file URL
-        file1 = file1?.startsWith('file://') ? url.fileURLToPath(file1) : file1
-        file2 = file2?.startsWith('file://') ? url.fileURLToPath(file2) : file2
-        return file1 === file2
+        file1 = file1.startsWith('file://') ? url.fileURLToPath(file1) : file1
+        file2 = file2.startsWith('file://') ? url.fileURLToPath(file2) : file2
+
+        return file1.localeCompare(file2, undefined, { sensitivity: this._isWindows ? 'accent' : 'variant' }) === 0
     }
 }
 

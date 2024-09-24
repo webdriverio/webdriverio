@@ -346,6 +346,26 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_buildOrderedReport'](null, null as any, specFileName, 'feature', true)).toBe('_addCucumberFeatureToBuilder')
     })
 
+    it('_sameFileName - case independent on win32', function (context) {
+        if (os.platform() !== 'win32') {
+            context.skip()
+        }
+        expect(reporter['_sameFileName']('file:///C:/foo/bar', 'file:///C:/foo/bar')).toBeTruthy()
+        expect(reporter['_sameFileName']('file:///c:/foo/bar', 'file:///C:/foo/bar')).toBeTruthy()
+        expect(reporter['_sameFileName']('file:///c:/foo/bar', 'C:\\foo\\bar')).toBeTruthy()
+        expect(reporter['_sameFileName']('file:///C:/foo/bar', 'c:\\foo\\bar')).toBeTruthy()
+        expect(reporter['_sameFileName']('file:///C:/foo/bar', 'C:\\FOO\\bar')).toBeTruthy()
+        expect(reporter['_sameFileName']('file:///c:/foo/bar', 'C:\\bar\\foo')).toBeFalsy()
+    })
+
+    it('_sameFileName - case sensitive on everything except win32', function (context) {
+        if (os.platform() === 'win32') {
+            context.skip()
+        }
+        expect(reporter['_sameFileName']('file:///foo/bar', 'file:///Foo/bar')).toBeFalsy()
+        expect(reporter['_sameFileName']('file:///foo/bar', '/Foo/bar')).toBeFalsy()
+    })
+
     it('_sameFileName', () => {
         reporter = new WDIOJunitReporter({ stdout: true })
         const file1URL = os.platform() === 'win32' ? 'file:///C:/foo/bar' : 'file:///foo/bar'
