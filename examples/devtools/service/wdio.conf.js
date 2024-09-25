@@ -14,7 +14,7 @@ export const config = {
     framework: 'mocha',
     outputDir: path.join(__dirname, 'logs'),
     reporters: ['spec'],
-    services: ['devtools'],
+    services: ['lighthouse'],
     capabilities: [{
         browserName: 'chrome'
     }],
