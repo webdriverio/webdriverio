@@ -14,16 +14,16 @@ Se você está procurando ajuda imediata com o seu próprio projeto, entre em co
 
 ## Stack Overflow
 
-O Stack Overflow é um fórum popular para fazer perguntas de nível de código ou se você estiver preso com um erro específico. Read through the [existing questions](https://stackoverflow.com/questions/tagged/webdriver-io) tagged with webdriver-io or [ask your own](https://stackoverflow.com/questions/ask?tags=webdriver-io)!
+O Stack Overflow é um fórum popular para fazer perguntas de nível de código ou se você estiver preso com um erro específico. Leia as [perguntas existentes](https://stackoverflow.com/questions/tagged/webdriver-io) marcadas com webdriver-io ou [faça a sua própria](https://stackoverflow.com/questions/ask?tags=webdriver-io)!
 
-## Discussion Forums
+## Fóruns de Discussão
 
-There are many online forums which are a great place for discussion about WebdriverIO features, problems and bugs, e.g.:
+Existem muitos fóruns online que são um ótimo lugar para discutir recursos, problemas e erros do WebdriverIO, por exemplo:
 
-- [GitHub Discussions](https://github.com/webdriverio/webdriverio/discussions)
-- [Discord Community Server](https://discord.webdriver.io)
-- [#webdriverio Channel on SeleniumHQ Slack](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
+- [Discussões do GitHub](https://github.com/webdriverio/webdriverio/discussions)
+- [Servidor da Comunidade Discord](https://discord.webdriver.io)
+- [Canal #webdriverio no SeleniumHQ Slack](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
 
-## News
+## Notícias
 
-For the latest news about WebdriverIO, [follow @webdriverio on Twitter](https://twitter.com/webdriverio) and the official [WebdriverIO blog](/blog) on this website.
+Para as últimas notícias sobre WebdriverIO, [siga @webdriverio no Twitter](https://twitter.com/webdriverio) e o [blog](/blog) oficial do WebdriverIO neste site.
