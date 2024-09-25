@@ -1,20 +1,20 @@
 ---
 id: support
-title: Need Help?
+title: Precisa de Ajuda?
 ---
 
-This project is maintained by a dedicated group of people.
+Este projeto é mantido por um grupo dedicado de pessoas.
 
-If you're interested in making a contribution to the WebdriverIO project, check out [the free "Office Hours" program](/blog/2020/07/01/office-hours) to help you with your efforts.
+Se você está interessado em fazer uma contribuição para o projeto WebdriverIO, confira [o programa gratuito "Office Hours"](/blog/2020/07/01/office-hours) para ajudá-lo nos seus esforços.
 
-If you're seeking immediate help with your own project, reach out to a trusted WebdriverIO expert:
+Se você está procurando ajuda imediata com o seu próprio projeto, entre em contato com um especialista confiável em WebdriverIO:
 
 - [Kevin Lamping](https://www.codementor.io/@kevinlamping)
-- [Add your name to this list](https://github.com/webdriverio/webdriverio/edit/master/website/docs/Support.md)
+- [Adicione o seu nome a esta lista](https://github.com/webdriverio/webdriverio/edit/master/website/docs/Support.md)
 
 ## Stack Overflow
 
-Stack Overflow is a popular forum to ask code-level questions or if you’re stuck with a specific error. Read through the [existing questions](https://stackoverflow.com/questions/tagged/webdriver-io) tagged with webdriver-io or [ask your own](https://stackoverflow.com/questions/ask?tags=webdriver-io)!
+O Stack Overflow é um fórum popular para fazer perguntas de nível de código ou se você estiver preso com um erro específico. Read through the [existing questions](https://stackoverflow.com/questions/tagged/webdriver-io) tagged with webdriver-io or [ask your own](https://stackoverflow.com/questions/ask?tags=webdriver-io)!
 
 ## Discussion Forums
 
