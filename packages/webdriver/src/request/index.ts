@@ -7,7 +7,7 @@ import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import { RETRYABLE_STATUS_CODES } from './constants.js'
+import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
 import { isSuccessfulResponse, getErrorFromResponseBody, getRequestError } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
 import pkg from '../../package.json' with { type: 'json' }
@@ -209,7 +209,8 @@ export default abstract class WebDriverRequest extends EventEmitter {
             /**
              * handle timeouts
              */
-            if ((response as RequestLibError).code === 'ETIMEDOUT') {
+            const errorCode = (response as RequestLibError).code
+            if (errorCode && RETRYABLE_ERROR_CODES.includes(errorCode)) {
                 const error = getRequestError(response, fullRequestOptions, url)
                 return retry(error, 'Request timed out! Consider increasing the "connectionRetryTimeout" option.')
             }
