@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { expect, describe, beforeEach, it, vi, beforeAll, afterAll } from 'vitest'
+import { expect, describe, beforeEach, it, vi, beforeAll, afterAll, type MockInstance } from 'vitest'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
@@ -9,6 +9,7 @@ const webdriverResponses = [null, null, 'foo', 'bar', 'loo', null, 'hello', 'wor
 describe('switchWindow', () => {
     // @ts-ignore
     let browser: WebdriverIO.Browser
+    let browsingContextReload: MockInstance
 
     beforeAll(() => {
         // @ts-ignore
@@ -82,6 +83,22 @@ describe('switchWindow', () => {
         vi.mocked(fetch).setMockResponse([null, null, 'foo.com?foo=bar', 'bar', null, 'hello', 'world', null, 'some', 'url'])
         const tabId = await browser.switchWindow('foo.com?foo=bar')
         expect(tabId).toBe('window-handle-1')
+    })
+
+    it('should allow to switch to a window handle with bidi', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'bidi',
+            }
+        })
+
+        browsingContextReload = vi.spyOn(browser, 'browsingContextReload')
+        browsingContextReload.mockImplementation(() => ({}))
+
+        const tabId = await browser.switchWindow('webdriver')
+        expect(tabId).toBe('window-handle-1')
+        expect(browsingContextReload).toBeCalledTimes(1)
     })
 
     afterAll(() => {

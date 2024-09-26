@@ -49,6 +49,10 @@ export async function switchWindow (
     for (const tab of tabs) {
         await this.switchToWindow(tab)
 
+        if (this.isBidi) {
+            await this.browsingContextReload({ context: tab })
+        }
+
         /**
          * check if url matches
          */
