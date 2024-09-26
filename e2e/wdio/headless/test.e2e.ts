@@ -422,4 +422,13 @@ describe('main suite 1', () => {
                 .not.toBe(now.toString())
         })
     })
+
+    describe('shadow root piercing', () => {
+        it('recognises new shadow root ids when page refreshes', async () => {
+            await browser.url('https://todomvc.com/examples/lit/dist/')
+            await expect($('.new-todo')).toBePresent()
+            await browser.refresh()
+            await expect($('.new-todo')).toBePresent()
+        })
+    })
 })
