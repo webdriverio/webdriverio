@@ -58,13 +58,16 @@ export class ContextManager {
      *
      * @param {local.BrowsingContextNavigationInfo} context  browsing context used to navigate
      */
-    #handleNavigationStarted (context: local.BrowsingContextNavigationInfo) {
-        this.#browser.getWindowHandle().then((windowHandle) => {
-            if (context.context === windowHandle) {
-                log.info(`Update current context: ${context.context}`)
-                this.#currentContext = context.context
-            }
-        })
+    async #handleNavigationStarted (context: local.BrowsingContextNavigationInfo) {
+        const windowHandle = await this.#browser.getWindowHandle()
+        if (context.context === windowHandle) {
+            log.info(`Update current context: ${context.context}`)
+            this.#currentContext = context.context
+        }
+    }
+
+    setCurrentContext (context: string) {
+        this.#currentContext = context
     }
 
     async getCurrentContext () {

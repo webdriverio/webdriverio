@@ -1,3 +1,5 @@
+import { getContextManager } from '../../context.js'
+
 /**
  *
  * Switch focus to a particular tab / window.
@@ -46,8 +48,10 @@ export async function switchWindow (
         return !!target.match(matcher)
     }
 
+    const contextManager = getContextManager(this)
     for (const tab of tabs) {
         await this.switchToWindow(tab)
+        contextManager.setCurrentContext(tab)
 
         /**
          * check if url matches
