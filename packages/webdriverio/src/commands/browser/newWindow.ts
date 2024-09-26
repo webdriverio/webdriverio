@@ -1,6 +1,7 @@
 import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
+import { getContextManager } from '../../context.js'
 import type { NewWindowOptions } from '../../types.js'
 
 const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
@@ -65,7 +66,9 @@ export async function newWindow (
     const tabsBefore = await this.getWindowHandles()
 
     if (this.isBidi) {
+        const contextManager = getContextManager(this)
         const { context } = await this.browsingContextCreate({ type: 'window' })
+        contextManager.setCurrentContext(context)
         await this.browsingContextNavigate({ context, url })
     } else {
         await this.execute(newWindowHelper, url, windowName, windowFeatures)

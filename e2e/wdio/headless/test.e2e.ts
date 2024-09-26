@@ -431,4 +431,22 @@ describe('main suite 1', () => {
             await expect($('.new-todo')).toBePresent()
         })
     })
+
+    describe('context management', () => {
+        it('should allow user to switch between contexts', async () => {
+            await browser.url('http://guinea-pig.webdriver.io/')
+
+            await browser.newWindow('https://webdriver.io')
+            await expect($('.hero__subtitle')).toBePresent()
+            await expect($('.red')).not.toBePresent()
+
+            await browser.switchWindow('guinea-pig.webdriver.io')
+            await expect($('.red')).toBePresent()
+            await expect($('.hero__subtitle')).not.toBePresent()
+
+            await browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
+            await expect($('.hero__subtitle')).toBePresent()
+            await expect($('.red')).not.toBePresent()
+        })
+    })
 })
