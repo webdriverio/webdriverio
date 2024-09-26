@@ -23,6 +23,31 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.1.1 (2024-09-26)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#13660](https://github.com/webdriverio/webdriverio/pull/13660) fix(webdriver): also retry on various error codes ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#13659](https://github.com/webdriverio/webdriverio/pull/13659) fix(webdriverio): better handle context switches ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13657](https://github.com/webdriverio/webdriverio/pull/13657) fix(webdriverio): recognise shadow tree after context reload ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-junit-reporter`
+  * [#13650](https://github.com/webdriverio/webdriverio/pull/13650) [junit-reporter] compare files ignoring case on win32 ([@sebastian-sauer](https://github.com/sebastian-sauer))
+
+#### :nail_care: Polish
+* `wdio-local-runner`
+  * [#13655](https://github.com/webdriverio/webdriverio/pull/13655) chore: improve log formatting for args ([@alcpereira](https://github.com/alcpereira))
+
+#### :memo: Documentation
+* [#13653](https://github.com/webdriverio/webdriverio/pull/13653) fix(build): website build issue on windows ([@amardeep2006](https://github.com/amardeep2006))
+
+#### Committers: 4
+- Amar Deep Singh ([@amardeep2006](https://github.com/amardeep2006))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@alcpereira](https://github.com/alcpereira)
+- [@sebastian-sauer](https://github.com/sebastian-sauer)
+
+
 ## v9.1.0 (2024-09-24)
 
 #### :rocket: New Feature
