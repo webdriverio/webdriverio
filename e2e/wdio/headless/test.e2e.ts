@@ -1,5 +1,5 @@
 /// <reference types="@wdio/lighthouse-service" />
-import { browser, $, expect } from '@wdio/globals'
+import { browser, $, $$, expect } from '@wdio/globals'
 import os from 'node:os'
 
 describe('main suite 1', () => {
@@ -420,6 +420,16 @@ describe('main suite 1', () => {
             await browser.url('http://guinea-pig.webdriver.io/pointer.html')
             expect(await browser.execute(getDateString))
                 .not.toBe(now.toString())
+        })
+    })
+
+    describe('shadow root piercing', () => {
+        it('recognises new shadow root ids when page refreshes', async () => {
+            await browser.url('https://ionicframework.com/docs/usage/v8/picker/basic/demo.html?ionic:mode=md')
+            await browser.$('.picker-opts').waitForExist()
+            await expect($$('.picker-opts div')).toBeElementsArrayOfSize(6)
+            await browser.refresh()
+            await expect($$('.picker-opts div')).toBeElementsArrayOfSize(6)
         })
     })
 })
