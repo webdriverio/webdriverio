@@ -194,8 +194,7 @@ enum ProtocolOptions {
 
 export enum RegionOptions {
     US = 'us',
-    EU = 'eu',
-    APAC = 'apac'
+    EU = 'eu'
 }
 
 export const E2E_ENVIRONMENTS = [
