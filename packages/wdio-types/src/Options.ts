@@ -143,7 +143,7 @@ export interface WebDriver extends Connection {
     cacheDir?: string
 }
 
-export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-4' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
+export type SauceRegions = 'us' | 'eu' | 'us-west-1' | 'us-east-4' | 'eu-central-1' | 'staging'
 
 export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**

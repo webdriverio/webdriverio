@@ -28,9 +28,9 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-To use the service for the Virtual Desktop/Emulator/Simulator Machine and Real Device cloud you need to set `user` and `key` in your `wdio.conf.js` file. It will automatically use Sauce Labs to run your integration tests. If you run your tests on Sauce Labs you can specify the region you want to run your tests in via the `region` property. Available short handles for regions are `us` (default), `eu` and `apac`. These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud. If you don't provide the region, it defaults to `us`.
+To use the service for the Virtual Desktop/Emulator/Simulator Machine and Real Device cloud you need to set `user` and `key` in your `wdio.conf.js` file. It will automatically use Sauce Labs to run your integration tests. If you run your tests on Sauce Labs you can specify the region you want to run your tests in via the `region` property. Available short handles for regions are `us` (default) and `eu`. These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud. If you don't provide the region, it defaults to `us`.
 
-If you want WebdriverIO to automatically spin up a [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) tunnel, you need to set `sauceConnect: true`. If you would like to change the data center to EU add `region:'eu'` or APAC add `region:'apac'` as US data center is set as default.
+If you want WebdriverIO to automatically spin up a [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) tunnel, you need to set `sauceConnect: true`. If you would like to change the data center to EU add `region:'eu'` as US data center is set as default.
 
 ```js
 // wdio.conf.js
@@ -38,7 +38,7 @@ export const config = {
     // ...
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
-    region: 'us', // or 'eu' or 'apac'
+    region: 'us', // or 'eu'
     services: [
         ['sauce', {
             sauceConnect: true,

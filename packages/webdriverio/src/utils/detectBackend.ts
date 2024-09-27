@@ -11,8 +11,6 @@ const REGION_MAPPING = {
     'eu': 'eu-central-1.',
     'eu-central-1': 'eu-central-1.',
     'us-east-4': 'us-east-4.',
-    'apac': 'apac-southeast-1.',
-    'apac-southeast-1': 'apac-southeast-1',
 }
 
 interface BackendConfigurations {
