@@ -58,8 +58,9 @@ export async function execute<ReturnValue, InnerArguments extends any[]> (
         const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
+        const userScript = typeof script === 'string' ? new Function(script) : script
         const functionDeclaration = new Function(`
-            return (${SCRIPT_PREFIX}${script.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
+            return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
         `).toString()
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
