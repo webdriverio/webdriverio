@@ -216,13 +216,13 @@ export default class WebDriverInterception {
     #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters> (request: T) {
         let isRequestMatching = true
 
-        if (this.#filterOptions.method) {
+        if (isRequestMatching && this.#filterOptions.method) {
             isRequestMatching = typeof this.#filterOptions.method === 'function'
                 ? this.#filterOptions.method(request.request.method)
-                : this.#filterOptions.method === request.request.method
+                : this.#filterOptions.method.toLowerCase() === request.request.method.toLowerCase()
         }
 
-        if (this.#filterOptions.requestHeaders) {
+        if (isRequestMatching && this.#filterOptions.requestHeaders) {
             isRequestMatching = typeof this.#filterOptions.requestHeaders === 'function'
                 ? this.#filterOptions.requestHeaders(request.request.headers.reduce((acc, { name, value }) => {
                     acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
@@ -240,7 +240,7 @@ export default class WebDriverInterception {
                 })
         }
 
-        if (this.#filterOptions.responseHeaders && 'response' in request) {
+        if (isRequestMatching && this.#filterOptions.responseHeaders && 'response' in request) {
             isRequestMatching = typeof this.#filterOptions.responseHeaders === 'function'
                 ? this.#filterOptions.responseHeaders(request.response.headers.reduce((acc, { name, value }) => {
                     acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
@@ -258,7 +258,7 @@ export default class WebDriverInterception {
                 })
         }
 
-        if (this.#filterOptions.statusCode && 'response' in request) {
+        if (isRequestMatching && this.#filterOptions.statusCode && 'response' in request) {
             isRequestMatching = typeof this.#filterOptions.statusCode === 'function'
                 ? this.#filterOptions.statusCode(request.response.status)
                 : this.#filterOptions.statusCode === request.response.status
