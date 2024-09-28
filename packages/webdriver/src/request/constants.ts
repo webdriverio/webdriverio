@@ -7,5 +7,12 @@ export const RETRYABLE_STATUS_CODES = [408, 413, 429, 500, 502, 503, 504]
  */
 export const RETRYABLE_ERROR_CODES = [
     'ETIMEDOUT', 'ECONNRESET', 'EADDRINUSE', 'ECONNREFUSED', 'EPIPE', 'ENOTFOUND',
-    'ENETUNREACH', 'EAI_AGAIN'
+    'ENETUNREACH', 'EAI_AGAIN',
+    // additional error codes we like to retry
+    'UND_ERR_CONNECT_TIMEOUT'
 ]
+
+export const REG_EXPS = {
+    commandName: /.*\/session\/[0-9a-f-]+\/(.*)/,
+    execFn: /return \(([\s\S]*)\)\.apply\(null, arguments\)/
+}

@@ -1,12 +1,9 @@
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import {
-    WebDriverBidiProtocol,
-    type CommandEndpoint,
-} from '@wdio/protocols'
+import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
 import Request from './request/request.js'
-import type { WebDriverResponse } from './request/index.js'
+import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 
 const log = logger('webdriver')
