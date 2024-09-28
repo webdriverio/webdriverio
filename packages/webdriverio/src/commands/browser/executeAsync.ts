@@ -72,12 +72,13 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]>(
         const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
+        const userScript = typeof script === 'string' ? new Function(script) : script
         const functionDeclaration = new Function(`
             const args = Array.from(arguments)
             return new Promise(async (resolve, reject) => {
                 const cb = (result) => resolve(result)
                 try {
-                    await (${script.toString()}).apply(this, [...args, cb])
+                    await (${userScript.toString()}).apply(this, [...args, cb])
                 } catch (err) {
                     return reject(err)
                 }
