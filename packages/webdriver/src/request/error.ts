@@ -16,7 +16,7 @@ abstract class WebDriverError extends Error {
         const cmdInfoMsg = `when running "${cmdName}" with method "${this.opts.method}"`
         const cmdArgsMsg = cmdArgs ? ` and args ${cmdArgs}` : ''
 
-        return `WebDriverResponseError: ${this.message} ${cmdInfoMsg}${cmdArgsMsg}`
+        return `WebDriverError: ${this.message} ${cmdInfoMsg}${cmdArgsMsg}`
     }
 
     #getExecCmdName(): string {
@@ -67,11 +67,16 @@ export class WebDriverRequestError extends WebDriverError {
         this.url = url
         this.opts = opts
 
-        if (typeof err.cause === 'object' && err.cause && 'code' in err.cause && typeof err.cause.code === 'string') {
-            this.code = err.cause.code
-            this.message = err.cause.code === 'UND_ERR_CONNECT_TIMEOUT'
+        const errorCode = typeof err.cause === 'object' && err.cause && 'code' in err.cause && typeof err.cause.code === 'string'
+            ? err.cause.code
+            : 'code' in err && typeof err.code === 'string'
+                ? err.code
+                : undefined
+        if (errorCode) {
+            this.code = errorCode
+            this.message = errorCode === 'UND_ERR_CONNECT_TIMEOUT'
                 ? 'Request timed out! Consider increasing the "connectionRetryTimeout" option.'
-                : 'Request failed with error code ' + err.cause.code
+                : 'Request failed with error code ' + errorCode
         }
 
         this.message = this.computeErrorMessage()
