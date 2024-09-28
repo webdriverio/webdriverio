@@ -23,6 +23,27 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.1.2 (2024-09-28)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13669](https://github.com/webdriverio/webdriverio/pull/13669) fix(webdriverio): fix execute command when passing in a string ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13668](https://github.com/webdriverio/webdriverio/pull/13668) fix(webdriverio): fix mock filtering ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#13665](https://github.com/webdriverio/webdriverio/pull/13665) Reject promise if test is skipped via async method ([@sebastian-sauer](https://github.com/sebastian-sauer))
+
+#### :nail_care: Polish
+* `wdio-types`, `webdriver`
+  * [#13667](https://github.com/webdriverio/webdriverio/pull/13667) chore(webdriver): refactor request/response error handling ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-sauce-service`, `wdio-spec-reporter`, `wdio-types`, `webdriverio`
+  * [#13666](https://github.com/webdriverio/webdriverio/pull/13666) Removing APAC region ([@diemol](https://github.com/diemol))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Diego Molina ([@diemol](https://github.com/diemol))
+- [@sebastian-sauer](https://github.com/sebastian-sauer)
+
+
 ## v9.1.1 (2024-09-26)
 
 #### :bug: Bug Fix
