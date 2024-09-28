@@ -4,7 +4,8 @@ import dns from 'node:dns'
 
 import type { Options } from '@wdio/types'
 
-import WebDriverRequest, { RequestLibError } from './index.js'
+import WebDriverRequest from './index.js'
+import { WebDriverRequestError } from './error.js'
 
 // As per this https://github.com/node-fetch/node-fetch/issues/1624#issuecomment-1407717012 we are setting ipv4first as default IP resolver.
 // This can be removed when we drop Node18 support.
@@ -35,9 +36,14 @@ export default class FetchRequest extends WebDriverRequest {
             } as Options.RequestLibResponse
         } catch (err: any) {
             if (!(err instanceof Error)) {
-                throw new RequestLibError(`Failed to fetch ${url.href}: ${err.message || err || 'Unknown error'}`)
+                throw new WebDriverRequestError(
+                    new Error(`Failed to fetch ${url.href}: ${err.message || err || 'Unknown error'}`),
+                    url,
+                    opts
+                )
             }
-            throw err
+
+            throw new WebDriverRequestError(err, url, opts)
         }
     }
 

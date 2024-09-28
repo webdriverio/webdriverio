@@ -7,16 +7,14 @@ import {
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
-import { transformCommandLogResult } from '@wdio/utils'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
 import Request from './request/request.js'
+import type { WebDriverResponse } from './request/types.js'
 import command from './command.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
-import { REG_EXPS } from './constants.js'
-import type { WebDriverResponse } from './request/index.js'
 import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
 
 const log = logger('webdriver')
@@ -252,77 +250,6 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
 }
 
 /**
- * helper method to determine the error from webdriver response
- * @param  {Object} body body object
- * @return {Object} error
- */
-export function getErrorFromResponseBody (body: any, requestOptions: any) {
-    if (!body) {
-        return new Error('Response has empty body')
-    }
-
-    if (typeof body === 'string' && body.length) {
-        return new Error(body)
-    }
-
-    if (typeof body !== 'object') {
-        return new Error('Unknown error')
-    }
-
-    return new CustomRequestError(body, requestOptions)
-}
-
-//Exporting for testability
-export class CustomRequestError extends Error {
-    constructor (body: WebDriverResponse, requestOptions: any) {
-        const errorObj = body.value || body
-        /**
-         * e.g. in Firefox or Safari, error are following the following structure:
-         * ```
-         * {
-         *   value: {
-         *     error: '...',
-         *     message: '...',
-         *     stacktrace: '...'
-         *   }
-         * }
-         * ```
-         */
-        let errorMessage = errorObj.message || errorObj.error || errorObj.class || 'unknown error'
-
-        /**
-         * Improve Chromedriver's error message for an invalid selector
-         *
-         * Chrome:
-         *  error: 'invalid argument'
-         * message: 'invalid argument: invalid locator\n  (Session info: chrome=122.0.6261.94)'
-         * Firefox:
-         *  error: 'invalid selector'
-         *  message: 'Given xpath expression "//button" is invalid: NotSupportedError: Operation is not supported'
-         * Safari:
-         *  error: 'timeout'
-         *  message: ''
-         */
-        if (typeof errorMessage === 'string' && errorMessage.includes('invalid locator')) {
-            errorMessage = (
-                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid!`
-            )
-        }
-
-        super(errorMessage)
-        if (errorObj.error) {
-            this.name = errorObj.error
-        } else if (errorMessage && errorMessage.includes('stale element reference')) {
-            this.name = 'stale element reference'
-        } else {
-            this.name = errorObj.name || 'WebDriver Error'
-        }
-
-        Error.captureStackTrace(this, CustomRequestError)
-    }
-}
-
-/**
  * return all supported flags and return them in a format so we can attach them
  * to the instance protocol
  * @param  {Object} options   driver instance or option object containing these flags
@@ -421,49 +348,6 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
     }
 
     return err.message
-}
-
-/**
- * return timeout error with information about the executing command on which the test hangs
- */
-export function getRequestError(error: Error, requestOptions: RequestInit, url: URL): Error {
-    const cmdName = getExecCmdName(url)
-    const cmdArgs = getExecCmdArgs(requestOptions)
-
-    const cmdInfoMsg = `when running "${cmdName}" with method "${requestOptions.method}"`
-    const cmdArgsMsg = cmdArgs ? ` and args ${cmdArgs}` : ''
-
-    const timeoutErr = new Error(`${error.message} ${cmdInfoMsg}${cmdArgsMsg}`)
-    return Object.assign(timeoutErr, error)
-}
-
-function getExecCmdName(url: URL): string {
-    const { href } = url
-    const res = href.match(REG_EXPS.commandName) || []
-
-    return res[1] || href
-}
-
-function getExecCmdArgs(requestOptions: RequestInit): string {
-    const { body: cmdJson }: any = requestOptions
-
-    if (typeof cmdJson !== 'object') {
-        return ''
-    }
-
-    const transformedRes = transformCommandLogResult(cmdJson)
-
-    if (typeof transformedRes === 'string') {
-        return transformedRes
-    }
-
-    if (typeof cmdJson.script === 'string') {
-        const scriptRes = cmdJson.script.match(REG_EXPS.execFn) || []
-
-        return `"${scriptRes[1] || cmdJson.script}"`
-    }
-
-    return Object.keys(cmdJson).length ? `"${JSON.stringify(cmdJson)}"` : ''
 }
 
 /**

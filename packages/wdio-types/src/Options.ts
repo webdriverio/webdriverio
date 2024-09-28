@@ -6,9 +6,9 @@ export type SupportedProtocols = 'webdriver' | './protocol-stub.js'
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
 
-export interface RequestLibResponse {
+export interface RequestLibResponse<Body = any> {
     statusCode: number
-    body?: any
+    body?: Body
     rawBody?: Buffer
 }
 
