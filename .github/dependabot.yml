@@ -48,6 +48,8 @@ updates:
     # fails to update and requires investigations
     - dependency-name: "vite"
     - dependency-name: "puppeteer-core"
+    # requires manual upgrade
+    - dependency-name: "allure-js-commons"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
