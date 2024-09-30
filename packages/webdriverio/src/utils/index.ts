@@ -258,7 +258,7 @@ export function elementPromiseHandler <T extends object>(handle: string, shadowR
 }
 
 export function transformClassicToBidiSelector (using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
-    if (using === 'css selector') {
+    if (using === 'css selector' || using === 'tag name') {
         return { type: 'css', value }
     }
 
