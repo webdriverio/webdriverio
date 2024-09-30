@@ -888,8 +888,8 @@ importers:
         specifier: 29.0.0
         version: 29.0.0
       '@cucumber/messages':
-        specifier: 25.0.1
-        version: 25.0.1
+        specifier: 26.0.1
+        version: 26.0.1
       '@types/node':
         specifier: ^20.1.0
         version: 20.16.5
@@ -3108,6 +3108,9 @@ packages:
 
   '@cucumber/messages@25.0.1':
     resolution: {integrity: sha512-RjjhmzcauX5eYfcKns5pgenefDJQcfXE3ZDrVWdUDGcoaoyFVDmj+ZzQZWRWqFrfMjP3lKHJss6LtvIP/z+h8g==}
+
+  '@cucumber/messages@26.0.1':
+    resolution: {integrity: sha512-DIxSg+ZGariumO+Lq6bn4kOUIUET83A4umrnWmidjGFl8XxkBieUZtsmNbLYgH/gnsmP07EfxxdTr0hOchV1Sg==}
 
   '@cucumber/tag-expressions@6.1.0':
     resolution: {integrity: sha512-+3DwRumrCJG27AtzCIL37A/X+A/gSfxOPLg8pZaruh5SLumsTmpvilwroVWBT2fPzmno/tGXypeK5a7NHU4RzA==}
@@ -14929,7 +14932,7 @@ snapshots:
       '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
-      '@cucumber/message-streams': 4.0.1(@cucumber/messages@25.0.1)
+      '@cucumber/message-streams': 4.0.1(@cucumber/messages@26.0.1)
       '@cucumber/messages': 24.1.0
       '@cucumber/tag-expressions': 6.1.0
       assertion-error-formatter: 3.0.0
@@ -14969,7 +14972,7 @@ snapshots:
   '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/message-streams': 4.0.1(@cucumber/messages@25.0.1)
+      '@cucumber/message-streams': 4.0.1(@cucumber/messages@26.0.1)
       '@cucumber/messages': 24.1.0
       commander: 9.1.0
       source-map-support: 0.5.21
@@ -14994,9 +14997,9 @@ snapshots:
     dependencies:
       '@cucumber/messages': 24.1.0
 
-  '@cucumber/message-streams@4.0.1(@cucumber/messages@25.0.1)':
+  '@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1)':
     dependencies:
-      '@cucumber/messages': 25.0.1
+      '@cucumber/messages': 26.0.1
 
   '@cucumber/messages@24.1.0':
     dependencies:
@@ -15011,6 +15014,13 @@ snapshots:
       class-transformer: 0.5.1
       reflect-metadata: 0.2.2
       uuid: 9.0.1
+
+  '@cucumber/messages@26.0.1':
+    dependencies:
+      '@types/uuid': 10.0.0
+      class-transformer: 0.5.1
+      reflect-metadata: 0.2.2
+      uuid: 10.0.0
 
   '@cucumber/tag-expressions@6.1.0': {}
 
