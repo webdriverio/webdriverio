@@ -58,6 +58,7 @@
     "@wdio/local-runner": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
     "@wdio/repl": "workspace:*",
+    "@wdio/sauce-service": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
     "@wdio/types": "workspace:*",
