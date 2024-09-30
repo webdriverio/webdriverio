@@ -6,6 +6,7 @@ import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../context.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
+import { getShadowRootManager } from '../../shadowRoot.js'
 
 /**
  *
@@ -54,7 +55,10 @@ export async function execute<ReturnValue, InnerArguments extends any[]> (
         throw new Error('number or type of arguments don\'t agree with execute protocol command')
     }
 
-    if (this.isBidi && !this.isMultiremote) {
+    /**
+     * make sure we are not in an iframe (because it is currently not supported to locate nodes in an iframe via Bidi)
+     */
+    if (this.isBidi && !this.isMultiremote && !getShadowRootManager(this).isWithinFrame()) {
         const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()

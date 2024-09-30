@@ -5,6 +5,8 @@ import { getElements, getElement } from '../../utils/getElementObject.js'
 import { findDeepElements } from '../../utils/index.js'
 import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
+import { getShadowRootManager } from '../../shadowRoot.js'
+import { getBrowserObject } from '@wdio/utils'
 
 /**
  * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
@@ -50,13 +52,17 @@ export async function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
 ): Promise<WebdriverIO.ElementArray> {
+    const browserObject = getBrowserObject(this)
+    const shadowRootManager = getShadowRootManager(browserObject)
+
     /**
      * do a deep lookup if
      * - we are using Bidi
      * - have a string selector
      * - that is not a deep selector
+     * - and we are not in an iframe (because it is currently not supported to locate nodes in an iframe via Bidi)
      */
-    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
+    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !shadowRootManager.isWithinFrame()) {
         /**
          * run this in Node.js land if we are using browser runner
          */
