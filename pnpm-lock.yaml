@@ -739,8 +739,8 @@ importers:
         specifier: ^20.1.1
         version: 20.16.5
       '@vitest/snapshot':
-        specifier: ^1.2.1
-        version: 1.6.0
+        specifier: ^2.1.1
+        version: 2.1.1
       '@wdio/config':
         specifier: workspace:*
         version: link:../wdio-config
