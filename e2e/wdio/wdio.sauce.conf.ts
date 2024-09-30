@@ -13,6 +13,7 @@ export const config: WebdriverIO.Config = {
      * Sauce specific config
      */
     specs: [path.resolve(__dirname, 'cloud', '*.e2e.ts')],
+    services: ['sauce'],
     capabilities: [{
         browserName: 'Chrome',
         browserVersion: 'latest',

@@ -62,14 +62,14 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 let browser: WebdriverIO.MultiRemoteBrowser
 beforeEach(() => {
     browser = {
-        execute: vi.fn(),
+        executeScript: vi.fn(),
         getInstance: vi.fn().mockImplementation((browserName: string) => {
             // @ts-expect-error
             return browser[browserName] as WebdriverIO.Browser
         }),
-        chromeA: { sessionId: 'sessionChromeA', execute: vi.fn() },
-        chromeB: { sessionId: 'sessionChromeB', execute: vi.fn() },
-        chromeC: { sessionId: 'sessionChromeC', execute: vi.fn() },
+        chromeA: { sessionId: 'sessionChromeA', executeScript: vi.fn() },
+        chromeB: { sessionId: 'sessionChromeB', executeScript: vi.fn() },
+        chromeC: { sessionId: 'sessionChromeC', executeScript: vi.fn() },
         instances: ['chromeA', 'chromeB', 'chromeC'],
     } as any as WebdriverIO.MultiRemoteBrowser
     vi.mocked(log.info).mockClear()
@@ -1032,7 +1032,7 @@ test('setAnnotation without a browser', async () => {
     const service = new SauceService({}, {}, {} as any)
     await service.setAnnotation('foo')
 
-    expect(browser.execute).toBeCalledTimes(0)
+    expect(browser.executeScript).toBeCalledTimes(0)
 })
 
 test('setAnnotation', async () => {
@@ -1042,7 +1042,7 @@ test('setAnnotation', async () => {
     browser.isMultiremote = false
     await service.setAnnotation('foo')
 
-    expect(browser.execute).toBeCalledWith('foo')
+    expect(browser.executeScript).toBeCalledWith('foo', [])
 })
 
 test('setAnnotation for VDC and RDC with multi remote', async () => {
@@ -1063,9 +1063,9 @@ test('setAnnotation for VDC and RDC with multi remote', async () => {
     const browserChromeB = browser.getInstance('chromeB')
     const browserChromeC = browser.getInstance('chromeC')
 
-    expect(browserChromeA.execute).toBeCalledWith('sauce:context=foo')
-    expect(browserChromeB.execute).toBeCalledWith('sauce:context=foo')
-    expect(browserChromeC.execute).toBeCalledWith('sauce:context=foo')
+    expect(browserChromeA.executeScript).toBeCalledWith('sauce:context=foo', [])
+    expect(browserChromeB.executeScript).toBeCalledWith('sauce:context=foo', [])
+    expect(browserChromeC.executeScript).toBeCalledWith('sauce:context=foo', [])
 })
 
 afterEach(() => {

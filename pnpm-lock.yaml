@@ -288,6 +288,9 @@ importers:
       '@wdio/repl':
         specifier: workspace:*
         version: link:../packages/wdio-repl
+      '@wdio/sauce-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-sauce-service
       '@wdio/shared-store-service':
         specifier: workspace:*
         version: link:../packages/wdio-shared-store-service
