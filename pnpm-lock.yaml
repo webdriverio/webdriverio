@@ -25,7 +25,7 @@ importers:
         version: 2.9.1(@babel/core@7.24.9)(preact@10.22.0)(vite@5.3.1(@types/node@22.7.4)(terser@5.31.1))
       '@serenity-js/core':
         specifier: ^3.17.0
-        version: 3.28.0
+        version: 3.29.2
       '@stencil/core':
         specifier: ^4.12.2
         version: 4.21.0
@@ -4257,8 +4257,8 @@ packages:
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
 
-  '@serenity-js/core@3.28.0':
-    resolution: {integrity: sha512-xxoE3pz+awT4Mezlkk0MiAO8yRaUEmDNxkCIT4Nsp/uWCZLOAr3yDgwzWRzZo1vTBnCe7oQAhtaP8lJQgkmoNQ==}
+  '@serenity-js/core@3.29.2':
+    resolution: {integrity: sha512-vxMMxaT8Fbd/3t8YmeoHDXJMQd9jOa7M8m2jqSQ9dh/JkY1j9/UEIdO6ulUqarNfbK4SkrmXKIPYoO4Mu/Hjyw==}
     engines: {node: ^18.12 || ^20 || ^22}
 
   '@sideway/address@4.1.5':
@@ -17456,7 +17456,7 @@ snapshots:
 
   '@sec-ant/readable-stream@0.4.1': {}
 
-  '@serenity-js/core@3.28.0':
+  '@serenity-js/core@3.29.2':
     dependencies:
       '@paralleldrive/cuid2': 2.2.2
       chalk: 4.1.2
