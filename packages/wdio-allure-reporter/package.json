@@ -42,7 +42,7 @@
     "@types/node": "^22.2.0",
     "@wdio/reporter": "8.40.3",
     "@wdio/types": "8.40.3",
-    "allure-js-commons": "^2.5.0",
+    "allure-js-commons": "^3.0.3",
     "csv-stringify": "^6.0.4",
     "strip-ansi": "^7.1.0"
   },
