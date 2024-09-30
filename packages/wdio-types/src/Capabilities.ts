@@ -621,6 +621,11 @@ export interface AppiumCapabilities {
      * capability or 'appium:app' must be provided on session startup.
      */
     'appium:appTopLevelWindow'?: string
+    /**
+     * https://appium.io/docs/en/2.11/guides/settings/#initializing-settings-via-capabilities
+     */
+    'appium:settings'?: Record<string, any>
+    [key: `appium:settings[${string}]`]: any;
 }
 
 /**
@@ -723,12 +728,6 @@ export interface AppiumAndroidCapabilities {
     'appium:chromeOptions'?: { [key: string]: any }
     'appium:chromeLoggingPrefs'?: { [key: string]: any }
     'appium:userProfile'?: number
-
-    /**
-     * https://appium.io/docs/en/2.11/guides/settings/#initializing-settings-via-capabilities
-     */
-    'appium:settings'?: Record<string, any>
-    [key: `appium:settings[${string}]`]: boolean;    
 }
 
 /**
