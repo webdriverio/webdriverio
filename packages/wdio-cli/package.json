@@ -40,7 +40,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^20.1.1",
-    "@vitest/snapshot": "^1.2.1",
+    "@vitest/snapshot": "^2.1.1",
     "@wdio/config": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
