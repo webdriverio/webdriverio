@@ -131,7 +131,7 @@ describe('transformClassicToBidiSelector', () => {
         expect(bidiSelector.type).toBe('css')
         expect(bidiSelector.value).toBe('.red')
     })
-    
+
     it('transforms classic tag name selector to BiDi', () => {
         const bidiSelector = transformClassicToBidiSelector('tag name', 'div')
         expect(bidiSelector.type).toBe('css')
