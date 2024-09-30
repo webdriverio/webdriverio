@@ -151,7 +151,7 @@ importers:
         version: 9.1.6
       inquirer:
         specifier: ^11.0.1
-        version: 11.0.1
+        version: 11.1.0
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
@@ -8701,6 +8701,10 @@ packages:
 
   inquirer@11.0.1:
     resolution: {integrity: sha512-G+GdcKg7AaWER6H3UuccHkDZSJYxE1x12V2AbmJQNY5/WYSBVEDip1nDy0yoQQz21Qm+CscYEXw09lG6OGqTeA==}
+    engines: {node: '>=18'}
+
+  inquirer@11.1.0:
+    resolution: {integrity: sha512-CmLAZT65GG/v30c+D2Fk8+ceP6pxD6RL+hIUOWAltCmeyEqWYwqu9v76q03OvjyZ3AB0C1Ala2stn1z/rMqGEw==}
     engines: {node: '>=18'}
 
   inquirer@8.2.6:
@@ -22521,6 +22525,17 @@ snapshots:
       rxjs: 7.8.1
 
   inquirer@11.0.1:
+    dependencies:
+      '@inquirer/core': 9.2.1
+      '@inquirer/prompts': 6.0.1
+      '@inquirer/type': 2.0.0
+      '@types/mute-stream': 0.0.4
+      ansi-escapes: 4.3.2
+      mute-stream: 1.0.0
+      run-async: 3.0.0
+      rxjs: 7.8.1
+
+  inquirer@11.1.0:
     dependencies:
       '@inquirer/core': 9.2.1
       '@inquirer/prompts': 6.0.1
