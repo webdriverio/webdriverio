@@ -21,6 +21,28 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.40.6 (2024-10-02)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#13563](https://github.com/webdriverio/webdriverio/pull/13563) fix(wdio-cucumber-framework): filter cucumberFeaturesWithLineNumbers (v8) ([@johnp](https://github.com/johnp))
+* `wdio-types`
+  * [#13567](https://github.com/webdriverio/webdriverio/pull/13567) fix(@wdio/types): make 'moz:debuggerAddress' a string or boolean ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#13732](https://github.com/webdriverio/webdriverio/pull/13732) v8: fix(webdriverio): remove default params in actions ([@lacell75](https://github.com/lacell75))
+* `wdio-browserstack-service`
+  * [#13569](https://github.com/webdriverio/webdriverio/pull/13569) v8: Auto Enable App Percy for App Automate ([@akanksha1909](https://github.com/akanksha1909))
+
+#### Committers: 5
+- Akanksha singh ([@akanksha1909](https://github.com/akanksha1909))
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Johannes Pfrang ([@johnp](https://github.com/johnp))
+
+
 ## v8.40.4 (2024-08-17)
 
 #### :bug: Bug Fix
