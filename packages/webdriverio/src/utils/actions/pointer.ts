@@ -50,7 +50,7 @@ type PointerActionMoveParams = Partial<typeof MOVE_PARAM_DEFAULTS> & PointerActi
 
 function removeDefaultParams(seq: Record<string, any>) {
     for (const [key, value] of Object.entries(seq)) {
-        if (value === 0 && key !== 'button' && key !== 'duration') {
+        if (value === 0 && !['x', 'y', 'button', 'duration'].includes(key)) {
             delete seq[key]
         }
     }
