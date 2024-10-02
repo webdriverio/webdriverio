@@ -344,7 +344,7 @@ export default {
     },
     '/session/:sessionId/frame': {
         POST: {
-            command: 'switchToFrame',
+            command: 'switchToFrameClassic',
             description:
                 'The Switch To Frame command is used to select the current top-level browsing context or a child browsing context of the current browsing context to use as the current browsing context for subsequent commands.',
             ref: 'https://w3c.github.io/webdriver/#dfn-switch-to-frame',
