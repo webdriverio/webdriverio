@@ -4,7 +4,7 @@ import { WebDriverProtocol } from '@wdio/protocols'
 import { URL } from 'node:url'
 
 import logger from '@wdio/logger'
-import { transformCommandLogResult } from '@wdio/utils'
+import { transformCommandLogResult, sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
 import  { WebDriverResponseError, type WebDriverRequestError } from './error.js'
@@ -162,7 +162,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
          * @param {Error} error  error object that causes the retry
          * @param {string} msg   message that is being shown as warning to user
          */
-        const retry = (error: Error) => {
+        const retry = async (error: Error) => {
             /**
              * stop retrying if totalRetryCount was exceeded or there is no reason to
              * retry, e.g. if sessionId is invalid
@@ -174,7 +174,15 @@ export default abstract class WebDriverRequest extends EventEmitter {
                 throw error
             }
 
+            if (retryCount > 0) {
+                /*
+                 * Exponential backoff with a minimum of 500ms and a maximum of 10_000ms.
+                 */
+                await sleep(Math.min(10000, 250 * Math.pow(2, retryCount)))
+            }
+
             ++retryCount
+
             this.emit('retry', { error, retryCount })
             this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             log.warn(error.message)
