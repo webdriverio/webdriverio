@@ -22,7 +22,7 @@ importers:
         version: 21.0.2
       '@preact/preset-vite':
         specifier: ^2.9.0
-        version: 2.9.1(@babel/core@7.25.2)(preact@10.24.0)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))
+        version: 2.9.1(@babel/core@7.25.2)(preact@10.24.0)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))
       '@serenity-js/core':
         specifier: ^3.25.3
         version: 3.29.2
@@ -31,7 +31,7 @@ importers:
         version: 4.21.0
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.1
-        version: 3.1.2(svelte@4.2.19)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))
+        version: 3.1.2(svelte@4.2.19)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))
       '@types/archiver':
         specifier: ^6.0.2
         version: 6.0.2
@@ -82,10 +82,10 @@ importers:
         version: 7.18.0(eslint@8.57.1)(typescript@5.6.2)
       '@vitejs/plugin-react':
         specifier: ^4.3.1
-        version: 4.3.2(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))
+        version: 4.3.2(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))
       '@vitejs/plugin-vue':
         specifier: ^5.1.2
-        version: 5.1.4(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vue@3.5.10(typescript@5.6.2))
+        version: 5.1.4(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))(vue@3.5.10(typescript@5.6.2))
       '@vitest/coverage-v8':
         specifier: ^2.0.5
         version: 2.1.1(vitest@2.1.1(@types/node@20.16.10)(jsdom@25.0.1)(terser@5.32.0))
@@ -7790,6 +7790,7 @@ packages:
   eslint@8.57.1:
     resolution: {integrity: sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   eslint@9.10.0:
@@ -13078,8 +13079,8 @@ packages:
       terser:
         optional: true
 
-  vite@5.4.8:
-    resolution: {integrity: sha512-FqrItQ4DT1NC4zCUqMB4c4AZORMKIa0m8/URVCZ77OZ/QSNeJ54bU1vrFADbDsuwfIPcgknRkmqakQcgnL4GiQ==}
+  vite@5.4.6:
+    resolution: {integrity: sha512-IeL5f8OO5nylsgzd9tq4qD2QqI0k2CQLGrWD0rCN0EQJZpBK5vJAx0I+GDkMOXxQX/OfFHMuLIx6ddAxGX/k+Q==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
@@ -17247,13 +17248,13 @@ snapshots:
 
   '@polka/url@1.0.0-next.25': {}
 
-  '@preact/preset-vite@2.9.1(@babel/core@7.25.2)(preact@10.24.0)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))':
+  '@preact/preset-vite@2.9.1(@babel/core@7.25.2)(preact@10.24.0)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))':
     dependencies:
       '@babel/code-frame': 7.24.7
       '@babel/core': 7.25.2
       '@babel/plugin-transform-react-jsx': 7.25.2(@babel/core@7.25.2)
       '@babel/plugin-transform-react-jsx-development': 7.24.7(@babel/core@7.25.2)
-      '@prefresh/vite': 2.4.6(preact@10.24.0)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))
+      '@prefresh/vite': 2.4.6(preact@10.24.0)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))
       '@rollup/pluginutils': 4.2.1
       babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.25.2)
       debug: 4.3.7(supports-color@8.1.1)
@@ -17262,7 +17263,7 @@ snapshots:
       node-html-parser: 6.1.13
       source-map: 0.7.4
       stack-trace: 1.0.0-pre2
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
     transitivePeerDependencies:
       - preact
       - supports-color
@@ -17275,7 +17276,7 @@ snapshots:
 
   '@prefresh/utils@1.2.0': {}
 
-  '@prefresh/vite@2.4.6(preact@10.24.0)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))':
+  '@prefresh/vite@2.4.6(preact@10.24.0)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))':
     dependencies:
       '@babel/core': 7.25.2
       '@prefresh/babel-plugin': 0.5.1
@@ -17283,7 +17284,7 @@ snapshots:
       '@prefresh/utils': 1.2.0
       '@rollup/pluginutils': 4.2.1
       preact: 10.24.0
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -17883,26 +17884,26 @@ snapshots:
       magic-string: 0.25.9
       string.prototype.matchall: 4.0.11
 
-  '@sveltejs/vite-plugin-svelte-inspector@2.1.0(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0)))(svelte@4.2.19)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))':
+  '@sveltejs/vite-plugin-svelte-inspector@2.1.0(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0)))(svelte@4.2.19)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 3.1.2(svelte@4.2.19)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))
+      '@sveltejs/vite-plugin-svelte': 3.1.2(svelte@4.2.19)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))
       debug: 4.3.7(supports-color@8.1.1)
       svelte: 4.2.19
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))':
+  '@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte-inspector': 2.1.0(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0)))(svelte@4.2.19)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))
+      '@sveltejs/vite-plugin-svelte-inspector': 2.1.0(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0)))(svelte@4.2.19)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))
       debug: 4.3.7(supports-color@8.1.1)
       deepmerge: 4.3.1
       kleur: 4.1.5
       magic-string: 0.30.11
       svelte: 4.2.19
       svelte-hmr: 0.16.0(svelte@4.2.19)
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
-      vitefu: 0.2.5(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
+      vitefu: 0.2.5(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -18639,14 +18640,14 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitejs/plugin-react@4.3.2(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))':
+  '@vitejs/plugin-react@4.3.2(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))':
     dependencies:
       '@babel/core': 7.25.2
       '@babel/plugin-transform-react-jsx-self': 7.24.7(@babel/core@7.25.2)
       '@babel/plugin-transform-react-jsx-source': 7.24.7(@babel/core@7.25.2)
       '@types/babel__core': 7.20.5
       react-refresh: 0.14.2
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -18655,9 +18656,9 @@ snapshots:
       vite: 5.4.5(@types/node@20.16.10)(terser@5.32.0)
       vue: 3.5.6(typescript@5.6.2)
 
-  '@vitejs/plugin-vue@5.1.4(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vue@3.5.10(typescript@5.6.2))':
+  '@vitejs/plugin-vue@5.1.4(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))(vue@3.5.10(typescript@5.6.2))':
     dependencies:
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
       vue: 3.5.10(typescript@5.6.2)
 
   '@vitest/coverage-v8@2.1.1(vitest@2.1.1(@types/node@20.16.10)(jsdom@25.0.1)(terser@5.32.0))':
@@ -18685,13 +18686,13 @@ snapshots:
       chai: 5.1.1
       tinyrainbow: 1.2.0
 
-  '@vitest/mocker@2.1.1(@vitest/spy@2.1.1)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))':
+  '@vitest/mocker@2.1.1(@vitest/spy@2.1.1)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))':
     dependencies:
       '@vitest/spy': 2.1.1
       estree-walker: 3.0.3
       magic-string: 0.30.11
     optionalDependencies:
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
 
   '@vitest/pretty-format@2.1.1':
     dependencies:
@@ -27857,7 +27858,7 @@ snapshots:
       cac: 6.7.14
       debug: 4.3.7(supports-color@8.1.1)
       pathe: 1.1.2
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -27901,7 +27902,7 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.32.0
 
-  vite@5.4.8(@types/node@20.16.10)(terser@5.32.0):
+  vite@5.4.6(@types/node@20.16.10)(terser@5.32.0):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.47
@@ -27911,14 +27912,14 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.32.0
 
-  vitefu@0.2.5(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0)):
+  vitefu@0.2.5(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0)):
     optionalDependencies:
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
 
   vitest@2.1.1(@types/node@20.16.10)(jsdom@25.0.1)(terser@5.32.0):
     dependencies:
       '@vitest/expect': 2.1.1
-      '@vitest/mocker': 2.1.1(@vitest/spy@2.1.1)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))
+      '@vitest/mocker': 2.1.1(@vitest/spy@2.1.1)(vite@5.4.6(@types/node@20.16.10)(terser@5.32.0))
       '@vitest/pretty-format': 2.1.1
       '@vitest/runner': 2.1.1
       '@vitest/snapshot': 2.1.1
@@ -27933,7 +27934,7 @@ snapshots:
       tinyexec: 0.3.0
       tinypool: 1.0.1
       tinyrainbow: 1.2.0
-      vite: 5.4.8(@types/node@20.16.10)(terser@5.32.0)
+      vite: 5.4.6(@types/node@20.16.10)(terser@5.32.0)
       vite-node: 2.1.1(@types/node@20.16.10)(terser@5.32.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
