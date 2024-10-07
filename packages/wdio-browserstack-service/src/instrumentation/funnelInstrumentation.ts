@@ -112,6 +112,8 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
 
     if (eventType === 'SDKTestSuccessful') {
         const workerData = getDataFromWorkers()
+        eventProperties.isPercyAutoEnabled = config.isPercyAutoEnabled
+        eventProperties.percyBuildId = config.percyBuildId
         eventProperties.productUsage = getProductUsage(workerData)
     }
 
