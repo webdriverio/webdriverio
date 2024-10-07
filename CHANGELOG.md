@@ -19,6 +19,19 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.39.0 (2024-10-07)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#13738](https://github.com/webdriverio/webdriverio/pull/13738) v7: Fix Percy instrumentation ([@akanksha1909](https://github.com/akanksha1909))
+  * [#13570](https://github.com/webdriverio/webdriverio/pull/13570) v7: Auto Enable App Percy for App Automate ([@akanksha1909](https://github.com/akanksha1909))
+  * [#13439](https://github.com/webdriverio/webdriverio/pull/13439) Browserstack Turboscale Observability Integration ([@amaanbs](https://github.com/amaanbs))
+
+#### Committers: 2
+- Akanksha singh ([@akanksha1909](https://github.com/akanksha1909))
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+
+
 ## v7.38.1 (2024-09-02)
 
 #### :rocket: New Feature
