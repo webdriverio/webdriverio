@@ -19,8 +19,8 @@ describe('execute test', () => {
         await browser.$('#foo').execute((elem, a, b, c) => (elem.selector as string) + a + b + c, 1, 2, 3)
         expect((vi.mocked(fetch).mock.calls[1][0] as any).pathname)
             .toBe('/session/foobar-123/element')
-        expect(vi.mocked(fetch).mock.calls[2][1]?.body).toMatchObject(JSON.stringify({
-            script: 'return ((elem, a, b, c) => elem.selector + a + b + c).apply(null, arguments)',
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as string)).toEqual(expect.objectContaining({
+            script: expect.stringContaining('return ((elem, a, b, c) => elem.selector + a + b + c).apply(null, arguments)'),
             args: [{ [ELEMENT_KEY]: 'some-elem-123', ELEMENT: 'some-elem-123' }, 1, 2, 3]
         }))
     })

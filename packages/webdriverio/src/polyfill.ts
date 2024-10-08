@@ -3,6 +3,12 @@ import logger from '@wdio/logger'
 const polyfillManager = new Map<WebdriverIO.Browser, PolyfillManager>()
 const log = logger('webdriverio:PolyfillManager')
 
+export const NAME_POLYFILL = (
+    'var __defProp = Object.defineProperty;' +
+    'var __name = (target, value) => __defProp(target, \'name\', { value, configurable: true });' +
+    'globalThis.__name = __name;'
+)
+
 export function getPolyfillManager(browser: WebdriverIO.Browser) {
     const existingPolyfillManager = polyfillManager.get(browser)
     if (existingPolyfillManager) {
@@ -38,11 +44,7 @@ export class PolyfillManager {
          * @see https://github.com/evanw/esbuild/issues/2605
          */
         const polyfill = () => {
-            const closure = new Function(
-                'var __defProp = Object.defineProperty;' +
-                'var __name = (target, value) => __defProp(target, \'name\', { value, configurable: true });' +
-                'globalThis.__name = __name;'
-            )
+            const closure = new Function(NAME_POLYFILL)
             return closure()
         }
 
