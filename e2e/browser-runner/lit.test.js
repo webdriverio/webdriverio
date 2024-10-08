@@ -58,7 +58,7 @@ describe('Lit Component testing', () => {
         expect(window.mochaGlobalSetupExecuted).toBe(true)
     })
 
-    it('should render component', async () => {
+    it('should render component', async function () {
         /**
          * only run snapshot tests in non-Safari browsers as shadow dom piercing
          * is not yet supported in Safari
@@ -83,7 +83,7 @@ describe('Lit Component testing', () => {
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! How are you today?')
     })
 
-    it('should render with mocked component function', async () => {
+    it('should render with mocked component function', async function () {
         /**
          * only run snapshot tests in non-Safari browsers as shadow dom piercing
          * is not yet supported in Safari
@@ -565,7 +565,7 @@ describe('Lit Component testing', () => {
             expect(error.message).toBe('expected bar to be foo')
         })
 
-        it('should support nested element calls', async () => {
+        it('should support nested element calls', async function () {
             /**
              * test stopped working on Linux CI machines, skipping for now
              */
@@ -864,7 +864,7 @@ describe('Lit Component testing', () => {
         expect(a.tagName).toBe('X-FOO')
     })
 
-    it('connectedCallback should not fail if no original connectedCallback is defined', function(){
+    it('connectedCallback should not fail if no original connectedCallback is defined', function () {
         // only in bidi the customElementWrapper is not available
         if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
             return this.skip()
@@ -876,7 +876,7 @@ describe('Lit Component testing', () => {
         a.connectedCallback()
     })
 
-    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function() {
+    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function () {
         // only in bidi the customElementWrapper is not available
         if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
             return this.skip()
