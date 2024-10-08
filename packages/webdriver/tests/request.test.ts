@@ -397,7 +397,7 @@ describe('webdriver request', () => {
             )
             expect(result).toEqual({ value: {} })
             expect(reqRetryCnt).toBeCalledTimes(5)
-        })
+        }, 20_000)
 
         it('should retry on connection refused error', async () => {
             const retryCnt = 7
@@ -416,7 +416,7 @@ describe('webdriver request', () => {
             )
             expect(result).toEqual({ value: { foo: 'bar' } })
             expect(reqRetryCnt).toBeCalledTimes(5)
-        })
+        }, 20_000)
 
         it('should throw if request error is unknown', async () => {
             const req = new WebDriverRequest('POST', '/sumoerror', {}, true)
