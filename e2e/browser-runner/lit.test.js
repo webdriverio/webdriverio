@@ -119,7 +119,7 @@ describe('Lit Component testing', () => {
     })
 
     describe('shadow root piercing', function () {
-        it('should allow to pierce into closed shadow roots', async () => {
+        it('should allow to pierce into closed shadow roots', async function () {
             /**
              * test stopped working on Linux CI machines, skipping for now
              */
@@ -166,7 +166,7 @@ describe('Lit Component testing', () => {
             `)
         })
 
-        it('can fetch multiple elements within various closed shadow roots', async () => {
+        it('can fetch multiple elements within various closed shadow roots', async function () {
             /**
              * test stopped working on Linux CI machines, skipping for now
              */
