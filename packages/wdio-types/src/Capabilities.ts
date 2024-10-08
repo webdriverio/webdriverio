@@ -625,7 +625,6 @@ export interface AppiumCapabilities {
      * https://appium.io/docs/en/2.11/guides/settings/#initializing-settings-via-capabilities
      */
     'appium:settings'?: Record<string, any>
-    [key: `appium:settings[${string}]`]: any;
 }
 
 /**
