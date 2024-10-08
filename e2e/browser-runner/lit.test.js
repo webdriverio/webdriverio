@@ -119,20 +119,20 @@ describe('Lit Component testing', () => {
     })
 
     describe('shadow root piercing', function () {
-        /**
-         * test stopped working on Linux CI machines, skipping for now
-         */
-        if (isLinuxPlatform()) {
-            return this.skip()
-        }
-
         it('should allow to pierce into closed shadow roots', async () => {
+            /**
+             * test stopped working on Linux CI machines, skipping for now
+             */
+            if (isLinuxPlatform()) {
+                return this.skip()
+            }
+
             /**
              * only run snapshot tests in non-Safari browsers as shadow dom piercing
              * is not yet supported in Safari
              */
             if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
-                return
+                return this.skip()
             }
 
             render(
@@ -168,11 +168,18 @@ describe('Lit Component testing', () => {
 
         it('can fetch multiple elements within various closed shadow roots', async () => {
             /**
+             * test stopped working on Linux CI machines, skipping for now
+             */
+            if (isLinuxPlatform()) {
+                return this.skip()
+            }
+
+            /**
              * only run snapshot tests in non-Safari browsers as shadow dom piercing
              * is not yet supported in Safari
              */
             if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
-                return
+                return this.skip()
             }
 
             render(
