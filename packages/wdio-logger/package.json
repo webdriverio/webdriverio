@@ -12,8 +12,8 @@
   "exports": {
     ".": {
       "browserSource": "./src/browser.ts",
-      "types": "./build/index.d.ts",
       "browser": "./build/browser.js",
+      "types": "./build/index.d.ts",
       "import": "./build/index.js",
       "require": "./build/index.cjs"
     },

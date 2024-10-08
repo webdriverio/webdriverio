@@ -194,7 +194,12 @@ export class ShadowRootManager {
             }
         }
 
-        return tree.getAllLookupScopes()
+        const elements = tree.getAllLookupScopes()
+
+        /**
+         * make sure to send back a unique list of elements
+         */
+        return [...new Set(elements).values()]
     }
 
     getShadowElementPairsByContextId (contextId: string, scope?: string): [string, string | undefined][] {

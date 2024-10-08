@@ -1,5 +1,3 @@
-import os from 'node:os'
-
 import { browser, expect, $ } from '@wdio/globals'
 import { spyOn, mock, fn, unmock } from '@wdio/browser-runner'
 import { html, render } from 'lit'
@@ -15,10 +13,6 @@ import { someExport, namedExports, someFunction } from '@testing-library/user-ev
 import stringWidth from 'string-width'
 
 import { SimpleGreeting } from './components/LitComponent.ts'
-
-function isLinuxPlatform () {
-    return !['darwin', 'win32'].includes(os.platform())
-}
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
 mock('./components/constants.ts', async (mod) => {
@@ -58,20 +52,13 @@ describe('Lit Component testing', () => {
         expect(window.mochaGlobalSetupExecuted).toBe(true)
     })
 
-    it('should render component', async () => {
+    it('should render component', async function () {
         /**
          * only run snapshot tests in non-Safari browsers as shadow dom piercing
          * is not yet supported in Safari
          */
         if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
             return
-        }
-
-        /**
-         * test stopped working on Linux CI machines, skipping for now
-         */
-        if (isLinuxPlatform()) {
-            return this.skip()
         }
 
         render(
@@ -83,20 +70,13 @@ describe('Lit Component testing', () => {
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! How are you today?')
     })
 
-    it('should render with mocked component function', async () => {
+    it('should render with mocked component function', async function () {
         /**
          * only run snapshot tests in non-Safari browsers as shadow dom piercing
          * is not yet supported in Safari
          */
         if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
             return
-        }
-
-        /**
-         * test stopped working on Linux CI machines, skipping for now
-         */
-        if (isLinuxPlatform()) {
-            return this.skip()
         }
 
         getQuestionFn.mockReturnValue('Does this work?')
@@ -119,20 +99,13 @@ describe('Lit Component testing', () => {
     })
 
     describe('shadow root piercing', function () {
-        /**
-         * test stopped working on Linux CI machines, skipping for now
-         */
-        if (isLinuxPlatform()) {
-            return this.skip()
-        }
-
-        it('should allow to pierce into closed shadow roots', async () => {
+        it('should allow to pierce into closed shadow roots', async function () {
             /**
              * only run snapshot tests in non-Safari browsers as shadow dom piercing
              * is not yet supported in Safari
              */
             if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
-                return
+                return this.skip()
             }
 
             render(
@@ -166,13 +139,13 @@ describe('Lit Component testing', () => {
             `)
         })
 
-        it('can fetch multiple elements within various closed shadow roots', async () => {
+        it('can fetch multiple elements within various closed shadow roots', async function () {
             /**
              * only run snapshot tests in non-Safari browsers as shadow dom piercing
              * is not yet supported in Safari
              */
             if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
-                return
+                return this.skip()
             }
 
             render(
@@ -565,14 +538,7 @@ describe('Lit Component testing', () => {
             expect(error.message).toBe('expected bar to be foo')
         })
 
-        it('should support nested element calls', async () => {
-            /**
-             * test stopped working on Linux CI machines, skipping for now
-             */
-            if (isLinuxPlatform()) {
-                return this.skip()
-            }
-
+        it('should support nested element calls', async function () {
             render(
                 html`<section>
                     <div class="first">
@@ -864,7 +830,7 @@ describe('Lit Component testing', () => {
         expect(a.tagName).toBe('X-FOO')
     })
 
-    it('connectedCallback should not fail if no original connectedCallback is defined', function(){
+    it('connectedCallback should not fail if no original connectedCallback is defined', function () {
         // only in bidi the customElementWrapper is not available
         if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
             return this.skip()
@@ -876,7 +842,7 @@ describe('Lit Component testing', () => {
         a.connectedCallback()
     })
 
-    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function() {
+    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function () {
         // only in bidi the customElementWrapper is not available
         if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
             return this.skip()

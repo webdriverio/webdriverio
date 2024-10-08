@@ -5,3 +5,9 @@ exports[`React Component Testing > supports snapshot tests 1`] = `
   <button>Current theme: light</button>
 </div>"
 `;
+
+exports[`React Component Testing > supports snapshot tests 3`] = `
+"<div>
+  <button>Current theme: light</button>
+</div>"
+`;
