@@ -43,8 +43,8 @@ export class PolyfillManager {
          *
          * @see https://github.com/evanw/esbuild/issues/2605
          */
-        const polyfill = () => {
-            const closure = new Function(NAME_POLYFILL)
+        const polyfill = (polyfill: string) => {
+            const closure = new Function(polyfill)
             return closure()
         }
 
@@ -52,8 +52,8 @@ export class PolyfillManager {
          * apply polyfill script for upcoming as well as current execution context
          */
         this.#initialize = Promise.all([
-            browser.addInitScript(polyfill),
-            browser.execute(polyfill)
+            browser.addInitScript(polyfill, NAME_POLYFILL),
+            browser.execute(polyfill, NAME_POLYFILL)
         ]).then(() => {
             log.info('polyfill script added')
             return true
