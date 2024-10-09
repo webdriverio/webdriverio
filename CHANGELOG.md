@@ -23,6 +23,17 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.1.4 (2024-10-09)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13751](https://github.com/webdriverio/webdriverio/pull/13751) fix(webdriverio): make name polyfill compatible with old browsers ([@mhassan1](https://github.com/mhassan1))
+
+#### Committers: 2
+- Marc Hassan ([@mhassan1](https://github.com/mhassan1))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.1.3 (2024-10-08)
 
 #### :bug: Bug Fix
