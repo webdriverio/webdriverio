@@ -5,8 +5,9 @@ const log = logger('webdriverio:PolyfillManager')
 
 export const NAME_POLYFILL = (
     'var __defProp = Object.defineProperty;' +
-    'var __name = (target, value) => __defProp(target, \'name\', { value, configurable: true });' +
-    'globalThis.__name = __name;'
+    'var __name = function (target, value) { return __defProp(target, \'name\', { value: value, configurable: true }); };' +
+    'var __globalThis = (typeof globalThis === \'object\' && globalThis) || (typeof window === \'object\' && window);' +
+    '__globalThis.__name = __name;'
 )
 
 export function getPolyfillManager(browser: WebdriverIO.Browser) {
