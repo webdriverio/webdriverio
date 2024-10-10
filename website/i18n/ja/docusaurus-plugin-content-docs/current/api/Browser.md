@@ -138,6 +138,44 @@ browser.on('request.retry', (ev: { error: Error, retryCount: number }) => {
 })
 ```
 
+#### `command`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Classic command. It contains the following information:
+
+- `command`: the command name, e.g. `navigateTo`
+- `method`: the HTTP method used to send the command request, e.g. `POST`
+- `endpoint`: the command endpoint, e.g. `/session/fc8dbda381a8bea36a225bd5fd0c069b/url`
+- `body`: the command payload, e.g. `{ url: 'https://webdriver.io' }`
+
+#### `result`
+
+This event is emitted whenever WebdriverIO receives a result of a WebDriver Classic command. It contains the same information as the `command` event with the addition of the following information:
+
+- `result`: the command result
+
+#### `bidiCommand`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Bidi command to the browser driver. It contains information about:
+
+- `method`: WebDriver Bidi command methid
+- `params`: associated command parameter (see [API](/docs/api/webdriverBidi))
+
+#### `bidiResult`
+
+In case of a successful command execution, the event payload will be:
+
+- `type`: `success`
+- `id`: the command id
+- `result`: the command result (see [API](/docs/api/webdriverBidi))
+
+In case of a command error, the event payload will be:
+
+- `type`: `error`
+- `id`: the command id
+- `error`: the error code, e.g. `invalid argument`
+- `message`: details about the error
+- `stacktrace`: a stack trace
+
 #### `request.performance`
 WebDriverレベルの動作を計測するイベントです。 WebdriverIO が WebDriver バックエンドにリクエストを送信するたびに、イベントがいくつかの下記のような有用な情報とともに発行されます。
 
