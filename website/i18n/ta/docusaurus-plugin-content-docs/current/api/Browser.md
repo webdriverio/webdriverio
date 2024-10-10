@@ -111,6 +111,44 @@ describe('my test', () => {
 
 நிகழ்வுகளின் பட்டியல் இங்கே. இது இன்னும் கிடைக்கக்கூடிய நிகழ்வுகளின் முழு பட்டியல் அல்ல என்பதை நினைவில் கொள்ளவும். மேலும் நிகழ்வுகளின் விளக்கங்களை இங்கே சேர்ப்பதன் மூலம் ஆவணத்தைப் புதுப்பிக்கப் பங்களிக்க தயங்க வேண்டாம்.
 
+#### `command`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Classic command. It contains the following information:
+
+- `command`: the command name, e.g. `navigateTo`
+- `method`: the HTTP method used to send the command request, e.g. `POST`
+- `endpoint`: the command endpoint, e.g. `/session/fc8dbda381a8bea36a225bd5fd0c069b/url`
+- `body`: the command payload, e.g. `{ url: 'https://webdriver.io' }`
+
+#### `result`
+
+This event is emitted whenever WebdriverIO receives a result of a WebDriver Classic command. It contains the same information as the `command` event with the addition of the following information:
+
+- `result`: the command result
+
+#### `bidiCommand`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Bidi command to the browser driver. It contains information about:
+
+- `method`: WebDriver Bidi command methid
+- `params`: associated command parameter (see [API](/docs/api/webdriverBidi))
+
+#### `bidiResult`
+
+In case of a successful command execution, the event payload will be:
+
+- `type`: `success`
+- `id`: the command id
+- `result`: the command result (see [API](/docs/api/webdriverBidi))
+
+In case of a command error, the event payload will be:
+
+- `type`: `error`
+- `id`: the command id
+- `error`: the error code, e.g. `invalid argument`
+- `message`: details about the error
+- `stacktrace`: a stack trace
+
 #### `request.performance`
 இது WebDriver நிலை செயல்பாடுகளை அளவிடும் நிகழ்வு. WebdriverIO WebDriver பின்தளத்திற்கு கோரிக்கையை அனுப்பும் போதெல்லாம், இந்த நிகழ்வு சில பயனுள்ள தகவல்களுடன் வெளியிடப்படும்:
 
