@@ -365,7 +365,17 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
         _bidiHandler: { value: handler },
         ...Object.values(WebDriverBidiProtocol).map((def) => def.socket).reduce((acc, cur) => {
             acc[cur.command] = {
-                value: handler[cur.command]?.bind(handler)
+                value: function (this: Client, ...args: any) {
+                    const bidiFn = handler[cur.command] as Function | undefined
+
+                    /**
+                     * attach the client to the handler to emit events
+                     */
+                    handler.client = this
+
+                    this.emit(cur.command, args)
+                    return bidiFn?.apply(handler, args)
+                }
             }
             return acc
         }, {} as PropertyDescriptorMap)

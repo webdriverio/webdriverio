@@ -60,7 +60,7 @@ export class ContextManager {
      */
     async #handleNavigationStarted (context: local.BrowsingContextNavigationInfo) {
         const windowHandle = await this.#browser.getWindowHandle()
-        if (context.context === windowHandle) {
+        if (context.context === windowHandle && context.url !== 'UNKNOWN') {
             log.info(`Update current context: ${context.context}`)
             this.#currentContext = context.context
         }
