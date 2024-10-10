@@ -304,10 +304,7 @@ export async function findDeepElement(
      * look up selector within document and all shadow roots
      */
     const startNodes = shadowRoots.length > 0
-        ? [
-            { sharedId: (this as WebdriverIO.Element).elementId },
-            ...shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
-        ]
+        ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
         : (this as WebdriverIO.Element).elementId
             ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
             : undefined
@@ -373,10 +370,7 @@ export async function findDeepElements(
      * look up selector within document and all shadow roots
      */
     const startNodes = shadowRoots.length > 0
-        ? [
-            { sharedId: (this as WebdriverIO.Element).elementId },
-            ...shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
-        ]
+        ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
         : (this as WebdriverIO.Element).elementId
             ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
             : undefined

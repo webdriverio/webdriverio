@@ -61,6 +61,9 @@ export class ShadowRootManager {
      * keep track of navigation events and remove shadow roots when they are no longer needed
      */
     #handleNavigationStarted (context: local.BrowsingContextNavigationInfo) {
+        if (context.url === 'UNKNOWN') {
+            return
+        }
         this.#shadowRoots.delete(context.context)
     }
 
