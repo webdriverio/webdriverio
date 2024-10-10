@@ -6,6 +6,8 @@ import type * as remote from './remoteTypes.js'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse } from './localTypes.js'
 
+import type { Client } from '../types.js'
+
 const log = logger('webdriver')
 const RESPONSE_TIMEOUT = 1000 * 60
 
@@ -13,11 +15,15 @@ export class BidiCore {
     #id = 0
     #ws: WebSocket
     #isConnected = false
+    #webSocketUrl: string
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
 
-    constructor (private _webSocketUrl: string, opts?: ClientOptions) {
-        log.info(`Connect to webSocketUrl ${this._webSocketUrl}`)
-        this.#ws = new Socket(this._webSocketUrl, opts) as WebSocket
+    client: Client | undefined
+
+    constructor (webSocketUrl: string, opts?: ClientOptions) {
+        this.#webSocketUrl = webSocketUrl
+        log.info(`Connect to webSocketUrl ${this.#webSocketUrl}`)
+        this.#ws = new Socket(this.#webSocketUrl, opts) as WebSocket
         this.#ws.on('message', this.#handleResponse.bind(this))
     }
 
@@ -26,7 +32,7 @@ export class BidiCore {
          * don't connect and stale unit tests when the websocket url is set to a dummy value
          * Note: the value is defined in __mocks__/fetch.ts
          */
-        if (process.env.VITEST_WORKER_ID && this._webSocketUrl === 'ws://webdriver.io') {
+        if (process.env.VITEST_WORKER_ID && this.#webSocketUrl === 'ws://webdriver.io') {
             return
         }
         return new Promise<void>((resolve) => this.#ws.on('open', () => {
@@ -60,6 +66,7 @@ export class BidiCore {
             }
 
             log.debug('BIDI RESULT', data.toString())
+            this.client?.emit('bidiResult', payload)
             const resolve = this.#pendingCommands.get(payload.id)
             if (!resolve) {
                 log.error(`Couldn't resolve command with id ${payload.id}`)
@@ -112,6 +119,7 @@ export class BidiCore {
 
         log.info('BIDI COMMAND', ...parseBidiCommand(params))
         const id = ++this.#id
+        this.client?.emit('bidiCommand', params)
         this.#ws.send(JSON.stringify({ id, ...params }))
         return id
     }

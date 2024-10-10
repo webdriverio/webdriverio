@@ -2,6 +2,7 @@ import { type local } from 'webdriver'
 import logger from '@wdio/logger'
 
 import customElementWrapper from './scripts/customElement.js'
+import type { remote } from 'webdriver'
 
 const shadowRootManager = new Map<WebdriverIO.Browser, ShadowRootManager>()
 const log = logger('webdriverio:ShadowRootManager')
@@ -47,7 +48,7 @@ export class ShadowRootManager {
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
         this.#browser.on('result', this.#commandResultHandler.bind(this))
-        this.#browser.on('browsingContext.navigationStarted', this.#handleNavigationStarted.bind(this))
+        this.#browser.on('bidiCommand', this.#handleBidiCommand.bind(this))
         browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
@@ -60,11 +61,12 @@ export class ShadowRootManager {
     /**
      * keep track of navigation events and remove shadow roots when they are no longer needed
      */
-    #handleNavigationStarted (context: local.BrowsingContextNavigationInfo) {
-        if (context.url === 'UNKNOWN') {
+    #handleBidiCommand (command: Omit<remote.CommandData, 'id'>) {
+        if (command.method !== 'browsingContext.navigate') {
             return
         }
-        this.#shadowRoots.delete(context.context)
+        const params = command.params as remote.BrowsingContextNavigateParameters
+        this.#shadowRoots.delete(params.context)
     }
 
     /**
