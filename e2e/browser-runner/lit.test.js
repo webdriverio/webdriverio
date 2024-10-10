@@ -832,7 +832,7 @@ describe('Lit Component testing', () => {
 
     it('connectedCallback should not fail if no original connectedCallback is defined', function () {
         // only in bidi the customElementWrapper is not available
-        if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
+        if (!browser.isBidi) {
             return this.skip()
         }
 
@@ -844,7 +844,7 @@ describe('Lit Component testing', () => {
 
     it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function () {
         // only in bidi the customElementWrapper is not available
-        if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
+        if (!browser.isBidi) {
             return this.skip()
         }
         class Foo extends HTMLElement { }
