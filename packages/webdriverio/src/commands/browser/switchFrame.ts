@@ -181,7 +181,7 @@ function findContext (
             return context.context
         }
 
-        if (context.children && context.children.length > 0) {
+        if (context.children?.length > 0) {
             const result = findContext(url, context.children, matcher)
             if (result) {
                 return result
