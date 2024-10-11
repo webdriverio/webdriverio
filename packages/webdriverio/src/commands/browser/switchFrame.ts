@@ -61,19 +61,19 @@ export async function switchFrame (
 
     if (typeof context === 'string') {
         const tree = await this.browsingContextGetTree({})
-        const urlContext = findContext(context, tree.contexts, byUrl)
+        const urlContext = findContext(context, tree.contexts, byUrl)?.context
         if (urlContext) {
             await switchToFrameHelper(this, urlContext)
             return urlContext
         }
 
-        const urlContextContaining = findContext(context, tree.contexts, byUrlContaining)
+        const urlContextContaining = findContext(context, tree.contexts, byUrlContaining)?.context
         if (urlContextContaining) {
             await switchToFrameHelper(this, urlContextContaining)
             return urlContextContaining
         }
 
-        const contextIdContext = findContext(context, tree.contexts, byContextId)
+        const contextIdContext = findContext(context, tree.contexts, byContextId)?.context
         if (contextIdContext) {
             await switchToFrameHelper(this, contextIdContext)
             return contextIdContext
@@ -106,7 +106,7 @@ export async function switchFrame (
         const allContexts: Record<string, FlatContextTree> = tree.contexts.map(mapContext).flat(Infinity)
             .filter((ctx) => ctx !== currentContext)
             .reduce((acc, ctx) => {
-                const context = findContextById(tree.contexts, ctx)
+                const context = findContext(ctx, tree.contexts, byContextId)
                 acc[ctx] = context
                 return acc
             }, {} as Record<string, FlatContextTree>)
@@ -150,7 +150,7 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
     }
 
     const tree = await browser.browsingContextGetTree({})
-    const urlContext = findContext(frameSrc, tree.contexts, byUrl)
+    const urlContext = findContext(frameSrc, tree.contexts, byUrl)?.context
     if (!urlContext) {
         throw new Error(`Frame with url "${frameSrc}" not found`)
     }
@@ -174,39 +174,15 @@ function byContextId (context: local.BrowsingContextInfo, contextId: string) {
 function findContext (
     url: string,
     contexts: local.BrowsingContextInfoList,
-    matcher: typeof byUrl | typeof byUrlContaining
-): string | undefined {
+    matcher: typeof byUrl | typeof byUrlContaining | typeof byContextId
+): local.BrowsingContextInfo | undefined {
     for (const context of contexts) {
         if (matcher(context, url)) {
-            return context.context
+            return context
         }
 
         if (context.children?.length > 0) {
             const result = findContext(url, context.children, matcher)
-            if (result) {
-                return result
-            }
-        }
-    }
-
-    return undefined
-}
-
-/**
- * Given a certain `BrowsingContextInfoList` and a desired `contextId`, this helper finds
- * the `BrowsingContextInfo` that matches the `contextId`
- * @param tree  a context tree returned from `browsingContextGetTree`
- * @param contextId  a desired context id
- * @returns the `BrowsingContextInfo` that matches the `contextId` or `undefined` if not found
- */
-function findContextById (tree: local.BrowsingContextInfoList, contextId: string): local.BrowsingContextInfo | undefined {
-    for (const context of tree) {
-        if (context.context === contextId) {
-            return context
-        }
-
-        if (context.children && context.children.length > 0) {
-            const result = findContextById(context.children, contextId)
             if (result) {
                 return result
             }
