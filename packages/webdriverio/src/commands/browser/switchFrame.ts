@@ -173,15 +173,15 @@ function byContextId (context: local.BrowsingContextInfo, contextId: string) {
 
 function findContext (
     url: string,
-    contexts: local.BrowsingContextInfoList,
+    contexts: local.BrowsingContextInfoList | null,
     matcher: typeof byUrl | typeof byUrlContaining | typeof byContextId
 ): local.BrowsingContextInfo | undefined {
-    for (const context of contexts) {
+    for (const context of contexts || []) {
         if (matcher(context, url)) {
             return context
         }
 
-        if (context.children?.length > 0) {
+        if (Array.isArray(context.children) && context.children.length > 0) {
             const result = findContext(url, context.children, matcher)
             if (result) {
                 return result
