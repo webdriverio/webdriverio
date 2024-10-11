@@ -168,7 +168,7 @@ describe('main suite 1', () => {
 
         it('moveTo in iframe', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
-            await browser.switchToFrame(iframe)
+            await browser.switchFrame(iframe)
             await browser.$('#parent').moveTo()
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
@@ -213,14 +213,14 @@ describe('main suite 1', () => {
 
         it('moveTo to nested iframe with auto scrolling', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
-            await browser.switchToFrame(iframe)
+            await browser.switchFrame(iframe)
             await browser.$('#parent').moveTo()
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
 
         after(async () => {
-            await browser.switchToParentFrame()
+            await browser.switchFrame(null)
         })
     })
 
