@@ -1,7 +1,7 @@
 import { type local } from 'webdriver'
 
 import { getContextManager } from '../../context.js'
-import type { ChainablePromiseElement } from 'src/types.js'
+import type { ChainablePromiseElement } from '../../types.js'
 
 type FlatContextTree = Omit<local.BrowsingContextInfo, 'children'> & { children: string[] }
 
