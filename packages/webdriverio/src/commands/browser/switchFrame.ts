@@ -137,7 +137,12 @@ function switchToFrameHelper (browser: WebdriverIO.Browser, context: string) {
 async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element: WebdriverIO.Element) {
     let frameSrc = await element.getAttribute('src')
     if (!frameSrc) {
-        throw new Error(`Frame with index ${context} has no src attribute`)
+        const source = await element.getHTML({ includeSelectorTag: true })
+        throw new Error(
+            `The provided frame element ("${source}") does not have a src attribute needed ` +
+            'to detect the context, please use a different method to select the frame. For more ' +
+            'information checkout our docs: https://webdriver.io/docs/api/browser/switchFrame.html'
+        )
     }
 
     if (!frameSrc.startsWith('http')) {
@@ -152,7 +157,10 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
     const tree = await browser.browsingContextGetTree({})
     const urlContext = findContext(frameSrc, tree.contexts, byUrl)?.context
     if (!urlContext) {
-        throw new Error(`Frame with url "${frameSrc}" not found`)
+        throw new Error(
+            `Frame with url "${frameSrc}" not found! Please try a different method to select ` +
+            'the frame. For more information checkout our docs: https://webdriver.io/docs/api/browser/switchFrame.html'
+        )
     }
 
     await switchToFrameHelper(browser, urlContext)
