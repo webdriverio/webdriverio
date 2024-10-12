@@ -23,6 +23,17 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.2.0 (2024-10-12)
+
+#### :house: Internal
+* `wdio-runner`
+  * [#13756](https://github.com/webdriverio/webdriverio/pull/13756) Remove unused gaze dependency ([@alexparish](https://github.com/alexparish))
+
+#### Committers: 2
+- Alex Parish ([@alexparish](https://github.com/alexparish))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v9.1.6 (2024-10-10)
 
 #### :bug: Bug Fix
