@@ -448,5 +448,32 @@ describe('main suite 1', () => {
             await expect($('.hero__subtitle')).toBePresent()
             await expect($('.red')).not.toBePresent()
         })
+
+        it('should not switch window if requested window was not found', async () => {
+            await closeAllWindowsButFirst()
+            await browser.navigateTo('http://guinea-pig.webdriver.io/')
+            const firstWindowHandle = await browser.getWindowHandle()
+
+            await browser.newWindow('https://webdriver.io')
+
+            await browser.switchWindow('guinea-pig.webdriver.io')
+            expect(await browser.getWindowHandle()).toBe(firstWindowHandle)
+
+            const err = await browser.switchWindow('not-existing-window').catch((err) => err)
+            expect(err.message).toContain('No window')
+
+            expect(await browser.getWindowHandle()).toBe(firstWindowHandle)
+        })
     })
+
+    const closeAllWindowsButFirst = async () => {
+        const allHandles = await browser.getWindowHandles()
+
+        if (allHandles.length < 2) {return}
+        for (const windowHandle of allHandles.slice(1)) {
+            await browser.switchToWindow(windowHandle)
+            await browser.closeWindow()
+        }
+        await browser.switchToWindow(allHandles[0])
+    }
 })
