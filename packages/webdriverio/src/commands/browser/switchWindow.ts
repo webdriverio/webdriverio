@@ -39,6 +39,7 @@ export async function switchWindow (
         throw new Error('Unsupported parameter for switchWindow, required is "string" or an RegExp')
     }
 
+    const currentWindow = await this.getWindowHandle()
     const tabs = await this.getWindowHandles()
 
     const matchesTarget = (target: string): boolean => {
@@ -80,5 +81,6 @@ export async function switchWindow (
         }
     }
 
+    await this.switchToWindow(currentWindow)
     throw new Error(`No window found with title, url or name matching "${matcher}"`)
 }
