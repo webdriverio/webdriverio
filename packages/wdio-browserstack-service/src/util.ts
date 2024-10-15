@@ -12,7 +12,6 @@ import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ColorName } from 'chalk'
-import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
@@ -1217,6 +1216,7 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
     fileStream.pipe(zip)
 
     const formData = new FormData()
+    // @ts-ignore
     formData.append('data', new FileStream(zip), 'logs.gz')
     formData.append('clientBuildUuid', clientBuildUuid)
 
