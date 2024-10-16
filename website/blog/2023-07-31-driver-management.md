@@ -7,6 +7,8 @@ authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s
 
 Since its inception, WebdriverIO has been a powerful tool for automating browsers through the [WebDriver](https://w3c.github.io/webdriver/) protocol. As many of you know, WebDriver is the web standard for automating real browsers, not just browser engines, allowing you to closely simulate the environment used by your users and customers.
 
+<!-- truncate -->
+
 ## Simplified Browser Automation Setup
 
 To automate a browser, you need to set up a browser driver that translates WebDriver-based commands and executes them within the browser. While WebdriverIO has provided useful services like [`wdio-chromedriver-service`](https://github.com/webdriverio-community/wdio-chromedriver-service) to simplify test environment setup, there have been challenges, particularly when new Chrome versions are released 🙈.

@@ -70,10 +70,22 @@ export const LOG_KIND_USAGE_MAP = {
 
 export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'
 
+export const SUPPORTED_BROWSERS_FOR_AI = ['chrome', 'microsoftedge', 'firefox']
+
+export const TCG_URL = 'https://tcg.browserstack.com'
+
+export const TCG_INFO = {
+    tcgRegion: 'use',
+    tcgUrl: TCG_URL,
+}
+
 // Env variables - Define all the env variable constants over here
 
 // To store the JWT token returned the session launch
 export const BROWSERSTACK_TESTHUB_JWT = 'BROWSERSTACK_TESTHUB_JWT'
+
+// To store tcg auth result for selfHealing feature:
+export const BSTACK_TCG_AUTH_RESULT = 'BSTACK_TCG_AUTH_RESULT'
 
 // To store the setting of whether to send screenshots or not
 export const TESTOPS_SCREENSHOT_ENV = 'BS_TESTOPS_ALLOW_SCREENSHOTS'
@@ -104,3 +116,10 @@ export const BROWSERSTACK_ACCESSIBILITY = 'BROWSERSTACK_ACCESSIBILITY'
 
 // Whether session is a observability session
 export const BROWSERSTACK_OBSERVABILITY = 'BROWSERSTACK_OBSERVABILITY'
+// Maximum size of VCS info which is allowed
+export const MAX_GIT_META_DATA_SIZE_IN_BYTES = 64 * 1024
+
+/* The value to be appended at the end if git metadata is larger than
+MAX_GIT_META_DATA_SIZE_IN_BYTES
+*/
+export const GIT_META_DATA_TRUNCATED = '...[TRUNCATED]'

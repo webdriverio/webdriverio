@@ -59,7 +59,7 @@ describe('onPrepare', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
     vi.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
@@ -69,25 +69,26 @@ describe('onPrepare', () => {
         const service = new BrowserstackLauncher({ testObservability: false } as any, caps, config)
         await service.onPrepare()
 
-        expect(log.info).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
+        expect(log.debug).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
     })
 
     it('should not call local if browserstackLocal is undefined', async () => {
-        const service = new BrowserstackLauncher({ testObservability: false } as any, caps, {
+        const service = new BrowserstackLauncher({ testObservability: false,  percy: false  } as any, caps, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         await service.onPrepare()
 
-        expect(log.info).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
     it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
-            testObservability: false
+            testObservability: false,
+            percy: false
         } as any, caps, {
             user: 'foobaruser',
             key: '12345',
@@ -95,7 +96,7 @@ describe('onPrepare', () => {
         })
         await service.onPrepare()
 
-        expect(log.info).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(log.info).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
@@ -471,7 +472,7 @@ describe('onPrepare', () => {
         const capabilities = [{ build: 'browserstack wdio build', 'browserstack.buildIdentifier': '#${BUILD_NUMBER}' }]
         const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.RemoteCapability, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
 
@@ -493,7 +494,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         } as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.RemoteCapability, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
 
@@ -514,7 +515,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         } as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.RemoteCapability, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -529,7 +530,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         } as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.RemoteCapability, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -653,7 +654,7 @@ describe('constructor', () => {
     const options: BrowserstackConfig = { }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: [],
         specs: []
     }
@@ -777,7 +778,7 @@ describe('_updateCaps', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -891,7 +892,7 @@ describe('_updateObjectTypeCaps', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -963,7 +964,7 @@ describe('_validateApp', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -1030,7 +1031,7 @@ describe('_uploadApp', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -1062,7 +1063,7 @@ describe('_handleBuildIdentifier', () => {
     const options: BrowserstackConfig = { browserstackLocal: true }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -1200,7 +1201,7 @@ describe('_getLocalBuildNumber', () => {
     const options: BrowserstackConfig = { browserstackLocal: true }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
     const caps: any = [{
@@ -1240,7 +1241,7 @@ describe('_updateLocalBuildCache', () => {
     const options: BrowserstackConfig = { browserstackLocal: true }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
     const caps: any = [{
@@ -1280,7 +1281,7 @@ describe('_uploadServiceLogs', () => {
     const options: BrowserstackConfig = { }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
     const caps: any = [{
@@ -1303,7 +1304,7 @@ describe('_getClientBuildUuid', () => {
     const options: BrowserstackConfig = { }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
     const caps: any = [{

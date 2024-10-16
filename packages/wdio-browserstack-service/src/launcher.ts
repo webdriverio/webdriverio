@@ -16,7 +16,7 @@ import PerformanceTester from './performance-tester.js'
 
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
 
-import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig } from './types.js'
+import type { BrowserstackConfig, App, AppConfig, AppUploadResponse, UserConfig, BrowserstackOptions } from './types.js'
 import {
     BSTACK_SERVICE_VERSION,
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
@@ -37,6 +37,7 @@ import {
     getBrowserStackKey,
     uploadLogs,
     ObjectsAreEqual,
+    isValidCapsForHealing
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -46,6 +47,7 @@ import type Percy from './Percy/Percy.js'
 import { sendStart, sendFinish } from './instrumentation/funnelInstrumentation.js'
 import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
+import AiHandler from './ai-handler.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -64,7 +66,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private readonly browserStackConfig: BrowserStackConfig
 
     constructor (
-        private _options: BrowserstackConfig & Options.Testrunner,
+        private _options: BrowserstackConfig & BrowserstackOptions,
         capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
@@ -191,16 +193,40 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
+    async onPrepare (config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities) {
         // // Send Funnel start request
         await sendStart(this.browserStackConfig)
+
+        // Setting up healing for those sessions where we don't add the service version capability as it indicates that the session is not being run on BrowserStack
+        if (!shouldAddServiceVersion(this._config, this._options.testObservability, capabilities as Capabilities.BrowserStackCapabilities)) {
+            try {
+                if ((capabilities as Capabilities.BrowserStackCapabilities).browserName) {
+                    capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities, false)
+                } else if ( Array.isArray(capabilities)){
+
+                    for (let i = 0; i < capabilities.length; i++) {
+                        if ((capabilities[i] as Capabilities.BrowserStackCapabilities).browserName) {
+                            capabilities[i] = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities[i], false)
+                        }
+                    }
+
+                } else if (isValidCapsForHealing(capabilities as any)) {
+                    // setting up healing in case capabilities.xyz.capabilities.browserName where xyz can be anything:
+                    capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities, true)
+                }
+            } catch (err) {
+                if (this._options.selfHeal === true) {
+                    BStackLogger.warn(`Error while setting up Browserstack healing Extension ${err}. Disabling healing for this session.`)
+                }
+            }
+        }
 
         /**
          * Upload app to BrowserStack if valid file path to app is given.
          * Update app value of capability directly if app_url, custom_id, shareable_id is given
          */
         if (!this._options.app) {
-            BStackLogger.info('app is not defined in browserstack-service config, skipping ...')
+            BStackLogger.debug('app is not defined in browserstack-service config, skipping ...')
         } else {
             let app: App = {}
             const appConfig: AppConfig | string = this._options.app
@@ -269,7 +295,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             buildIdentifier: this._buildIdentifier
         }, this.browserStackConfig)
 
-        if (this._options.percy) {
+        const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
+        if (shouldSetupPercy) {
             try {
                 const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
                 this._percyBestPlatformCaps = bestPlatformPercyCaps
@@ -277,6 +304,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 await this.setupPercy(this._options, this._config, {
                     projectName: this._projectName
                 })
+                this._updateBrowserStackPercyConfig()
             } catch (err: unknown) {
                 PercyLogger.error(`Error while setting up Percy ${err}`)
             }
@@ -361,9 +389,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         if (this._options.percy) {
             await this.stopPercy()
+            PercyLogger.clearLogger()
         }
-
-        PercyLogger.clearLogger()
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
@@ -666,6 +693,22 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } else {
             throw new SevereServiceError('Capabilities should be an object or Array!')
         }
+    }
+
+    _updateBrowserStackPercyConfig() {
+        const { percyAutoEnabled = false, percyCaptureMode, buildId, percy } = this._percy || {}
+
+        // Setting to browserStackConfig for populating data in funnel instrumentaion
+        this.browserStackConfig.percyCaptureMode = percyCaptureMode
+        this.browserStackConfig.percyBuildId = buildId
+        this.browserStackConfig.isPercyAutoEnabled = percyAutoEnabled
+
+        // To handle stop percy build
+        this._options.percy = percy
+
+        // To pass data to workers
+        process.env.BROWSERSTACK_PERCY = String(percy)
+        process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = percyCaptureMode
     }
 
     _handleBuildIdentifier(capabilities?: Capabilities.RemoteCapabilities) {

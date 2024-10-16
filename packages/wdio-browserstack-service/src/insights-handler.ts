@@ -1,11 +1,13 @@
 import path from 'node:path'
 
-import type { Frameworks } from '@wdio/types'
+import type { Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { CucumberStore, Feature, Scenario, Step, FeatureChild, CucumberHook, CucumberHookParams, Pickle, ITestCaseHookParameter } from './cucumber-types.js'
 import TestReporter from './reporter.js'
+
+import type { BrowserstackConfig } from './types.js'
 
 import {
     frameworkSupportsHook,
@@ -17,15 +19,18 @@ import {
     getUniqueIdentifierForCucumber,
     isBrowserstackSession,
     isScreenshotCommand,
+    isUndefined,
     o11yClassErrorHandler,
     removeAnsiColors,
+    getObservabilityProduct
 } from './util.js'
 import type {
     TestData,
     TestMeta,
     PlatformMeta,
     CurrentRunInfo,
-    StdLog
+    StdLog,
+    CBTData
 } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
@@ -48,10 +53,14 @@ class _InsightsHandler {
     }
     private _userCaps?: Capabilities.RemoteCapability = {}
     private listener = Listener.getInstance()
+    private _currentTestId: string | undefined
+    private _cbtQueue: Array<CBTData> = []
 
-    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
+    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.RemoteCapability, _options?: BrowserstackConfig & Options.Testrunner) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
+
+        this._userCaps = _userCaps
 
         this._platformMeta = {
             browserName: caps.browserName,
@@ -59,12 +68,16 @@ class _InsightsHandler {
             platformName: caps?.platformName,
             caps: caps,
             sessionId,
-            product: isAppAutomate ? 'app-automate' : 'automate'
+            product: getObservabilityProduct(_options, this._isAppAutomate())
         }
 
-        this._userCaps = _userCaps
-
         this.registerListeners()
+    }
+
+    _isAppAutomate(): boolean {
+        const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
+        const desiredCapabilities = (this._userCaps ?? {})  as Capabilities.DesiredCapabilities
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)
     }
 
     registerListeners() {
@@ -379,6 +392,7 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         BStackLogger.debug('calling testFinished')
+        this.flushCBTDataQueue()
         this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
@@ -429,6 +443,7 @@ class _InsightsHandler {
 
     async afterScenario (world: ITestCaseHookParameter) {
         this._cucumberData.scenario = undefined
+        this.flushCBTDataQueue()
         this.listener.testFinished(this.getTestRunDataForCucumber(world, 'TestRunFinished'))
     }
 
@@ -613,6 +628,7 @@ class _InsightsHandler {
         const testMetaData = this._tests[fullTitle]
 
         const filename = test.file || this._suiteFile
+        this._currentTestId = testMetaData.uuid
 
         const testData: TestData = {
             uuid: testMetaData.uuid,
@@ -641,7 +657,7 @@ class _InsightsHandler {
                 if (error && testData.result !== 'skipped') {
                     testData.failure = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
                     testData.failure_reason = removeAnsiColors(error.message)
-                    testData.failure_type = error.message === null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
+                    testData.failure_type = isUndefined(error.message) ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
                 }
             } else {
                 testData.result = 'passed'
@@ -727,6 +743,8 @@ class _InsightsHandler {
             fullNameWithExamples = scenario?.name || ''
         }
 
+        this._currentTestId = uuid
+
         const testData: TestData = {
             uuid: uuid,
             started_at: startedAt,
@@ -796,6 +814,36 @@ class _InsightsHandler {
         }
 
         return testData
+    }
+
+    private async flushCBTDataQueue() {
+        if (isUndefined(this._currentTestId)) {return}
+        this._cbtQueue.forEach(cbtData => {
+            cbtData.uuid = this._currentTestId!
+            this.listener.cbtSessionCreated(cbtData)
+        })
+        this._currentTestId = undefined // set undefined for next test
+    }
+
+    async sendCBTInfo() {
+        const integrationsData: any = {}
+
+        if (this._browser && this._platformMeta) {
+            const provider = getCloudProvider(this._browser)
+            integrationsData[provider] = this.getIntegrationsObject()
+        }
+
+        const cbtData: CBTData = {
+            uuid: '',
+            integrations: integrationsData
+        }
+
+        if (this._currentTestId !== undefined) {
+            cbtData.uuid = this._currentTestId
+            this.listener.cbtSessionCreated(cbtData)
+        } else {
+            this._cbtQueue.push(cbtData)
+        }
     }
 
     private getIntegrationsObject () {

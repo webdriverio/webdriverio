@@ -153,10 +153,10 @@ export const builder = (yargs: Argv) => {
 
 export function launchWithStdin(wdioConfPath: string, params: Partial<RunCommandArguments>) {
     let stdinData = ''
-    const stdin = process.openStdin()
+    const stdin = process.stdin
 
     stdin.setEncoding('utf8')
-    stdin.on('data', (data) => {
+    stdin.on('data', (data: string) => {
         stdinData += data
     })
     stdin.on('end', () => {
@@ -214,7 +214,7 @@ export async function handler(argv: RunCommandArguments) {
      */
     const nodePath = process.argv[0]
     let NODE_OPTIONS = process.env.NODE_OPTIONS || ''
-    const isTSFile = wdioConf.fullPath.endsWith('.ts') || wdioConf.fullPath.endsWith('.mts')
+    const isTSFile = wdioConf.fullPath.endsWith('.ts') || wdioConf.fullPath.endsWith('.mts') || confAccess?.endsWith('.ts') || confAccess?.endsWith('.mts')
     const runsWithLoader = (
         Boolean(
             process.argv.find((arg) => arg.startsWith('--loader')) &&

@@ -2,7 +2,7 @@ import safeStringify from 'safe-stringify'
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
-import { getCID } from '../utils.js'
+import { getCID, filterTestArgument } from '../utils.js'
 import { EVENTS, WDIO_EVENT_NAME } from '../../constants.js'
 
 const startTime = Date.now()
@@ -203,12 +203,43 @@ export class MochaFramework extends HTMLElement {
             }
 
             this.#hookResolver.set(id, { resolve, reject })
+
+            /**
+             * filter large objects from args otherwise stringifying it to send it over
+             * to the Node.js process may result in slow performance
+             */
             args = args.map((arg) => {
-                if (typeof arg === 'object') {
-                    const { type, title, body, async, sync, timedOut, pending, parent } = arg
-                    return { type, title, body, async, sync, timedOut, pending, parent, file: this.#spec }
+                if (typeof arg !== 'object') {
+                    return arg
                 }
-                return arg
+
+                // Check for error and convert error class to serializable Object.
+                if ('error' in arg && arg.error instanceof Error) {
+                    const errorObject = {
+                        // Pull all enumerable properties, supporting properties on custom Errors
+                        ...arg.error,
+                        // Explicitly pull Error's non-enumerable properties
+                        message: arg.error.message,
+                        name: arg.error.name,
+                        stack: arg.error.stack,
+                        type: arg.error.type || arg.error.name,
+                        matcherResult: arg.error.matcherResult,
+                        expected: arg.error.expected,
+                        actual: arg.error.actual
+                    }
+
+                    return {
+                        ...arg,
+                        error: errorObject
+                    }
+                }
+
+                return {
+                    ...filterTestArgument(arg, this.#spec),
+                    ...('type' in arg && 'title' in arg ? { parent: arg.parent } : {}),
+                    ...('test' in arg && arg.test ? { test: filterTestArgument(arg.test, this.#spec) } : {}),
+                    ...('currentTest' in arg && arg.currentTest ? { currentTest: filterTestArgument(arg.currentTest, this.#spec) } : {})
+                }
             })
             import.meta.hot?.send(WDIO_EVENT_NAME, this.#hookTrigger({ name, id, cid, args }))
         })

@@ -125,7 +125,7 @@ Options:
 --cucumberOpts        Cucumber options
 ```
 
-> Note: Autocompiling can be easily controlled with the appropriate library's ENV Vars. See also Test Runner's Auto Compilation functionality documented in [TypeScript (ts-node)](typeScript) and [Babel (@babel/register)](babel) pages.
+> Note: Autocompiling can be easily controlled with the appropriate library's ENV Vars. See also Test Runner's Auto Compilation functionality documented in [TypeScript (ts-node)](typescript) and [Babel (@babel/register)](babel) pages.
 
 ### `wdio install`
 The `install` command allows you to add reporters and services to your WebdriverIO projects via the CLI.

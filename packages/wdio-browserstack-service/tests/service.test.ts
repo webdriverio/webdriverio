@@ -400,7 +400,7 @@ describe('before', () => {
             [{ app: 'test-app' }] as any,
             {
                 user: 'foo',
-                key: 'bar',
+                key: '12345678901234567890',
                 capabilities: {
                     app: 'test-app'
                 } as any
@@ -424,7 +424,7 @@ describe('before', () => {
             'appium:app': 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
-            key: 'bar',
+            key: '12345678901234567890',
             capabilities: {
                 app: 'test-app' as any
             }
@@ -440,7 +440,7 @@ describe('before', () => {
             'appium:app': 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
-            key: 'bar',
+            key: '12345678901234567890',
             capabilities: {
                 ['appium:app']: 'test-app'
             } as any
@@ -465,7 +465,7 @@ describe('before', () => {
             turboScale: true
         } as any, {}, {
             user: 'foo',
-            key: 'bar',
+            key: '12345678901234567890',
             capabilities: {}
         })
         service.before(service['_config'] as any, [], browser)
@@ -478,7 +478,7 @@ describe('before', () => {
         process.env.BROWSERSTACK_TURBOSCALE = 'true'
         const service = new BrowserstackService({} as any, {}, {
             user: 'foo',
-            key: 'bar',
+            key: '12345678901234567890',
             capabilities: {}
         })
         service.before(service['_config'] as any, [], browser)

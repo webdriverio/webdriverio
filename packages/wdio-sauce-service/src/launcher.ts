@@ -1,6 +1,6 @@
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 
-import ip from 'ip'
+import { ip } from 'address'
 import {
     default as SauceLabs,
     type SauceLabsOptions,
@@ -51,7 +51,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
             noAutodetect: true,
             tunnelIdentifier: sauceConnectTunnelIdentifier,
             ...this._options.sauceConnectOpts,
-            noSslBumpDomains: `127.0.0.1,localhost,${ip.address()}` + (
+            noSslBumpDomains: `127.0.0.1,localhost,${ip()}` + (
                 this._options.sauceConnectOpts?.noSslBumpDomains
                     ? `,${this._options.sauceConnectOpts.noSslBumpDomains}`
                     : ''

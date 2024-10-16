@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browserstack-service",
-  "version": "8.36.1",
+  "version": "8.40.6",
   "description": "WebdriverIO service for better Browserstack integration",
   "author": "Adam Bjerstedt <abjerstedt@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service",
@@ -30,12 +30,13 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
+    "@browserstack/ai-sdk-node": "1.5.9",
     "@percy/appium-app": "^2.0.1",
     "@percy/selenium-webdriver": "^2.0.3",
     "@types/gitconfiglocal": "^2.0.1",
-    "@wdio/logger": "8.28.0",
-    "@wdio/reporter": "8.36.1",
-    "@wdio/types": "8.36.1",
+    "@wdio/logger": "8.38.0",
+    "@wdio/reporter": "8.40.6",
+    "@wdio/types": "8.40.6",
     "browserstack-local": "^1.5.1",
     "chalk": "^5.3.0",
     "csv-writer": "^1.6.0",
@@ -43,8 +44,8 @@
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
     "got": "^12.6.1",
-    "uuid": "^9.0.0",
-    "webdriverio": "8.36.1",
+    "uuid": "^10.0.0",
+    "webdriverio": "8.40.6",
     "winston-transport": "^4.5.0",
     "yauzl": "^3.0.0"
   },
@@ -52,8 +53,8 @@
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.1.0",
-    "@wdio/globals": "8.36.1"
+    "@types/node": "^22.2.0",
+    "@wdio/globals": "8.40.6"
   },
   "publishConfig": {
     "access": "public"

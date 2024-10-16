@@ -127,12 +127,6 @@ export default {
             ],
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L47-L51'],
             alternativeCommands: ['browser/url'],
-            returns: {
-                type: 'string',
-                name: 'url',
-                description:
-                    'current document URL of the top-level browsing context.',
-            },
         },
     },
     '/session/:sessionId/back': {
@@ -1522,44 +1516,44 @@ export default {
                     name: 'protocol',
                     type: 'string',
                     description:
-                        "Valid values: 'ctap1/u2f', 'ctap2', 'ctap2_1'",
+                        "Valid values: 'ctap1/u2f', 'ctap2', 'ctap2_1'.",
                     required: false,
                 },
                 {
                     name: 'transport',
                     type: 'string',
                     description:
-                        "Valid values: 'usb', 'nfc', 'ble' or 'internal'",
+                        "Valid values: 'usb', 'nfc', 'ble' or 'internal'.",
                     required: false,
                 },
                 {
                     name: 'hasResidentKey',
                     type: 'boolean',
-                    description: '',
+                    description: 'Valid values: true, false.',
                     required: false,
                 },
                 {
                     name: 'hasUserVerification',
                     type: 'boolean',
-                    description: '',
+                    description: 'Valid values: true, false.',
                     required: false,
                 },
                 {
                     name: 'isUserConsenting',
                     type: 'boolean',
-                    description: '',
+                    description: 'Valid values: true, false.',
                     required: false,
                 },
                 {
                     name: 'isUserVerified',
                     type: 'boolean',
-                    description: '',
+                    description: 'Valid values: An array containing extension identifiers.',
                     required: false,
                 },
                 {
                     name: 'extensions',
                     type: 'string[]',
-                    description: '',
+                    description: 'Valid values: Up to 3 User Verification Method entries.',
                     required: false,
                 },
                 {
@@ -1569,6 +1563,12 @@ export default {
                     required: false,
                 },
             ],
+            returns: {
+                type: 'string',
+                name: 'authenticatorId',
+                description:
+                    'Returns the string ID of the authenticator.',
+            },
         },
     },
     '/session/:sessionId/webauthn/authenticator/:authenticatorId': {
@@ -1591,6 +1591,12 @@ export default {
             description:
                 'Injects a Public Key Credential Source into an existing Virtual Authenticator.',
             ref: 'https://www.w3.org/TR/webauthn-2/#sctn-automation-add-credential',
+            variables: [
+                {
+                    name: 'authenticatorId',
+                    description: 'ID of authenticator',
+                },
+            ],
             parameters: [
                 {
                     name: 'credentialId',
@@ -1639,7 +1645,7 @@ export default {
                     type: 'string',
                     description:
                         'The large, per-credential blob associated to the public key credential source, encoded using Base64url Encoding. This property may not be defined.',
-                    required: true,
+                    required: false,
                 },
             ],
         },
@@ -1657,6 +1663,11 @@ export default {
                 },
             ],
             parameters: [],
+            returns: {
+                type: 'object[]',
+                name: 'credentials',
+                description: 'Returns an array of credentials.',
+            }
         },
         DELETE: {
             command: 'removeAllCredentials',
@@ -1692,7 +1703,7 @@ export default {
                 parameters: [],
             },
         },
-    '/session/:sessionId/webauthn/authenticator/:authenticatorId/credentials/:credentialId/uv':
+    '/session/:sessionId/webauthn/authenticator/:authenticatorId/uv':
         {
             POST: {
                 command: 'setUserVerified',
@@ -1703,11 +1714,7 @@ export default {
                     {
                         name: 'authenticatorId',
                         description: 'id of authenticator',
-                    },
-                    {
-                        name: 'credentialId',
-                        description: 'id of credential',
-                    },
+                    }
                 ],
                 parameters: [],
             },

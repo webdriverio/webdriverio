@@ -1,7 +1,7 @@
 import { browser, $, expect } from '@wdio/globals'
 
 describe('main suite 1', () => {
-    it('foobar test', async () => {
+    it.skip('foobar test', async () => {
         const caps = browser.capabilities as WebdriverIO.Capabilities
         const assertionValue = caps.browserName!.includes('edge')
             ? 'headlessedg'

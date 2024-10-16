@@ -22,7 +22,7 @@ import PerformanceTester from './performance-tester.js'
 import { getProductMap, logBuildError } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
 
-import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
+import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, TOStopData } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     ACCESSIBILITY_API_URL,
@@ -38,7 +38,9 @@ import {
     TESTOPS_BUILD_COMPLETED_ENV,
     BROWSERSTACK_TESTHUB_JWT,
     BROWSERSTACK_OBSERVABILITY,
-    BROWSERSTACK_ACCESSIBILITY
+    BROWSERSTACK_ACCESSIBILITY,
+    MAX_GIT_META_DATA_SIZE_IN_BYTES,
+    GIT_META_DATA_TRUNCATED
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -48,6 +50,25 @@ import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 
 const pGitconfig = promisify(gitconfig)
+
+export type GitMetaData = {
+    name: string;
+    sha: string;
+    short_sha: string;
+    branch: string;
+    tag: string | null;
+    committer: string;
+    committer_date: string;
+    author: string;
+    author_date: string;
+    commit_message: string;
+    root: string;
+    common_git_dir: string;
+    worktree_git_dir: string;
+    last_tag: string | null;
+    commits_since_last_tag: number;
+    remotes: Array<{ name: string; url: string }>;
+};
 
 export const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -623,7 +644,7 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
     }
 }
 
-export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
+export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream(killSignal: string|null = null) {
     const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
     stopBuildUsage.triggered()
     if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
@@ -643,8 +664,15 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             message: 'Token/buildID is undefined, build creation might have failed'
         }
     }
-    const data = {
-        'finished_at': (new Date()).toISOString()
+    const data:TOStopData = {
+        'finished_at': (new Date()).toISOString(),
+        'finished_metadata': [],
+    }
+    if (killSignal) {
+        data.finished_metadata.push({
+            reason: 'user_killed',
+            signal: killSignal
+        })
     }
 
     try {
@@ -906,7 +934,7 @@ export async function getGitMetaData () {
     }
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = remote ? Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url })) : []
-    return {
+    let gitMetaData : GitMetaData = {
         name: 'git',
         sha: info.sha,
         short_sha: info.abbreviatedSha,
@@ -924,6 +952,9 @@ export async function getGitMetaData () {
         commits_since_last_tag: info.commitsSinceLastTag,
         remotes: remotes
     }
+
+    gitMetaData = checkAndTruncateVCSInfo(gitMetaData)
+    return gitMetaData
 }
 
 export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): string {
@@ -1048,8 +1079,67 @@ export function isBStackSession(config: Options.Testrunner) {
     return false
 }
 
-export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
-    if (config.services && config.services.toString().includes('chromedriver') && testObservability !== false) {
+export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    // a utility function to check if the hostname is browserstack
+
+    const isBrowserstack = (str: string ): boolean => {
+        return str.includes('browserstack.com')
+    }
+
+    if ((config.hostname) && !isBrowserstack(config.hostname)) {
+        return false
+    }
+
+    if (caps && typeof caps === 'object') {
+        if (Array.isArray(caps)) {
+            for (const capability of caps) {
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
+                    return false
+                }
+            }
+        } else {
+            for (const key in caps) {
+                const capability = (caps as any)[key]
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
+                    return false
+                }
+            }
+        }
+    }
+
+    if (!isBStackSession(config)) {
+        return false
+    }
+
+    return true
+}
+
+export function getBrowserStackUserAndKey(config: Options.Testrunner, options: Options.Testrunner) {
+
+    // Fallback 1: Env variables
+    // Fallback 2: Service variables in wdio.conf.js (that are received inside options object)
+    const envOrServiceVariables = {
+        user: getBrowserStackUser(options),
+        key: getBrowserStackKey(options)
+    }
+    if (isBStackSession(envOrServiceVariables as any)) {
+        return envOrServiceVariables
+    }
+
+    // Fallback 3: Service variables in testObservabilityOptions object
+    // Fallback 4: Service variables in the top level config object
+    const o11yVariables = {
+        user: getObservabilityUser(options, config),
+        key: getObservabilityKey(options, config)
+    }
+    if (isBStackSession(o11yVariables as any)) {
+        return o11yVariables
+    }
+
+}
+
+export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false) || !isBrowserstackInfra(config, caps)) {
         return false
     }
     return true
@@ -1210,6 +1300,48 @@ export function getFailureObject(error: string|Error) {
     }
 }
 
+export function truncateString(field: string, truncateSizeInBytes: number): string {
+    try {
+        const bufferSizeInBytes = Buffer.from(GIT_META_DATA_TRUNCATED).length
+
+        const fieldBufferObj = Buffer.from(field)
+        const lenOfFieldBufferObj = fieldBufferObj.length
+        const finalLen = Math.ceil(lenOfFieldBufferObj - truncateSizeInBytes - bufferSizeInBytes)
+        if (finalLen > 0) {
+            const truncatedString = fieldBufferObj.subarray(0, finalLen).toString() + GIT_META_DATA_TRUNCATED
+            return truncatedString
+        }
+    } catch (error) {
+        BStackLogger.debug(`Error while truncating field, nothing was truncated here: ${error}`)
+    }
+    return field
+}
+
+export function getSizeOfJsonObjectInBytes(jsonData: GitMetaData): number {
+    try {
+        const buffer = Buffer.from(JSON.stringify(jsonData))
+
+        return buffer.length
+    } catch (error) {
+        BStackLogger.debug(`Something went wrong while calculating size of JSON object: ${error}`)
+    }
+
+    return -1
+}
+
+export function checkAndTruncateVCSInfo(gitMetaData: GitMetaData): GitMetaData {
+    const gitMetaDataSizeInBytes = getSizeOfJsonObjectInBytes(gitMetaData)
+
+    if (gitMetaDataSizeInBytes && gitMetaDataSizeInBytes > MAX_GIT_META_DATA_SIZE_IN_BYTES) {
+        const truncateSize = gitMetaDataSizeInBytes - MAX_GIT_META_DATA_SIZE_IN_BYTES
+        const truncatedCommitMessage = truncateString(gitMetaData.commit_message, truncateSize)
+        gitMetaData.commit_message = truncatedCommitMessage
+        BStackLogger.info(`The commit has been truncated. Size of commit after truncation is ${ getSizeOfJsonObjectInBytes(gitMetaData) /1024 } KB`)
+    }
+
+    return gitMetaData
+}
+
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
@@ -1294,4 +1426,31 @@ export const getErrorString = (err: unknown) => {
     } else if (err instanceof Error) {
         return err.message // works, `e` narrowed to Error
     }
+}
+
+export function isTurboScale(options: (BrowserstackConfig & Options.Testrunner) | undefined): boolean {
+    return Boolean(options?.turboScale)
+}
+
+export function getObservabilityProduct(options: (BrowserstackConfig & Options.Testrunner) | undefined, isAppAutomate: boolean | undefined): string {
+    return isAppAutomate
+        ? 'app-automate'
+        : (isTurboScale(options) ? 'turboscale' : 'automate')
+}
+
+export const hasBrowserName = (cap: Options.Testrunner): boolean => {
+    if (!cap || !cap.capabilities) {
+        return false
+    }
+    const browserStackCapabilities = cap.capabilities as Capabilities.BrowserStackCapabilities
+    return browserStackCapabilities.browserName !== undefined
+}
+
+export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner }): boolean => {
+
+    // Get all capability values
+    const capValues = Object.values(caps)
+
+    // Check if there are any capabilities and if at least one has a browser name
+    return capValues.length > 0 && capValues.some(hasBrowserName)
 }

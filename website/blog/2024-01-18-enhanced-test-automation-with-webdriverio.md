@@ -5,11 +5,11 @@ authorURL: https://linkedin.com/in/larryg
 authorImageURL: https://avatars.githubusercontent.com/u/22198989?s=96&v=4
 ---
 
-## "Enhanced Test Automation with WebdriverIO - Unlock the Superpowers of Hybrid Testing Frameworks"
+Embark on a transformative journey into the dynamic landscape of test automation with the compelling and instructive guide, "Enhanced Test Automation with WebdriverIO - Unlock the Superpowers of Hybrid Testing Frameworks." Authored with the dual purpose of empowering both newcomers and seasoned developers, this comprehensive book serves as an indispensable manual for mastering advanced WebdriverIO concepts, specifically tailored for end-to-end testing of web applications.
+
+<!-- truncate -->
 
 ![Enhanced Test Automation with WebdriverIO](assets/enhanced-test-automation-webdriverio/Cover.png)
-
-Embark on a transformative journey into the dynamic landscape of test automation with the compelling and instructive guide, "Enhanced Test Automation with WebdriverIO - Unlock the Superpowers of Hybrid Testing Frameworks." Authored with the dual purpose of empowering both newcomers and seasoned developers, this comprehensive book serves as an indispensable manual for mastering advanced WebdriverIO concepts, specifically tailored for end-to-end testing of web applications.
 
 The book's rich content includes insights into the implementation of custom command wrappers and the integration of AI-powered self-healing object strategies, elevating the scope of test automation to unprecedented levels. Its target audience spans Software Developer Engineers in Test (SDETs) seeking to enhance their skill set. By addressing crucial aspects such as dynamic data handling, detailed reporting, and the seamless integration of automated tests into CI/CD pipelines, the book proves particularly beneficial for those striving to streamline test maintenance and automate complex test scenarios.
 
