@@ -25,7 +25,7 @@ export const config = {
 };
 ```
 
-For more detailed setup instructions, refer to the WebdriverIO [Visual Testing Documentation](./)
+For more detailed setup instructions, refer to the WebdriverIO [Visual Testing Documentation](./) or the [`createJsonReportFiles`](./service-options.md#createjsonreportfiles-new)
 
 # Installation
 
@@ -48,7 +48,7 @@ Once you have run your Visual tests and they generated the `output.json` file, y
 You can use the CLI command to generate the report by running:
 
 ```bash
-npx @wdio/visual-reporter --jsonOutput=<path-to-output.json> --reportFolder=<path-to-store-report> [--logLevel=debug]
+npx wdio-visual-reporter --jsonOutput=<path-to-output.json> --reportFolder=<path-to-store-report> [--logLevel=debug]
 ```
 
 #### Required options:
@@ -63,7 +63,7 @@ npx @wdio/visual-reporter --jsonOutput=<path-to-output.json> --reportFolder=<pat
 #### Example
 
 ```bash
-npx @wdio/visual-reporter --jsonOutput=/path/to/output.json --reportFolder=/path/to/report --logLevel=debug
+npx wdio-visual-reporter --jsonOutput=/path/to/output.json --reportFolder=/path/to/report --logLevel=debug
 ```
 
 This will generate the report in the specified folder and provide feedback in the console. For example:
@@ -101,3 +101,7 @@ The Visual Reporter provides an organized view of your visual test results. For 
 -   View diff images showing where visual differences were detected.
 
 This visual representation simplifies the analysis of your test results, making it easier to identify and address visual regressions.
+
+# CI Integrations
+
+We are working on supporting different CI tools like Jenkins, GitHub Actions and so on. If you like to help us then please contact us on [Discord - Visual Testing](https://discord.com/channels/1097401827202445382/1186908940286574642).
