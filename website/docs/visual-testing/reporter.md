@@ -16,7 +16,7 @@ export const config = {
     // ...
     services: [
         [
-            "visual-regression",
+            "visual",
             {
                 createJsonReportFiles: true, // Generates the output.json file
             },
