@@ -1,5 +1,5 @@
 import { validateUrl } from '../../utils/index.js'
-import { networkManager } from '../../networkManager.js'
+import { getNetworkManager } from '../../networkManager.js'
 import { getContextManager } from '../../context.js'
 import type { InitScript } from './addInitScript.js'
 
@@ -168,20 +168,19 @@ export async function url (
         const wait = options.wait === 'networkIdle'
             ? 'complete'
             : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
-        await this.browsingContextNavigate({
+        const navigation = await this.browsingContextNavigate({
             context,
             url: path,
             wait
         })
 
-        const network = networkManager.get(this)
-        const request = network?.getRequestResponseData(context)
-
         if (mock) {
             await mock.restore()
         }
 
-        if (network && options.wait === 'networkIdle') {
+        const network = getNetworkManager(this)
+
+        if (options.wait === 'networkIdle') {
             const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
             await this.waitUntil(async () => {
                 return network.getPendingRequests(context).length === 0
@@ -198,6 +197,18 @@ export async function url (
             await resetPreloadScript.remove()
         }
 
+        /**
+         * wait until we have a request object
+         */
+        const request = await this.waitUntil(
+            () => network.getRequestResponseData(navigation.navigation as string),
+            /**
+             * set a short interval to immediately return once the first request payload comes in
+             */
+            {
+                interval: 1,
+            }
+        )
         return request
     }
 
