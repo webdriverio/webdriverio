@@ -536,42 +536,38 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
 
     const projectProps = await getProjectProps(process.cwd())
     const isProjectExisting = Boolean(projectProps)
+    const nameInPackageJsonIsNotCreateWdioDefault = projectProps?.packageJson?.name !== 'my-new-project'
     const projectName = projectProps?.packageJson?.name ? ` named "${projectProps.packageJson.name}"` : ''
-    const questions = [
-        /**
-         * in case the `wdio config` was called using a global installed @wdio/cli package
-         */
-        ...(!isProjectExisting
-            ? [{
-                type: 'confirm',
-                name: 'createPackageJSON',
-                default: true,
-                message: `Couldn't find a package.json in "${process.cwd()}" or any of the parent directories, do you want to create one?`,
-            }]
-            /**
-             * in case create-wdio was used which creates a package.json with name "my-new-project"
-             * we don't need to ask this question
-             */
-            : projectProps?.packageJson?.name !== 'my-new-project'
-                ? [{
-                    type: 'confirm',
-                    name: 'projectRootCorrect',
-                    default: true,
-                    message: `A project${projectName} was detected at "${projectProps?.path}", correct?`,
-                }, {
-                    type: 'input',
-                    name: 'projectRoot',
-                    message: 'What is the project root for your test project?',
-                    default: projectProps?.path,
-                    // only ask if there are more than 1 runner to pick from
-                    when: /* istanbul ignore next */ (answers: Questionnair) => !answers.projectRootCorrect
-                }]
-                : []
-        ),
-        ...QUESTIONNAIRE
+
+    const projectRootQuestions = [
+        {
+            type: 'confirm',
+            name: 'createPackageJSON',
+            default: true,
+            message: `Couldn't find a package.json in "${process.cwd()}" or any of the parent directories, do you want to create one?`,
+            when: !isProjectExisting
+        },
+        {
+            type: 'confirm',
+            name: 'projectRootCorrect',
+            default: true,
+            message: `A project${projectName} was detected at "${projectProps?.path}", correct?`,
+            when: isProjectExisting && nameInPackageJsonIsNotCreateWdioDefault
+        }, {
+            type: 'input',
+            name: 'projectRoot',
+            message: 'What is the project root for your test project?',
+            default: projectProps?.path,
+            // only ask if there are more than 1 runner to pick from
+            when: /* istanbul ignore next */ (answers: Questionnair) => isProjectExisting && nameInPackageJsonIsNotCreateWdioDefault && !answers.projectRootCorrect
+        }
     ]
+
     // @ts-expect-error
-    return inquirer.prompt(questions)
+    const answers = await inquirer.prompt(projectRootQuestions)
+
+    // @ts-expect-error
+    return inquirer.prompt(QUESTIONNAIRE, answers)
 }
 
 /**
