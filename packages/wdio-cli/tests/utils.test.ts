@@ -799,17 +799,15 @@ test('getAnswers', async () => {
     delete answers.pages // delete so it doesn't fail in Windows
     delete answers.specs // delete so it doesn't fail in Windows
     expect(answers).toBe('some value')
-    expect(inquirer.prompt).toBeCalledTimes(1)
+    expect(inquirer.prompt).toBeCalledTimes(2)
     // @ts-ignore
-    expect(vi.mocked(inquirer.prompt).mock.calls[0][0][0].message)
-        .toContain('A project named "cool-test-module" was detected')
+    expect(vi.mocked(inquirer.prompt).mock.calls[0][0][0].when).toBe(false)
     vi.mocked(readPackageUp).mockResolvedValue(undefined)
     vi.mocked(inquirer.prompt).mockClear()
     expect(await getAnswers(false)).toBe('some value')
-    expect(inquirer.prompt).toBeCalledTimes(1)
+    expect(inquirer.prompt).toBeCalledTimes(2)
     // @ts-ignore
-    expect(vi.mocked(inquirer.prompt).mock.calls[0][0][0].message)
-        .toContain('Couldn\'t find a package.json in')
+    expect(vi.mocked(inquirer.prompt).mock.calls[0][0][0].when).toBe(true)
 })
 
 test('getProjectProps', async () => {
