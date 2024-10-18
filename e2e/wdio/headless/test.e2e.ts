@@ -328,7 +328,7 @@ describe('main suite 1', () => {
             const request = await browser.url('http://guinea-pig.webdriver.io/', {
                 wait: 'none'
             })
-            console.log(JSON.stringify(request))
+
             if (!request) {
                 throw new Error('Request object is not defined')
             }
