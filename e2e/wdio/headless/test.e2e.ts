@@ -328,6 +328,7 @@ describe('main suite 1', () => {
             const request = await browser.url('http://guinea-pig.webdriver.io/', {
                 wait: 'none'
             })
+
             if (!request) {
                 throw new Error('Request object is not defined')
             }
@@ -463,6 +464,18 @@ describe('main suite 1', () => {
             expect(err.message).toContain('No window')
 
             expect(await browser.getWindowHandle()).toBe(firstWindowHandle)
+        })
+
+        it('Should update BiDi browsingContext when performing switchToWindow in WebDriver Classic', async () => {
+            await closeAllWindowsButFirst()
+            await browser.url('http://guinea-pig.webdriver.io/')
+            await $('#newWindow').click()
+
+            const handles = await browser.getWindowHandles()
+            await browser.switchToWindow(handles[1])
+
+            // Verify element text to ensure the browsing context has changed and can interact with elements
+            await expect(await $('.page').getText()).toBe('Second page!')
         })
     })
 
