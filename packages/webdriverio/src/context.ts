@@ -43,6 +43,14 @@ export class ContextManager {
             events: ['browsingContext.navigationStarted']
         }).then(() => true, () => false)
         this.#browser.on('browsingContext.navigationStarted', this.#handleNavigationStarted.bind(this))
+        /**
+         * listen on browser command 'switchToWindow' to hande context change
+         */
+        this.#browser.on('command', (event) => {
+            if (event.command === 'switchToWindow') {
+                this.#handleSwitchToWindow(event.body.handle)
+            }
+        })
     }
 
     async initialize () {
@@ -64,6 +72,18 @@ export class ContextManager {
             log.info(`Update current context: ${context.context}`)
             this.#currentContext = context.context
         }
+    }
+
+    /**
+     * Handles the 'switchToWindow' event by updating the current context to the current browsingContext.
+     * This method is triggered when the browser switches to a different window, and the current
+     * browsing context needs to be updated accordingly when using BiDI. It sets the internal `#currentContext`
+     * to reflect the new window context.
+     *
+     * @param {string} context - The handle of the new window context being switched to.
+     */
+    #handleSwitchToWindow(context: string) {
+        this.#currentContext = context
     }
 
     setCurrentContext (context: string) {
