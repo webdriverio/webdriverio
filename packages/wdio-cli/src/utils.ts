@@ -562,6 +562,7 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
 
     // @ts-expect-error
     const answers = await inquirer.prompt(projectRootQuestions)
+    if (answers.createPackageJSON) { answers.projectRoot = process.cwd() }
 
     // @ts-expect-error
     return inquirer.prompt(QUESTIONNAIRE, answers)
@@ -986,6 +987,8 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
  * @returns project root path
  */
 export async function getProjectRoot (parsedAnswers?: Questionnair) {
+    if (parsedAnswers?.createPackageJSON) { return parsedAnswers.projectRoot!! }
+
     const root = (await getProjectProps())?.path
     if (!root) {
         throw new Error('Could not find project root directory with a package.json')
