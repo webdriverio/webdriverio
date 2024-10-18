@@ -61,15 +61,7 @@ vi.mock('child_process', () => {
     return m
 })
 
-vi.mock('read-pkg-up', () => ({
-    readPackageUp: vi.fn().mockResolvedValue({
-        path: '/foo/package.json',
-        packageJson: {
-            name: 'cool-test-module',
-            type: 'module'
-        }
-    })
-}))
+vi.mock('read-pkg-up')
 
 vi.mock('node:fs/promises', () => ({
     default: {
@@ -97,6 +89,14 @@ vi.mock('../src/install', () => ({
 
 beforeEach(() => {
     global.console.log = vi.fn()
+
+    vi.mocked(readPackageUp).mockReturnValue({
+        path: '/foo/package.json',
+        packageJson: {
+            name: 'cool-test-module',
+            type: 'module'
+        }
+    })
 })
 
 describe('runServiceHook', () => {
