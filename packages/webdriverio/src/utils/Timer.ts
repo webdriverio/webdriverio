@@ -75,11 +75,11 @@ class Timer {
     private _tick () {
         const result = this._fn()
 
-        if (typeof result.then !== 'function') {
-            if (!result) {
-                return this._checkCondition(new Error(TIMEOUT_ERROR))
-            }
+        if (!result) {
+            return this._checkCondition(new Error(TIMEOUT_ERROR))
+        }
 
+        if (typeof result.then !== 'function') {
             return this._checkCondition(undefined, result)
         }
 

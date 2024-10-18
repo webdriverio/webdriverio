@@ -20,6 +20,9 @@ export interface Request {
      * List of all requests that were made due to the main request.
      * Note: the list may be incomplete and does not contain request that were
      * made after the command has finished.
+     *
+     * The property will be undefined if the request is not a document request
+     * that was initiated by the browser.
      */
     children?: Request[]
 }
