@@ -6,6 +6,8 @@ import type { TouchAction, TouchActions } from '../types.js'
 const TOUCH_ACTIONS = ['press', 'longPress', 'tap', 'moveTo', 'wait', 'release']
 const POS_ACTIONS = TOUCH_ACTIONS.slice(0, 4)
 const ACCEPTED_OPTIONS = ['x', 'y', 'element']
+export const SCRIPT_PREFIX = '/* __wdio script__ */'
+export const SCRIPT_SUFFIX = '/* __wdio script end__ */'
 
 interface FormattedTouchAction extends Omit<TouchAction, 'element'> {
     element?: string

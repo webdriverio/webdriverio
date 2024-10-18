@@ -1,23 +1,22 @@
-import type { Automation } from '@wdio/types'
+import type { Automation, Capabilities } from '@wdio/types'
 
 import ProtocolStub from '../protocol-stub.js'
 import detectBackend from './detectBackend.js'
 import { SupportedAutomationProtocols } from '../constants.js'
-import type { RemoteOptions } from '../types.js'
 
 interface ProtocolDriver {
-    Driver: Automation.Driver<RemoteOptions>
-    options: RemoteOptions
+    Driver: Automation.Driver<Capabilities.RemoteConfig>
+    options: Capabilities.WebdriverIOConfig
 }
 
-let webdriverImport: Automation.Driver<RemoteOptions> | undefined
+let webdriverImport: Automation.Driver<Capabilities.RemoteConfig> | undefined
 
 /**
  * get protocol driver
- * @param  {RemoteOptions} options  remote options
+ * @param  {Capabilities.WebdriverIOConfig} options  remote options
  * @return {Automation.Driver}      automation driver
  */
-export async function getProtocolDriver (options: RemoteOptions): Promise<ProtocolDriver> {
+export async function getProtocolDriver (options: Capabilities.WebdriverIOConfig): Promise<ProtocolDriver> {
     /**
      * We still want to be able to inject a stub driver to avoid loading the actual
      * driver package in two places:
@@ -37,6 +36,6 @@ export async function getProtocolDriver (options: RemoteOptions): Promise<Protoc
         Object.assign(options, detectBackend(options))
     }
 
-    const Driver = webdriverImport || (await import(options.automationProtocol || 'webdriver')).default
+    const Driver = webdriverImport || (await import(/* @vite-ignore */options.automationProtocol || 'webdriver')).default
     return { Driver, options }
 }

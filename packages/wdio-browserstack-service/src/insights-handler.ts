@@ -7,6 +7,8 @@ import { v4 as uuidv4 } from 'uuid'
 import type { CucumberStore, Feature, Scenario, Step, FeatureChild, CucumberHook, CucumberHookParams, Pickle, ITestCaseHookParameter } from './cucumber-types.js'
 import TestReporter from './reporter.js'
 
+import type { BrowserstackConfig, BrowserstackOptions } from './types.js'
+
 import {
     frameworkSupportsHook,
     getCloudProvider, getFailureObject,
@@ -20,13 +22,15 @@ import {
     isUndefined,
     o11yClassErrorHandler,
     removeAnsiColors,
+    getObservabilityProduct
 } from './util.js'
 import type {
     TestData,
     TestMeta,
     PlatformMeta,
     CurrentRunInfo,
-    StdLog
+    StdLog,
+    CBTData
 } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
@@ -47,12 +51,16 @@ class _InsightsHandler {
         scenariosStarted: false,
         steps: []
     }
-    private _userCaps?: Capabilities.RemoteCapability = {}
+    private _userCaps?: Capabilities.ResolvedTestrunnerCapabilities = {}
     private listener = Listener.getInstance()
+    private _currentTestId: string | undefined
+    private _cbtQueue: Array<CBTData> = []
 
-    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string, _userCaps?: Capabilities.RemoteCapability) {
+    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.ResolvedTestrunnerCapabilities, _options?: BrowserstackConfig & BrowserstackOptions) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
+
+        this._userCaps = _userCaps
 
         this._platformMeta = {
             browserName: caps.browserName,
@@ -60,12 +68,16 @@ class _InsightsHandler {
             platformName: caps?.platformName,
             caps: caps,
             sessionId,
-            product: isAppAutomate ? 'app-automate' : 'automate'
+            product: getObservabilityProduct(_options, this._isAppAutomate())
         }
 
-        this._userCaps = _userCaps
-
         this.registerListeners()
+    }
+
+    _isAppAutomate(): boolean {
+        const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
+        const desiredCapabilities = (this._userCaps ?? {})
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)
     }
 
     registerListeners() {
@@ -379,6 +391,7 @@ class _InsightsHandler {
             ...(this._tests[fullTitle] || {}),
             finishedAt: (new Date()).toISOString()
         }
+        this.flushCBTDataQueue()
         this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
@@ -429,6 +442,7 @@ class _InsightsHandler {
 
     async afterScenario (world: ITestCaseHookParameter) {
         this._cucumberData.scenario = undefined
+        this.flushCBTDataQueue()
         this.listener.testFinished(this.getTestRunDataForCucumber(world, 'TestRunFinished'))
     }
 
@@ -614,6 +628,7 @@ class _InsightsHandler {
         const testMetaData = this._tests[fullTitle]
 
         const filename = test.file || this._suiteFile
+        this._currentTestId = testMetaData.uuid
 
         const testData: TestData = {
             uuid: testMetaData.uuid,
@@ -728,6 +743,7 @@ class _InsightsHandler {
         } else {
             fullNameWithExamples = scenario?.name || ''
         }
+        this._currentTestId = uuid
 
         const testData: TestData = {
             uuid: uuid,
@@ -797,6 +813,36 @@ class _InsightsHandler {
         }
 
         return testData
+    }
+
+    private async flushCBTDataQueue() {
+        if (isUndefined(this._currentTestId)) {return}
+        this._cbtQueue.forEach(cbtData => {
+            cbtData.uuid = this._currentTestId!
+            this.listener.cbtSessionCreated(cbtData)
+        })
+        this._currentTestId = undefined // set undefined for next test
+    }
+
+    async sendCBTInfo() {
+        const integrationsData: any = {}
+
+        if (this._browser && this._platformMeta) {
+            const provider = getCloudProvider(this._browser)
+            integrationsData[provider] = this.getIntegrationsObject()
+        }
+
+        const cbtData: CBTData = {
+            uuid: '',
+            integrations: integrationsData
+        }
+
+        if (this._currentTestId !== undefined) {
+            cbtData.uuid = this._currentTestId
+            this.listener.cbtSessionCreated(cbtData)
+        } else {
+            this._cbtQueue.push(cbtData)
+        }
     }
 
     private getIntegrationsObject () {

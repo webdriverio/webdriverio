@@ -1,4 +1,4 @@
-import { verifyArgsAndStripIfElement } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
 
 /**
  *
@@ -37,23 +37,10 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  *
  */
 export async function execute<ReturnValue, InnerArguments extends any[]> (
-    this: ChainablePromiseElement,
+    this: WebdriverIO.Element,
     script: string | ((...innerArgs: [WebdriverIO.Element, ...InnerArguments]) => ReturnValue),
-    ...args: InnerArguments): Promise<ReturnValue> {
-    /**
-     * parameter check
-     */
-    if ((typeof script !== 'string' && typeof script !== 'function')) {
-        throw new Error('number or type of arguments don\'t agree with execute protocol command')
-    }
-
-    /**
-     * instances started as multibrowserinstance can't getting called with
-     * a function parameter, therefore we need to check if it starts with "function () {"
-     */
-    if (typeof script === 'function') {
-        script = `return (${script}).apply(null, arguments)`
-    }
-
-    return this.executeScript(script, verifyArgsAndStripIfElement([this, ...args]))
+    ...args: InnerArguments
+): Promise<ReturnValue> {
+    const browser = getBrowserObject(this)
+    return browser.execute(script, this, ...args)
 }

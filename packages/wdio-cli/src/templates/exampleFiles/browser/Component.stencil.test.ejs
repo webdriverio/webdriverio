@@ -14,7 +14,7 @@ describe('Stencil component testing', () => {
             )
         })
 
-        const button = await $('my-element').$('>>>button')
+        const button = await $('my-element').$('button')
         await expect(button).toHaveText('count is 42')
 
         await button.click()
@@ -31,7 +31,7 @@ describe('Stencil component testing', () => {
             )
         })
 
-        const button = await $('my-element').$('>>>button')
+        const button = await $('my-element').$('button')
         await expect(button).toHaveText('count is 42')
 
         await button.click()

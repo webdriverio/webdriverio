@@ -1,3 +1,4 @@
+import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -57,6 +58,7 @@ export const FILE_PROTOCOL = 'file://'
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 function getResultObject(
     world: Cucumber.ITestCaseHookParameter
@@ -83,11 +85,11 @@ class CucumberAdapter {
         private _cid: string,
         private _config: Options.Testrunner,
         private _specs: string[],
-        private _capabilities: Capabilities.RemoteCapability,
+        private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _reporter: EventEmitter,
         private _eventEmitter: EventEmitter,
         private _generateSkipTags: boolean = true,
-        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(url.fileURLToPath(import.meta.url), '..', 'cucumberFormatter.js')).href
+        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(__dirname, 'cucumberFormatter.js')).href
     ) {
         this._eventEmitter = new EventEmitter()
         this._cucumberOpts = Object.assign(
@@ -213,9 +215,11 @@ class CucumberAdapter {
         })
         this._specs = plan?.map((pl) => path.resolve(pl.uri))
 
-        // Filter the specs according to line numbers
+        // Filter features (of which at least some have line numbers) against the already filtered specs
         if (this._config.cucumberFeaturesWithLineNumbers?.length! > 0) {
-            this._specs = this._config.cucumberFeaturesWithLineNumbers!
+            this._specs = this._config.cucumberFeaturesWithLineNumbers!.filter(feature =>
+                this._specs.some(spec => path.resolve(feature).startsWith(spec))
+            )
         }
 
         this._specs = [...new Set(this._specs)]
@@ -241,6 +245,7 @@ class CucumberAdapter {
                 requireModules: this._cucumberOpts.requireModule,
                 requirePaths: this._cucumberOpts.require,
                 importPaths: this._cucumberOpts.import,
+                loaders: []
             })
 
             this.addWdioHooks(this._config, supportCodeLibraryBuilder)
@@ -268,7 +273,7 @@ class CucumberAdapter {
             }
 
             const { runConfiguration } = await loadConfiguration(
-                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration> },
+                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration>, file: this._cucumberOpts.file },
                 environment
             )
 
@@ -339,8 +344,12 @@ class CucumberAdapter {
 
     async loadFilesWithType(fileList: string[]) {
         return fileList.reduce(
-            (files: string[], file: string) =>
-                files.concat(isGlob(file) ? globSync(file) : [file]),
+            (files: string[], file: string) => {
+                const filePath = os.platform() === 'win32'
+                    ? url.pathToFileURL(file).href
+                    : file
+                return files.concat(isGlob(filePath) ? globSync(filePath) : [filePath])
+            },
             []
         )
     }
@@ -349,11 +358,11 @@ class CucumberAdapter {
         const importedModules = []
 
         for (const module of modules) {
-            const filepath = path.isAbsolute(module)
-                ? module.startsWith(FILE_PROTOCOL)
-                    ? module
-                    : url.pathToFileURL(module).href
-                : url.pathToFileURL(path.join(process.cwd(), module)).href
+            const filepath = module.startsWith(FILE_PROTOCOL)
+                ? module
+                : path.isAbsolute(module)
+                    ? url.pathToFileURL(module).href
+                    : url.pathToFileURL(path.join(process.cwd(), module)).href
             // This allows rerunning a stepDefinitions file
             const stepDefPath = url.pathToFileURL(
                 require.resolve(url.fileURLToPath(filepath))

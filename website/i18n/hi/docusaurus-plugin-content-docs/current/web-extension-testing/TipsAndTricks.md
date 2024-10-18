@@ -20,7 +20,7 @@ export async function openExtensionPopup (this: WebdriverIO.Browser, extensionNa
   }
   await this.url('chrome://extensions/')
 
-  const extensions = await this.$$('>>> extensions-item')
+  const extensions = await this.$$('extensions-item')
   const extension = await extensions.find(async (ext) => (
     await ext.$('#name').getText()) === extensionName
   )
@@ -49,12 +49,11 @@ declare global {
 
 
 ```ts wdio.conf.ts
-import type { Options } from '@wdio/testrunner'
 import { browser } from '@wdio/globals'
 
 import { openExtensionPopup } from './support/customCommands'
 
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
   // ...
   before: () => {
     browser.addCommand('openExtensionPopup', openExtensionPopup)

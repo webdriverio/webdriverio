@@ -283,18 +283,7 @@ describe('SpecReporter', () => {
                 printReporter.write.mockClear()
 
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.saucelabs.com',
-                    user: 'foobar',
-                    key: '123',
-                    region: 'apac'
-                }
-                printReporter.printReport(getRunnerConfig({}))
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
-
-                printReporter.write.mockClear()
-
-                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.us-east-1.saucelabs.com',
+                    hostname: 'ondemand.us-east-4.saucelabs.com',
                     user: 'foobar',
                     key: '123'
                 }
@@ -977,6 +966,14 @@ describe('SpecReporter', () => {
             } as any, false)).toBe('Chrome 50 Windows')
         })
 
+        it('should return preface desktop combo when using W3C capabilities', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browserVersion: 50,
+                platformName: 'Windows',
+            } as any, false)).toBe('Chrome 50 Windows')
+        })
+
         it('should return verbose desktop combo without platform', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
@@ -995,9 +992,18 @@ describe('SpecReporter', () => {
             expect(tmpReporter.getEnviromentCombo({
                 platformName: 'Mac',
                 automationName: 'Mac2',
-                bundleId: 'com.apple.calculator',
+                'appium:bundleId': 'com.apple.calculator',
                 sessionId: '53d1c8fd-23d9-4e81-a94b-011d2e694b9a'
             } as any, false)).toBe('com.apple.calculator Mac')
+        })
+
+        it('should recognise appPackage', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Android',
+                'appium:automationName': 'uiautomator2',
+                'appium:appPackage': 'com.example.android',
+                'appium:appActivity': '.MainActivity'
+            }, false)).toBe('com.example.android Android')
         })
     })
 

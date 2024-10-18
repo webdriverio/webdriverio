@@ -1,17 +1,12 @@
 import path from 'node:path'
-import { URL } from 'node:url'
-import type { MockedFunction } from 'vitest'
-import { describe, it, expect, vi } from 'vitest'
-import { transformCommandLogResult } from '@wdio/utils'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import type { Capabilities, Options } from '@wdio/types'
 
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
-    getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
-    getTimeoutError,
-    setupDirectConnect
+    startWebDriverSession, setupDirectConnect, validateCapabilities
 } from '../src/utils.js'
-import type { Client } from '../src/types.js'
+import type { Client, RemoteConfig } from '../src/types.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils')
@@ -99,89 +94,15 @@ describe('utils', () => {
         expect(typeof saucePrototype.getPageLogs.value).toBe('function')
     })
 
-    it('getErrorFromResponseBody', () => {
-        const emptyBodyError = new Error('Response has empty body')
-        expect(getErrorFromResponseBody('', {})).toEqual(emptyBodyError)
-        expect(getErrorFromResponseBody(null, {})).toEqual(emptyBodyError)
-
-        const unknownError = new Error('unknown error')
-        expect(getErrorFromResponseBody({}, {})).toEqual(unknownError)
-
-        const nonWebDriverError = new Error('expected')
-        const expectedError = new Error('expected')
-        expect(getErrorFromResponseBody('expected', {})).toEqual(nonWebDriverError)
-        expect(getErrorFromResponseBody({ value: { message: 'expected' } }, {}))
-            .toEqual(expectedError)
-        expect(getErrorFromResponseBody({ value: { class: 'expected' } }, {}))
-            .toEqual(expectedError)
-
-        const ieError = new Error('Command not found: POST /some/command')
-        ieError.name = 'unknown method'
-        expect(getErrorFromResponseBody({
-            message: 'Command not found: POST /some/command',
-            error: 'unknown method',
-            name: 'Protocol Error'
-        }, {})).toEqual(ieError)
-    })
-
-    it('CustomRequestError', function () {
-        //Firefox
-        let error = new CustomRequestError({
-            value: {
-                error: 'foo',
-                message: 'bar'
-            }
-        }, {})
-        expect(error.name).toBe('foo')
-        expect(error.message).toBe('bar')
-
-        //Chrome
-        error = new CustomRequestError({ value: { message: 'stale element reference' } }, {})
-        expect(error.name).toBe('stale element reference')
-        expect(error.message).toBe('stale element reference')
-        expect(error.stack).toMatch('stale element reference')
-        expect(error.stack).toMatch('stale element reference')
-
-        error = new CustomRequestError({ value: { message: 'message' } }, {})
-        expect(error.name).toBe('WebDriver Error')
-        expect(error.message).toBe('message')
-        expect(error.stack).toMatch('WebDriver Error')
-        expect(error.stack).toMatch('message')
-
-        error = new CustomRequestError({ value: { class: 'class' } }, {})
-        expect(error.name).toBe('WebDriver Error')
-        expect(error.message).toBe('class')
-        expect(error.stack).toMatch('WebDriver Error')
-        expect(error.stack).toMatch('class')
-
-        error = new CustomRequestError({ value: { name: 'Protocol Error' } }, {})
-        expect(error.name).toBe('Protocol Error')
-        expect(error.message).toBe('unknown error')
-        expect(error.stack).toMatch('Protocol Error')
-        expect(error.stack).toMatch('unknown error')
-
-        error = new CustomRequestError({ value: { } }, {})
-        expect(error.name).toBe('WebDriver Error')
-        expect(error.message).toBe('unknown error')
-        expect(error.stack).toMatch('WebDriver Error')
-        expect(error.stack).toMatch('unknown error')
-
-        error = new CustomRequestError(
-            { value: { message: 'invalid locator' } },
-            { using: 'css selector', value: '!!' }
-        )
-        expect(error.message).toMatchSnapshot()
-    })
-
     describe('setupDirectConnect', () => {
         class TestClient implements Client {
             // @ts-expect-error
             sessionId?: string
             // @ts-expect-error
-            requestedCapabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+            requestedCapabilities?: WebdriverIO.Capabilities | Capabilities.W3CCapabilities
 
             constructor(
-                public capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities,
+                public capabilities: WebdriverIO.Capabilities | Capabilities.W3CCapabilities,
                 public options: Options.WebDriver
             ) {
                 this.capabilities = capabilities
@@ -311,8 +232,14 @@ describe('utils', () => {
     })
 
     describe('startWebDriverSession', () => {
+        const mockedFetch = vi.mocked(fetch)
+
+        afterEach(() => {
+            mockedFetch.mockClear()
+        })
+
         it('attaches capabilities to the params object', async () => {
-            const params: Options.WebDriver = {
+            const params: RemoteConfig = {
                 hostname: 'localhost',
                 port: 4444,
                 path: '/',
@@ -320,6 +247,7 @@ describe('utils', () => {
                 logLevel: 'warn',
                 capabilities: {
                     browserName: 'chrome',
+                    // @ts-expect-error test invalid cap
                     platform: 'Windows'
                 }
             }
@@ -327,6 +255,73 @@ describe('utils', () => {
             expect(sessionId).toBe('foobar-123')
             expect(capabilities.browserName)
                 .toBe('mockBrowser')
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(true)
+        })
+
+        it('should allow to opt-out from bidi', async () => {
+            const params: RemoteConfig = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                capabilities: {
+                    browserName: 'chrome',
+                    'wdio:enforceWebDriverClassic': true
+                }
+            }
+            await startWebDriverSession(params)
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(undefined)
+        })
+
+        it('should not opt-in for Safari as it is not supported', async () => {
+            const params: RemoteConfig = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                capabilities: {
+                    browserName: 'safari'
+                }
+            }
+            await startWebDriverSession(params)
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(undefined)
+        })
+
+        it('should not opt-in for Safari as it is not supported', async () => {
+            const params: RemoteConfig = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                capabilities: {
+                    browserName: 'Safari'
+                }
+            }
+            await startWebDriverSession(params)
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(undefined)
+        })
+
+        it('should allow to opt-out from bidi when using alwaysMatch', async () => {
+            const params: RemoteConfig = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                capabilities: {
+                    alwaysMatch: {
+                        browserName: 'chrome',
+                        'wdio:enforceWebDriverClassic': true
+                    },
+                    firstMatch: []
+                }
+            }
+            await startWebDriverSession(params)
+            expect(JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities.alwaysMatch.webSocketUrl)
+                .toBe(undefined)
         })
 
         it('should handle sessionRequest error', async () => {
@@ -338,7 +333,7 @@ describe('utils', () => {
         })
 
         it('should break if JSONWire and WebDriver caps are mixed together', async () => {
-            const params: Options.WebDriver = {
+            const params: RemoteConfig = {
                 hostname: 'localhost',
                 port: 4444,
                 path: '/',
@@ -347,6 +342,7 @@ describe('utils', () => {
                 capabilities: {
                     browserName: 'chrome',
                     'sauce:options': {},
+                    // @ts-expect-error test invalid cap
                     platform: 'Windows',
                     // @ts-ignore test invalid cap
                     foo: 'bar'
@@ -360,93 +356,35 @@ describe('utils', () => {
         })
     })
 
-    describe('getTimeoutError', () => {
-        const mkReqOpts = (opts = {}) => {
-            return {
-                method: 'GET',
-                ...opts
-            }
-        }
+    describe('validateCapabilities', () => {
+        it('should throw an error if incognito is defined', () => {
+            expect(() => {
+                validateCapabilities({
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        args: ['--incognito']
+                    }
+                })
+            }).toThrow('Please remove "incognito" from `"goog:chromeOptions".args`')
+        })
 
-        describe('should return error with', () => {
-            it('command name as full endpoint', async () => {
-                const err = new Error('Timeout')
-                const reqOpts = mkReqOpts({})
+        it('should throw an error if incognito is defined as string', () => {
+            expect(() => {
+                validateCapabilities({
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        args: ['incognito']
+                    }
+                })
+            }).toThrow('Please remove "incognito" from `"goog:chromeOptions".args`')
+        })
 
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/wd/hub/session'))
-
-                expect(timeoutErr.message).toEqual(expect.stringMatching('when running "https://localhost:4445/wd/hub/session"'))
-            })
-
-            it('command name in shortened form', async () => {
-                const err = new Error('Timeout')
-                const reqOpts = mkReqOpts({})
-
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/wd/hub/session/abc123/url'))
-
-                expect(timeoutErr.message).toEqual(expect.stringMatching('when running "url"'))
-            })
-
-            it('command method', async () => {
-                const err = new Error('Timeout')
-                const reqOpts = mkReqOpts({ method: 'GET' })
-
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
-
-                expect(timeoutErr.message).toEqual(expect.stringMatching(/when running .+ with method "GET"/))
-            })
-
-            it('command args as stringified object', async () => {
-                const err = new Error('Timeout')
-                const cmdArgs = { foo: 'bar' }
-                const reqOpts = mkReqOpts({ body: cmdArgs })
-
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
-
-                expect(timeoutErr.message).toEqual(
-                    expect.stringMatching(new RegExp(`when running .+ with method .+ and args "${JSON.stringify(cmdArgs)}"`))
-                )
-            })
-
-            it('command args with base64 script', async () => {
-                (transformCommandLogResult as MockedFunction<any>).mockReturnValueOnce('"<Script[base64]>"')
-
-                const err = new Error('Timeout')
-                const cmdArgs = { script: Buffer.from('script').toString('base64') }
-                const reqOpts = mkReqOpts({ body: cmdArgs })
-
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
-
-                expect(timeoutErr.message).toEqual(
-                    expect.stringMatching(/when running .+ with method .+ and args "<Script\[base64\]>"/)
-                )
-            })
-
-            it('command args with function script without extra wrapper', async () => {
-                const err = new Error('Timeout')
-                const cmdArgs = { script: 'return (function() {\nconsole.log("hi")\n}).apply(null, arguments)' }
-                const reqOpts = mkReqOpts({ body: cmdArgs })
-
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
-
-                expect(timeoutErr.message).toEqual(
-                    expect.stringMatching(/when running .+ with method .+ and args "function\(\) {\nconsole\.log\("hi"\)\n}/)
-                )
-            })
-
-            it('command args with base64 screenshot', async () => {
-                (transformCommandLogResult as MockedFunction<any>).mockReturnValueOnce('"<Screenshot[base64]>"')
-
-                const err = new Error('Timeout')
-                const cmdArgs = { file: Buffer.from('screen').toString('base64') }
-                const reqOpts = mkReqOpts({ body: cmdArgs })
-
-                const timeoutErr = getTimeoutError(err, reqOpts, new URL('https://localhost:4445/default/method'))
-
-                expect(timeoutErr.message).toEqual(
-                    expect.stringMatching(/when running .+ with method .+ and args "<Screenshot\[base64\]>"/)
-                )
-            })
+        it('should not throw an error if incognito is not defined', () => {
+            expect(() => {
+                validateCapabilities({
+                    browserName: 'chrome'
+                })
+            }).not.toThrow()
         })
     })
 })

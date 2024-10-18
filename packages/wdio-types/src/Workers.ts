@@ -1,14 +1,8 @@
 import type { EventEmitter } from 'node:events'
 import type { Testrunner as TestrunnerOptions } from './Options.js'
-import type {
-    DesiredCapabilities,
-    MultiRemoteCapabilities,
-    RemoteCapability,
-    W3CCapabilities,
-} from './Capabilities.js'
 
 export interface Job {
-    caps: DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities
+    caps: WebdriverIO.Capabilities
     specs: string[]
     hasTests: boolean
 }
@@ -18,7 +12,7 @@ export type WorkerMessageArgs = Omit<Job, 'caps' | 'specs' | 'hasTests'>
 export interface WorkerRunPayload {
     cid: string
     configFile: string
-    caps: RemoteCapability
+    caps: WebdriverIO.Capabilities
     specs: string[]
     execArgv: string[]
     retries: number
@@ -48,7 +42,7 @@ export interface WorkerMessage {
     content: {
         sessionId?: string
         isMultiremote?: boolean
-        capabilities: RemoteCapability
+        capabilities: WebdriverIO.Capabilities
     }
     origin: string
     params: Record<string, string>
@@ -57,9 +51,9 @@ export interface WorkerMessage {
 export interface Worker
     extends Omit<TestrunnerOptions, 'capabilities' | 'specs' | 'rootDir'>,
         EventEmitter {
-    capabilities: RemoteCapability
+    capabilities: WebdriverIO.Capabilities
     config: TestrunnerOptions,
-    caps: RemoteCapability
+    caps: WebdriverIO.Capabilities
     cid: string
     isBusy?: boolean
     postMessage: (command: string, args: WorkerMessageArgs) => void

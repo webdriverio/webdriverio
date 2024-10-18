@@ -1,10 +1,13 @@
 import fs from 'node:fs'
+import url from 'node:url'
 import path from 'node:path'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 export default class SmokeService {
     logFile: fs.WriteStream
     constructor () {
-        this.logFile = fs.createWriteStream(path.join(process.cwd(), 'tests', 'helpers', 'service.log'))
+        this.logFile = fs.createWriteStream(path.resolve(__dirname, '..', '..', '..', 'tests', 'helpers', 'service.log'))
     }
     beforeSession () { this.logFile.write('beforeSession called\n') } // eslint-disable-line no-console
     before () { this.logFile.write('before called\n') } // eslint-disable-line no-console
@@ -25,7 +28,7 @@ export default class SmokeService {
 class SmokeServiceLauncher {
     logFile: fs.WriteStream
     constructor () {
-        this.logFile = fs.createWriteStream(path.join(process.cwd(), 'tests', 'helpers', 'launcher.log'))
+        this.logFile = fs.createWriteStream(path.resolve(__dirname, '..', '..', '..', 'tests', 'helpers', 'launcher.log'))
     }
     onPrepare () { this.logFile.write('onPrepare called\n') } // eslint-disable-line no-console
     onWorkerStart () { this.logFile.write('onWorkerStart called\n')} // eslint-disable-line no-console

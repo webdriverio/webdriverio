@@ -1,11 +1,11 @@
 ---
 title: React Selectors
-author: Baruch Velez
-authorURL: http://github.com/baruchvlz
-authorImageURL: https://avatars1.githubusercontent.com/u/14321495?s=460&v=4
+authors: barry
 ---
 
 [ReactJS](https://github.com/facebook/react) is one of the most widely use Front-End libraries in the web. Along side React, many developers use styling tools that will minify or re-write the class attribute values attached to the HTML elements via `className` props in JSX. These minifications and overwrites make it difficult to select the generated HTML using the WebDriver's query commands like `findElement` or `findElements` since it's not guaranteed that the class name will remain the same.
+
+<!-- truncate -->
 
 Today we introduce two new commands, `browser.react$` and `browser.react$$`, to WebdriverIO's browser object that allows you to query for a single or multiple React component instances in the page with an easy to use API. These new commands will return the WebdriverIO element(s) for the query in where you will have access to the complete element commands API.
 

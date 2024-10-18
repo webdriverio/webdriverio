@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
-import { findElement, isStaleElementError, elementPromiseHandler } from '../../src/utils/index.js'
+import { findElement, isStaleElementError, elementPromiseHandler, transformClassicToBidiSelector } from '../../src/utils/index.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -12,33 +12,35 @@ describe('findElement', () => {
         const elemRes = { [ELEMENT_KEY]: 'element-0' }
         const browser: any = {
             elementId: 'source-elem',
-            execute: vi.fn().mockReturnValue(elemRes)
+            executeScript: vi.fn().mockReturnValue(elemRes)
         }
         expect(await findElement.call(browser, () => 'testme' as any as HTMLElement)).toEqual(elemRes)
-        expect(browser.execute).toBeCalledWith(expect.any(String), browser)
+        expect(browser.executeScript).toBeCalledWith(expect.any(String), [browser])
     })
 
     it('should find element using JS function with referenceId', async () => {
         const elemRes = { [ELEMENT_KEY]: 'element-0' }
         const browser: any = {
             elementId: 'source-elem',
-            execute: vi.fn().mockResolvedValue(elemRes)
+            executeScript: vi.fn().mockResolvedValue(elemRes)
         }
         const domNode = { nodeType: 1, nodeName: 'DivElement' } as HTMLElement
         // @ts-expect-error
         globalThis.window = {}
         expect(await findElement.call(browser, domNode)).toEqual(elemRes)
-        expect(browser.execute).toBeCalledWith(
+        expect(browser.executeScript).toBeCalledWith(
             expect.any(String),
-            browser,
-            expect.any(String)
+            [
+                browser,
+                expect.any(String)
+            ]
         )
     })
 
     it('should not find element using JS function with referenceId', async () => {
         const browser: any = {
             elementId: 'source-elem',
-            execute: vi.fn().mockRejectedValue(new Error('stale element reference: element is not attached to the page document'))
+            executeScript: vi.fn().mockRejectedValue(new Error('stale element reference: element is not attached to the page document'))
         }
         const domNode = { nodeType: 1, nodeName: 'DivElement' } as HTMLElement
         // @ts-expect-error
@@ -46,10 +48,12 @@ describe('findElement', () => {
         expect(await findElement.call(browser, domNode)).toEqual(
             expect.objectContaining({ message: 'DOM Node couldn\'t be found anymore' })
         )
-        expect(browser.execute).toBeCalledWith(
+        expect(browser.executeScript).toBeCalledWith(
             expect.any(String),
-            browser,
-            expect.any(String)
+            [
+                browser,
+                expect.any(String)
+            ]
         )
     })
 })
@@ -115,6 +119,41 @@ it('isStaleElementError', () => {
     expect(isStaleElementError(staleElementSafariError)).toBe(true)
     const staleElementJSError = new Error('javascript error: {"status":10,"value":"stale element not found in the current frame"}')
     expect(isStaleElementError(staleElementJSError)).toBe(true)
+    const staleElementBidiError = new Error('belongs to different document. Current document is')
+    expect(isStaleElementError(staleElementBidiError)).toBe(true)
     const otherError = new Error('something else')
     expect(isStaleElementError(otherError)).toBe(false)
+})
+
+describe('transformClassicToBidiSelector', () => {
+    it('transforms classic css selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('css selector', '.red')
+        expect(bidiSelector.type).toBe('css')
+        expect(bidiSelector.value).toBe('.red')
+    })
+
+    it('transforms classic tag name selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('tag name', 'div')
+        expect(bidiSelector.type).toBe('css')
+        expect(bidiSelector.value).toBe('div')
+    })
+
+    it('transforms classic xpath selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('xpath', '//html/body/section/div[6]/div/span')
+        expect(bidiSelector.type).toBe('xpath')
+        expect(bidiSelector.value).toBe('//html/body/section/div[6]/div/span')
+    })
+
+    it('transforms classic link text selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('link text', 'GitHub Repo')
+        expect(bidiSelector.type).toBe('innerText')
+        expect(bidiSelector.value).toBe('GitHub Repo')
+    })
+
+    it('transforms classic partial link text selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('partial link text', 'new')
+        expect(bidiSelector.type).toBe('innerText')
+        expect(bidiSelector.value).toBe('new')
+        expect(bidiSelector.matchType).toBe('partial')
+    })
 })

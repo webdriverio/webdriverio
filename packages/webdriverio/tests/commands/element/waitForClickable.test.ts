@@ -99,6 +99,7 @@ describe('waitForClickable', () => {
             isClickable : tmpElem.isClickable,
             options : { waitforTimeout : 500, waitforInterval: 50 },
         }
+        elem.getElement = () => Promise.resolve(elem)
 
         try {
             await elem.waitForClickable({ timeout: duration })

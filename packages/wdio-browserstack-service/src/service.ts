@@ -9,7 +9,7 @@ import {
     isBrowserstackSession,
     patchConsoleLogs
 } from './util.js'
-import type { BrowserstackConfig, MultiRemoteAction } from './types.js'
+import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
@@ -21,6 +21,7 @@ import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
 import { saveWorkerData } from './data-store.js'
 import UsageStats from './testOps/usageStats.js'
+import AiHandler from './ai-handler.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -31,7 +32,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _suiteTitle?: string
     private _suiteFile?: string
     private _fullTitle?: string
-    private _options: BrowserstackConfig & Options.Testrunner
+    private _options: BrowserstackConfig & BrowserstackOptions
     private _specsRan: boolean = false
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
@@ -39,12 +40,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
     private _percy
+    private _percyCaptureMode: string | undefined = undefined
     private _percyHandler?: PercyHandler
     private _turboScale
 
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
-        private _caps: Capabilities.RemoteCapability,
+        private _caps: Capabilities.ResolvedTestrunnerCapabilities,
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
@@ -52,7 +54,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
-        this._percy = this._options.percy
+        this._percy =  process.env.BROWSERSTACK_PERCY === 'true'
+        this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
         if (this._observability) {
@@ -65,6 +68,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (process.env.BROWSERSTACK_TURBOSCALE) {
             this._turboScale = process.env.BROWSERSTACK_TURBOSCALE === 'true'
         }
+        process.env.BROWSERSTACK_TURBOSCALE_INTERNAL = String(this._turboScale)
 
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
@@ -78,8 +82,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    _updateCaps (fn: (caps: WebdriverIO.Capabilities | Capabilities.DesiredCapabilities) => void) {
-        const multiRemoteCap = this._caps as Capabilities.MultiRemoteCapabilities
+    _updateCaps (fn: (caps: WebdriverIO.Capabilities) => void) {
+        const multiRemoteCap = this._caps as Capabilities.RequestedMultiremoteCapabilities
 
         if (multiRemoteCap.capabilities) {
             return Object.entries(multiRemoteCap).forEach(([, caps]) => fn(caps.capabilities as WebdriverIO.Capabilities))
@@ -88,7 +92,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return fn(this._caps as WebdriverIO.Capabilities)
     }
 
-    beforeSession (config: Omit<Options.Testrunner, 'capabilities'>) {
+    beforeSession (config: Options.Testrunner) {
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
         // will fail
@@ -104,9 +108,20 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
     }
 
-    async before(caps: Capabilities.RemoteCapability, specs: string[], browser: WebdriverIO.Browser) {
+    async before(caps: Capabilities.ResolvedTestrunnerCapabilities, specs: string[], browser: WebdriverIO.Browser) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : globalThis.browser
+
+        // Healing Support:
+        if (!isBrowserstackSession(this._browser)) {
+            try {
+                await AiHandler.selfHeal(this._options, caps, this._browser)
+            } catch (err) {
+                if (this._options.selfHeal === true) {
+                    BStackLogger.warn(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
+                }
+            }
+        }
 
         // Ensure capabilities are not null in case of multiremote
 
@@ -123,7 +138,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._browser) {
             if (this._percy) {
                 this._percyHandler = new PercyHandler(
-                    this._options.percyCaptureMode,
+                    this._percyCaptureMode,
                     this._browser,
                     this._caps,
                     this._isAppAutomate(),
@@ -138,9 +153,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
                     this._insightsHandler = new InsightsHandler(
                         this._browser,
-                        this._isAppAutomate(),
                         this._config.framework,
-                        this._caps
+                        this._caps,
+                        this._options
                     )
                     await this._insightsHandler.before()
                 }
@@ -276,7 +291,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             await this._updateJob({
                 status: result === 0 && this._specsRan ? 'passed' : 'failed',
                 ...(setSessionName ? { name: this._fullTitle } : {}),
-                ...(hasReasons ? { reason: this._failReasons.join('\n') } : {})
+                ...(result === 0 && this._specsRan ?
+                    {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
             })
         }
 
@@ -368,6 +384,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
             BStackLogger.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
+        BStackLogger.warn(`Session Reloaded: Old Session Id: ${oldSessionId}, New Session Id: ${newSessionId}`)
+        await this._insightsHandler?.sendCBTInfo()
+
         if (setSessionStatus) {
             await this._update(oldSessionId, {
                 status,
@@ -384,9 +403,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     _isAppAutomate(): boolean {
-        const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
-        const desiredCapabilities = (this._caps ?? {})  as Capabilities.DesiredCapabilities
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app']
+        const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
+        const desiredCapabilities = (this._caps ?? {})
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)
     }
 
     _updateJob (requestBody: any) {
@@ -411,7 +430,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const multiremotebrowser = this._browser as any as WebdriverIO.MultiRemoteBrowser
         return Promise.all(multiremotebrowser.instances
             .filter((browserName: string) => {
-                const cap = getBrowserCapabilities(multiremotebrowser, (this._caps as Capabilities.MultiRemoteCapabilities), browserName)
+                const cap = getBrowserCapabilities(multiremotebrowser, this._caps, browserName)
                 return isBrowserstackCapability(cap)
             })
             .map((browserName: string) => (

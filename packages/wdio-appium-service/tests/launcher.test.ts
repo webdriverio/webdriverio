@@ -1,12 +1,15 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-import { spawn } from 'node:child_process'
+import treeKill from 'tree-kill'
+import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import type cp from 'node:child_process'
+import getPort from 'get-port'
+import { Readable, type Writable } from 'node:stream'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import AppiumLauncher from '../src/launcher.js'
 
@@ -34,6 +37,10 @@ vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue(
 
 vi.mock('get-port', () => ({
     default: vi.fn().mockResolvedValue(4723)
+}))
+
+vi.mock('tree-kill', () => ({
+    default: vi.fn()
 }))
 
 class MockProcess {
@@ -68,6 +75,46 @@ class MockFailingProcess extends MockProcess {
     }
 }
 
+// MockProcess2 class. Mocks the entire _process object so we can set specific values on it, such as pid
+class MockProcess2 implements Partial<ChildProcessByStdio<null, Readable, Readable>> {
+    pid: number
+    exitCode: number | null = null
+    signalCode?: null
+    spawnargs: string[] = []
+    spawnfile: string = ''
+    stdin: null = null
+    stdout: Readable = new Readable({
+        read() {
+            this.push(null)
+        }
+    })
+    stderr: Readable = new Readable({
+        read() {
+            this.push(null)
+        }
+    })
+    stdio: [null, Readable, Readable, Readable | Writable | null | undefined, Readable | Writable | null | undefined] = [null, this.stdout, this.stderr, null, null]
+    killed = false
+    connected = true
+    kill = vi.fn()
+    send = vi.fn()
+    disconnect = vi.fn()
+    unref = vi.fn()
+    ref = vi.fn()
+    addListener = vi.fn()
+    emit = vi.fn()
+    on = vi.fn()
+    once = vi.fn()
+    prependListener = vi.fn()
+    prependOnceListener = vi.fn()
+    removeAllListeners = vi.fn()
+    removeListener = vi.fn()
+
+    constructor(pid: number) {
+        this.pid = pid
+    }
+}
+
 class MockCustomFailingProcess extends MockFailingProcess {
     stderr = { pipe: vi.fn(), once: vi.fn().mockImplementation((event, cb) => cb(new Error('Uups'))) }
 }
@@ -98,7 +145,7 @@ describe('Appium launcher', () => {
                 command:'path/to/my_custom_appium',
                 args: { address: 'bar', defaultCapabilities: { 'foo': 'bar' } },
             }
-            const capabilities = [{ port: 1234, deviceName: 'baz' }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
+            const capabilities = [{ port: 1234, 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
 
@@ -115,7 +162,9 @@ describe('Appium launcher', () => {
                         '--address',
                         'bar',
                         '--default-capabilities',
-                        '{"foo":"bar"}'
+                        '{"foo":"bar"}',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -128,7 +177,9 @@ describe('Appium launcher', () => {
                         '--address',
                         'bar',
                         '--default-capabilities',
-                        '{"foo":"bar"}'
+                        '{"foo":"bar"}',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -146,9 +197,9 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities = {
-                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
-                browserB: { capabilities: { deviceName: 'baz' } }
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+                browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
+                browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -168,9 +219,9 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
                 browserA: { port: 1234, capabilities: { browserName: 'chrome' } },
-                browserB: { capabilities: { deviceName: 'baz' } }
+                browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -190,12 +241,12 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
-                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
-                browserB: { capabilities: { deviceName: 'baz' } }
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities[] = [{
+                browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
+                browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }, {
-                browserC: { port: 5678, capabilities: { deviceName: 'baz' } },
-                browserD: { capabilities: { deviceName: 'baz' } }
+                browserC: { port: 5678, capabilities: { 'appium:deviceName': 'baz' } },
+                browserD: { capabilities: { 'appium:deviceName': 'baz' } }
             }]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -223,8 +274,8 @@ describe('Appium launcher', () => {
                 args : { address: 'foo' },
                 installArgs : { bar : 'bar' },
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities = {
-                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+                browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -246,10 +297,39 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address:'bar', port: 1234 }
             }
-            const capabilities = [{ deviceName: 'baz' } as Capabilities.DesiredCapabilities]
+            const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
+
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        expect.any(String),
+                        'path/to/my_custom_appium',
+                        '--base-path',
+                        '/',
+                        '--address',
+                        'bar',
+                        '--port',
+                        '1234'
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'path/to/my_custom_appium',
+                    [
+                        '--base-path',
+                        '/',
+                        '--address',
+                        'bar',
+                        '--port',
+                        '1234'
+                    ],
+                    expect.any(Object)
+                )
+            }
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
@@ -259,16 +339,87 @@ describe('Appium launcher', () => {
             expect(capabilities[0].path).toBe('/')
         })
 
+        test('should respect random Appium port', async () => {
+            vi.mocked(getPort).mockResolvedValueOnce(567567)
+
+            const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
+            const launcher = new AppiumLauncher({}, capabilities, {} as any)
+            await launcher.onPrepare()
+
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        '/c',
+                        'node',
+                        expect.any(String),
+                        '--base-path',
+                        '/',
+                        '--port',
+                        '567567'
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'node',
+                    [
+                        '/foo/bar/appium',
+                        '--base-path',
+                        '/',
+                        '--port',
+                        '567567'
+                    ],
+                    expect.any(Object)
+                )
+            }
+
+            expect(launcher['_process']).toBeInstanceOf(MockProcess)
+            expect(capabilities[0].protocol).toBe('http')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
+            expect(capabilities[0].port).toBe(567567)
+            expect(capabilities[0].path).toBe('/')
+        })
+
         test('should respect custom port and path before Appium port and path', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
             }
-            const capabilities = [{ port: 4321, deviceName: 'baz' } as Capabilities.DesiredCapabilities]
+            const capabilities = [{ port: 4321, 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
+
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        expect.any(String),
+                        'path/to/my_custom_appium',
+                        '--base-path',
+                        '/foo/bar',
+                        '--address',
+                        'bar',
+                        '--port',
+                        '1234'
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'path/to/my_custom_appium',
+                    [
+                        '--base-path',
+                        '/foo/bar',
+                        '--address',
+                        'bar',
+                        '--port',
+                        '1234'
+                    ],
+                    expect.any(Object)
+                )
+            }
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
@@ -298,7 +449,9 @@ describe('Appium launcher', () => {
                     '--base-path',
                     '/',
                     '--address',
-                    'bar'
+                    'bar',
+                    '--port',
+                    '4723'
                 ],
                 expect.any(Object)
             )
@@ -338,7 +491,9 @@ describe('Appium launcher', () => {
                         '--base-path',
                         '/',
                         '--address',
-                        'bar'
+                        'bar',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -350,7 +505,9 @@ describe('Appium launcher', () => {
                         '--base-path',
                         '/',
                         '--address',
-                        'bar'
+                        'bar',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -371,7 +528,9 @@ describe('Appium launcher', () => {
                         'node',
                         expect.any(String),
                         '--base-path',
-                        '/'
+                        '/',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -381,7 +540,9 @@ describe('Appium launcher', () => {
                     [
                         '/foo/bar/appium',
                         '--base-path',
-                        '/'
+                        '/',
+                        '--port',
+                        '4723'
                     ],
                     expect.any(Object)
                 )
@@ -437,7 +598,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
             }
-            const capabilities = [{ browserName: 'baz' } as Capabilities.DesiredCapabilities]
+            const capabilities = [{ browserName: 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
@@ -456,9 +617,9 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
                 browserA: { capabilities: { browserName: 'baz' } },
-                browserB: { capabilities: { deviceName: 'baz' } }
+                browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -478,12 +639,12 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.MultiRemoteCapabilities[] = [{
-                browserA: { port: 1234, capabilities: { deviceName: 'baz' } },
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities[] = [{
+                browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { capabilities: { browserName: 'baz' } }
             }, {
                 browserC: { port: 5678, capabilities: { browserName: 'baz' } },
-                browserD: { capabilities: { deviceName: 'baz' } }
+                browserD: { capabilities: { 'appium:deviceName': 'baz' } }
             }]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
@@ -507,12 +668,18 @@ describe('Appium launcher', () => {
     })
 
     describe('onComplete', () => {
-        test('should call process.kill', async () => {
+        test('should call treeKill', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
-            launcher['_process']!.kill = vi.fn()
+
+            // Mock the _process property using MockProcess2 class
+            launcher['_process'] = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
+
+            // Call onComplete
             launcher.onComplete()
-            expect(launcher['_process']!.kill).toBeCalled()
+
+            // Verify treeKill is called with correct parameters
+            expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
         })
 
         test('should not call process.kill', () => {

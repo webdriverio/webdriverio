@@ -42,11 +42,19 @@ const MOVE_PARAM_DEFAULTS = {
     x: 0,
     y: 0,
     duration: 100,
-    origin: ORIGIN_DEFAULT as (Origin | ElementReference | ChainablePromiseElement<WebdriverIO.Element> | WebdriverIO.Element)
+    origin: ORIGIN_DEFAULT as (Origin | ElementReference | ChainablePromiseElement | WebdriverIO.Element)
 }
 
 type PointerActionParams = Partial<typeof PARAM_DEFAULTS> & Partial<PointerActionUpParams>
 type PointerActionMoveParams = Partial<typeof MOVE_PARAM_DEFAULTS> & PointerActionParams
+
+function removeDefaultParams(seq: Record<string, any>) {
+    for (const [key, value] of Object.entries(seq)) {
+        if (value === 0 && !['x', 'y', 'button', 'duration'].includes(key)) {
+            delete seq[key]
+        }
+    }
+}
 
 function mapButton(params: PointerActionParams | ButtonNames | Button) {
     const buttons = {
@@ -97,6 +105,7 @@ export default class PointerAction extends BaseAction {
         } else if (params) {
             Object.assign(seq, params)
         }
+        removeDefaultParams(seq)
 
         this.sequence.push(seq)
         return this
@@ -106,9 +115,10 @@ export default class PointerAction extends BaseAction {
      * Creates an action to release a single key.
      * @param params PointerActionUpParams
      */
+    up (button?: Button): PointerAction
     up (button?: ButtonNames): PointerAction
     up (params?: PointerActionUpParams): PointerAction
-    up (params: PointerActionUpParams | ButtonNames = UP_PARAM_DEFAULTS) {
+    up (params: PointerActionUpParams | ButtonNames | Button = UP_PARAM_DEFAULTS) {
         this.sequence.push({
             type: 'pointerUp',
             ...mapButton(params)
@@ -120,14 +130,19 @@ export default class PointerAction extends BaseAction {
      * Creates an action to press a single key
      * @param params PointerActionParams
      */
+    down (button?: Button): PointerAction
     down (button?: ButtonNames): PointerAction
     down (params?: PointerActionParams): PointerAction
-    down (params: PointerActionParams | ButtonNames = {}) {
-        this.sequence.push({
+    down (params: PointerActionParams | Button | ButtonNames = {}) {
+        const seq = {
             type: 'pointerDown',
             ...PARAM_DEFAULTS,
-            ...mapButton(params)
-        })
+            ...mapButton(params),
+        }
+
+        removeDefaultParams(seq)
+
+        this.sequence.push(seq)
         return this
     }
 

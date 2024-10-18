@@ -4,6 +4,8 @@ import type { WebDriverBidiProtocol, ProtocolCommands } from '@wdio/protocols'
 
 import type { BidiHandler } from './bidi/handler.js'
 import type { EventData } from './bidi/localTypes.js'
+import type { CommandData } from './bidi/remoteTypes.js'
+import type { CommandResponse } from './bidi/localTypes.js'
 
 export interface JSONWPCommandError extends Error {
     code?: string
@@ -29,11 +31,14 @@ type ObtainMethods<T> = { [Prop in keyof T]: T[Prop] extends Fn ? ThenArg<Return
 type WebDriverBidiCommands = typeof WebDriverBidiProtocol
 export type BidiCommands = WebDriverBidiCommands[keyof WebDriverBidiCommands]['socket']['command']
 export type BidiResponses = ValueOf<ObtainMethods<Pick<BidiHandler, BidiCommands>>>
+export type RemoteConfig = Options.WebDriver & Capabilities.WithRequestedCapabilities
 
 type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
 type WebDriverClassicEvents = {
-    command: { method: string, endpoint: string, body: any }
-    result: { method: string, endpoint: string, body: any, result: any }
+    command: { command: string, method: string, endpoint: string, body: any }
+    result: { command: string, method: string, endpoint: string, body: any, result: any }
+    bidiCommand: Omit<CommandData, 'id'>,
+    bidiResult: CommandResponse,
     'request.performance': { durationMillisecond: number, error: string, request: any, retryCount: number, success: boolean }
 }
 export type BidiEventMap = {
@@ -41,10 +46,10 @@ export type BidiEventMap = {
 }
 
 type GetParam<T extends { method: string, params: any }, U extends string> = T extends { method: U } ? T['params'] : never
-type EventMap = {
+export type EventMap = {
     [Event in EventData['method']]: GetParam<EventData, Event>
 } & WebDriverClassicEvents
-export interface BidiEventHandler {
+interface BidiEventHandler {
     on<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this
     once<K extends keyof EventMap>(event: K, listener: (this: Client, param: EventMap[K]) => void): this
 }
@@ -53,9 +58,9 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     // id of WebDriver session
     sessionId: string
     // assigned capabilities by the browser driver / WebDriver server
-    capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    capabilities: WebdriverIO.Capabilities
     // original requested capabilities
-    requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    requestedCapabilities: Capabilities.WithRequestedCapabilities['capabilities']
     // framework options
     options: Options.WebDriver
 }
@@ -64,6 +69,8 @@ export interface Client extends Omit<BaseClient, keyof BidiEventHandler>, Protoc
 
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
     sessionId: string
-    capabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
-    isW3C?: boolean
+    // assigned capabilities by the browser driver / WebDriver server
+    capabilities?: WebdriverIO.Capabilities
+    // original requested capabilities
+    requestedCapabilities?: Capabilities.WithRequestedCapabilities['capabilities']
 }

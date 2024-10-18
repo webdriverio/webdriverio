@@ -1,11 +1,10 @@
 import url from 'node:url'
-import type { Options } from '@wdio/types'
 
 import viteConfig from './vite.config.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
     //
     // ====================
     // Runner Configuration
@@ -88,7 +87,7 @@ export const config: Options.Testrunner = {
     // Set specific log levels per logger
     // loggers:
     // - webdriver, webdriverio
-    // - @wdio/browserstack-service, @wdio/devtools-service, @wdio/sauce-service
+    // - @wdio/browserstack-service, @wdio/lighthouse-service, @wdio/sauce-service
     // - @wdio/mocha-framework, @wdio/jasmine-framework
     // - @wdio/local-runner
     // - @wdio/sumologic-reporter

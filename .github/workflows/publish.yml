@@ -20,49 +20,49 @@ on:
 
 env:
   NPM_TOKEN: ${{secrets.NPM_TOKEN}}
-  NPM_CONFIG_PROVENANCE: true
+  # disable provenance check as it stopped working with Lerna:
+  #   > lerna ERR! E422 Error verifying sigstore provenance bundle: Failed to validate the provenance
+  #   > subject against the package name, version and tarball integrity. Please try re-publishing with
+  #   > the latest stable version of npm
+  # NPM_CONFIG_PROVENANCE: true
 
 jobs:
   authorize:
     name: Authorize Actor
     uses: ./.github/workflows/authorize.yml
-  build_core:
-    name: Build
-    uses: ./.github/workflows/build.yml
-    needs: [authorize]
+    secrets: inherit
   release:
     permissions:
       contents: write
       id-token: write
-    needs: [build_core]
+    needs: [authorize]
     runs-on: ubuntu-latest
     steps:
-      - name: ⬇️ Checkout Code
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
-
-      - name: 🧑‍🔧 Get Core Dependencies
-        uses: ./.github/workflows/actions/get-core-dependencies
-
-      - name: Download Build Archive
-        uses: ./.github/workflows/actions/download-archive
+      - uses: actions/checkout@v4
         with:
-          name: webdriverio
-          path: .
-          filename: webdriverio-build.zip
-
+          ref: 'main'
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
       - name: NPM Setup
         run: |
+          npm i -g npm
           npm set registry "https://registry.npmjs.org/"
           npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
           npm whoami
-
       - name: Git Setup
         run: |
           git config --global user.email "bot@webdriver.io"
           git config --global user.name "WebdriverIO Release Bot"
-
+      - name: Install Dependencies
+        run: pnpm install
       - name: Release
         run: |
+          pnpm run setup
+          pnpm -r --filter=@wdio/lerna-patch run patch
           pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           pnpm run pushReleaseTag
         env:

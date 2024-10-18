@@ -5,6 +5,11 @@ type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$'
 declare global {
     // eslint-disable-next-line no-var
     var _wdioGlobals: Map<SupportedGlobals, any>
+    namespace WebdriverIO {
+        interface Browser {}
+        interface Element {}
+        interface MultiRemoteBrowser {}
+    }
 }
 
 /**
@@ -46,12 +51,14 @@ export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
     class Browser {} as any as WebdriverIO.MultiRemoteBrowser,
     proxyHandler('multiremotebrowser')
 )
+// @ts-ignore
 export const $: WebdriverIO.Browser['$'] = (...args: any) => {
     if (!globals.has('$')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)
     }
     return globals.get('$')(...args)
 }
+// @ts-ignore
 export const $$: WebdriverIO.Browser['$$'] = (...args: any) => {
     if (!globals.has('$$')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)

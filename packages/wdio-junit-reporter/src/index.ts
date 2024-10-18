@@ -1,17 +1,28 @@
 import url from 'node:url'
+import os from 'node:os'
 
 import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import type { Capabilities } from '@wdio/types'
 import junit from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
 import { limit } from './utils.js'
+import { events } from './common/api.js'
 
 const ansiRegex = new RegExp([
     '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
     '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'
 ].join('|'), 'g')
+
+/** Interface to store additional information for a given testcase */
+interface JunitReporterAdditionalInformation {
+    /** uid of the test case */
+    uid: string
+    /** Worker console log for this test. only filled if addWorkerLogs is true */
+    workerConsoleLog: string
+    /** Additional properties for junit reporting */
+    properties: { [keys: string]: string }
+}
 
 /**
  * Reporter that converts test results from a single instance/runner into an XML JUnit report. This class
@@ -26,24 +37,64 @@ class JunitReporter extends WDIOReporter {
     private _fileNameLabel?: string
     private _activeFeature?: any
     private _activeFeatureName?: any
+    private _testToAdditionalInformation: { [keys: string]: JunitReporterAdditionalInformation }
+    private _currentTest?: TestStats
+    private _originalStdoutWrite: Function
+    private _addWorkerLogs: boolean
+    private _isWindows: boolean
 
-    constructor (public options: JUnitReporterOptions) {
+    constructor(public options: JUnitReporterOptions) {
         super(options)
+        this._isWindows = os.platform() === 'win32'
+        this._addWorkerLogs = options.addWorkerLogs ?? false
+        this._testToAdditionalInformation = {}
+        this._originalStdoutWrite = process.stdout.write.bind(process.stdout)
         this._suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp
             ? this.options.suiteNameFormat
             : /[^a-zA-Z0-9@]+/ // Reason for ignoring @ is; reporters like wdio-report-portal will fetch the tags from testcase name given as @foo @bar
+
+        const processObj: any = process
+        if (this._addWorkerLogs) {
+            processObj.stdout.write = this._appendConsoleLog.bind(this)
+        }
+        processObj.on(events.addProperty, this._addPropertyToCurrentTest.bind(this))
     }
 
-    onTestRetry (testStats: TestStats) {
+    onTestRetry(testStats: TestStats) {
         testStats.skip('Retry')
     }
 
-    onRunnerEnd (runner: RunnerStats) {
+    onTestStart(test: TestStats) {
+        // Reset stdout when a test starts
+        this._currentTest = test
+        this._testToAdditionalInformation[test.uid] = {
+            workerConsoleLog: '',
+            properties: {},
+            uid: test.uid
+        }
+    }
+
+    onRunnerEnd(runner: RunnerStats) {
         const xml = this._buildJunitXml(runner)
         this.write(xml)
     }
 
-    private _prepareName (name = 'Skipped test') {
+    private _addPropertyToCurrentTest(dataObj: { name: string, value: string }) {
+        if (this._currentTest?.uid) {
+            this._testToAdditionalInformation[this._currentTest.uid].properties[dataObj.name] = dataObj.value
+        }
+    }
+
+    private _appendConsoleLog(chunk: string, encoding: BufferEncoding, callback: ((err?: Error) => void)) {
+        if (this._currentTest?.uid) {
+            if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+                this._testToAdditionalInformation[this._currentTest.uid].workerConsoleLog = (this._testToAdditionalInformation[this._currentTest.uid].workerConsoleLog ?? '') + chunk
+            }
+        }
+        return this._originalStdoutWrite(chunk, encoding, callback)
+    }
+
+    private _prepareName(name = 'Skipped test') {
         return name.split(this._suiteNameRegEx).filter(
             (item) => item && item.length
         ).join(' ')
@@ -88,7 +139,7 @@ class JunitReporter extends WDIOReporter {
         } else if (this._activeFeature) {
             let scenario = suite
             const testName = this._prepareName(suite.title)
-            const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: this._activeFeatureName }): `${this._packageName}.${this._activeFeatureName}`
+            const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: this._activeFeatureName }) : `${this._packageName}.${this._activeFeatureName}`
             const testCase = this._activeFeature.testCase()
                 .className(classNameFormat)
                 .name(`${testName}`)
@@ -192,7 +243,7 @@ class JunitReporter extends WDIOReporter {
                 }
             } else if (test.state === 'failed') {
                 if (test.error) {
-                    if (test.error.message){
+                    if (test.error.message) {
                         test.error.message = test.error.message.replace(ansiRegex, '')
                     }
 
@@ -211,6 +262,10 @@ class JunitReporter extends WDIOReporter {
                 }
             }
 
+            for (const propName of Object.keys(this._testToAdditionalInformation[test.uid]?.properties ?? {})) {
+                testCase.property(propName, this._testToAdditionalInformation[test.uid].properties[propName])
+            }
+
             const output = this._getStandardOutput(test)
             if (output) {
                 testCase.standardOutput(`\n${output}\n`)
@@ -219,15 +274,18 @@ class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    private _buildJunitXml (runner: RunnerStats) {
+    private _buildJunitXml(runner: RunnerStats) {
         const builder = junit.newBuilder()
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
             // NOTE: platformVersion is used to build sanitizedCapabilities which can be incorrect and includes a minor version for iOS which is not guaranteed to be the same under Browserstack.
             const browserstackSanitizedCapabilities = [
-                (runner.capabilities as Capabilities.DesiredCapabilities).device,
-                (runner.capabilities as Capabilities.DesiredCapabilities).os,
-                ((runner.capabilities as Capabilities.DesiredCapabilities).os_version || '').replace(/\./g, '_'),
+                // @ts-expect-error capability only exists when running on BrowserStack
+                (runner.capabilities).device,
+                // @ts-expect-error capability only exists when running on BrowserStack
+                (runner.capabilities).os,
+                // @ts-expect-error capability only exists when running on BrowserStack
+                ((runner.capabilities).os_version || '').replace(/\./g, '_'),
             ]
                 .filter(Boolean)
                 .map((capability) => capability!.toLowerCase())
@@ -279,7 +337,25 @@ class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    private _getStandardOutput (test: TestStats) {
+    private _getStandardOutput(test: TestStats) {
+        let consoleOutput = ''
+        if (this._addWorkerLogs) {
+            consoleOutput = this._testToAdditionalInformation[test.uid]?.workerConsoleLog ?? ''
+        }
+        const commandText = this._getCommandStandardOutput(test)
+        let result = ''
+        if (consoleOutput !== '') {
+            result += consoleOutput
+        }
+        if (commandText !== '' && consoleOutput !== '') {
+            result += '\n...command output...\n\n'
+        }
+        result += commandText
+
+        return result
+    }
+
+    private _getCommandStandardOutput(test: TestStats) {
         const standardOutput: string[] = []
         test.output.forEach((data) => {
             switch (data.type) {
@@ -287,7 +363,7 @@ class JunitReporter extends WDIOReporter {
                 standardOutput.push(
                     data.method
                         ? `COMMAND: ${data.method.toUpperCase()} ` +
-                          `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this._format(data.body)}`
+                            `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this._format(data.body)}`
                         : `COMMAND: ${data.command} - ${this._format(data.params)}`
                 )
                 break
@@ -299,16 +375,27 @@ class JunitReporter extends WDIOReporter {
         return standardOutput.length ? standardOutput.join('\n') : ''
     }
 
-    private _format (val: any) {
+    private _format(val: any) {
         return JSON.stringify(limit(val))
     }
 
     private _sameFileName(file1?: string, file2?: string) {
+        if (!file1 && !file2) {
+            // both null -> same
+            return true
+        }
+        if (!file1 || !file2) {
+            // only one null -> not the same
+            return false
+        }
+
         // ensure both files are not a file URL
-        file1 = file1?.startsWith('file://') ? url.fileURLToPath(file1) : file1
-        file2 = file2?.startsWith('file://') ? url.fileURLToPath(file2) : file2
-        return file1 === file2
+        file1 = file1.startsWith('file://') ? url.fileURLToPath(file1) : file1
+        file2 = file2.startsWith('file://') ? url.fileURLToPath(file2) : file2
+
+        return file1.localeCompare(file2, undefined, { sensitivity: this._isWindows ? 'accent' : 'variant' }) === 0
     }
 }
 
+export * from './common/api.js'
 export default JunitReporter

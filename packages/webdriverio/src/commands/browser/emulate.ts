@@ -1,21 +1,58 @@
-type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine'
+import type { FakeTimerInstallOpts } from '@sinonjs/fake-timers'
+
+import { ClockManager } from '../../clock.js'
+import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptorsSource.js'
+import { restoreFunctions } from '../../constants.js'
+import type { SupportedScopes } from '../../types.js'
+
+type RestoreFunction = () => Promise<any>
+type ColorScheme = 'light' | 'dark'
 
 interface EmulationOptions {
     geolocation: Partial<GeolocationCoordinates>
     userAgent: string
-    colorScheme: 'light' | 'dark'
+    colorScheme: ColorScheme
     onLine: boolean
+    device: DeviceName
+    clock?: FakeTimerInstallOpts
 }
+
+function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedScopes, fn: RestoreFunction) {
+    if (!restoreFunctions.has(browser)) {
+        restoreFunctions.set(browser, new Map())
+    }
+
+    const restoreFunctionsList = restoreFunctions.get(browser)?.get(scope)
+    const updatedList = restoreFunctionsList ? [...restoreFunctionsList, fn] : [fn]
+    restoreFunctions.get(browser)?.set(scope, updatedList)
+}
+
+export async function emulate(scope: 'clock', options?: FakeTimerInstallOpts): Promise<ClockManager>
+export async function emulate(scope: 'geolocation', geolocation: Partial<GeolocationCoordinates>): Promise<RestoreFunction>
+export async function emulate(scope: 'userAgent', userAgent: string): Promise<RestoreFunction>
+export async function emulate(scope: 'device', userAgent: DeviceName): Promise<RestoreFunction>
+export async function emulate(scope: 'colorScheme', colorScheme: ColorScheme): Promise<RestoreFunction>
+export async function emulate(scope: 'onLine', state: boolean): Promise<RestoreFunction>
 
 /**
  * WebdriverIO allows you to emulate Web APIs using the `emulate` command. These Web APIs can then
- * behave exactly as you specify it.
+ * behave exactly as you specify it. The following scopes are supported:
+ *
+ * - `geolocation`: Emulate the geolocation API
+ * - `userAgent`: Emulate the user agent
+ * - `colorScheme`: Emulate the color scheme
+ * - `onLine`: Emulate the online status
+ * - `device`: Emulate a specific mobile or desktop device
+ * - `clock`: Emulate the system clock
+ *
+ * The `emulate` command returns a function that can be called to reset the emulation. This is useful
+ * when you want to reset the emulation after a test or a suite of tests.
  *
  * Read more on this in the [Emulation](/docs/emulation) guidelines.
  *
  * :::info
  *
- * It is not possible to change the emulated value without reloading the page.
+ * Except for the `clock` scope it is not possible to change the emulated value without reloading the page.
  *
  * :::
  *
@@ -27,11 +64,21 @@ interface EmulationOptions {
  *
  * :::
  *
- * @param {string} scope feature of the browser you like to emulate, can be either `geolocation`, `userAgent`, `colorScheme` or `onLine`
+ * The `EmulationOptions` object can have the following properties based on the scope:
+ *
+ * | Scope         | Options                                          |
+ * |---------------|--------------------------------------------------|
+ * | `geolocation` | `{ latitude: number, longitude: number }`        |
+ * | `userAgent`   | `string`                                         |
+ * | `colorScheme` | `'light' \| 'dark'`                              |
+ * | `onLine`      | `boolean`                                        |
+ * | `clock`       | `FakeTimerInstallOpts`                           |
+ *
+ * @param {string} scope feature of the browser you like to emulate, can be either `clock`, `geolocation`, `userAgent`, `colorScheme` or `onLine`
  * @param {EmulationOptions} options emulation option for specific scope
  * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L4-L18
  * @example https://github.com/webdriverio/example-recipes/blob/9bff2baf8a0678c6886f8591d9fc8dea201895d3/emulate/example.js#L20-L36
- * @returns `void`
+ * @returns {Function}  a function to reset the emulation
  */
 export async function emulate<Scope extends SupportedScopes> (
     this: WebdriverIO.Browser,
@@ -53,14 +100,16 @@ export async function emulate<Scope extends SupportedScopes> (
                 coords: ${JSON.stringify(options)},
                 timestamp: Date.now()
             })`
-        await this.scriptAddPreloadScript({
+        const res = await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator.geolocation, 'getCurrentPosition', {
                     value: (cbSuccess, cbError) => ${patchedFn}
                 })
             }`
         })
-        return
+        const resetFn = async () => this.scriptRemovePreloadScript({ script: res.script })
+        storeRestoreFunction(this, 'geolocation', resetFn)
+        return resetFn
     }
 
     if (scope === 'userAgent') {
@@ -68,14 +117,25 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected userAgent emulation options to be a string, received ${typeof options}`)
         }
 
-        await this.scriptAddPreloadScript({
+        const res = await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator, 'userAgent', {
                     value: ${JSON.stringify(options)}
                 })
             }`
         })
-        return
+        const resetFn = async () => {
+            return this.scriptRemovePreloadScript({ script: res.script })
+        }
+        storeRestoreFunction(this, 'userAgent', resetFn)
+        return resetFn
+    }
+
+    if (scope === 'clock') {
+        const clock = new ClockManager(this)
+        await clock.install(options as FakeTimerInstallOpts)
+        storeRestoreFunction(this, 'clock', clock.restore.bind(clock))
+        return clock
     }
 
     if (scope === 'colorScheme') {
@@ -83,7 +143,7 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "colorScheme" emulation options to be either "light" or "dark", received "${options}"`)
         }
 
-        await this.scriptAddPreloadScript({
+        const res = await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 const originalMatchMedia = window.matchMedia
                 Object.defineProperty(window, 'matchMedia', {
@@ -104,7 +164,9 @@ export async function emulate<Scope extends SupportedScopes> (
                 })
             }`
         })
-        return
+        const resetFn = async () => this.scriptRemovePreloadScript({ script: res.script })
+        storeRestoreFunction(this, 'colorScheme', resetFn)
+        return resetFn
     }
 
     if (scope === 'onLine') {
@@ -112,15 +174,44 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "onLine" emulation options to be a boolean, received "${typeof options}"`)
         }
 
-        await this.scriptAddPreloadScript({
+        const res = await this.scriptAddPreloadScript({
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator, 'onLine', {
                     value: ${options}
                 })
             }`
         })
-        return
+        const resetFn = async () => this.scriptRemovePreloadScript({ script: res.script })
+        storeRestoreFunction(this, 'onLine', resetFn)
+        return resetFn
     }
 
-    return
+    if (scope === 'device') {
+        if (typeof options !== 'string') {
+            throw new Error(`Expected "device" emulation options to be a string, received "${typeof options}"`)
+        }
+
+        const device = deviceDescriptorsSource[options as DeviceName]
+        if (!device) {
+            throw new Error(`Unknown device name "${options}", please use one of the following: ${Object.keys(deviceDescriptorsSource).join(', ')}`)
+        }
+
+        const [restoreUserAgent] = await Promise.all([
+            this.emulate('userAgent', device.userAgent),
+            this.setViewport({
+                ...device.viewport,
+                devicePixelRatio: device.deviceScaleFactor
+            })
+        ])
+
+        const desktopViewport = deviceDescriptorsSource['Desktop Chrome']
+        const restoreFn = async () => Promise.all([
+            restoreUserAgent(),
+            this.setViewport({ ...desktopViewport.viewport, devicePixelRatio: desktopViewport.deviceScaleFactor })
+        ])
+
+        return restoreFn
+    }
+
+    throw new Error(`Invalid scope "${scope}", expected one of "geolocation", "userAgent", "colorScheme", "onLine", "device" or "clock"`)
 }

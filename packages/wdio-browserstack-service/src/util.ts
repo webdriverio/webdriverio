@@ -15,7 +15,7 @@ import type { ColorName } from 'chalk'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
-import type { UserConfig, UploadType, BrowserstackConfig, LaunchResponse } from './types.js'
+import type { UserConfig, UploadType, BrowserstackConfig, BrowserstackOptions, LaunchResponse } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     ACCESSIBILITY_API_URL,
@@ -82,17 +82,17 @@ export const COLORS: Record<string, ColorName> = {
  * get browser description for Browserstack service
  * @param cap browser capablities
  */
-export function getBrowserDescription(cap: Capabilities.DesiredCapabilities) {
+export function getBrowserDescription(cap: WebdriverIO.Capabilities) {
     cap = cap || {}
     if (cap['bstack:options']) {
-        cap = { ...cap, ...cap['bstack:options'] } as Capabilities.DesiredCapabilities
+        cap = { ...cap, ...cap['bstack:options'] } as WebdriverIO.Capabilities
     }
 
     /**
      * These keys describe the browser the test was run on
      */
     return BROWSER_DESCRIPTION
-        .map((k: keyof Capabilities.DesiredCapabilities) => cap[k])
+        .map((k) => (cap as any)[k])
         .filter(Boolean)
         .join(' ')
 }
@@ -103,12 +103,12 @@ export function getBrowserDescription(cap: Capabilities.DesiredCapabilities) {
  * @param caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
  * @param browserName browser name in case of multiremote
  */
-export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, caps?: Capabilities.RemoteCapability, browserName?: string) {
+export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, caps?: Capabilities.ResolvedTestrunnerCapabilities, browserName?: string) {
     if (!browser.isMultiremote) {
         return { ...browser.capabilities, ...caps } as WebdriverIO.Capabilities
     }
 
-    const multiCaps = caps as Capabilities.MultiRemoteCapabilities
+    const multiCaps = caps as Capabilities.RequestedMultiremoteCapabilities
     const globalCap = browserName && browser.getInstance(browserName) ? browser.getInstance(browserName).capabilities : {}
     const cap = browserName && multiCaps[browserName] ? multiCaps[browserName].capabilities : {}
     return { ...globalCap, ...cap } as WebdriverIO.Capabilities
@@ -1051,8 +1051,66 @@ export function isBStackSession(config: Options.Testrunner) {
     return false
 }
 
-export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
-    if (config.services && config.services.toString().includes('chromedriver') && testObservability !== false) {
+export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrunner, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    // this is a utility function to check if the basic session or multi remote session is running on Browserstack, mainly by checking the hostname parameter in the given config
+    // In case hostname is not present anywhere in the config, it returns true by default as hostname is not a mandatory parameter in the config
+
+    const isBrowserstack = (str: string ): boolean => {
+        return str.includes('browserstack.com')
+    }
+
+    if ((config.hostname) && !isBrowserstack(config.hostname)) {
+        return false
+    }
+
+    if (caps && typeof caps === 'object') {
+        if (Array.isArray(caps)) {
+            for (const capability of caps) {
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
+                    return false
+                }
+            }
+        } else {
+            for (const key in caps) {
+                const capability = (caps as any)[key]
+                if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
+                    return false
+                }
+            }
+        }
+    }
+
+    if (!isBStackSession(config)) {
+        return false
+    }
+
+    return true
+}
+
+export function getBrowserStackUserAndKey(config: Options.Testrunner, options: Options.Testrunner) {
+
+    // Fallback 1: Env variables
+    // Fallback 2: Service variables in wdio.conf.js (that are received inside options object)
+    const envOrServiceVariables = {
+        user: getBrowserStackUser(options),
+        key: getBrowserStackKey(options)
+    }
+    if (envOrServiceVariables.user && envOrServiceVariables.key) {
+        return envOrServiceVariables
+    }
+
+    // Fallback 3: Service variables in testObservabilityOptions object
+    // Fallback 4: Service variables in the top level config object
+    const o11yVariables = {
+        user: getObservabilityUser(options, config),
+        key: getObservabilityKey(options, config)
+    }
+    return o11yVariables
+
+}
+
+export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean, caps?: Capabilities.BrowserStackCapabilities): boolean {
+    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false) || !isBrowserstackInfra(config, caps)) {
         return false
     }
     return true
@@ -1336,4 +1394,31 @@ export function checkAndTruncateVCSInfo(gitMetaData: GitMetaData): GitMetaData {
     }
 
     return gitMetaData
+}
+
+export const hasBrowserName = (cap: Capabilities.WebdriverIOConfig): boolean => {
+    if (!cap || !cap.capabilities) {
+        return false
+    }
+    const browserStackCapabilities = cap.capabilities as Capabilities.BrowserStackCapabilities
+    return browserStackCapabilities.browserName !== undefined
+}
+
+export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner }): boolean => {
+
+    // Get all capability values
+    const capValues = Object.values(caps)
+
+    // Check if there are any capabilities and if at least one has a browser name
+    return capValues.length > 0 && capValues.some(hasBrowserName)
+}
+
+export function isTurboScale(options: (BrowserstackConfig & BrowserstackOptions) | undefined): boolean {
+    return Boolean(options?.turboScale)
+}
+
+export function getObservabilityProduct(options: (BrowserstackConfig & BrowserstackOptions) | undefined, isAppAutomate: boolean | undefined): string {
+    return isAppAutomate
+        ? 'app-automate'
+        : (isTurboScale(options) ? 'turboscale' : 'automate')
 }

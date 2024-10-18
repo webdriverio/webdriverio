@@ -130,7 +130,7 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
 export async function runOnCompleteHook(
     onCompleteHook: Function | Function[],
     config: Options.Testrunner,
-    capabilities: Capabilities.RemoteCapabilities,
+    capabilities: Capabilities.TestrunnerCapabilities,
     exitCode: number,
     results: OnCompleteResult
 ) {
@@ -155,7 +155,7 @@ export async function runOnCompleteHook(
 /**
  * get runner identification by caps
  */
-export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
+export function getRunnerName(caps: WebdriverIO.Capabilities = {}) {
     let runner =
         caps.browserName ||
         caps.platformName ||
@@ -316,7 +316,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
             await config.initialize()
         } catch (e) {
             throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}` :
-                `Could not parse ${arg.option}, failed with error : ${(e as Error).message}`)
+                `Could not parse ${arg.option}, failed with error: ${(e as Error).message}`)
         }
         if (typeof arg.capabilities === 'undefined') {
             throw Error('Please provide index/named property of capability to use from the capabilities array/object in wdio config file')
@@ -324,11 +324,11 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         let requiredCaps = config.getCapabilities()
         requiredCaps = (
             // multi capabilities
-            (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[parseInt(arg.capabilities, 10)] ||
+            (requiredCaps as (Capabilities.RequestedStandaloneCapabilities)[])[parseInt(arg.capabilities, 10)] ||
             // multiremote
-            (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
+            (requiredCaps as Capabilities.RequestedMultiremoteCapabilities)[arg.capabilities]
         )
-        const requiredW3CCaps = pickBy(requiredCaps, (_, key) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
+        const requiredW3CCaps = pickBy(requiredCaps, (_: never, key: string) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
         if (!Object.keys(requiredW3CCaps).length) {
             throw Error(`No capability found in given config file with the provided capability indexed/named property: ${arg.capabilities}. Please check the capability in your wdio config file.`)
         }
@@ -565,6 +565,7 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
         ),
         ...QUESTIONNAIRE
     ]
+    // @ts-expect-error
     return inquirer.prompt(questions)
 }
 
@@ -824,16 +825,18 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
 
 /**
  * detect the package manager that was used
+ * uses the environment variable `npm_config_user_agent` to detect the package manager
+ * falls back to `npm` if no package manager could be detected
  */
-export function detectPackageManager(argv = process.argv) {
-    return PMs.find((pm) => (
-        // for pnpm check "~/Library/pnpm/store/v3/..."
-        // for NPM check "~/.npm/npx/..."
-        // for Yarn check "~/.yarn/bin/create-wdio"
-        // for Bun check "~/.bun/bin/create-wdio"
-        argv[1].includes(`${path.sep}${pm}${path.sep}`) ||
-        argv[1].includes(`${path.sep}.${pm}${path.sep}`)
-    )) || 'npm'
+export function detectPackageManager() {
+    if (!process.env.npm_config_user_agent) {
+        return 'npm'
+    }
+    const detectedPM = process.env.npm_config_user_agent.split('/')[0].toLowerCase()
+
+    const matchedPM = PMs.find(pm => pm.toLowerCase() === detectedPM)
+
+    return matchedPM || 'npm'
 }
 
 /**
@@ -852,20 +855,19 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
      * as it is a requirement for running tests with TypeScript
      */
     if (parsedAnswers.hasRootTSConfig) {
-        parsedAnswers.packagesToInstall.push('tsx')
         return
     }
 
     console.log('Setting up TypeScript...')
     const frameworkPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.framework)
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
-    parsedAnswers.packagesToInstall.push('tsx')
     const serenityTypes = parsedAnswers.serenityAdapter === 'jasmine' ? ['jasmine'] : []
 
     const types = [
         'node',
+        ...(parsedAnswers.framework === 'jasmine' ? ['jasmine'] : []),
         '@wdio/globals/types',
-        'expect-webdriverio',
+        ...(parsedAnswers.framework === 'jasmine' ? ['expect-webdriverio/jasmine'] : ['expect-webdriverio']),
         ...(parsedAnswers.serenityAdapter ? serenityTypes : [frameworkPackage.package]),
         ...(parsedAnswers.runner === 'browser' ? ['@wdio/browser-runner'] : []),
         ...servicePackages

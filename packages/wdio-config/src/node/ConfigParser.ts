@@ -12,7 +12,7 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 import type { PathService } from '../types.js'
 
 const log = logger('@wdio/config:ConfigParser')
-const MERGE_DUPLICATION = ['services', 'reporters'] as const
+const MERGE_DUPLICATION = ['services', 'reporters', 'capabilities'] as const
 
 type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]
 type Spec = string | string[]
@@ -20,13 +20,13 @@ type ESMImport = { config?: TestrunnerOptionsWithParameters }
 type DefaultImport = { default?: { config?: TestrunnerOptionsWithParameters } }
 type ImportedConfigModule = ESMImport | DefaultImport
 
-interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capabilities'> {
+interface TestrunnerOptionsWithParameters extends Options.Testrunner {
     watch?: boolean
     coverage?: boolean
     spec?: string[]
     suite?: string[]
     repeat?: number
-    capabilities?: Capabilities.RemoteCapabilities
+    capabilities?: Capabilities.TestrunnerCapabilities
     rootDir: string
     tsConfigPath?: string
 }
@@ -42,7 +42,7 @@ export default class ConfigParser {
     #isInitialised = false
     #configFilePath: string
     private _config: TestrunnerOptionsWithParameters
-    private _capabilities: Capabilities.RemoteCapabilities = []
+    private _capabilities?: Capabilities.TestrunnerCapabilities = []
 
     constructor(
         configFilePath: string,
@@ -129,6 +129,11 @@ export default class ConfigParser {
                 throw new Error(NO_NAMED_CONFIG_EXPORT)
             }
 
+            const configFileCapabilities = config.capabilities
+            if (!configFileCapabilities) {
+                throw new Error(`No \`capabilities\` property found in WebdriverIO.Config defined in file: ${filePath}`)
+            }
+
             /**
              * clone the original config
              */
@@ -137,7 +142,7 @@ export default class ConfigParser {
             /**
              * merge capabilities
              */
-            const defaultTo: Capabilities.RemoteCapabilities = Array.isArray(this._capabilities) ? [] : {}
+            const defaultTo = (Array.isArray(this._capabilities) ? [] : {}) as Capabilities.TestrunnerCapabilities
             this._capabilities = deepmerge(this._capabilities, fileConfig.capabilities || defaultTo)
             delete fileConfig.capabilities
 
@@ -413,7 +418,7 @@ export default class ConfigParser {
     /**
      * return capabilities
      */
-    getCapabilities(i?: number) {
+    getCapabilities(i?: number): Capabilities.TestrunnerCapabilities | Capabilities.RequestedStandaloneCapabilities {
         if (!this.#isInitialised) {
             throw new Error('ConfigParser was not initialized, call "await config.initialize()" first!')
         }
@@ -422,7 +427,7 @@ export default class ConfigParser {
             return this._capabilities[i]
         }
 
-        return this._capabilities
+        return this._capabilities!
     }
 
     /**

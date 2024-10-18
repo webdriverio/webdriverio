@@ -31,7 +31,7 @@ describe('ShadowRootManager', () => {
         process.env.VITEST_WORKER_ID = wid
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
-        expect(browser.on).toBeCalledTimes(1)
+        expect(browser.on).toBeCalledTimes(3)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
     })
 

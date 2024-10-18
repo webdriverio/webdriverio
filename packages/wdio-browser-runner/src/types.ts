@@ -1,5 +1,5 @@
 import type { ConfigEnv, InlineConfig } from 'vite'
-import type { Workers, Capabilities, Options } from '@wdio/types'
+import type { Workers, Options } from '@wdio/types'
 import type { MochaOpts } from '@wdio/mocha-framework'
 import type { IstanbulPluginOptions } from 'vite-plugin-istanbul'
 
@@ -105,6 +105,23 @@ export interface BrowserRunnerOptions {
      * @default ./__mocks__
      */
     automockDir?: string
+    /**
+     * Set a custom hostname for the server hosting the test files (e.g. the system that runs the WebdriverIO process)
+     * in case you are running on a remote grid. Let's say you've set the following capabilities:
+     * ```js
+     * {
+     *   hostname: 'company.grid.com',
+     *   port: 4444,
+     *   path: '/',
+     *   protocol: 'http',
+     * }
+     * ```
+     * In order for the browser to connect to the correct server, you need to set the `hostname` to the IP or hostname
+     * of the machine that runs the WebdriverIO process.
+     *
+     * @default http://0.0.0.0
+     */
+    host?: string
 }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
@@ -116,7 +133,7 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 export interface Environment {
     args: MochaOpts
     config: Options.Testrunner
-    capabilities: Capabilities.RemoteCapability
+    capabilities: WebdriverIO.Capabilities
     sessionId: string
     injectGlobals: boolean
 }

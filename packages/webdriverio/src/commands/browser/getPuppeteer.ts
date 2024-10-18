@@ -6,6 +6,7 @@ import type { Puppeteer, Browser as PuppeteerBrowser } from 'puppeteer-core'
 import { FF_REMOTE_DEBUG_ARG } from '../../constants.js'
 
 const log = logger('webdriverio')
+const DEBUG_PIPE_FLAG = 'remote-debugging-pipe'
 
 /**
  * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
@@ -42,7 +43,7 @@ const log = logger('webdriverio')
  *
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
-export async function getPuppeteer (this: WebdriverIO.Browser) {
+export async function getPuppeteer (this: WebdriverIO.Browser): Promise<PuppeteerBrowser> {
     const puppeteer = await userImport<Puppeteer>('puppeteer-core')
 
     if (!puppeteer) {
@@ -56,17 +57,16 @@ export async function getPuppeteer (this: WebdriverIO.Browser) {
      * check if we already connected Puppeteer and if so return
      * that instance
      */
-    if (this.puppeteer?.isConnected()) {
+    if (this.puppeteer?.connected) {
         log.debug('Reusing existing puppeteer session')
         return this.puppeteer
     }
 
     const { headers } = this.options
-    const caps = (this.capabilities as Capabilities.W3CCapabilities).alwaysMatch || this.capabilities as Capabilities.DesiredCapabilities
     /**
      * attach to a Selenium 4 CDP Session if it's returned in the capabilities
      */
-    const cdpEndpoint = caps['se:cdp']
+    const cdpEndpoint = this.capabilities['se:cdp']
     if (cdpEndpoint) {
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: cdpEndpoint,
@@ -78,7 +78,7 @@ export async function getPuppeteer (this: WebdriverIO.Browser) {
     /**
      * attach to a Selenoid\Moon CDP Session if there are Aerokube vendor capabilities
      */
-    const requestedCapabilities = (this.requestedCapabilities as Capabilities.W3CCapabilities)?.alwaysMatch || this.requestedCapabilities as Capabilities.DesiredCapabilities
+    const requestedCapabilities = (this.requestedCapabilities as Capabilities.W3CCapabilities)?.alwaysMatch || this.requestedCapabilities
     const isAerokubeSession = requestedCapabilities['selenoid:options'] || requestedCapabilities['moon:options']
     if (isAerokubeSession) {
         const { hostname, port } = this.options
@@ -92,32 +92,45 @@ export async function getPuppeteer (this: WebdriverIO.Browser) {
     /**
      * attach to Chromium debugger session
      */
-    const chromiumOptions = caps['goog:chromeOptions'] || caps['ms:edgeOptions']
+    const chromiumOptions = this.capabilities['goog:chromeOptions'] || this.capabilities['ms:edgeOptions']
     if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({
             browserURL: `http://${chromiumOptions.debuggerAddress.replace('localhost', '0.0.0.0')}`,
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
+    } else if (
+        /**
+         * if --remote-debugging-pipe is set as Chrome flag, we can't attach to the session
+         * as there won't be a `debuggerAddress` available in the capabilities. Provide this
+         * better error message to the user.
+         */
+        chromiumOptions &&
+        (
+            chromiumOptions.args?.includes(DEBUG_PIPE_FLAG) ||
+            chromiumOptions.args?.includes(`--${DEBUG_PIPE_FLAG}`)
+        )
+    ) {
+        throw new Error(`Cannot attach to Chrome Devtools session if --${DEBUG_PIPE_FLAG} is set as Chrome flag.`)
     }
 
     /**
      * attach to Firefox debugger session
      */
-    if (caps.browserName?.toLowerCase() === 'firefox') {
-        if (!caps.browserVersion) {
+    if (this.capabilities.browserName?.toLowerCase() === 'firefox') {
+        if (!this.capabilities.browserVersion) {
             throw new Error('Can\'t find "browserVersion" in capabilities')
         }
 
-        const majorVersion = parseInt(caps.browserVersion.split('.').shift() || '', 10)
+        const majorVersion = parseInt(this.capabilities.browserVersion.split('.').shift() || '', 10)
         if (majorVersion >= 79) {
-            const reqCaps = (this.requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch || this.requestedCapabilities as Capabilities.DesiredCapabilities
+            const reqCaps = (this.requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch || this.requestedCapabilities
             let browserURL: string | undefined
 
-            if (caps['moz:debuggerAddress']) {
-                browserURL = caps['moz:debuggerAddress'] as string
+            if (this.capabilities['moz:debuggerAddress']) {
+                browserURL = this.capabilities['moz:debuggerAddress'] as string
             } else {
-                const ffOptions = caps['moz:firefoxOptions']
+                const ffOptions = this.capabilities['moz:firefoxOptions']
                 const ffArgs = reqCaps['moz:firefoxOptions']?.args || []
                 const rdPort = ffOptions && ffOptions.debuggerAddress
                     ? ffOptions.debuggerAddress

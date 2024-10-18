@@ -27,7 +27,8 @@ export const DEFAULT_OPTS: CucumberOptions = {
     ignoreUndefinedDefinitions: false,
     failAmbiguousDefinitions: false,
     tagExpression: '',
-    profiles: []
+    profiles: [],
+    file: undefined
 }
 
 export const CUCUMBER_HOOK_DEFINITION_TYPES = [

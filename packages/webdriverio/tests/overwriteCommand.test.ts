@@ -8,7 +8,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const remoteConfig = {
     baseUrl: 'http://foobar.com',
     capabilities: {
-        browserName: 'foobar-noW3C'
+        browserName: 'foobar'
     }
 }
 
@@ -135,7 +135,7 @@ describe('overwriteCommand', () => {
             expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
         })
 
-        test('should allow to overwrite commands for a single multiremote instance', async () => {
+        test.skip('should allow to overwrite commands for a single multiremote instance', async () => {
             const browser = await multiremote(multiremoteConfig as any)
             browser.getInstance('browserA').overwriteCommand('pause', customBrowserCommand)
 

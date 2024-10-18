@@ -5,12 +5,12 @@ import { builtinModules } from 'node:module'
 import logger from '@wdio/logger'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
-import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
 import {
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
-    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
+    type Protocol
 } from '@wdio/protocols'
 
 import { SESSIONS } from '../../constants.js'
@@ -19,16 +19,15 @@ import { getTemplate, getErrorTemplate, normalizeId } from '../utils.js'
 const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
-const commands = deepmerge(
+const commands = deepmerge<any>(
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
-)
+) as Protocol
 const protocolCommandList = Object.values(commands).map(
     (endpoint) => Object.values(endpoint).map(
         ({ command }) => command
     )
 ).flat()
-const WDIO_PACKAGES = ['webdriverio', 'expect-webdriverio']
 const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
@@ -41,7 +40,7 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
 const MODULES_TO_MOCK = [
     'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'ws', 'decamelize',
     'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port',
-    'lodash.isequal', '@wdio/repl'
+    'lodash.isequal', '@wdio/repl', 'jszip'
 ]
 
 const POLYFILLS = [
@@ -49,7 +48,7 @@ const POLYFILLS = [
     ...builtinModules.map((m) => `node:${m}`)
 ]
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
-    const browserModules = path.resolve(__dirname, '..', '..', 'browser')
+    const browserModules = path.resolve(__dirname, 'browser')
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(browserModules, 'driver.js')).pathname}`
     const mockModulePath = path.resolve(browserModules, 'mock.js')
     const setupModulePath = path.resolve(browserModules, 'setup.js')
@@ -88,13 +87,6 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
              */
             if (id === 'expect-webdriverio') {
                 return wdioExpectModulePath
-            }
-
-            /**
-             * make sure WDIO imports are resolved properly as ESM module
-             */
-            if (id.startsWith('@wdio') || WDIO_PACKAGES.includes(id)) {
-                return url.fileURLToPath(await resolve(id, import.meta.url))
             }
 
             /**

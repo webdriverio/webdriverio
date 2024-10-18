@@ -1,4 +1,5 @@
 import type {
+    WebDriver as WebDriverOptions,
     WebdriverIO as WebDriverIOOptions,
     Connection as ConnectionOptions
 } from './Options.js'
@@ -94,64 +95,186 @@ export interface W3CCapabilities {
     alwaysMatch: WebdriverIO.Capabilities
     firstMatch: WebdriverIO.Capabilities[]
 }
-
-export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities | MultiRemoteCapabilities[]
-
-export interface MultiRemoteCapabilities {
-    [instanceName: string]: WebDriverIOOptions
+export type RequestedStandaloneCapabilities = W3CCapabilities | WebdriverIO.Capabilities
+export type RequestedMultiremoteCapabilities = {
+    [instanceName: string]: WebDriverIOOptions & WithRequestedCapabilities
 }
-
-export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities
 
 /**
- * @deprecated use `WebdriverIO.Capabilities` instead
+ * Configuration object for the `webdriver` package
  */
-export interface DesiredCapabilities extends WebdriverIO.Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
-    TestingbotCapabilities, SeleniumRCCapabilities, GeckodriverCapabilities, IECapabilities,
-    AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities,
-    ChromeCapabilities, BrowserStackCapabilities, AppiumXCUITestCapabilities, LambdaTestCapabilities {
+export type RemoteConfig = WebDriverOptions & WithRequestedCapabilities
 
-    // Read-only capabilities
-    cssSelectorsEnabled?: boolean
-    handlesAlerts?: boolean
-    version?: string
-    platform?: string
-    public?: any
+/**
+ * Configuration object for the `webdriverio` package
+ */
+export type WebdriverIOConfig = WebDriverIOOptions & WithRequestedCapabilities
+export type WebdriverIOMultiremoteConfig = WebDriverIOOptions & { capabilities: RequestedMultiremoteCapabilities }
 
-    loggingPrefs?: {
-        browser?: LoggingPreferences
-        driver?: LoggingPreferences
-        server?: LoggingPreferences
-        client?: LoggingPreferences
-    }
+/**
+ * A type referencing all possible capability types when using Testrunner
+ * e.g. everything a user can provide in the `capabilities` property
+ */
+export type TestrunnerCapabilities = RequestedStandaloneCapabilities[] | RequestedMultiremoteCapabilities | RequestedMultiremoteCapabilities[]
 
-    // Read-write capabilities
-    javascriptEnabled?: boolean
-    databaseEnabled?: boolean
-    locationContextEnabled?: boolean
-    applicationCacheEnabled?: boolean
-    browserConnectionEnabled?: boolean
-    webStorageEnabled?: boolean
-    acceptSslCerts?: boolean
-    rotatable?: boolean
-    nativeEvents?: boolean
-    unexpectedAlertBehaviour?: string
-    elementScrollBehavior?: number
+/**
+ * The capabilities that will be resolved within a worker instance, e.g. either
+ * a single set of capabilities or a single multiremote instance
+ */
+export type ResolvedTestrunnerCapabilities = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities>
 
-    // RemoteWebDriver specific
-    'webdriver.remote.sessionid'?: string
-    'webdriver.remote.quietExceptions'?: boolean
-
-    // Selenese-Backed-WebDriver specific
-    'selenium.server.url'?: string
-
-    // webdriverio specific
-    specs?: string[]
-    exclude?: string[]
-    excludeDriverLogs?: string[]
+/**
+ * The `capabilities` property is a required property when using the `remote` method.
+ */
+export interface WithRequestedCapabilities {
+    /**
+     * Defines the capabilities you want to run in your WebDriver session. Check out the
+     * documentation on [Capabilities](https://webdriver.io/docs/capabilities) for more details.
+     *
+     * @example
+     * ```js
+     * // WebDriver session
+     * const browser = remote({
+     *   capabilities: {
+     *     browserName: 'chrome',
+     *     browserVersion: 86
+     *     platformName: 'Windows 10'
+     *   }
+     * })
+     *
+     * // multiremote session
+     * const browser = remote({
+     *   capabilities: {
+     *     browserA: {
+     *       browserName: 'chrome',
+     *       browserVersion: 86
+     *       platformName: 'Windows 10'
+     *     },
+     *     browserB: {
+     *       browserName: 'firefox',
+     *       browserVersion: 74
+     *       platformName: 'Mac OS X'
+     *     }
+     *   }
+     * })
+     * ```
+     */
+    capabilities: RequestedStandaloneCapabilities
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIOCapabilities, WebdriverIO.WDIOVSCodeServiceOptions {
+/**
+ * The `capabilities` property is a required property when defining a testrunner configuration.
+ */
+export interface WithRequestedTestrunnerCapabilities {
+    /**
+     * Defines a set of capabilities you want to run in your WebDriver session. Check out the
+     * documentation on [Capabilities](https://webdriver.io/docs/capabilities) for more details.
+     *
+     * @example
+     * ```js
+     * // wdio.conf.js
+     * export const config = {
+     *   // define parallel running capabilities
+     *   capabilities: [{
+     *     browserName: 'safari',
+     *     platformName: 'MacOS 10.13',
+     *     ...
+     *   }, {
+     *     browserName: 'microsoftedge',
+     *     platformName: 'Windows 10',
+     *     ...
+     *   }, {
+     *     // using alwaysMatch and firstMatch
+     *   alwaysMatch: {
+     *     browserName: 'chrome',
+     *     browserVersion: 86
+     *      // ...
+     *   },
+     *   firstMatch: [{
+     *     browserName: 'chrome',
+     *      // ...
+     *   }]
+     * }
+     * ```
+     */
+    capabilities: RequestedStandaloneCapabilities[]
+}
+
+/**
+ * The `capabilities` property is a required property when using the `remote` method to initiate a multiremote session.
+ */
+export interface WithRequestedMultiremoteCapabilities {
+    /**
+     * Defines the capabilities for each Multiremote client. Check out the
+     * documentation on [Capabilities](https://webdriver.io/docs/capabilities) for more details.
+     *
+     * @example
+     * ```
+     * // wdio.conf.js
+     * export const config = {
+     *   // multiremote example
+     *   capabilities: {
+     *     browserA: {
+     *       browserName: 'chrome',
+     *       browserVersion: 86
+     *       platformName: 'Windows 10'
+     *     },
+     *     browserB: {
+     *       browserName: 'firefox',
+     *       browserVersion: 74
+     *       platformName: 'Mac OS X'
+     *     }
+     *   }
+     * })
+     * ```
+     * // or with parallel multiremote sessions
+     * ```
+     * // wdio.conf.js
+     * export const config = {
+     *   capabilities: [{
+     *     browserA: {
+     *       port: 4444,
+     *       capabilities: {
+     *         browserName: 'chrome',
+     *         browserVersion: 86
+     *         platformName: 'Windows 10'
+     *       }
+     *     },
+     *     browserB: {
+     *       port: 4444,
+     *       capabilities: {
+     *         browserName: 'firefox',
+     *         browserVersion: 74
+     *         platformName: 'Mac OS X'
+     *       }
+     *     }
+     *   }, {
+     *     browserA: {
+     *       port: 4444,
+     *       capabilities: {
+     *         browserName: 'chrome',
+     *         browserVersion: 86
+     *         platformName: 'Windows 10'
+     *       }
+     *     },
+     *     browserB: {
+     *       port: 4444,
+     *       capabilities: {
+     *         browserName: 'firefox',
+     *         browserVersion: 74
+     *         platformName: 'Mac OS X'
+     *       }
+     *     }
+     *   }]
+     * })
+     * ```
+     */
+    capabilities: RequestedMultiremoteCapabilities | RequestedMultiremoteCapabilities[]
+}
+
+export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIOCapabilities,
+    WebdriverIO.WDIOVSCodeServiceOptions, AppiumXCUITestCapabilities, AppiumAndroidCapabilities {
+
     // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Aerokube Moon specific
@@ -184,9 +307,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     // and is being returns as string (e.g. "<host>:<port>") when session capabilities
     // are returned from the driver
     // see https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html#moz-debuggeraddress
-    'moz:debuggerAddress'?: string | number
-    // eslint-disable-next-line
-    firefox_profile?: string
+    'moz:debuggerAddress'?: string | boolean
     'ms:edgeOptions'?: MicrosoftEdgeOptions
     'ms:edgeChromium'?: MicrosoftEdgeOptions
 
@@ -203,11 +324,6 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
      * Selenium 4.0 Specific
      */
     'se:cdp'?: string
-    /**
-     * @deprecated
-     */
-    // eslint-disable-next-line
-    testobject_api_key?: string
 }
 
 export interface WebdriverIOCapabilities {
@@ -219,15 +335,11 @@ export interface WebdriverIOCapabilities {
     'wdio:safaridriverOptions'?: WebdriverIO.SafaridriverOptions
     'wdio:geckodriverOptions'?: WebdriverIO.GeckodriverOptions
     'wdio:edgedriverOptions'?: WebdriverIO.EdgedriverOptions
+
     /**
     * Maximum number of total parallel running workers (per capability)
     */
     'wdio:maxInstances'?: number
-    /**
-     * Maximum number of total parallel running workers (per capability)
-     * @deprecated please use `wdio:maxInstances` instead
-     */
-    maxInstances?: number
 
     /**
     * Define specs for test execution. You can either specify a glob
@@ -235,23 +347,18 @@ export interface WebdriverIOCapabilities {
     * paths into an array to run them within a single worker process.
     */
     'wdio:specs'?: string[]
-    /**
-     * Define specs for test execution. You can either specify a glob
-     * pattern to match multiple files at once or wrap a glob or set of
-     * paths into an array to run them within a single worker process.
-     * @deprecated please use `wdio:specs` instead
-     */
-    specs?: string[]
 
     /**
      * Exclude specs from test execution.
      */
     'wdio:exclude'?: string[]
+
     /**
-     * Exclude specs from test execution.
-     * @deprecated please use `wdio:exclude` instead
+     * If flag is set to `true` WebdriverIO will not automatically opt-in
+     * to the WebDriver BiDi protocol. This is useful if you want to use
+     * the WebDriver protocol only.
      */
-    exclude?: string[]
+    'wdio:enforceWebDriverClassic'?: boolean
 }
 
 export interface ChromeOptions {
@@ -371,17 +478,6 @@ export interface FirefoxLogObject {
     level: FirefoxLogLevels
 }
 
-export interface GeckodriverCapabilities {
-    'firefox_binary'?: string
-    firefoxProfileTemplate?: string
-    captureNetworkTraffic?: boolean
-    addCustomRequestHeaders?: boolean
-    trustAllSSLCertificates?: boolean
-    changeMaxConnections?: boolean
-    profile?: string
-    pageLoadingStrategy?: string
-}
-
 export interface FirefoxOptions {
     debuggerAddress?: string
     binary?: string
@@ -429,25 +525,11 @@ export interface MoonOptions extends SelenoidOptions {
     logLevel?: string
 }
 
-// Selenium Grid specific
-export interface GridCapabilities {
-    // Grid-specific
-    seleniumProtocol?: string
-    maxInstances?: number
-    environment?: string
-}
-
 // Edge specific
 export interface EdgeCapabilities {
     'ms:inPrivate'?: boolean
     'ms:extensionPaths'?: string[]
     'ms:startPage'?: string
-}
-
-// Chrome specific
-export interface ChromeCapabilities {
-    chromeOptions?: ChromeOptions
-    mobileEmulationEnabled?: boolean
 }
 
 /**
@@ -512,6 +594,7 @@ export interface AppiumCapabilities {
     'appium:newCommandTimeout'?: number
     'appium:language'?: string
     'appium:locale'?: string
+    'appium:animationCoolOffTimeout'?: number
     /**
      * iOS Unique Device Identifier
      */
@@ -538,6 +621,10 @@ export interface AppiumCapabilities {
      * capability or 'appium:app' must be provided on session startup.
      */
     'appium:appTopLevelWindow'?: string
+    /**
+     * https://appium.io/docs/en/2.11/guides/settings/#initializing-settings-via-capabilities
+     */
+    'appium:settings'?: Record<string, any>
 }
 
 /**
@@ -786,31 +873,6 @@ export interface AppiumXCUIProcessArguments {
 
 export interface AppiumXCUICommandTimeouts {
     [key: string]: any
-}
-
-// IE specific
-export interface IECapabilities {
-    'ie.forceCreateProcessApi'?: boolean
-    'ie.browserCommandLineSwitches'?: string
-    'ie.usePerProcessProxy'?: boolean
-    'ie.ensureCleanSession'?: boolean
-    'ie.setProxyByServer'?: boolean
-    'ie.fileUploadDialogTimeout'?: number
-    'ie.edgechromium'?: boolean
-    'ie.edgepath'?: string
-    ignoreProtectedModeSettings?: boolean
-    ignoreZoomSetting?: boolean
-    initialBrowserUrl?: string
-    enablePersistentHover?: boolean
-    enableElementCacheCleanup?: boolean
-    requireWindowFocus?: boolean
-    browserAttachTimeout?: number
-    logFile?: string
-    logLevel?: string
-    host?: string
-    extractPath?: string
-    silent?: string
-    killProcessesByName?: boolean
 }
 
 /**
@@ -1366,6 +1428,8 @@ export interface SauceLabsCapabilities {
         background: boolean
         timeout: number
     }
+
+    recordDeviceVitals?: boolean
 }
 
 export interface LambdaTestCapabilities {
@@ -1449,7 +1513,7 @@ export interface BrowserStackCapabilities {
     // eslint-disable-next-line
     os_version?: string
     osVersion?: string
-    desired?: DesiredCapabilities
+    desired?: unknown
     device?: string
     platformName?: string
     /**
@@ -1654,7 +1718,18 @@ export interface BrowserStackCapabilities {
     uploadMedia?: Array<string>
     enablePasscode?: boolean
     deviceLogs?: boolean,
-    resignApp?: boolean
+
+    /**
+     * Disable re-signing of Enterprise signed app uploaded on BrowserStack
+     * @default true
+     */
+    resignApp?: boolean,
+
+    /**
+     * Hides data that you send to or retrieve from the remote browsers through the following commands:
+     * Example: 'setValues, getValues, setCookies, getCookies'
+     */
+    maskCommands?: string
 }
 
 export interface SauceLabsVisualCapabilities {
@@ -1748,6 +1823,8 @@ export interface SauceLabsVisualCapabilities {
  * https://testingbot.com/support/other/test-options#platform
  */
 export interface TestingbotCapabilities {
+    appiumVersion?: string
+    appiumPlugins?: string[]
     name?: string
     tags?: string[]
     build?: string | number
@@ -1760,26 +1837,18 @@ export interface TestingbotCapabilities {
     edgedriverVersion?: string
     geckodriverVersion?: string
     operaDriverVersion?: string
+    // prerun?: any
+    'screen-resolution'?: string
     timeZone?: string
+    'throttle_network'?: any
+    tabletOnly?: boolean
+    phoneOnly?: boolean
+    recordLogs?: boolean
+    screenshot?: boolean
+    screenrecorder?: boolean
+    maxDuration?: number
     upload?: string
     'testingbot.geoCountryCode'?: string
     idletimeout?: number
     'load-extension'?: string
-}
-
-export interface SeleniumRCCapabilities {
-    // Selenium RC (1.0) only
-    commandLineFlags?: string
-    executablePath?: string
-    timeoutInSeconds?: number
-    onlyProxySeleniumTraffic?: boolean
-    avoidProxy?: boolean
-    proxyEverything?: boolean
-    proxyRequired?: boolean
-    browserSideLog?: boolean
-    optionsSet?: boolean
-    singleWindow?: boolean
-    dontInjectRegex?: RegExp
-    userJSInjection?: boolean
-    userExtensions?: string
 }

@@ -1,7 +1,13 @@
 const assert = require('node:assert')
-const { remote } = require('webdriverio')
+const { remote, attach, multiremote, Key, SevereServiceError } = require('webdriverio')
 
 ;(async () => {
+    assert.equal(typeof remote, 'function')
+    assert.equal(typeof attach, 'function')
+    assert.equal(typeof multiremote, 'function')
+    assert.equal(typeof Key, 'object')
+    assert.equal(typeof SevereServiceError, 'function')
+
     const client = await remote({
         capabilities: {
             browserName: 'chrome',

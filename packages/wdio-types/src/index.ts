@@ -1,18 +1,18 @@
 import type * as Automation from './Automation.js'
 import type * as Capabilities from './Capabilities.js'
-import type * as Clients from './Clients.js'
 import type * as Options from './Options.js'
 import type * as Services from './Services.js'
 import type * as Reporters from './Reporters.js'
 import type * as Frameworks from './Frameworks.js'
 import type * as Workers from './Workers.js'
+import type * as Network from './Network.js'
 
 /**
  * exported constant values
  */
 export { MESSAGE_TYPES } from './Workers.js'
 
-export type { Automation, Capabilities, Clients, Options, Services, Frameworks, Reporters, Workers }
+export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers }
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
@@ -40,12 +40,45 @@ interface DriverOptions {
 
 declare global {
     namespace WebdriverIO {
+        /**
+         * Service option to be extended by ecosystem services
+         */
+        interface ServiceOption extends Services.ServiceOption {}
+        /**
+         * Reporter option to be extended by ecosystem reporters
+         */
+        interface ReporterOption extends Reporters.Options {}
+
+        /**
+         * types to be extended by `webdriverio` package
+         */
+        interface Browser {
+            requestedCapabilities?: any
+        }
+        interface MultiRemoteBrowser {}
+        interface Element {
+            /**
+             * parent of the element if fetched via `$(parent).$(child)`
+             */
+            parent: WebdriverIO.Element | WebdriverIO.Browser
+        }
+        interface MultiRemoteElement {}
+        interface ElementArray {}
+
+        /**
+         * A network request during a WebDriver Bidi session
+         */
+        interface Request extends Network.Request {}
+
+        /**
+         * types to be extended by ecosystem framework adapters
+         */
         interface MochaOpts { [key: string]: any }
         interface JasmineOpts { [key: string]: any }
         interface CucumberOpts { [key: string]: any }
-        interface ServiceOption extends Services.ServiceOption {}
-        interface ReporterOption extends Reporters.Options {}
-        interface Config extends Options.Testrunner {}
+        interface Config extends Options.Testrunner, Capabilities.WithRequestedTestrunnerCapabilities {}
+        interface RemoteConfig extends Options.WebdriverIO, Capabilities.WithRequestedCapabilities {}
+        interface MultiremoteConfig extends Options.Testrunner, Capabilities.WithRequestedMultiremoteCapabilities {}
         interface HookFunctionExtension {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}

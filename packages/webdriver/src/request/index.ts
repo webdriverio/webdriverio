@@ -1,20 +1,19 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
-import { createRequire } from 'node:module'
 import { WebDriverProtocol } from '@wdio/protocols'
 import { URL } from 'node:url'
 
 import logger from '@wdio/logger'
-import { transformCommandLogResult } from '@wdio/utils'
+import { transformCommandLogResult, sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
+import  { WebDriverResponseError, type WebDriverRequestError } from './error.js'
+import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
+import type { WebDriverResponse } from './types.js'
 
-let pkg = { version: '' }
-if ('process' in globalThis && globalThis.process.versions?.node) {
-    const require = createRequire(import.meta.url)
-    pkg = require('../../package.json')
-}
+import { isSuccessfulResponse } from '../utils.js'
+import { DEFAULTS } from '../constants.js'
+import pkg from '../../package.json' with { type: 'json' }
 
 type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
@@ -23,29 +22,6 @@ const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'detached shadow root',
     'move target out of bounds'
 ]
-
-export class RequestLibError extends Error {
-    statusCode?: number
-    body?: any
-    code?: string
-}
-
-export interface WebDriverResponse {
-    value: any
-    /**
-     * error case
-     * https://w3c.github.io/webdriver/webdriver-spec.html#dfn-send-an-error
-     */
-    error?: string
-    message?: string
-    stacktrace?: string
-
-    /**
-     * JSONWP property
-     */
-    status?: number
-    sessionId?: string
-}
 
 export const COMMANDS_WITHOUT_RETRY = [
     findCommandPathByName('performActions'),
@@ -61,6 +37,8 @@ const DEFAULT_HEADERS = {
 const log = logger('webdriver')
 
 export default abstract class WebDriverRequest extends EventEmitter {
+    #requestTimeout?: NodeJS.Timeout
+
     body?: Record<string, unknown>
     method: string
     endpoint: string
@@ -92,7 +70,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
 
     protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
         const controller = new AbortController()
-        setTimeout(() => controller.abort(), options.connectionRetryTimeout|| 120000)
+        this.#requestTimeout = setTimeout(
+            () => controller.abort(),
+            options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default
+        )
 
         const requestOptions: RequestInit = {
             signal: controller.signal
@@ -169,30 +150,42 @@ export default abstract class WebDriverRequest extends EventEmitter {
         const { ...requestLibOptions } = fullRequestOptions
         const startTime = this._libPerformanceNow()
         let response = await this._libRequest(url!, requestLibOptions)
-            .catch((err: RequestLibError) => err)
+            .catch((err: WebDriverRequestError) => err)
         const durationMillisecond = this._libPerformanceNow() - startTime
+
+        if (this.#requestTimeout) {
+            clearTimeout(this.#requestTimeout)
+        }
 
         /**
          * handle retries for requests
          * @param {Error} error  error object that causes the retry
          * @param {string} msg   message that is being shown as warning to user
          */
-        const retry = (error: Error, msg: string) => {
+        const retry = async (error: Error) => {
             /**
              * stop retrying if totalRetryCount was exceeded or there is no reason to
              * retry, e.g. if sessionId is invalid
              */
             if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
-                log.error(`Request failed with status ${response.statusCode} due to ${error}`)
+                log.error(error.message)
                 this.emit('response', { error })
                 this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
                 throw error
             }
 
+            if (retryCount > 0) {
+                /*
+                 * Exponential backoff with a minimum of 500ms and a maximum of 10_000ms.
+                 */
+                await sleep(Math.min(10000, 250 * Math.pow(2, retryCount)))
+            }
+
             ++retryCount
+
             this.emit('retry', { error, retryCount })
             this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
-            log.warn(msg)
+            log.warn(error.message)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
             return this._request(url, fullRequestOptions, transformResponse, totalRetryCount, retryCount)
         }
@@ -201,13 +194,16 @@ export default abstract class WebDriverRequest extends EventEmitter {
          * handle request errors
          */
         if (response instanceof Error) {
-            /**
-             * handle timeouts
-             */
-            if ((response as RequestLibError).code === 'ETIMEDOUT') {
-                const error = getTimeoutError(response, fullRequestOptions, url)
+            const resError = response as WebDriverRequestError
 
-                return retry(error, 'Request timed out! Consider increasing the "connectionRetryTimeout" option.')
+            /**
+             * retry failed requests
+             */
+            if (
+                (resError.code && RETRYABLE_ERROR_CODES.includes(resError.code)) ||
+                (resError.statusCode && RETRYABLE_STATUS_CODES.includes(resError.statusCode))
+            ) {
+                return retry(resError)
             }
 
             /**
@@ -221,14 +217,16 @@ export default abstract class WebDriverRequest extends EventEmitter {
             response = transformResponse(response, fullRequestOptions) as RequestLibResponse
         }
 
-        const error = getErrorFromResponseBody(response.body, fullRequestOptions.body)
-
         /**
-         * retry connection refused errors
+         * Resolve only if successful response
          */
-        if (error.message === 'java.net.ConnectException: Connection refused: connect') {
-            return retry(error, 'Connection to Selenium Standalone server was refused.')
+        if (isSuccessfulResponse(response.statusCode, response.body)) {
+            this.emit('response', { result: response.body })
+            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: true, retryCount })
+            return response.body
         }
+
+        const error = new WebDriverResponseError(response, url, fullRequestOptions)
 
         /**
          * hub commands don't follow standard response formats
@@ -245,15 +243,6 @@ export default abstract class WebDriverRequest extends EventEmitter {
             }
 
             return { value: response.body || null }
-        }
-
-        /**
-         * Resolve only if successful response
-         */
-        if (isSuccessfulResponse(response.statusCode, response.body)) {
-            this.emit('response', { result: response.body })
-            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: true, retryCount })
-            return response.body
         }
 
         /**
@@ -275,7 +264,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             throw error
         }
 
-        return retry(error, `Request failed with status ${response.statusCode} due to ${error.message}`)
+        return retry(error)
     }
 }
 

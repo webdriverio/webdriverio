@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import fss from 'node:fs'
 import path from 'node:path'
 
 import inquirer from 'inquirer'
@@ -15,7 +16,13 @@ import {
 } from '../utils.js'
 import type { ConfigCommandArguments, ParsedAnswers } from '../types.js'
 
-const hasYarnLock = await fs.access('yarn.lock').then(() => true, () => false)
+let hasYarnLock = false
+try {
+    fss.accessSync('yarn.lock')
+    hasYarnLock = true
+} catch {
+    hasYarnLock = false
+}
 
 export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
@@ -214,12 +221,12 @@ export async function missingConfigurationPrompt(command: string, configPath: st
         'Would you like to create one?'
     )
 
-    const { config } = await inquirer.prompt([{
+    const { config } = await inquirer.prompt({
         type: 'confirm',
         name: 'config',
-        message: message,
+        message,
         default: false
-    }])
+    })
 
     /**
      * don't exit if running unit tests

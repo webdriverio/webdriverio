@@ -58,7 +58,7 @@ describe('onPrepare', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
     vi.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
@@ -72,7 +72,7 @@ describe('onPrepare', () => {
     })
 
     it('should not call local if browserstackLocal is undefined', async () => {
-        const service = new BrowserstackLauncher({ testObservability: false } as any, caps, {
+        const service = new BrowserstackLauncher({ testObservability: false, percy: false } as any, caps, {
             user: 'foobaruser',
             key: '12345',
             capabilities: []
@@ -86,7 +86,8 @@ describe('onPrepare', () => {
     it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
-            testObservability: false
+            testObservability: false,
+            percy: false
         } as any, caps, {
             user: 'foobaruser',
             key: '12345',
@@ -470,7 +471,7 @@ describe('onPrepare', () => {
         const capabilities = [{ build: 'browserstack wdio build', 'browserstack.buildIdentifier': '#${BUILD_NUMBER}' }]
         const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.RemoteCapability, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
 
@@ -492,7 +493,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         } as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.RemoteCapability, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
 
@@ -513,7 +514,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         } as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.RemoteCapability, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -528,7 +529,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         } as BrowserstackConfig & Options.Testrunner, capabilities as Capabilities.RemoteCapability, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         vi.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -643,7 +644,7 @@ describe('constructor', () => {
     const options: BrowserstackConfig = { }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: [],
         specs: []
     }
@@ -767,7 +768,7 @@ describe('_updateCaps', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -881,7 +882,7 @@ describe('_updateObjectTypeCaps', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -1048,7 +1049,7 @@ describe('_handleBuildIdentifier', () => {
     const options: BrowserstackConfig = { browserstackLocal: true }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 

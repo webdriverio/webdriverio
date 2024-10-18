@@ -52,7 +52,7 @@ In the example we use the [Deep Selectors](https://webdriver.io/docs/selectors#d
 
 ``` js
 // 👍
-await $('custom-datepicker').$('>>>#calendar').$('aria/Select')
+await $('custom-datepicker').$('#calendar').$('aria/Select')
 ```
 
 ### Prefer locating a single element instead of taking one from a list
@@ -100,18 +100,18 @@ You should always use `await` with the exception of the `$` and `$$` command.
 ```js
 // 👎
 const div = await $('div')
-const button = await div.$('>>>button')
+const button = await div.$('button')
 await button.click()
 // or
-await (await (await $('div')).$('>>>button')).click()
+await (await (await $('div')).$('button')).click()
 ```
 
 ```js
 // 👍
-const button = $('div').$('>>>button')
+const button = $('div').$('button')
 await button.click()
 // or
-await $('div').$('>>>button').click()
+await $('div').$('button').click()
 ```
 
 ## Don't overuse commands and assertions
@@ -233,7 +233,7 @@ await expect($('th=Prices')).toExist();
 
 ```js
 // 👍 use unique identifiers (often used for custom elements)
-await expect($('[data-testid="Products"')).toHaveText('Products');
+await expect($('[data-testid="Products"]')).toHaveText('Products');
 // 👍 accessibility names (often used for native html elements)
 await expect($('aria/Product Prices')).toHaveText('Prices');
 ```

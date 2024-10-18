@@ -13,7 +13,11 @@ import { getProtocolDriver } from './utils/driver.js'
 import { WDIO_DEFAULTS, SupportedAutomationProtocols, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
 import { getShadowRootManager } from './shadowRoot.js'
-import type { AttachOptions, RemoteOptions } from './types.js'
+import { getNetworkManager } from './networkManager.js'
+import { getDialogManager } from './dialog.js'
+import { getContextManager } from './context.js'
+import { getPolyfillManager } from './polyfill.js'
+import type { AttachOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
 export * from './types.js'
@@ -34,16 +38,16 @@ export const SevereServiceError = SevereServiceErrorImport
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
 export const remote = async function(
-    params: RemoteOptions,
-    remoteModifier?: (client: WebDriverTypes.Client, options: Options.WebdriverIO) => WebDriverTypes.Client
+    params: Capabilities.WebdriverIOConfig,
+    remoteModifier?: (client: WebDriverTypes.Client, options: Capabilities.WebdriverIOConfig) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
-    const keysToKeep = Object.keys(process.env.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof RemoteOptions)[]
-    const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, keysToKeep)
+    const keysToKeep = Object.keys(process.env.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof Capabilities.WebdriverIOConfig)[]
+    const config = validateConfig<Capabilities.WebdriverIOConfig>(WDIO_DEFAULTS, params, keysToKeep)
 
     await enableFileLogging(config.outputDir)
     logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
-    const modifier = (client: WebDriverTypes.Client, options: Options.WebdriverIO) => {
+    const modifier = (client: WebDriverTypes.Client, options: Capabilities.WebdriverIOConfig) => {
         /**
          * overwrite instance options with default values of the protocol
          * package (without undefined properties)
@@ -78,7 +82,13 @@ export const remote = async function(
     }
 
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
-    await getShadowRootManager(instance).initialize()
+    await Promise.all([
+        getPolyfillManager(instance).initialize(),
+        getShadowRootManager(instance).initialize(),
+        getNetworkManager(instance).initialize(),
+        getDialogManager(instance).initialize(),
+        getContextManager(instance).initialize()
+    ])
     return instance
 }
 
@@ -86,14 +96,15 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     /**
      * copy instances properties into new object
      */
-    const params = {
+    const params: Capabilities.WebdriverIOConfig & { requestedCapabilities: Capabilities.RequestedStandaloneCapabilities } = {
         automationProtocol: SupportedAutomationProtocols.webdriver,
         ...attachOptions,
         ...detectBackend(attachOptions.options),
-        requestedCapabilities: attachOptions.requestedCapabilities
+        capabilities: attachOptions.capabilities || {},
+        requestedCapabilities: attachOptions.requestedCapabilities || {}
     }
     const prototype = getPrototype('browser')
-    const { Driver } = await getProtocolDriver(params as Options.WebdriverIO)
+    const { Driver } = await getProtocolDriver(params)
 
     const driver = Driver.attachToSession(
         params,
@@ -104,8 +115,15 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
 
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
     // @ts-expect-error `bidiHandler` is a private property
-    await driver._bidiHandler?.connect().then(
-        () => getShadowRootManager(driver).initialize())
+    await driver._bidiHandler?.connect().then(() => (
+        Promise.all([
+            getPolyfillManager(driver).initialize(),
+            getShadowRootManager(driver).initialize(),
+            getNetworkManager(driver).initialize(),
+            getDialogManager(driver).initialize(),
+            getContextManager(driver).initialize()
+        ])
+    ))
     return driver
 }
 
@@ -129,7 +147,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
  * @see <a href="https://webdriver.io/docs/multiremote">External document and example usage</a>.
  */
 export const multiremote = async function (
-    params: Capabilities.MultiRemoteCapabilities,
+    params: Capabilities.RequestedMultiremoteCapabilities,
     { automationProtocol }: { automationProtocol?: string } = {}
 ): Promise<WebdriverIO.MultiRemoteBrowser> {
     const multibrowser = new MultiRemote()
@@ -156,7 +174,7 @@ export const multiremote = async function (
     }
 
     const ProtocolDriver = automationProtocol && isStub(automationProtocol)
-        ? (await import(automationProtocol)).default
+        ? (await import(/* @vite-ignore */automationProtocol)).default
         : WebDriver
     const driver = ProtocolDriver.attachToSession(
         sessionParams,

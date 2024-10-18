@@ -43,14 +43,7 @@ export const config = {
     capabilities: [
         isMac
             ? { browserName: 'safari' }
-            : !process.env.WDIO_PRESET
-                /**
-                 * We need canary in all component tests for:
-                 * - element look-ups with `browsingContext.locateNodes`
-                 * - network mocking
-                 */
-                ? { browserName: 'chrome', browserVersion: 'canary', webSocketUrl: true }
-                : { browserName: 'chrome', browserVersion: 'canary', webSocketUrl: true }
+            : { browserName: 'chrome', browserVersion: 'canary' }
     ],
 
     /**

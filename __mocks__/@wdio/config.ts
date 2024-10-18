@@ -7,7 +7,7 @@ import {
     validateConfig as validateConfigMock
 } from '../../packages/wdio-config/src/utils.js'
 
-export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT as () => Omit<Options.Testrunner, 'capabilities'>
+export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT as () => Options.Testrunner
 export const isCloudCapability = vi.fn().mockImplementation(isCloudCapabilityMock)
 export const validateConfig = vi.fn().mockImplementation((defaults, config) => {
     const returnVal = validateConfigMock(defaults, config)

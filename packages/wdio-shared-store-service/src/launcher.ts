@@ -12,7 +12,7 @@ let server: SharedStoreServer
 export default class SharedStoreLauncher implements Services.HookFunctions {
     private _app?: PolkaInstance
 
-    async onPrepare (_: never, capabilities: Capabilities.RemoteCapabilities) {
+    async onPrepare (_: never, capabilities: Capabilities.TestrunnerCapabilities) {
         /**
          * import during runtime to avoid unnecessary dependency loading
          */
@@ -26,7 +26,7 @@ export default class SharedStoreLauncher implements Services.HookFunctions {
             : Object.values(capabilities).map((multiremoteOption) => multiremoteOption.capabilities)
 
         const caps: Partial<SharedStoreServiceCapabilities>[] = capsList.flatMap((c) => {
-            const multiremote = c as Capabilities.MultiRemoteCapabilities
+            const multiremote = c as Capabilities.RequestedMultiremoteCapabilities
             if (!multiremote.browserName && multiremote[Object.keys(multiremote)[0]].capabilities) {
                 return Object.values(multiremote).map((options) =>
                     (options.capabilities as Capabilities.W3CCapabilities)?.alwaysMatch ||

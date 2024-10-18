@@ -38,6 +38,8 @@ export default function (docfile: any) {
 
             if (tag.typesDescription.includes('|<code>undefined</code>')) {
                 tag.typesDescription = `<code>${tag.joinedTypes}</code>`
+            } else if (tag.types.length === 1 && tag.types[0].startsWith('Record<')) {
+                tag.types = [tag.typesDescription.replaceAll('<code>', '').replaceAll('</code>', '')]
             }
 
             paramTags.push(tag)
@@ -218,7 +220,9 @@ export default function (docfile: any) {
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',
         isNetworkScope : scope === 'network',
-        isMockScope : scope === 'mock'
+        isMockScope : scope === 'mock',
+        isDialogScope : scope === 'dialog',
+        isClockScope : scope === 'clock',
     }
 
     return commandDescription

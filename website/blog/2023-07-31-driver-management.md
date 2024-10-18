@@ -1,11 +1,11 @@
 ---
 title: Take a seat, WebdriverIO is driving for you!
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 Since its inception, WebdriverIO has been a powerful tool for automating browsers through the [WebDriver](https://w3c.github.io/webdriver/) protocol. As many of you know, WebDriver is the web standard for automating real browsers, not just browser engines, allowing you to closely simulate the environment used by your users and customers.
+
+<!-- truncate -->
 
 ## Simplified Browser Automation Setup
 

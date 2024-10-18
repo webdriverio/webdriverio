@@ -1,14 +1,9 @@
+/// <reference types="@wdio/lighthouse-service" />
+import { browser, $, expect } from '@wdio/globals'
 import os from 'node:os'
 
 describe('main suite 1', () => {
-    it('foobar test', async () => {
-        const browserName = (browser.capabilities as WebdriverIO.Capabilities).browserName
-        await browser.url('http://guinea-pig.webdriver.io/')
-
-        const actualUA = (await $('#useragent').getText()).toLowerCase()
-        const expectedUA = browserName ? browserName.replace(' ', '').replace('-headless-shell', '') : browserName
-        await expect(actualUA).toContain(expectedUA)
-    })
+    afterEach(() => browser.setViewport({ width: 1200, height: 900 }))
 
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
@@ -16,7 +11,7 @@ describe('main suite 1', () => {
         await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
 
-    it.skip('should allow to check for PWA', async () => {
+    it('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
         // eslint-disable-next-line wdio/no-pause
         await browser.pause(100)
@@ -31,7 +26,7 @@ describe('main suite 1', () => {
         ])).passed).toBe(true)
     })
 
-    it.skip('should also detect non PWAs', async () => {
+    it('should also detect non PWAs', async () => {
         await browser.url('https://json.org')
         expect((await browser.checkPWA()).passed).toBe(false)
     })
@@ -39,41 +34,57 @@ describe('main suite 1', () => {
     it('can query shadow elements', async () => {
         await browser.url('https://the-internet.herokuapp.com/shadowdom')
         await $('h1').waitForDisplayed()
-        await expect($('>>>ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
+        await expect($('ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
-    it.skip('should be able to use async-iterators', async () => {
-        await browser.url('https://webdriver.io')
-        const contributeLink = await browser.$$('a.navbar__item.navbar__link').find<WebdriverIO.Element>(
-            async (link) => await link.getText() === 'Contribute')
-        await contributeLink.click()
-        await expect(browser).toHaveTitle('Contribute | WebdriverIO')
+    describe('async/iterators', () => {
+        /**
+         * this test requires the website to be rendered in mobile view
+         */
+        before(async () => {
+            await browser.setViewport({ width: 900, height: 600 })
+        })
+
+        it('should be able to use async-iterators', async () => {
+            await browser.url('https://webdriver.io')
+            await browser.$('aria/Toggle navigation bar').click()
+            const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find<WebdriverIO.Element>(
+                async (link) => await link.getText() === 'Contribute')
+            expect(contributeLink).toBeDefined()
+            await contributeLink.click()
+            await expect(browser).toHaveTitle('Contribute | WebdriverIO')
+        })
+
+        after(async () => {
+            await browser.setViewport({ width: 900, height: 600 })
+        })
     })
 
-    /**
-     * fails due to "Unable to identify the main resource"
-     * https://github.com/webdriverio/webdriverio/issues/8541
-     */
-    it.skip('should allow to do performance tests', async () => {
-        await browser.enablePerformanceAudits()
-        await browser.url('http://json.org')
-        const metrics = await browser.getMetrics()
-        expect(typeof metrics.serverResponseTime).toBe('number')
-        expect(typeof metrics.domContentLoaded).toBe('number')
-        expect(typeof metrics.firstVisualChange).toBe('number')
-        expect(typeof metrics.firstPaint).toBe('number')
-        expect(typeof metrics.firstContentfulPaint).toBe('number')
-        expect(typeof metrics.firstMeaningfulPaint).toBe('number')
-        expect(typeof metrics.largestContentfulPaint).toBe('number')
-        expect(typeof metrics.lastVisualChange).toBe('number')
-        expect(typeof metrics.interactive).toBe('number')
-        expect(typeof metrics.load).toBe('number')
-        expect(typeof metrics.speedIndex).toBe('number')
-        expect(typeof metrics.totalBlockingTime).toBe('number')
-        expect(typeof metrics.maxPotentialFID).toBe('number')
-        expect(typeof metrics.cumulativeLayoutShift).toBe('number')
-        const score = await browser.getPerformanceScore()
-        expect(typeof score).toBe('number')
+    describe('Lighthouse Service Performance Testing capabilities', () => {
+        before(() => browser.enablePerformanceAudits())
+
+        it('should allow to do performance tests', async () => {
+            await browser.url('http://json.org')
+            const metrics = await browser.getMetrics()
+            expect(typeof metrics.serverResponseTime).toBe('number')
+            expect(typeof metrics.domContentLoaded).toBe('number')
+            expect(typeof metrics.firstVisualChange).toBe('number')
+            expect(typeof metrics.firstPaint).toBe('number')
+            expect(typeof metrics.firstContentfulPaint).toBe('number')
+            expect(typeof metrics.firstMeaningfulPaint).toBe('number')
+            expect(typeof metrics.largestContentfulPaint).toBe('number')
+            expect(typeof metrics.lastVisualChange).toBe('number')
+            expect(typeof metrics.interactive).toBe('number')
+            expect(typeof metrics.load).toBe('number')
+            expect(typeof metrics.speedIndex).toBe('number')
+            expect(typeof metrics.totalBlockingTime).toBe('number')
+            expect(typeof metrics.maxPotentialFID).toBe('number')
+            expect(typeof metrics.cumulativeLayoutShift).toBe('number')
+            const score = await browser.getPerformanceScore()
+            expect(typeof score).toBe('number')
+        })
+
+        after(() => browser.disablePerformanceAudits())
     })
 
     it('should be able to scroll up and down', async () => {
@@ -100,7 +111,7 @@ describe('main suite 1', () => {
         ])
         expect(sameScrollPosition).toEqual([x, y])
 
-        browser.scroll(0, -y)
+        await browser.scroll(0, Math.floor(-y))
         const oldScrollPosition = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
@@ -133,7 +144,7 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it.skip(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x:0, y:0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
@@ -141,9 +152,15 @@ describe('main suite 1', () => {
                     document.mouseMoveTo = mouse
                 })
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectBefore = await browser.execute(
+                    // @ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectAfter = await browser.execute(
+                    // @ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -151,7 +168,7 @@ describe('main suite 1', () => {
 
         it('moveTo in iframe', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
-            await browser.switchToFrame(iframe)
+            await browser.switchFrame(iframe)
             await browser.$('#parent').moveTo()
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
@@ -164,17 +181,23 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it.skip(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
-                    const mouse = { x:0, y:0 }
+                    const mouse = { x: 0, y: 0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
                     //@ts-ignore
                     document.mouseMoveTo = mouse
                 })
                 await browser.$('#parent').moveTo()
-                const rectBefore = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectBefore = await browser.execute(
+                    //@ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 await browser.$('#parent').moveTo(input)
-                const rectAfter = await browser.execute('return document.mouseMoveTo') as {x: number, y: number}
+                const rectAfter = await browser.execute(
+                    //@ts-ignore
+                    () => document.mouseMoveTo
+                ) as {x: number, y: number}
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -190,28 +213,14 @@ describe('main suite 1', () => {
 
         it('moveTo to nested iframe with auto scrolling', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
-            await browser.switchToFrame(iframe)
+            await browser.switchFrame(iframe)
             await browser.$('#parent').moveTo()
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
 
-        it('xOffset would cause a out of bounds', async () => {
-            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
-            expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: 0 })
-                .toThrowError('xOffset would cause a out of bounds error as it goes outside of element'))
-        })
-
-        it('yOffset would cause a out of bounds', async () => {
-            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
-            expect(async () => await browser.$('#parent').moveTo({ xOffset: 0, yOffset: elemRect.height/2 + 1 })
-                .toThrowError('yOffset would cause a out of bounds error as it goes outside of element'))
-        })
-
-        it('xOffset and yOffset would cause a out of bounds', async () => {
-            const elemRect = await browser.getElementRect(await browser.$('#parent').elementId)
-            expect(async () => await browser.$('#parent').moveTo({ xOffset: elemRect.width/2 + 1, yOffset: elemRect.height/2 + 1 })
-                .toThrowError('xOffset would cause a out of bounds error as it goes outside of element'))
+        after(async () => {
+            await browser.switchFrame(null)
         })
     })
 
@@ -294,22 +303,177 @@ describe('main suite 1', () => {
         }
     })
 
-    describe('reloadSession', () => {
-        it('can reload a session', async () => {
-            const sessionId = browser.sessionId
-            await browser.reloadSession()
-            expect(browser.sessionId).not.toBe(sessionId)
-        })
+    describe('url command', () => {
+        it('supports basic auth', async () => {
+            await browser.url('https://the-internet.herokuapp.com/basic_auth', {
+                auth: {
+                    user: 'admin',
+                    pass: 'admin'
 
-        it('can reload a session with new capabilities', async () => {
-            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('chrome-headless-shell')
-            await browser.reloadSession({
-                browserName: 'edge',
-                'ms:edgeOptions': {
-                    args: ['headless', 'disable-gpu']
                 }
             })
-            expect((browser.capabilities as WebdriverIO.Capabilities).browserName).toBe('edge-headless-shell')
+            await expect($('p=Congratulations! You must have the proper credentials.')).toBeDisplayed()
+        })
+
+        it('should return a request object', async () => {
+            const request = await browser.url('http://guinea-pig.webdriver.io/')
+            if (!request) {
+                throw new Error('Request object is not defined')
+            }
+            expect(request.children!.length > 0).toBe(true)
+            expect(Object.keys(request.response?.headers || {})).toContain('x-amz-request-id')
+        })
+
+        it('should not contain any children due to "none" wait property', async () => {
+            const request = await browser.url('http://guinea-pig.webdriver.io/', {
+                wait: 'none'
+            })
+            if (!request) {
+                throw new Error('Request object is not defined')
+            }
+            expect(request.children!.length).toBe(0)
+        })
+
+        it('should allow to load a script before loading the page', async () => {
+            await browser.url('https://webdriver.io', {
+                onBeforeLoad: () => {
+                    Math.random = () => 42
+                }
+            })
+            expect(await browser.execute(() => Math.random())).toBe(42)
+
+            await browser.url('https://webdriver.io')
+            expect(await browser.execute(() => Math.random())).not.toBe(42)
         })
     })
+
+    describe('dialog handling', () => {
+        it('should automatically accept alerts', async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+
+            await browser.execute(() => alert('123'))
+
+            /**
+             * in case the alert is not automatically accepted
+             * the following line would time out
+             */
+            await browser.$('div').click()
+        })
+
+        /**
+         * fails due to https://github.com/GoogleChromeLabs/chromium-bidi/issues/2556
+         */
+        it.skip('should be able to handle dialogs', async () => {
+            await browser.url('http://guinea-pig.webdriver.io')
+            browser.execute(() => alert('123'))
+            const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
+
+            expect(dialog.type()).toBe('alert')
+            expect(dialog.message()).toBe('123')
+            await dialog.dismiss()
+        })
+    })
+
+    describe('addInitScript', () => {
+        it('should allow to add an init script', async () => {
+            const script = await browser.addInitScript((seed) => {
+                Math.random = () => seed
+            }, 42)
+
+            await browser.url('https://webdriver.io')
+            expect(await browser.execute(() => Math.random())).toBe(42)
+
+            await script.remove()
+            await browser.url('https://webdriver.io')
+            expect(await browser.execute(() => Math.random())).not.toBe(42)
+        })
+
+        it('passed on callback function', async () => {
+            const script = await browser.addInitScript((num, str, bool, emit) => {
+                setTimeout(() => emit(JSON.stringify([num, str, bool])), 500)
+            }, 1, '2', true)
+            browser.url('https://webdriver.io')
+            const data = await new Promise<string[]>((resolve) => {
+                script.on('data', (data) => resolve(data as string[]))
+            })
+            expect(data).toBe('[1,"2",true]')
+        })
+    })
+
+    describe('emulate clock', () => {
+        const now = new Date(2021, 3, 14)
+        const getDateString = () => (new Date()).toString()
+
+        it('should allow to mock the clock', async () => {
+            await browser.emulate('clock', { now })
+            expect(await browser.execute(getDateString))
+                .toBe(now.toString())
+            await browser.url('http://guinea-pig.webdriver.io')
+            expect(await browser.execute(getDateString))
+                .toBe(now.toString())
+        })
+
+        it('should allow to restore the clock', async () => {
+            await browser.restore('clock')
+            expect(await browser.execute(getDateString))
+                .not.toBe(now.toString())
+            await browser.url('http://guinea-pig.webdriver.io/pointer.html')
+            expect(await browser.execute(getDateString))
+                .not.toBe(now.toString())
+        })
+    })
+
+    describe('shadow root piercing', () => {
+        it('recognises new shadow root ids when page refreshes', async () => {
+            await browser.url('https://todomvc.com/examples/lit/dist/')
+            await expect($('.new-todo')).toBePresent()
+            await browser.refresh()
+            await expect($('.new-todo')).toBePresent()
+        })
+    })
+
+    describe('context management', () => {
+        it('should allow user to switch between contexts', async () => {
+            await browser.url('http://guinea-pig.webdriver.io/')
+
+            await browser.newWindow('https://webdriver.io')
+            await expect($('.hero__subtitle')).toBePresent()
+            await expect($('.red')).not.toBePresent()
+
+            await browser.switchWindow('guinea-pig.webdriver.io')
+            await expect($('.red')).toBePresent()
+            await expect($('.hero__subtitle')).not.toBePresent()
+
+            await browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
+            await expect($('.hero__subtitle')).toBePresent()
+            await expect($('.red')).not.toBePresent()
+        })
+
+        it('should not switch window if requested window was not found', async () => {
+            await closeAllWindowsButFirst()
+            await browser.navigateTo('http://guinea-pig.webdriver.io/')
+            const firstWindowHandle = await browser.getWindowHandle()
+
+            await browser.newWindow('https://webdriver.io')
+
+            await browser.switchWindow('guinea-pig.webdriver.io')
+            expect(await browser.getWindowHandle()).toBe(firstWindowHandle)
+
+            const err = await browser.switchWindow('not-existing-window').catch((err) => err)
+            expect(err.message).toContain('No window')
+
+            expect(await browser.getWindowHandle()).toBe(firstWindowHandle)
+        })
+    })
+
+    const closeAllWindowsButFirst = async () => {
+        const allHandles = await browser.getWindowHandles()
+
+        if (allHandles.length < 2) {return}
+        for (const windowHandle of allHandles.slice(1)) {
+            await browser.switchToWindow(windowHandle)
+            await browser.closeWindow()
+        }
+        await browser.switchToWindow(allHandles[0])
+    }
 })

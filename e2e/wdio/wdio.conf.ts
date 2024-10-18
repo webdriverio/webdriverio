@@ -1,15 +1,19 @@
 import url from 'node:url'
 import path from 'node:path'
-import type { Options } from '@wdio/types'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
     /**
      * specify test files
      */
-    specs: [path.join(__dirname, 'headless', '*.e2e.ts')],
-    exclude: [path.join(__dirname, 'headless', 'multiremoteTest.e2e.ts')],
+    specs: [
+        path.join(__dirname, 'headless', 'puppeteer.e2e.ts'),
+        path.join(__dirname, 'headless', 'source-maps.e2e.ts'),
+        path.join(__dirname, 'headless', 'reloadSession.e2e.ts'),
+        path.join(__dirname, 'headless', 'test.e2e.ts'),
+        path.join(__dirname, 'headless', 'mocking.e2e.ts'),
+    ],
 
     /**
      * capabilities
@@ -22,7 +26,7 @@ export const config: Options.Testrunner = {
         }
     }],
     bail: 1,
-    services: ['devtools'],
+    services: ['lighthouse'],
 
     /**
      * test configurations

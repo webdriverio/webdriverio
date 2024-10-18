@@ -11,12 +11,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['18', '20', '22']
+        node: ['18.20.0', '20', '22']
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: 🧑‍🔧 Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies
@@ -33,10 +33,6 @@ jobs:
           name: webdriverio
           path: .
           filename: webdriverio-build.zip
-
-      - name: Link Packages
-        run: pnpm run link
-        shell: bash
 
       - name: Smoke Tests
         run: pnpm run test:smoke

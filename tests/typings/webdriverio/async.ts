@@ -66,7 +66,7 @@ async function bar() {
     // instances array
     expectType<string[]>(mr.instances)
 
-    const elements = await browser.$$('foo')
+    const elements = await browser.$$('foo').getElements()
     expectType<string>(elements.foundWith)
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -80,8 +80,11 @@ async function bar() {
 
     const elemA = await remoteBrowser.$('')
     const elemB = await remoteBrowser.$('')
-    const multipleElems = await $$([elemA, elemB])
+    const multipleElems = await $$([elemA, elemB]).getElements()
+    const multipleElemsChain = $$([elemA, elemB])
     expectType<WebdriverIO.ElementArray>(multipleElems)
+    // // @ts-expect-error
+    // expectType<ChainablePromiseArray>(multipleElemsChain)
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -142,7 +145,7 @@ async function bar() {
     )
     expectType<true | void>(waitUntil)
     const waitUntilElems = await browser.waitUntil(async () => {
-        const elems = await $$('elems')
+        const elems = await $$('elems').getElements()
         if (elems.length < 2) {
             return false
         }
@@ -163,7 +166,7 @@ async function bar() {
         domain: '',
         path: '',
         expiry: 1,
-        sameSite: 'Lax',
+        sameSite: 'lax',
         secure: true,
         httpOnly: true
     }])
@@ -247,7 +250,7 @@ async function bar() {
     expectType<number>(ambientResult)
 
     // $
-    const el1 = await $('')
+    const el1 = await $('').getElement()
     const strFunction = (str: string) => str
     strFunction(el1.selector as string)
     strFunction(el1.elementId)
@@ -303,7 +306,7 @@ async function bar() {
     expectType<number>(elcResult)
 
     // $$
-    const elems = await $$('')
+    const elems = await $$('').getElements()
     const el4 = elems[0]
     const el5 = await el4.$('')
     expectType<string>(await el4.getAttribute('class'))
@@ -377,7 +380,7 @@ async function bar() {
     const ele = await $('')
     const touchAction: TouchAction = {
         action: 'longPress',
-        element: await $(''),
+        element: await $('').getElement(),
         ms: 0,
         x: 0,
         y: 0
@@ -415,7 +418,7 @@ async function bar() {
     browser.mock('**/image.jpg')
     const mock = await browser.mock('**/image.jpg', {
         method: 'get',
-        headers: { foo: 'bar' }
+        requestHeaders: { foo: 'bar' }
     })
     mock.abort(true)
     mock.abortOnce()
@@ -439,7 +442,7 @@ async function bar() {
 
     // async chain API
     expectType<WebdriverIO.Element>(
-        await browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar'))
+        await browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar').getElement())
     expectType<Selector>(
         await browser.$('foo').$('bar').selector)
     expectType<Error>(
@@ -457,7 +460,7 @@ async function bar() {
 
     // promise chain API
     expectType<string>(
-        await browser.$('foo').then(_ => _.getText()))
+        await browser.$('foo').getElement().then(_ => _.getText()))
 
     expectType<void>(
         await browser.$$('foo').forEach(() => true)
@@ -503,6 +506,58 @@ async function bar() {
     const elemArrayTest: WebdriverIO.ElementArray = {} as any
     expectType<string>(elemArrayTest.foundWith)
     expectType<WebdriverIO.Element>(elemArrayTest[123])
+
+    // getElement type check
+    const singleChainedElement = await browser.$('foo').getElement()
+    const singleElement = await singleChainedElement.getElement()
+    expectType<string>(singleElement.elementId)
+    expectType<string>(singleElement.elementId)
+    // @ts-expect-error
+    const singleElementError = $('selector').getElements()
+    // @ts-expect-error
+    const singleElementError2 = singleChainedElement.getElements()
+
+    // getElements type check
+    const multiChainedElements = await browser.$$('foo').getElements()
+    const multiElements = await multiChainedElements.getElements()
+    expectType<number>(multiChainedElements.length)
+    expectType<number>(multiElements.length)
+    // @ts-expect-error
+    const multiElementError = $$('selector').getElement()
+    // @ts-expect-error
+    const multiElementError2 = multiElements.getElement()
+
+    // Emulate tests
+    let restore = await browser.emulate('geolocation', { latitude: 1, longitude: 2 })
+    await restore()
+    restore = await browser.emulate('userAgent', 'foobar')
+    restore = await browser.emulate('onLine', true)
+    // @ts-expect-error invalid param
+    restore = await browser.emulate('onLine', 'dark')
+    // @ts-expect-error invalid scope
+    restore = await browser.emulate('foobar')
+    const clock = await browser.emulate('clock', { now: new Date(2021, 3, 14) })
+    await clock.restore()
+
+    browser.addInitScript(() => {
+        // nothing
+    })
+
+    browser.addInitScript((emit) => {
+        emit('hello')
+    })
+
+    browser.addInitScript((param, emit) => {
+        emit('hello' + param.toFixed())
+    }, 123)
+
+    browser.addInitScript((param, param2, emit) => {
+        emit('hello' + param.toFixed() + param2.charAt(1))
+    }, 123, 'hello')
+
+    browser.addInitScript((param, param2, param3, emit) => {
+        emit('hello' + param.toFixed() + param2.charAt(1) + param3.charAt(1))
+    }, 123, 'hello', 'true')
 }
 
 function testSevereServiceError_noParameters() {

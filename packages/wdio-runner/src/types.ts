@@ -15,7 +15,7 @@ export type RunParams = {
     cid: string
     args: Args
     specs: string[]
-    caps: Capabilities.RemoteCapability
+    caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     configFile: string
     retries: number
 }
@@ -25,16 +25,12 @@ export interface TestFramework {
         cid: string,
         config: Options.Testrunner,
         specs: string[],
-        capabilities: Capabilities.RemoteCapability,
+        capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
         reporter: BaseReporter
     ) => TestFramework
     run (): Promise<number>
     hasTests (): boolean
 }
-
-type SingleCapability = { capabilities: Capabilities.RemoteCapability }
-export interface SingleConfigOption extends Omit<Options.Testrunner, 'capabilities'>, SingleCapability {}
-export type MultiRemoteCaps = Record<string, (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities) & { sessionId?: string }>
 
 export interface SessionStartedMessage {
     origin: 'worker'

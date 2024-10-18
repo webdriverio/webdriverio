@@ -1,12 +1,9 @@
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import {
-    WebDriverBidiProtocol,
-    type CommandEndpoint,
-} from '@wdio/protocols'
+import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
 import Request from './request/request.js'
-import type { WebDriverResponse } from './request/index.js'
+import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 
 const log = logger('webdriver')
@@ -39,7 +36,9 @@ export default function (
          * log deprecation warning if command is deprecated
          */
         if (typeof deprecated === 'string') {
-            log.warn(deprecated.replace('This command', `The "${command}" command`))
+            const warning = deprecated.replace('This command', `The "${command}" command`)
+            log.warn(warning)
+            console.warn(`⚠️ [WEBDRIVERIO DEPRECATION NOTICE] ${warning}`)
         }
 
         /**
@@ -118,7 +117,7 @@ export default function (
 
         const request = new Request(method, endpoint, body, isHubCommand)
         request.on('performance', (...args) => this.emit('request.performance', ...args))
-        this.emit('command', { method, endpoint, body })
+        this.emit('command', { command, method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         /**
          * use then here so we can better unit test what happens before and after the request
@@ -136,7 +135,7 @@ export default function (
                 log.info('RESULT', resultLog)
             }
 
-            this.emit('result', { method, endpoint, body, result })
+            this.emit('result', { command, method, endpoint, body, result })
 
             if (command === 'deleteSession') {
                 const shutdownDriver = body.deleteSessionOpts?.shutdownDriver !== false

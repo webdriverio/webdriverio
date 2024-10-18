@@ -3,12 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./build",
-    "rootDir": "./src",
-    "types": ["@wdio/globals/types"]
+    "rootDir": "./src"
   },
   "include": [
     "src/**/*",
-    "../../@types",
-    "src/cjs/package.json"
+    "../../@types"
   ]
 }

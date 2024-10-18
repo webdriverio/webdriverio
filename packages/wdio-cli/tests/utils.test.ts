@@ -40,7 +40,7 @@ import {
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { installPackages } from '../src/install.js'
-import { hasBabelConfig } from '../build/utils.js'
+import { hasBabelConfig } from '../src/utils.js'
 
 vi.mock('ejs')
 vi.mock('inquirer')
@@ -889,7 +889,6 @@ test('setupTypeScript', async () => {
     } as any
     await setupTypeScript(parsedAnswers)
     expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toMatchSnapshot()
-    expect(parsedAnswers.packagesToInstall).toEqual(['tsx'])
 })
 
 test('setupTypeScript does not create tsconfig.json if TypeScript was not selected', async () => {
@@ -928,7 +927,6 @@ test('setupTypeScript does not create tsconfig.json if there is already one', as
     } as any
     await setupTypeScript(parsedAnswers)
     expect(fs.writeFile).not.toBeCalled()
-    expect(parsedAnswers.packagesToInstall).toEqual(['tsx'])
 })
 
 test('createWDIOConfig', async () => {
@@ -985,13 +983,15 @@ test('runAppiumInstaller', async () => {
 })
 
 test.each([
-    ['', 'npm'],
-    [path.resolve('~/Library/pnpm/store/v3/...'), 'pnpm'],
-    [path.resolve('~/.npm/npx/...'), 'npm'],
-    [path.resolve('~/.yarn/bin/create-wdio'), 'yarn'],
-    [path.resolve('~/.bun/bin/create-wdio'), 'bun']
-])('detectPackageManager', async (path, pm) => {
-    expect(detectPackageManager(['', path])).toEqual(pm)
+    ['with empty variable should fallback to npm', '', 'npm'],
+    ['with pnpm should return pnpm', 'pnpm/9.10.0 npm/? node/v20.11.0 darwin arm64', 'pnpm'],
+    ['with yarn should return yarn', 'yarn/4.5.0 npm/? node/v20.11.0 darwin arm64', 'yarn'],
+    ['with npm should return npm', 'npm/10.2.4 node/v20.11.0 darwin arm64 workspaces/false', 'npm'],
+    ['with bun should return bun', 'bun/1.1.27 npm/? node/v22.6.0 darwin arm64', 'bun'],
+    ['with unsupported package manager should return npm', 'not supported package manager/x.x.x npm/? node/v22.6.0 darwin arm64', 'npm'],
+])('detectPackageManager %s', async (_, stub, pm) => {
+    vi.stubEnv('npm_config_user_agent', stub)
+    expect(detectPackageManager()).toEqual(pm)
 })
 
 afterEach(() => {

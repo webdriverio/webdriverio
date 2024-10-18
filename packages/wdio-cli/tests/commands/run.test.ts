@@ -48,12 +48,14 @@ describe('Command: run', () => {
 
     beforeEach(() => {
         vi.mocked(fs.access).mockClear()
+        vi.mocked(execa).mockClear()
         vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
             return undefined as never
         })
         vi.spyOn(console, 'error')
-        vi.spyOn(process, 'openStdin').mockImplementation(
-            () => ({ setEncoding: setEncodingMock, on: onMock }) as any)
+        vi.spyOn(process.stdin, 'resume')
+        vi.spyOn(process.stdin, 'setEncoding').mockImplementation(setEncodingMock)
+        vi.spyOn(process.stdin, 'on').mockImplementation(onMock)
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
@@ -62,6 +64,13 @@ describe('Command: run', () => {
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledTimes(1)
         expect(vi.mocked(configCmd.missingConfigurationPrompt).mock.calls[0][1])
             .toContain('sample.conf')
+    })
+
+    it('should allow if config is of type .ts ', async () => {
+        vi.mocked(fs.access).mockResolvedValue()
+        vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
+        await runCmd.handler({ configPath: 'sample.conf.ts' } as any)
+        expect(execa).toBeCalled()
     })
 
     it('should use local conf if nothing defined', async () => {
@@ -89,7 +98,7 @@ describe('Command: run', () => {
 
         await runCmd.handler({ configPath: 'foo/bar' } as any)
 
-        expect(process.openStdin).toHaveBeenCalled()
+        expect(process.stdin.resume).toHaveBeenCalled()
         expect(setEncodingMock).toHaveBeenCalled()
         expect(onMock).toHaveBeenCalledTimes(2)
 
@@ -120,7 +129,8 @@ describe('Command: run', () => {
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(1)
             const moduleLoaderFlag = (
-                (runCmd.nodeVersion('major') >= 20 && runCmd.nodeVersion('minor') >= 6) ||
+                runCmd.nodeVersion('major') >= 21 ||
+                (runCmd.nodeVersion('major') === 20 && runCmd.nodeVersion('minor') >= 6) ||
                 (runCmd.nodeVersion('major') === 18 && runCmd.nodeVersion('minor') >= 19)
             )
                 ? '--import'
@@ -192,7 +202,6 @@ describe('Command: run', () => {
     })
 
     afterEach(() => {
-        vi.mocked(process.openStdin).mockReset()
         vi.mocked(console.error).mockReset()
         vi.mocked(fs.access).mockClear()
         vi.mocked(configCmd.missingConfigurationPrompt).mockClear()

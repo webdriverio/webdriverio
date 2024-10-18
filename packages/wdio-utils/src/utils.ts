@@ -1,6 +1,8 @@
 import fs from 'node:fs/promises'
+import url from 'node:url'
 import path from 'node:path'
-import type { Options, Services, Clients } from '@wdio/types'
+
+import type { Options, Services } from '@wdio/types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
 
@@ -45,10 +47,10 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
         const origCommand = propertiesObject[commandName].value
         delete propertiesObject[commandName]
 
-        const newCommand = function (this: Clients.Browser, ...args: any[]) {
+        const newCommand = function (this: WebdriverIO.Browser, ...args: any[]) {
             const element = this
             return userDefinedCommand.apply(element, [
-                function origCommandFunction (this: Clients.Browser) {
+                function origCommandFunction (this: WebdriverIO.Browser) {
                     const context = this || element // respect explicite context binding, use element as default
                     return origCommand.apply(context, arguments)
                 },
@@ -177,7 +179,7 @@ export function getArgumentType (arg: any) {
  */
 export async function userImport<T> (moduleName: string, namedImport = 'default'): Promise<T> {
     try {
-        const mod = await import(moduleName)
+        const mod = await import(/* @vite-ignore */moduleName)
         if (namedImport in mod) {
             return mod[namedImport]
         }
@@ -219,11 +221,9 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
             try {
                 importPath = await resolve(name, import.meta.url)
             } catch (err: any) {
-                const { join } = await import('node:path')
-                const { pathToFileURL } = await import('node:url')
-                const localNodeModules = join(process.cwd(), 'node_modules')
+                const localNodeModules = path.join(process.cwd(), 'node_modules')
                 try {
-                    importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
+                    importPath = await resolve(name, url.pathToFileURL(localNodeModules).toString())
                 } catch (err: any) {
                     return null
                 }
@@ -234,7 +234,7 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
     }
 
     try {
-        const pkg = await import(importPath)
+        const pkg = await import(/* @vite-ignore */importPath)
 
         /**
          * CJS packages build with TS imported through an ESM context can end up being this:
@@ -314,8 +314,17 @@ export const sleep = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 export function isAppiumCapability(caps: WebdriverIO.Capabilities): boolean {
     return Boolean(
         caps &&
-        // @ts-expect-error outdated jsonwp cap
-        (caps.automationName || caps['appium:automationName'] || caps.deviceName || caps.appiumVersion)
+        (
+            // @ts-expect-error outdated jsonwp cap
+            caps.automationName ||
+            caps['appium:automationName'] ||
+            // @ts-expect-error outdated jsonwp cap
+            caps.deviceName ||
+            caps['appium:deviceName'] ||
+            // @ts-expect-error outdated jsonwp cap
+            caps.appiumVersion ||
+            caps['appium:appiumVersion']
+        )
     )
 }
 

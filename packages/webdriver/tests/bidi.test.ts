@@ -18,7 +18,7 @@ describe('BidiCore', () => {
         handler.connect()
         expect(handler.socket.on).toBeCalledWith('open', expect.any(Function))
 
-        const [, cb] = vi.mocked(handler.socket.on).mock.calls[0]
+        const [, cb] = vi.mocked(handler.socket.on).mock.calls[1]
         cb.call(this as  any)
         expect(handler.isConnected).toBe(true)
     })
@@ -33,16 +33,15 @@ describe('BidiCore', () => {
         it('sends and waits for result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             handler.connect()
-            const [, cb] = vi.mocked(handler.socket.on).mock.calls[0]
+            const [, cb] = vi.mocked(handler.socket.on).mock.calls[1]
             cb.call(this as  any)
 
             vi.mocked(handler.socket.on).mockClear()
             const promise = handler.send({ method: 'session.new', params: {} })
-            expect(handler.socket.on).toBeCalledWith('message', expect.any(Function))
-            const [, messageCallback] = vi.mocked(handler.socket.on).mock.calls[0]
+            await new Promise((resolve) => setTimeout(resolve, 100))
 
-            messageCallback.call(this as any, Buffer.from('{somewrongmessage'))
-            messageCallback.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            handler.__handleResponse.call(this as any, Buffer.from('{somewrongmessage'))
+            handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
             const result = await promise
             expect(result).toEqual({ id: 1, result: 'foobar' })
         })
@@ -50,19 +49,22 @@ describe('BidiCore', () => {
         it('has a proper error stack that contains the line where the command is called', async () => {
             const handler = new BidiCore('ws://foo/bar')
             handler.connect()
-            const [, cb] = vi.mocked(handler.socket.on).mock.calls[0]
+            const [, cb] = vi.mocked(handler.socket.on).mock.calls[1]
             cb.call(this as  any)
 
             const promise = handler.send({ method: 'session.new', params: {} })
-            const [, messageCallback] = vi.mocked(handler.socket.on).mock.calls[1]
             setTimeout(
-                () => messageCallback.call(this as any, Buffer.from(JSON.stringify({ id: 1, error: 'foobar' }))),
+                () => handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({
+                    id: 1,
+                    error: 'foobar',
+                    message: 'I am an error!'
+                }))),
                 100
             )
 
             const error = await promise.catch((err) => err)
-            const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar'
-            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:56:'))
+            const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
+            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:55:'))
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
         })
@@ -78,7 +80,7 @@ describe('BidiCore', () => {
         it('can send without getting an result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             handler.connect()
-            const [, cb] = vi.mocked(handler.socket.on).mock.calls[0]
+            const [, cb] = vi.mocked(handler.socket.on).mock.calls[1]
             cb.call(this as  any)
 
             expect(handler.sendAsync({ method: 'session.new', params: {} }))

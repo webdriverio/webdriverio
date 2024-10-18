@@ -5,6 +5,8 @@ import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { isStaleElementError } from './utils/index.js'
 
+const COMMANDS_TO_SKIP = ['getElement', 'getElements']
+
 /**
  * This method is an command wrapper for elements that checks if a command is called
  * that wasn't found on the page and automatically waits for it
@@ -14,6 +16,10 @@ import { isStaleElementError } from './utils/index.js'
 export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
     return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: any[]) {
         return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
+            if (COMMANDS_TO_SKIP.includes(commandName)) {
+                return fn(commandName, commandFn).apply(this, args)
+            }
+
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
             this[ELEMENT_KEY] = element.elementId
@@ -36,9 +42,15 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                 return result
             } catch (err: any) {
                 if (err.name === 'element not interactable') {
-                    const elementHTML = await element.getHTML()
-                    err.message = `Element ${elementHTML} not interactable`
-                    err.stack = err.stack ?? Error.captureStackTrace(err)
+                    try {
+                        await element.waitForClickable()
+                        return await fn(commandName, commandFn).apply(this, args)
+                    } catch (error) {
+                        const elementHTML = await element.getHTML()
+                        err.name = 'webdriverio(middleware): element did not become interactable'
+                        err.message = `Element ${elementHTML} did not become interactable`
+                        err.stack = err.stack ?? Error.captureStackTrace(err)
+                    }
                 }
 
                 if (err.name === 'stale element reference' || isStaleElementError(err)) {

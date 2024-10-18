@@ -1,6 +1,7 @@
 import type { Capabilities } from '@wdio/types'
 import { SUPPORTED_BROWSERNAMES } from './constants.js'
 
+const APPIUM_CAPABILITY_PREFIX = 'appium:'
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
 const MOBILE_CAPABILITIES = [
     'appium-version', 'appiumVersion', 'device-type', 'deviceType', 'app', 'appArguments',
@@ -12,7 +13,7 @@ const MOBILE_CAPABILITIES = [
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if W3C (browser)
  */
-export function isW3C(capabilities?: Capabilities.DesiredCapabilities) {
+export function isW3C(capabilities?: WebdriverIO.Capabilities) {
     /**
      * JSONWire protocol doesn't return a property `capabilities`.
      * Also check for Appium response as it is using JSONWire protocol for most of the part.
@@ -28,11 +29,9 @@ export function isW3C(capabilities?: Capabilities.DesiredCapabilities) {
      * - it is an Appium session (since Appium is full W3C compliant)
      */
     const isAppium = Boolean(
-        // @ts-expect-error outdated jsonwp cap
-        capabilities.automationName ||
         capabilities['appium:automationName'] ||
-        capabilities.deviceName ||
-        capabilities.appiumVersion
+        capabilities['appium:deviceName'] ||
+        capabilities['appium:appiumVersion']
     )
     const hasW3CCaps = Boolean(
         /**
@@ -45,7 +44,6 @@ export function isW3C(capabilities?: Capabilities.DesiredCapabilities) {
          * check also if setWindowRect is provided
          */
         (
-            capabilities.platformVersion ||
             capabilities['appium:platformVersion'] ||
             Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect')
         )
@@ -59,11 +57,13 @@ export function isW3C(capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Chromedriver
  */
-function isChrome(capabilities?: Capabilities.DesiredCapabilities) {
+function isChrome(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
-    return Boolean(capabilities.chrome || capabilities['goog:chromeOptions'])
+    return Boolean(capabilities['goog:chromeOptions'] &&
+        (capabilities.browserName === 'chrome' || capabilities.browserName === 'chrome-headless-shell')
+    )
 }
 
 /**
@@ -71,7 +71,7 @@ function isChrome(capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Edgedriver
  */
-function isEdge(capabilities?: Capabilities.DesiredCapabilities) {
+function isEdge(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
@@ -86,7 +86,7 @@ function isEdge(capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Geckodriver
  */
-function isFirefox(capabilities?: Capabilities.DesiredCapabilities) {
+function isFirefox(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
@@ -144,7 +144,7 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
  * @param  {Object}  capabilities  of session response
  * @return {Boolean}               true if run on iOS device
  */
-function isIOS(capabilities?: Capabilities.DesiredCapabilities) {
+function isIOS(capabilities?: WebdriverIO.Capabilities) {
     const bsOptions = capabilities?.['bstack:options'] || {}
     if (!capabilities) {
         return false
@@ -152,7 +152,7 @@ function isIOS(capabilities?: Capabilities.DesiredCapabilities) {
 
     return Boolean(
         (capabilities.platformName && capabilities.platformName.match(/iOS/i)) ||
-        (capabilities.deviceName && capabilities.deviceName.match(/(iPad|iPhone)/i)) ||
+        (capabilities['appium:deviceName'] && capabilities['appium:deviceName'].match(/(iPad|iPhone)/i)) ||
         (/iOS/i.test(bsOptions.platformName || '')) ||
         (/(iPad|iPhone)/i.test(bsOptions.deviceName || ''))
     )
@@ -182,22 +182,22 @@ function isAndroid(capabilities?: WebdriverIO.Capabilities) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
  */
-function isSauce(capabilities?: Capabilities.RemoteCapability) {
+function isSauce(capabilities?: Capabilities.WithRequestedCapabilities['capabilities']) {
     if (!capabilities) {
         return false
     }
 
-    const caps: Capabilities.DesiredCapabilities = (capabilities as Capabilities.W3CCapabilities).alwaysMatch
-        ? (capabilities as Capabilities.W3CCapabilities).alwaysMatch
-        : capabilities as Capabilities.DesiredCapabilities
-
+    const caps = 'alwaysMatch' in capabilities
+        ? capabilities.alwaysMatch
+        : capabilities
     return Boolean(
-        caps.extendedDebugging ||
-        (
-            caps['sauce:options'] &&
-            caps['sauce:options'].extendedDebugging
-        )
+        caps['sauce:options'] &&
+        caps['sauce:options'].extendedDebugging
     )
+}
+
+function isAppiumCapability(capabilityName: string) {
+    return capabilityName.startsWith(APPIUM_CAPABILITY_PREFIX)
 }
 
 /**
@@ -205,16 +205,16 @@ function isSauce(capabilities?: Capabilities.RemoteCapability) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session has WebDriver Bidi support
  */
-function isBidi(capabilities?: Capabilities.RemoteCapability) {
+export function isBidi(requestedCapabilities: Capabilities.RequestedStandaloneCapabilities, capabilities: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
 
-    const caps: Capabilities.DesiredCapabilities = (capabilities as Capabilities.W3CCapabilities).alwaysMatch
-        ? (capabilities as Capabilities.W3CCapabilities).alwaysMatch
-        : capabilities as Capabilities.DesiredCapabilities
+    if (Object.keys(requestedCapabilities).some(isAppiumCapability)) {
+        return false
+    }
 
-    return Boolean(caps.webSocketUrl)
+    return typeof capabilities.webSocketUrl === 'string'
 }
 
 /**
@@ -222,7 +222,7 @@ function isBidi(capabilities?: Capabilities.RemoteCapability) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is run with Selenium Standalone Server
  */
-function isSeleniumStandalone(capabilities?: Capabilities.DesiredCapabilities) {
+function isSeleniumStandalone(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
@@ -230,6 +230,7 @@ function isSeleniumStandalone(capabilities?: Capabilities.DesiredCapabilities) {
         /**
          * Selenium v3 and below
          */
+        // @ts-expect-error outdated JSONWP capabilities
         Boolean(capabilities['webdriver.remote.sessionid']) ||
         /**
          * Selenium v4 and up
@@ -243,7 +244,7 @@ function isSeleniumStandalone(capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is run with Chromium protocol
  */
-function isChromium(capabilities?: Capabilities.DesiredCapabilities) {
+function isChromium(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
@@ -263,7 +264,7 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(capabilities),
-        isBidi: isBidi(capabilities),
+        isBidi: isBidi({}, capabilities),
         isChromium: isChromium(capabilities)
     }
 }
@@ -274,21 +275,23 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
  * @param  {Object}  requestedCapabilities
  * @return {Object}                         object with environment flags
  */
-export function sessionEnvironmentDetector({ capabilities, requestedCapabilities }:
-    { capabilities: Capabilities.RemoteCapability, requestedCapabilities: Capabilities.RemoteCapability }) {
-    const cap: WebdriverIO.Capabilities = 'alwaysMatch' in capabilities
-        ? capabilities.alwaysMatch
-        : capabilities
+export function sessionEnvironmentDetector({
+    capabilities,
+    requestedCapabilities
+}: {
+    capabilities: WebdriverIO.Capabilities,
+    requestedCapabilities: Capabilities.RequestedStandaloneCapabilities
+}) {
     return {
-        isW3C: isW3C(cap),
-        isChrome: isChrome(cap),
-        isFirefox: isFirefox(cap),
-        isMobile: isMobile(cap),
-        isIOS: isIOS(cap),
-        isAndroid: isAndroid(cap),
+        isW3C: isW3C(capabilities),
+        isChrome: isChrome(capabilities),
+        isFirefox: isFirefox(capabilities),
+        isMobile: isMobile(capabilities),
+        isIOS: isIOS(capabilities),
+        isAndroid: isAndroid(capabilities),
         isSauce: isSauce(requestedCapabilities),
-        isSeleniumStandalone: isSeleniumStandalone(cap),
-        isBidi: isBidi(capabilities),
-        isChromium: isChromium(cap)
+        isSeleniumStandalone: isSeleniumStandalone(capabilities),
+        isBidi: isBidi(requestedCapabilities, capabilities),
+        isChromium: isChromium(capabilities)
     }
 }

@@ -1,45 +1,56 @@
+import { multiremotebrowser as browser } from '@wdio/globals'
 import { Key } from 'webdriverio'
 
-describe('main suite 1', () => {
-    it('should open chat application', async () => {
-        await browser.url('https://socketio-chat-h9jt.herokuapp.com/')
+let browserA: WebdriverIO.Browser
+let browserB: WebdriverIO.Browser
+
+describe('multi remote test', () => {
+    before(() => {
+        browserA = browser.getInstance('browserA')
+        browserB = browser.getInstance('browserB')
     })
 
-    it.skip('should login the browser A', async () => {
-        const nameInput = await browserA.$('.usernameInput')
-        await nameInput.addValue('Browser A')
-        await browserA.keys(Key.Enter)
-        await expect(browserA.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
+    it.skip('should also detect non PWAs', async () => {
+        await browserA.url('https://json.org')
+        await browserB.url('https://webdriver.io')
+
+        // eslint-disable-next-line wdio/no-pause
+        await browser.pause(1000)
+
+        /**
+         * Unfortunately we don't know which result is from which browser
+         */
+        const results = (await browser.checkPWA() as any).map((result: { passed: boolean }) => result.passed)
+        expect(typeof results[0]).toBe('boolean')
+        expect(typeof results[1]).toBe('boolean')
+        expect(results[0] !== results[1]).toBeTruthy()
     })
 
-    it.skip('should login the browser B', async () => {
-        const nameInput = await browserB.$('.usernameInput')
-        await nameInput.addValue('Browser B')
-        await browserB.keys(Key.Enter)
-        await expect(browserB.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
-    })
+    describe('chat test', () => {
+        it('should open chat application', async () => {
+            browserA = await browser.getInstance('browserA')
+            browserB = await browser.getInstance('browserB')
+            await browser.url('https://socketio-chat-h9jt.herokuapp.com/')
+        })
 
-    it.skip('should return devtools result', async () => {
-        await browserA.url('https://webdriver.io')
-        await browserB.url('https://google.com')
+        it.skip('should login the browser A', async () => {
+            const nameInput = await browserA.$('.usernameInput')
+            await nameInput.addValue('Browser A')
+            await browserA.keys(Key.Enter)
+            await expect(browserA.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
+        })
 
-        const cookiesA = await browserA.cdp('Network', 'getCookies')
-        const cookiesB = await browserB.cdp('Network', 'getCookies')
-        const cookies = await browser.cdp('Network', 'getCookies')
+        it.skip('should login the browser B', async () => {
+            const nameInput = await browserB.$('.usernameInput')
+            await nameInput.addValue('Browser B')
+            await browserB.keys(Key.Enter)
+            await expect(browserB.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
+        })
 
-        expect(Object.keys(cookiesA).length).toBe(1)
-        expect(Object.keys(cookiesA)).toEqual(['cookies'])
-        expect(Object.keys(cookiesB).length).toBe(1)
-        expect(Object.keys(cookiesB)).toEqual(['cookies'])
-        expect(Object.keys(cookies).length).toBe(2)
-
-        const score = await browser.checkPWA()
-        expect(Object.keys(score).length).toBe(2)
-    })
-
-    it('can access shared store', async () => {
-        expect(await browser.sharedStore.get('foo')).toBe('bar')
-        expect(await browserA.sharedStore.get('foo')).toBe('bar')
-        expect(await browserB.sharedStore.get('foo')).toBe('bar')
+        it('can access shared store', async () => {
+            expect(await browser.sharedStore.get('foo')).toBe('bar')
+            expect(await browserA.sharedStore.get('foo')).toBe('bar')
+            expect(await browserB.sharedStore.get('foo')).toBe('bar')
+        })
     })
 })

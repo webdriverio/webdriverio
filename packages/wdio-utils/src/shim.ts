@@ -1,6 +1,5 @@
-/// <reference types="@wdio/globals/types" />
 import logger from '@wdio/logger'
-import type { Clients, Frameworks } from '@wdio/types'
+import type { Frameworks } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
@@ -19,6 +18,7 @@ const ELEMENT_PROPS = [
 ]
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
+const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
 
 const TIME_BUFFER = 3
 
@@ -37,26 +37,34 @@ export async function executeHooksWithArgs<T> (this: any, hookName: string, hook
         args = [args]
     }
 
+    const rejectIfSkipped = function (e: any, rejectionFunc: (e?: any) => void) {
+        /**
+         * When we use `this.skip()` inside a test or a hook, it's a signal that we want to stop that particular test.
+         * Mocha, the testing framework, knows how to handle this for its own built-in hooks and test steps.
+         * However, for our custom hooks, we need to reject the promise, which effectively skips the test case.
+         * For more details, refer to: https://github.com/mochajs/mocha/pull/3859#issuecomment-534116333
+         */
+        if (/^(sync|async) skip; aborting execution$/.test(e.message)) {
+            rejectionFunc()
+            return true
+        }
+        /**
+         * in case of jasmine, when rejecting, we need to pass the message of rejection as well
+         */
+        if (/^=> marked Pending/.test(e)) {
+            rejectionFunc(e)
+            return true
+        }
+    }
+
     const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve, reject) => {
         let result
 
         try {
             result = hook.apply(this, args)
         } catch (e: any) {
-            /**
-             * When we use `this.skip()` inside a test or a hook, it's a signal that we want to stop that particular test.
-             * Mocha, the testing framework, knows how to handle this for its own built-in hooks and test steps.
-             * However, for our custom hooks, we need to reject the promise, which effectively skips the test case.
-             * For more details, refer to: https://github.com/mochajs/mocha/pull/3859#issuecomment-534116333
-             */
-            if (/^(sync|async) skip; aborting execution$/.test(e.message)) {
-                return reject()
-            }
-            /**
-            * in case of jasmine, when rejecting, we need to pass the message of rejection as well
-            */
-            if (/^=> marked Pending/.test(e)) {
-                return reject(e)
+            if (rejectIfSkipped(e, reject)) {
+                return
             }
             log.error(e.stack)
             return resolve(e)
@@ -68,6 +76,9 @@ export async function executeHooksWithArgs<T> (this: any, hookName: string, hook
          */
         if (result && typeof result.then === 'function') {
             return result.then(resolve, (e: Error) => {
+                if (rejectIfSkipped(e, reject)) {
+                    return
+                }
                 log.error(e.stack || e.message)
                 resolve(e)
             })
@@ -120,9 +131,9 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
         return commandResult
     }
 
-    function wrapElementFn (promise: Promise<Clients.Browser>, cmd: Function, args: any[], prevInnerArgs?: { prop: string | number, args: any[] }): any {
+    function wrapElementFn (promise: Promise<WebdriverIO.Browser>, cmd: Function, args: any[], prevInnerArgs?: { prop: string | number, args: any[] }): any {
         return new Proxy(
-            Promise.resolve(promise).then((ctx: Clients.Browser) => cmd.call(ctx, ...args)),
+            Promise.resolve(promise).then((ctx: WebdriverIO.Browser) => cmd.call(ctx, ...args)),
             {
                 get: (target, prop: string) => {
                     /**
@@ -160,13 +171,13 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                             /**
                              * `this` is an array of WebdriverIO elements
                              */
-                            function (this: WebdriverIO.ElementArray, index: number) {
+                            function (this: any, index: number) {
                                 /**
                                  * if we access an index that is out of bounds we wait for the
                                  * array to get that long, and timeout eventually if it doesn't
                                  */
                                 if (index >= this.length) {
-                                    const browser = getBrowserObject(this)
+                                    const browser = getBrowserObject(this) as any
                                     return browser.waitUntil(async () => {
                                         const elems = await this.parent[this.foundWith as any as '$$'](this.selector)
                                         if (elems.length > index) {
@@ -239,6 +250,16 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                     }
 
                     /**
+                     * Convenience methods to get the element promise. Technically we could just
+                     * await an `ChainablePromiseElement` directly but this causes bad DX when
+                     * chaining commands and e.g. VS Code tries to wrap promises around thenable
+                     * objects.
+                     */
+                    if (ELEMENT_RETURN_COMMANDS.includes(prop)) {
+                        return () => target
+                    }
+
+                    /**
                      * call a command on an element query, e.g.:
                      * ```js
                      * const tagName = await $('foo').$('bar').getTagName()
@@ -278,11 +299,11 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
         )
     }
 
-    function chainElementQuery(this: Promise<Clients.Browser>, ...args: any[]): any {
+    function chainElementQuery(this: Promise<WebdriverIO.Browser>, ...args: any[]): any {
         return wrapElementFn(this, wrapCommandFn, args)
     }
 
-    return function (this: Clients.Browser, ...args: any[]) {
+    return function (this: WebdriverIO.Browser, ...args: any[]) {
         /**
          * if the command suppose to return an element, we apply `chainElementQuery` to allow
          * chaining of these promises.

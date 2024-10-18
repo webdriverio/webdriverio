@@ -1,3 +1,4 @@
+import logger from '@wdio/logger'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import type { InlineConfig } from 'vite'
@@ -5,6 +6,11 @@ import type { InlineConfig } from 'vite'
 import { codeFrameFix } from './plugins/esbuild.js'
 import type { FrameworkPreset } from '../types.js'
 
+const log = logger('@wdio/browser-runner:vite')
+
+export const DEFAULT_PROTOCOL = 'http'
+export const DEFAULT_HOSTNAME = 'localhost'
+export const DEFAULT_HOST = `${DEFAULT_PROTOCOL}://${DEFAULT_HOSTNAME}`
 export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] | undefined> = {
     react: ['@vitejs/plugin-react', 'default', {
         babel: {
@@ -26,8 +32,8 @@ export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] 
 
 export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
     configFile: false,
-    server: { host: 'localhost' },
-    logLevel: 'silent',
+    server: { host: DEFAULT_HOSTNAME },
+    logLevel: 'info',
     plugins: [topLevelAwait()],
     build: {
         sourcemap: 'inline',
@@ -53,8 +59,21 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             // Enable esbuild polyfill plugins
             plugins: [
                 esbuildCommonjs(['@testing-library/vue']),
-                codeFrameFix()
+                /**
+                 * cast to "any" here as Vite's esbuild dependency and WebdriverIOs one
+                 * may differ and cause type issues here.
+                 */
+                codeFrameFix() as any
             ],
         },
+    },
+    customLogger: {
+        info: (msg: string) => log.info(msg),
+        warn: (msg: string) => log.warn(msg),
+        warnOnce: (msg: string) => log.warn(msg),
+        error: (msg: string) => log.error(msg),
+        clearScreen: () => {},
+        hasErrorLogged: () => false,
+        hasWarned: false
     }
 }

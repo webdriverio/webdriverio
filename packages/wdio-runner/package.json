@@ -1,16 +1,16 @@
 {
   "name": "@wdio/runner",
-  "version": "9.0.0-alpha.0",
+  "version": "9.2.1",
   "description": "A WebdriverIO service that runs tests in arbitrary environments",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-runner",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-runner"
   },
   "keywords": [
@@ -24,22 +24,23 @@
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^20.11.28",
-    "@wdio/config": "workspace:9.0.0-alpha.0",
-    "@wdio/globals": "workspace:9.0.0-alpha.0",
-    "@wdio/logger": "workspace:9.0.0-alpha.0",
-    "@wdio/types": "workspace:9.0.0-alpha.0",
-    "@wdio/utils": "workspace:9.0.0-alpha.0",
-    "deepmerge-ts": "^5.1.0",
-    "expect-webdriverio": "^4.12.0",
-    "gaze": "^1.1.3",
-    "webdriver": "workspace:9.0.0-alpha.0",
-    "webdriverio": "workspace:9.0.0-alpha.0"
+    "@wdio/config": "workspace:9.1.3",
+    "@wdio/globals": "workspace:9.2.1",
+    "@wdio/logger": "workspace:9.1.3",
+    "@wdio/types": "workspace:9.1.3",
+    "@wdio/utils": "workspace:9.1.3",
+    "deepmerge-ts": "^7.0.3",
+    "expect-webdriverio": "^5.0.1",
+    "webdriver": "workspace:9.2.0",
+    "webdriverio": "workspace:9.2.1"
   },
   "publishConfig": {
     "access": "public"

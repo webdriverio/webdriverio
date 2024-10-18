@@ -1,3 +1,4 @@
+import os from 'node:os'
 import { test, expect } from 'vitest'
 /**
  * in order to run this file make sure you have `webdriverio`
@@ -6,9 +7,17 @@ import { test, expect } from 'vitest'
  *   $ npm install webdriverio
  *
  */
-import { remote, attach } from '../packages/webdriverio/build/index.js'
+import { remote, attach } from 'webdriverio'
 
 test('allow to attach to an existing session', async () => {
+    /**
+     * fails in windows due to timeout:
+     * > Command browsingContext.navigate with id 1 (with the following parameter: {"context":"BD746B5679530BC3403539C2FEC5A45A","url":"http://guinea-pig.webdriver.io","wait":"interactive"}) timed out
+     */
+    if (os.platform() === 'win32') {
+        return
+    }
+
     const browser = await remote({
         capabilities: {
             browserName: 'chrome',
@@ -20,36 +29,12 @@ test('allow to attach to an existing session', async () => {
 
     await browser.url('http://guinea-pig.webdriver.io')
     expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
-
-    const otherBrowser = await attach(browser)
-    expect(await otherBrowser.getTitle()).toBe('WebdriverJS Testpage')
-
-    await otherBrowser.deleteSession()
-
-    /**
-     * verify that browser session is deleted
-     */
-    const error = await browser.status().catch((err) => err)
-    expect(error.message).not.toBe('ChromeDriver ready for new sessions.')
-    expect(error.message).toEqual(expect.stringContaining('fetch failed'))
-})
-
-test('can attach to a Bidi session', async () => {
-    const browser = await remote({
-        capabilities: {
-            browserName: 'chrome',
-            webSocketUrl: true,
-            'goog:chromeOptions': {
-                args: ['headless', 'disable-gpu']
-            }
-        }
-    })
-
     const origContextTree = await browser.browsingContextGetTree({ maxDepth: 1 })
     expect(origContextTree.contexts).toHaveLength(1)
     expect(typeof origContextTree.contexts[0].context).toBe('string')
 
     const otherBrowser = await attach(browser)
+    expect(await otherBrowser.getTitle()).toBe('WebdriverJS Testpage')
     const newContextTree = await otherBrowser.browsingContextGetTree({ maxDepth: 1 })
     expect(origContextTree.contexts[0].context).toBe(newContextTree.contexts[0].context)
 
@@ -60,5 +45,5 @@ test('can attach to a Bidi session', async () => {
      */
     const error = await browser.status().catch((err) => err)
     expect(error.message).not.toBe('ChromeDriver ready for new sessions.')
-    expect(error.message).toEqual(expect.stringContaining('fetch failed'))
+    expect(error.message).toEqual(expect.stringContaining('Request failed with error code ECONNREFUSED'))
 })

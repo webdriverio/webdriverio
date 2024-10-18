@@ -1,7 +1,7 @@
-import type { Capabilities } from '@wdio/types'
-
 import supportsColor from './supportsColor.js'
 import { COLORS } from './constants.js'
+
+const FIRST_FUNCTION_REGEX = /function (\w+)/
 
 /**
  * replaces whitespaces with underscore and removes dots
@@ -24,7 +24,7 @@ export function sanitizeString (str?: string) {
  * formats capability object into sanitized string for e.g.filenames
  * @param {object} caps  Selenium capabilities
  */
-export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
+export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
     if (!caps) {
         return ''
     }
@@ -34,16 +34,20 @@ export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
     /**
      * mobile caps
      */
-    result = caps.deviceName
+    // @ts-expect-error outdated JSONWP capabilities
+    result = caps['appium:deviceName'] || caps.deviceName
         ? [
             sanitizeString(caps.platformName),
-            sanitizeString(caps.deviceName || caps['appium:deviceName']),
+            // @ts-expect-error outdated JSONWP capabilities
+            sanitizeString(caps['appium:deviceName'] || caps.deviceName),
             sanitizeString(caps['appium:platformVersion']),
             sanitizeString(caps['appium:app'])
         ]
         : [
             sanitizeString(caps.browserName),
+            // @ts-expect-error outdated JSONWP capabilities
             sanitizeString(caps.version || caps.browserVersion),
+            // @ts-expect-error outdated JSONWP capabilities
             sanitizeString(caps.platform || caps.platformName),
             sanitizeString(caps['appium:app'])
         ]
@@ -102,4 +106,31 @@ export function colorLines (name: keyof typeof COLORS, str: string) {
         .split('\n')
         .map((str) => color(name, str))
         .join('\n')
+}
+
+/**
+ * Transforms WebDriver execute command scripts to avoid accumulating
+ * long scripts in the default TestStats.
+ * @param script WebDriver command script
+ */
+export function transformCommandScript (script?: string|Function) {
+    if (!script) {
+        return script
+    }
+    let name = undefined
+    if (typeof script === 'string') {
+        name = FIRST_FUNCTION_REGEX.exec(script)
+        // reset the static RegExp globals to avoid leaking `script`
+        FIRST_FUNCTION_REGEX.exec('')
+    } else if (typeof script === 'function') {
+        name = script.name
+        script = script.toString()
+    } else {
+        return `<${typeof script}>`
+    }
+
+    if (typeof name === 'string' && name) {
+        return `<script fn ${name}(...)> [${Buffer.byteLength(script, 'utf-8')} bytes]`
+    }
+    return `<script> [${Buffer.byteLength(script, 'utf-8')} bytes]`
 }

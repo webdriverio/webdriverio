@@ -2,10 +2,9 @@ import type { ChildProcess } from 'node:child_process'
 
 import logger from '@wdio/logger'
 
-import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
+import { webdriverMonad, sessionEnvironmentDetector, startWebDriver, isBidi } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
-import { deepmerge } from 'deepmerge-ts'
-import type { Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 import command from './command.js'
 import { DEFAULTS } from './constants.js'
@@ -16,7 +15,7 @@ const log = logger('webdriver')
 
 export default class WebDriver {
     static async newSession(
-        options: Options.WebDriver,
+        options: Capabilities.RemoteConfig,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
@@ -49,7 +48,7 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        if (capabilities.webSocketUrl) {
+        if (isBidi(requestedCapabilities, capabilities)) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
             Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string, options.strictSSL))
         }
@@ -69,10 +68,10 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (capabilities.webSocketUrl) {
+        if (isBidi(requestedCapabilities, capabilities)) {
             // make sure the Bidi connection is established before returning
             await client._bidiHandler.connect()
-            client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+            client._bidiHandler.socket.on('message', parseBidiMessage.bind(client))
         }
 
         /**
@@ -123,12 +122,10 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        const webSocketUrl = 'alwaysMatch' in options.capabilities!
-            ? options.capabilities.alwaysMatch?.webSocketUrl
-            : options.capabilities!.webSocketUrl
-        if (webSocketUrl) {
+        if (isBidi(options.requestedCapabilities || {}, options.capabilities || {})) {
+            const webSocketUrl = options.capabilities?.webSocketUrl as unknown as string
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as any as string, options.strictSSL))
+            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string, options.strictSSL))
         }
 
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
@@ -138,7 +135,7 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (webSocketUrl) {
+        if (isBidi(options.requestedCapabilities || {}, options.capabilities || {})) {
             client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
         }
         return client
@@ -152,11 +149,22 @@ export default class WebDriver {
      * @returns {string}           the new session id of the browser
      */
     static async reloadSession(instance: Client, newCapabilities?: WebdriverIO.Capabilities) {
-        const capabilities = deepmerge(instance.requestedCapabilities, newCapabilities || {})
-        const params: Options.WebDriver = { ...instance.options, capabilities }
+        const capabilities = newCapabilities ? newCapabilities : Object.assign({}, instance.requestedCapabilities) as WebdriverIO.Capabilities
+        let params: Capabilities.RemoteConfig = { ...instance.options, capabilities }
 
+        for (const prop of ['protocol', 'hostname', 'port', 'path', 'queryParams', 'user', 'key'] as (keyof Options.Connection)[]) {
+            if (prop in capabilities) {
+                params = { ...params, [prop]: capabilities[prop] }
+                delete capabilities[prop]
+            }
+        }
+
+        /**
+         * if we have been running a local session before, delete connection details
+         * in order to start a new session on a potential new driver
+         */
         let driverProcess: ChildProcess | undefined
-        if (newCapabilities?.browserName) {
+        if (params.hostname === 'localhost' && newCapabilities?.browserName) {
             delete params.port
             delete params.hostname
             driverProcess = await startWebDriver(params)
@@ -172,10 +180,17 @@ export default class WebDriver {
             newSessionCapabilities['wdio:driverPID'] = driverProcess.pid
         }
 
-        instance.options.hostname = params.hostname
-        instance.options.port = params.port
+        for (const prop of ['protocol', 'hostname', 'port', 'path', 'queryParams', 'user', 'key'] as (keyof Options.Connection)[]) {
+            if (prop in params) {
+                (<typeof prop>instance.options[prop]) = params[prop] as typeof prop
+            }
+        }
+        for (const prop in instance.requestedCapabilities) {
+            delete instance.requestedCapabilities[prop as keyof typeof instance.requestedCapabilities]
+        }
         instance.sessionId = sessionId
         instance.capabilities = newSessionCapabilities
+        Object.assign(instance.requestedCapabilities, capabilities)
         return sessionId
     }
 

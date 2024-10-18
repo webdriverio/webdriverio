@@ -11,6 +11,14 @@ const log = logger('webdriverio')
  * Be careful though, this command affects your test time tremendously since spawning
  * new Selenium sessions is very time consuming especially when using cloud services.
  *
+ * Connection parameters such as hostname, port, protocol, etc. can be added along side
+ * browserName when you want to connect to a different remote service. This is useful
+ * in a situation, for example, where you start a test in native app and need to verify
+ * data in web app.
+ *
+ * If you start from remote service, you can pass in 0.0.0.0 for hostname if you want
+ * to switch to local drivers.
+ *
  * <example>
     :reloadSync.js
     it('should reload my session with current capabilities', async () => {
@@ -22,6 +30,18 @@ const log = logger('webdriverio')
     it('should reload my session with new capabilities', async () => {
         console.log(browser.capabilities.browserName) // outputs: chrome
         await browser.reloadSession({
+            browserName: 'firefox'
+        })
+        console.log(browser.capabilities.browserName) // outputs: firefox
+    })
+
+    it('should reload my session with new remote', async () => {
+        console.log(browser.capabilities.browserName) // outputs: chrome
+        await browser.reloadSession({
+            protocol: 'https',
+            host: '0.0.0.1',
+            port: 4444,
+            path: '/wd/hub',
             browserName: 'firefox'
         })
         console.log(browser.capabilities.browserName) // outputs: firefox
@@ -55,12 +75,12 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
         log.warn(`Suppressing error closing the session: ${err.stack}`)
     }
 
-    if (this.puppeteer?.isConnected()) {
+    if (this.puppeteer?.connected) {
         this.puppeteer.disconnect()
         log.debug('Disconnected puppeteer session')
     }
 
-    const ProtocolDriver = (await import(this.options.automationProtocol!)).default
+    const ProtocolDriver = (await import(/* @vite-ignore */this.options.automationProtocol!)).default
     await ProtocolDriver.reloadSession(this, newCapabilities)
 
     const options = this.options as Options.Testrunner

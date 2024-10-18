@@ -1,7 +1,8 @@
 import os from 'node:os'
 import type { Options } from '@wdio/types'
+import type { RemoteConfig } from './types.js'
 
-export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
+export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
     /**
      * protocol of automation driver
      */
@@ -140,11 +141,6 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
         type: 'string',
         default: process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()
     }
-}
-
-export const REG_EXPS = {
-    commandName: /.*\/session\/[0-9a-f-]+\/(.*)/,
-    execFn: /return \(([\s\S]*)\)\.apply\(null, arguments\)/
 }
 
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'

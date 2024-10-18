@@ -1,11 +1,11 @@
 ---
 title: "Exciting Partnership Announcement: WebdriverIO Teams Up with BrowserStack"
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 We are thrilled to share some fantastic news: WebdriverIO and [BrowserStack](https://browserstack.com) have embarked on a groundbreaking partnership, set to significantly boost the development and community engagement of our project!
+
+<!-- truncate -->
 
 <p align="center">
     <ImageSwitcher

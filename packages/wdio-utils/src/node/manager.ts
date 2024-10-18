@@ -18,25 +18,31 @@ enum BrowserDriverTaskLabel {
 }
 
 function mapCapabilities (
-    options: Omit<Options.WebdriverIO, 'capabilities'>,
-    caps: Capabilities.RemoteCapabilities,
+    options: Options.WebdriverIO,
+    caps: Capabilities.TestrunnerCapabilities,
     task: SetupTaskFunction,
     taskItemLabel: string) {
     const capabilitiesToRequireSetup = (
         Array.isArray(caps)
-            ? caps.map((cap) => {
+            ? caps.map((cap: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) => {
                 const w3cCaps = cap as Capabilities.W3CCapabilities
-                const multiremoteCaps = cap as Capabilities.MultiRemoteCapabilities
-                const isMultiremote = Boolean(multiremoteCaps[Object.keys(cap)[0]].capabilities)
+                const multiremoteCaps = cap as Capabilities.RequestedMultiremoteCapabilities
+                const multiremoteInstanceNames = Object.keys(multiremoteCaps)
 
-                if (isMultiremote) {
-                    return Object.values(multiremoteCaps).map((c) => c.capabilities) as WebdriverIO.Capabilities[]
-                } else if (w3cCaps.alwaysMatch) {
+                if (typeof multiremoteCaps[multiremoteInstanceNames[0]] === 'object' && 'capabilities' in multiremoteCaps[multiremoteInstanceNames[0]]) {
+                    return Object.values(multiremoteCaps).map((c: Capabilities.WithRequestedCapabilities) => (
+                        'alwaysMatch' in c.capabilities
+                            ? c.capabilities.alwaysMatch
+                            : c.capabilities
+                    ))
+                }
+
+                if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
                 }
                 return cap as WebdriverIO.Capabilities
             }).flat()
-            : Object.values(caps as Capabilities.MultiRemoteCapabilities).map((mrOpts) => {
+            : Object.values(caps as Capabilities.WithRequestedMultiremoteCapabilities['capabilities']).map((mrOpts) => {
                 const w3cCaps = mrOpts.capabilities as Capabilities.W3CCapabilities
                 if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
@@ -56,7 +62,9 @@ function mapCapabilities (
         // - we are not running Safari (driver already installed on macOS)
         !isSafari(cap.browserName) &&
         // - driver options don't define a binary path
-        !getDriverOptions(cap).binary
+        !getDriverOptions(cap).binary &&
+        // - environment does not define a binary path
+        !(process.env.CHROMEDRIVER_PATH && isChrome(cap.browserName))
     )) as WebdriverIO.Capabilities[]
 
     /**
@@ -97,7 +105,7 @@ function mapCapabilities (
     )
 }
 
-export async function setupDriver (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RemoteCapabilities) {
+export async function setupDriver (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.TestrunnerCapabilities) {
     return mapCapabilities(options, caps, async (cap: WebdriverIO.Capabilities) => {
         const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {
@@ -114,7 +122,7 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
     }, BrowserDriverTaskLabel.DRIVER)
 }
 
-export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.RemoteCapabilities) {
+export function setupBrowser (options: Omit<Options.WebDriver, 'capabilities'>, caps: Capabilities.TestrunnerCapabilities) {
     return mapCapabilities(options, caps, async (cap: WebdriverIO.Capabilities) => {
         const cacheDir = getCacheDir(options, cap)
         if (isEdge(cap.browserName)) {

@@ -1,8 +1,7 @@
-import fs from 'node:fs/promises'
+import fs from 'node:fs'
 import path from 'node:path'
-import { createRequire } from 'node:module'
 import { HOOK_DEFINITION } from '@wdio/utils'
-import type { Options, Services, Reporters, Capabilities } from '@wdio/types'
+import type { Options, Services, Reporters } from '@wdio/types'
 
 import {
     detectCompiler,
@@ -12,10 +11,9 @@ import {
     detectPackageManager,
 } from './utils.js'
 import type { Questionnair } from './types.js'
+import pkgJSON from '../package.json' with { type: 'json' }
 
-const require = createRequire(import.meta.url)
-export const pkg = require('../package.json')
-
+export const pkg = pkgJSON
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
 
 export const CONFIG_HELPER_INTRO = `
@@ -24,6 +22,7 @@ export const CONFIG_HELPER_INTRO = `
 ===============================
 `
 
+export const SUPPORTED_COMMANDS = ['run', 'install', 'config', 'repl']
 export const PMs = ['npm', 'yarn', 'pnpm', 'bun'] as const
 export const SUPPORTED_CONFIG_FILE_EXTENSION = ['js', 'ts', 'mjs', 'mts', 'cjs', 'cts']
 export const configHelperSuccessMessage = ({ projectRootDir, runScript, extraInfo = '' }: { projectRootDir: string, runScript: string, extraInfo: string }) => `
@@ -120,7 +119,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
-        { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
+        { name: 'lighthouse', value: '@wdio/lighthouse-service$--$lighthouse' },
         { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
         { name: 'electron', value: 'wdio-electron-service$--$electron' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
@@ -149,7 +148,6 @@ export const SUPPORTED_PACKAGES = {
         { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' },
         { name: 'google-Chat', value: 'wdio-google-chat-service$--$google-chat' },
         { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service$--$qmate-service' },
-        { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai' },
         { name: 'robonut', value: 'wdio-robonut-service$--$robonut' },
         { name: 'qunit', value: 'wdio-qunit-service$--$qunit' }
     ]
@@ -163,7 +161,7 @@ export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
     { name: 'StencilJS (https://stenciljs.com/)', value: '$--$stencil' },
     { name: 'React (https://reactjs.org/)', value: '@vitejs/plugin-react$--$react' },
     { name: 'Preact (https://preactjs.com/)', value: '@preact/preset-vite$--$preact' },
-    { name: 'Other', value: false }
+    { name: 'Other', value: null }
 ]
 
 export const TESTING_LIBRARY_PACKAGES: Record<string, string> = {
@@ -196,8 +194,7 @@ enum ProtocolOptions {
 
 export enum RegionOptions {
     US = 'us',
-    EU = 'eu',
-    APAC = 'apac'
+    EU = 'eu'
 }
 
 export const E2E_ENVIRONMENTS = [
@@ -229,19 +226,19 @@ function getTestingPurpose (answers: Questionnair) {
     return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos'
 }
 
-export const isNuxtProject = await Promise.all(
-    [
-        path.join(process.cwd(), 'nuxt.config.js'),
-        path.join(process.cwd(), 'nuxt.config.ts'),
-        path.join(process.cwd(), 'nuxt.config.mjs'),
-        path.join(process.cwd(), 'nuxt.config.mts')
-    ].map(
-        (p) => fs.access(p).then(() => true, () => false)
-    )
-).then(
-    (res) => res.some(Boolean),
-    () => false
-)
+export const isNuxtProject = [
+    path.join(process.cwd(), 'nuxt.config.js'),
+    path.join(process.cwd(), 'nuxt.config.ts'),
+    path.join(process.cwd(), 'nuxt.config.mjs'),
+    path.join(process.cwd(), 'nuxt.config.mts')
+].map((p) => {
+    try {
+        fs.accessSync(p)
+        return true
+    } catch {
+        return false
+    }
+}).some(Boolean)
 
 function selectDefaultService (serviceNames: string | string[]) {
     serviceNames = Array.isArray(serviceNames) ? serviceNames : [serviceNames]
@@ -506,7 +503,7 @@ export const QUESTIONNAIRE = [{
         const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
         return getDefaultFiles(answers, pattern)
     },
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.match(/(mocha|jasmine)/)
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && Boolean(answers.framework.match(/(mocha|jasmine)/))
 }, {
     type: 'input',
     name: 'specs',
@@ -672,7 +669,7 @@ export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
     'wdio-gmail-service'
 ]
 
-export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
+export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner & { capabilities: unknown }> = {
     /**
      * Define specs for test execution. You can either specify a glob
      * pattern to match multiple files at once or wrap a glob or set of
@@ -729,7 +726,7 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner> = {
      */
     capabilities: {
         type: 'object',
-        validate: (param: Capabilities.RemoteCapabilities) => {
+        validate: (param: unknown) => {
             /**
              * should be an object
              */

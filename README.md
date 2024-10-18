@@ -115,7 +115,7 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 
 - [@wdio/appium-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service) - A WebdriverIO service to start & stop Appium Server
 - [@wdio/browserstack-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service) - A WebdriverIO service that can be used to use BrowserStack Test Observability which is a reporting, debugging, and test suite quality tracking tool for any test running anywhere. The service also helps for a better integration with the BrowserStack grid if you're running tests on the grid.
-- [@wdio/devtools-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service) - A WebdriverIO service that allows you to run Chrome DevTools commands in your tests
+- [@wdio/lighthouse-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service) - A WebdriverIO service that integrates Google Lighthouse commands to use it for automate tests
 - [@wdio/firefox-profile-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-firefox-profile-service) - A WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js
 - [@wdio/sauce-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) - A WebdriverIO service that provides a better integration into Sauce Labs
 - [@wdio/shared-store-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service) - A WebdriverIO service to exchange data across processes
@@ -138,6 +138,14 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 - [@wdio/smoke-test-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-reporter) - A WebdriverIO utility to smoke test reporters for internal testing purposes
 - [@wdio/smoke-test-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service) - A WebdriverIO utility to smoke test services for internal testing purposes
 - [@wdio/webdriver-mock-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service) - A WebdriverIO service to stub all endpoints for internal testing purposes
+
+### Infrastructure Packages
+
+These packages are not released to NPM and used to work on this codebase.
+
+- [@wdio/compiler](https://github.com/webdriverio/webdriverio/tree/main/infa/compiler) - Esbuild script to
+compile the source code all of all packages
+- [@wdio/lerna-patch](https://github.com/webdriverio/webdriverio/tree/main/infa/lernaPatch) - This sub-package is being used to patch Lerna to not run `pnpm install` after it prepared all packages for release
 
 ## :handshake: Project Governance
 
@@ -165,9 +173,17 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
     <a href="https://saucelabs.com"><img src="https://webdriver.io/img/sponsors/saucelabs_black.svg" alt="Sauce Labs" width=400 /></a>
 </p>
 
+### 🥇 Gold Sponsor
+
+<p align="center">
+    <a href="https://www.route4me.com/"><img src="https://webdriver.io/img/sponsors/route4me.svg" width="250" alt="Route4Me" /></a>
+</p>
+
 ### 🥈 Silver Sponsor
 
 <p align="center">
+    <a href="https://testingbot.com/"><img src="https://webdriver.io/img/sponsors/testingbot.svg" width="250" alt="TestingBot" /></a>
+    &nbsp; &nbsp; &nbsp;
     <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
@@ -179,9 +195,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 ## :page_facing_up: License
 
-[MIT](/LICENSE-MIT)
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio?ref=badge_large)
+[MIT](/LICENSE)
 
 ## :beginner: Badge
 

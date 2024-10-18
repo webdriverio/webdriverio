@@ -19,7 +19,7 @@
   },
   {
     "packageName": "wdio-nuxt-service",
-    "title": "WDIO Nuxt Service",
+    "title": "Nuxt Service",
     "githubUrl": "https://github.com/webdriverio-community/wdio-nuxt-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-nuxt-service"
   },
@@ -164,13 +164,6 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-eslinter-service"
   },
   {
-    "packageName": "wdio-ms-teams-service",
-    "title": "Microsoft Teams",
-    "branch": "master",
-    "githubUrl": "https://github.com/marcelblijleven/wdio-ms-teams-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-ms-teams-service"
-  },
-  {
     "packageName": "wdio-cucumber-viewport-logger-service",
     "title": "Cucumber Viewport Logger",
     "githubUrl": "https://github.com/viktor-silakov/wdio-cucumber-viewport-logger-service",
@@ -200,12 +193,6 @@
     "title": "Qmate",
     "githubUrl": "https://github.com/SAP/wdio-qmate-service",
     "npmUrl": "https://www.npmjs.com/package/@sap_oss/wdio-qmate-service"
-  },
-  {
-    "packageName": "wdio-vitaqai-service",
-    "title": "Vitaq AI",
-    "githubUrl": "https://github.com/RossVertizan/wdio-vitaqai-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-vitaqai-service"
   },
   {
     "packageName": "wdio-robonut-service",

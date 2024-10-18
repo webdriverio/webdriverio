@@ -31,7 +31,9 @@ export default class Watcher {
         const capSpecs = this._launcher.isMultiremote
             ? []
             : union(flattenDeep(
-                (this._launcher.configParser.getCapabilities() as Capabilities.DesiredCapabilities[]).map(cap => cap.specs || [])
+                (this._launcher.configParser.getCapabilities() as Capabilities.RequestedStandaloneCapabilities[]).map(cap => (
+                    'alwaysMatch' in cap ? cap.alwaysMatch['wdio:specs'] : cap['wdio:specs'] || []
+                ) as string[])
             ))
         this._specs = [...specs, ...capSpecs]
 

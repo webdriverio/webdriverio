@@ -1,13 +1,13 @@
 ---
 title: Case Study - How WebdriverIO facilitated faster releases and better code quality for an online video company
-author: Eric Saari
-authorURL: https://www.linkedin.com/in/esaari/
-authorImageURL: https://avatars.githubusercontent.com/u/5210550?s=400&u=a7918ea7b425d621b2252f6e963b8657acdd1b0c&v=4
+authors: eric
 ---
 
-## Choosing WebdriverIO
-
 [JW Player](https://www.jwplayer.com) is an embeddable, online video player which generates over a billion unique views every day. In order to sustain and grow this scale, the player needs to be able to function on a multitude of different web and mobile platforms. This increases the importance of automated testing to improve confidence in our releases when deploying to so many different targets. After a lengthy project of converting our legacy test framework, which comprised over 6,000 tests, the Test Engineering team at JW Player has been able to deliver more timely releases with fewer regressions. We have experienced no major rollbacks, and increased the confidence we have in the quality of our own product, thanks to WebdriverIO.
+
+<!-- truncate -->
+
+## Choosing WebdriverIO
 
 Before our migration to WebdriverIO, we had been using an open sourced Ruby framework on top of Cucumber. JW Player is officially supported on seven desktop and mobile web browsers, as well as iOS and Android versions dating back to 10 and 4.4, respectively. For coverage of these platforms, we run approximately 25,000 UI acceptance tests on a nightly basis. The legacy implementation created two problems. First, we encountered performance limitations in Ruby, as a single test run across all platforms could take up to 9 hours. Second, as the Player is implemented in JavaScript, product engineers were less likely to embrace and contribute to the Ruby-based framework. Moving to a JavaScript-native framework addressed both of these problems.
 

@@ -40,7 +40,7 @@ export default class SauceService implements Services.ServiceInstance {
 
     constructor (
         options: SauceServiceConfig,
-        private _capabilities: Capabilities.RemoteCapability,
+        private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
@@ -414,11 +414,11 @@ export default class SauceService implements Services.ServiceInstance {
         if (this._browser.isMultiremote) {
             return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
                 const multiRemoteBrowser = (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)
-                return multiRemoteBrowser.execute(annotation)
+                return multiRemoteBrowser.executeScript(annotation, [])
             }))
         }
 
-        return (this._browser as WebdriverIO.Browser).execute(annotation)
+        return (this._browser as WebdriverIO.Browser).executeScript(annotation, [])
     }
 
     private async _setJobName(suiteTitle: string | undefined) {

@@ -1,11 +1,11 @@
 ---
 title: "Sauce Labs joins WebdriverIOs Partnership Program as Premium Sponsor"
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 We are thrilled to announce an exciting development in our journey towards innovation in software testing and quality assurance. [Sauce Labs](https://saucelabs.com/), a pioneering force in the continuous testing arena, is joining forces with us through our Partnership Program. This collaboration marks a significant milestone in our quest to expand our development fund, enabling us to enhance our work on major releases and introduce groundbreaking features yet to be unveiled.
+
+<!-- truncate -->
 
 <p align="center">
     <ImageSwitcher

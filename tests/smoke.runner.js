@@ -2,9 +2,9 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 import assert from 'node:assert'
+import { expect } from 'expect-webdriverio'
 
-import { sleep } from '../packages/wdio-utils/build/utils.js'
-import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
+import { SevereServiceError } from 'webdriverio'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
@@ -14,6 +14,9 @@ const allPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-al
 const noArgConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-no-arg.conf.js')
 const severalPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-failed.conf.js')
 
+// eslint-disable-next-line no-control-regex
+const ansiColorRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
+
 import launch from './helpers/launch.js'
 import {
     SERVICE_LOGS,
@@ -22,6 +25,8 @@ import {
     JASMINE_REPORTER_LOGS,
     CUCUMBER_REPORTER_LOGS,
 } from './helpers/fixtures.js'
+
+export const sleep = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 async function fileExists (path) {
     try {
@@ -64,7 +69,7 @@ async function runTests (tests) {
  * Mocha wdio testrunner tests
  */
 const mochaTestrunner = async () => {
-    const { skippedSpecs } = await launch('mochaTestrunner', baseConfig, {
+    const { skippedSpecs, passed } = await launch('mochaTestrunner', baseConfig, {
         specs: [
             '../mocha/test.ts',
             path.resolve(__dirname, 'mocha', 'test-middleware.ts'),
@@ -82,6 +87,7 @@ const mochaTestrunner = async () => {
         return
     }
     assert.strictEqual(skippedSpecs, 1)
+    assert.strictEqual(passed, 4)
 }
 
 /**
@@ -93,7 +99,7 @@ const mochaAsyncTestrunner = async () => {
         'mochaAsyncTestrunner',
         path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
         {
-            spec: ['./tests/mocha/test-async.ts']
+            spec: ['./mocha/test-async.ts']
         }
     )
     assert.strictEqual(skippedSpecs, 0)
@@ -167,9 +173,9 @@ const jasmineReporter = async () => {
         outputDir: __dirname + '/jasmine'
     }).catch((err) => err) // error expected
     await sleep(100)
-    const reporterLogsPath = path.join(__dirname, 'jasmine', 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogsPath = path.resolve(__dirname, 'jasmine', 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
-    assert.equal(reporterLogs.toString(), JASMINE_REPORTER_LOGS)
+    expect(reporterLogs.toString()).toEqual(JASMINE_REPORTER_LOGS)
     await fs.unlink(reporterLogsPath)
 }
 
@@ -177,7 +183,7 @@ const jasmineReporter = async () => {
  * Jasmine timeout test
  */
 const jasmineTimeout = async () => {
-    const logFile = path.join(__dirname, 'jasmineTimeout.spec.log')
+    const logFile = path.resolve(__dirname, 'jasmineTimeout.spec.log')
     await launch('jasmineTimeout', baseConfig, {
         specs: [path.resolve(__dirname, 'jasmine', 'test-timeout.js')],
         reporters: [
@@ -190,8 +196,7 @@ const jasmineTimeout = async () => {
         framework: 'jasmine'
     }).catch((err) => err) // error expected
 
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
     assert.ok(
         specLogs.includes('Error: Timeout - Async function did not complete within 1000ms (custom timeout)'),
         'spec was not failing due to timeout error'
@@ -215,7 +220,7 @@ const jasmineTimeout = async () => {
  * https://github.com/webdriverio/webdriverio/issues/8979
  */
 const jasmineAfterAll = async () => {
-    const logFile = path.join(__dirname, 'jasmineAfterAll.spec.log')
+    const logFile = path.resolve(__dirname, 'jasmineAfterAll.spec.log')
     await launch('jasmineAfterAll', baseConfig, {
         specs: [path.resolve(__dirname, 'jasmine', 'afterAll-report.js')],
         reporters: [
@@ -228,8 +233,7 @@ const jasmineAfterAll = async () => {
         framework: 'jasmine'
     }).catch((err) => err) // error expected
 
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
 
     assert.ok(
         specLogs.includes('Testing after all hook'),
@@ -253,7 +257,7 @@ const jasmineAfterAll = async () => {
  * Jasmine verify failSpecWithNoExpectations support
  */
 const jasmineFailSpecWithNoExpectations = async () => {
-    const logFile = path.join(__dirname, 'jasmineWithNoExpectations.spec.log')
+    const logFile = path.resolve(__dirname, 'jasmineWithNoExpectations.spec.log')
     await launch('jasmineAfterAll', baseConfig, {
         specs: [path.resolve(__dirname, 'jasmine', 'jasmineWithNoExpectations.js')],
         reporters: [
@@ -269,8 +273,7 @@ const jasmineFailSpecWithNoExpectations = async () => {
         }
     }).catch((err) => err) // error expected
 
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
     assert.ok(
         specLogs.includes('No assertions found in test'),
         'spec did not fail with the expected check'
@@ -305,7 +308,7 @@ const cucumberTestrunner = async () => {
  * Cucumber wdio testrunner -- run single scenario by line number
  */
 const cucumberTestrunnerByLineNumber = async () => {
-    const logFile = path.join(__dirname, 'cucumber', 'cucumberTestrunnerByLineNumber.log')
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberTestrunnerByLineNumber.log')
     await fs.rm(logFile, { force: true })
     await launch(
         'cucumberTestrunnerByLineNumber',
@@ -324,8 +327,7 @@ const cucumberTestrunnerByLineNumber = async () => {
                 }]]
         }
     )
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
     assert.ok(
         specLogs.includes('Sync Execution'),
         'scenario not executed in feature by line number'
@@ -334,6 +336,33 @@ const cucumberTestrunnerByLineNumber = async () => {
         !specLogs.includes('Retry Check'),
         'extra scenarios not filtered out by line number'
     )
+}
+
+/**
+ * Cucumber wdio testrunner -- run three features (by line number) and verify each only runs once
+ */
+const cucumberTestrunnerMultipleByLineNumber = async () => {
+    const featureDir = path.resolve(__dirname, 'cucumber', 'features')
+    const { failed, passed, skippedSpecs } = await launch(
+        'cucumberTestrunnerMultipleByLineNumber',
+        path.resolve(__dirname, 'helpers', 'cucumber-features.conf.js'),
+        {
+            spec: [
+                path.resolve(featureDir, 'test1.feature:4'),
+                // deliberately w/o line number to capture more potential bugs
+                path.resolve(featureDir, 'test2.feature'),
+                path.resolve(featureDir, 'test3.feature:4'),
+            ],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                }]]
+        }
+    )
+    assert.strictEqual(failed, 0)
+    assert.strictEqual(passed, 3)
+    assert.strictEqual(skippedSpecs, 0)
 }
 
 /**
@@ -379,6 +408,42 @@ const cucumberReporter = async () => {
 }
 
 /**
+ * Cucumber file option
+ */
+const cucumberFileOption = async () => {
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberFileOption.log')
+    await fs.rm(logFile, { force: true })
+    const { passed } = await launch(
+        'cucumberFileOption',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'cucumber', 'test.feature'),
+            ],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]],
+            cucumberOpts: {
+                ignoreUndefinedDefinitions: true,
+                scenarioLevelReporter: true,
+                retry: 1,
+                retryTagFilter: '@retry',
+                file: './cucumber/cucumber.js'
+            }
+        }
+    )
+    assert.strictEqual(passed, 1)
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+    assert.ok(
+        specLogs.includes('test-skipped.feature'),
+        'scenario not included according to cucumber config'
+    )
+}
+
+/**
  * wdio test run with custom service
  */
 const customService = async () => {
@@ -387,9 +452,9 @@ const customService = async () => {
         services: [['smoke-test', { foo: 'bar' }]]
     })
     await sleep(100)
-    const serviceLogs = await fs.readFile(path.join(__dirname, 'helpers', 'service.log'))
+    const serviceLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'service.log'))
     assert.equal(serviceLogs.toString(), SERVICE_LOGS)
-    const launcherLogs = await fs.readFile(path.join(__dirname, 'helpers', 'launcher.log'))
+    const launcherLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'launcher.log'))
     assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
 }
 
@@ -402,9 +467,9 @@ const customCJSService = async () => {
         services: [['smoke-test-cjs', { foo: 'bar' }]]
     })
     await sleep(100)
-    const serviceLogs = await fs.readFile(path.join(__dirname, 'helpers', 'service.log'))
+    const serviceLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'service.log'))
     assert.equal(serviceLogs.toString(), SERVICE_LOGS)
-    const launcherLogs = await fs.readFile(path.join(__dirname, 'helpers', 'launcher.log'))
+    const launcherLogs = await fs.readFile(path.resolve(__dirname, 'helpers', 'launcher.log'))
     assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
 }
 
@@ -417,7 +482,7 @@ const customReporterString = async () => {
         reporters: [['smoke-test', { foo: 'bar' }]]
     })
     await sleep(100)
-    const reporterLogsPath = path.join(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogsPath = path.resolve(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
     assert.equal(reporterLogs.toString(), REPORTER_LOGS)
     await fs.unlink(reporterLogsPath)
@@ -432,10 +497,24 @@ const customReporterObject = async () => {
         path.resolve(__dirname, 'helpers', 'reporter.conf.js'),
     )
     await sleep(100)
-    const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
+    const reporterLogsWithReporterAsObjectPath = path.resolve(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
     const reporterLogsWithReporterAsObject = await fs.readFile(reporterLogsWithReporterAsObjectPath)
     assert.equal(reporterLogsWithReporterAsObject.toString(), REPORTER_LOGS)
     await fs.unlink(reporterLogsWithReporterAsObjectPath)
+}
+
+/**
+ * wdio-reporter testrunner tests
+ */
+const reporterTestrunner = async () => {
+    const { skippedSpecs, passed, failed } = await launch('reporterTestrunner', baseConfig, {
+        specs: [
+            path.resolve(__dirname, 'reporter', 'memory.ts'),
+        ]
+    })
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(failed, 0)
 }
 
 /**
@@ -496,7 +575,7 @@ const retryFail = async () => {
  * specfile-level retries (pass)
  */
 const retryPass = async () => {
-    const retryFilename = path.join(__dirname, '.retry_succeeded')
+    const retryFilename = path.resolve(__dirname, '.retry_succeeded')
     const logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
     const rmfiles = [retryFilename, ...logfiles]
     for (const filename of rmfiles) {
@@ -691,7 +770,7 @@ const runSpecsWithFlagDirectPath = async () => {
         'runSpecsWithFlagDirectPath',
         path.resolve(severalPassedConfig),
         {
-            spec: ['./tests/tests-cli-spec-arg/mocha.test03.js']
+            spec: ['./tests-cli-spec-arg/mocha.test03.js']
         }
     )
     assert.strictEqual(passed, 1)
@@ -799,7 +878,7 @@ const cliExcludeParamValidationExcludeMultipleSpecsByPath = async () => {
 // *** Tests for Jasmine ***
 // *************************
 const jasmineHooksTestrunner = async () => {
-    const logFile = path.join(__dirname, 'jasmineHooksTestrunner.spec.log')
+    const logFile = path.resolve(__dirname, 'jasmineHooksTestrunner.spec.log')
     await launch('jasmineHooksTestrunner',
         path.resolve(__dirname, 'helpers', 'jasmine-hooks.conf.js'),
         {
@@ -814,20 +893,19 @@ const jasmineHooksTestrunner = async () => {
             framework: 'jasmine',
         }).catch((err) => err) // error expected
 
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
     assert.ok(
         specLogs.includes('skip test'),
     )
 }
 
 const jasmineAfterHookArgsValidation = async () => {
-    const expectedPassedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestPassed.json')
-    const expectedFailedTestResultPath = path.join(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestFailed.json')
+    const expectedPassedTestResultPath = path.resolve(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestPassed.json')
+    const expectedFailedTestResultPath = path.resolve(__dirname, 'helpers', 'jasmine-after-hook-validation', 'expected-results', 'expectedTestFailed.json')
 
     // Actual test results are written to files in tests\helpers\jasmine.after-hook-validation.conf.js - afterTest()
-    const actualPassedTestResultPath = path.join(__dirname, 'helpers', 'actualResultsPassed.log')
-    const actualFailedTestResultPath = path.join(__dirname, 'helpers', 'actualResultsFailed.log')
+    const actualPassedTestResultPath = path.resolve(__dirname, 'helpers', 'actualResultsPassed.log')
+    const actualFailedTestResultPath = path.resolve(__dirname, 'helpers', 'actualResultsFailed.log')
 
     await launch('jasmineAfterHookArgsValidation',
         path.resolve(__dirname, 'helpers', 'jasmine.after-hook-validation.conf.js'),
@@ -885,8 +963,10 @@ const jasmineAfterHookArgsValidation = async () => {
         mochaSpecGrouping,
         cucumberTestrunner,
         cucumberTestrunnerByLineNumber,
+        cucumberTestrunnerMultipleByLineNumber,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
+        cucumberFileOption,
         standaloneTest,
         mochaAsyncTestrunner,
         customService,
@@ -901,6 +981,7 @@ const jasmineAfterHookArgsValidation = async () => {
         retryPass,
         customReporterString,
         customReporterObject,
+        reporterTestrunner,
         severeErrorTest,
         nonGlobalTestrunner,
         mochaHooksTestrunner,

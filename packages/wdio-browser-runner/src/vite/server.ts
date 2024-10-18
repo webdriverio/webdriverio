@@ -81,7 +81,7 @@ export class ViteServer extends EventEmitter {
         const vitePort = await getPort()
         this.#viteConfig = deepmerge(this.#viteConfig, <Partial<InlineConfig>>{
             server: {
-                host: '0.0.0.0',
+                ...this.#viteConfig.server,
                 port: vitePort
             }
         })
@@ -118,6 +118,8 @@ export class ViteServer extends EventEmitter {
         this.#server = await createServer(this.#viteConfig)
         await this.#server.listen()
         log.info(`Vite server started successfully on port ${vitePort}, root directory: ${this.#viteConfig.root}`)
+
+        return vitePort
     }
 
     async close () {

@@ -1,18 +1,25 @@
 import type { local, remote } from 'webdriver'
 import type { RequestWithOptions, RespondWithOptions } from './types.js'
 
+type Overwrite<T> = Omit<T extends RequestWithOptions ? remote.NetworkContinueRequestParameters : remote.NetworkContinueResponseParameters, 'request'>
+
 /**
  * parse request or response overwrites to make it compatible with Bidis protocol
  * @param overwrite request or response overwrite
  * @returns object to pass to the protocol
  */
-export function parseOverwrite(overwrite: RequestWithOptions | RespondWithOptions, request: local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters) {
-    let body: remote.NetworkBytesValue | undefined = undefined
+export function parseOverwrite<
+    T extends RequestWithOptions | RespondWithOptions
+>(
+    overwrite: T,
+    request: local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters
+): Overwrite<T> {
+    const result: Overwrite<T> = {} as any
     if ('body' in overwrite && overwrite.body) {
         const bodyOverwrite = typeof overwrite.body === 'function'
             ? overwrite.body(request as local.NetworkBeforeRequestSentParameters)
             : overwrite.body
-        body = typeof bodyOverwrite === 'string' ?
+        result.body = typeof bodyOverwrite === 'string' ?
             /**
              * if body is a string we can pass it as is
              */
@@ -32,23 +39,21 @@ export function parseOverwrite(overwrite: RequestWithOptions | RespondWithOption
             }
     }
 
-    let headers: remote.NetworkHeader[] = []
-    const headersOverwrite = typeof overwrite.headers === 'function'
-        ? overwrite.headers(request as local.NetworkBeforeRequestSentParameters)
-        : overwrite.headers
-    if (headersOverwrite) {
-        headers = Object.entries(headersOverwrite).map(([name, value]) => ({
+    if ('headers' in overwrite) {
+        const headersOverwrite = typeof overwrite.headers === 'function'
+            ? overwrite.headers(request as local.NetworkBeforeRequestSentParameters)
+            : overwrite.headers
+        result.headers = Object.entries(headersOverwrite || {}).map(([name, value]) => ({
             name,
             value: { type: 'string', value }
         }))
     }
 
-    let cookies: remote.NetworkSetCookieHeader[] = []
     if ('cookies' in overwrite && overwrite.cookies) {
         const cookieOverwrite = typeof overwrite.cookies === 'function'
             ? overwrite.cookies(request as local.NetworkBeforeRequestSentParameters) || []
             : overwrite.cookies
-        cookies = cookieOverwrite.map((cookie) => ({
+        result.cookies = cookieOverwrite.map((cookie) => ({
             name: cookie.name,
             value: <remote.NetworkStringValue>{
                 type: 'string',
@@ -63,26 +68,26 @@ export function parseOverwrite(overwrite: RequestWithOptions | RespondWithOption
         }))
     }
 
-    let statusCode: number | undefined = undefined
     if ('statusCode' in overwrite && overwrite.statusCode) {
         const statusCodeOverwrite = typeof overwrite.statusCode === 'function'
             ? overwrite.statusCode(request as local.NetworkResponseCompletedParameters)
             : overwrite.statusCode
-        statusCode = statusCodeOverwrite
+        ;(result as RespondWithOptions).statusCode = statusCodeOverwrite
     }
 
-    const method: string | undefined = 'method' in overwrite
-        ? typeof overwrite.method === 'function'
+    if ('method' in overwrite) {
+        result.method = typeof overwrite.method === 'function'
             ? overwrite.method(request as local.NetworkBeforeRequestSentParameters)
             : overwrite.method
-        : undefined
+    }
 
-    const url = 'url' in overwrite
-        ? typeof overwrite.url === 'function'
+    if ('url' in overwrite) {
+        result.url = typeof overwrite.url === 'function'
             ? overwrite.url(request as local.NetworkBeforeRequestSentParameters)
             : overwrite.url
-        : undefined
-    return { body, headers, cookies, method, statusCode, url }
+    }
+
+    return result
 }
 
 export function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {

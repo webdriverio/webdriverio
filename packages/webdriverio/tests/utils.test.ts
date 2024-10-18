@@ -164,7 +164,8 @@ describe('utils', () => {
                 findElementFromElement: vi.fn(),
                 findElements: vi.fn(),
                 findElement: vi.fn(),
-                execute: vi.fn()
+                execute: vi.fn(),
+                executeScript: vi.fn()
             } as any as WebdriverIO.Element
         })
 
@@ -193,13 +194,13 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
+            vi.mocked(scope.executeScript).mockResolvedValue(elementResponse)
             const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
-            expect(scope.execute).toBeCalled()
+            expect(scope.executeScript).toBeCalled()
             expect(elem[ELEMENT_KEY]).toBe('foobar')
-            expect(vi.mocked(scope.execute).mock.calls[0][1]).toEqual(scope)
+            expect(vi.mocked(scope.executeScript).mock.calls[0][1]).toEqual([scope])
         })
 
         it('should return only one element if multiple are returned', async () => {
@@ -222,11 +223,14 @@ describe('utils', () => {
         })
 
         it('throws if selector is neither string nor function', async () => {
-            const expectedMatch = 'selector needs to be typeof `string` or `function`'
-            await expect(findElement.call(scope as any, null)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElement.call(scope as any, 123)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElement.call(scope as any, false)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElement.call(scope as any)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElement.call(scope as any, null)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `object`'))
+            await expect(findElement.call(scope as any, 123)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `number`'))
+            await expect(findElement.call(scope as any, false)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `boolean`'))
+            await expect(findElement.call(scope as any)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `undefined`'))
         })
 
         it('should use execute if shadow selector is used', async () => {
@@ -235,7 +239,7 @@ describe('utils', () => {
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 false,
                 '.foobar',
                 undefined
@@ -250,7 +254,7 @@ describe('utils', () => {
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 false,
                 '.foobar',
                 scope
@@ -274,7 +278,8 @@ describe('utils', () => {
                 findElementFromElement: vi.fn(),
                 findElements: vi.fn(),
                 findElement: vi.fn(),
-                execute: vi.fn()
+                execute: vi.fn(),
+                executeScript: vi.fn()
             } as any as WebdriverIO.Element
         })
 
@@ -304,14 +309,14 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
+            vi.mocked(scope.executeScript).mockResolvedValue(elementResponse)
             const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
-            expect(scope.execute).toBeCalled()
+            expect(scope.executeScript).toBeCalled()
             expect(elem).toHaveLength(1)
             expect(elem[0][ELEMENT_KEY]).toBe('foobar')
-            expect(vi.mocked(scope.execute).mock.calls[0][1]).toEqual(scope)
+            expect(vi.mocked(scope.executeScript).mock.calls[0][1]).toEqual([scope])
         })
 
         it('should return multiple elements if multiple are returned', async () => {
@@ -339,11 +344,14 @@ describe('utils', () => {
         })
 
         it('throws if selector is neither string nor function', async () => {
-            const expectedMatch = 'selector needs to be typeof `string` or `function`'
-            await expect(findElements.call(scope, null)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElements.call(scope, 123)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElements.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElements.call(scope)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElements.call(scope, null)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `object`'))
+            await expect(findElements.call(scope, 123)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `number`'))
+            await expect(findElements.call(scope, false)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `boolean`'))
+            await expect(findElements.call(scope)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `undefined`'))
         })
 
         it('fetches element using a function with browser scope', async () => {
@@ -352,7 +360,7 @@ describe('utils', () => {
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 true,
                 '.foobar',
                 undefined
@@ -368,7 +376,7 @@ describe('utils', () => {
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 true,
                 '.foobar',
                 scope
