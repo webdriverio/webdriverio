@@ -1,6 +1,9 @@
-import { type local } from 'webdriver'
+import { ELEMENT_KEY, type local, type remote } from 'webdriver'
 
 import { getContextManager } from '../../context.js'
+import { LocalValue } from '../../utils/bidi/value.js'
+import { parseScriptResult } from '../../utils/bidi/index.js'
+import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
 import type { ChainablePromiseElement } from '../../types.js'
 
 type FlatContextTree = Omit<local.BrowsingContextInfo, 'children'> & { children: string[] }
@@ -55,28 +58,70 @@ export async function switchFrame (
      */
     if (context === null) {
         const handle = await this.getWindowHandle()
-        await switchToFrameHelper(this, handle)
+        switchToFrameHelper(this, handle)
         return handle
     }
 
     if (typeof context === 'string') {
         const tree = await this.browsingContextGetTree({})
+        let newContextId: string | undefined
+
         const urlContext = findContext(context, tree.contexts, byUrl)?.context
         if (urlContext) {
-            await switchToFrameHelper(this, urlContext)
-            return urlContext
+            newContextId = urlContext
         }
 
         const urlContextContaining = findContext(context, tree.contexts, byUrlContaining)?.context
         if (urlContextContaining) {
-            await switchToFrameHelper(this, urlContextContaining)
-            return urlContextContaining
+            newContextId = urlContextContaining
         }
 
         const contextIdContext = findContext(context, tree.contexts, byContextId)?.context
         if (contextIdContext) {
-            await switchToFrameHelper(this, contextIdContext)
-            return contextIdContext
+            newContextId = contextIdContext
+        }
+
+        if (newContextId) {
+            const allContexts = await getFlatContextTree(this)
+            const allContextIds = Object.keys(allContexts)
+            const allFrames = (await Promise.all(allContextIds.map((id) => (
+                this.browsingContextLocateNodes({
+                    locator: { type: 'css', value: 'iframe' },
+                    context: id
+                }).then(
+                    ({ nodes }) => Promise.all(nodes.map(async (node) => {
+                        const html = `<iframe${Object.entries(node.value?.attributes || {}).reduce((acc, [key, value]) => `${acc} ${key}="${value}"`, ' ')}></iframe>`
+                        const args = [{ [ELEMENT_KEY]: node.sharedId }]
+                        const userScript = (iframe: unknown) => (iframe as HTMLIFrameElement).contentWindow
+                        const functionDeclaration = new Function(`
+                            return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
+                        `).toString()
+                        const params: remote.ScriptCallFunctionParameters = {
+                            functionDeclaration,
+                            awaitPromise: true,
+                            arguments: args.map((arg) => LocalValue.getArgument(arg)) as any,
+                            target: {
+                                context: id
+                            }
+                        }
+                        const result = await this.scriptCallFunction(params)
+                        const { context } = parseScriptResult(params, result) as { context: string }
+                        console.log('---->', context, newContextId, node.value?.attributes)
+
+                        return { context, html, frameElement: { [ELEMENT_KEY]: node.sharedId } } as FrameResult
+                    })),
+                    () => [] as FrameResult[]
+                )
+            )))).flat(Infinity) as FrameResult[]
+
+            const desiredFrame = allFrames.find(({ context }) => context === newContextId)
+            if (desiredFrame) {
+                switchToFrameHelper(this, desiredFrame.context)
+                await browser.switchToFrame(desiredFrame.frameElement)
+                return newContextId
+            }
+
+            throw new Error(`Frame with url or context id "${context}" not found, available frames to switch to:\n  - ${allFrames.map(({ html }) => html).join('\n  - ')}`)
         }
 
         throw new Error(`Frame with url or context id "${context}" not found`)
@@ -91,31 +136,22 @@ export async function switchFrame (
     }
 
     if (typeof context === 'function') {
-        const tree = await this.browsingContextGetTree({})
-        const mapContext = (context: local.BrowsingContextInfo): any => [
-            context.context,
-            ...(context.children || []).map(mapContext)
-        ]
         const sessionContext = getContextManager(this)
         const currentContext = await sessionContext.getCurrentContext()
+        const allContexts = await getFlatContextTree(this)
+        const allContextIds = Object.keys(allContexts)
+        const allFrames = (await Promise.all(allContextIds.map((id) => (
+            this.browsingContextLocateNodes({
+                locator: { type: 'css', value: 'iframe' },
+                context: id
+            })
+        )))).flat(Infinity)
 
-        /**
-         * transform context tree into a flat list of context objects with references
-         * to children
-         */
-        const allContexts: Record<string, FlatContextTree> = tree.contexts.map(mapContext).flat(Infinity)
-            .filter((ctx) => ctx !== currentContext)
-            .reduce((acc, ctx) => {
-                const context = findContext(ctx, tree.contexts, byContextId)
-                acc[ctx] = context
-                return acc
-            }, {} as Record<string, FlatContextTree>)
-
-        for (const [contextId, ctx] of Object.entries(allContexts)) {
-            sessionContext.setCurrentContext(contextId)
-            const isDesiredFrame = await context(ctx)
-            if (isDesiredFrame) {
-                return context
+        for (const iframe of allFrames) {
+            const contextId = await switchToFrameUsingElement(this, iframe as any)
+            const isWithinFrame = await context(allContexts[contextId])
+            if (isWithinFrame) {
+                return iframe
             }
         }
 
@@ -129,42 +165,25 @@ export async function switchFrame (
     )
 }
 
-function switchToFrameHelper (browser: WebdriverIO.Browser, context: string) {
+interface FrameResult {
+    context: string
+    frameElement: { [ELEMENT_KEY]: string }
+    html: string
+}
+
+async function switchToFrameHelper (browser: WebdriverIO.Browser, context: string) {
     const sessionContext = getContextManager(browser)
     sessionContext.setCurrentContext(context)
 }
 
 async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element: WebdriverIO.Element) {
-    let frameSrc = await element.getAttribute('src')
-    if (!frameSrc) {
-        const source = await element.getHTML({ includeSelectorTag: true })
-        throw new Error(
-            `The provided frame element ("${source}") does not have a src attribute needed ` +
-            'to detect the context, please use a different method to select the frame. For more ' +
-            'information checkout our docs: https://webdriver.io/docs/api/browser/switchFrame.html'
-        )
-    }
+    const frame = await element.execute(
+        (iframe: unknown) => (iframe as HTMLIFrameElement).contentWindow
+    ) as unknown as { context: string }
 
-    if (!frameSrc.startsWith('http')) {
-        /**
-         * use the browser to access `URL.parse` as it is not available in Node.js until v22
-         */
-        frameSrc = await browser.execute((urlPath: string) => (
-            URL.parse(urlPath, window.location.href)?.href
-        ), frameSrc) || frameSrc
-    }
-
-    const tree = await browser.browsingContextGetTree({})
-    const urlContext = findContext(frameSrc, tree.contexts, byUrl)?.context
-    if (!urlContext) {
-        throw new Error(
-            `Frame with url "${frameSrc}" not found! Please try a different method to select ` +
-            'the frame. For more information checkout our docs: https://webdriver.io/docs/api/browser/switchFrame.html'
-        )
-    }
-
-    await switchToFrameHelper(browser, urlContext)
-    return urlContext
+    switchToFrameHelper(browser, frame.context)
+    await browser.switchToFrame(element)
+    return frame.context
 }
 
 function byUrl (context: local.BrowsingContextInfo, url: string) {
@@ -180,17 +199,17 @@ function byContextId (context: local.BrowsingContextInfo, contextId: string) {
 }
 
 function findContext (
-    url: string,
+    urlOrId: string,
     contexts: local.BrowsingContextInfoList | null,
     matcher: typeof byUrl | typeof byUrlContaining | typeof byContextId
 ): local.BrowsingContextInfo | undefined {
     for (const context of contexts || []) {
-        if (matcher(context, url)) {
+        if (matcher(context, urlOrId)) {
             return context
         }
 
         if (Array.isArray(context.children) && context.children.length > 0) {
-            const result = findContext(url, context.children, matcher)
+            const result = findContext(urlOrId, context.children, matcher)
             if (result) {
                 return result
             }
@@ -198,4 +217,25 @@ function findContext (
     }
 
     return undefined
+}
+
+async function getFlatContextTree (browser: WebdriverIO.Browser): Promise<Record<string, FlatContextTree>> {
+    const tree = await browser.browsingContextGetTree({})
+
+    const mapContext = (context: local.BrowsingContextInfo): any => [
+        context.context,
+        ...(context.children || []).map(mapContext)
+    ]
+
+    /**
+     * transform context tree into a flat list of context objects with references
+     * to children
+     */
+    const allContexts: Record<string, FlatContextTree> = tree.contexts.map(mapContext).flat(Infinity)
+        .reduce((acc, ctx) => {
+            const context = findContext(ctx, tree.contexts, byContextId)
+            acc[ctx] = context
+            return acc
+        }, {} as Record<string, FlatContextTree>)
+    return allContexts
 }
