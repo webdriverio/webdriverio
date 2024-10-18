@@ -1,7 +1,7 @@
-import { FormData } from 'formdata-node'
 import { v4 as uuidv4 } from 'uuid'
 
 import fs from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { promisify, format } from 'node:util'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
@@ -42,7 +42,6 @@ import {
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
-import { FileStream } from './fileStream.js'
 import type Percy from './Percy/Percy.js'
 import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
@@ -494,14 +493,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const form = new FormData()
         if (app.app) {
             const fileName = path.basename(app.app)
-            form.append('file', new FileStream(fs.createReadStream(app.app)), fileName)
+            const fileBlob = new Blob([await readFile(app.app)])
+            form.append('file', fileBlob, fileName)
         }
         if (app.customId) {
             form.append('custom_id', app.customId)
         }
 
         const headers: any = {
-            'Content-Type': 'multipart/form-data',
             Authorization: getBasicAuthHeader(this._config.user as string, this._config.key as string),
         }
 
