@@ -175,8 +175,6 @@ export async function url (
         })
 
         const network = networkManager.get(this)
-        const request = network?.getRequestResponseData(context)
-
         if (mock) {
             await mock.restore()
         }
@@ -198,6 +196,10 @@ export async function url (
             await resetPreloadScript.remove()
         }
 
+        /**
+         * wait until we have a request object
+         */
+        const request = await this.waitUntil(() => network?.getRequestResponseData(context))
         return request
     }
 
