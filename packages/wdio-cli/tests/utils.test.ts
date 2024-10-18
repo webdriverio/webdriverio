@@ -754,6 +754,13 @@ test('getDefaultFiles', async () => {
         .toBe(path.join('/bar', 'foo', 'bar.js'))
 })
 
+test('original implementation of getDefaultFiles handles projectRoot with no package.json', async () => {
+    const files = '/foo/bar'
+    vi.mocked(readPackageUp).mockRestore()
+    expect(await getDefaultFiles({ createPackageJSON: true, projectRoot: '/project-root-with-no-package.json', isUsingTypeScript: false } as any, files))
+        .toBe(path.join('/project-root-with-no-package.json', 'foo', 'bar.js'))
+})
+
 test('specifyVersionIfNeeded', () => {
     expect(specifyVersionIfNeeded(
         ['webdriverio', '@wdio/spec-reporter'],
