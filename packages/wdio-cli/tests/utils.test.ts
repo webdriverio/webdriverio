@@ -36,7 +36,8 @@ import {
     createWDIOConfig,
     createWDIOScript,
     runAppiumInstaller,
-    detectPackageManager
+    detectPackageManager,
+    detectCompiler
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { installPackages } from '../src/install.js'
@@ -780,6 +781,12 @@ test('hasBabelConfig', async () => {
     expect(await hasBabelConfig('/foo')).toBe(true)
     vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
     expect(await hasBabelConfig('/foo')).toBe(false)
+})
+
+test('detectCompiler', async () => {
+    vi.mocked(readPackageUp).mockRestore()
+    const answers = { createPackageJSON: true }
+    expect(await detectCompiler(answers)).toBe(false)
 })
 
 test('getAnswers', async () => {
