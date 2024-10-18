@@ -434,6 +434,17 @@ describe('main suite 1', () => {
     })
 
     describe('context management', () => {
+        const closeAllWindowsButFirst = async () => {
+            const allHandles = await browser.getWindowHandles()
+
+            if (allHandles.length < 2) {return}
+            for (const windowHandle of allHandles.slice(1)) {
+                await browser.switchToWindow(windowHandle)
+                await browser.closeWindow()
+            }
+            await browser.switchToWindow(allHandles[0])
+        }
+
         it('should allow user to switch between contexts', async () => {
             await browser.url('http://guinea-pig.webdriver.io/')
 
@@ -479,14 +490,32 @@ describe('main suite 1', () => {
         })
     })
 
-    const closeAllWindowsButFirst = async () => {
-        const allHandles = await browser.getWindowHandles()
+    describe('switchFrame', () => {
+        afterEach(async () => {
+            await browser.switchFrame(null)
+        })
 
-        if (allHandles.length < 2) {return}
-        for (const windowHandle of allHandles.slice(1)) {
-            await browser.switchToWindow(windowHandle)
-            await browser.closeWindow()
-        }
-        await browser.switchToWindow(allHandles[0])
-    }
+        it('can switch to a frame via url', async () => {
+            await browser.url('https://www.w3schools.com/tags/tryit.asp?filename=tryhtml_iframe')
+            await browser.switchFrame('https://www.w3schools.com')
+            expect(await browser.execute(() => [document.title, document.URL]))
+                .toEqual(['W3Schools Online Web Tutorials', 'https://www.w3schools.com/'])
+        })
+
+        it('can switch to a frame via element', async () => {
+            await browser.url('https://the-internet.herokuapp.com/nested_frames')
+            await browser.switchFrame($('frame'))
+            expect(await browser.execute(() => document.URL))
+                .toBe('https://the-internet.herokuapp.com/frame_top')
+        })
+
+        it('can switch to a frame via function', async () => {
+            await browser.url('https://the-internet.herokuapp.com/nested_frames')
+            await browser.switchFrame(() => (
+                browser.execute(() => (
+                    document.URL.includes('frame_right')))))
+            expect(await browser.execute(() => document.URL))
+                .toBe('https://the-internet.herokuapp.com/frame_right')
+        })
+    })
 })
