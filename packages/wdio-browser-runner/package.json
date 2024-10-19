@@ -60,6 +60,9 @@
       "types": "./build/browser/expect.d.ts"
     }
   },
+  "scripts": {
+    "build": "mkdir ./build/third_party && cp ./node_modules/mocha/mocha.css ./build/third_party/mocha.css && cp ./node_modules/mocha/mocha.js ./build/third_party/mocha.js"
+  },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
