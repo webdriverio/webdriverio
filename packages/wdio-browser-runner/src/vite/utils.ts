@@ -12,14 +12,14 @@ import type { Environment, FrameworkPreset } from '../types.js'
 
 const log = logger('@wdio/browser-runner')
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const mochaCSSHref = path.join(__dirname, 'third_party', 'mocha.css')
-const mochaJSSrc = path.join(__dirname, 'third_party', 'mocha.js')
 
 export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, p = process) {
     const root = options.rootDir || process.cwd()
     const isHeadless = options.headless || Boolean(process.env.CI)
     const alias = (options.viteConfig as (InlineConfig | undefined))?.resolve?.alias || {}
     const usesTailwindCSS = await hasFileByExtensions(path.join(root, 'tailwind.config'))
+    const mochaCSSHref = path.join(__dirname, 'third_party', 'mocha.css')
+    const mochaJSSrc = path.join(__dirname, 'third_party', 'mocha.js')
 
     /**
      * clean up some values that might cause serialization issues
