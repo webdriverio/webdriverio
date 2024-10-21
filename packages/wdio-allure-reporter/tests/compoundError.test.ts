@@ -33,7 +33,7 @@ describe('CompoundError', () => {
 
     it('should include stack traces from the errors', () => {
         const compoundErr = new CompoundError(e1, e2)
-        const lines = compoundErr.message.split('\n').map(x => x.substr(4))
+        const lines = compoundErr.message.split('\n').map(x => x.substring(4))
 
         // This is a little dense, but essentially, CompoundError's messages look like
         //
