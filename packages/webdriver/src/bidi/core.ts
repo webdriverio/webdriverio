@@ -32,9 +32,10 @@ export class BidiCore {
          * don't connect and stale unit tests when the websocket url is set to a dummy value
          * Note: the value is defined in __mocks__/fetch.ts
          */
-        if (process.env.VITEST_WORKER_ID && this.#webSocketUrl === 'ws://webdriver.io') {
+        if (process.env.WDIO_UNIT_TESTS) {
             return
         }
+
         return new Promise<void>((resolve) => this.#ws.on('open', () => {
             log.info('Connected session to Bidi protocol')
             this.#isConnected = true
