@@ -24,6 +24,13 @@ export class ContextManager {
         this.#browser = browser
 
         /**
+         * just ignore if we run unit tests that don't have a listener mock
+         */
+        if (process.env.WDIO_UNIT_TESTS) {
+            return
+        }
+
+        /**
          * Listens for the 'switchToWindow' browser command to handle context changes.
          * Updates the browsingContext with the context passed in 'switchToWindow'.
          */
@@ -38,6 +45,13 @@ export class ContextManager {
      * set context at the start of the session
      */
     async initialize () {
+        /**
+         * just ignore in unit tests where we don't mock `getWindowHandle`
+         */
+        if (process.env.WDIO_UNIT_TESTS) {
+            return 'fake-context'
+        }
+
         const windowHandle = await this.#browser.getWindowHandle()
         this.#currentContext = windowHandle
         return windowHandle

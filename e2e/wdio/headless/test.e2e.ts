@@ -511,9 +511,7 @@ describe('main suite 1', () => {
 
         it('can switch to a frame via function', async () => {
             await browser.url('https://the-internet.herokuapp.com/nested_frames')
-            await browser.switchFrame(() => (
-                browser.execute(() => (
-                    document.URL.includes('frame_right')))))
+            await browser.switchFrame(() => document.URL.includes('frame_right'))
             expect(await browser.execute(() => document.URL))
                 .toBe('https://the-internet.herokuapp.com/frame_right')
         })

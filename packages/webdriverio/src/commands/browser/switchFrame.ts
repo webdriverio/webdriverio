@@ -39,12 +39,14 @@ const log = logger('webdriverio:switchFrame')
  *     await browser.switchFrame($('iframe'))
  *     ```
  *
- *   - If given a function it will loop through all iframes on the page and call the function with the context
- *     object. The function should return a boolean indicating if the frame should be selected. Within the function
- *     you can use WebdriverIO commands to e.g. check if a certain frame element exists.
+ *   - If given a function it will loop through all iframes on the page and call the function within the context
+ *     object. The function should return a boolean indicating if the frame should be selected. The function
+ *     will be executed within the browser and allows access to all Web APIs, e.g.:
  *     ```ts
  *     // switch to first frame that contains an element with id "#frameContent"
- *     await browser.switchFrame(() => $('#frameContent').isExisting())
+ *     await browser.switchFrame(() => Boolean(document.querySelector('#frameContent')))
+ *     // switch to first frame that contains "webdriver" in the URL
+ *     await browser.switchFrame(() => document.URL.includes('webdriver'))
  *     ```
  *
  *   - If given `null` it will switch to the top level frame
@@ -138,7 +140,7 @@ export async function switchFrame (
              * first, fetch all iframes in given browsing context
              */
             const { nodes } = await this.browsingContextLocateNodes({
-                locator: { type: 'css', value: 'iframe' },
+                locator: { type: 'css', value: 'iframe, frame' },
                 context: id
             }).catch(() => ({ nodes: [] }))
 
@@ -257,26 +259,30 @@ export async function switchFrame (
      * the function for each of them.
      */
     if (typeof context === 'function') {
-        const sessionContext = getContextManager(this)
-        const currentContext = await sessionContext.getCurrentContext()
         const allContexts = await getFlatContextTree(this)
         const allContextIds = Object.keys(allContexts)
-        const allFrames = (await Promise.all(allContextIds.map((id) => (
-            this.browsingContextLocateNodes({
-                locator: { type: 'css', value: 'iframe' },
-                context: id
-            })
-        )))).flat(Infinity)
-
-        for (const iframe of allFrames) {
-            const contextId = await switchToFrameUsingElement(this, iframe as any)
-            const isWithinFrame = await context(allContexts[contextId])
-            if (isWithinFrame) {
-                return iframe
+        for (const contextId of allContextIds) {
+            const functionDeclaration = new Function(`
+                return (${SCRIPT_PREFIX}${context.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
+            `).toString()
+            const params: remote.ScriptCallFunctionParameters = {
+                functionDeclaration,
+                awaitPromise: false,
+                arguments: [],
+                target: { context: contextId }
             }
+
+            const result = await this.scriptCallFunction(params).catch((err) => (
+                log.warn(`switchFrame context callback threw error: ${err.message}`)))
+
+            if (!result || result.type !== 'success' || result.result.type !== 'boolean' || !result.result.value) {
+                continue
+            }
+
+            await this.switchFrame(contextId)
+            return contextId
         }
 
-        sessionContext.setCurrentContext(currentContext)
         throw new Error('Could not find the desired frame')
     }
 
@@ -299,12 +305,13 @@ function switchToFrameHelper (browser: WebdriverIO.Browser, context: string) {
 }
 
 async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element: WebdriverIO.Element) {
-    const frame = await element.execute(
-        (iframe: unknown) => (iframe as HTMLIFrameElement).contentWindow
+    // await switchToFrame(browser, element)
+    const frame = await browser.execute(
+        (iframe: unknown) => (iframe as HTMLIFrameElement).contentWindow,
+        element
     ) as unknown as { context: string }
 
     switchToFrameHelper(browser, frame.context)
-    await switchToFrame(browser, element)
     return frame.context
 }
 
