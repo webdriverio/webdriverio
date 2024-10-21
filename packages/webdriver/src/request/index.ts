@@ -37,8 +37,6 @@ const DEFAULT_HEADERS = {
 const log = logger('webdriver')
 
 export default abstract class WebDriverRequest extends EventEmitter {
-    #requestTimeout?: NodeJS.Timeout
-
     body?: Record<string, unknown>
     method: string
     endpoint: string
@@ -69,14 +67,9 @@ export default abstract class WebDriverRequest extends EventEmitter {
     }
 
     protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
-        const controller = new AbortController()
-        this.#requestTimeout = setTimeout(
-            () => controller.abort(),
-            options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default
-        )
-
+        const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
         const requestOptions: RequestInit = {
-            signal: controller.signal
+            signal: AbortSignal.timeout(timeout)
         }
 
         const requestHeaders: HeadersInit = new Headers({
@@ -152,10 +145,6 @@ export default abstract class WebDriverRequest extends EventEmitter {
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: WebDriverRequestError) => err)
         const durationMillisecond = this._libPerformanceNow() - startTime
-
-        if (this.#requestTimeout) {
-            clearTimeout(this.#requestTimeout)
-        }
 
         /**
          * handle retries for requests
