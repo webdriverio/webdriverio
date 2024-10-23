@@ -55,6 +55,7 @@
     "test:e2e:webdriver": "cd ./e2e && npx wdio run ./wdio/wdio.local.conf.ts",
     "test:e2e:classic": "cd ./e2e && npx wdio run ./wdio/wdio.classic.conf.ts",
     "test:e2e:cloud": "cd ./e2e && npx wdio run ./wdio/wdio.sauce.conf.ts",
+    "test:e2e": "run-s test:e2e:* ",
     "dev": "pnpm -r --filter=@wdio/compiler run build --watch",
     "watch:docs": "pnpm docs:generate && cd website && npm i && npm start",
     "version": "pnpm changelog && git add CHANGELOG.md",
