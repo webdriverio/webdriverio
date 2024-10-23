@@ -42,7 +42,7 @@ describe('newWindow', () => {
             windowName: 'some name',
             windowFeatures: 'some params'
         })
-        expect(newHandle).toBe('new-window-handle')
+        expect(newHandle.handle).toBe('new-window-handle')
         expect(vi.mocked(fetch).mock.calls).toHaveLength(8)
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).args)
             .toEqual(['https://webdriver.io', 'some name', 'some params'])
@@ -108,4 +108,36 @@ describe('newWindow', () => {
         }).catch((err: Error) => err) as Error
         expect(error.message).toContain('not supported on mobile')
     })
+
+    it('should open a new window by default', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const newHandle = await browser.newWindow('https://webdriver.io', {
+            windowName: 'some window'
+        })
+
+        expect(newHandle.type).toBe('window')
+    })
+
+    it('should open a new tab when type is tab', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const newHandle = await browser.newWindow('https://webdriver.io', {
+            type: 'tab',
+            windowName: 'some tab'
+        })
+
+        expect(newHandle.type).toBe('tab')
+    })
+
 })
