@@ -251,7 +251,10 @@ describe('startWebDriver', () => {
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/my/chromedriver',
-            ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=0.0.0.0']
+            ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=0.0.0.0'],
+            expect.objectContaining({
+                env: expect.any(Object)
+            })
         )
     })
 
