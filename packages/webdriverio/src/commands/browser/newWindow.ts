@@ -57,7 +57,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  *
  * @param {string}  url      website URL to open
  * @param {NewWindowOptions=} options                newWindow command options
- * @param {string=}           options.type         type of new window: 'tab' or 'window'
+ * @param {string=}           options.type           type of new window: 'tab' or 'window'
  * @param {String=}           options.windowName     name of the new window
  * @param {String=}           options.windowFeatures features of opened window (e.g. size, position, scrollbars, etc.)
  *
