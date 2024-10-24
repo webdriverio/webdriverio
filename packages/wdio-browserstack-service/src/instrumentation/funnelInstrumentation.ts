@@ -49,13 +49,27 @@ export function saveFunnelData(eventType: string, config: BrowserStackConfig): s
     return filePath
 }
 
+function redactCredentialsFromFunnelData(data: any) {
+    if (data) {
+        if (data.userName) {
+            data.userName = '[REDACTED]'
+        }
+        if (data.accessKey) {
+            data.accessKey = '[REDACTED]'
+        }
+    }
+    return data
+}
+
 // Called from two different process
 export async function fireFunnelRequest(data: any): Promise<void> {
+    const { userName, accessKey } = data
+    redactCredentialsFromFunnelData(data)
     BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
     await got.post(FUNNEL_INSTRUMENTATION_URL, {
         headers: {
             'content-type': 'application/json'
-        }, username: data.userName, password: data.accessKey, json: data
+        }, username: userName, password: accessKey, json: data
     })
 }
 

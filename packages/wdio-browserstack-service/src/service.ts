@@ -58,7 +58,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
-        this._percy =  process.env.BROWSERSTACK_PERCY === 'true'
+        this._percy = process.env.BROWSERSTACK_PERCY === 'true'
         this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
@@ -269,8 +269,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._setSessionName(suiteTitle, test)
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
-        await this._insightsHandler?.beforeTest(test)
         await this._accessibilityHandler?.beforeTest(suiteTitle, test)
+        await this._insightsHandler?.beforeTest(test)
     }
 
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
@@ -334,8 +334,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     async beforeScenario (world: ITestCaseHookParameter) {
         this._currentTest = world
-        await this._insightsHandler?.beforeScenario(world)
         await this._accessibilityHandler?.beforeScenario(world)
+        await this._insightsHandler?.beforeScenario(world)
         const scenarioName = world.pickle.name || 'unknown scenario'
         await this._setAnnotation(`Scenario: ${scenarioName}`)
     }
@@ -359,9 +359,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failReasons.push(exception)
         }
 
+        await this._accessibilityHandler?.afterScenario(world)
         await this._insightsHandler?.afterScenario(world)
         await this._percyHandler?.afterScenario()
-        await this._accessibilityHandler?.afterScenario(world)
     }
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {

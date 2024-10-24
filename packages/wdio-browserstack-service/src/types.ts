@@ -196,6 +196,7 @@ export interface TestMeta {
 
 export interface CurrentRunInfo {
     uuid?: string,
+    name?: string,
     test?: Frameworks.Test,
     finished?: boolean
 }
@@ -270,10 +271,18 @@ export interface LaunchResponse {
         success: boolean;
         options: {
             allow_screenshots?: boolean;
-        }
+        },
+        errors: {
+            key: string;
+            message: string;
+        }[];
     },
     accessibility: {
         success: boolean;
+        errors: {
+            key: string;
+            message: string;
+        }[];
         options: {
             status: string;
             commandsToWrap: {

@@ -14,28 +14,31 @@ export const getProductMap = (config: BrowserStackConfig): any => {
 }
 
 export const shouldProcessEventForTesthub = (eventType: string): boolean => {
-    if (process.env[BROWSERSTACK_PERCY] && !process.env[BROWSERSTACK_ACCESSIBILITY] && !process.env[BROWSERSTACK_OBSERVABILITY]) {
-        if (['LogCreated', 'CBTSessionCreated'].includes(eventType)) {
-            return false
-        }
-
+    if (process.env[BROWSERSTACK_OBSERVABILITY]) {
         return true
     }
-    // Do not send hooks events for accessibility true and observability false
-    if (process.env[BROWSERSTACK_ACCESSIBILITY] && !process.env[BROWSERSTACK_OBSERVABILITY]) {
-        if (['HookRunStarted', 'HookRunFinished', 'LogCreated'].includes(eventType)) {
-            return false
-        }
-
-        return true
+    if (process.env[BROWSERSTACK_ACCESSIBILITY]) {
+        return !(['HookRunStarted', 'HookRunFinished', 'LogCreated'].includes(eventType))
     }
-
+    if (process.env[BROWSERSTACK_PERCY] && eventType) {
+        return false
+    }
     return Boolean(process.env[BROWSERSTACK_ACCESSIBILITY] || process.env[BROWSERSTACK_OBSERVABILITY] || process.env[BROWSERSTACK_PERCY])!
 }
 
+export const handleErrorForObservability = (error: any): void => {
+    process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
+    logBuildError(error, 'observability')
+}
+
+export const handleErrorForAccessibility = (error: any): void => {
+    process.env[BROWSERSTACK_ACCESSIBILITY] = 'false'
+    logBuildError(error, 'accessibility')
+}
+
 export const logBuildError = (error: any, product: string = ''): void => {
-    if (!error) {
-        BStackLogger.error(`${product.toUpperCase()} Build creation failed`)
+    if (!error || !error.errors) {
+        BStackLogger.error(`${product.toUpperCase()} Build creation failed ${error!}`)
         return
     }
 
@@ -48,7 +51,7 @@ export const logBuildError = (error: any, product: string = ''): void => {
                 BStackLogger.error(errorMessage)
                 break
             case 'ERROR_ACCESS_DENIED':
-                BStackLogger.error(errorMessage)
+                BStackLogger.info(errorMessage)
                 break
             case 'ERROR_SDK_DEPRECATED':
                 BStackLogger.error(errorMessage)

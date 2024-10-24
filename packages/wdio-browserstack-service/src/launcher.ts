@@ -22,7 +22,8 @@ import {
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
     BROWSERSTACK_TESTHUB_UUID,
     VALID_APP_EXTENSION,
-    BROWSERSTACK_PERCY
+    BROWSERSTACK_PERCY,
+    BROWSERSTACK_OBSERVABILITY
 } from './constants.js'
 import {
     launchTestSession,
@@ -270,43 +271,45 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // remove accessibilityOptions from the capabilities if present
         this._updateObjectTypeCaps(capabilities, 'accessibilityOptions')
 
-        if (this._options.accessibilityOptions) {
-            const filteredOpts = Object.keys(this._options.accessibilityOptions)
-                .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
-                .reduce((opts, key) => {
-                    return {
-                        ...opts,
-                        [key]: this._options.accessibilityOptions?.[key]
-                    }
-                }, {})
-
-            this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
-        } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
-            this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
-        }
-
-        BStackLogger.debug('Sending launch start event')
-
-        await launchTestSession(this._options, this._config, {
-            projectName: this._projectName,
-            buildName: this._buildName,
-            buildTag: this._buildTag,
-            bstackServiceVersion: BSTACK_SERVICE_VERSION,
-            buildIdentifier: this._buildIdentifier
-        }, this.browserStackConfig)
-
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
-        if (shouldSetupPercy) {
-            try {
-                const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
-                this._percyBestPlatformCaps = bestPlatformPercyCaps
-                process.env[BROWSERSTACK_PERCY] = 'false'
-                await this.setupPercy(this._options, this._config, {
-                    projectName: this._projectName
-                })
-                this._updateBrowserStackPercyConfig()
-            } catch (err: unknown) {
-                PercyLogger.error(`Error while setting up Percy ${err}`)
+        if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
+            BStackLogger.debug('Sending launch start event')
+
+            await launchTestSession(this._options, this._config, {
+                projectName: this._projectName,
+                buildName: this._buildName,
+                buildTag: this._buildTag,
+                bstackServiceVersion: BSTACK_SERVICE_VERSION,
+                buildIdentifier: this._buildIdentifier
+            }, this.browserStackConfig)
+
+            if (this._accessibilityAutomation && this._options.accessibilityOptions) {
+                const filteredOpts = Object.keys(this._options.accessibilityOptions)
+                    .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
+                    .reduce((opts, key) => {
+                        return {
+                            ...opts,
+                            [key]: this._options.accessibilityOptions?.[key]
+                        }
+                    }, {})
+
+                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
+            } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
+                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
+            }
+
+            if (shouldSetupPercy) {
+                try {
+                    const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
+                    this._percyBestPlatformCaps = bestPlatformPercyCaps
+                    process.env[BROWSERSTACK_PERCY] = 'false'
+                    await this.setupPercy(this._options, this._config, {
+                        projectName: this._projectName
+                    })
+                    this._updateBrowserStackPercyConfig()
+                } catch (err: unknown) {
+                    PercyLogger.error(`Error while setting up Percy ${err}`)
+                }
             }
         }
 
@@ -362,7 +365,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         BStackLogger.debug('Sending stop launch event')
         await stopBuildUpstream()
-        if (process.env[BROWSERSTACK_TESTHUB_UUID]) {
+        if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
             console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
         this.browserStackConfig.testObservability.buildStopped = true

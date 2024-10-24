@@ -44,7 +44,7 @@ class _InsightsHandler {
     private _commands: Record<string, BeforeCommandArgs | AfterCommandArgs> = {}
     private _gitConfigPath?: string
     private _suiteFile?: string
-    private _currentTest: CurrentRunInfo = {}
+    public static _currentTest: CurrentRunInfo = {}
     private _currentHook: CurrentRunInfo = {}
     private _cucumberData: CucumberStore = {
         stepsStarted: false,
@@ -207,7 +207,7 @@ class _InsightsHandler {
             const hookMetaData = {
                 uuid: hookUUID,
                 startedAt: (new Date()).toISOString(),
-                testRunId: this._currentTest.uuid,
+                testRunId: InsightsHandler._currentTest.uuid,
                 hookType: hookType
             }
 
@@ -368,7 +368,7 @@ class _InsightsHandler {
 
     async beforeTest (test: Frameworks.Test) {
         const uuid = uuidv4()
-        this._currentTest = {
+        InsightsHandler._currentTest = {
             test, uuid
         }
         if (this._framework !== 'mocha') {
@@ -408,7 +408,7 @@ class _InsightsHandler {
 
     async beforeScenario (world: ITestCaseHookParameter) {
         const uuid = uuidv4()
-        this._currentTest = {
+        InsightsHandler._currentTest = {
             uuid
         }
         this._cucumberData.scenario = world.pickle
@@ -503,8 +503,8 @@ class _InsightsHandler {
         try {
             if (this._currentHook.uuid && !this._currentHook.finished && (this._framework === 'mocha' || this._framework === 'cucumber')) {
                 stdLog.hook_run_uuid = this._currentHook.uuid
-            } else if (this._currentTest.uuid && (this._framework === 'mocha' || this._framework === 'cucumber')) {
-                stdLog.test_run_uuid = this._currentTest.uuid
+            } else if (InsightsHandler._currentTest.uuid && (this._framework === 'mocha' || this._framework === 'cucumber')) {
+                stdLog.test_run_uuid = InsightsHandler._currentTest.uuid
             }
             if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
                 this.listener.logCreated([stdLog])
@@ -630,6 +630,10 @@ class _InsightsHandler {
         const filename = test.file || this._suiteFile
         this._currentTestId = testMetaData.uuid
 
+        if (eventType === 'TestRunStarted') {
+            InsightsHandler._currentTest.name = test.title || test.description
+        }
+
         const testData: TestData = {
             uuid: testMetaData.uuid,
             type: test.type || 'test',
@@ -744,6 +748,10 @@ class _InsightsHandler {
         }
 
         this._currentTestId = uuid
+
+        if (eventType === 'TestRunStarted') {
+            InsightsHandler._currentTest.name = fullNameWithExamples
+        }
 
         const testData: TestData = {
             uuid: uuid,

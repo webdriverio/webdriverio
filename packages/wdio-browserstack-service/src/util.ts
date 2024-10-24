@@ -19,13 +19,12 @@ import type { ColorName } from 'chalk'
 import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
-import { getProductMap, logBuildError } from './testHub/utils.js'
+import { getProductMap, logBuildError, handleErrorForObservability, handleErrorForAccessibility } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, TOStopData } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
-    ACCESSIBILITY_API_URL,
     BROWSER_DESCRIPTION,
     DATA_ENDPOINT,
     UPLOAD_LOGS_ADDRESS,
@@ -274,13 +273,11 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 
 function processTestObservabilityResponse(response: LaunchResponse) {
     if (!response.observability) {
-        process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
-        logBuildError(null, 'observability')
+        handleErrorForObservability(null)
         return
     }
     if (!response.observability.success) {
-        logBuildError(response.observability, 'observability')
-        process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
+        handleErrorForObservability(response.observability)
         return
     }
     process.env[BROWSERSTACK_OBSERVABILITY] = 'true'
@@ -307,13 +304,11 @@ const jsonifyAccessibilityArray = (
 
 function processAccessibilityResponse(response: LaunchResponse) {
     if (!response.accessibility) {
-        logBuildError(null, 'accessibility')
-        process.env[BROWSERSTACK_ACCESSIBILITY] = 'false'
+        handleErrorForAccessibility(null)
         return
     }
     if (!response.accessibility.success) {
-        logBuildError(response.accessibility, 'accessibility')
-        process.env[BROWSERSTACK_ACCESSIBILITY] = 'false'
+        handleErrorForAccessibility(response.accessibility)
         return
     }
 
@@ -372,14 +367,14 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         accessibility: {
             settings: options.accessibilityOptions
         },
-        browserstackAutomation: true,
+        browserstackAutomation: shouldAddServiceVersion(config, options.testObservability),
         framework_details: {
             frameworkName: 'WebdriverIO-' + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,
             sdkVersion: bsConfig.bstackServiceVersion,
             language: 'ECMAScript',
             testFramework: {
-                name: 'webdriverIO',
+                name: 'WebdriverIO',
                 version: bsConfig.bstackServiceVersion
             }
         },
@@ -416,7 +411,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         processLaunchBuildResponse(response, options)
         launchBuildUsage.success()
     } catch (error: any) {
-        if (error.success === false) {
+        if (!error.success) {
             launchBuildUsage.failed(error)
             logBuildError(error)
             return
@@ -425,6 +420,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
 })
 
 export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
+    /* Check if the current driver platform is eligible for Accessibility scan */
     try {
         if (deviceName) {
             BStackLogger.warn('Accessibility Automation will run only on Desktop browsers.')
@@ -486,99 +482,6 @@ export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | s
     }
     return false
 }
-
-export const createAccessibilityTestRun = errorHandler(async function createAccessibilityTestRun(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
-    const userName = getBrowserStackUser(config)
-    const accessKey = getBrowserStackKey(config)
-
-    if (isUndefined(userName) || isUndefined(accessKey)) {
-        BStackLogger.error('Exception while creating test run for BrowserStack Accessibility Automation: Missing BrowserStack credentials')
-        return null
-    }
-
-    const data = {
-        'projectName': bsConfig.projectName,
-        'buildName': bsConfig.buildName ||
-          path.basename(path.resolve(process.cwd())),
-        'startTime': (new Date()).toISOString(),
-        'description': '',
-        'source': {
-            frameworkName: 'WebdriverIO-' + config.framework,
-            frameworkVersion: bsConfig.bstackServiceVersion,
-            sdkVersion: bsConfig.bstackServiceVersion,
-            language: 'ECMAScript',
-            testFramework: 'webdriverIO',
-            testFrameworkVersion: bsConfig.bstackServiceVersion
-        },
-        'settings': bsConfig.accessibilityOptions || {},
-        'versionControl': await getGitMetaData(),
-        'ciInfo': getCiInfo(),
-        'hostInfo': {
-            hostname: hostname(),
-            platform: platform(),
-            type: type(),
-            version: version(),
-            arch: arch()
-        },
-        'browserstackAutomation': true,
-    }
-
-    const requestOptions = {
-        json: data,
-        username: getBrowserStackUser(config),
-        password: getBrowserStackKey(config),
-    }
-
-    try {
-        const response: any = await nodeRequest(
-            'POST', 'v2/test_runs', requestOptions, ACCESSIBILITY_API_URL
-        )
-
-        BStackLogger.debug(`[Create Accessibility Test Run] Success response: ${JSON.stringify(response)}`)
-
-        if (response.data.accessibilityToken) {
-            process.env.BSTACK_A11Y_JWT = response.data.accessibilityToken
-        }
-        if (response.data.id) {
-            process.env.BS_A11Y_TEST_RUN_ID = response.data.id
-        }
-        BStackLogger.debug(`BrowserStack Accessibility Automation Test Run ID: ${response.data.id}`)
-
-        if (response.data) {
-            AccessibilityScripts.update(response.data)
-            AccessibilityScripts.store()
-        }
-
-        return response.data.scannerVersion
-    } catch (error : any) {
-        if (error.response) {
-            BStackLogger.error(
-                `Exception while creating test run for BrowserStack Accessibility Automation: ${
-                    error.response.status
-                } ${error.response.statusText} ${JSON.stringify(error.response.data)}`
-            )
-        } else {
-            const errorMessage = error.message
-            if (errorMessage === 'Invalid configuration passed.') {
-                BStackLogger.error(
-                    `Exception while creating test run for BrowserStack Accessibility Automation: ${
-                        errorMessage || error.stack
-                    }`
-                )
-                for (const errorkey of error.errors){
-                    BStackLogger.error(errorkey.message)
-                }
-            } else {
-                BStackLogger.error(
-                    `Exception while creating test run for BrowserStack Accessibility Automation: ${
-                        errorMessage || error.stack
-                    }`
-                )
-            }
-        }
-        return null
-    }
-})
 
 export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
     if (!isBrowserStackSession) {

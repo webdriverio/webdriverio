@@ -2,7 +2,7 @@ import { getErrorString, stopBuildUpstream } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 import fs from 'node:fs'
 import { fireFunnelRequest } from './instrumentation/funnelInstrumentation.js'
-import { BROWSERSTACK_TESTHUB_UUID, BROWSERSTACK_TESTHUB_JWT } from './constants.js'
+import { BROWSERSTACK_TESTHUB_UUID, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_OBSERVABILITY } from './constants.js'
 
 export default class BStackCleanup {
     static async startCleanup() {
@@ -36,7 +36,7 @@ export default class BStackCleanup {
         try {
             const killSignal = funnelData?.event_properties?.finishedMetadata?.signal
             const result = await stopBuildUpstream(killSignal)
-            if (process.env[BROWSERSTACK_TESTHUB_UUID]) {
+            if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
                 BStackLogger.info(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
             }
             const status = (result && result.status) || 'failed'

@@ -13,7 +13,6 @@ import {
 import { sendScreenshots } from './requestUtils.js'
 import { BStackLogger } from '../bstackLogger.js'
 import { shouldProcessEventForTesthub } from '../testHub/utils.js'
-import { shouldScanTestForAccessibility } from '../util.js'
 class Listener {
     private static instance: Listener
     private readonly usageStats: UsageStats = UsageStats.getInstance()
@@ -26,6 +25,7 @@ class Listener {
     private requestBatcher?: RequestQueueHandler
     private pendingUploads = 0
     private static _accessibilityOptions?: { [key: string]: any; }
+    private static _testRunAccessibilityVar?: boolean = false
 
     // Making the constructor private to use singleton pattern
     private constructor() {
@@ -40,6 +40,10 @@ class Listener {
 
     public static setAccessibilityOptions(options:  { [key: string]: any; } | undefined) {
         Listener._accessibilityOptions = options
+    }
+
+    public static setTestRunAccessibilityVar(accessibility: boolean | undefined) {
+        Listener._testRunAccessibilityVar = accessibility
     }
 
     public async onWorkerEnd() {
@@ -100,6 +104,11 @@ class Listener {
             }
             process.env[TEST_ANALYTICS_ID] = testData.uuid
             this.testStartedStats.triggered()
+
+            testData.product_map = {
+                accessibility: Listener._testRunAccessibilityVar
+            }
+
             this.sendBatchEvents(this.getEventForHook('TestRunStarted', testData))
         } catch (e) {
             this.testStartedStats.failed()
@@ -112,10 +121,11 @@ class Listener {
             if (!shouldProcessEventForTesthub('TestRunFinished')) {
                 return
             }
-            const shouldScanTest = shouldScanTestForAccessibility('', testData.name!, Listener._accessibilityOptions)
+
             testData.product_map = {
-                accessibility: shouldScanTest
+                accessibility: Listener._testRunAccessibilityVar
             }
+
             this.testFinishedStats.triggered(testData.result)
             this.sendBatchEvents(this.getEventForHook('TestRunFinished', testData))
         } catch (e) {
@@ -144,6 +154,9 @@ class Listener {
             return
         }
         try {
+            if (!shouldProcessEventForTesthub('LogCreated')) {
+                return
+            }
             this.markLogs('triggered', jsonArray)
             this.pendingUploads += 1
             await sendScreenshots([{
