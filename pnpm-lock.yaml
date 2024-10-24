@@ -552,9 +552,6 @@ importers:
       '@originjs/vite-plugin-commonjs':
         specifier: ^1.0.3
         version: 1.0.3
-      '@types/istanbul-lib-source-maps':
-        specifier: ^4.0.4
-        version: 4.0.4
       '@vitest/spy':
         specifier: ^2.0.4
         version: 2.1.1
@@ -612,9 +609,6 @@ importers:
       mlly:
         specifier: ^1.6.1
         version: 1.7.1
-      mocha:
-        specifier: ^10.7.3
-        version: 10.7.3
       modern-node-polyfills:
         specifier: ^1.0.0
         version: 1.0.0(esbuild@0.24.0)(rollup@4.24.0)
@@ -659,6 +653,9 @@ importers:
       '@types/istanbul-lib-report':
         specifier: ^3.0.3
         version: 3.0.3
+      '@types/istanbul-lib-source-maps':
+        specifier: ^4.0.4
+        version: 4.0.4
       '@types/istanbul-reports':
         specifier: ^3.0.4
         version: 3.0.4
@@ -668,6 +665,9 @@ importers:
       geckodriver:
         specifier: ^4.4.4
         version: 4.4.4
+      mocha:
+        specifier: ^10.7.3
+        version: 10.7.3
 
   packages/wdio-browserstack-service:
     dependencies:
