@@ -216,7 +216,10 @@ describe('startWebDriver', () => {
         expect(cp.spawn).toBeCalledTimes(1)
         expect(cp.spawn).toBeCalledWith(
             '/foo/bar/executable',
-            ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=0.0.0.0']
+            ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=0.0.0.0'],
+            expect.objectContaining({
+                env: expect.any(Object)
+            })
         )
     })
 
