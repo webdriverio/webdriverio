@@ -101,7 +101,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  * </example>
  *
  * @alias browser.mock
- * @param {String|RegExp}       url                             url to mock
+ * @param {String}              url                             url to mock
  * @param {MockFilterOptions=}  filterOptions                   filter mock resource by additional options
  * @param {String|Function=}    filterOptions.method            filter resource by HTTP method
  * @param {Object|Function=}    filterOptions.headers           filter resource by specific request headers
