@@ -40,7 +40,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
           await browser.url('https://google.com')
             console.log(await browser.getTitle()) // outputs: "Google"
 
-         await browser.newWindow('https://webdriver.io', {
+          await browser.newWindow('https://webdriver.io', {
               type:'tab',
               windowName: 'WebdriverIO window',
               windowFeature: 'width=420,height=230,resizable,scrollbars=yes,status=1',
