@@ -57,7 +57,7 @@
     "test:e2e:cloud": "cd ./e2e && npx wdio run ./wdio/wdio.sauce.conf.ts",
     "test:e2e": "run-s test:e2e:* ",
     "dev": "pnpm -r --filter=@wdio/compiler run build --watch",
-    "watch:docs": "pnpm docs:generate && cd website && npm i && npm start",
+    "watch:docs": "pnpm docs:generate && cd website && pnpm i && pnpm start",
     "version": "pnpm changelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
     "postinstall:husky": "husky"
