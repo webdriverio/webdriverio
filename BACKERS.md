@@ -34,7 +34,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 <p align="center">
     <a href="https://testingbot.com"><img src="https://webdriver.io/img/sponsors/testingbot.svg" width="250" alt="TestingBot" /></a>
     &nbsp; &nbsp; &nbsp;
-    <a href="https://www.lambdatest.com/"><img src="./.github/sponsors/LambdaTest_Black_Logo.svg" width="300" alt="Lambdatest" /></a>
+    <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
 [Become a Silver Sponsor](https://github.com/sponsors/christian-bromann/sponsorships?tier_id=303966&preview=false)
