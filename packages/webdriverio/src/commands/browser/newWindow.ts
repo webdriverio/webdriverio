@@ -90,8 +90,8 @@ export async function newWindow (
         throw new Error(`Invalid type '${type}' provided to newWindow command. Use either 'tab' or 'window'`)
     }
 
-    if (windowFeatures) {
-        log.warn('The "windowFeatures" option is deprecated and will be removed in future versions.')
+    if (windowName || windowFeatures) {
+        log.warn('The "windowName" and "windowFeatures" options are deprecated and only supported in WebDriver Classic sessions.')
     }
 
     /**
