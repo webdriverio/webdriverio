@@ -333,7 +333,9 @@ export async function findDeepElement(
         return scopedNodes[0]
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        return browser.findElement(using, value)
+        return this && 'elementId' in this && this.elementId
+            ? this.findElementFromElement(this.elementId, using, value)
+            : browser.findElement(using, value)
     })
 
     if (!deepElementResult) {
@@ -399,7 +401,9 @@ export async function findDeepElements(
         return scopedNodes
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        return browser.findElements(using, value)
+        return this && 'elementId' in this && this.elementId
+            ? this.findElementsFromElement(this.elementId, using, value)
+            : browser.findElements(using, value)
     })
     return deepElementResult as ElementReference[]
 }
