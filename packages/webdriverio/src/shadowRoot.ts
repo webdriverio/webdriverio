@@ -339,12 +339,13 @@ export class ShadowRootTree {
     }
 
     remove (element: string): boolean {
-        for (const child of this.children) {
-            if (child.element === element) {
-                return this.children.delete(child)
+        const childArray = Array.from(this.children)
+        for (let i = childArray.length - 1; i >= 0; i--) {
+            if (childArray[i].element === element) {
+                return this.children.delete(childArray[i])
             }
 
-            const wasFound = child.remove(element)
+            const wasFound = childArray[i].remove(element)
             if (wasFound) {
                 return true
             }

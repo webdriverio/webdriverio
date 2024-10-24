@@ -123,6 +123,10 @@ describe('ShadowRootTree', () => {
     root.addShadowElement('8', new ShadowRootTree('10', '11'))
     root.addShadowElement('8', new ShadowRootTree('12', '13'))
     root.addShadowElement('12', new ShadowRootTree('14', '15'))
+    root.addShadowElement(new ShadowRootTree('16', '17'))
+    root.addShadowElement('16', new ShadowRootTree('18', '19'))
+    root.addShadowElement('16', new ShadowRootTree('18', '19'))
+    root.addShadowElement('18', new ShadowRootTree('20', '21'))
 
     it('can find the root of a tree', () => {
         const tree = root.find('8')
@@ -148,6 +152,10 @@ describe('ShadowRootTree', () => {
             "13",
             "15",
             "7",
+            "17",
+            "19",
+            "21",
+            "19",
           ]
         `)
         expect(root.find('8')?.getAllLookupScopes()).toMatchInlineSnapshot(`
@@ -170,6 +178,22 @@ describe('ShadowRootTree', () => {
             "3",
             "5",
             "7",
+            "17",
+            "19",
+            "21",
+            "19",
+          ]
+        `)
+    })
+
+    it('can delete children in the right order', () => {
+        expect(root.remove('18')).toBe(true)
+        const child = root.find('16')
+        expect(child?.getAllLookupScopes()).toMatchInlineSnapshot(`
+          [
+            "17",
+            "19",
+            "21",
           ]
         `)
     })
