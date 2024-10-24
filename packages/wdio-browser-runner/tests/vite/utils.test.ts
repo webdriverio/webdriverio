@@ -1,3 +1,4 @@
+import type fs from 'node:fs'
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'

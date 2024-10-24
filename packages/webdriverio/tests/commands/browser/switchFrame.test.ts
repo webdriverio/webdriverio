@@ -18,76 +18,109 @@ vi.mock('../../../src/context.ts', () => {
 const contextManager = getContextManager({} as any)
 
 describe('switchFrame command', () => {
-    beforeEach(async () => {
-        vi.mocked(contextManager.initialize).mockClear()
-        vi.mocked(contextManager.setCurrentContext).mockClear()
-        vi.mocked(contextManager.getCurrentContext).mockClear()
-
-        browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
+    describe('non bidi', () => {
+        beforeEach(async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'foobar'
+                }
+            })
         })
 
-        const execute = vi.spyOn(browser, 'execute')
-        execute.mockResolvedValue('https://jkl.com')
-        const browsingContextActivate = vi.spyOn(browser, 'browsingContextActivate')
-        browsingContextActivate.mockResolvedValue({})
-        const getWindowHandle = vi.spyOn(browser, 'getWindowHandle')
-        getWindowHandle.mockResolvedValue('5D4662C2B4465334DFD34239BA1E9E66')
-        const browsingContextGetTree = vi.spyOn(browser, 'browsingContextGetTree')
-        browsingContextGetTree.mockResolvedValue({
-            contexts: [{
-                children: [{
-                    children: [],
-                    context: '2',
-                    url: 'https://def.com',
-                    userContext: 'default'
-                }, {
+        it('fails when applying a function parameter', async () => {
+            await expect(
+                browser.switchFrame((ctx: { url: string }) => Promise.resolve(ctx.url === 'https://mno.com'))
+            ).rejects.toThrow('Cannot use a function to fetch a context in WebDriver Classic')
+        })
+
+        it('fails when applying a string parameter', async () => {
+            await expect(
+                browser.switchFrame('https://mno.com')
+            ).rejects.toThrow('Cannot use a string to fetch a context in WebDriver Classic')
+        })
+
+        it('calls classic switchToFrame', async () => {
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame')
+            await browser.switchFrame(await browser.$('iframe'))
+            expect(switchToFrame).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    elementId: 'some-elem-123'
+                })
+            )
+        })
+    })
+
+    describe('bidi', () => {
+        beforeEach(async () => {
+            vi.mocked(contextManager.initialize).mockClear()
+            vi.mocked(contextManager.setCurrentContext).mockClear()
+            vi.mocked(contextManager.getCurrentContext).mockClear()
+
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'bidi'
+                }
+            })
+
+            const execute = vi.spyOn(browser, 'execute')
+            execute.mockResolvedValue({
+                context: '5D4662C2B4465334DFD34239BA1E9E66'
+            })
+            const browsingContextActivate = vi.spyOn(browser, 'browsingContextActivate')
+            browsingContextActivate.mockResolvedValue({})
+            const getWindowHandle = vi.spyOn(browser, 'getWindowHandle')
+            getWindowHandle.mockResolvedValue('5D4662C2B4465334DFD34239BA1E9E66')
+            const browsingContextLocateNodes = vi.spyOn(browser, 'browsingContextLocateNodes')
+            browsingContextLocateNodes.mockResolvedValue({
+                nodes: []
+            })
+            const browsingContextGetTree = vi.spyOn(browser, 'browsingContextGetTree')
+            browsingContextGetTree.mockResolvedValue({
+                contexts: [{
                     children: [{
+                        children: [],
+                        context: '2',
+                        url: 'https://def.com',
+                        userContext: 'default'
+                    }, {
                         children: [{
-                            children: [],
-                            context: '5',
-                            url: 'https://mno.com',
+                            children: [{
+                                children: [],
+                                context: '5',
+                                url: 'https://mno.com',
+                                userContext: 'default'
+                            }],
+                            context: '4',
+                            url: 'https://jkl.com',
                             userContext: 'default'
                         }],
-                        context: '4',
-                        url: 'https://jkl.com',
+                        context: '3',
+                        url: 'https://3.com',
                         userContext: 'default'
                     }],
-                    context: '3',
-                    url: 'https://3.com',
+                    context: '1',
+                    url: 'https://abc.com',
                     userContext: 'default'
-                }],
-                context: '1',
-                url: 'https://abc.com',
-                userContext: 'default'
-            }]
+                }]
+            })
         })
-    })
 
-    it('should switch context via string', async () => {
-        await browser.switchFrame('https://mno.com')
-        expect(contextManager.setCurrentContext).toBeCalledWith('5')
-        await browser.switchFrame('jkl')
-        expect(contextManager.setCurrentContext).toBeCalledWith('4')
-        await browser.switchFrame('3')
-        expect(contextManager.setCurrentContext).toBeCalledWith('3')
-    })
+        it('should switch context via element', async () => {
+            const elem = await browser.$('iframe')
+            const elemExecute = vi.spyOn(elem, 'execute')
+            elemExecute.mockResolvedValue({
+                context: '5D4662C2B4465334DFD34239BA1E9E66'
+            })
 
-    it('should switch context via element', async () => {
-        await browser.switchFrame(browser.$('iframe'))
-        expect(contextManager.setCurrentContext).toBeCalledWith('4')
-    })
+            await browser.switchFrame(elem)
+            expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')
+        })
 
-    it('should switch context via function', async () => {
-        await browser.switchFrame((ctx: { url: string }) => Promise.resolve(ctx.url === 'https://mno.com'))
-        expect(contextManager.setCurrentContext).toBeCalledWith('5')
-    })
-
-    it('should switch context via null', async () => {
-        await browser.switchFrame(null)
-        expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')
+        it('should switch context via null', async () => {
+            await browser.switchFrame(null)
+            expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')
+        })
     })
 })

@@ -1,5 +1,7 @@
 import { vi } from 'vitest'
 
+process.env.WDIO_UNIT_TESTS = '1'
+
 const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
 
