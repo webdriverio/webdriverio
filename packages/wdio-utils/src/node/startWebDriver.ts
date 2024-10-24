@@ -86,7 +86,12 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
         chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
         chromedriverOptions.allowedIps = chromedriverOptions.allowedIps || ['0.0.0.0']
         const driverParams = parseParams({ port, ...chromedriverOptions })
-        driverProcess = cp.spawn(chromedriverExcecuteablePath, driverParams)
+        /**
+         * Set NODE_OPTIONS empty to avoid passing it to the chromedriver process so that Electron doesn't crash
+         */
+        driverProcess = cp.spawn(chromedriverExcecuteablePath, driverParams, {
+            env: { ...process.env, NODE_OPTIONS: '' }
+        })
         driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
     } else if (isSafari(caps.browserName)) {
         const safaridriverOptions = caps['wdio:safaridriverOptions'] || ({} as WebdriverIO.SafaridriverOptions)
