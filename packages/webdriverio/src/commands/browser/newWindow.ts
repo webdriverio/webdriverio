@@ -3,6 +3,8 @@ import { sleep } from '@wdio/utils'
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getContextManager } from '../../context.js'
 import type { NewWindowOptions } from '../../types.js'
+import logger from '@wdio/logger'
+const log = logger('webdriverio:newWindow')
 
 const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
 
@@ -88,6 +90,10 @@ export async function newWindow (
         throw new Error(`Invalid type '${type}' provided to newWindow command. Use either 'tab' or 'window'`)
     }
 
+    if (windowFeatures) {
+        log.warn('The "windowFeatures" option is deprecated and will be removed in future versions.')
+    }
+
     /**
      * mobile check
      */
@@ -98,6 +104,9 @@ export async function newWindow (
     const tabsBefore = await this.getWindowHandles()
 
     if (this.isBidi) {
+        if (windowName || windowFeatures) {
+            log.warn('The "windowName" and "windowFeatures" options are not supported in BiDi mode and will be ignored.')
+        }
         const contextManager = getContextManager(this)
         const { context } = await this.browsingContextCreate({ type: type })
         contextManager.setCurrentContext(context)

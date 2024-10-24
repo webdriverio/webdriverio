@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import path from 'node:path'
-import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
+import { expect, describe, beforeEach, afterEach, it, vi, type MockInstance } from 'vitest'
 
 import { remote } from '../../../src/index.js'
 
@@ -113,24 +113,41 @@ describe('newWindow', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
+                browserName: 'bidi'
             }
         })
+
+        const browsingContextCreateSpy: MockInstance = vi.spyOn(browser, 'browsingContextCreate')
+        browsingContextCreateSpy.mockImplementation(() => ({ context: 'new-window-handle', type: 'window' }))
+        const browsingContextNavigateSpy: MockInstance = vi.spyOn(browser, 'browsingContextNavigate')
+        browsingContextNavigateSpy.mockImplementation(() => ({}))
 
         const newHandle = await browser.newWindow('https://webdriver.io', {
             windowName: 'some window'
         })
 
         expect(newHandle.type).toBe('window')
+        expect(browsingContextCreateSpy).toHaveBeenCalledTimes(1)
+        expect(browsingContextCreateSpy).toHaveBeenCalledWith({ type: 'window' })
+        expect(browsingContextNavigateSpy).toHaveBeenCalledTimes(1)
+        expect(browsingContextNavigateSpy).toHaveBeenCalledWith({
+            context: 'new-window-handle',
+            url: 'https://webdriver.io'
+        })
     })
 
     it('should open a new tab when type is tab', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
+                browserName: 'bidi'
             }
         })
+
+        const browsingContextCreateSpy: MockInstance = vi.spyOn(browser, 'browsingContextCreate')
+        browsingContextCreateSpy.mockImplementation(() => ({ context: 'new-tab-handle', type: 'tab' }))
+        const browsingContextNavigateSpy: MockInstance = vi.spyOn(browser, 'browsingContextNavigate')
+        browsingContextNavigateSpy.mockImplementation(() => ({}))
 
         const newHandle = await browser.newWindow('https://webdriver.io', {
             type: 'tab',
@@ -138,6 +155,12 @@ describe('newWindow', () => {
         })
 
         expect(newHandle.type).toBe('tab')
+        expect(browsingContextCreateSpy).toHaveBeenCalledTimes(1)
+        expect(browsingContextCreateSpy).toHaveBeenCalledWith({ type: 'tab' })
+        expect(browsingContextNavigateSpy).toHaveBeenCalledTimes(1)
+        expect(browsingContextNavigateSpy).toHaveBeenCalledWith({
+            context: 'new-tab-handle',
+            url: 'https://webdriver.io'
+        })
     })
-
 })
