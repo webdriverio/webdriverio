@@ -105,7 +105,7 @@ export async function newWindow (
 
     if (this.isBidi) {
         const contextManager = getContextManager(this)
-        const { context } = await this.browsingContextCreate({ type: type })
+        const { context } = await this.browsingContextCreate({ type })
         contextManager.setCurrentContext(context)
         await this.browsingContextNavigate({ context, url })
     } else {
