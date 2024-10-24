@@ -38,7 +38,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
       :newTabSync.js
       it('should open a new tab', async () => {
           await browser.url('https://google.com')
-            console.log(await browser.getTitle()) // outputs: "Google"
+          console.log(await browser.getTitle()) // outputs: "Google"
 
           await browser.newWindow('https://webdriver.io', {
               type:'tab',
