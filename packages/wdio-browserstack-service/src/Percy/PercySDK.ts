@@ -1,6 +1,7 @@
 import InsightsHandler from '../insights-handler.js'
 import TestReporter from '../reporter.js'
 import { PercyLogger } from './PercyLogger.js'
+import { isUndefined } from '../util.js'
 
 const tryRequire = async function (pkg: string, fallback: any) {
     try {
@@ -22,7 +23,7 @@ if (percySnapshot) {
     snapshotHandler = (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, snapshotName: string, options?: any) => {
         if (process.env.PERCY_SNAPSHOT === 'true') {
             let { name, uuid } = InsightsHandler._currentTest
-            if (!name || name === '') {
+            if (isUndefined(name)) {
                 ({ name, uuid } = TestReporter._currentTest)
             }
             options ||= {}
@@ -44,7 +45,7 @@ let screenshotHandler = async (...args: any[]) => {
 if (percySnapshot && percySnapshot.percyScreenshot) {
     screenshotHandler = (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | string, screenshotName: any, options?: any) => {
         let { name, uuid } = InsightsHandler._currentTest
-        if (!name || name === '') {
+        if (isUndefined(name)) {
             ({ name, uuid } = TestReporter._currentTest)
         }
         if (!browser || typeof browser === 'string') {
@@ -74,7 +75,7 @@ let screenshotAppHandler = async (...args: any[]) => {
 if (percyAppScreenshot) {
     screenshotAppHandler = (driverOrName: any, nameOrOptions?: any, options?: any) => {
         let { name, uuid } = InsightsHandler._currentTest
-        if (!name || name === '') {
+        if (isUndefined(name)) {
             ({ name, uuid } = TestReporter._currentTest)
         }
         if (!driverOrName || typeof driverOrName === 'string') {

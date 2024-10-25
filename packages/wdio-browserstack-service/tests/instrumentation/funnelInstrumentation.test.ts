@@ -27,8 +27,8 @@ const config = {
 }
 
 const expectedEventData = {
-    userName: config.userName,
-    accessKey: config.accessKey,
+    userName: '[REDACTED]',
+    accessKey: '[REDACTED]',
     event_type: 'SDKTestAttempted',
     detectedFramework: 'WebdriverIO-framework',
     event_properties: {
@@ -130,7 +130,7 @@ describe('funnelInstrumentation', () => {
     })
 
     it('fireFunnelRequest sends request with correct data', async () => {
-        const data = { key: 'value', userName: 'some_name', accessKey: 'some_key' }
+        const data = { key: 'value', userName: '[REDACTED]', accessKey: '[REDACTED]' }
         await FunnelTestEvent.fireFunnelRequest(data)
         expect(got.post).toHaveBeenCalledWith(FUNNEL_INSTRUMENTATION_URL, expect.objectContaining({
             headers: expect.any(Object),
@@ -157,8 +157,8 @@ describe('funnelInstrumentation', () => {
                 username: config.userName,
                 password: config.accessKey,
                 json: {
-                    userName: config.userName,
-                    accessKey: config.accessKey,
+                    userName: '[REDACTED]',
+                    accessKey: '[REDACTED]',
                     event_type: 'SDKTestTcgDownResponse',
                     detectedFramework: 'WebdriverIO-framework',
                     event_properties: {
@@ -192,8 +192,8 @@ describe('funnelInstrumentation', () => {
                 username: config.userName,
                 password: config.accessKey,
                 json: {
-                    userName: config.userName,
-                    accessKey: config.accessKey,
+                    userName: '[REDACTED]',
+                    accessKey: '[REDACTED]',
                     event_type: 'SDKTestTcgAuthFailure',
                     detectedFramework: 'WebdriverIO-framework',
                     event_properties: {
@@ -236,8 +236,8 @@ describe('funnelInstrumentation', () => {
                 username: config.userName,
                 password: config.accessKey,
                 json: {
-                    userName: config.userName,
-                    accessKey: config.accessKey,
+                    userName: '[REDACTED]',
+                    accessKey: '[REDACTED]',
                     event_type: 'SDKTestTcgtInitSuccessful',
                     detectedFramework: 'WebdriverIO-framework',
                     event_properties: {
@@ -276,8 +276,8 @@ describe('funnelInstrumentation', () => {
                 username: config.userName,
                 password: config.accessKey,
                 json: {
-                    userName: config.userName,
-                    accessKey: config.accessKey,
+                    userName: '[REDACTED]',
+                    accessKey: '[REDACTED]',
                     event_type: 'SDKTestInitFailedResponse',
                     detectedFramework: 'WebdriverIO-framework',
                     event_properties: {
@@ -319,8 +319,8 @@ describe('funnelInstrumentation', () => {
                 username: config.userName,
                 password: config.accessKey,
                 json: {
-                    userName: config.userName,
-                    accessKey: config.accessKey,
+                    userName: '[REDACTED]',
+                    accessKey: '[REDACTED]',
                     event_type: 'SDKTestInvalidTcgAuthResponseWithUserImpact',
                     detectedFramework: 'WebdriverIO-framework',
                     event_properties: {

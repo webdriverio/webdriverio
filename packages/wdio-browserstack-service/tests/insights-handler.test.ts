@@ -786,7 +786,7 @@ describe('appendTestItemLog', function () {
     })
 
     it('should upload with current test uuid for log', function () {
-        insightsHandler['_currentTest'] = { uuid: 'some_uuid' }
+        InsightsHandler['_currentTest'] = { uuid: 'some_uuid' }
         insightsHandler['appendTestItemLog'](testLogObj)
         expect(testLogObj.test_run_uuid).toBe('some_uuid')
         expect(sendDataSpy).toBeCalledTimes(1)
@@ -800,6 +800,7 @@ describe('appendTestItemLog', function () {
     })
 
     it('should not upload log if hook is finished', function () {
+        InsightsHandler['_currentTest'] = {}
         insightsHandler['_currentHook'] = { uuid: 'some_uuid', finished: true }
         insightsHandler['appendTestItemLog'](testLogObj)
         expect(testLogObj.hook_run_uuid).toBe(undefined)
@@ -827,7 +828,7 @@ describe('processCucumberHook', function () {
 
     it ('should send data for before event', function () {
         cucumberHookTypeSpy.mockReturnValue('BEFORE_ALL')
-        insightsHandler['_currentTest'].uuid = 'test_uuid'
+        InsightsHandler['_currentTest'].uuid = 'test_uuid'
         insightsHandler['processCucumberHook'](undefined, { event: 'before', hookUUID: 'hook_uuid' })
         expect(getHookRunDataForCucumberSpy).toBeCalledWith(expect.objectContaining({
             uuid: 'hook_uuid',

@@ -35,7 +35,6 @@ import {
     validateCapsWithA11y,
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
-    createAccessibilityTestRun,
     isTrue,
     uploadLogs
 } from '../src/util.js'
@@ -1032,48 +1031,6 @@ describe('isAccessibilityAutomationSession', () => {
     })
 })
 
-describe('createAccessibilityTestRun', () => {
-    const logInfoMock = vi.spyOn(log, 'error')
-
-    beforeEach (() => {
-        vi.mocked(gitRepoInfo).mockReturnValue({} as any)
-    })
-
-    it('return null if BrowserStack credentials arre undefined', async () => {
-        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, {})
-        expect(result).toEqual(null)
-        expect(logInfoMock.mock.calls[2][0])
-            .toContain('Exception while creating test run for BrowserStack Accessibility Automation: Missing BrowserStack credentials')
-    })
-
-    it('return undefined if completed', async () => {
-        vi.spyOn(utils, 'getGitMetaData').mockReturnValue({} as any)
-        vi.mocked(got).mockReturnValue({
-            json: () => Promise.resolve({ data: { accessibilityToken: 'someToken', id: 'id', scannerVersion: '0.0.6.0' } }),
-        } as any)
-
-        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, { bstackServiceVersion: '1.2.3' })
-        expect(got).toBeCalledTimes(1)
-        expect(result).toEqual('0.0.6.0')
-    })
-
-    it('return undefined if completed', async () => {
-        vi.spyOn(utils, 'getGitMetaData').mockReturnValue({} as any)
-        vi.mocked(got).mockReturnValue({
-            json: () => Promise.resolve({ accessibilityToken: 'someToken', id: 'id', scannerVersion: '0.0.6.0' }),
-        } as any)
-
-        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, {})
-        expect(got).toBeCalledTimes(1)
-        expect(result).toEqual(null)
-        expect(logInfoMock.mock.calls[3][0]).contains('Exception while creating test run for BrowserStack Accessibility Automation')
-    })
-
-    afterEach(() => {
-        (got as vi.Mock).mockClear()
-    })
-})
-
 describe('getA11yResults', () => {
     const browser = {
         sessionId: 'session123',
@@ -1114,8 +1071,10 @@ describe('getA11yResults', () => {
     })
 
     it('return results object if bstack as well as accessibility session', async () => {
+        process.env.BSTACK_A11Y_JWT = 'abc'
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResults((browser as WebdriverIO.Browser), true, true)
+        delete process.env.BSTACK_A11Y_JWT
         expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
@@ -1160,8 +1119,10 @@ describe('getA11yResultsSummary', () => {
     })
 
     it('return results object if bstack as well as accessibility session', async () => {
+        process.env.BSTACK_A11Y_JWT = 'abc'
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, true)
+        delete process.env.BSTACK_A11Y_JWT
         expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })

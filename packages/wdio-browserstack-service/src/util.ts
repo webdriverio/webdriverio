@@ -1149,7 +1149,11 @@ export function getBrowserStackKey(config: Options.Testrunner) {
 }
 
 export function isUndefined(value: any) {
-    return value === undefined || value === null
+    let res = (value === undefined || value === null)
+    if (typeof value === 'string') {
+        res = res || value === ''
+    }
+    return res
 }
 
 export function isTrue(value?: any) {

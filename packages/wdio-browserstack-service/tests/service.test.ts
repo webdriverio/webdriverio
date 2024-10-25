@@ -550,12 +550,12 @@ describe('afterStep', () => {
 describe('beforeScenario', () => {
     const service = new BrowserstackService({}, [] as any, { user: 'foo', key: 'bar' } as any)
 
-    it('call insightsHandler.beforeScenario', () => {
+    it('call insightsHandler.beforeScenario', async () => {
         service['_insightsHandler'] = new InsightsHandler(browser)
+        service['_accessibilityHandler'] = undefined
         vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'beforeScenario')
-        service.beforeScenario({ pickle: { name: '', tags: [] }, gherkinDocument: { uri: '', feature: { name: '', description: '' } } } as any)
-
+        await service.beforeScenario({ pickle: { name: '', tags: [] }, gherkinDocument: { uri: '', feature: { name: '', description: '' } } } as any)
         expect(methodSpy).toBeCalled()
     })
 })
