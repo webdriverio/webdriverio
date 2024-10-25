@@ -2,6 +2,7 @@
 import { BROWSERSTACK_PERCY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBILITY } from '../constants.js'
 import type BrowserStackConfig from '../config.js'
 import { BStackLogger } from '../bstackLogger.js'
+import { isTrue } from '../util.js'
 
 export const getProductMap = (config: BrowserStackConfig): any => {
     return {
@@ -14,13 +15,13 @@ export const getProductMap = (config: BrowserStackConfig): any => {
 }
 
 export const shouldProcessEventForTesthub = (eventType: string): boolean => {
-    if (process.env[BROWSERSTACK_OBSERVABILITY]) {
+    if (isTrue(process.env[BROWSERSTACK_OBSERVABILITY])) {
         return true
     }
-    if (process.env[BROWSERSTACK_ACCESSIBILITY]) {
+    if (isTrue(process.env[BROWSERSTACK_ACCESSIBILITY])) {
         return !(['HookRunStarted', 'HookRunFinished', 'LogCreated'].includes(eventType))
     }
-    if (process.env[BROWSERSTACK_PERCY] && eventType) {
+    if (isTrue(process.env[BROWSERSTACK_PERCY]) && eventType) {
         return false
     }
     return Boolean(process.env[BROWSERSTACK_ACCESSIBILITY] || process.env[BROWSERSTACK_OBSERVABILITY] || process.env[BROWSERSTACK_PERCY])!

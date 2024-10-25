@@ -10,7 +10,8 @@ import {
     getParentSuiteName,
     isBrowserstackSession,
     patchConsoleLogs,
-    shouldAddServiceVersion
+    shouldAddServiceVersion,
+    isTrue
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
@@ -58,7 +59,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
-        this._percy = process.env.BROWSERSTACK_PERCY === 'true'
+        this._percy = isTrue(process.env.BROWSERSTACK_PERCY)
         this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
