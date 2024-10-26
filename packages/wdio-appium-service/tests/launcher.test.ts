@@ -145,8 +145,6 @@ vi.mock('../src/utils', async () => {
     }
 })
 
-const isWindows = process.platform === 'win32'
-
 describe('Appium launcher', () => {
     const consoleSpy = vi.spyOn(global.console, 'error')
 
@@ -397,34 +395,17 @@ describe('Appium launcher', () => {
             const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher({}, capabilities, {} as any)
             await launcher.onPrepare()
-
-            if (isWindows) {
-                expect(spawn).toBeCalledWith(
-                    'cmd',
-                    [
-                        '/c',
-                        'node',
-                        expect.any(String),
-                        '--base-path',
-                        '/',
-                        '--port',
-                        '567567'
-                    ],
-                    expect.any(Object)
-                )
-            } else {
-                expect(spawn).toBeCalledWith(
-                    'node',
-                    [
-                        '/foo/bar/appium',
-                        '--base-path',
-                        '/',
-                        '--port',
-                        '567567'
-                    ],
-                    expect.any(Object)
-                )
-            }
+            expect(spawn).toBeCalledWith(
+                'node',
+                [
+                    '/foo/bar/appium',
+                    '--base-path',
+                    '/',
+                    '--port',
+                    '567567'
+                ],
+                expect.any(Object)
+            )
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(capabilities[0].protocol).toBe('http')
@@ -434,6 +415,7 @@ describe('Appium launcher', () => {
         })
 
         test('should respect custom port and path before Appium port and path', async () => {
+            vi.mocked(os.platform).mockReturnValueOnce('darwin')
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -442,37 +424,18 @@ describe('Appium launcher', () => {
             const capabilities = [{ port: 4321, 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
-
-            if (isWindows) {
-                expect(spawn).toBeCalledWith(
-                    'cmd',
-                    [
-                        expect.any(String),
-                        'path/to/my_custom_appium',
-                        '--base-path',
-                        '/foo/bar',
-                        '--address',
-                        'bar',
-                        '--port',
-                        '1234'
-                    ],
-                    expect.any(Object)
-                )
-            } else {
-                expect(spawn).toBeCalledWith(
-                    'path/to/my_custom_appium',
-                    [
-                        '--base-path',
-                        '/foo/bar',
-                        '--address',
-                        'bar',
-                        '--port',
-                        '1234'
-                    ],
-                    expect.any(Object)
-                )
-            }
-
+            expect(spawn).toBeCalledWith(
+                'path/to/my_custom_appium',
+                [
+                    '--base-path',
+                    '/foo/bar',
+                    '--address',
+                    'bar',
+                    '--port',
+                    '1234'
+                ],
+                expect.any(Object)
+            )
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
             expect(capabilities[0].protocol).toBe('http')
