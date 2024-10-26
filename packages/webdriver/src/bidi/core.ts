@@ -15,6 +15,7 @@ export class BidiCore {
     #id = 0
     #ws: WebSocket
     #isConnected = false
+    #waitForConnected = Promise.resolve()
     #webSocketUrl: string
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
 
@@ -36,11 +37,20 @@ export class BidiCore {
             return
         }
 
-        return new Promise<void>((resolve) => this.#ws.on('open', () => {
+        this.#waitForConnected = new Promise<void>((resolve) => this.#ws.on('open', () => {
             log.info('Connected session to Bidi protocol')
             this.#isConnected = true
             resolve()
         }))
+        return this.#waitForConnected
+    }
+
+    /**
+     * Helper function that allows to wait until Bidi connection establishes
+     * @returns a promise that resolves once the connection to WebDriver Bidi protocol was established
+     */
+    waitForConnected () {
+        return this.#waitForConnected
     }
 
     get socket () {
