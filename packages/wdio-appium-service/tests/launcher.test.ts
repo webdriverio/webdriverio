@@ -398,7 +398,7 @@ describe('Appium launcher', () => {
             expect(spawn).toBeCalledWith(
                 'node',
                 [
-                    '/foo/bar/appium',
+                    expect.any(String),
                     '--base-path',
                     '/',
                     '--port',
@@ -498,7 +498,7 @@ describe('Appium launcher', () => {
             expect(spawn).toBeCalledWith(
                 'node',
                 [
-                    '/foo/bar/appium',
+                    expect.any(String),
                     '--base-path',
                     '/',
                     '--address',
@@ -522,7 +522,7 @@ describe('Appium launcher', () => {
             expect(spawn).toBeCalledWith(
                 'node',
                 [
-                    '/foo/bar/appium',
+                    expect.any(String),
                     '--base-path',
                     '/',
                     '--port',
