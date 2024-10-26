@@ -24,11 +24,11 @@ describe('ShadowRootManager', () => {
     })
 
     it('registers correct event listeners', async () => {
-        const wid = process.env.VITEST_WORKER_ID
-        delete process.env.VITEST_WORKER_ID
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
         const browser = { ...defaultBrowser, isBidi: true, options: { automationProtocol: 'webdriver' } } as any
         const manager = getShadowRootManager(browser)
-        process.env.VITEST_WORKER_ID = wid
+        process.env.WDIO_UNIT_TESTS = wid
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
         expect(browser.on).toBeCalledTimes(3)

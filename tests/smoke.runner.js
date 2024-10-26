@@ -17,6 +17,8 @@ const severalPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-wit
 // eslint-disable-next-line no-control-regex
 const ansiColorRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
 
+process.env.WDIO_UNIT_TESTS = '1'
+
 import launch from './helpers/launch.js'
 import {
     SERVICE_LOGS,
