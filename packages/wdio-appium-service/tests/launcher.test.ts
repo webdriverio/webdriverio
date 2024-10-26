@@ -392,6 +392,7 @@ describe('Appium launcher', () => {
 
         test('should respect random Appium port', async () => {
             vi.mocked(getPort).mockResolvedValueOnce(567567)
+            vi.mocked(os.platform).mockReturnValueOnce('darwin')
 
             const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher({}, capabilities, {} as any)
@@ -509,7 +510,7 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties for mac', async () => {
-            vi.mocked(os.platform).mockReturnValueOnce('win32')
+            vi.mocked(os.platform).mockReturnValue('win32')
             const launcher = new AppiumLauncher({
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -522,7 +523,7 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties for linux', async () => {
-            vi.mocked(os.platform).mockReturnValueOnce('linux')
+            vi.mocked(os.platform).mockReturnValue('linux')
 
             const launcher = new AppiumLauncher({
                 logPath: './',
@@ -548,6 +549,7 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties when empty', async () => {
+            vi.mocked(os.platform).mockReturnValue('linux')
             const launcher = new AppiumLauncher({}, [{
                 'appium:automationName': '123'
             }], {} as any)
@@ -809,6 +811,7 @@ describe('Appium launcher', () => {
     })
 
     afterEach(() => {
+        vi.mocked(os.platform).mockReset()
         consoleSpy.mockRestore()
     })
 })
