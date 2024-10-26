@@ -312,6 +312,9 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
     ) as unknown as { context: string }
 
     switchToFrameHelper(browser, frame.context)
+
+    const elementId = element[ELEMENT_KEY]
+    await switchToFrame(browser, { [ELEMENT_KEY]: elementId })
     return frame.context
 }
 
