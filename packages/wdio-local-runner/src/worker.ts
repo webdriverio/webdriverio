@@ -121,7 +121,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx'
         }
 
-        log.info(`Start worker ${cid} with arg: ${argv}`)
+        log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
         const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
             cwd: process.cwd(),
             env: runnerEnv,

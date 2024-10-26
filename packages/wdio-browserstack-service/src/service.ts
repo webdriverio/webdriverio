@@ -40,6 +40,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
     private _percy
+    private _percyCaptureMode: string | undefined = undefined
     private _percyHandler?: PercyHandler
     private _turboScale
 
@@ -53,7 +54,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
-        this._percy = this._options.percy
+        this._percy =  process.env.BROWSERSTACK_PERCY === 'true'
+        this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
         if (this._observability) {
@@ -66,6 +68,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (process.env.BROWSERSTACK_TURBOSCALE) {
             this._turboScale = process.env.BROWSERSTACK_TURBOSCALE === 'true'
         }
+        process.env.BROWSERSTACK_TURBOSCALE_INTERNAL = String(this._turboScale)
 
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
@@ -135,7 +138,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._browser) {
             if (this._percy) {
                 this._percyHandler = new PercyHandler(
-                    this._options.percyCaptureMode,
+                    this._percyCaptureMode,
                     this._browser,
                     this._caps,
                     this._isAppAutomate(),
@@ -150,9 +153,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
                     this._insightsHandler = new InsightsHandler(
                         this._browser,
-                        this._isAppAutomate(),
                         this._config.framework,
-                        this._caps
+                        this._caps,
+                        this._options
                     )
                     await this._insightsHandler.before()
                 }

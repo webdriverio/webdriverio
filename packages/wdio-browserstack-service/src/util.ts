@@ -16,7 +16,7 @@ import { FormData } from 'formdata-node'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 
-import type { UserConfig, UploadType, BrowserstackConfig, LaunchResponse } from './types.js'
+import type { UserConfig, UploadType, BrowserstackConfig, BrowserstackOptions, LaunchResponse } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     ACCESSIBILITY_API_URL,
@@ -349,7 +349,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
                 BStackLogger.error(errorMessage)
             }
         } else {
-            BStackLogger.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
+            BStackLogger.error(`Data upload to BrowserStack Test Observability failed due to ${error}. Cause : ${error.cause}`)
         }
     }
 })
@@ -1411,4 +1411,14 @@ export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner 
 
     // Check if there are any capabilities and if at least one has a browser name
     return capValues.length > 0 && capValues.some(hasBrowserName)
+}
+
+export function isTurboScale(options: (BrowserstackConfig & BrowserstackOptions) | undefined): boolean {
+    return Boolean(options?.turboScale)
+}
+
+export function getObservabilityProduct(options: (BrowserstackConfig & BrowserstackOptions) | undefined, isAppAutomate: boolean | undefined): string {
+    return isAppAutomate
+        ? 'app-automate'
+        : (isTurboScale(options) ? 'turboscale' : 'automate')
 }

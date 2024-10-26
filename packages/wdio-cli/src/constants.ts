@@ -148,7 +148,6 @@ export const SUPPORTED_PACKAGES = {
         { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' },
         { name: 'google-Chat', value: 'wdio-google-chat-service$--$google-chat' },
         { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service$--$qmate-service' },
-        { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai' },
         { name: 'robonut', value: 'wdio-robonut-service$--$robonut' },
         { name: 'qunit', value: 'wdio-qunit-service$--$qunit' }
     ]
@@ -195,8 +194,7 @@ enum ProtocolOptions {
 
 export enum RegionOptions {
     US = 'us',
-    EU = 'eu',
-    APAC = 'apac'
+    EU = 'eu'
 }
 
 export const E2E_ENVIRONMENTS = [
@@ -505,7 +503,7 @@ export const QUESTIONNAIRE = [{
         const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
         return getDefaultFiles(answers, pattern)
     },
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.match(/(mocha|jasmine)/)
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && Boolean(answers.framework.match(/(mocha|jasmine)/))
 }, {
     type: 'input',
     name: 'specs',

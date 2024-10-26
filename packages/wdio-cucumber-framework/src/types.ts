@@ -143,6 +143,12 @@ export interface CucumberOptions {
      * @default []
      */
     profiles?: string[];
+    /**
+     * Path to load configuration file from, or `false` to skip.
+     * Not setting this results in undefined which ends up using default cucumber config files
+     * @default undefined
+     */
+    file?: string | false | undefined;
 }
 
 export interface HookParams {

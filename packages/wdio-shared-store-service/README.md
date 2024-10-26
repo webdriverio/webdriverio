@@ -105,3 +105,13 @@ export const config = {
     // ...
 };
 ```
+
+If you are using typescript, make sure to add `@wdio/shared-store-service` to your `compilerOptions.types`:
+
+```js
+{
+    "compilerOptions": {
+        "types": ["node", "@wdio/globals/types", "@wdio/shared-store-service"],
+    }
+}
+```

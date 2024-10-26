@@ -4,6 +4,8 @@ import type { WebDriverBidiProtocol, ProtocolCommands } from '@wdio/protocols'
 
 import type { BidiHandler } from './bidi/handler.js'
 import type { EventData } from './bidi/localTypes.js'
+import type { CommandData } from './bidi/remoteTypes.js'
+import type { CommandResponse } from './bidi/localTypes.js'
 
 export interface JSONWPCommandError extends Error {
     code?: string
@@ -35,6 +37,8 @@ type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
 type WebDriverClassicEvents = {
     command: { command: string, method: string, endpoint: string, body: any }
     result: { command: string, method: string, endpoint: string, body: any, result: any }
+    bidiCommand: Omit<CommandData, 'id'>,
+    bidiResult: CommandResponse,
     'request.performance': { durationMillisecond: number, error: string, request: any, retryCount: number, success: boolean }
 }
 export type BidiEventMap = {

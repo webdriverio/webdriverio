@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-wdio",
-  "version": "9.0.5",
+  "version": "9.0.8",
   "description": "Eslint rules for WebdriverIO",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio",
@@ -18,7 +18,7 @@
   "type": "module",
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",

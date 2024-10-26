@@ -184,14 +184,6 @@ Compare images and compare with `red = 16, green = 16, blue = 16, alpha = 16, mi
 
 Compare images and compare with `red = 0, green = 0, blue = 0, alpha = 0, minBrightness=0, maxBrightness=255`
 
-### `ignoreTransparentPixel`
-
--   **Type:** `boolean`
--   **Default:** `false`
--   **Mandatory:** no
-
-Compare images and it will ignore all pixels that have some transparency in one of the images
-
 ### `rawMisMatchPercentage`
 
 -   **Type:** `boolean`

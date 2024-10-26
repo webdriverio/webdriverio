@@ -338,9 +338,9 @@ describe('Mocha smoke test', () => {
         it('should throw if promise rejects', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('deleteCookies', (async (origCommand: Function, fail: boolean) => {
-                const result = await origCommand()
-                return fail ? Promise.reject(new Error(result)) : result
+            browser.overwriteCommand('deleteCookies', (async (origCommand: Function) => {
+                await origCommand()
+                return Promise.reject(new Error('deleteAllCookies'))
             }) as any)
 
             await assert.rejects(
@@ -362,9 +362,9 @@ describe('Mocha smoke test', () => {
         it('should throw if promise rejects (async execution)', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('deleteCookies', async (origCommand, fail) => {
-                const result = (await origCommand()) as any as string
-                return fail ? Promise.reject(new Error(result)) : result
+            browser.overwriteCommand('deleteCookies', async (origCommand: Function) => {
+                await origCommand()
+                return Promise.reject(new Error('deleteAllCookies'))
             })
 
             await assert.rejects(
@@ -407,6 +407,14 @@ describe('Mocha smoke test', () => {
             // @ts-expect-error mock feature
             await browser.refetchElementScenario()
             expect(await browser.$$('.foo')[3].getText()).toBe('some element text 4')
+        })
+    })
+
+    describe('request retries', () => {
+        it('should retry request', async () => {
+            // @ts-expect-error mock feature
+            await browser.requestRetryScenario()
+            await browser.url('https://mymockpage.com')
         })
     })
 })

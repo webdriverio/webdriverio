@@ -1,10 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
 
-import { verifyArgsAndStripIfElement } from '../../utils/index.js'
-import { LocalValue } from '../../utils/bidi/value.js'
-import { parseScriptResult } from '../../utils/bidi/index.js'
-import { getContextManager } from '../../context.js'
-
 /**
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected
@@ -44,36 +39,8 @@ import { getContextManager } from '../../context.js'
 export async function execute<ReturnValue, InnerArguments extends any[]> (
     this: WebdriverIO.Element,
     script: string | ((...innerArgs: [WebdriverIO.Element, ...InnerArguments]) => ReturnValue),
-    ...args: InnerArguments): Promise<ReturnValue> {
-    /**
-     * parameter check
-     */
-    if ((typeof script !== 'string' && typeof script !== 'function')) {
-        throw new Error('number or type of arguments don\'t agree with execute protocol command')
-    }
-
-    if (this.isBidi) {
-        const browser = getBrowserObject(this)
-        const contextManager = getContextManager(browser)
-        const context = await contextManager.getCurrentContext()
-        const result = await browser.scriptCallFunction({
-            functionDeclaration: script.toString(),
-            awaitPromise: false,
-            arguments: [this, ...args].map((arg) => LocalValue.getArgument(arg)) as any,
-            target: {
-                context
-            }
-        })
-        return parseScriptResult(result)
-    }
-
-    /**
-     * instances started as multibrowserinstance can't getting called with
-     * a function parameter, therefore we need to check if it starts with "function () {"
-     */
-    if (typeof script === 'function') {
-        script = `return (${script}).apply(null, arguments)`
-    }
-
-    return this.executeScript(script, verifyArgsAndStripIfElement([this, ...args]))
+    ...args: InnerArguments
+): Promise<ReturnValue> {
+    const browser = getBrowserObject(this)
+    return browser.execute(script, this, ...args)
 }

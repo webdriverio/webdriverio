@@ -102,7 +102,8 @@ describe('scrollIntoView test', () => {
             expect(calls).toHaveLength(1)
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
-            expect(JSON.parse(executeCallOptions.body).script).toEqual('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)')
+            expect(JSON.parse(executeCallOptions.body).script).toEqual(
+                expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'start', inline: 'nearest' })
         })
@@ -113,7 +114,8 @@ describe('scrollIntoView test', () => {
             expect(calls).toHaveLength(1)
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
-            expect(JSON.parse(executeCallOptions.body).script).toEqual('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)')
+            expect(JSON.parse(executeCallOptions.body).script).toEqual(
+                expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual(true)
         })
@@ -124,7 +126,8 @@ describe('scrollIntoView test', () => {
             expect(calls).toHaveLength(1)
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
-            expect(JSON.parse(executeCallOptions.body).script).toEqual('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)')
+            expect(JSON.parse(executeCallOptions.body).script).toEqual(
+                expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'end', inline: 'center' })
         })

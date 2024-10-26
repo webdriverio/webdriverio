@@ -1,12 +1,9 @@
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import {
-    WebDriverBidiProtocol,
-    type CommandEndpoint,
-} from '@wdio/protocols'
+import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
 import Request from './request/request.js'
-import type { WebDriverResponse } from './request/index.js'
+import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 
 const log = logger('webdriver')
@@ -39,7 +36,9 @@ export default function (
          * log deprecation warning if command is deprecated
          */
         if (typeof deprecated === 'string') {
-            log.warn(deprecated.replace('This command', `The "${command}" command`))
+            const warning = deprecated.replace('This command', `The "${command}" command`)
+            log.warn(warning)
+            console.warn(`⚠️ [WEBDRIVERIO DEPRECATION NOTICE] ${warning}`)
         }
 
         /**

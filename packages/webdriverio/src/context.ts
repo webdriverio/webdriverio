@@ -43,6 +43,15 @@ export class ContextManager {
             events: ['browsingContext.navigationStarted']
         }).then(() => true, () => false)
         this.#browser.on('browsingContext.navigationStarted', this.#handleNavigationStarted.bind(this))
+        /**
+         * Listens for the 'switchToWindow' browser command to handle context changes.
+         * Updates the browsingContext with the context passed in 'switchToWindow'.
+         */
+        this.#browser.on('command', (event) => {
+            if (event.command === 'switchToWindow') {
+                this.setCurrentContext(event.body.handle)
+            }
+        })
     }
 
     async initialize () {
@@ -58,13 +67,15 @@ export class ContextManager {
      *
      * @param {local.BrowsingContextNavigationInfo} context  browsing context used to navigate
      */
-    #handleNavigationStarted (context: local.BrowsingContextNavigationInfo) {
-        this.#browser.getWindowHandle().then((windowHandle) => {
-            if (context.context === windowHandle) {
-                log.info(`Update current context: ${context.context}`)
-                this.#currentContext = context.context
-            }
-        })
+    async #handleNavigationStarted (context: local.BrowsingContextNavigationInfo) {
+        const windowHandle = await this.#browser.getWindowHandle()
+        if (context.context === windowHandle && context.url !== 'UNKNOWN') {
+            log.info(`Update current context: ${context.context}`)
+            this.#currentContext = context.context
+        }
+    }
+    setCurrentContext (context: string) {
+        this.#currentContext = context
     }
 
     async getCurrentContext () {

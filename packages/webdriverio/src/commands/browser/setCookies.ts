@@ -64,8 +64,35 @@ export async function setCookies(
         throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies for documentation)')
     }
 
-    for (const cookieObj of cookieObjsList) {
-        await this.addCookie(cookieObj)
+    /**
+     * if session doesn't use Bidi, use WebDriver Classic command
+     */
+    if (!this.isBidi) {
+        for (const cookieObj of cookieObjsList) {
+            await this.addCookie(cookieObj)
+        }
+        return
     }
+
+    /**
+     * only fetch current url of browsing context if not all cookies have a domain set
+     */
+    let url = new URL('http://localhost')
+    if (cookieObjsList.some((cookie) => typeof cookie.domain !== 'string')) {
+        url = new URL(await this.getUrl())
+    }
+
+    await Promise.all(cookieObjsList.map((cookie) => (
+        this.storageSetCookie({
+            cookie: {
+                ...cookie,
+                domain: cookie.domain || url.hostname,
+                value: {
+                    type: 'string',
+                    value: cookie.value,
+                }
+            }
+        })
+    )))
     return
 }

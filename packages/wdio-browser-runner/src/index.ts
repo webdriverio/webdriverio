@@ -1,3 +1,5 @@
+/// <reference types="geckodriver" />
+
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
@@ -96,9 +98,18 @@ export default class BrowserRunner extends LocalRunner {
         this.#servers.add(server)
 
         try {
-            await server.start()
+            const port = await server.start()
             const host = this.#options.host || DEFAULT_HOST
-            runArgs.args.baseUrl = `${host}:${server.config.server?.port}`
+            runArgs.args.baseUrl = `${host}:${port}`
+
+            /**
+             * enable Geckodriver to accept Bidi messages from the browser
+             */
+            if (runArgs.caps.browserName === 'firefox') {
+                runArgs.caps['wdio:geckodriverOptions'] = {
+                    allowOrigins: [`http://localhost:${port}`]
+                }
+            }
         } catch (err: any) {
             throw new Error(`Vite server failed to start: ${err.stack}`)
         }

@@ -2,6 +2,41 @@ import { browser, expect } from '@wdio/globals'
 import type { local } from 'webdriver'
 
 describe('bidi e2e test', () => {
+    describe('execute', () => {
+        it('generates a nice stack trace', async function () {
+            /**
+             * bidi feature, so skip if:
+             *   - browser doesn't support Bidi
+             *   - browser is firefox as we see random driver exceptions
+             */
+            if (!browser.isBidi || browser.capabilities.browserName === 'firefox') {
+                return this.skip()
+            }
+
+            const result = await browser.execute(async () => {
+                const a: number = 1
+                console.log('Hello Bidi')
+                if (a) {
+                    if (a) {
+                        throw new Error('Hello Bidi')
+                    }
+                }
+            }).catch(err => err)
+            expect(result.stack).toContain('16 │ if(a){if(a){throw new Error("Hello Bidi")}}}')
+
+            const result2 = await browser.execute(async () => {
+                const a: number = 1
+                console.log('Hello Bidi')
+                if (a) {
+                    if (a) {
+                        await Promise.reject(new Error('Hello Bidi'))
+                    }
+                }
+            }).catch(err => err)
+            expect(result2.stack).toContain('27 │ if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
+        })
+    })
+
     it('can send bidi commands', async function () {
         /**
          * skip in case of Safari
@@ -179,6 +214,17 @@ describe('bidi e2e test', () => {
     })
 
     describe('executeAsync', () => {
+        it('allows to pass in a string', async () => {
+            const script = `
+                const callback = arguments[arguments.length - 1]
+                Promise.resolve(...arguments)
+                    .then(() => { return 2 * arguments[0] })
+                    .then(callback)
+            `
+            const res = await browser.executeAsync(script, 2)
+            expect(res).toBe(4)
+        })
+
         it('works in browser scope', async () => {
             const result = await browser.executeAsync(function (a, b, c, d, done) {
                 // browser context - you may not access client or console
@@ -199,6 +245,14 @@ describe('bidi e2e test', () => {
                 }, 3000)
             }, 1, 2, 3, 4)
             expect(result).toBe(29)
+        })
+    })
+
+    describe('execute', () => {
+        it('allows to pass in a string', async () => {
+            const script = 'return 2 * arguments[0]'
+            const res = await browser.execute(script, 2)
+            expect(res).toBe(4)
         })
     })
 })

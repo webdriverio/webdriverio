@@ -18,12 +18,15 @@ class BrowserStackConfig {
     public buildIdentifier?: string
     public testObservability: TestOpsConfig
     public percy: boolean
+    public percyCaptureMode?: string
     public accessibility: boolean
     public app?: string|AppConfig
     private static _instance: BrowserStackConfig
     public appAutomate: boolean
     public automate: boolean
     public funnelDataSent: boolean = false
+    public percyBuildId?: number | null
+    public isPercyAutoEnabled = false
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
         this.framework = config.framework

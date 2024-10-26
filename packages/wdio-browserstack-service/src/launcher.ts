@@ -1,7 +1,7 @@
-import { FormData } from 'formdata-node'
 import { v4 as uuidv4 } from 'uuid'
 
 import fs from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { promisify, format } from 'node:util'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
@@ -42,7 +42,6 @@ import {
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
 import { PercyLogger } from './Percy/PercyLogger.js'
-import { FileStream } from './fileStream.js'
 import type Percy from './Percy/Percy.js'
 import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
@@ -315,14 +314,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildIdentifier: this._buildIdentifier
             })
         }
-
-        if (this._options.percy) {
+        const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
+        if (shouldSetupPercy) {
             try {
                 const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
                 this._percyBestPlatformCaps = bestPlatformPercyCaps
                 await this.setupPercy(this._options, this._config, {
                     projectName: this._projectName
                 })
+                this._updateBrowserStackPercyConfig()
             } catch (err: unknown) {
                 PercyLogger.error(`Error while setting up Percy ${err}`)
             }
@@ -414,9 +414,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         if (this._options.percy) {
             await this.stopPercy()
+            PercyLogger.clearLogger()
         }
-
-        PercyLogger.clearLogger()
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
@@ -494,14 +493,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const form = new FormData()
         if (app.app) {
             const fileName = path.basename(app.app)
-            form.append('file', new FileStream(fs.createReadStream(app.app)), fileName)
+            const fileBlob = new Blob([await readFile(app.app)])
+            form.append('file', fileBlob, fileName)
         }
         if (app.customId) {
             form.append('custom_id', app.customId)
         }
 
         const headers: any = {
-            'Content-Type': 'multipart/form-data',
             Authorization: getBasicAuthHeader(this._config.user as string, this._config.key as string),
         }
 
@@ -774,6 +773,22 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
             }
         }
+    }
+
+    _updateBrowserStackPercyConfig() {
+        const { percyAutoEnabled = false, percyCaptureMode, buildId, percy } = this._percy || {}
+
+        // Setting to browserStackConfig for populating data in funnel instrumentaion
+        this.browserStackConfig.percyCaptureMode = percyCaptureMode
+        this.browserStackConfig.percyBuildId = buildId
+        this.browserStackConfig.isPercyAutoEnabled = percyAutoEnabled
+
+        // To handle stop percy build
+        this._options.percy = percy
+
+        // To pass data to workers
+        process.env.BROWSERSTACK_PERCY = String(percy)
+        process.env.BROWSERSTACK_PERCY_CAPTURE_MODE = percyCaptureMode
     }
 
     /**

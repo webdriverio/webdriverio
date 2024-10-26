@@ -44,12 +44,11 @@ declare global {
 В своем `wdio.conf.js` вы можете импортировать этот файл и зарегистрировать пользовательскую команду в своем хуке ` before `, например.:
 
 ```ts wdio.conf.ts
-import type { Options } from '@wdio/testrunner'
 import { browser } from '@wdio/globals'
 
 import { openExtensionPopup } from './support/customCommands'
 
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
   // ...
   before: () => {
     browser.addCommand('openExtensionPopup', openExtensionPopup)

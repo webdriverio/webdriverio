@@ -1,8 +1,9 @@
-import { ELEMENT_KEY, type local, type remote } from 'webdriver'
+import { ELEMENT_KEY, type remote, type local } from 'webdriver'
 
 import { EvaluateResultType, NonPrimitiveType, PrimitiveType, RemoteType } from './constants.js'
+import { WebdriverBidiExeception } from './error.js'
 
-export function parseScriptResult(result: local.ScriptEvaluateResult) {
+export function parseScriptResult(params: remote.ScriptCallFunctionParameters, result: local.ScriptEvaluateResult) {
     const type = result.type
 
     if (type === EvaluateResultType.Success) {
@@ -10,20 +11,7 @@ export function parseScriptResult(result: local.ScriptEvaluateResult) {
         return deserializeValue(result.result)
     }
     if (type === EvaluateResultType.Exception) {
-        const columnNumber = 'columnNumber' in result.exceptionDetails ? result.exceptionDetails.columnNumber : null
-        const exception = 'exception' in result.exceptionDetails ? result.exceptionDetails.exception : null
-        const lineNumber = 'lineNumber' in result.exceptionDetails ? result.exceptionDetails.lineNumber : null
-        const stackTrace = 'stackTrace' in result.exceptionDetails ? result.exceptionDetails.stackTrace : null
-        const text = 'text' in result.exceptionDetails ? result.exceptionDetails.text : null
-        return {
-            error: {
-                message: text,
-                columnNumber,
-                exception,
-                lineNumber,
-                stackTrace,
-            }
-        }
+        throw new WebdriverBidiExeception(params, result)
     }
 
     throw new Error(`Unknown evaluate result type: ${type}`)
@@ -74,6 +62,9 @@ export function deserializeValue(result: remote.ScriptLocalValue) {
     }
     if (type === RemoteType.Node) {
         return { [ELEMENT_KEY]: (result as any).sharedId }
+    }
+    if (type === RemoteType.Error) {
+        return new Error('<unserializable error>')
     }
     return value
 }

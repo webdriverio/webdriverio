@@ -1,6 +1,10 @@
+/// <reference types="@wdio/lighthouse-service" />
+import { browser, $, expect } from '@wdio/globals'
 import os from 'node:os'
 
 describe('main suite 1', () => {
+    afterEach(() => browser.setViewport({ width: 1200, height: 900 }))
+
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
@@ -33,14 +37,27 @@ describe('main suite 1', () => {
         await expect($('ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
-    it('should be able to use async-iterators', async () => {
-        await browser.url('https://webdriver.io')
-        await browser.$('aria/Toggle navigation bar').click()
-        const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find<WebdriverIO.Element>(
-            async (link) => await link.getText() === 'Contribute')
-        expect(contributeLink).toBeDefined()
-        await contributeLink.click()
-        await expect(browser).toHaveTitle('Contribute | WebdriverIO')
+    describe('async/iterators', () => {
+        /**
+         * this test requires the website to be rendered in mobile view
+         */
+        before(async () => {
+            await browser.setViewport({ width: 900, height: 600 })
+        })
+
+        it('should be able to use async-iterators', async () => {
+            await browser.url('https://webdriver.io')
+            await browser.$('aria/Toggle navigation bar').click()
+            const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find<WebdriverIO.Element>(
+                async (link) => await link.getText() === 'Contribute')
+            expect(contributeLink).toBeDefined()
+            await contributeLink.click()
+            await expect(browser).toHaveTitle('Contribute | WebdriverIO')
+        })
+
+        after(async () => {
+            await browser.setViewport({ width: 900, height: 600 })
+        })
     })
 
     describe('Lighthouse Service Performance Testing capabilities', () => {
@@ -127,7 +144,7 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it.skip(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x:0, y:0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
@@ -151,7 +168,7 @@ describe('main suite 1', () => {
 
         it('moveTo in iframe', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
-            await browser.switchToFrame(iframe)
+            await browser.switchFrame(iframe)
             await browser.$('#parent').moveTo()
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
@@ -164,7 +181,7 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it.skip(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x: 0, y: 0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
@@ -196,14 +213,14 @@ describe('main suite 1', () => {
 
         it('moveTo to nested iframe with auto scrolling', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
-            await browser.switchToFrame(iframe)
+            await browser.switchFrame(iframe)
             await browser.$('#parent').moveTo()
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
 
         after(async () => {
-            await browser.switchToParentFrame()
+            await browser.switchFrame(null)
         })
     })
 
@@ -311,6 +328,7 @@ describe('main suite 1', () => {
             const request = await browser.url('http://guinea-pig.webdriver.io/', {
                 wait: 'none'
             })
+
             if (!request) {
                 throw new Error('Request object is not defined')
             }
@@ -343,7 +361,10 @@ describe('main suite 1', () => {
             await browser.$('div').click()
         })
 
-        it('should be able to handle dialogs', async () => {
+        /**
+         * fails due to https://github.com/GoogleChromeLabs/chromium-bidi/issues/2556
+         */
+        it.skip('should be able to handle dialogs', async () => {
             await browser.url('http://guinea-pig.webdriver.io')
             browser.execute(() => alert('123'))
             const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
@@ -374,7 +395,7 @@ describe('main suite 1', () => {
             }, 1, '2', true)
             browser.url('https://webdriver.io')
             const data = await new Promise<string[]>((resolve) => {
-                script.on('data', (data) => resolve(data))
+                script.on('data', (data) => resolve(data as string[]))
             })
             expect(data).toBe('[1,"2",true]')
         })
@@ -402,4 +423,70 @@ describe('main suite 1', () => {
                 .not.toBe(now.toString())
         })
     })
+
+    describe('shadow root piercing', () => {
+        it('recognises new shadow root ids when page refreshes', async () => {
+            await browser.url('https://todomvc.com/examples/lit/dist/')
+            await expect($('.new-todo')).toBePresent()
+            await browser.refresh()
+            await expect($('.new-todo')).toBePresent()
+        })
+    })
+
+    describe('context management', () => {
+        it('should allow user to switch between contexts', async () => {
+            await browser.url('http://guinea-pig.webdriver.io/')
+
+            await browser.newWindow('https://webdriver.io')
+            await expect($('.hero__subtitle')).toBePresent()
+            await expect($('.red')).not.toBePresent()
+
+            await browser.switchWindow('guinea-pig.webdriver.io')
+            await expect($('.red')).toBePresent()
+            await expect($('.hero__subtitle')).not.toBePresent()
+
+            await browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
+            await expect($('.hero__subtitle')).toBePresent()
+            await expect($('.red')).not.toBePresent()
+        })
+
+        it('should not switch window if requested window was not found', async () => {
+            await closeAllWindowsButFirst()
+            await browser.navigateTo('http://guinea-pig.webdriver.io/')
+            const firstWindowHandle = await browser.getWindowHandle()
+
+            await browser.newWindow('https://webdriver.io')
+
+            await browser.switchWindow('guinea-pig.webdriver.io')
+            expect(await browser.getWindowHandle()).toBe(firstWindowHandle)
+
+            const err = await browser.switchWindow('not-existing-window').catch((err) => err)
+            expect(err.message).toContain('No window')
+
+            expect(await browser.getWindowHandle()).toBe(firstWindowHandle)
+        })
+
+        it('Should update BiDi browsingContext when performing switchToWindow in WebDriver Classic', async () => {
+            await closeAllWindowsButFirst()
+            await browser.url('http://guinea-pig.webdriver.io/')
+            await $('#newWindow').click()
+
+            const handles = await browser.getWindowHandles()
+            await browser.switchToWindow(handles[1])
+
+            // Verify element text to ensure the browsing context has changed and can interact with elements
+            await expect(await $('.page').getText()).toBe('Second page!')
+        })
+    })
+
+    const closeAllWindowsButFirst = async () => {
+        const allHandles = await browser.getWindowHandles()
+
+        if (allHandles.length < 2) {return}
+        for (const windowHandle of allHandles.slice(1)) {
+            await browser.switchToWindow(windowHandle)
+            await browser.closeWindow()
+        }
+        await browser.switchToWindow(allHandles[0])
+    }
 })

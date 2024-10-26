@@ -6,6 +6,7 @@ import type { Puppeteer, Browser as PuppeteerBrowser } from 'puppeteer-core'
 import { FF_REMOTE_DEBUG_ARG } from '../../constants.js'
 
 const log = logger('webdriverio')
+const DEBUG_PIPE_FLAG = 'remote-debugging-pipe'
 
 /**
  * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
@@ -98,6 +99,19 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
+    } else if (
+        /**
+         * if --remote-debugging-pipe is set as Chrome flag, we can't attach to the session
+         * as there won't be a `debuggerAddress` available in the capabilities. Provide this
+         * better error message to the user.
+         */
+        chromiumOptions &&
+        (
+            chromiumOptions.args?.includes(DEBUG_PIPE_FLAG) ||
+            chromiumOptions.args?.includes(`--${DEBUG_PIPE_FLAG}`)
+        )
+    ) {
+        throw new Error(`Cannot attach to Chrome Devtools session if --${DEBUG_PIPE_FLAG} is set as Chrome flag.`)
     }
 
     /**

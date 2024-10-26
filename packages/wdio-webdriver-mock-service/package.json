@@ -1,12 +1,12 @@
 {
   "name": "@wdio/webdriver-mock-service",
-  "version": "9.0.7",
+  "version": "9.2.1",
   "description": "A WebdriverIO service to stub all endpoints for internal testing purposes.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
@@ -30,7 +30,7 @@
     "@types/uuid": "^10.0.0",
     "@wdio/protocols": "workspace:*",
     "@wdio/types": "workspace:*",
-    "nock": "14.0.0-beta.6",
+    "nock": "14.0.0-beta.14",
     "uuid": "^10.0.0",
     "webdriverio": "workspace:*"
   },

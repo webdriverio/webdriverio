@@ -195,12 +195,6 @@
     "npmUrl": "https://www.npmjs.com/package/@sap_oss/wdio-qmate-service"
   },
   {
-    "packageName": "wdio-vitaqai-service",
-    "title": "Vitaq AI",
-    "githubUrl": "https://github.com/RossVertizan/wdio-vitaqai-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-vitaqai-service"
-  },
-  {
     "packageName": "wdio-robonut-service",
     "title": "Robonut",
     "githubUrl": "https://github.com/udarrr/wdio-robonut-service",

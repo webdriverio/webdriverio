@@ -17,14 +17,25 @@ export default function customElementWrapper () {
                 parentNode = parentNode.parentNode
             }
             console.debug('[WDIO]', 'newShadowRoot', this, parentNode, parentNode === document)
-            return origConnectedCallback.call(this)
+            return origConnectedCallback?.call(this)
         }
 
         const origDisconnectedCallback = Constructor.prototype.disconnectedCallback
         Constructor.prototype.disconnectedCallback = function(this: HTMLElement) {
             console.debug('[WDIO]', 'removeShadowRoot', this)
-            return origDisconnectedCallback.call(this)
+            return origDisconnectedCallback?.call(this)
         }
         return origFn(name, Constructor, options)
+    }
+
+    const origAttachShadow = Element.prototype.attachShadow
+    Element.prototype.attachShadow = function (this: HTMLElement, init: ShadowRootInit) {
+        const shadowRoot = origAttachShadow.call(this, init)
+        let parentNode: ParentNode | null = this
+        while (parentNode.parentNode) {
+            parentNode = parentNode.parentNode
+        }
+        console.debug('[WDIO]', 'newShadowRoot', this, parentNode, parentNode === document)
+        return shadowRoot
     }
 }

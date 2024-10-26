@@ -37,26 +37,34 @@ export async function executeHooksWithArgs<T> (this: any, hookName: string, hook
         args = [args]
     }
 
+    const rejectIfSkipped = function (e: any, rejectionFunc: (e?: any) => void) {
+        /**
+         * When we use `this.skip()` inside a test or a hook, it's a signal that we want to stop that particular test.
+         * Mocha, the testing framework, knows how to handle this for its own built-in hooks and test steps.
+         * However, for our custom hooks, we need to reject the promise, which effectively skips the test case.
+         * For more details, refer to: https://github.com/mochajs/mocha/pull/3859#issuecomment-534116333
+         */
+        if (/^(sync|async) skip; aborting execution$/.test(e.message)) {
+            rejectionFunc()
+            return true
+        }
+        /**
+         * in case of jasmine, when rejecting, we need to pass the message of rejection as well
+         */
+        if (/^=> marked Pending/.test(e)) {
+            rejectionFunc(e)
+            return true
+        }
+    }
+
     const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve, reject) => {
         let result
 
         try {
             result = hook.apply(this, args)
         } catch (e: any) {
-            /**
-             * When we use `this.skip()` inside a test or a hook, it's a signal that we want to stop that particular test.
-             * Mocha, the testing framework, knows how to handle this for its own built-in hooks and test steps.
-             * However, for our custom hooks, we need to reject the promise, which effectively skips the test case.
-             * For more details, refer to: https://github.com/mochajs/mocha/pull/3859#issuecomment-534116333
-             */
-            if (/^(sync|async) skip; aborting execution$/.test(e.message)) {
-                return reject()
-            }
-            /**
-            * in case of jasmine, when rejecting, we need to pass the message of rejection as well
-            */
-            if (/^=> marked Pending/.test(e)) {
-                return reject(e)
+            if (rejectIfSkipped(e, reject)) {
+                return
             }
             log.error(e.stack)
             return resolve(e)
@@ -68,6 +76,9 @@ export async function executeHooksWithArgs<T> (this: any, hookName: string, hook
          */
         if (result && typeof result.then === 'function') {
             return result.then(resolve, (e: Error) => {
+                if (rejectIfSkipped(e, reject)) {
+                    return
+                }
                 log.error(e.stack || e.message)
                 resolve(e)
             })

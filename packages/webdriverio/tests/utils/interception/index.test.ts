@@ -189,4 +189,72 @@ describe('WebDriverInterception', () => {
         expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
         expect(browser.networkFailRequest).toHaveBeenCalledTimes(0)
     })
+
+    it('handleResponseStarted', async () => {
+        const browser: any = new EventEmitter()
+        browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: '123' }))
+        const mock = await WebDriverInterception.initiate('http://foobar.com:1234/foo/bar.html?foo=bar', {
+            method: 'get',
+            requestHeaders: { foo: 'bar' },
+            responseHeaders: { bar: 'foo' },
+            statusCode: 200
+        }, browser)
+        browser.emit('network.responseStarted', {
+            request: {
+                url: 'http://foobar.com:1234/foo/bar.html?foo=bar',
+                method: 'GET',
+                headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
+            }
+        })
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(0)
+
+        browser.emit('network.responseStarted', {
+            isBlocked: true,
+            request: {
+                url: 'http://foobar.com:1234/foo/bar.html?foo=bar',
+                method: 'GET',
+                request: 123,
+                headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
+            }
+        })
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 123,
+        })
+        vi.mocked(browser.networkProvideResponse).mockClear()
+
+        mock.respondOnce({ foo: 'bar' })
+        browser.emit('network.responseStarted', {
+            isBlocked: true,
+            request: {
+                url: 'http://foobar.com:1234/foo/bar.html?foo=bar',
+                method: 'GET',
+                request: 123,
+                headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
+            }
+        })
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 123,
+            body: {
+                type: 'string',
+                value: JSON.stringify({ foo: 'bar' })
+            }
+        })
+        browser.emit('network.responseStarted', {
+            isBlocked: true,
+            request: {
+                url: 'http://foobar.com:1234/foo/bar.html?foo=bar',
+                method: 'GET',
+                request: 123,
+                headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
+            }
+        })
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(2)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 123
+        })
+    })
 })

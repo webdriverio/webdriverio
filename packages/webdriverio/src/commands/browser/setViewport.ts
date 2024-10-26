@@ -1,6 +1,4 @@
 /// <reference path="../../types.ts" />
-import { getBrowserObject } from '@wdio/utils'
-
 import { getContextManager } from '../../context.js'
 
 const minWindowSize = 0
@@ -57,11 +55,10 @@ export async function setViewport(
         throw new Error('setViewport expects devicePixelRatio to be a number in the 0 to 2^31 − 1 range')
     }
 
-    const browser = getBrowserObject(this)
-    const contextManager = getContextManager(browser)
+    const contextManager = getContextManager(this)
     const context = await contextManager.getCurrentContext()
 
-    await browser.browsingContextSetViewport({
+    await this.browsingContextSetViewport({
         context,
         devicePixelRatio: options.devicePixelRatio || 1,
         viewport: {
