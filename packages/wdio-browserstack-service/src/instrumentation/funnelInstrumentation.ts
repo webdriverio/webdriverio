@@ -120,6 +120,8 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
     if (eventType === 'SDKTestSuccessful') {
         const workerData = getDataFromWorkers()
         eventProperties.productUsage = getProductUsage(workerData)
+        eventProperties.isPercyAutoEnabled = config.isPercyAutoEnabled
+        eventProperties.percyBuildId = config.percyBuildId
         if (config.killSignal) {
             eventProperties.finishedMetadata = {
                 reason: 'user_killed',
