@@ -7,7 +7,7 @@ import { build, context, type BuildOptions, type Plugin } from 'esbuild'
 import type { PackageJson } from 'type-fest'
 
 import { getExternal } from './utils.js'
-import { log, clear, generateDts, copyEJSTemplates, externalScripts } from './plugins.js'
+import { log, clear, generateDts, copyEJSTemplates, externalScripts, runBuildScript } from './plugins.js'
 import { generateTypes } from './type-generation/index.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -133,6 +133,10 @@ const configs = packages.map(([packageDir, pkg]) => {
              */
             if (typeof exp.types === 'string' && target === '.') {
                 esmBuild.plugins?.push(generateDts(absWorkingDir, pkg))
+
+                if (pkg.scripts?.build) {
+                    esmBuild.plugins?.push(runBuildScript(absWorkingDir, pkg))
+                }
             }
 
             if (values.clear) {
