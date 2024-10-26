@@ -13,7 +13,7 @@
     "test:browser:preact:verifyCoverage": "run-s verifyCoverage",
     "test:browser:vue": "run-s test:browser:vue:*",
     "test:browser:vue:copyTW": "cp ./__fixtures__/tailwind.config.js ./tailwind.config.js",
-    "test:browser:vue:wdio": "echo \"UNSKIP ME\" || cross-env WDIO_PRESET=vue wdio ./browser-runner/wdio.conf.js --spec vue.test.js",
+    "test:browser:vue:wdio": "cross-env WDIO_PRESET=vue wdio ./browser-runner/wdio.conf.js --spec vue.test.js",
     "test:browser:vue:deleteTW": "rm ./tailwind.config.js",
     "test:browser:vue:verifyCoverage": "run-s verifyCoverage",
     "test:browser:svelte": "run-s test:browser:svelte:*",
