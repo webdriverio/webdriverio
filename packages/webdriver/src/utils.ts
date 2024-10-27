@@ -61,7 +61,14 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
         typeof capabilities.alwaysMatch.browserName === 'string' &&
         capabilities.alwaysMatch.browserName.toLowerCase() !== 'safari'
     ) {
+        /**
+         * opt-into WebDriver Bidi
+         */
         capabilities.alwaysMatch.webSocketUrl = true
+        /**
+         * allow WebdriverIO to handle alerts
+         */
+        capabilities.alwaysMatch.unhandledPromptBehavior = 'ignore'
     }
 
     validateCapabilities(capabilities.alwaysMatch)

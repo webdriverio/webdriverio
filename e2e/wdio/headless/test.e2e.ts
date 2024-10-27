@@ -364,7 +364,7 @@ describe('main suite 1', () => {
         /**
          * fails due to https://github.com/GoogleChromeLabs/chromium-bidi/issues/2556
          */
-        it.skip('should be able to handle dialogs', async () => {
+        it('should be able to handle dialogs', async () => {
             await browser.url('http://guinea-pig.webdriver.io')
             browser.execute(() => alert('123'))
             const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
