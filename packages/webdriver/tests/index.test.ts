@@ -90,7 +90,8 @@ describe('WebDriver', () => {
                     capabilities: {
                         alwaysMatch: {
                             browserName: 'firefox',
-                            webSocketUrl: true
+                            webSocketUrl: true,
+                            unhandledPromptBehavior: 'ignore'
                         },
                         firstMatch: [{}]
                     }
@@ -113,7 +114,8 @@ describe('WebDriver', () => {
                     capabilities: {
                         alwaysMatch: {
                             browserName: 'firefox',
-                            webSocketUrl: true
+                            webSocketUrl: true,
+                            unhandledPromptBehavior: 'ignore'
                         },
                         firstMatch: [{}]
                     }
