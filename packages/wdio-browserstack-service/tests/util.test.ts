@@ -1,11 +1,14 @@
 import path from 'node:path'
 
+import type { LaunchResponse } from '../src/types.js'
+
 import { describe, expect, it, vi, beforeEach, afterEach, beforeAll } from 'vitest'
 import got from 'got'
 import gitRepoInfo from 'git-repo-info'
 import CrashReporter from '../src/crash-reporter.js'
 import logger from '@wdio/logger'
 import * as utils from '../src/util.js'
+import logPatcher from '../src/logPatcher.js'
 import {
     getBrowserDescription,
     getBrowserCapabilities,
@@ -36,10 +39,16 @@ import {
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
     isTrue,
-    uploadLogs
+    uploadLogs,
+    getObservabilityProduct,
+    isUndefined,
+    processTestObservabilityResponse,
+    processAccessibilityResponse,
+    processLaunchBuildResponse,
+    jsonifyAccessibilityArray,
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT } from '../src/constants.js'
+import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
 import * as testHubUtils from '../src/testHub/utils.js'
 
 const log = logger('test')
@@ -1245,5 +1254,207 @@ describe('getFailureObject', function () {
         expect(getFailureObject(error)).toMatchObject({
             failure: [{ backtrace: [error.stack.toString()] }]
         })
+    })
+})
+
+describe('getObservabilityProduct', () => {
+    it ('should return app automate', function () {
+        expect(getObservabilityProduct(undefined, true)).toEqual('app-automate')
+    })
+})
+
+describe('isUndefined', () => {
+    it ('should return true for empty string', function () {
+        expect(isUndefined('')).toEqual(true)
+    })
+})
+
+describe('processTestObservabilityResponse', () => {
+    let response: LaunchResponse, handleErrorForObservabilitySpy
+    beforeAll(() => {
+        response = {
+            jwt: 'abc',
+            build_hashed_id: 'abc',
+            observability: {
+                success: true,
+                options: {},
+                errors: undefined
+            },
+            accessibility: {
+                success: true,
+                options: {
+                    status: 'true',
+                    commandsToWrap: {
+                        scriptsToRun: [],
+                        commands: []
+                    },
+                    scripts: [{
+                        name: 'abc',
+                        command: 'abc'
+                    }],
+                    capabilities: [{
+                        name: 'abc',
+                        value: 'abc'
+                    }]
+                },
+                errors: undefined
+            }
+        }
+    })
+    it ('processTestObservabilityResponse should not log an error', function () {
+        processTestObservabilityResponse(response)
+        expect(process.env[BROWSERSTACK_OBSERVABILITY]).toEqual('true')
+    })
+    it ('processTestObservabilityResponse should log error if observability success is false', function () {
+        handleErrorForObservabilitySpy = vi.spyOn(testHubUtils, 'handleErrorForObservability').mockReturnValue({} as any)
+        const res = response
+        res.observability!.success = false
+        processTestObservabilityResponse(res)
+        expect(handleErrorForObservabilitySpy).toBeCalled()
+    })
+    it ('processTestObservabilityResponse should log error if observability field not found', function () {
+        handleErrorForObservabilitySpy = vi.spyOn(testHubUtils, 'handleErrorForObservability').mockReturnValue({} as any)
+        const res = response
+        res.observability = undefined
+        processTestObservabilityResponse(res)
+        expect(handleErrorForObservabilitySpy).toBeCalled()
+    })
+    afterEach(() => {
+        handleErrorForObservabilitySpy?.mockClear()
+    })
+})
+
+describe('processAccessibilityResponse', () => {
+    let response: LaunchResponse, handleErrorForAccessibilitySpy
+    beforeAll(() => {
+        response = {
+            jwt: 'abc',
+            build_hashed_id: 'abc',
+            observability: {
+                success: true,
+                options: {},
+                errors: undefined
+            },
+            accessibility: {
+                success: true,
+                options: {
+                    status: 'true',
+                    commandsToWrap: {
+                        scriptsToRun: [],
+                        commands: []
+                    },
+                    scripts: [{
+                        name: 'abc',
+                        command: 'abc'
+                    }],
+                    capabilities: [
+                        {
+                            name: 'accessibilityToken',
+                            value: 'abc'
+                        },
+                        {
+                            name: 'scannerVersion',
+                            value: 'abc'
+                        }
+                    ]
+                },
+                errors: undefined
+            }
+        }
+    })
+    it ('processAccessibilityResponse should not log an error', function () {
+        processAccessibilityResponse(response)
+        expect(process.env[BROWSERSTACK_ACCESSIBILITY]).toEqual('true')
+    })
+    it ('processAccessibilityResponse should log error if accessibility success is false', function () {
+        handleErrorForAccessibilitySpy = vi.spyOn(testHubUtils, 'handleErrorForAccessibility').mockReturnValue({} as any)
+        const res = response
+        res.accessibility!.success = false
+        processAccessibilityResponse(res)
+        expect(handleErrorForAccessibilitySpy).toBeCalled()
+    })
+    it ('processAccessibilityResponse should log error if accessibility field not found', function () {
+        handleErrorForAccessibilitySpy = vi.spyOn(testHubUtils, 'handleErrorForAccessibility').mockReturnValue({} as any)
+        const res = response
+        res.accessibility = undefined
+        processAccessibilityResponse(res)
+        expect(handleErrorForAccessibilitySpy).toBeCalled()
+    })
+    afterEach(() => {
+        handleErrorForAccessibilitySpy?.mockClear()
+    })
+})
+
+describe('processLaunchBuildResponse', () => {
+    let response: LaunchResponse, observabilitySpy, accessibilitySpy
+    beforeAll(() => {
+        response = {
+            jwt: 'abc',
+            build_hashed_id: 'abc',
+            observability: {
+                success: true,
+                options: {},
+                errors: undefined
+            },
+            accessibility: {
+                success: true,
+                options: {
+                    status: 'true',
+                    commandsToWrap: {
+                        scriptsToRun: [],
+                        commands: []
+                    },
+                    scripts: [{
+                        name: 'abc',
+                        command: 'abc'
+                    }],
+                    capabilities: [{
+                        name: 'accessibilityToken',
+                        value: 'abc'
+                    }]
+                },
+                errors: undefined
+            }
+        }
+    })
+    beforeEach(() => {
+        observabilitySpy = vi.spyOn(utils, 'processTestObservabilityResponse').mockImplementation(() => {})
+        accessibilitySpy = vi.spyOn(utils, 'processAccessibilityResponse').mockImplementation(() => {})
+    })
+    it ('processTestObservabilityResponse should be called', function () {
+        processLaunchBuildResponse(response, { testObservability: true, accessibility: true, capabilities: {} })
+        expect(process.env[BROWSERSTACK_OBSERVABILITY]).toEqual('true')
+    })
+    it ('processAccessibilityResponse should be called', function () {
+        processLaunchBuildResponse(response, { testObservability: true, accessibility: true, capabilities: {} })
+        expect(process.env[BROWSERSTACK_ACCESSIBILITY]).toEqual('true')
+    })
+    afterEach(() => {
+        observabilitySpy?.mockClear()
+        accessibilitySpy?.mockClear()
+    })
+})
+
+describe('jsonifyAccessibilityArray', () => {
+    const array = [{
+        name: 'accessibilityToken',
+        value: 'abc'
+    }]
+    it('jsonifyAccessibilityArray', () => {
+        expect(jsonifyAccessibilityArray(array, 'name', 'value')).toEqual({ 'accessibilityToken': 'abc' })
+    })
+})
+
+describe('logPatcher', () => {
+    const BSTestOpsPatcher = new logPatcher({})
+    const emitSpy = vi.spyOn(process, 'emit')
+    it('logPatcher methods should emit data', () => {
+        BSTestOpsPatcher.info('abc')
+        BSTestOpsPatcher.error('abc')
+        BSTestOpsPatcher.warn('abc')
+        BSTestOpsPatcher.trace('abc')
+        BSTestOpsPatcher.debug('abc')
+        BSTestOpsPatcher.log('abc')
+        expect(emitSpy).toBeCalledTimes(6)
     })
 })

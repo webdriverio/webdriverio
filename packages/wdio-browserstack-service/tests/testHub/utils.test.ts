@@ -3,6 +3,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import * as utils from '../../src/testHub/utils.js'
 import * as bstackLogger from '../../src/bstackLogger.js'
+import { BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBILITY } from '../../src/constants.js'
 
 describe('getProductMap', () => {
     let config = {}
@@ -71,16 +72,98 @@ describe('logBuildError', () => {
     const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
     bstackLoggerSpy.mockImplementation(() => {})
 
-    it('should log error', () => {
+    it('should log error for ERROR_INVALID_CREDENTIALS', () => {
         vi.mocked(log.error).mockClear()
         const logErrorMock = vi.spyOn(log, 'error')
         const errorJson = {
-            errors: [{
-                key: 'ERROR_INVALID_CREDENTIALS',
-                message: 'Access to BrowserStack Test Observability denied due to incorrect credentials.'
-            }],
+            errors: [
+                {
+                    key: 'ERROR_INVALID_CREDENTIALS',
+                    message: 'Access to BrowserStack Test Observability denied due to incorrect credentials.'
+                }
+            ],
         }
         utils.logBuildError(errorJson as any, 'observability')
         expect(logErrorMock.mock.calls[0][0]).toContain('Access to BrowserStack Test Observability denied due to incorrect credentials.')
+    })
+
+    it('should log error for ERROR_ACCESS_DENIED', () => {
+        vi.mocked(log.error).mockClear()
+        const logErrorMock = vi.spyOn(log, 'info')
+        const errorJson = {
+            errors: [
+                {
+                    key: 'ERROR_ACCESS_DENIED',
+                    message: 'Access to BrowserStack Test Observability denied.'
+                }
+            ],
+        }
+        utils.logBuildError(errorJson as any, 'observability')
+        expect(logErrorMock.mock.calls[0][0]).toContain('Access to BrowserStack Test Observability denied.')
+    })
+
+    it('should log error for ERROR_SDK_DEPRECATED', () => {
+        vi.mocked(log.error).mockClear()
+        vi.mocked(log.info).mockClear()
+        const logErrorMock = vi.spyOn(log, 'error')
+        const errorJson = {
+            errors: [
+                {
+                    key: 'ERROR_SDK_DEPRECATED',
+                    message: 'Access to BrowserStack Test Observability denied due to SDK deprecation.'
+                }
+            ],
+        }
+        utils.logBuildError(errorJson as any, 'observability')
+        expect(logErrorMock.mock.calls[0][0]).toContain('Access to BrowserStack Test Observability denied due to SDK deprecation.')
+    })
+
+    it('should log error for RANDOM_ERROR_TYPE', () => {
+        vi.mocked(log.error).mockClear()
+        vi.mocked(log.info).mockClear()
+        const logErrorMock = vi.spyOn(log, 'error')
+        const errorJson = {
+            errors: [
+                {
+                    key: 'RANDOM_ERROR_TYPE',
+                    message: 'Random error message.'
+                }
+            ],
+        }
+        utils.logBuildError(errorJson as any, 'observability')
+        expect(logErrorMock.mock.calls[0][0]).toContain('Random error message.')
+    })
+
+    it('should log error if error is null', () => {
+        vi.mocked(log.error).mockClear()
+        const logErrorMock = vi.spyOn(log, 'error')
+        utils.logBuildError(null, 'product_name')
+        expect(logErrorMock.mock.calls[0][0]).toContain('PRODUCT_NAME Build creation failed ')
+    })
+
+    it('handleErrorForObservability', () => {
+        const errorJson = {
+            errors: [
+                {
+                    key: 'RANDOM_ERROR_TYPE',
+                    message: 'Random error message.'
+                }
+            ],
+        }
+        utils.handleErrorForObservability(errorJson)
+        expect(process.env[BROWSERSTACK_OBSERVABILITY]).toEqual('false')
+    })
+
+    it('handleErrorForAccessibility', () => {
+        const errorJson = {
+            errors: [
+                {
+                    key: 'RANDOM_ERROR_TYPE',
+                    message: 'Random error message.'
+                }
+            ],
+        }
+        utils.handleErrorForAccessibility(errorJson)
+        expect(process.env[BROWSERSTACK_ACCESSIBILITY]).toEqual('false')
     })
 })

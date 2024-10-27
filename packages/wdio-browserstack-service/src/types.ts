@@ -267,19 +267,19 @@ export interface ScreenshotLog extends LogData {
 export interface LaunchResponse {
     jwt: string,
     build_hashed_id: string,
-    observability: {
+    observability?: {
         success: boolean;
         options: {
             allow_screenshots?: boolean;
         },
-        errors: {
+        errors?: {
             key: string;
             message: string;
         }[];
     },
-    accessibility: {
+    accessibility?: {
         success: boolean;
-        errors: {
+        errors?: {
             key: string;
             message: string;
         }[];

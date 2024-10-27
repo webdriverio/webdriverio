@@ -53,8 +53,8 @@ class _InsightsHandler {
     }
     private _userCaps?: Capabilities.RemoteCapability = {}
     private listener = Listener.getInstance()
-    private _currentTestId: string | undefined
-    private _cbtQueue: Array<CBTData> = []
+    public _currentTestId: string | undefined
+    public _cbtQueue: Array<CBTData> = []
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.RemoteCapability, _options?: BrowserstackConfig & Options.Testrunner) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
@@ -824,7 +824,7 @@ class _InsightsHandler {
         return testData
     }
 
-    private async flushCBTDataQueue() {
+    public async flushCBTDataQueue() {
         if (isUndefined(this._currentTestId)) {return}
         this._cbtQueue.forEach(cbtData => {
             cbtData.uuid = this._currentTestId!

@@ -271,7 +271,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     return errorClass
 }
 
-function processTestObservabilityResponse(response: LaunchResponse) {
+export const processTestObservabilityResponse = (response: LaunchResponse) => {
     if (!response.observability) {
         handleErrorForObservability(null)
         return
@@ -290,7 +290,7 @@ interface DataElement {
     [key: string]: any
 }
 
-const jsonifyAccessibilityArray = (
+export const jsonifyAccessibilityArray = (
     dataArray: DataElement[],
     keyName: keyof DataElement,
     valueName: keyof DataElement
@@ -302,7 +302,7 @@ const jsonifyAccessibilityArray = (
     return result
 }
 
-function processAccessibilityResponse(response: LaunchResponse) {
+export const  processAccessibilityResponse = (response: LaunchResponse) => {
     if (!response.accessibility) {
         handleErrorForAccessibility(null)
         return
@@ -333,7 +333,7 @@ function processAccessibilityResponse(response: LaunchResponse) {
     }
 }
 
-function processLaunchBuildResponse(response: LaunchResponse, options: BrowserstackConfig & Options.Testrunner) {
+export const processLaunchBuildResponse = (response: LaunchResponse, options: BrowserstackConfig & Options.Testrunner) => {
     if (options.testObservability) {
         processTestObservabilityResponse(response)
     }
