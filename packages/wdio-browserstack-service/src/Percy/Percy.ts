@@ -12,6 +12,7 @@ import PercyBinary from './PercyBinary.js'
 import type { BrowserstackConfig, UserConfig } from '../types.js'
 import type { Options } from '@wdio/types'
 import { BROWSERSTACK_TESTHUB_UUID } from '../constants.js'
+
 const logDir = 'logs'
 
 class Percy {
