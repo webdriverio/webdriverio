@@ -1,5 +1,12 @@
 import { vi } from 'vitest'
 
+/**
+ * This flag helps to indicate that WebdriverIO is running in a unit test environment.
+ * Setting this environment changes the behavior of some functions to e.g. not exit
+ * the process or enter code sections that are hard to mock out.
+ */
+process.env.WDIO_UNIT_TESTS = '1'
+
 const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
 

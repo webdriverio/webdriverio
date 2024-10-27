@@ -170,7 +170,7 @@ export default class SpecReporter extends WDIOReporter {
          *   - there is content to send
          *   - we are not running a unit test
          */
-        if (process.send && content && !process.env.VITEST_WORKER_ID) {
+        if (process.send && content && !process.env.WDIO_UNIT_TESTS) {
             process.send({ name: 'reporterRealTime', content })
         }
     }

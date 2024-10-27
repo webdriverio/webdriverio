@@ -15,6 +15,7 @@ export class BidiCore {
     #id = 0
     #ws: WebSocket
     #isConnected = false
+    #waitForConnected = Promise.resolve()
     #webSocketUrl: string
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
 
@@ -32,14 +33,24 @@ export class BidiCore {
          * don't connect and stale unit tests when the websocket url is set to a dummy value
          * Note: the value is defined in __mocks__/fetch.ts
          */
-        if (process.env.VITEST_WORKER_ID && this.#webSocketUrl === 'ws://webdriver.io') {
+        if (process.env.WDIO_UNIT_TESTS) {
             return
         }
-        return new Promise<void>((resolve) => this.#ws.on('open', () => {
+
+        this.#waitForConnected = new Promise<void>((resolve) => this.#ws.on('open', () => {
             log.info('Connected session to Bidi protocol')
             this.#isConnected = true
             resolve()
         }))
+        return this.#waitForConnected
+    }
+
+    /**
+     * Helper function that allows to wait until Bidi connection establishes
+     * @returns a promise that resolves once the connection to WebDriver Bidi protocol was established
+     */
+    waitForConnected () {
+        return this.#waitForConnected
     }
 
     get socket () {

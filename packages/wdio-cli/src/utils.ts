@@ -701,7 +701,7 @@ export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
         /* istanbul ignore if */
         if (!packageJsonExists) {
             console.log(`No WebdriverIO configuration found in "${parsedAnswers.wdioConfigPath}"`)
-            return !process.env.VITEST_WORKER_ID && process.exit(0)
+            return !process.env.WDIO_UNIT_TESTS && process.exit(0)
         }
         return
     }
