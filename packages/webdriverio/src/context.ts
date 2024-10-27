@@ -35,8 +35,20 @@ export class ContextManager {
          * Updates the browsingContext with the context passed in 'switchToWindow'.
          */
         this.#browser.on('command', (event) => {
+            /**
+             * update frame context if user switches using 'switchToWindow'
+             * which is WebDriver Classic only
+             */
             if (event.command === 'switchToWindow') {
                 this.setCurrentContext(event.body.handle)
+            }
+
+            /**
+             * reset current context if user uses 'switchToParentFrame' which
+             * only impacts WebDriver Classic commands
+             */
+            if (event.command === 'switchToParentFrame') {
+                this.#currentContext = undefined
             }
         })
     }

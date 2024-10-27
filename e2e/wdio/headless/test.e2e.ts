@@ -3,8 +3,6 @@ import { browser, $, expect } from '@wdio/globals'
 import os from 'node:os'
 
 describe('main suite 1', () => {
-    afterEach(() => browser.setViewport({ width: 1200, height: 900 }))
-
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
@@ -56,7 +54,7 @@ describe('main suite 1', () => {
         })
 
         after(async () => {
-            await browser.setViewport({ width: 900, height: 600 })
+            await browser.setViewport({ width: 1200, height: 900 })
         })
     })
 
