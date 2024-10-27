@@ -1058,10 +1058,8 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         throw new Error('Missing authentication Token')
     }
 
-    const ENDPOINT = 'https://collector-observability.browserstack.com'
-
     try {
-        const url = `${ENDPOINT}/${eventUrl}`
+        const url = `${DATA_ENDPOINT}/${eventUrl}`
         const response = await got.post(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {

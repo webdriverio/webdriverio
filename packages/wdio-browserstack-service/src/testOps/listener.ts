@@ -13,6 +13,7 @@ import {
 import { sendScreenshots } from './requestUtils.js'
 import { BStackLogger } from '../bstackLogger.js'
 import { shouldProcessEventForTesthub } from '../testHub/utils.js'
+
 class Listener {
     private static instance: Listener
     private readonly usageStats: UsageStats = UsageStats.getInstance()
