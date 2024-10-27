@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import treeKill from 'tree-kill'
@@ -16,6 +17,13 @@ import AppiumLauncher from '../src/launcher.js'
 vi.mock('node:fs', () => ({
     default: {
         createWriteStream: vi.fn()
+    }
+}))
+
+vi.mock('node:os', () => ({
+    default: {
+        platform: vi.fn().mockReturnValue('Darwin'),
+        tmpdir: vi.fn().mockReturnValue('/tmp')
     }
 }))
 
@@ -48,12 +56,16 @@ class MockProcess {
     kill() {}
     stdout = {
         pipe: vi.fn(),
-        on: (event: string, callback: Function) =>{
+        on: vi.fn((event: string, callback: Function) => {
             callback('[Appium] Welcome to Appium v1.11.1')
             callback('[Appium] Appium REST http interface listener started on 127.0.0.1:4723')
-        } }
+        }),
+        off: vi.fn(),
+    }
     stderr = {
-        pipe: vi.fn(), once: vi.fn()
+        pipe: vi.fn(), once: vi.fn(),
+        on: vi.fn(),
+        off: vi.fn()
     }
 }
 
@@ -71,7 +83,8 @@ class MockFailingProcess extends MockProcess {
     }
     stdout = {
         pipe: vi.fn(),
-        on: vi.fn()
+        on: vi.fn(),
+        off: vi.fn()
     }
 }
 
@@ -116,7 +129,12 @@ class MockProcess2 implements Partial<ChildProcessByStdio<null, Readable, Readab
 }
 
 class MockCustomFailingProcess extends MockFailingProcess {
-    stderr = { pipe: vi.fn(), once: vi.fn().mockImplementation((event, cb) => cb(new Error('Uups'))) }
+    stderr = {
+        pipe: vi.fn(),
+        once: vi.fn().mockImplementation((event, cb) => cb(new Error('Uups'))),
+        on: vi.fn(),
+        off: vi.fn()
+    }
 }
 
 vi.mock('../src/utils', async () => {
@@ -127,10 +145,7 @@ vi.mock('../src/utils', async () => {
     }
 })
 
-const isWindows = process.platform === 'win32'
-
 describe('Appium launcher', () => {
-    const originalPlatform = process.platform
     const consoleSpy = vi.spyOn(global.console, 'error')
 
     beforeEach(() => {
@@ -139,7 +154,7 @@ describe('Appium launcher', () => {
     })
 
     describe('onPrepare', () => {
-        test('should set correct config properties', async () => {
+        test('mac: should set correct config properties', async () => {
             const options = {
                 logPath: './',
                 command:'path/to/my_custom_appium',
@@ -151,39 +166,56 @@ describe('Appium launcher', () => {
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
-            if (isWindows) {
-                expect(spawn).toBeCalledWith(
-                    'cmd',
-                    [
-                        '/c',
-                        'path/to/my_custom_appium',
-                        '--base-path',
-                        '/',
-                        '--address',
-                        'bar',
-                        '--default-capabilities',
-                        '{"foo":"bar"}',
-                        '--port',
-                        '4723'
-                    ],
-                    expect.any(Object)
-                )
-            } else {
-                expect(spawn).toBeCalledWith(
-                    'path/to/my_custom_appium',
-                    [
-                        '--base-path',
-                        '/',
-                        '--address',
-                        'bar',
-                        '--default-capabilities',
-                        '{"foo":"bar"}',
-                        '--port',
-                        '4723'
-                    ],
-                    expect.any(Object)
-                )
+            expect(spawn).toBeCalledWith(
+                'path/to/my_custom_appium',
+                [
+                    '--base-path',
+                    '/',
+                    '--address',
+                    'bar',
+                    '--default-capabilities',
+                    '{"foo":"bar"}',
+                    '--port',
+                    '4723'
+                ],
+                expect.any(Object)
+            )
+
+            expect(capabilities[0].protocol).toBe('http')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
+            expect(capabilities[0].port).toBe(1234)
+            expect(capabilities[0].path).toBe('/')
+        })
+
+        test('windows: should set correct config properties', async () => {
+            vi.mocked(os.platform).mockReturnValueOnce('win32')
+            const options = {
+                logPath: './',
+                command:'path/to/my_custom_appium',
+                args: { address: 'bar', defaultCapabilities: { 'foo': 'bar' } },
             }
+            const capabilities = [{ port: 1234, 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+
+            expect(launcher['_process']).toBeInstanceOf(MockProcess)
+            expect(launcher['_logPath']).toBe('./')
+            expect(spawn).toBeCalledWith(
+                'cmd',
+                [
+                    '/c',
+                    'path/to/my_custom_appium',
+                    '--base-path',
+                    '/',
+                    '--address',
+                    'bar',
+                    '--default-capabilities',
+                    '{"foo":"bar"}',
+                    '--port',
+                    '4723'
+                ],
+                expect.any(Object)
+            )
 
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('127.0.0.1')
@@ -291,7 +323,7 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBeUndefined()
         })
 
-        test('should respect custom Appium port', async () => {
+        test('mac: should respect custom Appium port', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -301,35 +333,52 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
 
-            if (isWindows) {
-                expect(spawn).toBeCalledWith(
-                    'cmd',
-                    [
-                        expect.any(String),
-                        'path/to/my_custom_appium',
-                        '--base-path',
-                        '/',
-                        '--address',
-                        'bar',
-                        '--port',
-                        '1234'
-                    ],
-                    expect.any(Object)
-                )
-            } else {
-                expect(spawn).toBeCalledWith(
-                    'path/to/my_custom_appium',
-                    [
-                        '--base-path',
-                        '/',
-                        '--address',
-                        'bar',
-                        '--port',
-                        '1234'
-                    ],
-                    expect.any(Object)
-                )
+            expect(spawn).toBeCalledWith(
+                'path/to/my_custom_appium',
+                [
+                    '--base-path',
+                    '/',
+                    '--address',
+                    'bar',
+                    '--port',
+                    '1234'
+                ],
+                expect.any(Object)
+            )
+
+            expect(launcher['_process']).toBeInstanceOf(MockProcess)
+            expect(launcher['_logPath']).toBe('./')
+            expect(capabilities[0].protocol).toBe('http')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
+            expect(capabilities[0].port).toBe(1234)
+            expect(capabilities[0].path).toBe('/')
+        })
+
+        test('win: should respect custom Appium port', async () => {
+            vi.mocked(os.platform).mockReturnValueOnce('win32')
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address:'bar', port: 1234 }
             }
+            const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            await launcher.onPrepare()
+
+            expect(spawn).toBeCalledWith(
+                'cmd',
+                [
+                    expect.any(String),
+                    'path/to/my_custom_appium',
+                    '--base-path',
+                    '/',
+                    '--address',
+                    'bar',
+                    '--port',
+                    '1234'
+                ],
+                expect.any(Object)
+            )
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
@@ -341,38 +390,22 @@ describe('Appium launcher', () => {
 
         test('should respect random Appium port', async () => {
             vi.mocked(getPort).mockResolvedValueOnce(567567)
+            vi.mocked(os.platform).mockReturnValueOnce('darwin')
 
             const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher({}, capabilities, {} as any)
             await launcher.onPrepare()
-
-            if (isWindows) {
-                expect(spawn).toBeCalledWith(
-                    'cmd',
-                    [
-                        '/c',
-                        'node',
-                        expect.any(String),
-                        '--base-path',
-                        '/',
-                        '--port',
-                        '567567'
-                    ],
-                    expect.any(Object)
-                )
-            } else {
-                expect(spawn).toBeCalledWith(
-                    'node',
-                    [
-                        '/foo/bar/appium',
-                        '--base-path',
-                        '/',
-                        '--port',
-                        '567567'
-                    ],
-                    expect.any(Object)
-                )
-            }
+            expect(spawn).toBeCalledWith(
+                'node',
+                [
+                    expect.any(String),
+                    '--base-path',
+                    '/',
+                    '--port',
+                    '567567'
+                ],
+                expect.any(Object)
+            )
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(capabilities[0].protocol).toBe('http')
@@ -382,6 +415,7 @@ describe('Appium launcher', () => {
         })
 
         test('should respect custom port and path before Appium port and path', async () => {
+            vi.mocked(os.platform).mockReturnValueOnce('darwin')
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -390,37 +424,18 @@ describe('Appium launcher', () => {
             const capabilities = [{ port: 4321, 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
-
-            if (isWindows) {
-                expect(spawn).toBeCalledWith(
-                    'cmd',
-                    [
-                        expect.any(String),
-                        'path/to/my_custom_appium',
-                        '--base-path',
-                        '/foo/bar',
-                        '--address',
-                        'bar',
-                        '--port',
-                        '1234'
-                    ],
-                    expect.any(Object)
-                )
-            } else {
-                expect(spawn).toBeCalledWith(
-                    'path/to/my_custom_appium',
-                    [
-                        '--base-path',
-                        '/foo/bar',
-                        '--address',
-                        'bar',
-                        '--port',
-                        '1234'
-                    ],
-                    expect.any(Object)
-                )
-            }
-
+            expect(spawn).toBeCalledWith(
+                'path/to/my_custom_appium',
+                [
+                    '--base-path',
+                    '/foo/bar',
+                    '--address',
+                    'bar',
+                    '--port',
+                    '1234'
+                ],
+                expect.any(Object)
+            )
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
             expect(capabilities[0].protocol).toBe('http')
@@ -430,15 +445,14 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties for Windows', async () => {
-            Object.defineProperty(process, 'platform', {
-                value: 'win32'
-            })
-
+            vi.mocked(os.platform).mockReturnValueOnce('win32')
             const launcher = new AppiumLauncher({
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
-            }, [], {} as any)
+            }, [{
+                'appium:automationName': '123'
+            }], {} as any)
             await launcher.onPrepare()
 
             expect(spawn).toBeCalledWith(
@@ -459,94 +473,63 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties for mac', async () => {
-            Object.defineProperty(process, 'platform', {
-                value: 'darwin'
-            })
-
+            vi.mocked(os.platform).mockReturnValue('win32')
             const launcher = new AppiumLauncher({
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
-            }, [], {} as any)
+            }, [{
+                'appium:automationName': '123'
+            }], {} as any)
             await launcher.onPrepare()
             expect(launcher['_appiumCliArgs']).toMatchSnapshot()
         })
 
         test('should set correct config properties for linux', async () => {
-            Object.defineProperty(process, 'platform', {
-                value: 'linux'
-            })
+            vi.mocked(os.platform).mockReturnValue('linux')
 
             const launcher = new AppiumLauncher({
                 logPath: './',
                 args: { address: 'bar' }
-            }, [], {} as any)
+            }, [{
+                'appium:automationName': '123'
+            }], {} as any)
             await launcher.onPrepare()
-
-            if (isWindows) {
-                expect(spawn).toBeCalledWith(
-                    'node',
-                    [
-                        expect.any(String),
-                        '--base-path',
-                        '/',
-                        '--address',
-                        'bar',
-                        '--port',
-                        '4723'
-                    ],
-                    expect.any(Object)
-                )
-            } else {
-                expect(spawn).toBeCalledWith(
-                    'node',
-                    [
-                        '/foo/bar/appium',
-                        '--base-path',
-                        '/',
-                        '--address',
-                        'bar',
-                        '--port',
-                        '4723'
-                    ],
-                    expect.any(Object)
-                )
-            }
+            expect(spawn).toBeCalledWith(
+                'node',
+                [
+                    expect.any(String),
+                    '--base-path',
+                    '/',
+                    '--address',
+                    'bar',
+                    '--port',
+                    '4723'
+                ],
+                expect.any(Object)
+            )
             expect(launcher['_appiumCliArgs'].slice(1)).toMatchSnapshot()
         })
 
         test('should set correct config properties when empty', async () => {
-            const launcher = new AppiumLauncher({}, [], {} as any)
+            vi.mocked(os.platform).mockReturnValue('linux')
+            const launcher = new AppiumLauncher({}, [{
+                'appium:automationName': '123'
+            }], {} as any)
             await launcher.onPrepare()
 
             expect(launcher['_logPath']).toBe(undefined)
-            if (isWindows) {
-                expect(spawn).toBeCalledWith(
-                    'cmd',
-                    [
-                        '/c',
-                        'node',
-                        expect.any(String),
-                        '--base-path',
-                        '/',
-                        '--port',
-                        '4723'
-                    ],
-                    expect.any(Object)
-                )
-            } else {
-                expect(spawn).toBeCalledWith(
-                    'node',
-                    [
-                        '/foo/bar/appium',
-                        '--base-path',
-                        '/',
-                        '--port',
-                        '4723'
-                    ],
-                    expect.any(Object)
-                )
-            }
+            expect(spawn).toBeCalledWith(
+                'node',
+                [
+                    expect.any(String),
+                    '--base-path',
+                    '/',
+                    '--port',
+                    '4723'
+                ],
+                expect.any(Object)
+            )
         })
 
         test('should start Appium', async () => {
@@ -555,7 +538,9 @@ describe('Appium launcher', () => {
         })
 
         test('should fail if Appium exits', async () => {
-            const launcher = new AppiumLauncher({}, [], {} as any)
+            const launcher = new AppiumLauncher({}, [{
+                'appium:automationName': '123'
+            }], {} as any)
             vi.mocked(spawn).mockReturnValue(new MockFailingProcess(1) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
@@ -564,7 +549,9 @@ describe('Appium launcher', () => {
         })
 
         test('should fail and error message if Appium already runs', async () => {
-            const launcher = new AppiumLauncher({}, [], {} as any)
+            const launcher = new AppiumLauncher({}, [{
+                'appium:automationName': '123'
+            }], {} as any)
             vi.mocked(spawn).mockReturnValue(new MockFailingProcess(2) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
@@ -574,7 +561,9 @@ describe('Appium launcher', () => {
         })
 
         test('should fail with Appium error message', async () => {
-            const launcher = new AppiumLauncher({}, [], {} as any)
+            const launcher = new AppiumLauncher({}, [{
+                'appium:automationName': '123'
+            }], {} as any)
             vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as cp.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
@@ -603,12 +592,23 @@ describe('Appium launcher', () => {
             launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
             await launcher.onPrepare()
 
-            expect(launcher['_process']).toBeInstanceOf(MockProcess)
-            expect(launcher['_logPath']).toBe('./')
             expect(capabilities[0].protocol).toBeUndefined()
             expect(capabilities[0].hostname).toBeUndefined()
             expect(capabilities[0].port).toBeUndefined()
             expect(capabilities[0].path).toBeUndefined()
+        })
+
+        test('should not start Appium process if no capability was changed', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar', port: 1234, basePath: '/foo/bar' }
+            }
+            const capabilities = [{ browserName: 'baz' }] as WebdriverIO.Capabilities[]
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
+            await launcher.onPrepare()
+            expect(launcher['_process']).toEqual(undefined)
         })
 
         test('should not set host, port and path for non Appium capabilities using multiremote', async () => {
@@ -692,14 +692,14 @@ describe('Appium launcher', () => {
 
     describe('_redirectLogStream', () => {
         test('should not write output to file', async () => {
-            const launcher = new AppiumLauncher({}, [], {} as any)
+            const launcher = new AppiumLauncher({}, [{ 'appium:deviceName': 'baz' }], {} as any)
             launcher['_redirectLogStream'] = vi.fn()
             await launcher.onPrepare()
             expect(launcher['_redirectLogStream']).not.toBeCalled()
         })
 
         test('should write output to file', async () => {
-            const launcher = new AppiumLauncher({ logPath: './' }, [], {} as any)
+            const launcher = new AppiumLauncher({ logPath: './' }, [{ 'appium:deviceName': 'baz' }], {} as any)
             await launcher.onPrepare()
 
             expect(vi.mocked(fs.createWriteStream).mock.calls[0][0]).toBe('/some/file/path')
@@ -708,8 +708,23 @@ describe('Appium launcher', () => {
         })
 
         test('throws if process is not set', async () => {
-            const launcher = new AppiumLauncher({ logPath: './' }, [], {} as any)
-            await expect(launcher['_redirectLogStream']('/foo/bar')).rejects.toEqual(new Error('No Appium process to redirect log stream'))
+            const launcher = new AppiumLauncher({ logPath: './' }, [{ 'appium:deviceName': 'baz' }], {} as any)
+            await expect(launcher['_redirectLogStream']('/foo/bar'))
+                .rejects
+                .toEqual(new Error('No Appium process to redirect log stream'))
+        })
+    })
+
+    describe('server logging', () => {
+        test('should register stdout and stderr listener when log path is not set', async () => {
+            const launcher = new AppiumLauncher({}, [{ 'appium:deviceName': 'baz' }], {} as any)
+            const mockProcess = new MockProcess()
+            launcher['_startAppium'] = vi.fn().mockResolvedValue(mockProcess)
+            expect(mockProcess.stdout.on).not.toHaveBeenCalledOnce()
+            expect(mockProcess.stderr.on).not.toHaveBeenCalledOnce()
+            await launcher.onPrepare()
+            expect(mockProcess.stdout.on).toHaveBeenCalledOnce()
+            expect(mockProcess.stderr.on).toHaveBeenCalledOnce()
         })
     })
 
@@ -759,9 +774,7 @@ describe('Appium launcher', () => {
     })
 
     afterEach(() => {
+        vi.mocked(os.platform).mockReset()
         consoleSpy.mockRestore()
-        Object.defineProperty(process, 'platform', {
-            value: originalPlatform
-        })
     })
 })
