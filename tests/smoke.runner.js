@@ -106,6 +106,18 @@ const mochaAsyncTestrunner = async () => {
 }
 
 /**
+ * verify that the WDIO testrunner fails if a test file did not execute any tests
+ * (note: this is only expected when doing component testing using the browser runner)
+ */
+const mochaEmptyBrowserTestrunner = async () => {
+    const err = await launch('mochaEmptyTestrunner', baseConfig, {
+        spec: ['./mocha/test-blank.js'],
+        runner: 'browser'
+    }).then(() => undefined, (err) => err)
+    assert.ok(err)
+}
+
+/**
  * Test if you can run CJS tests
  */
 const cjsTestrunner = async () => {
@@ -996,7 +1008,8 @@ const jasmineAfterHookArgsValidation = async () => {
         cliExcludeParamValidationSomeExcludedByPath,
         cliExcludeParamValidationExcludeNonExistentByKeyword,
         cliExcludeParamValidationExcludeFromConfigByKeyword,
-        cliExcludeParamValidationExcludeMultipleSpecsByPath
+        cliExcludeParamValidationExcludeMultipleSpecsByPath,
+        mochaEmptyBrowserTestrunner
     ]
 
     console.log('\nRunning smoke tests...\n')

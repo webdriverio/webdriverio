@@ -106,6 +106,11 @@ export default class Runner extends EventEmitter {
          */
         this._framework = await this.#initFramework(cid, this._config, caps, this._reporter, specs)
         process.send!({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this._framework.hasTests() } })
+
+        /**
+         * if no tests are found in the worker we mark the file as skipped
+         * (note: this only is expected when running e2e tests, component tests actually require a test to be executed)
+         */
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
         }
@@ -208,6 +213,17 @@ export default class Runner extends EventEmitter {
             name: 'snapshot',
             content: snapshotService.results
         })
+
+        /**
+         * let the worker fail when we are running in browser mode and no test was
+         * executed.
+         */
+        if (!this._reporter.ranTests()) {
+            const err = new Error(`No tests found in "${specs.join(', ')}"`)
+            log.error(err)
+            this.emit('error', err)
+            failures = 1
+        }
 
         return this._shutdown(failures, retries)
     }

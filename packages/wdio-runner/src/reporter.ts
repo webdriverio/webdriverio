@@ -12,6 +12,7 @@ const mochaAllHooks = ['"before all" hook', '"after all" hook']
  * to all these reporters
  */
 export default class BaseReporter {
+    #executedTests = 0
     private _reporters: Reporters.ReporterInstance[] = []
     private listeners: ((ev: any) => void)[] = []
 
@@ -25,6 +26,10 @@ export default class BaseReporter {
         this._reporters = await Promise.all(
             this._config.reporters!.map(this._loadReporter.bind(this))
         )
+    }
+
+    ranTests () {
+        return this.#executedTests > 0
     }
 
     /**
@@ -51,6 +56,13 @@ export default class BaseReporter {
                 name: 'printFailureMessage',
                 content: payload
             })
+        }
+
+        /**
+         * count test if any fail or pass
+         */
+        if (e === 'test:pass' || e === 'step:fail') {
+            this.#executedTests++
         }
 
         this._reporters.forEach((reporter) => reporter.emit(e, payload))
