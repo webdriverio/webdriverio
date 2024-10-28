@@ -23,6 +23,62 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.2.2 (2024-10-28)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-cli`, `wdio-config`, `wdio-local-runner`, `wdio-spec-reporter`, `webdriver`, `webdriverio`
+  * [#13781](https://github.com/webdriverio/webdriverio/pull/13781) fix(webdriverio): improve switchFrame behavior ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#13805](https://github.com/webdriverio/webdriverio/pull/13805) fix(webdriver): allow WebdriverIO to handle alerts ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`, `webdriver`
+  * [#13782](https://github.com/webdriverio/webdriverio/pull/13782) fix(@wdio/browser-runner): publish Mocha assets as part of package ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#13798](https://github.com/webdriverio/webdriverio/pull/13798) fix(webdriverio): Misfound elements when using WebDriver BiDi ([@nextlevelbeard](https://github.com/nextlevelbeard))
+  * [#13800](https://github.com/webdriverio/webdriverio/pull/13800) reorder shadowroot removal ([@ccharnkij](https://github.com/ccharnkij))
+  * [#13772](https://github.com/webdriverio/webdriverio/pull/13772) fix(webdriverio): ensure BiDi browsingContext is updated after switchToWindow ([@harsha509](https://github.com/harsha509))
+  * [#13760](https://github.com/webdriverio/webdriverio/pull/13760) Prevent switchWindow from switching on invalid window requested ([@gavvvr](https://github.com/gavvvr))
+* `wdio-browserstack-service`
+  * [#13773](https://github.com/webdriverio/webdriverio/pull/13773) 🐛 Bug Fix: TypeError: fetch failed ([@kamal-kaur04](https://github.com/kamal-kaur04))
+* `wdio-types`, `webdriverio`
+  * [#13777](https://github.com/webdriverio/webdriverio/pull/13777) fix(webdriverio): wait for request information to come in ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#13768](https://github.com/webdriverio/webdriverio/pull/13768) Fix moduleLoaderFlag ([@jenskuhrjorgensen](https://github.com/jenskuhrjorgensen))
+
+#### :nail_care: Polish
+* `wdio-appium-service`
+  * [#13804](https://github.com/webdriverio/webdriverio/pull/13804) chore(@wdio/appium-service): log to stdout if no log path is set ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-protocols`
+  * [#13806](https://github.com/webdriverio/webdriverio/pull/13806) feat(wdio-protocols): extend BiDi type definitions ([@harsha509](https://github.com/harsha509))
+* `webdriverio`
+  * [#13793](https://github.com/webdriverio/webdriverio/pull/13793) feat: enhance newWindow function to support 'tab' or 'window' types ([@harsha509](https://github.com/harsha509))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#13802](https://github.com/webdriverio/webdriverio/pull/13802) fix(webdriverio): typo in keys description ([@cuvar](https://github.com/cuvar))
+  * [#13794](https://github.com/webdriverio/webdriverio/pull/13794) docs(browser.mock): remove outdated parameter comment ([@Delta456](https://github.com/Delta456))
+* Other
+  * [#13795](https://github.com/webdriverio/webdriverio/pull/13795) rename `attachSession` to `attachToSession` ([@navin772](https://github.com/navin772))
+  * [#13797](https://github.com/webdriverio/webdriverio/pull/13797) docs(BACKERS.md): fix LambdaTest logo link ([@Delta456](https://github.com/Delta456))
+  * [#13758](https://github.com/webdriverio/webdriverio/pull/13758) docs: Updated examples guide to mention PNPM for setup instead of NPM ([@gavvvr](https://github.com/gavvvr))
+  * [#13761](https://github.com/webdriverio/webdriverio/pull/13761) docs: correct links to flowcharts ([@gavvvr](https://github.com/gavvvr))
+
+#### :house: Internal
+* [#13792](https://github.com/webdriverio/webdriverio/pull/13792) add missing test:e2e script to package.json ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 11
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jens Kuhr Jørgensen ([@jenskuhrjorgensen](https://github.com/jenskuhrjorgensen))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Kirill Gavrilov ([@gavvvr](https://github.com/gavvvr))
+- Luca Müller ([@cuvar](https://github.com/cuvar))
+- Navin Chandra ([@navin772](https://github.com/navin772))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.2.0 (2024-10-12)
 
 #### :house: Internal
