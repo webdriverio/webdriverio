@@ -30,6 +30,9 @@ import {
     COMMUNITY_PACKAGES_WITH_TS_SUPPORT,
     usesSerenity,
     PMs,
+    projectProps,
+    isProjectExisting,
+    nameInPackageJsonIsNotCreateWdioDefault,
 } from './constants.js'
 import type {
     OnCompleteResult,
@@ -531,9 +534,6 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
         return answers
     }
 
-    const projectProps = await getProjectProps(process.cwd())
-    const isProjectExisting = Boolean(projectProps)
-    const nameInPackageJsonIsNotCreateWdioDefault = projectProps?.packageJson?.name !== 'my-new-project'
     const projectName = projectProps?.packageJson?.name ? ` named "${projectProps.packageJson.name}"` : ''
 
     const projectRootQuestions = [
