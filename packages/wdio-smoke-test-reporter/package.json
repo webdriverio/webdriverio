@@ -1,6 +1,6 @@
 {
   "name": "@wdio/smoke-test-reporter",
-  "version": "9.1.3",
+  "version": "9.2.2",
   "description": "A WebdriverIO utility to smoke test reporters for internal testing purposes.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-reporter",

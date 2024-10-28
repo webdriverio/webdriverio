@@ -22,7 +22,7 @@ export async function loadTypeScriptCompiler (tsConfigPath?: string) {
         /**
          * only for testing purposes
          */
-        if (process.env.VITEST_WORKER_ID && process.env.THROW_TSX_RESOLVE) {
+        if (process.env.WDIO_UNIT_TESTS && process.env.THROW_TSX_RESOLVE) {
             throw new Error('test fail')
         }
         const loaderPath = await resolve('tsx', import.meta.url)

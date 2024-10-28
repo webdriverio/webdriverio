@@ -169,14 +169,14 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
     return launcher.run()
         .then((...args) => {
             /* istanbul ignore if */
-            if (!process.env.VITEST_WORKER_ID) {
+            if (!process.env.WDIO_UNIT_TESTS) {
                 process.exit(...args)
             }
         })
         .catch(err => {
             console.error(err)
             /* istanbul ignore if */
-            if (!process.env.VITEST_WORKER_ID) {
+            if (!process.env.WDIO_UNIT_TESTS) {
                 process.exit(1)
             }
         })
@@ -251,7 +251,7 @@ export async function handler(argv: RunCommandArguments) {
                 NODE_OPTIONS
             }
         })
-        return !process.env.VITEST_WORKER_ID && process.exit(p.exitCode)
+        return !process.env.WDIO_UNIT_TESTS && process.exit(p.exitCode)
     }
 
     /**

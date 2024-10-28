@@ -35,7 +35,7 @@ export class ShadowRootManager {
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.VITEST_WORKER_ID || browser.options?.automationProtocol !== 'webdriver') {
+        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
             this.#initialize = Promise.resolve(true)
             return
         }
@@ -339,12 +339,13 @@ export class ShadowRootTree {
     }
 
     remove (element: string): boolean {
-        for (const child of this.children) {
-            if (child.element === element) {
-                return this.children.delete(child)
+        const childArray = Array.from(this.children)
+        for (let i = childArray.length - 1; i >= 0; i--) {
+            if (childArray[i].element === element) {
+                return this.children.delete(childArray[i])
             }
 
-            const wasFound = child.remove(element)
+            const wasFound = childArray[i].remove(element)
             if (wasFound) {
                 return true
             }
