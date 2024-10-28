@@ -218,7 +218,9 @@ describe('startWebDriver', () => {
             '/foo/bar/executable',
             ['--port=1234', '--foo=bar', '--allowed-origins=*', '--allowed-ips=0.0.0.0'],
             expect.objectContaining({
-                env: expect.any(Object)
+                env: expect.objectContaining({
+                    NODE_OPTIONS: ''
+                })
             })
         )
     })
@@ -253,7 +255,9 @@ describe('startWebDriver', () => {
             '/my/chromedriver',
             ['--port=1234', '--binary=/my/chromedriver', '--allowed-origins=*', '--allowed-ips=0.0.0.0'],
             expect.objectContaining({
-                env: expect.any(Object)
+                env: expect.objectContaining({
+                    NODE_OPTIONS: ''
+                })
             })
         )
     })
