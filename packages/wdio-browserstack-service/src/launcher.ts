@@ -19,19 +19,19 @@ import type { BrowserstackConfig, BrowserstackOptions, App, AppConfig, AppUpload
 import {
     BSTACK_SERVICE_VERSION,
     NOT_ALLOWED_KEYS_IN_CAPS, PERF_MEASUREMENT_ENV, RERUN_ENV, RERUN_TESTS_ENV,
-    TESTOPS_BUILD_ID_ENV,
-    VALID_APP_EXTENSION
+    BROWSERSTACK_TESTHUB_UUID,
+    VALID_APP_EXTENSION,
+    BROWSERSTACK_PERCY,
+    BROWSERSTACK_OBSERVABILITY
 } from './constants.js'
 import {
     launchTestSession,
-    createAccessibilityTestRun,
     shouldAddServiceVersion,
     stopBuildUpstream,
     getCiInfo,
     isBStackSession,
     isUndefined,
     isAccessibilityAutomationSession,
-    stopAccessibilityTestRun,
     isTrue,
     getBrowserStackUser,
     getBrowserStackKey,
@@ -272,23 +272,20 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // remove accessibilityOptions from the capabilities if present
         this._updateObjectTypeCaps(capabilities, 'accessibilityOptions')
 
-        if (this._accessibilityAutomation) {
-            const scannerVersion = await createAccessibilityTestRun(this._options, this._config, {
+        const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
+        if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
+            BStackLogger.debug('Sending launch start event')
+
+            await launchTestSession(this._options, this._config, {
                 projectName: this._projectName,
                 buildName: this._buildName,
                 buildTag: this._buildTag,
                 bstackServiceVersion: BSTACK_SERVICE_VERSION,
-                buildIdentifier: this._buildIdentifier,
-                accessibilityOptions: this._options.accessibilityOptions
-            })
-
-            if (scannerVersion) {
-                process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion
-            }
-            BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
+                buildIdentifier: this._buildIdentifier
+            }, this.browserStackConfig)
         }
 
-        if (this._options.accessibilityOptions) {
+        if (this._accessibilityAutomation && this._options.accessibilityOptions) {
             const filteredOpts = Object.keys(this._options.accessibilityOptions)
                 .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
                 .reduce((opts, key) => {
@@ -303,22 +300,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
         }
 
-        if (this._options.testObservability) {
-            BStackLogger.debug('Sending launch start event')
-
-            await launchTestSession(this._options, this._config, {
-                projectName: this._projectName,
-                buildName: this._buildName,
-                buildTag: this._buildTag,
-                bstackServiceVersion: BSTACK_SERVICE_VERSION,
-                buildIdentifier: this._buildIdentifier
-            })
-        }
-        const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
         if (shouldSetupPercy) {
             try {
                 const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
                 this._percyBestPlatformCaps = bestPlatformPercyCaps
+                process.env[BROWSERSTACK_PERCY] = 'false'
                 await this.setupPercy(this._options, this._config, {
                     projectName: this._projectName
                 })
@@ -377,30 +363,23 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     async onComplete () {
         BStackLogger.debug('Inside OnComplete hook..')
-        if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
-            await stopAccessibilityTestRun().catch((error: any) => {
-                BStackLogger.error(`Exception in stop accessibility test run: ${error}`)
-            })
+
+        BStackLogger.debug('Sending stop launch event')
+        await stopBuildUpstream()
+        if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
+        this.browserStackConfig.testObservability.buildStopped = true
 
-        if (this._options.testObservability) {
-            BStackLogger.debug('Sending stop launch event')
-            await stopBuildUpstream()
-            if (process.env[TESTOPS_BUILD_ID_ENV]) {
-                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[TESTOPS_BUILD_ID_ENV]} to view build report, insights, and many more debugging information all at one place!\n`)
+        if (process.env[PERF_MEASUREMENT_ENV]) {
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
+            PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
+
+            if (!process.env.START_TIME) {
+                return
             }
-            this.browserStackConfig.testObservability.buildStopped = true
-
-            if (process.env[PERF_MEASUREMENT_ENV]) {
-                await PerformanceTester.stopAndGenerate('performance-launcher.html')
-                PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
-
-                if (!process.env.START_TIME) {
-                    return
-                }
-                const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
-                BStackLogger.info(`Total duration is ${duration / 1000 } s`)
-            }
+            const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
+            BStackLogger.info(`Total duration is ${duration / 1000} s`)
         }
 
         await sendFinish(this.browserStackConfig)
@@ -454,6 +433,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     async setupPercy(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
 
         if (this._percy?.isRunning()) {
+            process.env[BROWSERSTACK_PERCY] = 'true'
             return
         }
         try {
@@ -462,6 +442,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 throw new Error('Could not start percy, check percy logs for info.')
             }
             PercyLogger.info('Percy started successfully')
+            process.env[BROWSERSTACK_PERCY] = 'true'
             let signal = 0
             const handler = async () => {
                 signal++
@@ -472,6 +453,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.on('SIGTERM', handler)
         } catch (err: unknown) {
             PercyLogger.debug(`Error in percy setup ${err}`)
+            process.env[BROWSERSTACK_PERCY] = 'false'
         }
     }
 
@@ -834,8 +816,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     _getClientBuildUuid() {
-        if (process.env[TESTOPS_BUILD_ID_ENV]) {
-            return process.env[TESTOPS_BUILD_ID_ENV]
+        if (process.env[BROWSERSTACK_TESTHUB_UUID]) {
+            return process.env[BROWSERSTACK_TESTHUB_UUID]
         }
         const uuid = uuidv4()
         BStackLogger.logToFile(`If facing any issues, please contact BrowserStack support with the Build Run Id - ${uuid}`, 'info')

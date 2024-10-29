@@ -44,7 +44,7 @@ class _InsightsHandler {
     private _commands: Record<string, BeforeCommandArgs | AfterCommandArgs> = {}
     private _gitConfigPath?: string
     private _suiteFile?: string
-    private _currentTest: CurrentRunInfo = {}
+    public static _currentTest: CurrentRunInfo = {}
     private _currentHook: CurrentRunInfo = {}
     private _cucumberData: CucumberStore = {
         stepsStarted: false,
@@ -53,8 +53,8 @@ class _InsightsHandler {
     }
     private _userCaps?: Capabilities.ResolvedTestrunnerCapabilities = {}
     private listener = Listener.getInstance()
-    private _currentTestId: string | undefined
-    private _cbtQueue: Array<CBTData> = []
+    public _currentTestId: string | undefined
+    public _cbtQueue: Array<CBTData> = []
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.ResolvedTestrunnerCapabilities, _options?: BrowserstackConfig & BrowserstackOptions) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
@@ -207,7 +207,7 @@ class _InsightsHandler {
             const hookMetaData = {
                 uuid: hookUUID,
                 startedAt: (new Date()).toISOString(),
-                testRunId: this._currentTest.uuid,
+                testRunId: InsightsHandler._currentTest.uuid,
                 hookType: hookType
             }
 
@@ -368,7 +368,7 @@ class _InsightsHandler {
 
     async beforeTest (test: Frameworks.Test) {
         const uuid = uuidv4()
-        this._currentTest = {
+        InsightsHandler._currentTest = {
             test, uuid
         }
         if (this._framework !== 'mocha') {
@@ -407,7 +407,7 @@ class _InsightsHandler {
 
     async beforeScenario (world: ITestCaseHookParameter) {
         const uuid = uuidv4()
-        this._currentTest = {
+        InsightsHandler._currentTest = {
             uuid
         }
         this._cucumberData.scenario = world.pickle
@@ -502,8 +502,8 @@ class _InsightsHandler {
         try {
             if (this._currentHook.uuid && !this._currentHook.finished && (this._framework === 'mocha' || this._framework === 'cucumber')) {
                 stdLog.hook_run_uuid = this._currentHook.uuid
-            } else if (this._currentTest.uuid && (this._framework === 'mocha' || this._framework === 'cucumber')) {
-                stdLog.test_run_uuid = this._currentTest.uuid
+            } else if (InsightsHandler._currentTest.uuid && (this._framework === 'mocha' || this._framework === 'cucumber')) {
+                stdLog.test_run_uuid = InsightsHandler._currentTest.uuid
             }
             if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
                 this.listener.logCreated([stdLog])
@@ -630,6 +630,10 @@ class _InsightsHandler {
         const filename = test.file || this._suiteFile
         this._currentTestId = testMetaData.uuid
 
+        if (eventType === 'TestRunStarted') {
+            InsightsHandler._currentTest.name = test.title || test.description
+        }
+
         const testData: TestData = {
             uuid: testMetaData.uuid,
             type: test.type || 'test',
@@ -745,6 +749,10 @@ class _InsightsHandler {
         }
         this._currentTestId = uuid
 
+        if (eventType === 'TestRunStarted') {
+            InsightsHandler._currentTest.name = fullNameWithExamples
+        }
+
         const testData: TestData = {
             uuid: uuid,
             started_at: startedAt,
@@ -815,7 +823,7 @@ class _InsightsHandler {
         return testData
     }
 
-    private async flushCBTDataQueue() {
+    public async flushCBTDataQueue() {
         if (isUndefined(this._currentTestId)) {return}
         this._cbtQueue.forEach(cbtData => {
             cbtData.uuid = this._currentTestId!
