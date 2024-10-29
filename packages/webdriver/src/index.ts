@@ -48,7 +48,7 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        if (isBidi(capabilities)) {
+        if (isBidi(requestedCapabilities, capabilities)) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
             Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string, options.strictSSL))
         }
@@ -68,10 +68,12 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (isBidi(capabilities)) {
-            // make sure the Bidi connection is established before returning
-            await client._bidiHandler.connect()
-            client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+        if (isBidi(requestedCapabilities, capabilities)) {
+            /**
+             * make sure the Bidi connection is established before returning
+             */
+            await client._bidiHandler.waitForConnected()
+            client._bidiHandler.socket.on('message', parseBidiMessage.bind(client))
         }
 
         /**
@@ -122,7 +124,7 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        if (isBidi(options.capabilities)) {
+        if (isBidi(options.requestedCapabilities || {}, options.capabilities || {})) {
             const webSocketUrl = options.capabilities?.webSocketUrl as unknown as string
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
             Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string, options.strictSSL))
@@ -135,7 +137,7 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (isBidi(options.capabilities)) {
+        if (isBidi(options.requestedCapabilities || {}, options.capabilities || {})) {
             client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
         }
         return client

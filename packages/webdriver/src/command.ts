@@ -1,12 +1,9 @@
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import {
-    WebDriverBidiProtocol,
-    type CommandEndpoint,
-} from '@wdio/protocols'
+import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
 import Request from './request/request.js'
-import type { WebDriverResponse } from './request/index.js'
+import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 
 const log = logger('webdriver')
@@ -37,9 +34,15 @@ export default function (
 
         /**
          * log deprecation warning if command is deprecated
+         *
+         * Note: there are situations where we have to use deprecated commands, e.g. `switchToFrame`
+         * internally where we don't want to have the message shown to the user. In these cases we
+         * use the `DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS` env variable to suppress the message.
          */
-        if (typeof deprecated === 'string') {
-            log.warn(deprecated.replace('This command', `The "${command}" command`))
+        if (typeof deprecated === 'string' && !process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS) {
+            const warning = deprecated.replace('This command', `The "${command}" command`)
+            log.warn(warning)
+            console.warn(`⚠️ [WEBDRIVERIO DEPRECATION NOTICE] ${warning}`)
         }
 
         /**

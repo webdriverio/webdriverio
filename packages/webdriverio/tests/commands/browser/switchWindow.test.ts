@@ -4,7 +4,7 @@ import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-const webdriverResponses = [null, null, 'foo', 'bar', 'loo', null, 'hello', 'world', 'yo', null, 'some', 'url', 'here']
+const webdriverResponses = [null, null, null, 'foo', 'bar', 'loo', null, 'hello', 'world', 'yo', null, 'some', 'url', 'here']
 
 describe('switchWindow', () => {
     // @ts-ignore
@@ -79,7 +79,7 @@ describe('switchWindow', () => {
 
     it('should find url with query string', async () => {
         // @ts-expect-error mock feature
-        vi.mocked(fetch).setMockResponse([null, null, 'foo.com?foo=bar', 'bar', null, 'hello', 'world', null, 'some', 'url'])
+        vi.mocked(fetch).setMockResponse([null, null, null, 'foo.com?foo=bar', 'bar', null, 'hello', 'world', null, 'some', 'url'])
         const tabId = await browser.switchWindow('foo.com?foo=bar')
         expect(tabId).toBe('window-handle-1')
     })

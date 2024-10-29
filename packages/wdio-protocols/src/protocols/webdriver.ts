@@ -345,6 +345,7 @@ export default {
     '/session/:sessionId/frame': {
         POST: {
             command: 'switchToFrame',
+            deprecated: 'This command is deprecated and we encourage everyone to use `switchFrame` instead for switching into frames. Read more about this command at https://webdriver.io/docs/api/browser/switchFrame.',
             description:
                 'The Switch To Frame command is used to select the current top-level browsing context or a child browsing context of the current browsing context to use as the current browsing context for subsequent commands.',
             ref: 'https://w3c.github.io/webdriver/#dfn-switch-to-frame',

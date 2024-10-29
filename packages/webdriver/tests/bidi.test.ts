@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { describe, it, vi, expect } from 'vitest'
+import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 import { BidiCore } from '../src/bidi/core.js'
 
 vi.mock('ws')
@@ -13,17 +13,30 @@ describe('BidiCore', () => {
         expect(handler.isConnected).toBe(false)
     })
 
-    it('can connect', async () => {
-        const handler = new BidiCore('ws://foo/bar')
-        handler.connect()
-        expect(handler.socket.on).toBeCalledWith('open', expect.any(Function))
+    describe('can connect', () => {
+        beforeAll(() => {
+            delete process.env.WDIO_UNIT_TESTS
+        })
 
-        const [, cb] = vi.mocked(handler.socket.on).mock.calls[1]
-        cb.call(this as  any)
-        expect(handler.isConnected).toBe(true)
+        it('can connect', async () => {
+            const handler = new BidiCore('ws://foo/bar')
+            handler.connect()
+            expect(handler.socket.on).toBeCalledWith('open', expect.any(Function))
+            const [, cb] = vi.mocked(handler.socket.on).mock.calls[1]
+            cb.call(this as  any)
+            expect(handler.isConnected).toBe(true)
+        })
+
+        afterAll(() => {
+            process.env.WDIO_UNIT_TESTS = '1'
+        })
     })
 
     describe('send', () => {
+        beforeAll(() => {
+            delete process.env.WDIO_UNIT_TESTS
+        })
+
         it('fails if sending a message while not connected', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await expect(async () => handler.send({ method: 'session.new', params: {} }))
@@ -64,13 +77,21 @@ describe('BidiCore', () => {
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:55:'))
+            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:68:'))
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
+        })
+
+        afterAll(() => {
+            process.env.WDIO_UNIT_TESTS = '1'
         })
     })
 
     describe('sendAsync', () => {
+        beforeAll(() => {
+            delete process.env.WDIO_UNIT_TESTS
+        })
+
         it('fails if sending a message while not connected', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await expect(async () => handler.sendAsync({ method: 'session.new', params: {} }))
@@ -86,6 +107,10 @@ describe('BidiCore', () => {
             expect(handler.sendAsync({ method: 'session.new', params: {} }))
                 .toEqual(1)
             expect(vi.mocked(handler.socket.send).mock.calls).toMatchSnapshot()
+        })
+
+        afterAll(() => {
+            process.env.WDIO_UNIT_TESTS = '1'
         })
     })
 })

@@ -121,7 +121,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx'
         }
 
-        log.info(`Start worker ${cid} with arg: ${argv}`)
+        log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
         const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
             cwd: process.cwd(),
             env: runnerEnv,
@@ -134,7 +134,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         childProcess.on('exit', this._handleExit.bind(this))
 
         /* istanbul ignore if */
-        if (!process.env.VITEST_WORKER_ID) {
+        if (!process.env.WDIO_UNIT_TESTS) {
             if (childProcess.stdout !== null) {
                 if (this.config.groupLogsByTestSpec) {
                     // Test spec logs are collected only from child stdout stream

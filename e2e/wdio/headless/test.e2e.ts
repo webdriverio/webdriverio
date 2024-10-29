@@ -3,8 +3,6 @@ import { browser, $, expect } from '@wdio/globals'
 import os from 'node:os'
 
 describe('main suite 1', () => {
-    afterEach(() => browser.setViewport({ width: 1200, height: 900 }))
-
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
@@ -56,7 +54,7 @@ describe('main suite 1', () => {
         })
 
         after(async () => {
-            await browser.setViewport({ width: 900, height: 600 })
+            await browser.setViewport({ width: 1200, height: 900 })
         })
     })
 
@@ -144,7 +142,7 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it.skip(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x:0, y:0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
@@ -168,7 +166,7 @@ describe('main suite 1', () => {
 
         it('moveTo in iframe', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
-            await browser.switchToFrame(iframe)
+            await browser.switchFrame(iframe)
             await browser.$('#parent').moveTo()
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
@@ -181,7 +179,7 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it.skip(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x: 0, y: 0 }
                     document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
@@ -213,14 +211,14 @@ describe('main suite 1', () => {
 
         it('moveTo to nested iframe with auto scrolling', async () => {
             const iframe = await browser.$('iframe.code-tabs__result')
-            await browser.switchToFrame(iframe)
+            await browser.switchFrame(iframe)
             await browser.$('#parent').moveTo()
             const value = await browser.$('#text').getValue()
             expect(value.endsWith('center\n')).toBe(true)
         })
 
         after(async () => {
-            await browser.switchToParentFrame()
+            await browser.switchFrame(null)
         })
     })
 
@@ -328,6 +326,7 @@ describe('main suite 1', () => {
             const request = await browser.url('http://guinea-pig.webdriver.io/', {
                 wait: 'none'
             })
+
             if (!request) {
                 throw new Error('Request object is not defined')
             }
@@ -363,7 +362,7 @@ describe('main suite 1', () => {
         /**
          * fails due to https://github.com/GoogleChromeLabs/chromium-bidi/issues/2556
          */
-        it.skip('should be able to handle dialogs', async () => {
+        it('should be able to handle dialogs', async () => {
             await browser.url('http://guinea-pig.webdriver.io')
             browser.execute(() => alert('123'))
             const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
@@ -420,6 +419,99 @@ describe('main suite 1', () => {
             await browser.url('http://guinea-pig.webdriver.io/pointer.html')
             expect(await browser.execute(getDateString))
                 .not.toBe(now.toString())
+        })
+    })
+
+    describe('shadow root piercing', () => {
+        it('recognises new shadow root ids when page refreshes', async () => {
+            await browser.url('https://todomvc.com/examples/lit/dist/')
+            await expect($('.new-todo')).toBePresent()
+            await browser.refresh()
+            await expect($('.new-todo')).toBePresent()
+        })
+    })
+
+    describe('context management', () => {
+        const closeAllWindowsButFirst = async () => {
+            const allHandles = await browser.getWindowHandles()
+
+            if (allHandles.length < 2) {return}
+            for (const windowHandle of allHandles.slice(1)) {
+                await browser.switchToWindow(windowHandle)
+                await browser.closeWindow()
+            }
+            await browser.switchToWindow(allHandles[0])
+        }
+
+        it('should allow user to switch between contexts', async () => {
+            await browser.url('http://guinea-pig.webdriver.io/')
+
+            await browser.newWindow('https://webdriver.io')
+            await expect($('.hero__subtitle')).toBePresent()
+            await expect($('.red')).not.toBePresent()
+
+            await browser.switchWindow('guinea-pig.webdriver.io')
+            await expect($('.red')).toBePresent()
+            await expect($('.hero__subtitle')).not.toBePresent()
+
+            await browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
+            await expect($('.hero__subtitle')).toBePresent()
+            await expect($('.red')).not.toBePresent()
+        })
+
+        it('should not switch window if requested window was not found', async () => {
+            await closeAllWindowsButFirst()
+            await browser.navigateTo('http://guinea-pig.webdriver.io/')
+            const firstWindowHandle = await browser.getWindowHandle()
+
+            await browser.newWindow('https://webdriver.io')
+
+            await browser.switchWindow('guinea-pig.webdriver.io')
+            expect(await browser.getWindowHandle()).toBe(firstWindowHandle)
+
+            const err = await browser.switchWindow('not-existing-window').catch((err) => err)
+            expect(err.message).toContain('No window')
+
+            expect(await browser.getWindowHandle()).toBe(firstWindowHandle)
+        })
+
+        it('Should update BiDi browsingContext when performing switchToWindow in WebDriver Classic', async () => {
+            await closeAllWindowsButFirst()
+            await browser.url('http://guinea-pig.webdriver.io/')
+            await $('#newWindow').click()
+
+            const handles = await browser.getWindowHandles()
+            await browser.switchToWindow(handles[1])
+
+            // Verify element text to ensure the browsing context has changed and can interact with elements
+            await expect(await $('.page').getText()).toBe('Second page!')
+        })
+    })
+
+    describe('switchFrame', () => {
+        afterEach(async () => {
+            await browser.switchFrame(null)
+        })
+
+        it('can switch to a frame via url', async () => {
+            await browser.url('https://www.w3schools.com/tags/tryit.asp?filename=tryhtml_iframe')
+            await browser.switchFrame('https://www.w3schools.com')
+            expect(await browser.execute(() => [document.title, document.URL]))
+                .toEqual(['W3Schools Online Web Tutorials', 'https://www.w3schools.com/'])
+        })
+
+        it('can switch to a frame via element', async () => {
+            await browser.url('https://the-internet.herokuapp.com/nested_frames')
+            await browser.switchFrame($('frame'))
+            expect(await browser.execute(() => document.URL))
+                .toBe('https://the-internet.herokuapp.com/frame_top')
+        })
+
+        it('can switch to a frame via function', async () => {
+            await browser.url('https://the-internet.herokuapp.com/nested_frames')
+            await browser.switchFrame(() => document.URL.includes('frame_right'))
+            expect(await browser.execute(() => document.URL))
+                .toBe('https://the-internet.herokuapp.com/frame_right')
         })
     })
 })

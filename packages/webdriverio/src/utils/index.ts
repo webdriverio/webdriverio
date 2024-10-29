@@ -223,7 +223,9 @@ export function isStaleElementError (err: Error) {
         // Safari
         err.message.toLowerCase().includes('stale element found') ||
         // Chrome through JS execution
-        err.message.includes('stale element not found in the current frame')
+        err.message.includes('stale element not found in the current frame') ||
+        // BIDI
+        err.message.includes('belongs to different document')
     )
 }
 
@@ -256,7 +258,7 @@ export function elementPromiseHandler <T extends object>(handle: string, shadowR
 }
 
 export function transformClassicToBidiSelector (using: string, value: string): remote.BrowsingContextCssLocator | remote.BrowsingContextXPathLocator | remote.BrowsingContextInnerTextLocator {
-    if (using === 'css selector') {
+    if (using === 'css selector' || using === 'tag name') {
         return { type: 'css', value }
     }
 
@@ -331,7 +333,9 @@ export async function findDeepElement(
         return scopedNodes[0]
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        return browser.findElement(using, value)
+        return this && 'elementId' in this && this.elementId
+            ? this.findElementFromElement(this.elementId, using, value)
+            : browser.findElement(using, value)
     })
 
     if (!deepElementResult) {
@@ -397,7 +401,9 @@ export async function findDeepElements(
         return scopedNodes
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
-        return browser.findElements(using, value)
+        return this && 'elementId' in this && this.elementId
+            ? this.findElementsFromElement(this.elementId, using, value)
+            : browser.findElements(using, value)
     })
     return deepElementResult as ElementReference[]
 }

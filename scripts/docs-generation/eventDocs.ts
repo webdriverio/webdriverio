@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import url from 'node:url'
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname)
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 export async function generateEventDocs () {
     const eventsDir = path.resolve(__dirname, '..', '..', 'website', 'community', 'events')

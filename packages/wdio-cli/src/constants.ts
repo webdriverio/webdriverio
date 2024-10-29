@@ -194,8 +194,7 @@ enum ProtocolOptions {
 
 export enum RegionOptions {
     US = 'us',
-    EU = 'eu',
-    APAC = 'apac'
+    EU = 'eu'
 }
 
 export const E2E_ENVIRONMENTS = [
@@ -504,7 +503,7 @@ export const QUESTIONNAIRE = [{
         const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
         return getDefaultFiles(answers, pattern)
     },
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.match(/(mocha|jasmine)/)
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && Boolean(answers.framework.match(/(mocha|jasmine)/))
 }, {
     type: 'input',
     name: 'specs',

@@ -488,6 +488,7 @@ export type DragAndDropOptions = {
 }
 
 export type NewWindowOptions = {
+    type?: 'tab' | 'window',
     windowName?: string,
     windowFeatures?: string
 }

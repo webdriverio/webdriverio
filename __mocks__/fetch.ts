@@ -1,5 +1,12 @@
 import { vi } from 'vitest'
 
+/**
+ * This flag helps to indicate that WebdriverIO is running in a unit test environment.
+ * Setting this environment changes the behavior of some functions to e.g. not exit
+ * the process or enter code sections that are hard to mock out.
+ */
+process.env.WDIO_UNIT_TESTS = '1'
+
 const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
 
@@ -96,14 +103,6 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         sessionResponse.capabilities.browserName = body.capabilities.alwaysMatch.browserName
     }
 
-    if (
-        body &&
-        body.desiredCapabilities &&
-        body.desiredCapabilities['sauce:options']
-    ) {
-        sessionResponse.capabilities['sauce:options'] = body.desiredCapabilities['sauce:options']
-    }
-
     if (body?.capabilities?.alwaysMatch?.browserName === 'bidi') {
         sessionResponse.capabilities.webSocketUrl = 'ws://webdriver.io'
     }
@@ -111,11 +110,6 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     switch (uri.pathname) {
     case path:
         value = sessionResponse
-
-        if (body.capabilities.alwaysMatch.browserName && body.capabilities.alwaysMatch.browserName.includes('noW3C')) {
-            value.desiredCapabilities = { browserName: 'mockBrowser' }
-            delete value.capabilities
-        }
 
         if (body.capabilities.alwaysMatch.browserName && body.capabilities.alwaysMatch.browserName.includes('devtools')) {
             value.capabilities['goog:chromeOptions'] = {

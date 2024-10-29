@@ -5,7 +5,6 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
-import * as utils from '../src/utils.js'
 import WebDriverRequest from '../src/request/request.js'
 import { COMMANDS_WITHOUT_RETRY } from '../src/request/index.js'
 
@@ -249,7 +248,7 @@ describe('webdriver request', () => {
             })
 
             const error = await req['_request'](url, opts).catch(err => err)
-            expect(error.message).toBe('element is not attached to the page document')
+            expect(error.message).toContain('element is not attached to the page document')
             expect(vi.mocked(req.emit).mock.calls).toHaveLength(2)
             expect(req.emit).toHaveBeenNthCalledWith(1, 'response', expect.anything())
             expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
@@ -263,7 +262,9 @@ describe('webdriver request', () => {
 
             const url = new URL('/empty', baseUrl)
             const opts = {}
-            await expect(req['_request'](url, opts)).rejects.toEqual(new Error('Response has empty body'))
+            await expect(req['_request'](url, opts)).rejects.toEqual(expect.objectContaining({
+                message: expect.stringContaining('Response has empty body')
+            }))
             expect(vi.mocked(req.emit).mock.calls).toHaveLength(2)
             expect(req.emit).toHaveBeenNthCalledWith(1, 'response', expect.anything())
             expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
@@ -277,7 +278,9 @@ describe('webdriver request', () => {
 
             const url = new URL('/failing', baseUrl)
             const opts = {}
-            await expect(req['_request'](url, opts, undefined, 2)).rejects.toEqual(new Error('unknown error'))
+            await expect(req['_request'](url, opts, undefined, 2)).rejects.toEqual(expect.objectContaining({
+                message: expect.stringContaining('unknown error')
+            }))
             expect(vi.mocked(req.emit).mock.calls).toHaveLength(6)
             expect(req.emit).toHaveBeenNthCalledWith(1, 'retry', expect.anything())
             expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
@@ -356,10 +359,7 @@ describe('webdriver request', () => {
                 expect(reqRetryCnt).toBeCalledTimes(retryCnt)
             })
 
-            it('should use error from "getTimeoutError" helper', async () => {
-                const timeoutErr = new Error('Timeout')
-                const spy = vi.spyOn(utils, 'getTimeoutError').mockReturnValue(timeoutErr)
-
+            it('should use error from "getRequestError" helper', async () => {
                 const req = new WebDriverRequest('GET', '/timeout', {}, true)
                 req.emit = vi.fn()
                 const reqOpts = {
@@ -372,15 +372,10 @@ describe('webdriver request', () => {
                     // ignore error
                     .catch((e) => e)
 
-                const url = new URL('/timeout', `${reqOpts.protocol}://${reqOpts.hostname}:${reqOpts.port}`)
-                expect(spy).toBeCalledTimes(1)
-                expect(spy).toBeCalledWith(expect.any(Error), expect.objectContaining({ method: 'GET' }), url)
                 expect(vi.mocked(req.emit).mock.calls).toHaveLength(3)
                 expect(req.emit).toHaveBeenNthCalledWith(1, 'request', expect.anything())
-                expect(req.emit).toHaveBeenNthCalledWith(2, 'response', { error: timeoutErr })
+                expect(req.emit).toHaveBeenNthCalledWith(2, 'response', { error: expect.objectContaining({ code: 'ETIMEDOUT' }) })
                 expect(req.emit).toHaveBeenNthCalledWith(3, 'performance', expect.objectContaining({ success: false }))
-
-                spy.mockRestore()
             })
         })
 
@@ -400,29 +395,28 @@ describe('webdriver request', () => {
                 (res) => res,
                 (e) => e
             )
-            expect(result).toEqual({ value: { value: {} } })
+            expect(result).toEqual({ value: {} })
             expect(reqRetryCnt).toBeCalledTimes(5)
-        })
+        }, 20_000)
 
         it('should retry on connection refused error', async () => {
             const retryCnt = 7
-            const req = new WebDriverRequest('POST', '/connectionRefused', {}, true)
+            const req = new WebDriverRequest('POST', '/connectionRefused', {}, false)
             const reqRetryCnt = vi.fn()
             req.on('retry', reqRetryCnt)
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
                 port: 4445,
-                path: '/connectionRefused',
                 connectionRetryCount: retryCnt,
                 logLevel: 'warn'
             }, 'foobar').then(
                 (res) => res,
                 (e) => e
             )
-            expect(result).toEqual({ value: { value: { foo: 'bar' } } })
+            expect(result).toEqual({ value: { foo: 'bar' } })
             expect(reqRetryCnt).toBeCalledTimes(5)
-        })
+        }, 20_000)
 
         it('should throw if request error is unknown', async () => {
             const req = new WebDriverRequest('POST', '/sumoerror', {}, true)
@@ -437,7 +431,7 @@ describe('webdriver request', () => {
                 (res) => res,
                 (e) => e
             )
-            expect(result.message).toBe('ups')
+            expect(result.message).toEqual(expect.stringContaining('ups'))
         })
     })
 

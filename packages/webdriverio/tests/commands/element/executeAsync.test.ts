@@ -20,8 +20,8 @@ describe('executeAsync test', () => {
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')
-        expect(vi.mocked(fetch).mock.calls[2][1]?.body).toMatchObject(JSON.stringify({
-            script: 'return (() => "foobar").apply(null, arguments)',
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as string)).toEqual(expect.objectContaining({
+            script: expect.stringContaining('return (() => "foobar").apply(null, arguments)'),
             args: [{ [ELEMENT_KEY]: 'some-elem-123', ELEMENT: 'some-elem-123' }, 1, 2, 3]
         }))
     })
@@ -36,7 +36,7 @@ describe('executeAsync test', () => {
 
         const result: string = await browser.$('#foo').executeAsync((elem, a, b, done) => {
             done(`${elem.ELEMENT}, ${a}${b}`)
-        }, 'foo', 1)
+        }, 'foo', 1) as string
         expect(result).toEqual('some-elem-123, foo1')
     })
 

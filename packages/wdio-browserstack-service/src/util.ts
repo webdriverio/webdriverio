@@ -349,7 +349,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
                 BStackLogger.error(errorMessage)
             }
         } else {
-            BStackLogger.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
+            BStackLogger.error(`Data upload to BrowserStack Test Observability failed due to ${error}. Cause : ${error.cause}`)
         }
     }
 })

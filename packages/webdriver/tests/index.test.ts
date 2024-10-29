@@ -27,6 +27,9 @@ vi.mock('../src/bidi/core.js', () => {
             constructor () {
                 ++initCount
             }
+            waitForConnected() {
+                return Promise.resolve()
+            }
             get socket () {
                 return {
                     on: vi.fn(),
@@ -90,13 +93,10 @@ describe('WebDriver', () => {
                     capabilities: {
                         alwaysMatch: {
                             browserName: 'firefox',
-                            webSocketUrl: true
+                            webSocketUrl: true,
+                            unhandledPromptBehavior: 'ignore'
                         },
                         firstMatch: [{}]
-                    },
-                    desiredCapabilities: {
-                        browserName: 'firefox',
-                        webSocketUrl: true
                     }
                 }) })
             )
@@ -117,13 +117,10 @@ describe('WebDriver', () => {
                     capabilities: {
                         alwaysMatch: {
                             browserName: 'firefox',
-                            webSocketUrl: true
+                            webSocketUrl: true,
+                            unhandledPromptBehavior: 'ignore'
                         },
                         firstMatch: [{}]
-                    },
-                    desiredCapabilities: {
-                        browserName: 'firefox',
-                        webSocketUrl: true
                     }
                 }) })
             )

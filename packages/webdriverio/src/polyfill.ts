@@ -3,6 +3,13 @@ import logger from '@wdio/logger'
 const polyfillManager = new Map<WebdriverIO.Browser, PolyfillManager>()
 const log = logger('webdriverio:PolyfillManager')
 
+export const NAME_POLYFILL = (
+    'var __defProp = Object.defineProperty;' +
+    'var __name = function (target, value) { return __defProp(target, \'name\', { value: value, configurable: true }); };' +
+    'var __globalThis = (typeof globalThis === \'object\' && globalThis) || (typeof window === \'object\' && window);' +
+    '__globalThis.__name = __name;'
+)
+
 export function getPolyfillManager(browser: WebdriverIO.Browser) {
     const existingPolyfillManager = polyfillManager.get(browser)
     if (existingPolyfillManager) {
@@ -24,7 +31,7 @@ export class PolyfillManager {
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.VITEST_WORKER_ID || browser.options?.automationProtocol !== 'webdriver') {
+        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
             this.#initialize = Promise.resolve(true)
             return
         }
@@ -37,12 +44,8 @@ export class PolyfillManager {
          *
          * @see https://github.com/evanw/esbuild/issues/2605
          */
-        const polyfill = () => {
-            const closure = new Function(
-                'var __defProp = Object.defineProperty;' +
-                'var __name = (target, value) => __defProp(target, \'name\', { value, configurable: true });' +
-                'globalThis.__name = __name;'
-            )
+        const polyfill = (polyfill: string) => {
+            const closure = new Function(polyfill)
             return closure()
         }
 
@@ -50,8 +53,8 @@ export class PolyfillManager {
          * apply polyfill script for upcoming as well as current execution context
          */
         this.#initialize = Promise.all([
-            browser.addInitScript(polyfill),
-            browser.execute(polyfill)
+            browser.addInitScript(polyfill, NAME_POLYFILL),
+            browser.execute(polyfill, NAME_POLYFILL)
         ]).then(() => {
             log.info('polyfill script added')
             return true

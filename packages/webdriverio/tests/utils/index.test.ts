@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
-import { findElement, isStaleElementError, elementPromiseHandler } from '../../src/utils/index.js'
+import { findElement, isStaleElementError, elementPromiseHandler, transformClassicToBidiSelector } from '../../src/utils/index.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -119,6 +119,41 @@ it('isStaleElementError', () => {
     expect(isStaleElementError(staleElementSafariError)).toBe(true)
     const staleElementJSError = new Error('javascript error: {"status":10,"value":"stale element not found in the current frame"}')
     expect(isStaleElementError(staleElementJSError)).toBe(true)
+    const staleElementBidiError = new Error('belongs to different document. Current document is')
+    expect(isStaleElementError(staleElementBidiError)).toBe(true)
     const otherError = new Error('something else')
     expect(isStaleElementError(otherError)).toBe(false)
+})
+
+describe('transformClassicToBidiSelector', () => {
+    it('transforms classic css selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('css selector', '.red')
+        expect(bidiSelector.type).toBe('css')
+        expect(bidiSelector.value).toBe('.red')
+    })
+
+    it('transforms classic tag name selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('tag name', 'div')
+        expect(bidiSelector.type).toBe('css')
+        expect(bidiSelector.value).toBe('div')
+    })
+
+    it('transforms classic xpath selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('xpath', '//html/body/section/div[6]/div/span')
+        expect(bidiSelector.type).toBe('xpath')
+        expect(bidiSelector.value).toBe('//html/body/section/div[6]/div/span')
+    })
+
+    it('transforms classic link text selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('link text', 'GitHub Repo')
+        expect(bidiSelector.type).toBe('innerText')
+        expect(bidiSelector.value).toBe('GitHub Repo')
+    })
+
+    it('transforms classic partial link text selector to BiDi', () => {
+        const bidiSelector = transformClassicToBidiSelector('partial link text', 'new')
+        expect(bidiSelector.type).toBe('innerText')
+        expect(bidiSelector.value).toBe('new')
+        expect(bidiSelector.matchType).toBe('partial')
+    })
 })

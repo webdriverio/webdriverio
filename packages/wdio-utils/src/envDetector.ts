@@ -1,6 +1,7 @@
 import type { Capabilities } from '@wdio/types'
 import { SUPPORTED_BROWSERNAMES } from './constants.js'
 
+const APPIUM_CAPABILITY_PREFIX = 'appium:'
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
 const MOBILE_CAPABILITIES = [
     'appium-version', 'appiumVersion', 'device-type', 'deviceType', 'app', 'appArguments',
@@ -195,13 +196,21 @@ function isSauce(capabilities?: Capabilities.WithRequestedCapabilities['capabili
     )
 }
 
+function isAppiumCapability(capabilityName: string) {
+    return capabilityName.startsWith(APPIUM_CAPABILITY_PREFIX)
+}
+
 /**
  * detects if session has support for WebDriver Bidi
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session has WebDriver Bidi support
  */
-export function isBidi(capabilities?: WebdriverIO.Capabilities) {
+export function isBidi(requestedCapabilities: Capabilities.RequestedStandaloneCapabilities, capabilities: WebdriverIO.Capabilities) {
     if (!capabilities) {
+        return false
+    }
+
+    if (Object.keys(requestedCapabilities).some(isAppiumCapability)) {
         return false
     }
 
@@ -255,7 +264,7 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(capabilities),
-        isBidi: isBidi(capabilities),
+        isBidi: isBidi({}, capabilities),
         isChromium: isChromium(capabilities)
     }
 }
@@ -282,7 +291,7 @@ export function sessionEnvironmentDetector({
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(requestedCapabilities),
         isSeleniumStandalone: isSeleniumStandalone(capabilities),
-        isBidi: isBidi(capabilities),
+        isBidi: isBidi(requestedCapabilities, capabilities),
         isChromium: isChromium(capabilities)
     }
 }

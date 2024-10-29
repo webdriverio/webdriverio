@@ -6,6 +6,7 @@ import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../context.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
+import { NAME_POLYFILL } from '../../polyfill.js'
 
 /**
  *
@@ -58,8 +59,9 @@ export async function execute<ReturnValue, InnerArguments extends any[]> (
         const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
+        const userScript = typeof script === 'string' ? new Function(script) : script
         const functionDeclaration = new Function(`
-            return (${SCRIPT_PREFIX}${script.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
+            return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
         `).toString()
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
@@ -78,7 +80,10 @@ export async function execute<ReturnValue, InnerArguments extends any[]> (
      * a function parameter, therefore we need to check if it starts with "function () {"
      */
     if (typeof script === 'function') {
-        script = `return (${script}).apply(null, arguments)`
+        script = `
+            ${NAME_POLYFILL}
+            return (${script}).apply(null, arguments)
+        `
     }
 
     return this.executeScript(script, verifyArgsAndStripIfElement(args))

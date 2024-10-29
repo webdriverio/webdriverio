@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
 import { parseArgs } from 'node:util'
@@ -6,7 +7,7 @@ import { build, context, type BuildOptions, type Plugin } from 'esbuild'
 import type { PackageJson } from 'type-fest'
 
 import { getExternal } from './utils.js'
-import { log, clear, generateDts, copyEJSTemplates, externalScripts } from './plugins.js'
+import { log, clear, generateDts, copyEJSTemplates, externalScripts, runBuildScript } from './plugins.js'
 import { generateTypes } from './type-generation/index.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -33,7 +34,8 @@ const { values } = parseArgs({ args, options })
  */
 const projects = (await fs.readdir(
     path.resolve(rootDir, 'packages')
-)).filter((dir) => dir !== 'node_modules')
+    // ignore potential stale/empty package directories left over when switching between branches
+)).filter((dir) => dir !== 'node_modules' && existsSync(path.resolve(rootDir, 'packages', dir, 'package.json')))
 
 const packages = (
     await Promise.all(
@@ -131,6 +133,10 @@ const configs = packages.map(([packageDir, pkg]) => {
              */
             if (typeof exp.types === 'string' && target === '.') {
                 esmBuild.plugins?.push(generateDts(absWorkingDir, pkg))
+
+                if (pkg.scripts?.build) {
+                    esmBuild.plugins?.push(runBuildScript(absWorkingDir, pkg))
+                }
             }
 
             if (values.clear) {
