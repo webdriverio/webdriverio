@@ -23,6 +23,19 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.2.5 (2024-10-29)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13827](https://github.com/webdriverio/webdriverio/pull/13827) fix(webdriverio): disable context manager for mobile ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#13825](https://github.com/webdriverio/webdriverio/pull/13825) Fix moduleLoaderFlag ([@jenskuhrjorgensen](https://github.com/jenskuhrjorgensen))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jens Kuhr Jørgensen ([@jenskuhrjorgensen](https://github.com/jenskuhrjorgensen))
+
+
 ## v9.2.4 (2024-10-28)
 
 #### :bug: Bug Fix
