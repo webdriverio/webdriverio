@@ -53,7 +53,7 @@ export class ContextManager {
      * Only run this session helper if BiDi is enabled and we're not in unit tests.
      */
     #isEnabled () {
-        return !process.env.WDIO_UNIT_TESTS && browser.isBidi
+        return !process.env.WDIO_UNIT_TESTS && this.#browser.isBidi
     }
 
     /**
