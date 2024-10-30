@@ -224,8 +224,9 @@ export async function handler(argv: RunCommandArguments) {
         // This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
         // see https://nodejs.org/api/module.html#customization-hooks
         // and https://tsx.is/node#es-modules-only
-        const moduleLoaderFlag = (nodeVersion('major') >= 20 && nodeVersion('minor') >= 6) ||
-          (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
+        const moduleLoaderFlag = nodeVersion('major') >= 21 ||
+            (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
+            (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
         NODE_OPTIONS += ` ${moduleLoaderFlag} tsx`
         const tsConfigPathFromEnvVar = (process.env.TSCONFIG_PATH &&
             path.resolve(process.cwd(), process.env.TSCONFIG_PATH)) || (process.env.TSX_TSCONFIG_PATH &&

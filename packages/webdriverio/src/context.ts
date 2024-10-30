@@ -22,11 +22,7 @@ export class ContextManager {
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
-
-        /**
-         * just ignore if we run unit tests that don't have a listener mock
-         */
-        if (process.env.WDIO_UNIT_TESTS) {
+        if (!this.#isEnabled()) {
             return
         }
 
@@ -54,14 +50,18 @@ export class ContextManager {
     }
 
     /**
+     * Only run this session helper if BiDi is enabled and we're not in unit tests.
+     */
+    #isEnabled () {
+        return !process.env.WDIO_UNIT_TESTS && this.#browser.isBidi
+    }
+
+    /**
      * set context at the start of the session
      */
     async initialize () {
-        /**
-         * just ignore in unit tests where we don't mock `getWindowHandle`
-         */
-        if (process.env.WDIO_UNIT_TESTS) {
-            return 'fake-context'
+        if (!this.#isEnabled()) {
+            return ''
         }
 
         const windowHandle = await this.#browser.getWindowHandle()
