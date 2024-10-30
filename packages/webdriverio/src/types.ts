@@ -1,8 +1,9 @@
-import type { EventEmitter } from 'node:events'
+import type { EventEmitter } from '@wdio/utils'
 import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
 import type { Capabilities, Options, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
+import type { local } from 'webdriver'
 
 import type { Dialog as DialogImport } from './dialog.js'
 import type * as BrowserCommands from './commands/browser.js'
@@ -239,7 +240,13 @@ export interface CustomInstanceCommands<T> {
     ): void
 }
 
-interface InstanceBase extends EventEmitter, SessionFlags {
+export type BrowserEvents = {
+    'request': boolean[]
+    'script.message': local.ScriptMessageParameters[]
+    'dialog': WebdriverIO.Dialog[]
+}
+
+interface InstanceBase extends EventEmitter<BrowserEvents>, SessionFlags {
     /**
      * Session id for the current running session
      */

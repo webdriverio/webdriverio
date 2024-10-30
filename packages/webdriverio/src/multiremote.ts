@@ -1,14 +1,12 @@
 import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
-import { webdriverMonad, wrapCommand } from '@wdio/utils'
+import { webdriverMonad, wrapCommand, type EventKey } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
 import { multiremoteHandler } from './middlewares.js'
 import { getPrototype } from './utils/index.js'
-import type { BrowserCommandsType } from './types.js'
-
-type EventEmitter = (args: any) => void
+import type { BrowserCommandsType, BrowserEvents } from './types.js'
 
 /**
  * Multiremote class
@@ -153,6 +151,10 @@ export default class MultiRemote {
     }
 }
 
+type TypeValues<T> = {
+    [K in keyof T]: T[K] extends string ? K : never;
+  }[keyof T];
+
 /**
  * event listener class that propagates events to sub drivers
  */
@@ -170,17 +172,17 @@ export class MultiRemoteDriver {
         this.__propertiesObject__ = propertiesObject
     }
 
-    on (this: WebdriverIO.MultiRemoteBrowser, eventName: any, emitter: EventEmitter) {
+    on (this: WebdriverIO.MultiRemoteBrowser, eventName: any, emitter: TypeValues<BrowserEvents>) {
         this.instances.forEach((instanceName) => this.getInstance(instanceName).on(eventName, emitter))
         return undefined as any
     }
 
-    once (this: WebdriverIO.MultiRemoteBrowser, eventName: any, emitter: EventEmitter) {
+    once (this: WebdriverIO.MultiRemoteBrowser, eventName: any, emitter: TypeValues<BrowserEvents>) {
         this.instances.forEach((instanceName) => this.getInstance(instanceName).once(eventName, emitter))
         return undefined as any
     }
 
-    emit (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
+    emit (this: WebdriverIO.MultiRemoteBrowser, eventName: EventKey<BrowserEvents>, emitter: TypeValues<BrowserEvents>) {
         return this.instances.map(
             (instanceName) => this.getInstance(instanceName).emit(eventName, emitter)
         ).some(Boolean)
@@ -198,13 +200,13 @@ export class MultiRemoteDriver {
         ) as any as number // special behavior of event methods for multiremote
     }
 
-    listenerCount (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
+    listenerCount (this: WebdriverIO.MultiRemoteBrowser, eventName: EventKey<BrowserEvents>) {
         return this.instances.map(
             (instanceName) => this.getInstance(instanceName).listenerCount(eventName)
         ) as any as number // special behavior of event methods for multiremote
     }
 
-    listeners (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
+    listeners (this: WebdriverIO.MultiRemoteBrowser, eventName: EventKey<BrowserEvents>) {
         return this.instances.map(
             (instanceName) => this.getInstance(instanceName).listeners(eventName)
         ).reduce((prev, cur) => {
@@ -213,12 +215,12 @@ export class MultiRemoteDriver {
         }, [])
     }
 
-    removeListener (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
+    removeListener (this: WebdriverIO.MultiRemoteBrowser, eventName: EventKey<BrowserEvents>, emitter: TypeValues<BrowserEvents>) {
         this.instances.forEach((instanceName) => this.getInstance(instanceName).removeListener(eventName, emitter))
         return undefined as any
     }
 
-    removeAllListeners (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
+    removeAllListeners (this: WebdriverIO.MultiRemoteBrowser, eventName: EventKey<BrowserEvents>) {
         this.instances.forEach((instanceName) => this.getInstance(instanceName).removeAllListeners(eventName))
         return undefined as any
     }

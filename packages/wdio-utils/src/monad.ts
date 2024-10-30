@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:events'
+import { EventEmitter } from './EventEmitter.js'
 import logger from '@wdio/logger'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 
@@ -26,7 +26,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     const log = logger('webdriver')
 
     const eventHandler = new EventEmitter()
-    const EVENTHANDLER_FUNCTIONS = Object.getPrototypeOf(eventHandler)
+    const EVENTHANDLER_FUNCTIONS = Object.getOwnPropertyNames(Object.getPrototypeOf(eventHandler))
 
     /**
      * WebDriver monad
@@ -51,7 +51,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
                  * - there is no wrapper
                  * - command is an event handler function
                  */
-                if (typeof value !== 'function' || Object.keys(EVENTHANDLER_FUNCTIONS).includes(commandName)) {
+                if (typeof value !== 'function' || EVENTHANDLER_FUNCTIONS.includes(commandName)) {
                     continue
                 }
 
@@ -214,9 +214,9 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     /**
      * register event emitter
      */
-    for (const eventCommand in EVENTHANDLER_FUNCTIONS) {
+    for (const eventCommand of EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [any, any]) {
-            const method = eventCommand as keyof EventEmitter
+            const method = eventCommand as keyof EventEmitter<any>
 
             /**
              * Emit an event when a dialog listener is registered or unregistered.

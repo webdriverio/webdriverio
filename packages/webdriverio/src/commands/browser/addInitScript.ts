@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:events'
+import { EventEmitter } from '@wdio/utils'
 import type { local } from 'webdriver'
 
 import { deserializeValue } from '../../utils/bidi/index.js'

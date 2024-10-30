@@ -106,7 +106,7 @@ export class MochaFramework extends HTMLElement {
         const beforeTest = this.#getHook('beforeTest')
         const afterHook = this.#getHook('afterHook')
         const afterTest = this.#getHook('afterTest')
-        setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
+        await setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
 
         /**
          * import test case (order is important here)

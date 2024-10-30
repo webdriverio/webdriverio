@@ -1,5 +1,3 @@
-import { wrapGlobalTestMethod } from '@wdio/utils'
-
 import { INTERFACES, TEST_INTERFACES, MOCHA_TIMEOUT_MESSAGE } from './constants.js'
 import type { FormattedMessage, FrameworkMessage, MochaOpts } from './types.js'
 
@@ -116,7 +114,8 @@ export function requireExternalModules (mods: string[], loader = loadModule) {
 }
 
 type Hook = Function | Function[]
-export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, beforeHook: Hook, afterTest: Hook, afterHook: Hook) {
+export async function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, beforeHook: Hook, afterTest: Hook, afterHook: Hook) {
+    const { wrapGlobalTestMethod } = await import('@wdio/utils')
     const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as any as [string, keyof typeof INTERFACES]
     const type: keyof typeof INTERFACES = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
 

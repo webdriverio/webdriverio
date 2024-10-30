@@ -303,6 +303,9 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../packages/wdio-types
+      '@wdio/utils':
+        specifier: workspace:*
+        version: link:../packages/wdio-utils
       babel-plugin-transform-hook-names:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.25.8)

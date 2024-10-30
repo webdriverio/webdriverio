@@ -1,8 +1,8 @@
 /* eslint-disable no-dupe-class-members */
-import EventEmitter from 'node:events'
 
 import logger from '@wdio/logger'
 import type { JsonCompatible } from '@wdio/types'
+import { EventEmitter } from '@wdio/utils'
 import { type local } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 

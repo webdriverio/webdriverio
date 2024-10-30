@@ -34,7 +34,7 @@ export class ContextManager {
             isNativeContext: this.#isNativeContext
         })
 
-        if (!this.#isEnabled()) {
+        if (!this.#isEnabled() || typeof browser.on !== 'function') {
             return
         }
 

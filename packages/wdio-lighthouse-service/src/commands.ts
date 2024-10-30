@@ -208,7 +208,7 @@ export default class CommandHandler {
             // ignore
         }
         if (this._browser) {
-            this._browser.emit(method, data.params)
+            this._browser.emit(method as any, data.params)
         }
     }
 
