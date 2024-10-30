@@ -40,10 +40,14 @@ export class ContextManager {
             }
 
             /**
-             * reset current context if user uses 'switchToParentFrame' which
-             * only impacts WebDriver Classic commands
+             * reset current context if:
+             *   - user uses 'switchToParentFrame' which only impacts WebDriver Classic commands
+             *   - user uses 'refresh' which resets the context in Classic and so should in Bidi
              */
-            if (event.command === 'switchToParentFrame') {
+            if (
+                event.command === 'switchToParentFrame' ||
+                event.command === 'refresh'
+            ) {
                 this.#currentContext = undefined
             }
         })
