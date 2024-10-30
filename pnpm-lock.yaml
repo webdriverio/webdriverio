@@ -556,8 +556,8 @@ importers:
         specifier: ^2.0.4
         version: 2.1.1
       '@wdio/globals':
-        specifier: 9.2.6
-        version: 9.2.6(@wdio/logger@packages+wdio-logger)(puppeteer-core@23.4.1)
+        specifier: workspace:*
+        version: link:../wdio-globals
       '@wdio/local-runner':
         specifier: workspace:*
         version: link:../wdio-local-runner
@@ -565,20 +565,20 @@ importers:
         specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/mocha-framework':
-        specifier: 9.2.5
-        version: 9.2.5
+        specifier: workspace:*
+        version: link:../wdio-mocha-framework
       '@wdio/protocols':
         specifier: workspace:*
         version: link:../wdio-protocols
       '@wdio/runner':
-        specifier: 9.2.6
-        version: 9.2.6(puppeteer-core@23.4.1)
+        specifier: workspace:*
+        version: link:../wdio-runner
       '@wdio/types':
-        specifier: ^9.0.0
-        version: 9.2.2
+        specifier: workspace:*
+        version: link:../wdio-types
       '@wdio/utils':
-        specifier: 9.2.5
-        version: 9.2.5
+        specifier: workspace:*
+        version: link:../wdio-utils
       deepmerge-ts:
         specifier: ^7.0.3
         version: 7.1.0
@@ -587,7 +587,7 @@ importers:
         version: 30.0.0-alpha.6
       expect-webdriverio:
         specifier: ^5.0.1
-        version: 5.0.2(@wdio/globals@9.2.6(@wdio/logger@packages+wdio-logger)(puppeteer-core@23.4.1))(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
+        version: 5.0.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       get-port:
         specifier: ^7.1.0
         version: 7.1.0
@@ -5903,10 +5903,6 @@ packages:
     resolution: {integrity: sha512-cumRMK/gE1uedBUw3WmWXOQ7HtB6DR8EyKQioUz2P0IJtRRpglMBdZV7Svr3b++WWawOuzZHMfbTkJQmaVt8Gw==}
     engines: {node: '>=18.20.0'}
 
-  '@wdio/mocha-framework@9.2.5':
-    resolution: {integrity: sha512-KmX9TpTrT/9sq/R1seTdV/rRhjCiql7Eqryga4f+a5Sb9PmtHHr8vR2sfyLRXui1Go821TeTw6bqRld7xhAZlA==}
-    engines: {node: '>=18.20.0'}
-
   '@wdio/protocols@9.0.8':
     resolution: {integrity: sha512-xRH54byFf623/w/KW62xkf/C2mGyigSfMm+UT3tNEAd5ZA9X2VAWQWQBPzdcrsck7Fxk4zlQX8Kb34RSs7Cy4Q==}
 
@@ -5915,10 +5911,6 @@ packages:
 
   '@wdio/repl@9.0.8':
     resolution: {integrity: sha512-3iubjl4JX5zD21aFxZwQghqC3lgu+mSs8c3NaiYYNCC+IT5cI/8QuKlgh9s59bu+N3gG988jqMJeCYlKuUv/iw==}
-    engines: {node: '>=18.20.0'}
-
-  '@wdio/runner@9.2.6':
-    resolution: {integrity: sha512-dPF5sMQjK6VxDz2P9Zc8n9mkyTaf+ia44QkrRrQmte1UXFKAHaX/u+qtF2OJzhztSR2XqxE2H39RX2/kHbgFqw==}
     engines: {node: '>=18.20.0'}
 
   '@wdio/types@9.0.8':
@@ -19452,17 +19444,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@wdio/globals@9.2.6(@wdio/logger@packages+wdio-logger)(puppeteer-core@23.4.1)':
-    optionalDependencies:
-      expect-webdriverio: 5.0.3(@wdio/globals@9.2.6(@wdio/logger@packages+wdio-logger)(puppeteer-core@23.4.1))(@wdio/logger@packages+wdio-logger)(webdriverio@9.2.6(puppeteer-core@23.4.1))
-      webdriverio: 9.2.6(puppeteer-core@23.4.1)
-    transitivePeerDependencies:
-      - '@wdio/logger'
-      - bufferutil
-      - puppeteer-core
-      - supports-color
-      - utf-8-validate
-
   '@wdio/logger@8.38.0':
     dependencies:
       chalk: 5.3.0
@@ -19484,17 +19465,6 @@ snapshots:
       loglevel-plugin-prefix: 0.8.4
       strip-ansi: 7.1.0
 
-  '@wdio/mocha-framework@9.2.5':
-    dependencies:
-      '@types/mocha': 10.0.9
-      '@types/node': 20.16.13
-      '@wdio/logger': 9.1.3
-      '@wdio/types': 9.2.2
-      '@wdio/utils': 9.2.5
-      mocha: 10.7.3
-    transitivePeerDependencies:
-      - supports-color
-
   '@wdio/protocols@9.0.8': {}
 
   '@wdio/protocols@9.2.2': {}
@@ -19502,24 +19472,6 @@ snapshots:
   '@wdio/repl@9.0.8':
     dependencies:
       '@types/node': 20.16.13
-
-  '@wdio/runner@9.2.6(puppeteer-core@23.4.1)':
-    dependencies:
-      '@types/node': 20.16.13
-      '@wdio/config': 9.2.5
-      '@wdio/globals': 9.2.6(@wdio/logger@9.1.3)(puppeteer-core@23.4.1)
-      '@wdio/logger': 9.1.3
-      '@wdio/types': 9.2.2
-      '@wdio/utils': 9.2.5
-      deepmerge-ts: 7.1.3
-      expect-webdriverio: 5.0.3(@wdio/globals@9.2.6(@wdio/logger@9.1.3)(puppeteer-core@23.4.1))(@wdio/logger@9.1.3)(webdriverio@9.2.6(puppeteer-core@23.4.1))
-      webdriver: 9.2.5
-      webdriverio: 9.2.6(puppeteer-core@23.4.1)
-    transitivePeerDependencies:
-      - bufferutil
-      - puppeteer-core
-      - supports-color
-      - utf-8-validate
 
   '@wdio/types@9.0.8':
     dependencies:
@@ -22213,16 +22165,6 @@ snapshots:
       webdriverio: link:packages/webdriverio
     optional: true
 
-  expect-webdriverio@5.0.2(@wdio/globals@9.2.6(@wdio/logger@packages+wdio-logger)(puppeteer-core@23.4.1))(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio):
-    dependencies:
-      '@vitest/snapshot': 2.1.3
-      '@wdio/globals': 9.2.6(@wdio/logger@packages+wdio-logger)(puppeteer-core@23.4.1)
-      '@wdio/logger': link:packages/wdio-logger
-      expect: 29.7.0
-      jest-matcher-utils: 29.7.0
-      lodash.isequal: 4.5.0
-      webdriverio: link:packages/webdriverio
-
   expect-webdriverio@5.0.2(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.1.3)(webdriverio@packages+webdriverio):
     dependencies:
       '@vitest/snapshot': 2.1.3
@@ -22273,17 +22215,6 @@ snapshots:
       jest-matcher-utils: 29.7.0
       lodash.isequal: 4.5.0
       webdriverio: 9.2.6(puppeteer-core@23.4.1)
-
-  expect-webdriverio@5.0.3(@wdio/globals@9.2.6(@wdio/logger@packages+wdio-logger)(puppeteer-core@23.4.1))(@wdio/logger@packages+wdio-logger)(webdriverio@9.2.6(puppeteer-core@23.4.1)):
-    dependencies:
-      '@vitest/snapshot': 2.1.3
-      '@wdio/globals': 9.2.6(@wdio/logger@packages+wdio-logger)(puppeteer-core@23.4.1)
-      '@wdio/logger': link:packages/wdio-logger
-      expect: 29.7.0
-      jest-matcher-utils: 29.7.0
-      lodash.isequal: 4.5.0
-      webdriverio: 9.2.6(puppeteer-core@23.4.1)
-    optional: true
 
   expect@29.7.0:
     dependencies:
