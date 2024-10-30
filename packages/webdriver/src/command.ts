@@ -3,6 +3,7 @@ import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/u
 import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
 import Request from './request/request.js'
+import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 
@@ -142,6 +143,12 @@ export default function (
             this.emit('result', { command, method, endpoint, body, result })
 
             if (command === 'deleteSession') {
+                /**
+                 * close WebDriver Bidi socket
+                 */
+                const browser = this as { _bidiHandler?: BidiHandler }
+                browser._bidiHandler?.close()
+
                 const shutdownDriver = body.deleteSessionOpts?.shutdownDriver !== false
                 /**
                  * kill driver process if there is one
