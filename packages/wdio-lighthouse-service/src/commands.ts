@@ -4,6 +4,7 @@ import type { TraceEvent } from '@tracerbench/trace-event'
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 import type { TracingOptions } from 'puppeteer-core/lib/esm/puppeteer/cdp/Tracing.js'
+import type { BrowserEvents } from 'webdriverio'
 
 import type { RequestPayload } from './handler/network.js'
 import NetworkHandler from './handler/network.js'
@@ -208,7 +209,7 @@ export default class CommandHandler {
             // ignore
         }
         if (this._browser) {
-            this._browser.emit(method as any, data.params)
+            this._browser.emit(method as keyof BrowserEvents, data.params)
         }
     }
 

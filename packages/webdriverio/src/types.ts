@@ -1,9 +1,8 @@
 import type { EventEmitter } from '@wdio/utils'
-import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
+import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap, local } from 'webdriver'
 import type { Capabilities, Options, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
-import type { local } from 'webdriver'
 
 import type { Dialog as DialogImport } from './dialog.js'
 import type * as BrowserCommands from './commands/browser.js'
@@ -241,9 +240,10 @@ export interface CustomInstanceCommands<T> {
 }
 
 export type BrowserEvents = {
-    'request': boolean[]
-    'script.message': local.ScriptMessageParameters[]
-    'dialog': WebdriverIO.Dialog[]
+    [Event in keyof WebdriverIOEventMap]: [WebdriverIOEventMap[Event]]
+} & {
+    'script.message': [local.ScriptMessageParameters]
+    'dialog': [WebdriverIO.Dialog]
 }
 
 interface InstanceBase extends EventEmitter<BrowserEvents>, SessionFlags {
@@ -573,6 +573,10 @@ export interface ExtendedElementReference {
 
 export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock' | 'device'
 export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
+
+export type TypeValues<T> = {
+    [K in keyof T]: T[K] extends string ? K : never;
+}[keyof T];
 
 declare global {
     namespace WebdriverIO {

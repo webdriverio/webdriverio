@@ -35,16 +35,12 @@ export type BidiCommands = WebDriverBidiCommands[keyof WebDriverBidiCommands]['s
 export type BidiResponses = ValueOf<ObtainMethods<Pick<BidiHandler, BidiCommands>>>
 export type RemoteConfig = Options.WebDriver & Capabilities.WithRequestedCapabilities
 
-type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
 type WebDriverClassicEvents = {
     command: { command: string, method: string, endpoint: string, body: any }
     result: { command: string, method: string, endpoint: string, body: any, result: any }
     bidiCommand: Omit<CommandData, 'id'>,
     bidiResult: CommandResponse,
     'request.performance': { durationMillisecond: number, error: string, request: any, retryCount: number, success: boolean }
-}
-export type BidiEventMap = {
-    [Event in keyof Omit<WebDriverBidiCommands, 'sendCommand' | 'sendAsyncCommand'>]: BidiInterface[WebDriverBidiCommands[Event]['socket']['command']]
 }
 
 type GetParam<T extends { method: string, params: any }, U extends string> = T extends { method: U } ? T['params'] : never
@@ -75,4 +71,13 @@ export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.We
     capabilities?: WebdriverIO.Capabilities
     // original requested capabilities
     requestedCapabilities?: Capabilities.WithRequestedCapabilities['capabilities']
+}
+
+export type WDIOEventMap = {
+    [Event in keyof EventMap]: [EventMap[Event]]
+} & {
+    'retry': [{ error: Error, retryCount: number }]
+    'request': [RequestInit]
+    'response': [{ error: Error } | { result: unknown }]
+    'performance': [{ request: RequestInit, durationMillisecond: number, success: boolean, error?: Error, retryCount: number }]
 }

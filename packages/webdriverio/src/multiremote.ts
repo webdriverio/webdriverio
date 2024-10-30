@@ -6,7 +6,7 @@ import type { ProtocolCommands } from '@wdio/protocols'
 
 import { multiremoteHandler } from './middlewares.js'
 import { getPrototype } from './utils/index.js'
-import type { BrowserCommandsType, BrowserEvents } from './types.js'
+import type { BrowserCommandsType, BrowserEvents, TypeValues } from './types.js'
 
 /**
  * Multiremote class
@@ -150,10 +150,6 @@ export default class MultiRemote {
         })
     }
 }
-
-type TypeValues<T> = {
-    [K in keyof T]: T[K] extends string ? K : never;
-  }[keyof T];
 
 /**
  * event listener class that propagates events to sub drivers

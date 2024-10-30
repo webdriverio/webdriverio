@@ -1,5 +1,5 @@
 import { expectType } from 'tsd'
-import { $ } from '@wdio/globals'
+import { $, browser } from '@wdio/globals'
 import type { RectReturn } from '@wdio/protocols'
 
 ;(async () => {

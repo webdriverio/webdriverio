@@ -1,8 +1,7 @@
 import path from 'node:path'
-import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
-import { transformCommandLogResult, sleep } from '@wdio/utils'
+import { transformCommandLogResult, sleep, EventEmitter } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
