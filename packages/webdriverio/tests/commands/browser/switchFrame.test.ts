@@ -113,6 +113,7 @@ describe('switchFrame command', () => {
             elemExecute.mockResolvedValue({
                 context: '5D4662C2B4465334DFD34239BA1E9E66'
             })
+            vi.spyOn(elem, 'waitForExist').mockResolvedValue({})
 
             await browser.switchFrame(elem)
             expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')
