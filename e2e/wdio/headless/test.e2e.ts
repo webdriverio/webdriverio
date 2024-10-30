@@ -513,5 +513,16 @@ describe('main suite 1', () => {
             expect(await browser.execute(() => document.URL))
                 .toBe('https://the-internet.herokuapp.com/frame_right')
         })
+
+        it('should reset the frame when the page is reloaded', async () => {
+            await browser.url('https://the-internet.herokuapp.com/iframe')
+            await expect($('#tinymce')).not.toBePresent()
+            await browser.switchFrame($('iframe'))
+            await expect($('#tinymce')).toBePresent()
+            await browser.refresh()
+            await expect($('#tinymce')).not.toBePresent()
+            await browser.switchFrame($('iframe'))
+            await expect($('#tinymce')).toBePresent()
+        })
     })
 })

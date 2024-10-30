@@ -250,6 +250,9 @@ export async function switchFrame (
      */
     if (typeof context === 'object' && typeof (context as WebdriverIO.Element).getElement === 'function') {
         const element = await context.getElement()
+        await element.waitForExist({
+            timeoutMsg: `Can't switch to frame with selector ${element.selector} because it doesn't exist`
+        })
         return switchToFrameUsingElement(this, element)
     }
 
