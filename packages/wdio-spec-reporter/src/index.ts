@@ -1,5 +1,7 @@
-import prettyMs from 'pretty-ms'
+import path from 'node:path'
 import { format } from 'node:util'
+
+import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
 import WDIOReporter, { TestStats } from '@wdio/reporter'
@@ -598,7 +600,12 @@ export default class SpecReporter extends WDIOReporter {
         const device = caps['appium:deviceName']
         // @ts-expect-error outdated JSONWP capabilities
         const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
-        const appName = app || caps['appium:bundleId'] || caps['appium:appPackage']
+        const appName = (
+            caps['appium:bundleId'] ||
+            caps['appium:appPackage'] ||
+            caps['appium:appActivity'] ||
+            (path.isAbsolute(app) ? path.basename(app) : app)
+        )
         // @ts-expect-error outdated JSONWP capabilities
         const browser = caps.browserName || caps.browser || appName
         /**
