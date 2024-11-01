@@ -23,6 +23,23 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.2.8 (2024-11-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13837](https://github.com/webdriverio/webdriverio/pull/13837) fix(webdriverio): reset frame context if refresh command is called ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#13796](https://github.com/webdriverio/webdriverio/pull/13796) feat(chromedriver): set NODE_OPTIONS empty to allow electron to work ([@Delta456](https://github.com/Delta456))
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#13842](https://github.com/webdriverio/webdriverio/pull/13842) chore(@wdio/spec-reporter): use base name of app path in prefix ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+
+
 ## v9.2.5 (2024-10-29)
 
 #### :bug: Bug Fix
