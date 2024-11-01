@@ -1005,6 +1005,33 @@ describe('SpecReporter', () => {
                 'appium:appActivity': '.MainActivity'
             }, false)).toBe('com.example.android Android')
         })
+
+        it('should prefer bundleId over app path', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Android',
+                'appium:automationName': 'uiautomator2',
+                'appium:bundleId': 'com.example.android',
+                'appium:appActivity': '.MainActivity',
+                'appium:app': '/foo/bar/loo.apk'
+            }, false)).toBe('com.example.android Android')
+        })
+
+        it('prefers app activity over app path', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Android',
+                'appium:automationName': 'uiautomator2',
+                'appium:appActivity': '.MainActivity',
+                'appium:app': '/foo/bar/foo/bar/foo/bar/foo/bar/foo/bar/foo/bar/loo.apk'
+            }, false)).toBe('.MainActivity Android')
+        })
+
+        it('uses file name as app path instead of long path', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Android',
+                'appium:automationName': 'uiautomator2',
+                'appium:app': '/foo/bar/foo/bar/foo/bar/foo/bar/foo/bar/foo/bar/loo.apk'
+            }, false)).toBe('loo.apk Android')
+        })
     })
 
     describe('add real time report', () => {
