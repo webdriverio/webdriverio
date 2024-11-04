@@ -177,11 +177,24 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    private _runMode(config: Required<Options.Testrunner>, caps: Capabilities.TestrunnerCapabilities): Promise<number> {
+    private _runMode(config: Required<Options.Testrunner>, caps?: Capabilities.TestrunnerCapabilities): Promise<number> {
         /**
-         * fail if no caps were found
+         * fail if
          */
-        if (!caps) {
+        if (
+            /**
+             * no caps were provided
+             */
+            !caps ||
+            /**
+             * capability array is empty
+             */
+            (Array.isArray(caps) && caps.length === 0) ||
+            /**
+             * user wants to use multiremote but capability object is empty
+             */
+            (!Array.isArray(caps) && Object.keys(caps).length === 0)
+        ) {
             return new Promise((resolve) => {
                 log.error('Missing capabilities, exiting with failure')
                 return resolve(1)
