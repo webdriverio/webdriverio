@@ -55,7 +55,23 @@ it('should test something', (done) => {
 
 ### मोचा विकल्प
 
-आपके Mocha परिवेश को कॉन्फ़िगर करने के लिए आपके `wdio.conf.js` में निम्न विकल्प लागू किए जा सकते हैं। __नोट:__ सभी विकल्प समर्थित नहीं हैं, उदाहरण के लिए `parallel` विकल्प को लागू करने से त्रुटि होगी क्योंकि WDIO टेस्टरनर के पास समानांतर में परीक्षण चलाने का अपना तरीका है। हालांकि निम्नलिखित विकल्प समर्थित हैं:
+आपके Mocha परिवेश को कॉन्फ़िगर करने के लिए आपके `wdio.conf.js` में निम्न विकल्प लागू किए जा सकते हैं। __नोट:__ सभी विकल्प समर्थित नहीं हैं, उदाहरण के लिए `parallel` विकल्प को लागू करने से त्रुटि होगी क्योंकि WDIO टेस्टरनर के पास समानांतर में परीक्षण चलाने का अपना तरीका है। You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --mochaOpts.grep "my test" --mochaOpts.bail --no-mochaOpts.checkLeaks
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Mocha options are supported:
 
 #### require
 जब आप कुछ बुनियादी कार्यक्षमता (वेबड्राइवरआईओ फ्रेमवर्क विकल्प) को जोड़ना या बढ़ाना चाहते हैं तो `require` विकल्प उपयोगी है।
@@ -144,7 +160,23 @@ npm install @wdio/jasmine-framework --save-dev
 
 ### जेसमीन विकल्प
 
-निम्नलिखित विकल्पों को आपके `wdio.conf.js` में `cucumberOpts` गुण का उपयोग करके अपने खीरा वातावरण को कॉन्फ़िगर करने के लिए लागू किया जा सकता है: इन कॉन्फ़िगरेशन विकल्पों पर अधिक जानकारी के लिए, [जैस्मीन डॉक्स](https://jasmine.github.io/api/edge/Configuration)देखें।
+निम्नलिखित विकल्पों को आपके `wdio.conf.js` में `cucumberOpts` गुण का उपयोग करके अपने खीरा वातावरण को कॉन्फ़िगर करने के लिए लागू किया जा सकता है: इन कॉन्फ़िगरेशन विकल्पों पर अधिक जानकारी के लिए, [जैस्मीन डॉक्स](https://jasmine.github.io/api/edge/Configuration)देखें। You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --jasmineOpts.grep "my test" --jasmineOpts.failSpecWithNoExpectations --no-jasmineOpts.random
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Jasmine options are supported:
 
 #### defaultTimeoutInterval
 जैस्मीन संचालन के लिए डिफ़ॉल्ट टाइमआउट अंतराल।
@@ -221,7 +253,8 @@ For example, if you want to run only the tests that are tagged with `@smoke`, yo
 
 ```sh
 # When you only want to run tests that hold the tag "@smoke"
-npx wdio ./wdio.conf.js --cucumberOpts.tags="@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.tags="@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.name="some scenario name" --cucumberOpts.failFast
 ```
 
 This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that only tests with this tag are executed.
