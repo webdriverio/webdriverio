@@ -155,9 +155,13 @@ export default function (
                  */
                 if (shutdownDriver && 'wdio:driverPID' in this.capabilities && this.capabilities['wdio:driverPID']) {
                     log.info(`Kill driver process with PID ${this.capabilities['wdio:driverPID']}`)
-                    const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
-                    if (!killedSuccessfully) {
-                        log.warn('Failed to kill driver process, manually clean-up might be required')
+                    try {
+                        const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
+                        if (!killedSuccessfully) {
+                            log.warn('Failed to kill driver process, manually clean-up might be required')
+                        }
+                    } catch (err) {
+                        log.warn('Failed to kill driver process', err)
                     }
 
                     setTimeout(() => {
