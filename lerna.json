@@ -4,7 +4,7 @@
     "packages/*"
   ],
   "npmClient": "pnpm",
-  "version": "9.2.9",
+  "version": "9.2.10",
   "command": {
     "bootstrap": {
       "npmClientArgs": [
