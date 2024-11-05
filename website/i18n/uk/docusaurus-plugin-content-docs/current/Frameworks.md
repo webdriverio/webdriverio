@@ -55,7 +55,23 @@ it('should test something', (done) => {
 
 ### Параметри Mocha
 
-Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Mocha. __Примітка:__ не всі параметри підтримуються, наприклад, застосування параметра `parallel` призведе до помилки, оскільки виконувач тестів WDIO має власний механізм паралельного запуску тестів. Підтримуються такі параметри:
+Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Mocha. __Примітка:__ не всі параметри підтримуються, наприклад, застосування параметра `parallel` призведе до помилки, оскільки виконувач тестів WDIO має власний механізм паралельного запуску тестів. You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --mochaOpts.grep "my test" --mochaOpts.bail --no-mochaOpts.checkLeaks
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Mocha options are supported:
 
 #### require
 Параметр `require` корисний, коли ви хочете додати або розширити деякі вбудовані функції (WebdriverIO параметр).
@@ -144,7 +160,23 @@ npm install @wdio/jasmine-framework --save-dev
 
 ### Параметри Jasmine
 
-Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Jasmine за допомогою властивості `jasmineOpts`. Для отримання додаткової інформації про ці параметри конфігурації перегляньте [документацію Jasmine](https://jasmine.github.io/api/edge/Configuration).
+Наступні параметри можна застосувати у вашому `wdio.conf.js` для налаштування середовища Jasmine за допомогою властивості `jasmineOpts`. Для отримання додаткової інформації про ці параметри конфігурації перегляньте [документацію Jasmine](https://jasmine.github.io/api/edge/Configuration). You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --jasmineOpts.grep "my test" --jasmineOpts.failSpecWithNoExpectations --no-jasmineOpts.random
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Jasmine options are supported:
 
 #### defaultTimeoutInterval
 Інтервал очікування за замовчуванням для операцій Jasmine.
@@ -221,7 +253,8 @@ For example, if you want to run only the tests that are tagged with `@smoke`, yo
 
 ```sh
 # When you only want to run tests that hold the tag "@smoke"
-npx wdio ./wdio.conf.js --cucumberOpts.tags="@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.tags="@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.name="some scenario name" --cucumberOpts.failFast
 ```
 
 This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that only tests with this tag are executed.
