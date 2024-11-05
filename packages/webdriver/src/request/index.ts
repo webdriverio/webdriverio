@@ -1,22 +1,18 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import { WebDriverProtocol } from '@wdio/protocols'
-import { URL } from 'node:url'
 
 import logger from '@wdio/logger'
 import { transformCommandLogResult, sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import  { WebDriverResponseError, type WebDriverRequestError } from './error.js'
+import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
 import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
-import type { WebDriverResponse } from './types.js'
+import type { WebDriverResponse, RequestLibResponse, RequestOptions } from './types.js'
 
 import { isSuccessfulResponse } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
 import pkg from '../../package.json' with { type: 'json' }
-
-type RequestLibResponse = Options.RequestLibResponse
-type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
 
 const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'detached shadow root',
@@ -37,6 +33,8 @@ const DEFAULT_HEADERS = {
 const log = logger('webdriver')
 
 export default abstract class WebDriverRequest extends EventEmitter {
+    protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
+
     #requestTimeout?: NodeJS.Timeout
 
     body?: Record<string, unknown>
@@ -56,16 +54,8 @@ export default abstract class WebDriverRequest extends EventEmitter {
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
         const { url, requestOptions } = await this._createOptions(options, sessionId)
-        let fullRequestOptions: RequestInit = Object.assign(
-            { method: this.method },
-            requestOptions
-        )
-        if (typeof options.transformRequest === 'function') {
-            fullRequestOptions = options.transformRequest(fullRequestOptions)
-        }
-
-        this.emit('request', fullRequestOptions)
-        return this._request(url, fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
+        this.emit('request', requestOptions)
+        return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
     protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
@@ -76,6 +66,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         )
 
         const requestOptions: RequestInit = {
+            method: this.method,
             signal: controller.signal
         }
 
@@ -123,18 +114,42 @@ export default abstract class WebDriverRequest extends EventEmitter {
 
         requestOptions.headers = requestHeaders
 
-        return { url, requestOptions }
+        return {
+            url,
+            requestOptions: options.transformRequest?.(requestOptions) || requestOptions
+        }
     }
 
-    protected async _libRequest(url: URL, options: RequestInit): Promise<RequestLibResponse> { // eslint-disable-line @typescript-eslint/no-unused-vars
-        throw new Error('This function must be implemented')
+    protected async _libRequest (url: URL, opts: RequestInit): Promise<Options.RequestLibResponse> {
+        try {
+            const response = await this.fetch(url, {
+                method: opts.method,
+                body: JSON.stringify(opts.body),
+                headers: opts.headers as Record<string, string>,
+                signal: opts.signal,
+            })
+
+            // Cloning the response to prevent body unusable error
+            const resp = response.clone()
+
+            return {
+                statusCode: resp.status,
+                body: await resp.json() ?? {},
+            } as Options.RequestLibResponse
+        } catch (err: any) {
+            if (!(err instanceof Error)) {
+                throw new WebDriverRequestError(
+                    new Error(`Failed to fetch ${url.href}: ${err.message || err || 'Unknown error'}`),
+                    url,
+                    opts
+                )
+            }
+
+            throw new WebDriverRequestError(err, url, opts)
+        }
     }
 
-    protected _libPerformanceNow(): number {
-        throw new Error('This function must be implemented')
-    }
-
-    private async _request (
+    protected async _request (
         url: URL,
         fullRequestOptions: RequestInit,
         transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse,
@@ -148,10 +163,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
         }
 
         const { ...requestLibOptions } = fullRequestOptions
-        const startTime = this._libPerformanceNow()
+        const startTime = performance.now()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: WebDriverRequestError) => err)
-        const durationMillisecond = this._libPerformanceNow() - startTime
+        const durationMillisecond = performance.now() - startTime
 
         if (this.#requestTimeout) {
             clearTimeout(this.#requestTimeout)

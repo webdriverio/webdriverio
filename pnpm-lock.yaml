@@ -1472,6 +1472,9 @@ importers:
       deepmerge-ts:
         specifier: ^7.0.3
         version: 7.1.0
+      undici:
+        specifier: ^6.20.1
+        version: 6.20.1
       ws:
         specifier: ^8.8.0
         version: 8.18.0
@@ -13435,6 +13438,10 @@ packages:
 
   undici@6.19.8:
     resolution: {integrity: sha512-U8uCCl2x9TK3WANvmBavymRzxbfFYG+tAu+fgx3zxQy3qdagQqBLwJVrdyO1TBfUXvfKveMKJZhpvUYoOjM+4g==}
+    engines: {node: '>=18.17'}
+
+  undici@6.20.1:
+    resolution: {integrity: sha512-AjQF1QsmqfJys+LXfGTNum+qw4S88CojRInG/6t31W/1fk6G59s92bnAvGz5Cmur+kQv2SURXEvvudLmbrE8QA==}
     engines: {node: '>=18.17'}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
@@ -29284,6 +29291,8 @@ snapshots:
   undici-types@6.19.8: {}
 
   undici@6.19.8: {}
+
+  undici@6.20.1: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 

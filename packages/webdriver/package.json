@@ -5,8 +5,8 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
   "license": "MIT",
-  "main": "./build/index.cjs",
   "type": "module",
+  "main": "./build/index.cjs",
   "module": "./build/index.js",
   "exports": {
     ".": {
@@ -41,6 +41,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
+    "undici": "^6.20.1",
     "ws": "^8.8.0"
   }
 }
