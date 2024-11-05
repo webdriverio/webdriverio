@@ -32,7 +32,7 @@ class _TestReporter extends WDIOReporter {
     private _gitConfigPath?: string
     private _gitConfigured: boolean = false
     private _currentHook: CurrentRunInfo = {}
-    public static _currentTest: CurrentRunInfo = {}
+    public static currentTest: CurrentRunInfo = {}
     private _userCaps?: Capabilities.RemoteCapability = {}
     private listener = Listener.getInstance()
 
@@ -63,8 +63,8 @@ class _TestReporter extends WDIOReporter {
     public async appendTestItemLog(stdLog: StdLog) {
         if (this._currentHook.uuid && !this._currentHook.finished) {
             stdLog.hook_run_uuid = this._currentHook.uuid
-        } else if (_TestReporter._currentTest.uuid) {
-            stdLog.test_run_uuid = _TestReporter._currentTest.uuid
+        } else if (_TestReporter.currentTest.uuid) {
+            stdLog.test_run_uuid = _TestReporter.currentTest.uuid
         }
         if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
             this.listener.logCreated([stdLog])
@@ -158,7 +158,7 @@ class _TestReporter extends WDIOReporter {
             return
         }
         const uuid = uuidv4()
-        _TestReporter._currentTest.uuid = uuid
+        _TestReporter.currentTest.uuid = uuid
 
         _TestReporter._tests[testStats.fullTitle] = {
             uuid: uuid,
@@ -227,7 +227,7 @@ class _TestReporter extends WDIOReporter {
         const suiteFileName = this._suiteName || (this.specs?.length > 0 ? this.specs[this.specs.length - 1]?.replace('file:', '') : undefined)
 
         if (eventType === 'TestRunStarted') {
-            _TestReporter._currentTest.name = testStats.title
+            _TestReporter.currentTest.name = testStats.title
         }
 
         await this.configureGit()
