@@ -44,7 +44,7 @@ class _InsightsHandler {
     private _commands: Record<string, BeforeCommandArgs | AfterCommandArgs> = {}
     private _gitConfigPath?: string
     private _suiteFile?: string
-    public static _currentTest: CurrentRunInfo = {}
+    public static currentTest: CurrentRunInfo = {}
     private _currentHook: CurrentRunInfo = {}
     private _cucumberData: CucumberStore = {
         stepsStarted: false,
@@ -53,8 +53,8 @@ class _InsightsHandler {
     }
     private _userCaps?: Capabilities.ResolvedTestrunnerCapabilities = {}
     private listener = Listener.getInstance()
-    public _currentTestId: string | undefined
-    public _cbtQueue: Array<CBTData> = []
+    public currentTestId: string | undefined
+    public cbtQueue: Array<CBTData> = []
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, private _framework?: string, _userCaps?: Capabilities.ResolvedTestrunnerCapabilities, _options?: BrowserstackConfig & BrowserstackOptions) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
@@ -207,7 +207,7 @@ class _InsightsHandler {
             const hookMetaData = {
                 uuid: hookUUID,
                 startedAt: (new Date()).toISOString(),
-                testRunId: InsightsHandler._currentTest.uuid,
+                testRunId: InsightsHandler.currentTest.uuid,
                 hookType: hookType
             }
 
@@ -368,7 +368,7 @@ class _InsightsHandler {
 
     async beforeTest (test: Frameworks.Test) {
         const uuid = uuidv4()
-        InsightsHandler._currentTest = {
+        InsightsHandler.currentTest = {
             test, uuid
         }
         if (this._framework !== 'mocha') {
@@ -407,7 +407,7 @@ class _InsightsHandler {
 
     async beforeScenario (world: ITestCaseHookParameter) {
         const uuid = uuidv4()
-        InsightsHandler._currentTest = {
+        InsightsHandler.currentTest = {
             uuid
         }
         this._cucumberData.scenario = world.pickle
@@ -502,8 +502,8 @@ class _InsightsHandler {
         try {
             if (this._currentHook.uuid && !this._currentHook.finished && (this._framework === 'mocha' || this._framework === 'cucumber')) {
                 stdLog.hook_run_uuid = this._currentHook.uuid
-            } else if (InsightsHandler._currentTest.uuid && (this._framework === 'mocha' || this._framework === 'cucumber')) {
-                stdLog.test_run_uuid = InsightsHandler._currentTest.uuid
+            } else if (InsightsHandler.currentTest.uuid && (this._framework === 'mocha' || this._framework === 'cucumber')) {
+                stdLog.test_run_uuid = InsightsHandler.currentTest.uuid
             }
             if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
                 this.listener.logCreated([stdLog])
@@ -628,10 +628,10 @@ class _InsightsHandler {
         const testMetaData = this._tests[fullTitle]
 
         const filename = test.file || this._suiteFile
-        this._currentTestId = testMetaData.uuid
+        this.currentTestId = testMetaData.uuid
 
         if (eventType === 'TestRunStarted') {
-            InsightsHandler._currentTest.name = test.title || test.description
+            InsightsHandler.currentTest.name = test.title || test.description
         }
 
         const testData: TestData = {
@@ -747,10 +747,10 @@ class _InsightsHandler {
         } else {
             fullNameWithExamples = scenario?.name || ''
         }
-        this._currentTestId = uuid
+        this.currentTestId = uuid
 
         if (eventType === 'TestRunStarted') {
-            InsightsHandler._currentTest.name = fullNameWithExamples
+            InsightsHandler.currentTest.name = fullNameWithExamples
         }
 
         const testData: TestData = {
@@ -824,12 +824,12 @@ class _InsightsHandler {
     }
 
     public async flushCBTDataQueue() {
-        if (isUndefined(this._currentTestId)) {return}
-        this._cbtQueue.forEach(cbtData => {
-            cbtData.uuid = this._currentTestId!
+        if (isUndefined(this.currentTestId)) {return}
+        this.cbtQueue.forEach(cbtData => {
+            cbtData.uuid = this.currentTestId!
             this.listener.cbtSessionCreated(cbtData)
         })
-        this._currentTestId = undefined // set undefined for next test
+        this.currentTestId = undefined // set undefined for next test
     }
 
     async sendCBTInfo() {
@@ -845,11 +845,11 @@ class _InsightsHandler {
             integrations: integrationsData
         }
 
-        if (this._currentTestId !== undefined) {
-            cbtData.uuid = this._currentTestId
+        if (this.currentTestId !== undefined) {
+            cbtData.uuid = this.currentTestId
             this.listener.cbtSessionCreated(cbtData)
         } else {
-            this._cbtQueue.push(cbtData)
+            this.cbtQueue.push(cbtData)
         }
     }
 
