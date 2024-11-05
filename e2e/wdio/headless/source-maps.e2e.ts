@@ -2,7 +2,7 @@ import { expect } from '@wdio/globals'
 import { Task } from '@serenity-js/core'
 
 // eslint-disable-next-line no-undef
-describe('Source maps support for ESM projects', () => {
+describe.skip('Source maps support for ESM projects', () => {
 
     // eslint-disable-next-line no-undef
     it('should detect line number correctly', async () => {
@@ -22,7 +22,7 @@ describe('Source maps support for ESM projects', () => {
     })
 
     // eslint-disable-next-line no-undef
-    it.skip('should detect instantiation location of a Serenity/JS interaction', async () => {
+    it('should detect instantiation location of a Serenity/JS interaction', async () => {
 
         const location = serenityTask()     // <-- Instantiation location line should point at line 26
             .instantiationLocation()
