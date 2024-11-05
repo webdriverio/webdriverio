@@ -1057,3 +1057,101 @@ export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
 
     return $({ stdio: 'inherit' })`npx appium-installer`
 }
+
+const cucumberTypes: Record<string, string> = {
+    paths: 'array',
+    backtrace: 'boolean',
+    dryRun: 'boolean',
+    forceExit: 'boolean',
+    failFast: 'boolean',
+    format: 'array',
+    formatOptions: 'object',
+    import: 'array',
+    language: 'string',
+    name: 'array',
+    order: 'string',
+    publish: 'boolean',
+    requireModule: 'array',
+    retry: 'number',
+    retryTagFilter: 'string',
+    strict: 'boolean',
+    tags: 'string',
+    worldParameters: 'object',
+    timeout: 'number',
+    scenarioLevelReporter: 'boolean',
+    tagsInTitle: 'boolean',
+    ignoreUndefinedDefinitions: 'boolean',
+    failAmbiguousDefinitions: 'boolean',
+    tagExpression: 'string',
+    profiles: 'array',
+    file: 'string'
+}
+
+const mochaTypes: Record<string, string> = {
+    require: 'array',
+    compilers: 'array',
+    allowUncaught: 'boolean',
+    asyncOnly: 'boolean',
+    bail: 'boolean',
+    checkLeaks: 'boolean',
+    delay: 'boolean',
+    fgrep: 'string',
+    forbidOnly: 'boolean',
+    forbidPending: 'boolean',
+    fullTrace: 'boolean',
+    global: 'array',
+    grep: 'string',
+    invert: 'boolean',
+    retries: 'number',
+    timeout: 'number',
+    ui: 'string'
+}
+
+const jasmineTypes: Record<string, string> = {
+    defaultTimeoutInterval: 'number',
+    helpers: 'array',
+    requires: 'array',
+    random: 'boolean',
+    seed: 'string',
+    failFast: 'boolean',
+    failSpecWithNoExpectations: 'boolean',
+    oneFailurePerSpec: 'boolean',
+    grep: 'string',
+    invertGrep: 'boolean',
+    cleanStack: 'boolean',
+    stopOnSpecFailure: 'boolean',
+    stopSpecOnExpectationFailure: 'boolean',
+    requireModule: 'array',
+}
+
+type CLIParams = { [x: string]: boolean | string | number | (string | boolean | number)[] }
+
+export function coerceOpts (
+    types: Record<string, string>,
+    opts: CLIParams
+) {
+    for (const key in opts) {
+        if (types[key] === 'boolean') {
+            opts[key] = Boolean(opts[key])
+        } else if (types[key] === 'number') {
+            opts[key] = Number(opts[key])
+        } else if (types[key] === 'array') {
+            opts[key] = Array.isArray(opts[key]) ? opts[key] : [opts[key]]
+        } else if (types[key] === 'object' && typeof opts[key] === 'string') {
+            opts[key] = JSON.parse(opts[key])
+        }
+    }
+    return opts
+}
+
+export function coerceOptsFor(framework: 'cucumber' | 'mocha' | 'jasmine') {
+    if (framework === 'cucumber') {
+        return coerceOpts.bind(null, cucumberTypes)
+    } else if (framework === 'mocha') {
+        return coerceOpts.bind(null, mochaTypes)
+    } else if (framework === 'jasmine') {
+        return coerceOpts.bind(null, jasmineTypes)
+    }
+
+    throw new Error(`Unsupported framework "${framework}"`)
+}
