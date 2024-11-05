@@ -1131,8 +1131,8 @@ export function coerceOpts (
     opts: CLIParams
 ) {
     for (const key in opts) {
-        if (types[key] === 'boolean') {
-            opts[key] = Boolean(opts[key])
+        if (types[key] === 'boolean' && typeof opts[key] === 'string') {
+            opts[key] = opts[key] === 'true'
         } else if (types[key] === 'number') {
             opts[key] = Number(opts[key])
         } else if (types[key] === 'array') {
