@@ -23,6 +23,9 @@
     <a title="Crowdin" target="_blank" href="https://translate.webdriver.io/project/webdriver-io">
         <img src="https://badges.crowdin.net/webdriver-io/localized.svg">
     </a>
+    <a href="https://gurubase.io/g/webdriverio">
+        <img alt="Gurubase" src="https://img.shields.io/badge/Gurubase-Ask%20WebdriverIO%20Guru-006BFF">
+    </a>
     <br />
     <a href="https://discord.webdriver.io">
         <img alt="Support Channel" src="https://img.shields.io/discord/1097401827202445382?color=%234FB898&label=Join%20us%20on%20Discord">
