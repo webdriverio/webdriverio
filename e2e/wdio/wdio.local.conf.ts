@@ -70,15 +70,20 @@ if (os.platform() === 'darwin') {
     })
 }
 
-if (os.platform() !== 'win32') {
-    config.capabilities.push({
-        browserName: 'chromium',
-        webSocketUrl: true,
-        'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu']
-        }
-    })
-}
+/**
+ * Disable these tests as they started failing, due to:
+ *   > WebDriver Bidi command "browsingContext.navigate" failed with error:
+ *     unknown error - net::ERR_BLOCKED_BY_CLIENT
+ */
+// if (os.platform() !== 'win32') {
+//     config.capabilities.push({
+//         browserName: 'chromium',
+//         webSocketUrl: true,
+//         'goog:chromeOptions': {
+//             args: ['headless', 'disable-gpu']
+//         }
+//     })
+// }
 
 /**
  * latest Firefox 124.0a1 is not available on Linux

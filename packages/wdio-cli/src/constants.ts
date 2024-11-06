@@ -311,7 +311,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'list',
     name: 'mobileEnvironment',
-    message: 'Which mobile environment you\'ld like to automate?',
+    message: 'Which mobile environment you\'d like to automate?',
     choices: MOBILE_ENVIRONMENTS,
     when: /* instanbul ignore next */ (answers: Questionnair) => (
         getTestingPurpose(answers) === 'e2e' &&

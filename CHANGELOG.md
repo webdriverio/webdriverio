@@ -23,6 +23,62 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.2.10 (2024-11-05)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#13850](https://github.com/webdriverio/webdriverio/pull/13850) fix(@wdio/cli): improve detection when no capabilities are provided ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#13854](https://github.com/webdriverio/webdriverio/pull/13854) fix(@wdio/cli): improve passing framework parameters ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13844](https://github.com/webdriverio/webdriverio/pull/13844) Fixing typo during wdio config wizard ([@diemol](https://github.com/diemol))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Diego Molina ([@diemol](https://github.com/diemol))
+
+
+## v9.2.9 (2024-11-01)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#13843](https://github.com/webdriverio/webdriverio/pull/13843) fix(@wdio/appium-service): don't transform chromedriver_autodownload arg ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v9.2.8 (2024-11-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13837](https://github.com/webdriverio/webdriverio/pull/13837) fix(webdriverio): reset frame context if refresh command is called ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#13796](https://github.com/webdriverio/webdriverio/pull/13796) feat(chromedriver): set NODE_OPTIONS empty to allow electron to work ([@Delta456](https://github.com/Delta456))
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#13842](https://github.com/webdriverio/webdriverio/pull/13842) chore(@wdio/spec-reporter): use base name of app path in prefix ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+
+
+## v9.2.5 (2024-10-29)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13827](https://github.com/webdriverio/webdriverio/pull/13827) fix(webdriverio): disable context manager for mobile ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#13825](https://github.com/webdriverio/webdriverio/pull/13825) Fix moduleLoaderFlag ([@jenskuhrjorgensen](https://github.com/jenskuhrjorgensen))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jens Kuhr Jørgensen ([@jenskuhrjorgensen](https://github.com/jenskuhrjorgensen))
+
+
 ## v9.2.4 (2024-10-28)
 
 #### :bug: Bug Fix

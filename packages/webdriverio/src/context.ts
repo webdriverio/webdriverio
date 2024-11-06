@@ -40,10 +40,14 @@ export class ContextManager {
             }
 
             /**
-             * reset current context if user uses 'switchToParentFrame' which
-             * only impacts WebDriver Classic commands
+             * reset current context if:
+             *   - user uses 'switchToParentFrame' which only impacts WebDriver Classic commands
+             *   - user uses 'refresh' which resets the context in Classic and so should in Bidi
              */
-            if (event.command === 'switchToParentFrame') {
+            if (
+                event.command === 'switchToParentFrame' ||
+                event.command === 'refresh'
+            ) {
                 this.#currentContext = undefined
             }
         })
@@ -53,7 +57,7 @@ export class ContextManager {
      * Only run this session helper if BiDi is enabled and we're not in unit tests.
      */
     #isEnabled () {
-        return !process.env.WDIO_UNIT_TESTS && browser.isBidi
+        return !process.env.WDIO_UNIT_TESTS && this.#browser.isBidi
     }
 
     /**
