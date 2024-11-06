@@ -10,6 +10,9 @@ import { getContextManager } from '../../context.js'
         // open url
         await browser.url('https://google.com')
 
+        // get window handle
+        const handle = await browser.getWindowHandle()
+
         // create new window
         await browser.newWindow('https://webdriver.io')
 
@@ -18,6 +21,9 @@ import { getContextManager } from '../../context.js'
 
         // switch back via title match
         await browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
+
+        // switch back via window handle
+        await browser.switchWindow(handle)
     });
  * </example>
  *
@@ -46,11 +52,13 @@ export async function switchWindow (
         return currentWindow
     }
 
+    const contextManager = getContextManager(this)
     const tabs = await this.getWindowHandles()
 
     // is the matcher a window handle and is it in the list of tabs?
     if (typeof matcher === 'string' && tabs.includes(matcher)) {
         await this.switchToWindow(matcher)
+        contextManager.setCurrentContext(matcher)
         return matcher
     }
 
@@ -61,7 +69,6 @@ export async function switchWindow (
         return !!target.match(matcher)
     }
 
-    const contextManager = getContextManager(this)
     for (const tab of tabs) {
         await this.switchToWindow(tab)
         contextManager.setCurrentContext(tab)
