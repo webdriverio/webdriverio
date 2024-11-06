@@ -28,9 +28,30 @@ describe('switchWindow', () => {
         })
     })
 
-    it('should allow to switch to a window handle', async () => {
-        const tabId = await browser.switchWindow('webdriver')
+    it('should allow to switch to a window handle based on a partial URL match', async () => {
+        const tabId = await browser.switchWindow('webdriver.io')
         expect(tabId).toBe('window-handle-1')
+    })
+
+    it('should not trigger a switchWindow call when the requested window handle matches the currently active one', async () => {
+        const current = await browser.getWindowHandle()
+
+        vi.spyOn(browser, 'switchToWindow').mockImplementation(() => {
+            throw new Error('switchToWindow should not have been called')
+        })
+
+        const tabId = await browser.switchWindow(current)
+        expect(tabId).toBe(current)
+    })
+
+    it('should allow to switch to a window handle based on an exact window handle match', async () => {
+        const desiredHandle = 'window-handle-2'
+        const spy = vi.spyOn(browser, 'switchToWindow')
+
+        const tabId = await browser.switchWindow(desiredHandle)
+
+        expect(tabId).toBe(desiredHandle)
+        expect(spy).toHaveBeenCalledOnce()
     })
 
     it('should iterate over all available handles to find the right window', async () => {
