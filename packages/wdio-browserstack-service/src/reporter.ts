@@ -273,7 +273,7 @@ class _TestReporter extends WDIOReporter {
             if (failed) {
                 testData.result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
                 if (error && testData.result !== 'skipped') {
-                    testData.failure = [{ backtrace: [removeAnsiColors(error.message), removeAnsiColors(error.stack)] }] // add all errors here
+                    testData.failure = [{ backtrace: [removeAnsiColors(error.message), removeAnsiColors(error.stack || '')] }] // add all errors here
                     testData.failure_reason = removeAnsiColors(error.message)
                     testData.failure_type = error.message === null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
                 }
