@@ -13,7 +13,7 @@ import type { BrowserstackConfig } from '../src/types.js'
 import * as utils from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import * as FunnelInstrumentation from '../src/instrumentation/funnelInstrumentation.js'
-import { RERUN_TESTS_ENV, TESTOPS_BUILD_ID_ENV, RERUN_ENV } from '../src/constants.js'
+import { RERUN_TESTS_ENV, BROWSERSTACK_TESTHUB_UUID, RERUN_ENV } from '../src/constants.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('browserstack-local')
@@ -565,18 +565,26 @@ describe('onPrepare', () => {
         vi.clearAllMocks()
     })
 
-    it('should create accessibility test run if accessibility flag is true', async () => {
-        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'createAccessibilityTestRun').mockReturnValue('0.0.6.0')
-        const serviceOptions = { accessibility: true }
+    it('should launch testhub build when accessibility is true', async () => {
+        const launchTestSessionSpy = vi.spyOn(utils, 'launchTestSession')
+        const serviceOptions = { accessibility: true, testObservability: false }
         const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
         vi.spyOn(service, '_updateObjectTypeCaps').mockImplementation(() => {})
         await service.onPrepare(config, caps)
-        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
-        vi.clearAllMocks()
+        expect(launchTestSessionSpy).toHaveBeenCalledOnce()
+    })
+
+    it('should launch testhub build when observability is true', async () => {
+        const launchTestSessionSpy = vi.spyOn(utils, 'launchTestSession')
+        const serviceOptions = { accessibility: false, testObservability: true }
+        const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
+        vi.spyOn(service, '_updateObjectTypeCaps').mockImplementation(() => {})
+        await service.onPrepare(config, caps)
+        expect(launchTestSessionSpy).toHaveBeenCalledOnce()
     })
 
     it('should add accessibility options after filtering not allowed caps', async () => {
-        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'createAccessibilityTestRun').mockReturnValue('0.0.6.0')
+        const launchTestSessionSpy = vi.spyOn(utils, 'launchTestSession')
         const caps: any = [{ 'bstack:options': {
             buildName: 'browserstack wdio build'
         } },
@@ -587,7 +595,7 @@ describe('onPrepare', () => {
         const service = new BrowserstackLauncher(serviceOptions as any, caps, config)
         const capabilities = [{ 'bstack:options': { buildName: 'browserstack wdio build' } }, { 'bstack:options': { buildName: 'browserstack wdio build' } }]
         await service.onPrepare(config, capabilities)
-        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
+        expect(launchTestSessionSpy).toHaveBeenCalledOnce()
         expect(capabilities[0]['bstack:options']).toEqual({ buildName: 'browserstack wdio build', accessibilityOptions: { wcagVersion: 'wcag2aa' } })
         vi.clearAllMocks()
     })
@@ -631,12 +639,12 @@ describe('onComplete', () => {
     })
 
     it('should stop accessibility test run on complete', () => {
-        const createAccessibilityTestRunSpy = vi.spyOn(utils, 'stopAccessibilityTestRun')
+        const stopBuildUpstreamSpy = vi.spyOn(utils, 'stopBuildUpstream')
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
 
         const service = new BrowserstackLauncher({} as any, [{}] as any, {} as any)
         service.onComplete()
-        expect(createAccessibilityTestRunSpy).toHaveBeenCalledTimes(1)
+        expect(stopBuildUpstreamSpy).toHaveBeenCalledTimes(1)
     })
 })
 
@@ -1278,9 +1286,9 @@ describe('_uploadServiceLogs', () => {
     }]
 
     it('get observability build id', async() => {
-        process.env[TESTOPS_BUILD_ID_ENV] = 'obs123'
+        process.env[BROWSERSTACK_TESTHUB_UUID] = 'obs123'
         expect(service._getClientBuildUuid()).toEqual('obs123')
-        delete process.env[TESTOPS_BUILD_ID_ENV]
+        delete process.env[BROWSERSTACK_TESTHUB_UUID]
     })
 
     const service = new BrowserstackLauncher(options as any, caps, config)
@@ -1303,9 +1311,9 @@ describe('_getClientBuildUuid', () => {
     const service = new BrowserstackLauncher(options as any, caps, config)
 
     it('get observability build id', async() => {
-        process.env[TESTOPS_BUILD_ID_ENV] = 'obs123'
+        process.env[BROWSERSTACK_TESTHUB_UUID] = 'obs123'
         expect(service._getClientBuildUuid()).toEqual('obs123')
-        delete process.env[TESTOPS_BUILD_ID_ENV]
+        delete process.env[BROWSERSTACK_TESTHUB_UUID]
     })
 
     it('get randomly generated id if both the conditions fail', async() => {
