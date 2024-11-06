@@ -6,23 +6,13 @@ import type { Argv } from 'yargs'
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
 import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
+import { coerceOptsFor } from '../utils.js'
 import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 
 export const command = 'run <configPath>'
 
 export const desc = 'Run your WDIO configuration file to initialize your tests. (default)'
-
-const coerceOpts = (opts: { [x: string]: boolean | string | number }) => {
-    for (const key in opts) {
-        if (opts[key] === 'true') {
-            opts[key] = true
-        } else if (opts[key] === 'false') {
-            opts[key] = false
-        }
-    }
-    return opts
-}
 
 export const cmdArgs = {
     watch: {
@@ -110,15 +100,15 @@ export const cmdArgs = {
     },
     mochaOpts: {
         desc: 'Mocha options',
-        coerce: coerceOpts
+        coerce: coerceOptsFor('mocha')
     },
     jasmineOpts: {
         desc: 'Jasmine options',
-        coerce: coerceOpts
+        coerce: coerceOptsFor('jasmine')
     },
     cucumberOpts: {
         desc: 'Cucumber options',
-        coerce: coerceOpts
+        coerce: coerceOptsFor('cucumber')
     },
     coverage: {
         desc: 'Enable coverage for browser runner'
