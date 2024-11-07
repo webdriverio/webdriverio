@@ -3,7 +3,7 @@ id: coverage
 title: Coverage
 ---
 
-اجراکننده مرورگر WebdriverIO از گزارش پوشش کد با استفاده از [`istanbul`](https://istanbul.js.org/)پشتیبانی می کند. تست کننده به طور خودکار کد شما را ابزار می کند و پوشش کد را برای شما ضبط می کند.
+اجراکننده مرورگر WebdriverIO از گزارش پوشش کد با استفاده از [`istanbul`](https://istanbul.js.org/)پشتیبانی می کند. The testrunner will automatically instrument your code and capture code coverage for you.
 
 ## تنظیم
 
