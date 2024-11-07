@@ -84,6 +84,13 @@ export async function switchFrame (
         if (typeof context === 'string') {
             throw new Error('Cannot use a string to fetch a context in WebDriver Classic')
         }
+        if (isPossiblyUnresolvedElement(context)) {
+            const element = await context.getElement()
+            await element.waitForExist({
+                timeoutMsg: `Can't switch to frame with selector ${element.selector} because it doesn't exist`
+            })
+            return switchToFrame(this, element)
+        }
         return switchToFrame(this, context)
     }
 
