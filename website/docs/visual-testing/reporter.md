@@ -74,6 +74,31 @@ This will generate the report in the specified folder and provide feedback in th
 ✔ Successfully generated the report assets.
 ```
 
+#### Viewing the Report
+
+:::warning
+Opening `path/to/report/index.html` directly in a browser **without serving it from a local server** will **NOT** work.
+:::
+
+To view the report, you need to use a simple server like [sirv-cli](https://www.npmjs.com/package/sirv-cli). You can start the server with the following command:
+
+```bash
+npx sirv-cli /path/to/report --single
+```
+
+This will produce logs similar to the example below. Note that the port number may vary:
+
+```logs
+  Your application is ready~! 🚀
+
+  - Local:      http://localhost:8080
+  - Network:    Add `--host` to expose
+
+────────────────── LOGS ──────────────────
+```
+
+You can now view the report by opening the provided URL in your browser.
+
 ### Using Interactive Prompts
 
 Alternatively, you can run the following command and answer the prompts to generate the report:
@@ -82,11 +107,36 @@ Alternatively, you can run the following command and answer the prompts to gener
 npx @wdio/visual-reporter
 ```
 
-The prompts will guide you through providing the required paths and options.
+The prompts will guide you through providing the required paths and options. In the end the interactive prompt will also ask if you want to start a server to view the report. If you choose to start the server, the tool will launch a simple server and display a URL in the logs. You can open this URL in your browser to view the report.
 
 ![Visual Reporter CLI](/img/visual/cli-screen-recording.gif)
 
 ![Visual Reporter](/img/visual/visual-reporter.gif)
+
+#### Viewing the Report
+
+:::warning
+Opening `path/to/report/index.html` directly in a browser **without serving it from a local server** will **NOT** work.
+:::
+
+If you opted **not** to start the server via the interactive prompt, you can still view the report by running the following command manually:
+
+```bash
+npx sirv-cli /path/to/report --single
+```
+
+This will produce logs similar to the example below. Note that the port number may vary:
+
+```logs
+  Your application is ready~! 🚀
+
+  - Local:      http://localhost:8080
+  - Network:    Add `--host` to expose
+
+────────────────── LOGS ──────────────────
+```
+
+You can now view the report by opening the provided URL in your browser.
 
 # Report Demo
 
