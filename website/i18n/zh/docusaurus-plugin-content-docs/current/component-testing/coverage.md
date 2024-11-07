@@ -3,7 +3,7 @@ id: coverage
 title: 代码覆盖
 ---
 
-WebdriverIO 的浏览器节点支持使用 [`istanbul`](https://istanbul.js.org/) 进行代码覆盖测试。 测试节点将自动根据您的代码生成代码覆盖率报告。
+WebdriverIO 的浏览器节点支持使用 [`istanbul`](https://istanbul.js.org/) 进行代码覆盖测试。 The testrunner will automatically instrument your code and capture code coverage for you.
 
 ## Setup
 
