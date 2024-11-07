@@ -3,7 +3,7 @@ id: coverage
 title: கவரேஜ்
 ---
 
-WebdriverIO இன் பிரௌசர் ரன்னர் [` istanbul `](https://istanbul.js.org/)ஐப் பயன்படுத்தி கோடு கவரேஜ் அறிக்கையிடலை ஆதரிக்கிறது. டெஸ்ட்ரன்னர் தானாகவே உங்கள் கோடை கருவி செய்து, உங்களுக்காக கோடு கவரேஜை கைப்பற்றும்.
+WebdriverIO இன் பிரௌசர் ரன்னர் [` istanbul `](https://istanbul.js.org/)ஐப் பயன்படுத்தி கோடு கவரேஜ் அறிக்கையிடலை ஆதரிக்கிறது. The testrunner will automatically instrument your code and capture code coverage for you.
 
 ## செட்அப்
 
