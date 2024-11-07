@@ -132,7 +132,7 @@ describe('getRunData', () => {
 
         it('for failed', () => {
             const testData = insightsHandler['getRunData'](test as any, 'TestRunFinished', {
-                error: { message: 'some error' },
+                error: { message: 'some error', stack: '/path/to/error' },
                 result: 'failed',
                 passed: false,
                 duration: 10,
@@ -145,7 +145,7 @@ describe('getRunData', () => {
                 retries: { limit: 0, attempts: 0 },
                 failure_reason: 'some error',
                 failure_type: 'UnhandledError',
-                failure: [{ backtrace: ['some error'] }]
+                failure: [{ backtrace: ['some error', '/path/to/error'] }]
             }))
         })
 
