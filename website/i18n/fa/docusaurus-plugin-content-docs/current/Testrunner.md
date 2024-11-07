@@ -3,7 +3,7 @@ id: testrunner
 title: اجرا کننده تست
 ---
 
-WebdriverIO با اجرا کننده تست خود به شما کمک می کند تا در سریع ترین زمان ممکن شروع به تست کنید. فرض بر این است که اجرا کننده تست تمام کارها را برای شما انجام می دهد، اجازه می دهد تا خدمات اشخاص ثالثی را نیز ادغام کنید، و به شما کمک می کند تا تست های خود را تا حد امکان بهینه اجرا کنید.
+WebdriverIO با اجرا کننده تست خود به شما کمک می کند تا در سریع ترین زمان ممکن شروع به تست کنید. It is supposed to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
 
 اجرا کننده تست WebdriverIO به طور جداگانه در بسته `@wdio/cli` در NPM قرار داده شده است.
 
