@@ -2,6 +2,7 @@ import path from 'node:path'
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 import { remote } from '../../../src/index.js'
 import { getContextManager } from '../../../src/context.js'
+import { ELEMENT_KEY } from 'webdriver'
 
 let browser: WebdriverIO.Browser
 
@@ -46,6 +47,16 @@ describe('switchFrame command', () => {
             expect(switchToFrame).toHaveBeenCalledWith(
                 expect.objectContaining({
                     elementId: 'some-elem-123'
+                })
+            )
+        })
+
+        it('should switch context via unresolved WDIO element', async () => {
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame')
+            await browser.switchFrame(browser.$('iframe'))
+            expect(switchToFrame).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ELEMENT_KEY]: 'some-elem-123'
                 })
             )
         })
