@@ -26,13 +26,13 @@ export const config: WebdriverIO.Config = {
         'goog:chromeOptions': {
             args: ['headless', 'disable-gpu']
         }
-    }, {
-        browserName: 'chrome',
-        browserVersion: 'canary',
-        webSocketUrl: true,
-        'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu']
-        }
+    // }, {
+    //     browserName: 'chrome',
+    //     browserVersion: 'canary',
+    //     webSocketUrl: true,
+    //     'goog:chromeOptions': {
+    //         args: ['headless', 'disable-gpu']
+    //     }
     }, {
         browserName: 'firefox',
         webSocketUrl: true,
