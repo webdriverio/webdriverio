@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
     WebDriver as WebDriverOptions,
     WebdriverIO as WebDriverIOOptions,

@@ -39,8 +39,8 @@ export const formatArgs = function (
         /**
          * don't propagate for actions that don't require element options
          */
-        const actionElement = action.element && typeof (action.element as any as WebdriverIO.Element).elementId === 'string'
-            ? (action.element as any as WebdriverIO.Element).elementId
+        const actionElement = action.element && typeof (action.element as unknown as WebdriverIO.Element).elementId === 'string'
+            ? (action.element as unknown as WebdriverIO.Element).elementId
             : (scope as WebdriverIO.Element).elementId
         if (POS_ACTIONS.includes(action.action) && formattedAction.options && actionElement) {
             formattedAction.options.element = actionElement

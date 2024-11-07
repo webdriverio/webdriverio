@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import path from 'node:path'
 
 interface TagType {
@@ -109,7 +110,6 @@ export default function (docfile: any) {
     let currentLine = 0
 
     if (example && example[0]) {
-        // eslint-disable-next-line no-console
         console.log('parse example section for', docfile.filename)
 
         example = example[0].replace(/<(\/)*example>/g, '').split(/\n/g)

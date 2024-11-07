@@ -262,5 +262,5 @@ interface UrlCommandOptions {
      * from the Node.js context. Furthermore changes to the environment only apply for this specific page load.
      * Checkout `browser.addPreloadScript` for a more versatile way to mock the environment.
      */
-    onBeforeLoad?: () => any
+    onBeforeLoad?: () => unknown
 }

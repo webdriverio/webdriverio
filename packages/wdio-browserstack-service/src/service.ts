@@ -385,8 +385,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (!this._browser.isMultiremote) {
             BStackLogger.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
-            const browserName = (this._browser as any as WebdriverIO.MultiRemoteBrowser).instances.filter(
-                (browserName: string) => this._browser && (this._browser as any as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
+            const browserName = (this._browser as unknown as WebdriverIO.MultiRemoteBrowser).instances.filter(
+                (browserName: string) => this._browser && (this._browser as unknown as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
             BStackLogger.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
@@ -433,7 +433,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return action(this._browser.sessionId)
         }
 
-        const multiremotebrowser = this._browser as any as WebdriverIO.MultiRemoteBrowser
+        const multiremotebrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
         return Promise.all(multiremotebrowser.instances
             .filter((browserName: string) => {
                 const cap = getBrowserCapabilities(multiremotebrowser, this._caps, browserName)
@@ -558,7 +558,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const script = `browserstack_executor: ${JSON.stringify(cmd)}`
 
         if (this._browser.isMultiremote) {
-            const multiRemoteBrowser = this._browser as any as WebdriverIO.MultiRemoteBrowser
+            const multiRemoteBrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
             return Promise.all(Object.keys(this._caps).map(async (browserName) => {
                 const browser = multiRemoteBrowser.getInstance(browserName)
                 return (await browser.execute<T, []>(script))

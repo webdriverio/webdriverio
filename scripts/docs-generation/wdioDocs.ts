@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-// @ts-expect-error
+// @ts-expect-error no type definition
 import dox from 'dox'
 import { Eta } from 'eta'
 import type { NavbarItem } from '../../website/node_modules/@docusaurus/theme-common/lib/index.js'

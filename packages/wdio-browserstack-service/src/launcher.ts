@@ -76,7 +76,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         PercyLogger.clearLogFile()
         setupExitHandlers()
         // added to maintain backward compatibility with webdriverIO v5
-        this._config || (this._config = _options)
+        if (!this._config) {
+            this._config = _options
+        }
         this.browserStackConfig = BrowserStackConfig.getInstance(_options, _config)
         if (Array.isArray(capabilities)) {
             capabilities
@@ -180,12 +182,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
         try {
             CrashReporter.setConfigDetails(this._config, capabilities, this._options)
-        } catch (error: any) {
+        } catch (error: unknown) {
             BStackLogger.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
         }
     }
 
-    async onWorkerStart (cid: any, caps: any) {
+    async onWorkerStart (cid: string, caps: WebdriverIO.Capabilities) {
         try {
             if (this._options.percy && this._percyBestPlatformCaps) {
                 const isThisBestPercyPlatform = ObjectsAreEqual(caps, this._percyBestPlatformCaps)
@@ -215,7 +217,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         }
                     }
 
-                } else if (isValidCapsForHealing(capabilities as any)) {
+                } else if (isValidCapsForHealing(capabilities)) {
                     // setting up healing in case capabilities.xyz.capabilities.browserName where xyz can be anything:
                     capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities, true)
                 }
@@ -238,8 +240,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             try {
                 app = await this._validateApp(appConfig)
-            } catch (error: any){
-                throw new SevereServiceError(error)
+            } catch (error: unknown){
+                throw new SevereServiceError((error as Error).message)
             }
 
             if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
@@ -452,7 +454,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             let signal = 0
             const handler = async () => {
                 signal++
-                signal === 1 && await this.stopPercy()
+                if (signal === 1) {
+                    await this.stopPercy()
+                }
             }
             process.on('beforeExit', handler)
             process.on('SIGINT', handler)
@@ -488,7 +492,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             form.append('custom_id', app.customId)
         }
 
-        const headers: any = {
+        const headers: Record<string, string> = {
             Authorization: getBasicAuthHeader(this._config.user as string, this._config.key as string),
         }
 
@@ -540,7 +544,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
     }
 
-    _updateObjectTypeCaps(capabilities?: Capabilities.TestrunnerCapabilities, capType?: string, value?: { [key: string]: any }) {
+    _updateObjectTypeCaps(capabilities?: Capabilities.TestrunnerCapabilities, capType?: string, value?: { [key: string]: unknown }) {
         try {
             if (Array.isArray(capabilities)) {
                 capabilities
@@ -831,7 +835,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             const newIdentifier = 1
             this._updateLocalBuildCache(filePath, this._buildName, 1)
             return newIdentifier.toString()
-        } catch (error: any) {
+        } catch {
             return null
         }
     }

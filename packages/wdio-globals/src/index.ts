@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+/* eslint-disable @typescript-eslint/no-namespace */
 /// <reference path="../types.d.ts" />
 
 type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
@@ -40,15 +43,15 @@ function proxyHandler (key: SupportedGlobals) {
 }
 
 export const browser: WebdriverIO.Browser = new Proxy(
-    class Browser {} as any as WebdriverIO.Browser,
+    class Browser {} as unknown as WebdriverIO.Browser,
     proxyHandler('browser')
 )
 export const driver: WebdriverIO.Browser = new Proxy(
-    class Browser {} as any as WebdriverIO.Browser,
+    class Browser {} as unknown as WebdriverIO.Browser,
     proxyHandler('driver')
 )
 export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
-    class Browser {} as any as WebdriverIO.MultiRemoteBrowser,
+    class Browser {} as unknown as WebdriverIO.MultiRemoteBrowser,
     proxyHandler('multiremotebrowser')
 )
 // @ts-ignore

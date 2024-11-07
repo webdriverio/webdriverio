@@ -57,7 +57,7 @@ export async function selectByAttribute (
         `./option${normalized}|./optgroup/option${normalized}`
     )
 
-    if (optionElement && (optionElement as any).error === 'no such element') {
+    if (optionElement && (optionElement as unknown as { error: string }).error === 'no such element') {
         throw new Error(`Option with attribute "${attribute}=${value}" not found.`)
     }
 

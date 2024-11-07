@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type resq from 'resq'
 
 interface CustomWindow extends Window {
@@ -38,7 +39,7 @@ export const react$ = function react$ (
     // resq returns an array of HTMLElements if the React component is a fragment
     // if the element is a fragment, we return the first child to be passed into the driver
     return element.isFragment && element.node
-        ? (element.node as any as HTMLElement[])[0]
+        ? (element.node as unknown as HTMLElement[])[0]
         : element.node
 }
 

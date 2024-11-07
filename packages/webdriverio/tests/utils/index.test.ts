@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY, type local } from 'webdriver'
 
 import { findElement, isStaleElementError, elementPromiseHandler, transformClassicToBidiSelector } from '../../src/utils/index.js'
 
@@ -14,7 +14,7 @@ describe('findElement', () => {
             elementId: 'source-elem',
             executeScript: vi.fn().mockReturnValue(elemRes)
         }
-        expect(await findElement.call(browser, () => 'testme' as any as HTMLElement)).toEqual(elemRes)
+        expect(await findElement.call(browser, () => 'testme' as unknown as HTMLElement)).toEqual(elemRes)
         expect(browser.executeScript).toBeCalledWith(expect.any(String), [browser])
     })
 
@@ -154,6 +154,6 @@ describe('transformClassicToBidiSelector', () => {
         const bidiSelector = transformClassicToBidiSelector('partial link text', 'new')
         expect(bidiSelector.type).toBe('innerText')
         expect(bidiSelector.value).toBe('new')
-        expect(bidiSelector.matchType).toBe('partial')
+        expect((bidiSelector as local.BrowsingContextInnerTextLocator).matchType).toBe('partial')
     })
 })

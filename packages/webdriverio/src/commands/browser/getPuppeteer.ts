@@ -72,7 +72,7 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
             browserWSEndpoint: cdpEndpoint,
             defaultViewport: null,
             headers
-        }) as any as PuppeteerBrowser
+        }) as unknown as PuppeteerBrowser
         return this.puppeteer
     }
     /**
@@ -86,7 +86,7 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
             browserWSEndpoint: `ws://${hostname}:${port}/devtools/${this.sessionId}`,
             defaultViewport: null,
             headers
-        }) as any as PuppeteerBrowser
+        }) as unknown as PuppeteerBrowser
         return this.puppeteer
     }
     /**
@@ -97,7 +97,7 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
         this.puppeteer = await puppeteer.connect({
             browserURL: `http://${chromiumOptions.debuggerAddress.replace('localhost', '0.0.0.0')}`,
             defaultViewport: null
-        }) as any as PuppeteerBrowser
+        }) as unknown as PuppeteerBrowser
         return this.puppeteer
     } else if (
         /**
@@ -151,8 +151,8 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
             this.puppeteer = await puppeteer.connect({
                 browserURL,
                 defaultViewport: null
-            }) as any as PuppeteerBrowser
-            return this.puppeteer as any as PuppeteerBrowser
+            }) as unknown as PuppeteerBrowser
+            return this.puppeteer as unknown as PuppeteerBrowser
         }
     }
 

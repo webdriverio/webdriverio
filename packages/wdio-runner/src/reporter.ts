@@ -13,7 +13,7 @@ const mochaAllHooks = ['"before all" hook', '"after all" hook']
  */
 export default class BaseReporter {
     private _reporters: Reporters.ReporterInstance[] = []
-    private listeners: ((ev: any) => void)[] = []
+    private listeners: ((ev: unknown) => void)[] = []
 
     constructor(
         private _config: Options.Testrunner,
@@ -33,7 +33,13 @@ export default class BaseReporter {
      * @param  {string} e       event name
      * @param  {object} payload event payload
      */
-    emit (e: string, payload: any) {
+    emit (e: string, payload: {
+        cid: string
+        specs: string[]
+        uid: string
+        title: string
+        error?: Error
+    }) {
         payload.cid = this._cid
 
         /**
@@ -72,7 +78,7 @@ export default class BaseReporter {
         })
     }
 
-    onMessage (listener: (ev: any) => void) {
+    onMessage (listener: (ev: unknown) => void) {
         this.listeners.push(listener)
     }
 
@@ -131,7 +137,7 @@ export default class BaseReporter {
     /**
      * emit data either through process or listener
      */
-    #emitData (payload: any) {
+    #emitData (payload: unknown) {
         if (typeof process.send === 'function') {
             return process.send!(payload)
         }

@@ -51,4 +51,4 @@ export function unmock(moduleName: string) {
 /**
  * utility helper for type conversions
  */
-export function mocked<T>(item: T) { return item as any as MaybeMocked<T> }
+export function mocked<T>(item: T) { return item as unknown as MaybeMocked<T> }

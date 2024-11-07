@@ -69,7 +69,7 @@ export async function react$(
     await browser.execute(waitToLoadReact)
     const res = await browser.execute(
         react$Script as any, selector, props, state, this
-    ) as any as ElementReference
+    ) as unknown as ElementReference
 
     return getElement.call(this, selector, res, { isReactElement: true })
 }

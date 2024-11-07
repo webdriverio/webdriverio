@@ -67,7 +67,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     init () {
-        return undefined as any as TestFramework
+        return undefined as unknown as TestFramework
     }
 
     async run () {

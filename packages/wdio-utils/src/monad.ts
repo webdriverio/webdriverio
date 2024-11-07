@@ -13,7 +13,7 @@ interface PropertiesObject {
     [key: string | symbol]: PropertyDescriptor
 }
 
-export default function WebDriver (options: Record<string, any>, modifier?: Function, propertiesObject: PropertiesObject = {}) {
+export default function WebDriver (options: Record<string, unknown>, modifier?: Function, propertiesObject: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
@@ -68,7 +68,6 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
         /**
          * assign propertiesObject to itself so the client can be recreated
          */
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { puppeteer, ...propertiesObjectWithoutPuppeteer } = propertiesObject
         propertiesObject.__propertiesObject__ = { value: propertiesObjectWithoutPuppeteer }
 
@@ -86,7 +85,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, unknown>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
@@ -140,7 +139,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
          * @param  {Object=}  proto             prototype to add function to (optional)
          * @param  {Object=}  instances         multiremote instances
          */
-        client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+        client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, unknown>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
@@ -161,7 +160,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
             } else if (client[name]) {
                 const origCommand = client[name]
                 delete client[name]
-                unit.lift(name, customCommand, proto, (...args: any[]) => origCommand.apply(this, args))
+                unit.lift(name, customCommand, proto, (...args: unknown[]) => origCommand.apply(this, args))
             } else {
                 throw new Error('overwriteCommand: no command to be overwritten: ' + name)
             }
@@ -177,8 +176,9 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
      * @param  {Object}   proto         prototype to add function to (optional)
      * @param  {Function} origCommand   original command to be passed to custom command as first argument
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     unit.lift = function (name: string, func: Function, proto: Record<string, any>, origCommand?: Function) {
-        (proto || prototype)[name] = function next (...args: any[]) {
+        (proto || prototype)[name] = function next (...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
 
             /**
@@ -215,7 +215,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
      * register event emitter
      */
     for (const eventCommand in EVENTHANDLER_FUNCTIONS) {
-        prototype[eventCommand] = function (...args: [any, any]) {
+        prototype[eventCommand] = function (...args: [unknown, unknown]) {
             const method = eventCommand as keyof EventEmitter
 
             /**
@@ -231,7 +231,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
                 eventHandler.emit('_dialogListenerRemoved')
             }
 
-            eventHandler[method]?.(...args as [never, any])
+            eventHandler[method]?.(...args as [never, unknown])
             return this
         }
     }

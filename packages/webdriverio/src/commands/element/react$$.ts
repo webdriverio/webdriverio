@@ -59,6 +59,7 @@ export async function react$$(
     await this.executeScript(resqScript.toString(), [])
     await browser.execute(waitToLoadReact)
     const res = await browser.execute(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         react$$Script as any, selector, props, state, this
     ) as ElementReference[]
 

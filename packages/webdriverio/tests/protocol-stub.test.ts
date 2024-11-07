@@ -54,7 +54,7 @@ describe('attachToSession', () => {
     it('should call modifier if multiremote', async () => {
         const multiremote = new Multiremote()
         // @ts-ignore test scenario
-        multiremote.instances['instanceName'] = 'instance'
+        multiremote.instances.instanceName = 'instance'
 
         const session = await ProtocolStub.attachToSession(
             // @ts-expect-error

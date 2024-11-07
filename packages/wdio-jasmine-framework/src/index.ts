@@ -50,8 +50,8 @@ class JasmineAdapter {
     private _reporter: JasmineReporter
     private _totalTests = 0
     private _hasTests = true
-    private _lastTest?: any
-    private _lastSpec?: any
+    private _lastTest?: unknown
+    private _lastSpec?: unknown
 
     private _jrunner = new Jasmine({})
 
@@ -158,7 +158,7 @@ class JasmineAdapter {
          */
         INTERFACES.bdd.forEach((fnName) => {
             const isTest = TEST_INTERFACES.includes(fnName)
-            const beforeHook = [...this._config.beforeHook] as ((test: any, context: any) => void)[]
+            const beforeHook = [...this._config.beforeHook] as ((test: unknown, context: unknown) => void)[]
             const afterHook = [...this._config.afterHook]
 
             /**
@@ -197,7 +197,7 @@ class JasmineAdapter {
             beforeAllMock.apply(this, args)
         }
         const executeMock = jasmine.Spec.prototype.execute
-        jasmine.Spec.prototype.execute = function (...args: any[]) {
+        jasmine.Spec.prototype.execute = function (...args: unknown[]) {
             self._lastTest = this.result
             // @ts-ignore overwrite existing type
             self._lastTest.start = new Date().getTime()
@@ -254,7 +254,7 @@ class JasmineAdapter {
             // @ts-ignore outdated types
             this._grep(this._jrunner.env.topSuite())
             this._hasTests = this._totalTests > 0
-        } catch (err: any) {
+        } catch (err: unknown) {
             log.warn(
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialized.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
@@ -359,7 +359,7 @@ class JasmineAdapter {
             }
 
             if (params.payload.id && params.payload.id.startsWith('spec')) {
-                message.parent = this._lastSpec?.description
+                message.parent = (this._lastSpec as jasmine.Spec)?.description
                 message.passed = params.payload.failedExpectations.length === 0
             }
 
@@ -391,7 +391,7 @@ class JasmineAdapter {
         return function (this: jasmine.Spec, passed: boolean, data: ResultHandlerPayload) {
             try {
                 expectationResultHandler!.call(this, passed, data)
-            } catch (e: any) {
+            } catch (e: unknown) {
                 /**
                  * propagate expectationResultHandler error if actual assertion passed
                  * but the custom handler decides to throw
@@ -400,8 +400,8 @@ class JasmineAdapter {
                     passed = false
                     data = {
                         passed,
-                        message: 'expectationResultHandlerError: ' + e.message,
-                        error: e
+                        message: 'expectationResultHandlerError: ' + (e as Error).message,
+                        error: e as Error
                     }
                 }
             }
@@ -413,7 +413,7 @@ class JasmineAdapter {
     #transformMatchers (matchers: jasmine.CustomMatcherFactories) {
         return Object.entries(matchers).reduce((prev, [name, fn]) => {
             prev[name] = (util) => ({
-                compare: async <T>(actual: T, expected: T, ...args: any[]) => fn(util).compare(actual, expected, ...args),
+                compare: async <T>(actual: T, expected: T, ...args: unknown[]) => fn(util).compare(actual, expected, ...args),
                 negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => {
                     const { pass, message } = fn(util).compare(actual, expected, ...args)
                     return {
@@ -456,7 +456,7 @@ class JasmineAdapter {
 }
 
 const adapterFactory: { init?: Function } = {}
-adapterFactory.init = async function (...args: any[]) {
+adapterFactory.init = async function (...args: unknown[]) {
     // @ts-ignore pass along parameters
     const adapter = new JasmineAdapter(...args)
     const instance = await adapter.init()
@@ -535,7 +535,6 @@ declare global {
         interface JasmineOpts extends jasmineNodeOpts {}
     }
     namespace ExpectWebdriverIO {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Matchers<R, T> extends jasmine.Matchers<R> {}
     }
 }

@@ -28,7 +28,7 @@ export function waitUntil<ReturnValue>(
         interval = this.options.waitforInterval,
         timeoutMsg
     }: Partial<WaitUntilOptions> = {}
-): Promise<Exclude<ReturnValue, boolean>> {
+): Promise<ReturnValue> {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
     }
@@ -46,7 +46,7 @@ export function waitUntil<ReturnValue>(
 
     const fn = condition.bind(this)
     const timer = new Timer(interval as number, timeout as number, fn, true)
-    return (timer as any).catch((e: Error) => {
+    return timer.catch<ReturnValue>((e: Error) => {
         if (e.message === 'timeout') {
             if (typeof timeoutMsg === 'string') {
                 throw new Error(timeoutMsg)

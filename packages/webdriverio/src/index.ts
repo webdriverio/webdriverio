@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import logger from '@wdio/logger'
 
 import WebDriver, { DEFAULTS } from 'webdriver'

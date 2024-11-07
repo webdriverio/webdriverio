@@ -96,7 +96,7 @@ export function getBrowserDescription(cap: WebdriverIO.Capabilities) {
      * These keys describe the browser the test was run on
      */
     return BROWSER_DESCRIPTION
-        .map((k) => (cap as any)[k])
+        .map((k) => (cap)[k as keyof typeof cap])
         .filter(Boolean)
         .join(' ')
 }
@@ -147,7 +147,7 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-function processError(error: any, fn: Function, args: any[]) {
+function processError(error: Error, fn: Function, args: unknown[]) {
     BStackLogger.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
     let argsString: string
     try {
@@ -155,14 +155,15 @@ function processError(error: any, fn: Function, args: any[]) {
     } catch (e) {
         argsString = util.inspect(args, { depth: 2 })
     }
-    CrashReporter.uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
+    CrashReporter.uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack || 'unknown error')
 }
 
 export function o11yErrorHandler(fn: Function) {
-    return function (...args: any) {
+    return function (...args: unknown[]) {
         try {
             let functionToHandle = fn
             if (process.env[PERF_MEASUREMENT_ENV]) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
             }
             const result = functionToHandle(...args)
@@ -171,13 +172,13 @@ export function o11yErrorHandler(fn: Function) {
             }
             return result
         } catch (error) {
-            processError(error, fn, args)
+            processError(error as Error, fn, args)
         }
     }
 }
 
 export function errorHandler(fn: Function) {
-    return function (...args: any) {
+    return function (...args: unknown[]) {
         try {
             const functionToHandle = fn
             const result = functionToHandle(...args)
@@ -191,7 +192,7 @@ export function errorHandler(fn: Function) {
     }
 }
 
-export async function nodeRequest(requestType: string, apiEndpoint: string, options: any, apiUrl: string, timeout: number = 120000) {
+export async function nodeRequest(requestType: string, apiEndpoint: string, options: RequestInit, apiUrl: string, timeout: number = 120000) {
     try {
 
         const controller = new AbortController()
@@ -207,16 +208,18 @@ export async function nodeRequest(requestType: string, apiEndpoint: string, opti
         clearTimeout(timeoutId)
 
         return await response.json()
-    } catch (error : any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
         BStackLogger.debug(`Error in firing request ${apiUrl}/${apiEndpoint}: ${format(error)}`)
         const isLogUpload = apiEndpoint === UPLOAD_LOGS_ENDPOINT
         if (error && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null
-            if (errorMessage) {
-                isLogUpload ? BStackLogger.debug(`${errorMessage} - ${error.stack}`) : BStackLogger.error(`${errorMessage} - ${error.stack}`)
+            const logMessage = errorMessage ? `${errorMessage} - ${error.stack}` : error.stack
+            if (isLogUpload) {
+                BStackLogger.debug(logMessage)
             } else {
-                isLogUpload ? BStackLogger.debug(`${error.stack}`) : BStackLogger.error(`${error.stack}`)
+                BStackLogger.error(`${errorMessage} - ${error.stack}`)
             }
             if (isLogUpload) {
                 return
@@ -238,7 +241,7 @@ export async function nodeRequest(requestType: string, apiEndpoint: string, opti
     A class wrapper for error handling. The wrapper wraps all the methods of the class with a error handler function.
     If any exception occurs in any of the class method, that will get caught in the wrapper which logs and reports the error.
  */
-type ClassType = { new(...args: any[]): any; }; // A generic type for a class
+type ClassType = { new(...args: unknown[]): unknown; }; // A generic type for a class
 export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     const prototype = errorClass.prototype
 
@@ -252,7 +255,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
             // In order to preserve this context, need to define like this
             Object.defineProperty(prototype, methodName, {
                 writable: true,
-                value: function(...args: any) {
+                value: function(...args: unknown[]) {
                     try {
                         const result = (process.env[PERF_MEASUREMENT_ENV] ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
@@ -261,7 +264,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                         return result
 
                     } catch (err) {
-                        processError(err, method, args)
+                        processError(err as Error, method, args)
                     }
                 }
             })
@@ -287,7 +290,7 @@ export const processTestObservabilityResponse = (response: LaunchResponse) => {
 }
 
 interface DataElement {
-    [key: string]: any
+    [key: string]: unknown
 }
 
 export const jsonifyAccessibilityArray = (
@@ -296,7 +299,7 @@ export const jsonifyAccessibilityArray = (
     valueName: keyof DataElement
 ): Record<string, any> => {
     const result: Record<string, any> = {}
-    dataArray.forEach((element: DataElement) => {
+    dataArray.forEach((element: any) => {
         result[element[keyName]] = element[valueName]
     })
     return result
@@ -503,8 +506,8 @@ export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO
     try {
         const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
         BStackLogger.debug(util.format(results as string))
-        return ( results as { [key: string]: any; } | undefined )
-    } catch (err : any) {
+        return ( results as { [key: string]: unknown; } | undefined )
+    } catch (err: unknown) {
         BStackLogger.error('Accessibility Scan could not be performed : ' + err)
         return
     }
@@ -524,7 +527,7 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
     try {
         BStackLogger.debug('Performing scan before getting results')
         await performA11yScan(browser, isBrowserStackSession, isAccessibility)
-        const results: Array<{ [key: string]: any; }> = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResults as string)
+        const results: Array<{ [key: string]: unknown }> = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResults as string)
         return results
     } catch {
         BStackLogger.error('No accessibility results were found.')
@@ -532,7 +535,7 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
     }
 }
 
-export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
+export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: unknown; }> => {
     if (!isBrowserStackSession) {
         return {} // since we are running only on Automate as of now
     }
@@ -545,7 +548,7 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
     try {
         BStackLogger.debug('Performing scan before getting results summary')
         await performA11yScan(browser, isBrowserStackSession, isAccessibility)
-        const summaryResults: { [key: string]: any; } = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResultsSummary as string)
+        const summaryResults: { [key: string]: unknown; } = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResultsSummary as string)
         return summaryResults
     } catch {
         BStackLogger.error('No accessibility summary was found.')
@@ -592,12 +595,12 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             status: 'success',
             message: ''
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         stopBuildUsage.failed(error)
         BStackLogger.debug(`[STOP_BUILD] Failed. Error: ${error}`)
         return {
             status: 'error',
-            message: error.message
+            message: (error as Error).message
         }
     }
 })
@@ -864,7 +867,7 @@ export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): 
     let parentTitle = test.parent
     // Sometimes parent will be an object instead of a string
     if (typeof parentTitle === 'object') {
-        parentTitle = (parentTitle as any).title
+        parentTitle = (parentTitle as { title: string }).title
     }
     return `${parentTitle} - ${test.title}`
 }
@@ -999,7 +1002,7 @@ export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrun
             }
         } else {
             for (const key in caps) {
-                const capability = (caps as any)[key]
+                const capability = caps[key as keyof Capabilities.BrowserStackCapabilities]
                 if (((capability as Options.Testrunner).hostname) && !isBrowserstack((capability as Options.Testrunner).hostname as string)) {
                     return false
                 }
@@ -1137,7 +1140,7 @@ export function getBrowserStackKey(config: Options.Testrunner) {
     return config.key
 }
 
-export function isUndefined(value: any) {
+export function isUndefined(value: string) {
     let res = (value === undefined || value === null)
     if (typeof value === 'string') {
         res = res || value === ''
@@ -1145,7 +1148,7 @@ export function isUndefined(value: any) {
     return res
 }
 
-export function isTrue(value?: any) {
+export function isTrue(value?: string) {
     return (value + '').toLowerCase() === 'true'
 }
 
@@ -1165,16 +1168,18 @@ export const patchConsoleLogs = o11yErrorHandler(() => {
     const BSTestOpsPatcher = new logPatcher({})
 
     Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
-        const origMethod = (console[method] as any).bind(console)
+        // @ts-expect-error
+        const origMethod = console[method].bind(console)
 
         // Make sure we don't override Constructors
         // Arrow functions are not construable
         if (typeof console[method] === 'function'
             && method !== 'Console'
         ) {
-            (console as any)[method] = (...args: unknown[]) => {
-                origMethod(...args);
-                (BSTestOpsPatcher as any)[method](...args)
+            console[method] = (...args: unknown[]) => {
+                origMethod(...args)
+                // @ts-expect-error
+                BSTestOpsPatcher[method](...args)
             }
         }
     })
@@ -1222,19 +1227,19 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
     return response
 }
 
-export const isObject = (object: any) => {
+export const isObject = (object: unknown) => {
     return object !== null && typeof object === 'object' && !Array.isArray(object)
 }
 
-export const ObjectsAreEqual = (object1: any, object2: any) => {
+export const ObjectsAreEqual = (object1: object, object2: object) => {
     const objectKeys1 = Object.keys(object1)
     const objectKeys2 = Object.keys(object2)
     if (objectKeys1.length !== objectKeys2.length) {
         return false
     }
     for (const key of objectKeys1) {
-        const value1 = object1[key]
-        const value2 = object2[key]
+        const value1 = object1[key as keyof typeof object1]
+        const value2 = object2[key as keyof typeof object1]
         const isBothAreObjects = isObject(value1) && isObject(value2)
         if ((isBothAreObjects && !ObjectsAreEqual(value1, value2)) || (!isBothAreObjects && value1 !== value2)) {
             return false

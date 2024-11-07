@@ -24,18 +24,18 @@ export function deserializeValue(result: remote.ScriptLocalValue) {
         return new RegExp(value.pattern, value.flags)
     }
     if (type === NonPrimitiveType.Array) {
-        return value.map((element: any) => deserializeValue(element))
+        return value.map((element: remote.ScriptLocalValue) => deserializeValue(element))
     }
     if (type === NonPrimitiveType.Date) {
         return new Date(value)
     }
     if (type === NonPrimitiveType.Map) {
-        return new Map(value.map(([key, value]: [any, any]) => (
+        return new Map(value.map(([key, value]: [string, remote.ScriptLocalValue]) => (
             [typeof key === 'string' ? key : deserializeValue(key), deserializeValue(value)]
         )))
     }
     if (type === NonPrimitiveType.Set) {
-        return new Set(value.map((element: any) => deserializeValue(element)))
+        return new Set(value.map((element: remote.ScriptLocalValue) => deserializeValue(element)))
     }
     if (type === PrimitiveType.Number && value === 'NaN') {
         return NaN
@@ -56,12 +56,12 @@ export function deserializeValue(result: remote.ScriptLocalValue) {
         return null
     }
     if (type === NonPrimitiveType.Object) {
-        return Object.fromEntries((value || []).map(([key, value]: [any, any]) => {
+        return Object.fromEntries((value || []).map(([key, value]: [string, remote.ScriptLocalValue]) => {
             return [typeof key === 'string' ? key : deserializeValue(key), deserializeValue(value)]
         }))
     }
     if (type === RemoteType.Node) {
-        return { [ELEMENT_KEY]: (result as any).sharedId }
+        return { [ELEMENT_KEY]: (result as { sharedId: string }).sharedId }
     }
     if (type === RemoteType.Error) {
         return new Error('<unserializable error>')

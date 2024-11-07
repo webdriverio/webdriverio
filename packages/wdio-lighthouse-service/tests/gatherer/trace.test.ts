@@ -43,7 +43,7 @@ const frame = {
 const driver = {
     beginTrace: vi.fn(),
     endTrace: vi.fn().mockReturnValue(Promise.resolve(TRACELOG))
-} as any as GathererDriver
+} as unknown as GathererDriver
 
 vi.useFakeTimers()
 vi.spyOn(global, 'setTimeout')

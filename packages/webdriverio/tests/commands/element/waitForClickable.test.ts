@@ -27,7 +27,7 @@ describe('waitForClickable', () => {
             elementId : 123,
             waitUntil : vi.fn(((cb))),
             options : { waitforInterval: 5, waitforTimeout: duration }
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForClickable()
 
@@ -44,7 +44,7 @@ describe('waitForClickable', () => {
             waitUntil : tmpElem.waitUntil,
             isClickable : vi.fn(() => true),
             options : { waitforTimeout : 500, waitforInterval: 50 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
         const result = await elem.waitForClickable({ timeout: duration })
 
         expect(result).toBe(true)
@@ -62,7 +62,7 @@ describe('waitForClickable', () => {
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => true),
             options : { waitforTimeout : 50, waitforInterval: 5 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         const result = await elem.waitForClickable({ timeout: duration })
         expect(result).toBe(true)
@@ -79,7 +79,7 @@ describe('waitForClickable', () => {
             waitUntil : tmpElem.waitUntil,
             isClickable : vi.fn(() => false),
             options : { waitforTimeout : 500, waitforInterval: 50 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         try {
             await elem.waitForClickable({ timeout: duration })
@@ -118,7 +118,7 @@ describe('waitForClickable', () => {
             waitUntil : vi.fn(((cb))),
             isClickable : vi.fn(() => true),
             options : { waitforTimeout : 500, waitforInterval: 50 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForClickable({ reverse: true })
 
@@ -136,7 +136,7 @@ describe('waitForClickable', () => {
             waitUntil : tmpElem.waitUntil,
             isClickable : vi.fn(() => false),
             options : { waitforTimeout : 500, waitforInterval: 50 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         try {
             await elem.waitForClickable({ timeout: duration, timeoutMsg: 'Element foo never clickable' })

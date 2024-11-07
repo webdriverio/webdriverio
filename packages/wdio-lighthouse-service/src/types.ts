@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { TraceStreamJson } from '@tracerbench/trace-event'
 import type { ReportOptions } from 'istanbul-reports'
 import type { Totals, CoverageSummaryData } from 'istanbul-lib-coverage'
@@ -187,5 +188,5 @@ export interface PerformanceAuditOptions {
 export interface GathererDriver {
     beginTrace (): Promise<void>
     endTrace (): Promise<TraceStreamJson>
-    evaluate (script: Function, args: Object): Promise<any>
+    evaluate (script: Function, args: unknown): Promise<any>
 }

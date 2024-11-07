@@ -111,7 +111,7 @@ describe('wdio-junit-reporter', () => {
                 type: 'result',
                 body: { value: 'foobar' }
             }]
-        } as any as TestStats
+        } as unknown as TestStats
         expect(reporter['_getStandardOutput'](teststats)).toContain('COMMAND: POST /sessionId/click - {"elementId":"foobar"}')
         expect(reporter['_getStandardOutput'](teststats)).toContain('RESULT: {"value":"foobar"}')
     })

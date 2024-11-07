@@ -76,7 +76,7 @@ function createMatcher (matcherName: string) {
          * Check if context is a `Element` and transform it into a WebdriverIO.Element
          */
         if (context instanceof Element) {
-            expectRequest.element = await $(context as any as HTMLElement)
+            expectRequest.element = await $(context as unknown as HTMLElement)
         } else if (isContextObject && !('sessionId' in context)) {
             /**
              * check if context is an object or promise and resolve it
