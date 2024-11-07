@@ -1,7 +1,7 @@
 import { hostname, platform, type, version, arch } from 'node:os'
 import fs from 'node:fs'
 import zlib from 'node:zlib'
-import { promisify } from 'node:util'
+import { format, promisify } from 'node:util'
 import path from 'node:path'
 import util from 'node:util'
 
@@ -208,6 +208,7 @@ export async function nodeRequest(requestType: string, apiEndpoint: string, opti
 
         return await response.json()
     } catch (error : any) {
+        BStackLogger.debug(`Error in firing request ${apiUrl}/${apiEndpoint}: ${format(error)}`)
         const isLogUpload = apiEndpoint === UPLOAD_LOGS_ENDPOINT
         if (error && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
@@ -415,6 +416,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         processLaunchBuildResponse(jsonResponse, options)
         launchBuildUsage.success()
     } catch (error: any) {
+        BStackLogger.debug(`TestHub build start failed: ${format(error)}`)
         if (!error.success) {
             launchBuildUsage.failed(error)
             logBuildError(error)
