@@ -416,6 +416,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         processLaunchBuildResponse(jsonResponse, options)
         launchBuildUsage.success()
     } catch (error: any) {
+        BStackLogger.debug(`Test observability build start failed: ${format(error)}`)
         if (!error.success) {
             launchBuildUsage.failed(error)
             logBuildError(error)
