@@ -3,7 +3,7 @@ id: coverage
 title: Coverage
 ---
 
-Der Browser-Runner von WebdriverIO unterstützt die Berichterstellung zur Codeabdeckung mit [`istanbul`](https://istanbul.js.org/). Der Testrunner instrumentiert automatisch Ihren Code und erfasst die Codeabdeckung für Sie.
+Der Browser-Runner von WebdriverIO unterstützt die Berichterstellung zur Codeabdeckung mit [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code and capture code coverage for you.
 
 ## Setup
 
