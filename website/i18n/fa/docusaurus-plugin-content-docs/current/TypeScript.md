@@ -17,7 +17,7 @@ WebdriverIO به طور خودکار تشخیص می دهد که آیا این �
 
 If you need to set a different path for `tsconfig.json` please set the TSCONFIG_PATH environment variable with your desired path, or use wdio config's [tsConfigPath setting](/docs/configurationfile).
 
-Alternatively, you can use the [environment variable](https://tsx.is/usage#custom-tsconfig-json-path) for `tsx`.
+Alternatively, you can use the [environment variable](https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path) for `tsx`.
 
 
 #### Type Checking
