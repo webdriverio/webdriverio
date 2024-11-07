@@ -74,6 +74,31 @@ This will generate the report in the specified folder and provide feedback in th
 ✔ Successfully generated the report assets.
 ```
 
+#### Viewing the Report
+
+:::warning
+Opening `path/to/report/index.html` directly in a browser **without serving it from a local server** will **NOT** work.
+:::
+
+To view the report, you need to use a simple server like [sirv-cli](https://www.npmjs.com/package/sirv-cli). You can start the server with the following command:
+
+```bash
+npx sirv-cli /path/to/report --single
+```
+
+This will produce logs similar to the example below. Note that the port number may vary:
+
+```logs
+  Your application is ready~! 🚀
+
+  - Local:      http://localhost:8080
+  - Network:    Add `--host` to expose
+
+────────────────── LOGS ──────────────────
+```
+
+You can now view the report by opening the provided URL in your browser.
+
 ### Using Interactive Prompts
 
 Alternatively, you can run the following command and answer the prompts to generate the report:
