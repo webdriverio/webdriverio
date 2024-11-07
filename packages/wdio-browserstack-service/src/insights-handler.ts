@@ -655,7 +655,7 @@ class _InsightsHandler {
             if (!passed) {
                 testData.result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
                 if (error && testData.result !== 'skipped') {
-                    testData.failure = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
+                    testData.failure = [{ backtrace: [removeAnsiColors(error.message), removeAnsiColors(error.stack || '')] }] // add all errors here
                     testData.failure_reason = removeAnsiColors(error.message)
                     testData.failure_type = isUndefined(error.message) ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
                 }
