@@ -1,4 +1,5 @@
 import type { BrowserstackConfig } from './types'
+import { version as bstackServiceVersion } from '../package.json'
 
 export const BROWSER_DESCRIPTION = [
     'device',
@@ -35,8 +36,20 @@ export const BATCH_EVENT_TYPES = ['LogCreated', 'TestRunStarted', 'TestRunFinish
 export const DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS = 5000 // 5s
 export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms
 
+export const BSTACK_SERVICE_VERSION = bstackServiceVersion
+
 export const ACCESSIBILITY_API_URL = 'https://accessibility.browserstack.com/api'
 export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
+
+export const LOGS_FILE = 'logs/bstack-wdio-service.log'
+export const COLORS: Record<string, string> = {
+    error: 'red',
+    warn: 'yellow',
+    info: 'cyanBright',
+    debug: 'green',
+    trace: 'cyan',
+    progress: 'magenta'
+}
 
 export const PERCY_LOGS_FILE = 'logs/percy.log'
 
@@ -51,3 +64,55 @@ export const PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS = [
 ]
 
 export const CAPTURE_MODES = ['click', 'auto', 'screenshot', 'manual', 'testcase']
+
+export const LOG_KIND_USAGE_MAP = {
+    'TEST_LOG': 'log',
+    'TEST_SCREENSHOT': 'screenshot',
+    'TEST_STEP': 'step',
+    'HTTP': 'http'
+}
+
+export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'
+
+export const SUPPORTED_BROWSERS_FOR_AI = ['chrome', 'microsoftedge', 'firefox']
+
+export const TCG_URL = 'https://tcg.browserstack.com'
+
+export const TCG_INFO = {
+    tcgRegion: 'use',
+    tcgUrl: TCG_URL,
+}
+
+// Env variables - Define all the env variable constants over here
+
+// To store the JWT token returned the session launch
+export const TESTOPS_JWT_ENV = 'BS_TESTOPS_JWT'
+
+// To store tcg auth result for selfHealing feature:
+export const BSTACK_TCG_AUTH_RESULT = 'BSTACK_TCG_AUTH_RESULT'
+
+// To store the setting of whether to send screenshots or not
+export const TESTOPS_SCREENSHOT_ENV = 'BS_TESTOPS_ALLOW_SCREENSHOTS'
+
+// To store build hashed id
+export const TESTOPS_BUILD_ID_ENV = 'BS_TESTOPS_BUILD_HASHED_ID'
+
+// Whether to collect performance instrumentation or not
+export const PERF_MEASUREMENT_ENV = 'BROWSERSTACK_O11Y_PERF_MEASUREMENT'
+
+// Whether the current run is rerun or not
+export const RERUN_TESTS_ENV = 'BROWSERSTACK_RERUN_TESTS'
+
+// The tests that needs to be rerun
+export const RERUN_ENV = 'BROWSERSTACK_RERUN'
+
+// To store whether the build launch has completed or not
+export const TESTOPS_BUILD_COMPLETED_ENV = 'BS_TESTOPS_BUILD_COMPLETED'
+
+// Maximum size of VCS info which is allowed
+export const MAX_GIT_META_DATA_SIZE_IN_BYTES = 64 * 1024
+
+/* The value to be appended at the end if git metadata is larger than
+MAX_GIT_META_DATA_SIZE_IN_BYTES
+*/
+export const GIT_META_DATA_TRUNCATED = '...[TRUNCATED]'

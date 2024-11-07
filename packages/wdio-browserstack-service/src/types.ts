@@ -20,7 +20,6 @@ export type AppConfig = {
     custom_id?: string,
     shareable_id?: string
 }
-
 export interface AppUploadResponse {
     app_url?: string,
     custom_id?: string,
@@ -38,6 +37,10 @@ export interface TestObservabilityOptions {
     buildTag?: string[],
     user?: string,
     key?: string
+}
+
+export interface BrowserstackOptions extends Options.Testrunner {
+    selfHeal?: boolean;
 }
 
 export interface BrowserstackConfig {
@@ -234,18 +237,26 @@ export interface UserConfig {
 export interface UploadType {
     event_type: string,
     hook_run?: TestData,
-    test_run?: TestData,
-    logs?: any[]
+    test_run?: TestData|CBTData,
+    logs?: LogData[]
 }
 
-export interface StdLog {
-    timestamp: string,
-    kind: string
-    level?: string,
-    message?: string,
-    http_response?: any,
-    test_run_uuid?: string,
+export interface LogData {
+    timestamp: string
+    kind: 'TEST_LOG'|'TEST_STEP'|'HTTP'|'TEST_SCREENSHOT'
+    test_run_uuid?: string
     hook_run_uuid?: string
+    message?: string
+    level?: string
+    http_response?: any
+}
+
+export interface StdLog extends LogData {
+    kind: 'TEST_LOG'
+}
+
+export interface ScreenshotLog extends LogData {
+    kind: 'TEST_SCREENSHOT'
 }
 
 export interface LaunchResponse {
@@ -277,6 +288,7 @@ interface IntegrationObject {
     browser_version?: string
     platform?: string
     product?: string
+    platform_version?: string
 }
 
 interface TestCodeBody {
@@ -298,3 +310,28 @@ interface StepData {
 interface Failure {
     backtrace: string[]
 }
+
+export interface FeatureStatsOverview {
+    triggeredCount: number
+    sentCount: number
+    failedCount: number
+}
+
+export interface FeaturesUsageData {
+    isTriggered?: boolean
+    status?: string
+    error?: string
+}
+
+export interface CBTData {
+    uuid: string
+    integrations: IntegrationObject
+}
+
+export interface TOUsageStats {
+    enabled: boolean
+    manuallySet: boolean
+    buildHashedId?: string
+    events?: any
+}
+

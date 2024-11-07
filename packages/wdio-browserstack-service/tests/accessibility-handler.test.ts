@@ -175,8 +175,7 @@ describe('beforeScenario', () => {
             }
         } as any)
 
-        expect(executeAsyncSpy).toBeCalledTimes(1)
-        expect(logInfoMock.mock.calls[1][0])
+        expect(logInfoMock.mock.calls[0][0])
             .toContain('Automate test case execution has started.')
     })
 
@@ -222,7 +221,7 @@ describe('beforeScenario', () => {
             }
         } as any)
 
-        expect(executeSpy).toBeCalledTimes(1)
+        expect(executeSpy).toBeCalledTimes(0)
     })
 
     it('should not execute test started if shouldRunTestHooks is false', async () => {
@@ -248,7 +247,7 @@ describe('beforeScenario', () => {
         const logErrorMock = jest.spyOn(log, 'error')
         jest.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
         accessibilityHandler['shouldRunTestHooks'] = jest.fn().mockImplementation(() => { return true })
-        accessibilityHandler['sendTestStartEvent'] = jest.fn().mockImplementation(() => { throw new Error() })
+        accessibilityHandler['checkIfPageOpened'] = jest.fn().mockImplementation(() => { throw new Error() })
         await accessibilityHandler.beforeScenario({
             pickle: {
                 name: 'pickle-name',
@@ -393,12 +392,10 @@ describe('beforeTest', () => {
         it('should execute test started if page opened and can scan the page', async () => {
             const logInfoMock = jest.spyOn(log, 'info')
             jest.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
-            accessibilityHandler['sendTestStartEvent'] = jest.fn().mockImplementation(() => { return [] })
 
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
-            expect(accessibilityHandler['sendTestStartEvent']).toBeCalledTimes(1)
-            expect(logInfoMock.mock.calls[1][0])
+            expect(logInfoMock.mock.calls[0][0])
                 .toContain('Automate test case execution has started.')
             jest.fn().mockRestore()
         })
@@ -419,21 +416,20 @@ describe('beforeTest', () => {
             jest.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(false)
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
-            expect(executeSpy).toBeCalledTimes(1)
+            expect(executeAsyncSpy).toBeCalledTimes(0)
         })
 
         it('should not execute test started if shouldRunTestHooks is false', async () => {
             accessibilityHandler['shouldRunTestHooks'] = jest.fn().mockImplementation(() => { return false })
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
-            expect(executeSpy).toBeCalledTimes(0)
+            expect(executeAsyncSpy).toBeCalledTimes(0)
         })
 
         it('should throw error in before test if exception occurs', async () => {
             const logErrorMock = jest.spyOn(log, 'error')
             jest.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
-            accessibilityHandler['shouldRunTestHooks'] = jest.fn().mockImplementation(() => { return true })
-            accessibilityHandler['sendTestStartEvent'] = jest.fn().mockImplementation(() => { throw new Error() })
+            accessibilityHandler['checkIfPageOpened'] = jest.fn().mockImplementation(() => { throw new Error() })
             await accessibilityHandler.beforeTest('suite title', { parent: 'parent', title: 'test' } as any)
 
             expect(logErrorMock.mock.calls[0][0])

@@ -2,8 +2,8 @@ import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import CrashReporter from './crash-reporter'
-import type { BrowserstackConfig, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types'
-import { DEFAULT_OPTIONS } from './constants'
+import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types'
+import { DEFAULT_OPTIONS, PERF_MEASUREMENT_ENV } from './constants'
 
 import got from 'got'
 import type { OptionsOfJSONResponseBody } from 'got'
@@ -15,12 +15,18 @@ import {
     getBrowserCapabilities,
     isBrowserstackCapability,
     getParentSuiteName,
-    isBrowserstackSession, patchConsoleLogs
+    isBrowserstackSession, patchConsoleLogs,
+    shouldAddServiceVersion
 } from './util'
 import TestReporter from './reporter'
 import PerformanceTester from './performance-tester'
 import AccessibilityHandler from './accessibility-handler'
 import PercyHandler from './Percy/Percy-Handler'
+import Listener from './testOps/listener'
+import { saveWorkerData } from './data-store'
+import UsageStats from './testOps/usageStats'
+import AiHandler from './ai-handler'
+import { BStackLogger } from './bstackLogger'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -32,11 +38,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _suiteTitle?: string
     private _fullTitle?: string
-    private _options: BrowserstackConfig & Options.Testrunner
+    private _options: BrowserstackConfig & BrowserstackOptions
     private _specsRan: boolean = false
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
     private _insightsHandler?: InsightsHandler
+    private _percyCaptureMode: string | undefined = undefined
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
     private _turboScale
@@ -53,12 +60,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config || (this._config = this._options)
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
-        this._percy = this._options.percy
+        this._percy =  process.env.BROWSERSTACK_PERCY === 'true'
+        this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
         if (this._observability) {
             this._config.reporters?.push(TestReporter)
-            if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+            if (process.env[PERF_MEASUREMENT_ENV]) {
                 PerformanceTester.startMonitoring('performance-report-service.csv')
             }
         }
@@ -66,6 +74,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (process.env.BROWSERSTACK_TURBOSCALE) {
             this._turboScale = process.env.BROWSERSTACK_TURBOSCALE === 'true'
         }
+        process.env.BROWSERSTACK_TURBOSCALE_INTERNAL = String(this._turboScale)
 
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
@@ -109,6 +118,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : (global as any).browser
 
+        // Healing Support:
+        if (!shouldAddServiceVersion(this._config, this._options.testObservability, caps as any)) {
+            try {
+                await AiHandler.selfHeal(this._options, caps, this._browser as Browser<'async'> | MultiRemoteBrowser<'async'>)
+            } catch (err) {
+                if (this._options.selfHeal === true) {
+                    BStackLogger.warn(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
+                }
+            }
+        }
+
         // Ensure capabilities are not null in case of multiremote
 
         if (this._isAppAutomate()) {
@@ -124,7 +144,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._browser) {
             if (this._percy) {
                 this._percyHandler = new PercyHandler(
-                    this._options.percyCaptureMode,
+                    this._percyCaptureMode,
                     this._browser,
                     this._caps,
                     this._isAppAutomate(),
@@ -135,8 +155,32 @@ export default class BrowserstackService implements Services.ServiceInstance {
             try {
                 if (this._observability) {
                     patchConsoleLogs()
-                    this._insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
+
+                    this._insightsHandler = new InsightsHandler(
+                        this._browser,
+                        this._browser.capabilities as Capabilities.Capabilities,
+                        this._browser.sessionId as string,
+                        this._config.framework,
+                        this._caps,
+                        this._options
+                    )
                     await this._insightsHandler.before()
+                }
+
+                if (this._browser && isBrowserstackSession(this._browser)) {
+                    try {
+                        this._accessibilityHandler = new AccessibilityHandler(
+                            this._browser,
+                            this._caps,
+                            this._isAppAutomate(),
+                            this._config.framework,
+                            this._accessibility,
+                            this._options.accessibilityOptions
+                        )
+                        await this._accessibilityHandler.before(this._browser.sessionId as string)
+                    } catch (err) {
+                        log.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
+                    }
                 }
 
                 /**
@@ -175,22 +219,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 if (this._observability) {
                     CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
                 }
-            }
-        }
-
-        if (this._browser && isBrowserstackSession(this._browser)) {
-            try {
-                this._accessibilityHandler = new AccessibilityHandler(
-                    this._browser,
-                    this._caps,
-                    this._isAppAutomate(),
-                    this._config.framework,
-                    this._accessibility,
-                    this._options.accessibilityOptions
-                )
-                await this._accessibilityHandler.before()
-            } catch (err) {
-                log.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
             }
         }
 
@@ -266,16 +294,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
             await this._updateJob({
                 status: result === 0 && this._specsRan ? 'passed' : 'failed',
                 ...(setSessionName ? { name: this._fullTitle } : {}),
-                ...(hasReasons ? { reason: this._failReasons.join('\n') } : {})
+                ...(result === 0 && this._specsRan ?
+                    {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
             })
         }
 
-        await this._insightsHandler?.uploadPending()
-        await this._insightsHandler?.teardown()
-
+        await Listener.getInstance().onWorkerEnd()
         await this._percyHandler?.teardown()
+        this.saveWorkerData()
 
-        if (process.env.BROWSERSTACK_O11Y_PERF_MEASUREMENT) {
+        if (process.env[PERF_MEASUREMENT_ENV]) {
             await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
                 'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
@@ -377,7 +405,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
         const desiredCapabilities = (this._caps ?? {})  as Capabilities.DesiredCapabilities
 
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!browserDesiredCapabilities.app || !!desiredCapabilities.app
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!browserDesiredCapabilities.app || !!desiredCapabilities.app || !!desiredCapabilities['appium:options']?.app
     }
 
     _updateJob (requestBody: any) {
@@ -397,7 +425,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (!_browser.isMultiremote) {
-            return action(_browser.sessionId)
+            return action(_browser.sessionId as string)
         }
 
         return Promise.all(_browser.instances
@@ -518,5 +546,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         return (await this._browser.execute<T, []>(script))
+    }
+
+    private saveWorkerData() {
+        saveWorkerData({
+            usageStats: UsageStats.getInstance().getDataToSave()
+        })
     }
 }

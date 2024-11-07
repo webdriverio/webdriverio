@@ -2,6 +2,7 @@ import gitRepoInfo from 'git-repo-info'
 import got from 'got'
 import path from 'path'
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 import * as utils from '../src/util'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
@@ -34,7 +35,6 @@ import {
     removeAnsiColors,
     shouldAddServiceVersion,
     stopBuildUpstream,
-    uploadEventData,
     validateCapsWithA11y,
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
@@ -43,6 +43,7 @@ import {
     frameworkSupportsHook,
     getFailureObject
 } from '../src/util'
+import { TESTOPS_JWT_ENV, TESTOPS_BUILD_COMPLETED_ENV } from '../src/constants'
 
 const log = logger('test')
 
@@ -645,19 +646,19 @@ describe('stopBuildUpstream', () => {
     const mockedGot = jest.mocked(got)
 
     it('return error if completed but jwt token not present', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        delete process.env[TESTOPS_JWT_ENV]
 
         const result: any = await stopBuildUpstream()
 
-        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+        delete process.env[TESTOPS_BUILD_COMPLETED_ENV]
         expect(result.status).toEqual('error')
         expect(result.message).toEqual('Token/buildID is undefined, build creation might have failed')
     })
 
     it('return success if completed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         mockedGot.put = jest.fn().mockReturnValue({
             json: () => Promise.resolve({}),
@@ -669,8 +670,8 @@ describe('stopBuildUpstream', () => {
     })
 
     it('return error if failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
 
         mockedGot.put = jest.fn().mockReturnValue({
             json: () => Promise.reject({}),
@@ -701,59 +702,12 @@ describe('launchTestSession', () => {
     })
 })
 
-describe('uploadEventData', () => {
-    const mockedGot = jest.mocked(got)
-
-    it('got.post called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        mockedGot.post = jest.fn().mockReturnValue({
-            json: () => Promise.resolve({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(1)
-    })
-
-    it('got.post failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
-        mockedGot.post = jest.fn().mockReturnValue({
-            json: () => Promise.reject({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(1)
-    })
-
-    it('got.post not called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
-        mockedGot.post = jest.fn().mockReturnValue({
-            json: () => Promise.resolve({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(0)
-    })
-
-    it('return if BS_TESTOPS_BUILD_COMPLETED not defined', async () => {
-        delete process.env.BS_TESTOPS_BUILD_COMPLETED
-        mockedGot.post = jest.fn().mockReturnValue({
-            json: () => Promise.resolve({ }),
-        } as any)
-
-        await uploadEventData( { event_type: 'testRunStarted' } )
-        expect(got.post).toBeCalledTimes(0)
-    })
-})
-
 describe('batchAndPostEvents', () => {
     const mockedGot = jest.mocked(got)
 
     it('got.post called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.resolve({ }),
         } as any)
@@ -763,34 +717,34 @@ describe('batchAndPostEvents', () => {
     })
 
     it('got.post failed', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        process.env.BS_TESTOPS_JWT = 'jwt'
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        process.env[TESTOPS_JWT_ENV] = 'jwt'
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.reject({ }),
         } as any)
 
-        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        await expect(batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )).rejects.toThrowError(/Exception in request/)
         expect(got.post).toBeCalledTimes(1)
     })
 
     it('got.post not called', async () => {
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        delete process.env.BS_TESTOPS_JWT
+        process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+        delete process.env[TESTOPS_JWT_ENV]
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.resolve({ }),
         } as any)
 
-        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        await expect(batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )).rejects.toThrowError(/Missing authentication/)
         expect(got.post).toBeCalledTimes(0)
     })
 
-    it('return if BS_TESTOPS_BUILD_COMPLETED not defined', async () => {
-        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+    it('throw error if BS_TESTOPS_BUILD_COMPLETED not defined', async () => {
+        delete process.env[TESTOPS_BUILD_COMPLETED_ENV]
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.resolve({ }),
         } as any)
 
-        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        await expect(batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )).rejects.toThrowError(/Build not completed/)
         expect(got.post).toBeCalledTimes(0)
     })
 })
@@ -971,8 +925,12 @@ describe('getObservabilityBuildTags', () => {
 
 describe('shouldAddServiceVersion', () => {
     it('return true', () => {
-        expect(shouldAddServiceVersion({}, false)).toEqual(true)
-        expect(shouldAddServiceVersion({ services: ['chromedriver'] }, false)).toEqual(true)
+        const cfg = {
+            user: 'foo',
+            key: '12345678901234567890',
+            services: ['chromedriver']
+        }
+        expect(shouldAddServiceVersion(cfg as any, false)).toEqual(true)
     })
 
     it('return false', () => {
@@ -1276,7 +1234,7 @@ describe('getA11yResults', () => {
         getInstance: jest.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserB: {},
         execute: jest.fn(),
-        executeAsync: async () => { 'done' },
+        executeAsync: jest.fn(),
         on: jest.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
@@ -1294,7 +1252,7 @@ describe('getA11yResults', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         jest.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResults((browser as WebdriverIO.Browser), true, true)
-        expect(browser.execute).toBeCalledTimes(1)
+        expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
 
@@ -1322,7 +1280,7 @@ describe('getA11yResultsSummary', () => {
         getInstance: jest.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserB: {},
         execute: jest.fn(),
-        executeAsync: async () => { 'done' },
+        executeAsync: jest.fn(),
         on: jest.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
@@ -1340,7 +1298,7 @@ describe('getA11yResultsSummary', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         jest.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, true)
-        expect(browser.execute).toBeCalledTimes(1)
+        expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
 
@@ -1408,5 +1366,29 @@ describe('ObjectsAreEqual', function () {
 
     it('should return false for unequal values', function () {
         expect(utils.ObjectsAreEqual({ 'a': true }, { 'b': false })).toEqual(false)
+    })
+})
+
+describe('getPlatformVersion', () => {
+    it('should return undefined if no capabilities are provided', () => {
+        expect(utils.getPlatformVersion(null)).toBeUndefined()
+    })
+
+    it('should return platform version from bstack:options if available', () => {
+        const caps: Capabilities.Capabilities = {
+            'bstack:options': {
+                osVersion: '10.0'
+            },
+        }
+
+        expect(utils.getPlatformVersion(caps)).toBe('10.0')
+    })
+
+    it('should return undefined if no platform version is found', () => {
+        const caps: Capabilities.Capabilities = {
+            browserName: 'chrome',
+        }
+
+        expect(utils.getPlatformVersion(caps)).toBeUndefined()
     })
 })

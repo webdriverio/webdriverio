@@ -57,7 +57,8 @@ describe('Percy Class', () => {
     describe('health check method', () => {
         it('should return true if running', async () => {
             percyInstance = new Percy({}, {}, { projectName: 'testProject' })
-            const nodeRequestSpy = jest.spyOn(utils, 'nodeRequest').mockReturnValue(true)
+            const response = { build: { id: '123' } }
+            const nodeRequestSpy = jest.spyOn(utils, 'nodeRequest').mockReturnValue(response)
             const res = await percyInstance.healthcheck()
             expect(nodeRequestSpy).toBeCalledTimes(1)
             expect(res).toEqual(true)
@@ -219,6 +220,7 @@ describe('Percy Class', () => {
             const fetchPercyTokenSpy = jest.spyOn(percyInstance, 'fetchPercyToken').mockReturnValue('token')
             const createPercyConfigSpy = jest.spyOn(percyInstance, 'createPercyConfig').mockReturnValue('config_path')
             const sleepSpy = jest.spyOn(percyInstance, 'sleep')
+            const healthcheckSpy = jest.spyOn(percyInstance, 'healthcheck').mockResolvedValue(true)
 
             const res = await percyInstance.start()
             expect(res).toEqual(true)
@@ -226,6 +228,7 @@ describe('Percy Class', () => {
             expect(fetchPercyTokenSpy).toBeCalledTimes(1)
             expect(createPercyConfigSpy).toBeCalledTimes(1)
             expect(sleepSpy).toBeCalledTimes(0)
+            expect(healthcheckSpy).toBeCalledTimes(1)
         })
     })
 })

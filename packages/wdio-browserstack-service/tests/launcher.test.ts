@@ -17,6 +17,7 @@ import fs from 'fs'
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
 import { Testrunner } from '@wdio/types/build/Options'
+import { RERUN_TESTS_ENV, RERUN_ENV } from '../src/constants'
 
 const expect = global.expect as unknown as jest.Expect
 
@@ -33,49 +34,51 @@ describe('onPrepare', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
     const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
+    const logDebugSpy = jest.spyOn(log, 'debug').mockImplementation((string) => string)
     jest.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
     jest.spyOn(utils, 'isBStackSession').mockImplementation(() => {return true})
 
-    it('should not try to upload app is app is undefined', () => {
+    it('should not try to upload app is app is undefined', async () => {
         const service = new BrowserstackLauncher({}, caps, config)
-        service.onPrepare()
+        await service.onPrepare()
 
-        expect(logInfoSpy).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
+        expect(logDebugSpy).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
     })
 
-    it('should not call local if browserstackLocal is undefined', () => {
-        const service = new BrowserstackLauncher({ testObservability: false }, caps, {
+    it('should not call local if browserstackLocal is undefined', async () => {
+        const service = new BrowserstackLauncher({ testObservability: false, percy: false }, caps, {
             user: 'foobaruser',
             key: '12345',
             capabilities: []
         })
-        service.onPrepare()
+        await service.onPrepare()
 
-        expect(logInfoSpy).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(logInfoSpy).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
-    it('should not call local if browserstackLocal is false', () => {
+    it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
-            testObservability: false
+            testObservability: false,
+            percy: false
         }, caps, {
             user: 'foobaruser',
             key: '12345',
             capabilities: []
         })
-        service.onPrepare()
+        await service.onPrepare()
 
-        expect(logInfoSpy).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
+        expect(logInfoSpy).toHaveBeenNthCalledWith(1, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
     it('should add the "app" property to a multiremote capability if no "bstack:options"', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>', percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = { samsungGalaxy: { capabilities: {} } }
 
@@ -84,7 +87,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" property to a multiremote capability if "bstack:options" present', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>', percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = { samsungGalaxy: { capabilities: { 'bstack:options': {} } } }
 
@@ -93,7 +96,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" property to a multiremote capability if any extension cap present', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>',  percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = { samsungGalaxy: { capabilities: { 'appium:chromeOptions': {} } } }
 
@@ -102,7 +105,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "app" property to an array of capabilities if no "bstack:options"', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>',  percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{}, {}, {}]
 
@@ -115,7 +118,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" property to an array of capabilities if "bstack:options" present', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>', percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
 
@@ -128,7 +131,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" property to an array of capabilities if any extension cap present', async () => {
-        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const options: BrowserstackConfig = { app: 'bs://<app-id>',  percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'appium:chromeOptions': {} }, { 'appium:chromeOptions': {} }]
 
@@ -140,7 +143,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" as custom_id of app to capability object', async () => {
-        const options: BrowserstackConfig = { app: 'custom_id' }
+        const options: BrowserstackConfig = { app: 'custom_id',  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'appium:chromeOptions': {} }, { 'appium:chromeOptions': {} }]
 
@@ -152,7 +155,7 @@ describe('onPrepare', () => {
     })
 
     it('should add the "appium:app" as shareable_id of app to capability object', async () => {
-        const options: BrowserstackConfig = { app: 'user/custom_id' }
+        const options: BrowserstackConfig = { app: 'user/custom_id',  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'appium:chromeOptions': {} }, { 'appium:chromeOptions': {} }]
 
@@ -164,7 +167,7 @@ describe('onPrepare', () => {
     })
 
     it('should add "appium:app" property with value returned from app upload to capabilities', async () => {
-        const options: BrowserstackConfig = { app: '/some/dummy/file.apk' }
+        const options: BrowserstackConfig = { app: '/some/dummy/file.apk',  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
 
@@ -180,7 +183,7 @@ describe('onPrepare', () => {
     })
 
     it('should upload app if path property present in appConfig', async() => {
-        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk' } }
+        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk' },  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
 
@@ -196,7 +199,7 @@ describe('onPrepare', () => {
     })
 
     it('should upload app along with custom_id if path and custom_id property present in appConfig', async() => {
-        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk', custom_id: 'custom_id' } }
+        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk', custom_id: 'custom_id' },  percy: false  }
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
 
@@ -441,7 +444,7 @@ describe('onPrepare', () => {
         const capabilities = [{ build: 'browserstack wdio build', 'browserstack.buildIdentifier': '#${BUILD_NUMBER}' }]
         const service = new BrowserstackLauncher(options, capabilities, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -459,7 +462,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         }, capabilities, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -477,7 +480,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         }, capabilities, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -494,7 +497,7 @@ describe('onPrepare', () => {
             buildIdentifier: '#${BUILD_NUMBER}',
         }, capabilities, {
             user: 'foobaruser',
-            key: '12345',
+            key: '12345678901234567890',
             capabilities: []
         })
         jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
@@ -613,7 +616,7 @@ describe('constructor', () => {
     const options: BrowserstackConfig = { }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: [],
         specs: []
     }
@@ -708,16 +711,16 @@ describe('constructor', () => {
     })
 
     it('update spec list if it is a rerun', async () => {
-        process.env.BROWSERSTACK_RERUN = 'true'
-        process.env.BROWSERSTACK_RERUN_TESTS = 'demo1.test.js,demo2.test.js'
+        process.env[RERUN_ENV] = 'true'
+        process.env[RERUN_TESTS_ENV] = 'demo1.test.js,demo2.test.js'
 
         const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
         new BrowserstackLauncher(options, caps, config)
 
         expect(config.specs).toEqual(['demo1.test.js', 'demo2.test.js'])
 
-        delete process.env.BROWSERSTACK_RERUN
-        delete process.env.BROWSERSTACK_RERUN_TESTS
+        delete process.env[RERUN_ENV]
+        delete process.env[RERUN_TESTS_ENV]
     })
 
     describe('#non-bstack session', () => {
@@ -736,7 +739,7 @@ describe('_updateCaps', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -851,7 +854,7 @@ describe('_updateObjectTypeCaps', () => {
     const caps: any = [{}]
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 
@@ -1029,7 +1032,7 @@ describe('_handleBuildIdentifier', () => {
     const options: BrowserstackConfig & Testrunner = { browserstackLocal: true, capabilities: [] }
     const config = {
         user: 'foobaruser',
-        key: '12345',
+        key: '12345678901234567890',
         capabilities: []
     }
 

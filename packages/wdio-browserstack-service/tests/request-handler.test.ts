@@ -1,68 +1,31 @@
-import { DATA_BATCH_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from '../src/constants'
 import RequestQueueHandler from '../src/request-handler'
-import * as utils from '../src/util'
+import { TESTOPS_BUILD_COMPLETED_ENV } from '../src/constants'
 
 jest.useFakeTimers()
 
 describe('RequestQueueHandler', () => {
+    const mockHandler = jest.fn()
 
-    describe('start', () => {
-        const requestQueueHandler = RequestQueueHandler.getInstance()
-
-        it('update started if not started', () => {
-            requestQueueHandler['started'] = false
-            requestQueueHandler.start()
-            expect(requestQueueHandler['started']).toBe(true)
-        })
+    afterEach(() => {
+        jest.resetAllMocks()
     })
 
     describe('add', () => {
-        const requestQueueHandler = RequestQueueHandler.getInstance()
+        const requestQueueHandler = RequestQueueHandler.getInstance(mockHandler)
 
-        describe('return false if BS_TESTOPS_BUILD_COMPLETED not present', () => {
-            it('proceed = false', () => {
-                delete process.env.BS_TESTOPS_BUILD_COMPLETED
-                const req = requestQueueHandler.add({ event_type: 'there' })
-                expect(req).toEqual({ proceed: false })
-            })
+        it('throws error if BS_TESTOPS_BUILD_COMPLETED not present', () => {
+            delete process.env[TESTOPS_BUILD_COMPLETED_ENV]
+            expect(() => requestQueueHandler.add({ event_type: 'there' })).toThrowError()
         })
 
-        describe('return proceed = true', () => {
-            beforeEach(() => {
-                process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-            })
-
-            it('if event_type not in BATCH_EVENT_TYPES', () => {
-                const req = requestQueueHandler.add({ event_type: 'not there' })
-                expect(req.proceed).toEqual(true)
-            })
-
-            it('if event_type is TEST_SCREENSHOT', () => {
-                const req = requestQueueHandler.add({ event_type: 'LogCreated', logs: [{ kind: 'TEST_SCREENSHOT' }] })
-                expect(req.proceed).toEqual(true)
-                expect(req.url).toEqual(DATA_SCREENSHOT_ENDPOINT)
-            })
-
-            it('if event_type in BATCH_EVENT_TYPES', () => {
-                const req = requestQueueHandler.add({ event_type: 'LogCreated', logs: [{ kind: 'HTTP' }] })
-                expect(req.url).toEqual(DATA_BATCH_ENDPOINT)
-            })
-        })
-
-        describe('shouldProceed returns true', () => {
-            jest.spyOn(requestQueueHandler, 'shouldProceed').mockReturnValueOnce(true)
-            beforeEach(() => {
-                process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-            })
-            it('if event_type in BATCH_EVENT_TYPES', () => {
-                const req = requestQueueHandler.add({ event_type: 'LogCreated', logs: [{ kind: 'HTTP' }] })
-                expect(req.url).toEqual(DATA_BATCH_ENDPOINT)
-            })
+        it('if event_type in BATCH_EVENT_TYPES', () => {
+            process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+            expect(() => requestQueueHandler.add({ event_type: 'LogCreated', logs: [{ kind: 'HTTP' }] })).not.toThrowError()
         })
     })
 
     describe('shouldProceed', () => {
-        const requestQueueHandler = RequestQueueHandler.getInstance()
+        const requestQueueHandler = RequestQueueHandler.getInstance(mockHandler)
 
         it('return true if queue length greater than batch size', () => {
             requestQueueHandler['queue'] = { length: 99999 }
@@ -76,21 +39,17 @@ describe('RequestQueueHandler', () => {
     })
 
     describe('shutdown', () => {
-        const requestQueueHandler = RequestQueueHandler.getInstance()
-        const batchAndPostEventsSpy = jest.spyOn(utils, 'batchAndPostEvents').mockImplementation()
-
-        beforeEach(() => {
-            batchAndPostEventsSpy.mockClear()
-        })
+        const requestQueueHandler = RequestQueueHandler.getInstance(mockHandler)
 
         it('return true if queue length greater than batch size', () => {
             requestQueueHandler['queue'] = [{ event_type: 'LogCreated', logs: [{ kind: 'HTTP' }] }]
             requestQueueHandler.shutdown()
-            expect(batchAndPostEventsSpy).toBeCalled()
+            expect(mockHandler).toBeCalled()
         })
     })
+
     describe('resetEventBatchPolling', () => {
-        const requestQueueHandler = RequestQueueHandler.getInstance()
+        const requestQueueHandler = RequestQueueHandler.getInstance(mockHandler)
         const removeEventBatchPollingSpy = jest.spyOn(requestQueueHandler, 'removeEventBatchPolling')
         const startEventBatchPollingSpy = jest.spyOn(requestQueueHandler, 'startEventBatchPolling')
 

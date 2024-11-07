@@ -19,6 +19,85 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.39.0 (2024-10-07)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#13738](https://github.com/webdriverio/webdriverio/pull/13738) v7: Fix Percy instrumentation ([@akanksha1909](https://github.com/akanksha1909))
+  * [#13570](https://github.com/webdriverio/webdriverio/pull/13570) v7: Auto Enable App Percy for App Automate ([@akanksha1909](https://github.com/akanksha1909))
+  * [#13439](https://github.com/webdriverio/webdriverio/pull/13439) Browserstack Turboscale Observability Integration ([@amaanbs](https://github.com/amaanbs))
+
+#### Committers: 2
+- Akanksha singh ([@akanksha1909](https://github.com/akanksha1909))
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+
+
+## v7.38.1 (2024-09-02)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#13341](https://github.com/webdriverio/webdriverio/pull/13341) V7 ai support ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### Committers: 2
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
+## v7.38.0 (2024-08-07)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#13224](https://github.com/webdriverio/webdriverio/pull/13224) fix(wdio-browserstack-service): Fetching hostname in case of MultiRemote Browser  ([@akanksha1909](https://github.com/akanksha1909))
+  * [#12953](https://github.com/webdriverio/webdriverio/pull/12953) SDK-694: Fix for showing reason for passed test (v7) ([@TamsilAmani](https://github.com/TamsilAmani))
+  * [#12848](https://github.com/webdriverio/webdriverio/pull/12848) [browserstack-service] Minor Fix: Change log level  ([@sriteja777](https://github.com/sriteja777))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#12931](https://github.com/webdriverio/webdriverio/pull/12931) SDK-667 : Limit VCS info to 64kb v7 ([@TamsilAmani](https://github.com/TamsilAmani))
+
+#### Committers: 3
+- Akanksha singh ([@akanksha1909](https://github.com/akanksha1909))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- Tamsil Sajid Amani ([@TamsilAmani](https://github.com/TamsilAmani))
+
+
+## v7.37.1 (2024-04-20)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#12596](https://github.com/webdriverio/webdriverio/pull/12596) [v7][browserstack-service] fix cucumber test duration ([@samarsault](https://github.com/samarsault))
+
+#### Committers: 1
+- Samarjeet ([@samarsault](https://github.com/samarsault))
+
+
+## v7.37.0 (2024-03-22)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#12482](https://github.com/webdriverio/webdriverio/pull/12482) BrowserStack Accessibility stability improvements ([@07souravkunda](https://github.com/07souravkunda))
+
+#### Committers: 2
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
+
+
+## v7.36.0 (2024-03-07)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#12443](https://github.com/webdriverio/webdriverio/pull/12443) [browserstack-service] Add Funnel Data instrumentation [v7] ([@sriteja777](https://github.com/sriteja777))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#12369](https://github.com/webdriverio/webdriverio/pull/12369) Browserstack observability reload session fix [v7] ([@sriteja777](https://github.com/sriteja777))
+  * [#12330](https://github.com/webdriverio/webdriverio/pull/12330) fix: added filename in file upload ([@innovater21](https://github.com/innovater21))
+
+#### Committers: 2
+- Abhishek Jha ([@innovater21](https://github.com/innovater21))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+
+
 ## v7.35.0 (2024-02-13)
 
 #### :rocket: New Feature
