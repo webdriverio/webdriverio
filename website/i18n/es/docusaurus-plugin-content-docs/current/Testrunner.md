@@ -3,7 +3,7 @@ id: testrunner
 title: Testrunner
 ---
 
-WebdriverIO viene con su propio corredor de pruebas para ayudarle a empezar a probar tan pronto como sea posible. Se supone que hacer todo el trabajo por usted, permite integrarse a servicios de terceros, y le ayuda a ejecutar sus pruebas de la manera más eficiente posible.
+WebdriverIO viene con su propio corredor de pruebas para ayudarle a empezar a probar tan pronto como sea posible. It is supposed to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
 
 El testrunner de WebdriverIO está recopilado por separado en el paquete NPM `@wdio/cli`.
 
