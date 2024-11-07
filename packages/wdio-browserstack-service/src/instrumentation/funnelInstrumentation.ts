@@ -1,5 +1,5 @@
 import os from 'node:os'
-import util from 'node:util'
+import util, { format } from 'node:util'
 import path from 'node:path'
 import fs from 'node:fs'
 import UsageStats from '../testOps/usageStats.js'
@@ -23,7 +23,7 @@ async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig
         BStackLogger.debug('Funnel event success')
         config.sentFunnelData()
     } catch (error) {
-        BStackLogger.debug('Exception in sending funnel data: ' + error)
+        BStackLogger.debug(`Exception in sending funnel data: ${format(error)}`)
     }
 }
 

@@ -452,7 +452,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.on('SIGINT', handler)
             process.on('SIGTERM', handler)
         } catch (err: unknown) {
-            PercyLogger.debug(`Error in percy setup ${err}`)
+            PercyLogger.debug(`Error in percy setup ${format(err)}`)
             process.env[BROWSERSTACK_PERCY] = 'false'
         }
     }
