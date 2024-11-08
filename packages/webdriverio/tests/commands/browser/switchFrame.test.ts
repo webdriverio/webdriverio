@@ -60,6 +60,12 @@ describe('switchFrame command', () => {
                 })
             )
         })
+
+        it('switch to parent frame', async () => {
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame')
+            await browser.switchFrame(null)
+            expect(switchToFrame).toHaveBeenCalledWith(null)
+        })
     })
 
     describe('bidi', () => {
