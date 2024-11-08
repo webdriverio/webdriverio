@@ -3,7 +3,7 @@ import path from 'node:path'
 import BrowserStackConfig from './config.js'
 import { saveFunnelData } from './instrumentation/funnelInstrumentation.js'
 import { fileURLToPath } from 'node:url'
-import { TESTOPS_JWT_ENV } from './constants.js'
+import { BROWSERSTACK_TESTHUB_JWT } from './constants.js'
 import { BStackLogger } from './bstackLogger.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -46,7 +46,7 @@ export function setupExitHandlers() {
 
 export function shouldCallCleanup(config: BrowserStackConfig): string[] {
     const args: string[] = []
-    if (!!process.env[TESTOPS_JWT_ENV] && !config.testObservability.buildStopped) {
+    if (!!process.env[BROWSERSTACK_TESTHUB_JWT] && !config.testObservability.buildStopped) {
         args.push('--observability')
     }
 

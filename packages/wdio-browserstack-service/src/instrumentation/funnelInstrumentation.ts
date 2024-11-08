@@ -9,6 +9,7 @@ import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
 import { getDataFromWorkers, removeWorkersDataDir } from '../data-store.js'
+import { getProductMap } from '../testHub/utils.js'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
@@ -48,13 +49,27 @@ export function saveFunnelData(eventType: string, config: BrowserStackConfig): s
     return filePath
 }
 
+function redactCredentialsFromFunnelData(data: any) {
+    if (data) {
+        if (data.userName) {
+            data.userName = '[REDACTED]'
+        }
+        if (data.accessKey) {
+            data.accessKey = '[REDACTED]'
+        }
+    }
+    return data
+}
+
 // Called from two different process
 export async function fireFunnelRequest(data: any): Promise<void> {
+    const { userName, accessKey } = data
+    redactCredentialsFromFunnelData(data)
     BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
     await got.post(FUNNEL_INSTRUMENTATION_URL, {
         headers: {
             'content-type': 'application/json'
-        }, username: data.userName, password: data.accessKey, json: data
+        }, username: userName, password: accessKey, json: data
     })
 }
 
@@ -80,16 +95,6 @@ function getProductList(config: BrowserStackConfig) {
         products.push('app-automate')
     }
     return products
-}
-
-function getProductMap(config: BrowserStackConfig): any {
-    return {
-        'observability': config.testObservability.enabled,
-        'accessibility': config.accessibility,
-        'percy': config.percy,
-        'automate': config.automate,
-        'app_automate': config.appAutomate
-    }
 }
 
 function buildEventData(eventType: string, config: BrowserStackConfig): any {

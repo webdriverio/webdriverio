@@ -11,6 +11,7 @@ import PercyBinary from './PercyBinary.js'
 
 import type { BrowserstackConfig, UserConfig } from '../types.js'
 import type { Options } from '@wdio/types'
+import { BROWSERSTACK_TESTHUB_UUID } from '../constants.js'
 
 const logDir = 'logs'
 
@@ -78,7 +79,7 @@ class Percy {
         this.#proc = spawn(
             binaryPath,
             commandArgs,
-            { env: { ...process.env, PERCY_TOKEN: token } }
+            { env: { ...process.env, PERCY_TOKEN: token, TH_BUILD_UUID: process.env[BROWSERSTACK_TESTHUB_UUID] } }
         )
 
         this.#proc.stdout.pipe(logStream)

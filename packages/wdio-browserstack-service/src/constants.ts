@@ -40,7 +40,6 @@ export const DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS = 5000 // 5s
 export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms
 export const BSTACK_SERVICE_VERSION = bstackServiceVersion
 
-export const ACCESSIBILITY_API_URL = 'https://accessibility.browserstack.com/api'
 export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
 
 export const LOGS_FILE = 'logs/bstack-wdio-service.log'
@@ -82,7 +81,7 @@ export const TCG_INFO = {
 // Env variables - Define all the env variable constants over here
 
 // To store the JWT token returned the session launch
-export const TESTOPS_JWT_ENV = 'BS_TESTOPS_JWT'
+export const BROWSERSTACK_TESTHUB_JWT = 'BROWSERSTACK_TESTHUB_JWT'
 
 // To store tcg auth result for selfHealing feature:
 export const BSTACK_TCG_AUTH_RESULT = 'BSTACK_TCG_AUTH_RESULT'
@@ -91,7 +90,10 @@ export const BSTACK_TCG_AUTH_RESULT = 'BSTACK_TCG_AUTH_RESULT'
 export const TESTOPS_SCREENSHOT_ENV = 'BS_TESTOPS_ALLOW_SCREENSHOTS'
 
 // To store build hashed id
-export const TESTOPS_BUILD_ID_ENV = 'BS_TESTOPS_BUILD_HASHED_ID'
+export const BROWSERSTACK_TESTHUB_UUID = 'BROWSERSTACK_TESTHUB_UUID'
+
+// To store test run uuid
+export const TEST_ANALYTICS_ID = 'TEST_ANALYTICS_ID'
 
 // Whether to collect performance instrumentation or not
 export const PERF_MEASUREMENT_ENV = 'BROWSERSTACK_O11Y_PERF_MEASUREMENT'
@@ -104,6 +106,15 @@ export const RERUN_ENV = 'BROWSERSTACK_RERUN'
 
 // To store whether the build launch has completed or not
 export const TESTOPS_BUILD_COMPLETED_ENV = 'BS_TESTOPS_BUILD_COMPLETED'
+
+// Whether percy has started successfully or not
+export const BROWSERSTACK_PERCY = 'BROWSERSTACK_PERCY'
+
+// Whether session is a accessibility session
+export const BROWSERSTACK_ACCESSIBILITY = 'BROWSERSTACK_ACCESSIBILITY'
+
+// Whether session is a observability session
+export const BROWSERSTACK_OBSERVABILITY = 'BROWSERSTACK_OBSERVABILITY'
 
 // Maximum size of VCS info which is allowed
 export const MAX_GIT_META_DATA_SIZE_IN_BYTES = 64 * 1024

@@ -4,6 +4,8 @@ import type { Capabilities, Frameworks } from '@wdio/types'
 
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 
+import Listener from './testOps/listener.js'
+
 import {
     getA11yResultsSummary,
     getA11yResults,
@@ -30,6 +32,7 @@ class _AccessibilityHandler {
     private _testMetadata: { [key: string]: any; } = {}
     private static _a11yScanSessionMap: { [key: string]: any; } = {}
     private _sessionId: string | null = null
+    private listener = Listener.getInstance()
 
     constructor (
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
@@ -130,6 +133,8 @@ class _AccessibilityHandler {
                 this._framework !== 'mocha' ||
                 !this.shouldRunTestHooks(this._browser, this._accessibility)
             ) {
+                /* This is to be used when test events are sent */
+                Listener.setTestRunAccessibilityVar(false)
                 return
             }
 
@@ -141,6 +146,9 @@ class _AccessibilityHandler {
                 /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
                 AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanTest
             }
+
+            /* This is to be used when test events are sent */
+            Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanTest)
 
             if (!isPageOpened) {
                 return
@@ -176,22 +184,15 @@ class _AccessibilityHandler {
 
             if (shouldScanTestForAccessibility) {
                 BStackLogger.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
-            }
 
-            const dataForExtension = {
-                saveResults: shouldScanTestForAccessibility,
-                testDetails: {
-                    'name': test.title,
-                    'testRunId': process.env.BS_A11Y_TEST_RUN_ID,
-                    'filePath': this._suiteFile,
-                    'scopeList': [suiteTitle, test.title]
-                },
-                platform: this._platformA11yMeta
-            }
+                const dataForExtension = {
+                    'thTestRunUuid': process.env.TEST_ANALYTICS_ID,
+                    'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
+                    'thJwtToken': process.env.BROWSERSTACK_TESTHUB_JWT
+                }
 
-            await this.sendTestStopEvent((this._browser as WebdriverIO.Browser), dataForExtension)
+                await this.sendTestStopEvent((this._browser as WebdriverIO.Browser), dataForExtension)
 
-            if (shouldScanTestForAccessibility) {
                 BStackLogger.info('Accessibility testing for this test case has ended.')
             }
         } catch (error) {
@@ -208,6 +209,8 @@ class _AccessibilityHandler {
         const featureData = gherkinDocument.feature
         const uniqueId = getUniqueIdentifierForCucumber(world)
         if (!this.shouldRunTestHooks(this._browser, this._accessibility)) {
+            /* This is to be used when test events are sent */
+            Listener.setTestRunAccessibilityVar(false)
             return
         }
 
@@ -219,6 +222,9 @@ class _AccessibilityHandler {
                 /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
                 AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanScenario
             }
+
+            /* This is to be used when test events are sent */
+            Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanScenario)
 
             if (!isPageOpened) {
                 return
@@ -242,8 +248,6 @@ class _AccessibilityHandler {
 
         const pickleData = world.pickle
         try {
-            const gherkinDocument = world.gherkinDocument
-            const featureData = gherkinDocument.feature
             const uniqueId = getUniqueIdentifierForCucumber(world)
             const accessibilityScanStarted = this._testMetadata[uniqueId]?.accessibilityScanStarted
             const shouldScanTestForAccessibility = this._testMetadata[uniqueId]?.scanTestForAccessibility
@@ -254,22 +258,15 @@ class _AccessibilityHandler {
 
             if (shouldScanTestForAccessibility) {
                 BStackLogger.info('Automate test case execution has ended. Processing for accessibility testing is underway. ')
-            }
 
-            const dataForExtension = {
-                saveResults: shouldScanTestForAccessibility,
-                testDetails: {
-                    'name': pickleData.name,
-                    'testRunId': process.env.BS_A11Y_TEST_RUN_ID,
-                    'filePath': gherkinDocument.uri,
-                    'scopeList': [featureData?.name, pickleData.name]
-                },
-                platform: this._platformA11yMeta
-            }
+                const dataForExtension = {
+                    'thTestRunUuid': process.env.TEST_ANALYTICS_ID,
+                    'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
+                    'thJwtToken': process.env.BROWSERSTACK_TESTHUB_JWT
+                }
 
-            await this.sendTestStopEvent(( this._browser as WebdriverIO.Browser), dataForExtension)
+                await this.sendTestStopEvent(( this._browser as WebdriverIO.Browser), dataForExtension)
 
-            if (shouldScanTestForAccessibility) {
                 BStackLogger.info('Accessibility testing for this test case has ended.')
             }
         } catch (error) {

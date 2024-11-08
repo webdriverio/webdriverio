@@ -7,10 +7,12 @@ import {
     DATA_BATCH_ENDPOINT,
     DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS,
     DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
-    LOG_KIND_USAGE_MAP, TESTOPS_BUILD_COMPLETED_ENV
+    LOG_KIND_USAGE_MAP, TESTOPS_BUILD_COMPLETED_ENV,
+    TEST_ANALYTICS_ID
 } from '../constants.js'
 import { sendScreenshots } from './requestUtils.js'
 import { BStackLogger } from '../bstackLogger.js'
+import { shouldProcessEventForTesthub } from '../testHub/utils.js'
 
 class Listener {
     private static instance: Listener
@@ -23,6 +25,8 @@ class Listener {
     private readonly logEvents: FeatureStats = this.usageStats.logStats
     private requestBatcher?: RequestQueueHandler
     private pendingUploads = 0
+    private static _accessibilityOptions?: { [key: string]: any; }
+    private static _testRunAccessibilityVar?: boolean = false
 
     // Making the constructor private to use singleton pattern
     private constructor() {
@@ -33,6 +37,14 @@ class Listener {
             Listener.instance = new Listener()
         }
         return Listener.instance
+    }
+
+    public static setAccessibilityOptions(options:  { [key: string]: any; } | undefined) {
+        Listener._accessibilityOptions = options
+    }
+
+    public static setTestRunAccessibilityVar(accessibility: boolean | undefined) {
+        Listener._testRunAccessibilityVar = accessibility
     }
 
     public async onWorkerEnd() {
@@ -62,6 +74,9 @@ class Listener {
 
     public hookStarted(hookData: TestData): void {
         try {
+            if (!shouldProcessEventForTesthub('HookRunStarted')) {
+                return
+            }
             this.hookStartedStats.triggered()
             this.sendBatchEvents(this.getEventForHook('HookRunStarted', hookData))
         } catch (e) {
@@ -72,6 +87,9 @@ class Listener {
 
     public hookFinished(hookData: TestData): void {
         try {
+            if (!shouldProcessEventForTesthub('HookRunFinished')) {
+                return
+            }
             this.hookFinishedStats.triggered(hookData.result)
             this.sendBatchEvents(this.getEventForHook('HookRunFinished', hookData))
         } catch (e) {
@@ -82,7 +100,16 @@ class Listener {
 
     public testStarted(testData: TestData): void {
         try {
+            if (!shouldProcessEventForTesthub('TestRunStarted')) {
+                return
+            }
+            process.env[TEST_ANALYTICS_ID] = testData.uuid
             this.testStartedStats.triggered()
+
+            testData.product_map = {
+                accessibility: Listener._testRunAccessibilityVar
+            }
+
             this.sendBatchEvents(this.getEventForHook('TestRunStarted', testData))
         } catch (e) {
             this.testStartedStats.failed()
@@ -92,6 +119,14 @@ class Listener {
 
     public testFinished(testData: TestData): void {
         try {
+            if (!shouldProcessEventForTesthub('TestRunFinished')) {
+                return
+            }
+
+            testData.product_map = {
+                accessibility: Listener._testRunAccessibilityVar
+            }
+
             this.testFinishedStats.triggered(testData.result)
             this.sendBatchEvents(this.getEventForHook('TestRunFinished', testData))
         } catch (e) {
@@ -102,6 +137,9 @@ class Listener {
 
     public logCreated(logs: LogData[]): void {
         try {
+            if (!shouldProcessEventForTesthub('LogCreated')) {
+                return
+            }
             this.markLogs('triggered', logs)
             this.sendBatchEvents({
                 event_type: 'LogCreated', logs: logs
@@ -117,6 +155,9 @@ class Listener {
             return
         }
         try {
+            if (!shouldProcessEventForTesthub('LogCreated')) {
+                return
+            }
             this.markLogs('triggered', jsonArray)
             this.pendingUploads += 1
             await sendScreenshots([{
@@ -133,6 +174,9 @@ class Listener {
 
     public cbtSessionCreated(data: CBTData): void {
         try {
+            if (!shouldProcessEventForTesthub('CBTSessionCreated')) {
+                return
+            }
             this.cbtSessionStats.triggered()
             this.sendBatchEvents({ event_type: 'CBTSessionCreated', test_run: data })
         } catch (e) {

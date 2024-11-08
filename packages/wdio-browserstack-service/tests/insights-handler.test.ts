@@ -786,7 +786,7 @@ describe('appendTestItemLog', function () {
     })
 
     it('should upload with current test uuid for log', function () {
-        insightsHandler['_currentTest'] = { uuid: 'some_uuid' }
+        InsightsHandler['currentTest'] = { uuid: 'some_uuid' }
         insightsHandler['appendTestItemLog'](testLogObj)
         expect(testLogObj.test_run_uuid).toBe('some_uuid')
         expect(sendDataSpy).toBeCalledTimes(1)
@@ -800,6 +800,7 @@ describe('appendTestItemLog', function () {
     })
 
     it('should not upload log if hook is finished', function () {
+        InsightsHandler['currentTest'] = {}
         insightsHandler['_currentHook'] = { uuid: 'some_uuid', finished: true }
         insightsHandler['appendTestItemLog'](testLogObj)
         expect(testLogObj.hook_run_uuid).toBe(undefined)
@@ -827,7 +828,7 @@ describe('processCucumberHook', function () {
 
     it ('should send data for before event', function () {
         cucumberHookTypeSpy.mockReturnValue('BEFORE_ALL')
-        insightsHandler['_currentTest'].uuid = 'test_uuid'
+        InsightsHandler['currentTest'].uuid = 'test_uuid'
         insightsHandler['processCucumberHook'](undefined, { event: 'before', hookUUID: 'hook_uuid' })
         expect(getHookRunDataForCucumberSpy).toBeCalledWith(expect.objectContaining({
             uuid: 'hook_uuid',
@@ -844,5 +845,41 @@ describe('processCucumberHook', function () {
         insightsHandler['_tests']['hook_unique_id'] = hookObj
         insightsHandler['processCucumberHook'](undefined, { event: 'after' }, resultObj as any)
         expect(getHookRunDataForCucumberSpy).toBeCalledWith(hookObj, 'HookRunFinished', resultObj)
+    })
+})
+
+describe('sendCBTInfo', () => {
+    beforeAll(() => {
+        insightsHandler = new InsightsHandler(browser, 'framework')
+    })
+    it('should not call cbtSessionCreated', () => {
+        const cbtSessionCreatedSpy = vi.spyOn(Listener.getInstance(), 'cbtSessionCreated').mockImplementation(() => { return [] as any })
+        insightsHandler.sendCBTInfo()
+        expect(cbtSessionCreatedSpy).toBeCalledTimes(0)
+    })
+    it('should call cbtSessionCreated', () => {
+        insightsHandler.currentTestId = 'abc'
+        const cbtSessionCreatedSpy = vi.spyOn(Listener.getInstance(), 'cbtSessionCreated').mockImplementation(() => { return [] as any })
+        insightsHandler.sendCBTInfo()
+        expect(cbtSessionCreatedSpy).toBeCalled()
+    })
+})
+
+describe('flushCBTDataQueue', () => {
+    beforeAll(() => {
+        insightsHandler = new InsightsHandler(browser, 'framework')
+    })
+    it('flushCBTDataQueue should not call cbtSessionCreated', () => {
+        insightsHandler.cbtQueue = [{ uuid: 'abc', integrations: {} }]
+        const cbtSessionCreatedSpy = vi.spyOn(Listener.getInstance(), 'cbtSessionCreated').mockImplementation(() => { return [] as any })
+        insightsHandler.flushCBTDataQueue()
+        expect(cbtSessionCreatedSpy).toBeCalledTimes(0)
+    })
+    it('flushCBTDataQueue should call cbtSessionCreated', () => {
+        insightsHandler.currentTestId = 'abc'
+        insightsHandler.cbtQueue = [{ uuid: 'abc', integrations: {} }]
+        const cbtSessionCreatedSpy = vi.spyOn(Listener.getInstance(), 'cbtSessionCreated').mockImplementation(() => { return [] as any })
+        insightsHandler.flushCBTDataQueue()
+        expect(cbtSessionCreatedSpy).toBeCalled()
     })
 })
