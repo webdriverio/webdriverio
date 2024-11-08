@@ -71,7 +71,7 @@ export async function switchFrame (
     context: WebdriverIO.Element | ChainablePromiseElement | string | null | ((tree: FlatContextTree) => boolean | Promise<boolean>)
 ) {
     function isPossiblyUnresolvedElement(input: typeof context): input is WebdriverIO.Element | ChainablePromiseElement {
-        return typeof input === 'object' && typeof (input as WebdriverIO.Element).getElement === 'function'
+        return Boolean(input) && typeof input === 'object' && typeof (input as WebdriverIO.Element).getElement === 'function'
     }
 
     /**
