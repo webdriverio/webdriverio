@@ -9,6 +9,7 @@ import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
 import type WebDriverInterception from './utils/interception/index.js'
+import type { MobileScrollDirection } from './commands/element.js'
 
 /**
  * export mock primitives
@@ -506,6 +507,16 @@ export type WaitForOptions = {
     timeoutMsg?: string,
     reverse?: boolean,
     withinViewport?: boolean
+}
+
+export type MobileScrollIntoViewOptions = {
+    direction?: MobileScrollDirection;
+    maxScrolls?: number;
+    scrollableElement?: WebdriverIO.Element;
+}
+
+export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions {
+    mobileOptions?: MobileScrollIntoViewOptions;
 }
 
 export type WaitUntilOptions = {

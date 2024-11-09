@@ -2,8 +2,118 @@ import logger from '@wdio/logger'
 import { ELEMENT_KEY } from 'webdriver'
 
 import { getBrowserObject } from '@wdio/utils'
+import type { CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from 'src/types.js'
 
 const log = logger('webdriverio')
+
+type MobileScrollUntilVisibleOptions = {
+    element: WebdriverIO.Element;
+    maxScrolls: number;
+    scrollDirection: MobileScrollDirection;
+    scrollableElement: WebdriverIO.Element | null;
+};
+
+async function getScrollableElement({
+    browser,
+    options
+}: {
+    browser: WebdriverIO.Browser,
+    options?: MobileScrollIntoViewOptions
+}): Promise<WebdriverIO.Element | null> {
+    if (options?.scrollableElement) {
+        return options?.scrollableElement
+    }
+    const defaultAndroidSelector = '//android.widget.ScrollView'
+    const defaultIosSelector = '-ios predicate string:type == "XCUIElementTypeApplication"'
+    const selector = browser.isAndroid
+        ? // There is always a scrollview for Android or, if this fails we should throw an error
+        defaultAndroidSelector
+        : // For iOS, we need to find the application element, if we can't find it, we should throw an error
+        defaultIosSelector
+    // Not sure why we need to do this, but it seems to be necessary
+    const scrollableElements = (await $$(
+        selector
+    )) as unknown as WebdriverIO.Element[]
+
+    if (scrollableElements.length > 0) {
+        return scrollableElements[0]
+    }
+
+    throw new Error(
+        `Default scrollable element "${browser.isAndroid ? defaultAndroidSelector : defaultIosSelector}" not found.`
+    )
+}
+
+async function mobileScrollUntilVisible({
+    element,
+    scrollableElement,
+    maxScrolls,
+    scrollDirection,
+}: MobileScrollUntilVisibleOptions): Promise<boolean> {
+    let isVisible = false
+    let scrolls = 0
+
+    while (!isVisible && scrolls < maxScrolls) {
+        try {
+            isVisible = await element.isDisplayed()
+        } catch {
+            isVisible = false
+        }
+
+        if (isVisible) {break}
+
+        if (browser.isAndroid) {
+            await browser.execute('mobile: scrollGesture', {
+                elementId: scrollableElement?.elementId,
+                direction: scrollDirection,
+                percent: 0.5,
+            })
+        } else if (browser.isIOS) {
+            await browser.execute('mobile: scroll', {
+                elementId: scrollableElement?.elementId,
+                direction: scrollDirection,
+            })
+        }
+
+        scrolls++
+    }
+
+    return isVisible
+}
+
+async function nativeMobileScrollIntoView({
+    browser,
+    element,
+    options
+}: {
+    browser: WebdriverIO.Browser,
+    element: WebdriverIO.Element,
+    options: MobileScrollIntoViewOptions
+    }) {
+
+    const defaultOptions = {
+        direction: MobileScrollDirection.Down,
+        maxScrolls: 10,
+    }
+    const mobileOptions = {
+        ...defaultOptions,
+        ...((options as CustomScrollIntoViewOptions)?.mobileOptions || {}),
+    }
+    const scrollableElement = await getScrollableElement({ browser, options: mobileOptions })
+    const isVisible = await mobileScrollUntilVisible({
+        element,
+        maxScrolls: mobileOptions.maxScrolls,
+        scrollDirection: mobileOptions.direction,
+        scrollableElement,
+    })
+
+    if (isVisible) {
+        // Pause for stabilization
+        return browser.pause(1000)
+    }
+    throw new Error('Element not found within scroll limit')
+
+}
 
 function scrollIntoViewWeb (
     this: WebdriverIO.Element,
@@ -18,6 +128,13 @@ function scrollIntoViewWeb (
         } as any as HTMLElement,
         options,
     )
+}
+
+export enum MobileScrollDirection {
+    Down = 'down',
+    Up = 'up',
+    Left = 'left',
+    Right = 'right',
 }
 
 /**
@@ -36,14 +153,14 @@ function scrollIntoViewWeb (
  * </example>
  *
  * @alias element.scrollIntoView
- * @param {object|boolean=} scrollIntoViewOptions  options for `Element.scrollIntoView()` (default: `{ block: 'start', inline: 'nearest' }`)
+ * @param {object|boolean=} CustomScrollIntoViewOptions  options for `Element.scrollIntoView()` (default: `{ block: 'start', inline: 'nearest' }`)
  * @uses protocol/execute
  * @type utility
  *
  */
 export async function scrollIntoView (
     this: WebdriverIO.Element,
-    options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
+    options: CustomScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
 ) {
     const browser = getBrowserObject(this)
 
@@ -51,6 +168,14 @@ export async function scrollIntoView (
      * Appium does not support the "wheel" action
      */
     if (browser.isMobile) {
+        if (await browser.getContext() === 'NATIVE_APP') {
+            return nativeMobileScrollIntoView({
+                browser,
+                element: this,
+                options: (options as CustomScrollIntoViewOptions)?.mobileOptions || {}
+            })
+        }
+
         return scrollIntoViewWeb.call(this, options)
     }
 
