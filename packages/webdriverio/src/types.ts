@@ -515,8 +515,7 @@ export type MobileScrollIntoViewOptions = {
     scrollableElement?: WebdriverIO.Element;
 }
 
-export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions {
-    mobileOptions?: MobileScrollIntoViewOptions;
+export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions, MobileScrollIntoViewOptions {
 }
 
 export type WaitUntilOptions = {

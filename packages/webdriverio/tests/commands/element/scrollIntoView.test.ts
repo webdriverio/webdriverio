@@ -217,10 +217,8 @@ describe('scrollIntoView test', () => {
             vi.spyOn(elem, 'isDisplayed').mockResolvedValueOnce(false).mockResolvedValueOnce(true)
 
             await elem.scrollIntoView({
-                mobileOptions: {
-                    scrollableElement: browser.$('#scrollContainer'),
-                    scrollDirection: 'left',
-                }
+                scrollableElement: browser.$('#scrollContainer'),
+                scrollDirection: 'left',
             })
 
             // We're in the native context and will start scrolling
@@ -274,11 +272,7 @@ describe('scrollIntoView test', () => {
             vi.spyOn(elem, 'isDisplayed').mockResolvedValue(false)
 
             try {
-                await elem.scrollIntoView({
-                    mobileOptions: {
-                        maxScrolls: 5,
-                    }
-                })
+                await elem.scrollIntoView({ maxScrolls: 5 })
             } catch (err: any) {
                 // We're in the native context and will start scrolling
                 expect(browser.getContext).toBeCalledTimes(1)
