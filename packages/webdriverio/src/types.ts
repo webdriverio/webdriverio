@@ -123,7 +123,7 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
 }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
-export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
+export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype | 'MobileScrollDirection'> & ChainablePrototype
 
 /**
  * Multiremote command definition
