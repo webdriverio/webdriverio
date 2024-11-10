@@ -465,7 +465,7 @@ Default: stores snapshot files in `__snapshots__` directory next to test file
 
 WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
 
-See the `tsx` docs: https://tsx.is/usage#custom-tsconfig-json-path
+See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
 
 Type: `String`<br />
 Default: `null`<br />
