@@ -32,7 +32,7 @@ async function getScrollableElement({
         : // There is always a scrollview for Android or, if this fails we should throw an error
         defaultAndroidSelector
     // Not sure why we need to do this, but it seems to be necessary
-    const scrollableElements = (await $$(
+    const scrollableElements = (await browser.$$(
         selector
     )) as unknown as WebdriverIO.Element[]
 

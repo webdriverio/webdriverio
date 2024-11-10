@@ -159,12 +159,12 @@ describe('scrollIntoView test', () => {
             vi.mocked(fetch).mockClear()
             vi.spyOn(browser, 'getContext').mockResolvedValue('NATIVE_APP')
             vi.spyOn(browser, 'pause').mockResolvedValue(undefined)
-            global.$$ = vi.fn()
+            vi.spyOn(browser, '$$')
         })
 
         it('no scroll is needed', async () => {
             // Set some spy values
-            (global.$$ as Mock).mockResolvedValue([{
+            (browser.$$ as Mock).mockResolvedValue([{
                 elementId: 'scrollable-element-id',
                 isDisplayed: vi.fn().mockResolvedValue(true),
             }])
@@ -175,7 +175,7 @@ describe('scrollIntoView test', () => {
             // We're in the native context and will start scrolling
             expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called and returns the default iOS scrollable element
-            const [[selector]] = (global.$$ as Mock).mock.calls
+            const [[selector]] = (browser.$$ as Mock).mock.calls
             expect(selector).toEqual(defaultIOSSelector)
             // call the mobileScrollUntilVisible but no scroll is needed
             const { calls } = vi.mocked(fetch).mock
@@ -184,7 +184,7 @@ describe('scrollIntoView test', () => {
 
         it('scrolls by default the element to the top', async () => {
             // Set some spy values
-            (global.$$ as Mock).mockResolvedValue([{
+            (browser.$$ as Mock).mockResolvedValue([{
                 elementId: 'scrollable-element-id',
                 isDisplayed: vi.fn().mockResolvedValue(true),
             }])
@@ -195,7 +195,7 @@ describe('scrollIntoView test', () => {
             // We're in the native context and will start scrolling
             expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called and returns the default iOS scrollable element
-            const [[selector]] = (global.$$ as Mock).mock.calls
+            const [[selector]] = (browser.$$ as Mock).mock.calls
             expect(selector).toEqual(defaultIOSSelector)
             // call the mobileScrollUntilVisible
             const { calls } = vi.mocked(fetch).mock
@@ -210,7 +210,7 @@ describe('scrollIntoView test', () => {
 
         it('scrolls in a provided scroll-container to the left', async () => {
             // Set some spy values
-            (global.$$ as Mock).mockResolvedValue([{
+            (browser.$$ as Mock).mockResolvedValue([{
                 elementId: 'scrollable-element-id',
                 isDisplayed: vi.fn().mockResolvedValue(true),
             }])
@@ -224,7 +224,7 @@ describe('scrollIntoView test', () => {
             // We're in the native context and will start scrolling
             expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called but we have a provided scrollable element so it should not return the default iOS scrollable element
-            expect((global.$$ as Mock).mock.calls).toHaveLength(0)
+            expect((browser.$$ as Mock).mock.calls).toHaveLength(0)
             // call the mobileScrollUntilVisible
             const { calls } = vi.mocked(fetch).mock
             const [
@@ -243,7 +243,7 @@ describe('scrollIntoView test', () => {
 
         it('does not find the default scroll element', async () => {
             // Set some spy values
-            (global.$$ as Mock).mockResolvedValue([])
+            (browser.$$ as Mock).mockResolvedValue([])
             vi.spyOn(elem, 'isDisplayed').mockResolvedValue(false)
 
             try {
@@ -252,9 +252,9 @@ describe('scrollIntoView test', () => {
                 // We're in the native context and will start scrolling
                 expect(browser.getContext).toBeCalledTimes(1)
                 // getScrollableElement is called and returns the default iOS scrollable element
-                const [[selector]] = (global.$$ as Mock).mock.calls
+                const [[selector]] = (browser.$$ as Mock).mock.calls
                 expect(selector).toEqual(defaultIOSSelector)
-                expect((global.$$ as Mock).mock.calls).toHaveLength(1)
+                expect((browser.$$ as Mock).mock.calls).toHaveLength(1)
                 // The mobileScrollUntilVisible is not called, meaning also the internal methods are also not called
                 const { calls } = vi.mocked(fetch).mock
                 console.log('err.message = ', err.message)
@@ -265,7 +265,7 @@ describe('scrollIntoView test', () => {
 
         it('does not find the element after max 5 scrolls', async () => {
             // Set some spy values
-            (global.$$ as Mock).mockResolvedValue([{
+            (browser.$$ as Mock).mockResolvedValue([{
                 elementId: 'scrollable-element-id',
                 isDisplayed: vi.fn().mockResolvedValue(true),
             }])
@@ -277,7 +277,7 @@ describe('scrollIntoView test', () => {
                 // We're in the native context and will start scrolling
                 expect(browser.getContext).toBeCalledTimes(1)
                 // getScrollableElement is called and returns the default iOS scrollable element
-                const [[selector]] = (global.$$ as Mock).mock.calls
+                const [[selector]] = (browser.$$ as Mock).mock.calls
                 expect(selector).toEqual(defaultIOSSelector)
                 // call the mobileScrollUntilVisible 5 times for the max scrolls
                 const { calls } = vi.mocked(fetch).mock
@@ -307,12 +307,12 @@ describe('scrollIntoView test', () => {
             vi.mocked(fetch).mockClear()
             vi.spyOn(browser, 'getContext').mockResolvedValue('NATIVE_APP')
             vi.spyOn(browser, 'pause').mockResolvedValue(undefined)
-            global.$$ = vi.fn()
+            vi.spyOn(browser, '$$')
         })
 
         it('no scroll is needed', async () => {
             // Set some spy values
-            (global.$$ as Mock).mockResolvedValue([{
+            (browser.$$ as Mock).mockResolvedValue([{
                 elementId: 'scrollable-element-id',
                 isDisplayed: vi.fn().mockResolvedValue(true),
             }])
@@ -323,7 +323,7 @@ describe('scrollIntoView test', () => {
             // We're in the native context and will start scrolling
             expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called and returns the default iOS scrollable element
-            const [[selector]] = (global.$$ as Mock).mock.calls
+            const [[selector]] = (browser.$$ as Mock).mock.calls
             expect(selector).toEqual(defaultAndroidSelector)
             // call the mobileScrollUntilVisible but no scroll is needed
             const { calls } = vi.mocked(fetch).mock
@@ -332,7 +332,7 @@ describe('scrollIntoView test', () => {
 
         it('scrolls by default the element to the top', async () => {
             // Set some spy values
-            (global.$$ as Mock).mockResolvedValue([{
+            (browser.$$ as Mock).mockResolvedValue([{
                 elementId: 'scrollable-element-id',
                 isDisplayed: vi.fn().mockResolvedValue(true),
             }])
@@ -343,7 +343,7 @@ describe('scrollIntoView test', () => {
             // We're in the native context and will start scrolling
             expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called and returns the default iOS scrollable element
-            const [[selector]] = (global.$$ as Mock).mock.calls
+            const [[selector]] = (browser.$$ as Mock).mock.calls
             expect(selector).toEqual(defaultAndroidSelector)
             // call the mobileScrollUntilVisible
             const { calls } = vi.mocked(fetch).mock
@@ -358,7 +358,7 @@ describe('scrollIntoView test', () => {
 
         it('does not find the default scroll element', async () => {
             // Set some spy values
-            (global.$$ as Mock).mockResolvedValue([])
+            (browser.$$ as Mock).mockResolvedValue([])
             vi.spyOn(elem, 'isDisplayed').mockResolvedValue(false)
 
             try {
@@ -367,9 +367,9 @@ describe('scrollIntoView test', () => {
                 // We're in the native context and will start scrolling
                 expect(browser.getContext).toBeCalledTimes(1)
                 // getScrollableElement is called and returns the default iOS scrollable element
-                const [[selector]] = (global.$$ as Mock).mock.calls
+                const [[selector]] = (browser.$$ as Mock).mock.calls
                 expect(selector).toEqual(defaultAndroidSelector)
-                expect((global.$$ as Mock).mock.calls).toHaveLength(1)
+                expect((browser.$$ as Mock).mock.calls).toHaveLength(1)
                 // The mobileScrollUntilVisible is not called, meaning also the internal methods are also not called
                 const { calls } = vi.mocked(fetch).mock
                 console.log('err.message = ', err.message)
