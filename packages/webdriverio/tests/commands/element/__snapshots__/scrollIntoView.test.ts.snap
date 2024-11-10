@@ -99,3 +99,42 @@ exports[`scrollIntoView test > desktop > scrolls element when using boolean scro
   ],
 }
 `;
+
+exports[`scrollIntoView test > mobile Android app > scrolls by default the element to the top 1`] = `
+{
+  "args": [
+    {
+      "direction": "down",
+      "elementId": "scrollable-element-id",
+      "percent": 0.5,
+    },
+  ],
+  "script": "mobile: scrollGesture",
+}
+`;
+
+exports[`scrollIntoView test > mobile ios app > scrolls by default the element to the top 1`] = `
+{
+  "args": [
+    {
+      "direction": "down",
+      "elementId": "scrollable-element-id",
+    },
+  ],
+  "script": "mobile: scroll",
+}
+`;
+
+exports[`scrollIntoView test > mobile ios app > scrolls in a provided scroll-container to the left 1`] = `"{"using":"css selector","value":"#scrollContainer"}"`;
+
+exports[`scrollIntoView test > mobile ios app > scrolls in a provided scroll-container to the left 2`] = `
+{
+  "args": [
+    {
+      "direction": "left",
+      "elementId": "some-elem-123",
+    },
+  ],
+  "script": "mobile: scroll",
+}
+`;

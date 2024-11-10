@@ -7,6 +7,7 @@ import type { CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from 's
 const log = logger('webdriverio')
 
 type MobileScrollUntilVisibleOptions = {
+    browser: WebdriverIO.Browser;
     element: WebdriverIO.Element;
     maxScrolls: number;
     scrollDirection: MobileScrollDirection;
@@ -19,17 +20,17 @@ async function getScrollableElement({
 }: {
     browser: WebdriverIO.Browser,
     options?: MobileScrollIntoViewOptions
-}): Promise<WebdriverIO.Element | null> {
+    }): Promise<WebdriverIO.Element | null> {
     if (options?.scrollableElement) {
         return options?.scrollableElement
     }
     const defaultAndroidSelector = '//android.widget.ScrollView'
     const defaultIosSelector = '-ios predicate string:type == "XCUIElementTypeApplication"'
-    const selector = browser.isAndroid
-        ? // There is always a scrollview for Android or, if this fails we should throw an error
-        defaultAndroidSelector
-        : // For iOS, we need to find the application element, if we can't find it, we should throw an error
+    const selector = browser.isIOS
+        ? // For iOS, we need to find the application element, if we can't find it, we should throw an error
         defaultIosSelector
+        : // There is always a scrollview for Android or, if this fails we should throw an error
+        defaultAndroidSelector
     // Not sure why we need to do this, but it seems to be necessary
     const scrollableElements = (await $$(
         selector
@@ -40,17 +41,19 @@ async function getScrollableElement({
     }
 
     throw new Error(
-        `Default scrollable element "${browser.isAndroid ? defaultAndroidSelector : defaultIosSelector}" not found.`
+        `Default scrollable element '${browser.isIOS ? defaultIosSelector : defaultAndroidSelector}' not found.`
     )
 }
 
 async function mobileScrollUntilVisible({
+    browser,
     element,
     scrollableElement,
     maxScrolls,
     scrollDirection,
-}: MobileScrollUntilVisibleOptions): Promise<boolean> {
+}: MobileScrollUntilVisibleOptions): Promise<{ hasScrolled: boolean; isVisible: boolean;  }> {
     let isVisible = false
+    let hasScrolled = false
     let scrolls = 0
 
     while (!isVisible && scrolls < maxScrolls) {
@@ -62,23 +65,25 @@ async function mobileScrollUntilVisible({
 
         if (isVisible) {break}
 
-        if (browser.isAndroid) {
+        if (browser.isIOS) {
+            await browser.execute('mobile: scroll', {
+                elementId: (await scrollableElement)?.elementId,
+                direction: scrollDirection,
+            })
+            hasScrolled = true
+        } else {
             await browser.execute('mobile: scrollGesture', {
-                elementId: scrollableElement?.elementId,
+                elementId: (await scrollableElement)?.elementId,
                 direction: scrollDirection,
                 percent: 0.5,
             })
-        } else if (browser.isIOS) {
-            await browser.execute('mobile: scroll', {
-                elementId: scrollableElement?.elementId,
-                direction: scrollDirection,
-            })
+            hasScrolled = true
         }
 
         scrolls++
     }
 
-    return isVisible
+    return { hasScrolled, isVisible }
 }
 
 async function nativeMobileScrollIntoView({
@@ -90,29 +95,32 @@ async function nativeMobileScrollIntoView({
     element: WebdriverIO.Element,
     options: MobileScrollIntoViewOptions
     }) {
-
     const defaultOptions = {
-        direction: MobileScrollDirection.Down,
         maxScrolls: 10,
+        scrollDirection: MobileScrollDirection.Down,
     }
     const mobileOptions = {
         ...defaultOptions,
-        ...((options as CustomScrollIntoViewOptions)?.mobileOptions || {}),
+        ...(options || {}),
     }
     const scrollableElement = await getScrollableElement({ browser, options: mobileOptions })
-    const isVisible = await mobileScrollUntilVisible({
+    const { hasScrolled, isVisible } = await mobileScrollUntilVisible({
+        browser,
         element,
         maxScrolls: mobileOptions.maxScrolls,
-        scrollDirection: mobileOptions.direction,
+        scrollDirection: mobileOptions.scrollDirection,
         scrollableElement,
     })
 
-    if (isVisible) {
+    if (hasScrolled && isVisible) {
         // Pause for stabilization
         return browser.pause(1000)
+    } else if (isVisible) {
+        // Element is already visible
+        return
     }
-    throw new Error('Element not found within scroll limit')
 
+    throw new Error(`Element not found within scroll limit of ${mobileOptions.maxScrolls} scrolls.`)
 }
 
 function scrollIntoViewWeb (
