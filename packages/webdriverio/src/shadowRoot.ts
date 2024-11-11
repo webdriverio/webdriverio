@@ -1,9 +1,8 @@
-import { ELEMENT_KEY, type local } from 'webdriver'
+import { type local } from 'webdriver'
 import logger from '@wdio/logger'
 
 import customElementWrapper from './scripts/customElement.js'
 import type { remote } from 'webdriver'
-import type { ElementReference } from '@wdio/protocols'
 
 const shadowRootManager = new Map<WebdriverIO.Browser, ShadowRootManager>()
 const log = logger('webdriverio:ShadowRootManager')
@@ -28,7 +27,7 @@ export class ShadowRootManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
-    #documentElement?: ElementReference
+    #documentElement?: remote.ScriptNodeRemoteValue
     #frameDepth = 0
 
     constructor(browser: WebdriverIO.Browser) {
@@ -150,7 +149,7 @@ export class ShadowRootManager {
             /**
              * store document element
              */
-            this.#documentElement = documentElement as unknown as ElementReference
+            this.#documentElement = documentElement as remote.ScriptNodeRemoteValue
 
             const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
@@ -210,7 +209,7 @@ export class ShadowRootManager {
             /**
              * ensure to include to document root if no scope is provided
              */
-            documentElement = this.#documentElement?.[ELEMENT_KEY]
+            documentElement = this.#documentElement?.sharedId
         }
 
         const elements = tree.getAllLookupScopes()
