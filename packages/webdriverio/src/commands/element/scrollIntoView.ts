@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import { ELEMENT_KEY } from 'webdriver'
 
 import { getBrowserObject } from '@wdio/utils'
-import type { CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from 'src/types.js'
+import type { CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
 
 const log = logger('webdriverio')
 
