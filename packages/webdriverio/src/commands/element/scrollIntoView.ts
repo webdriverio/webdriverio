@@ -55,7 +55,7 @@ const log = logger('webdriverio')
 export async function scrollIntoView (
     this: WebdriverIO.Element,
     options: CustomScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
-): Promise<void> {
+): Promise<void|unknown> {
     const browser = getBrowserObject(this)
 
     /**
