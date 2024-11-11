@@ -259,7 +259,7 @@ describe('scrollIntoView test', () => {
                 const { calls } = vi.mocked(fetch).mock
                 console.log('err.message = ', err.message)
                 expect(calls).toHaveLength(0)
-                expect(err.message).toBe(`Default scrollable element '${defaultIOSSelector}' not found.`)
+                expect(err.message).toMatchSnapshot()
             }
         })
 
@@ -282,7 +282,7 @@ describe('scrollIntoView test', () => {
                 // call the mobileScrollUntilVisible 5 times for the max scrolls
                 const { calls } = vi.mocked(fetch).mock
                 expect(calls).toHaveLength(5)
-                expect(err.message).toBe('Element not found within scroll limit of 5 scrolls.')
+                expect(err.message).toMatchSnapshot()
             }
         })
     })
@@ -374,7 +374,7 @@ describe('scrollIntoView test', () => {
                 const { calls } = vi.mocked(fetch).mock
                 console.log('err.message = ', err.message)
                 expect(calls).toHaveLength(0)
-                expect(err.message).toBe(`Default scrollable element '${defaultAndroidSelector}' not found.`)
+                expect(err.message).toMatchSnapshot()
             }
         })
     })
