@@ -17,8 +17,8 @@ title: Матеріали
 
 ### Логотип із роботом
 
-![Roboter Logo](/img/materials/robot.svg "Roboter Logo") ![Roboter Logo White](/img/materials/robot-white.svg "Roboter Logo White")
+![Логотип робота](/img/materials/robot.svg "Логотип робота") ![Логотип робота білий](/img/materials/robot-white.svg "Логотип робота білий")
 
 ### Логотип проєкту
 
-![Roboter Logo](/img/materials/logo.svg "Project Logo")
+![Roboter Logo](/img/materials/logo.svg "Логотип проєкту")
