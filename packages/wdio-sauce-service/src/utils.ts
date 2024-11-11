@@ -1,3 +1,5 @@
+import os from 'node:os'
+
 /**
  * Determine if the current instance is a RDC instance. RDC tests are Real Device tests
  * that can be started with different sets of capabilities. A deviceName is not mandatory, the only mandatory cap for
@@ -40,7 +42,7 @@
  *  deviceContextId: ''
  * }
  */
-export function isRDC (caps: WebdriverIO.Capabilities){
+export function isRDC(caps: WebdriverIO.Capabilities) {
     // @ts-expect-error outdated JSONWP capabilities
     const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
     const name = appiumDeviceName || deviceName
@@ -53,7 +55,7 @@ export function isRDC (caps: WebdriverIO.Capabilities){
  * @param {object} caps
  * @returns {boolean}
  */
-export function isEmuSim (caps: WebdriverIO.Capabilities){
+export function isEmuSim(caps: WebdriverIO.Capabilities) {
     // @ts-expect-error outdated JSONWP capabilities
     const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
     const name = appiumDeviceName || deviceName
@@ -80,11 +82,22 @@ export function makeCapabilityFactory(tunnelIdentifier: string) {
     }
 }
 
-export function ansiRegex () {
+export function ansiRegex() {
     const pattern = [
         '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
         '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'
     ].join('|')
 
     return new RegExp(pattern, 'g')
+}
+
+export function getLocalIpAddress(): string {
+    const interfaces = os.networkInterfaces()
+    const internalAddresses = Object.keys(interfaces)
+        .map((nic) => {
+            const addresses = interfaces[nic]?.filter((details) => details.internal) || []
+            return addresses.length ? addresses[0].address : undefined
+        })
+        .filter(Boolean) as string[]
+    return internalAddresses.length ? internalAddresses[0] : '127.0.0.1'
 }
