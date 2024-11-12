@@ -3,6 +3,7 @@ import { ELEMENT_KEY } from 'webdriver'
 
 import { getBrowserObject } from '@wdio/utils'
 import type { CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
+import { MobileScrollDirection } from '../../types.js'
 
 const log = logger('webdriverio')
 
@@ -276,11 +277,4 @@ function scrollIntoViewWeb (
         } as any as HTMLElement,
         options,
     )
-}
-
-export enum MobileScrollDirection {
-    Down = 'down',
-    Up = 'up',
-    Left = 'left',
-    Right = 'right',
 }

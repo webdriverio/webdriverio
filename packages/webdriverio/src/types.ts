@@ -9,7 +9,6 @@ import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
 import type WebDriverInterception from './utils/interception/index.js'
-import type { MobileScrollDirection } from './commands/element.js'
 
 /**
  * export mock primitives
@@ -123,7 +122,7 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
 }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
-export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype | 'MobileScrollDirection'> & ChainablePrototype
+export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
 
 /**
  * Multiremote command definition
@@ -507,6 +506,13 @@ export type WaitForOptions = {
     timeoutMsg?: string,
     reverse?: boolean,
     withinViewport?: boolean
+}
+
+export enum MobileScrollDirection {
+    Down = 'down',
+    Up = 'up',
+    Left = 'left',
+    Right = 'right',
 }
 
 export type MobileScrollIntoViewOptions = {
