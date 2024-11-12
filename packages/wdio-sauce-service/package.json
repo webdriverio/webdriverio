@@ -35,7 +35,6 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "ip": "^2.0.1",
     "saucelabs": "8.0.0",
     "webdriverio": "workspace:*"
   },
