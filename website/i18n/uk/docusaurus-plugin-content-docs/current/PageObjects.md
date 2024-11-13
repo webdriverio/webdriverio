@@ -1,21 +1,21 @@
 ---
 id: pageobjects
-title: Page Object Pattern
+title: Шаблон Page Object
 ---
 
-Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern.
+5-та версія WebdriverIO була розроблена з підтримкою Page Object Pattern. Впровадження принципу «елементи як першокласні об'єкти» дозволило створювати великі набори тестів, використовуючи цей патерн.
 
-There are no additional packages required to create page objects. It turns out that clean, modern classes provide all necessary features we need:
+Для створення об'єктів сторінок не потрібні додаткові пакети. Виявляється, що чисті, сучасні класи надають всі необхідні функції, які нам потрібні:
 
-- inheritance between page objects
-- lazy loading of elements
-- encapsulation of methods and actions
+- успадкування між об’єктами сторінки
+- повільне завантаження елементів
+- інкапсуляція методів та дій
 
-The goal of using page objects is to abstract any page information away from the actual tests. Ideally, you should store all selectors or specific instructions that are unique for a certain page in a page object, so that you still can run your test after you've completely redesigned your page.
+Мета використання об'єктів сторінок - відокремити будь-яку інформацію про сторінку від самих тестів. В ідеалі, ви повинні зберігати всі селектори або специфічні інструкції, які є унікальними для певної сторінки, в об'єкті сторінки, щоб ви могли запустити свій тест після того, як повністю переробили сторінку.
 
-## Making A Page Object
+## Створення Об'єкта Сторінки
 
-First off, we need a main page object that we call `Page.js`. It will contain general selectors or methods which all page objects will inherit from.
+Для початку, нам потрібен об'єкт головної сторінки, який ми назвемо `Page.js`. Він буде містити загальні селектори або методи, від яких успадковуватимуться всі об'єкти сторінки.
 
 ```js
 // Page.js
@@ -30,7 +30,7 @@ export default class Page {
 }
 ```
 
-We will always `export` an instance of a page object, and never create that instance in the test. Since we are writing end-to-end tests, we always consider the page as a stateless construct&mdash;just as each HTTP request is a stateless construct.
+Ми завжди експортуємо(`export`) екземпляр об'єкта сторінки та ніколи не створюємо його в тесті. Оскільки ми пишемо end-to-end тести, ми завжди розглядаємо сторінку як конструкцію без стану &mdash; так само як кожен HTTP-запит є конструкцією без стану.
 
 Sure, the browser can carry session information and therefore can display different pages based on different sessions, but this shouldn't be reflected within a page object. These sorts of state changes should live in your actual tests.
 
