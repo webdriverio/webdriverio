@@ -13,7 +13,7 @@ title: Шаблон Page Object
 
 Мета використання об'єктів сторінок - відокремити будь-яку інформацію про сторінку від самих тестів. В ідеалі, ви повинні зберігати всі селектори або специфічні інструкції, які є унікальними для певної сторінки, в об'єкті сторінки, щоб ви могли запустити свій тест після того, як повністю переробили сторінку.
 
-## Створення Об'єкта Сторінки
+## Створення об'єкта сторінки
 
 Для початку, нам потрібен об'єкт головної сторінки, який ми назвемо `Page.js`. Він буде містити загальні селектори або методи, від яких успадковуватимуться всі об'єкти сторінки.
 
@@ -65,36 +65,36 @@ class LoginPage extends Page {
 export default new LoginPage()
 ```
 
-Defining selectors in getter functions might look a little weird, but it’s really useful. These functions are evaluated _when you access the property_, not when you generate the object. With that you always request the element before you do an action on it.
+Визначення селекторів у getter-функціях може виглядати трохи дивно, але це дійсно корисно. Ці функції обробляються, _коли ви отримуєте доступ до властивості_, а не коли ви генеруєте об'єкт. Таким чином, ви завжди запитуєте елемент перед тим, як виконати над ним якусь дію.
 
-## Chaining Commands
+## Ланцюги команд
 
-WebdriverIO internally remembers the last result of a command. If you chain an element command with an action command, it finds the element from the previous command and uses the result to execute the action. With that you can remove the selector (first parameter) and the command looks as simple as:
+WebdriverIO внутрішньо запам'ятовує останній результат виконання команди. Якщо ви з'єднаєте команду елемента з командою дії, він знайде елемент з попередньої команди та використає цей результат для виконання дії. При цьому ви можете прибрати селектор (перший параметр) і команда буде виглядати так само просто, як і раніше:
 
 ```js
 await LoginPage.username.setValue('Max Mustermann')
 ```
 
-Which is basically the same thing as:
+Який по суті є тим же самим, що і як:
 
 ```js
 let elem = await $('#username')
 await elem.setValue('Max Mustermann')
 ```
 
-or
+або
 
 ```js
 await $('#username').setValue('Max Mustermann')
 ```
 
-## Using Page Objects In Your Tests
+## Використання об'єктів сторінки у ваших тестах
 
-After you've defined the necessary elements and methods for the page, you can start to write the test for it. All you need to do to use the page object is to `import` (or `require`) it. That's it!
+Після того, як ви визначили необхідні елементи та методи для сторінки, ви можете приступити до написання тесту для неї. Все, що вам потрібно зробити, щоб використовувати об'єкт сторінки - це імпортувати (`import` або `require`) його. І все!
 
-Since you exported an already-created instance of the page object, importing it lets you start using it right away.
+Оскільки ви експортували вже створений екземпляр об'єкта сторінки, його імпорт дозволить вам одразу ж почати використовувати його.
 
-If you use an assertion framework, your tests can be even more expressive:
+Якщо ви використовуєте структуру тверджень, ваші тести можуть бути ще більш виразними:
 
 ```js
 // login.spec.js
@@ -121,10 +121,10 @@ describe('login form', () => {
 })
 ```
 
-From the structural side, it makes sense to separate spec files and page objects into different directories. Additionally you can give each page object the ending: `.page.js`. This makes it more clear that you import a page object.
+Зі сторони структури має сенс розділити файли специфікацій та об'єкти сторінок на різні директорії. Крім того, ви можете надати кожному об'єкту сторінки закінчення: `.page.js`. Так буде зрозуміліше, що ви імпортуєте об'єкт сторінки.
 
-## Going Further
+## Йдемо далі
 
-This is the basic principle of how to write page objects with WebdriverIO. But you can build up way more complex page object structures than this! For example, you might have specific page objects for modals, or split up a huge page object into different classes (each representing a different part of the overall web page) that inherit from the main page object. The pattern really provides a lot of opportunities to separate page information from your tests, which is important to keep your test suite structured and clear in times where the project and number of tests grows.
+Це основний принцип написання об'єктів сторінок за допомогою WebdriverIO. Але ви можете створювати набагато складніші структури об'єктів сторінок, ніж ця! Наприклад, ви можете створити окремі об'єкти сторінок для модальних елементів або розділити величезний об'єкт сторінки на різні класи (кожен з яких представляє окрему частину загальної веб-сторінки), які успадковують від головного об'єкта сторінки. Цей патерн дійсно надає багато можливостей для відокремлення інформації про сторінку від ваших тестів, що важливо для того, щоб зберегти ваш набір тестів структурованим і чітким у часи, коли проєкт і кількість тестів зростають.
 
-You can find this example (and even more page object examples) in the [`example` folder](https://github.com/webdriverio/webdriverio/tree/main/examples/pageobject) on GitHub.
+Ви можете знайти цей приклад (і навіть більше прикладів об'єктів сторінок) у [теці `example`](https://github.com/webdriverio/webdriverio/tree/main/examples/pageobject) на GitHub.
