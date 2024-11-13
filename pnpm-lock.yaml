@@ -389,6 +389,9 @@ importers:
       '@wdio/config':
         specifier: workspace:*
         version: link:../../packages/wdio-config
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../../packages/wdio-cucumber-framework
       '@wdio/dot-reporter':
         specifier: workspace:*
         version: link:../../packages/wdio-dot-reporter

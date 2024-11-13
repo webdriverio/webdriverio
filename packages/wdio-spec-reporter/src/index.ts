@@ -31,18 +31,24 @@ export default class SpecReporter extends WDIOReporter {
     private _realtimeReporting = false
     private _showPreface = true
     private _suiteName = ''
+
+    private _isSuiteRetry = false
+    private _passingTestsSinceLastRetry = 0
+
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
         passed: 0,
         failed: 0,
-        skipped: 0
+        skipped: 0,
+        retried: 0
     }
 
     private _symbols: Symbols = {
         passed: '✓',
         skipped: '-',
         pending: '?',
-        failed: '✖'
+        failed: '✖',
+        retried: '↻'
     }
     private _chalk: ChalkInstance
     private _onlyFailures = false
@@ -100,6 +106,16 @@ export default class SpecReporter extends WDIOReporter {
 
     onSuiteEnd () {
         this._indents--
+        this._isSuiteRetry = false
+        this._passingTestsSinceLastRetry = 0
+    }
+
+    onSuiteRetry(): void {
+        this._stateCounts.failed--
+        this._stateCounts.retried++
+        this._stateCounts.passed -= this._passingTestsSinceLastRetry
+        this._isSuiteRetry = true
+        this._passingTestsSinceLastRetry = 0
     }
 
     onHookEnd (hook: HookStats) {
@@ -117,6 +133,9 @@ export default class SpecReporter extends WDIOReporter {
         this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.passed++
+        if (!this._isSuiteRetry) {
+            this._passingTestsSinceLastRetry++
+        }
     }
 
     onTestFail (testStat: TestStats) {
@@ -349,8 +368,13 @@ export default class SpecReporter extends WDIOReporter {
                 specFileReferences.push(suite.file)
             }
 
+            let retryAnnotation = ''
+            if (suite.retries > 0) {
+                retryAnnotation = this._chalk.yellow(` (${suite.retries}x retries)`)
+            }
+
             // Display the title of the suite
-            output.push(`${suiteIndent}${suite.title}`)
+            output.push(`${suiteIndent}${suite.title}${retryAnnotation}`)
 
             // display suite description (Cucumber only)
             if (suite.description) {
@@ -367,7 +391,10 @@ export default class SpecReporter extends WDIOReporter {
 
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
-                const testTitle = `${test.title} ${(test instanceof TestStats && test.retries && test.retries > 0) ? `(${test.retries} retries)` : ''}`
+                const testRetryAnnotation = (test instanceof TestStats && test.retries && test.retries > 0)
+                    ? this._chalk.yellow(`(${test.retries}x retries)`)
+                    : ''
+                const testTitle = `${test.title} ${testRetryAnnotation}`
                 const state = test.state as State
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
 
@@ -446,6 +473,12 @@ export default class SpecReporter extends WDIOReporter {
         if (this._stateCounts.skipped > 0) {
             const text = `${this._stateCounts.skipped} skipped ${duration}`.trim()
             output.push(this.setMessageColor(text, State.SKIPPED))
+        }
+
+        // Get the skipped tests
+        if (this._stateCounts.retried > 0) {
+            const text = `${this._stateCounts.retried} retried ${duration}`.trim()
+            output.push(this.setMessageColor(text, State.RETRIED))
         }
 
         return output
@@ -575,6 +608,9 @@ export default class SpecReporter extends WDIOReporter {
             break
         case State.FAILED:
             color = ChalkColors.RED
+            break
+        case State.RETRIED:
+            color = ChalkColors.YELLOW
             break
         }
 
