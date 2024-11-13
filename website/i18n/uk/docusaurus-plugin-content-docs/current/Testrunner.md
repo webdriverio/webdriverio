@@ -1,6 +1,6 @@
 ---
 id: testrunner
-title: Testrunner
+title: Тестове середовище
 ---
 
 WebdriverIO comes with its own test runner to help you start testing as quickly as possible. It is supposed to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
