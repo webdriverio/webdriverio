@@ -508,6 +508,22 @@ export type WaitForOptions = {
     withinViewport?: boolean
 }
 
+export enum MobileScrollDirection {
+    Down = 'down',
+    Up = 'up',
+    Left = 'left',
+    Right = 'right',
+}
+
+export type MobileScrollIntoViewOptions = {
+    direction?: MobileScrollDirection;
+    maxScrolls?: number;
+    scrollableElement?: WebdriverIO.Element;
+}
+
+export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions, MobileScrollIntoViewOptions {
+}
+
 export type WaitUntilOptions = {
     timeout?: number,
     timeoutMsg?: string,
