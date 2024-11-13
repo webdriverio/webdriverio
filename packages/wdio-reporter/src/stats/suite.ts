@@ -17,6 +17,7 @@ export interface Suite {
     tags?: string[] | Tag[]
     description?: string
     rule?: string
+    retries?: number
 }
 
 /**
@@ -33,6 +34,7 @@ export default class SuiteStats extends RunnableStats {
     hooks: HookStats[] = []
     suites: SuiteStats[] = []
     parent?: string
+    retries = 0
     /**
      * an array of hooks and tests stored in order as they happen
      */
@@ -54,5 +56,15 @@ export default class SuiteStats extends RunnableStats {
          */
         this.description = suite.description
         this.rule = suite.rule
+    }
+
+    /**
+     * Mark suite as retried and remove previous history.
+     */
+    retry () {
+        this.retries++
+        this.tests = []
+        this.hooks = []
+        this.hooksAndTests = []
     }
 }

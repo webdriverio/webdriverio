@@ -245,8 +245,6 @@ export default class CucumberFormatter extends Formatter {
             this.failedCount++
             error = new Error(result.message?.split('\n')[0])
             error.stack = result.message as string
-        } else if ((result as any as TestCaseFinished).willBeRetried) {
-            state = 'retry'
         }
 
         const common = {
@@ -414,6 +412,14 @@ export default class CucumberFormatter extends Formatter {
             rule: reporterScenario.rule,
         }
 
+        /**
+         * if we are retrying a scenario, we need to emit the event as `suite:retry` instead of `suite:start`
+         */
+        const isRetry = typeof testcase.attempt === 'number' && testcase.attempt > 0
+        if (!this.scenarioLevelReporter && isRetry) {
+            return this.emit('suite:retry', payload)
+        }
+
         this.emit(this.scenarioLevelReporter ? 'test:start' : 'suite:start', payload)
     }
 
@@ -467,53 +473,55 @@ export default class CucumberFormatter extends Formatter {
     }
 
     onTestStepFinished(testStepFinishedEvent: TestStepFinished) {
-        if (!this.scenarioLevelReporter) {
-            const testcase = this._testCases.find(
-                (testcase) => testcase.id === this._currentTestCase?.testCaseId
-            )
-            const scenario = this._scenarios.find(
-                (sc) => sc.id === this._suiteMap.get(testcase?.pickleId as string)
-            )
-            const teststep = testcase?.testSteps?.find(
-                (step) => step.id === testStepFinishedEvent.testStepId
-            )
-            const step =
-                scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
-                teststep
-            const result = testStepFinishedEvent.testStepResult
+        if (this.scenarioLevelReporter) {
+            return
+        }
 
-            const doc = this._gherkinDocEvents.find(
-                (gde) => gde.uri === scenario?.uri
-            )
-            const uri = doc?.uri
-            const feature = doc?.feature
+        const testcase = this._testCases.find(
+            (testcase) => testcase.id === this._currentTestCase?.testCaseId
+        )
+        const scenario = this._scenarios.find(
+            (sc) => sc.id === this._suiteMap.get(testcase?.pickleId as string)
+        )
+        const teststep = testcase?.testSteps?.find(
+            (step) => step.id === testStepFinishedEvent.testStepId
+        )
+        const step =
+            scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
+            teststep
+        const result = testStepFinishedEvent.testStepResult
 
-            /* istanbul ignore if */
-            if (!step) {
-                return
-            }
+        const doc = this._gherkinDocEvents.find(
+            (gde) => gde.uri === scenario?.uri
+        )
+        const uri = doc?.uri
+        const feature = doc?.feature
 
-            delete this._currentPickle
+        /* istanbul ignore if */
+        if (!step) {
+            return
+        }
 
-            const type = getStepType(step)
-            if (type === 'hook') {
-                return this.afterHook(
-                    uri as string,
-                    feature as Feature,
-                    scenario as Pickle,
-                    step,
-                    result
-                )
-            }
+        delete this._currentPickle
 
-            return this.afterTest(
+        const type = getStepType(step)
+        if (type === 'hook') {
+            return this.afterHook(
                 uri as string,
                 feature as Feature,
                 scenario as Pickle,
-                step as PickleStep,
+                step,
                 result
             )
         }
+
+        return this.afterTest(
+            uri as string,
+            feature as Feature,
+            scenario as Pickle,
+            step as PickleStep,
+            result
+        )
     }
 
     onTestCaseFinished(results: TestStepResult[]) {

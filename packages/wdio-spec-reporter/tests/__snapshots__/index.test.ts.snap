@@ -157,7 +157,7 @@ exports[`SpecReporter > onRetry > should group retried test cases 1`] = `
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
-[loremipsum 50 Windows 10 #0-0]    green ✓ loo (1 retries)
+[loremipsum 50 Windows 10 #0-0]    green ✓ loo yellow (1x retries)
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]    cyan ? baz
 [loremipsum 50 Windows 10 #0-0]
@@ -592,3 +592,22 @@ exports[`SpecReporter > printReport > with normal setup > should print the repor
 exports[`SpecReporter > showPreface > false 1`] = `[]`;
 
 exports[`SpecReporter > showPreface > true 1`] = `[]`;
+
+exports[`SpecReporter > suite retry > should group retried test suites 1`] = `
+[
+  [
+    "------------------------------------------------------------------
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Foo testyellow  (1x retries)
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 2 passing (5s)
+[loremipsum 50 Windows 10 #0-0] yellow 1 retried
+",
+  ],
+]
+`;

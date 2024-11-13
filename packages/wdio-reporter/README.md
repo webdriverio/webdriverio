@@ -178,6 +178,32 @@ SuiteStats {
   end: '2018-02-09T13:30:41.609Z' } }
 ```
 
+##### onSuiteRetry
+
+(Cucumber only)
+
+```js
+SuiteStats {
+  start: 2024-11-13T06:33:21.499Z,
+  end: undefined,
+  type: 'scenario',
+  uid: '0',
+  cid: '0-0',
+  file: '/Users/christian.bromann/Sites/WebdriverIO/projects/webdriverio/examples/wdio/cucumber/features/my-feature.feature',
+  title: 'Get size of an element',
+  fullTitle: 'my-feature.feature:1:1: Get size of an element',
+  tags: [],
+  tests: [],
+  hooks: [],
+  suites: [],
+  parent: 'my-feature.feature:1:1',
+  retries: 1,
+  hooksAndTests: [],
+  description: '',
+  rule: undefined
+}
+```
+
 ##### onHookStart
 
 ```js
