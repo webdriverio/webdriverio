@@ -1,16 +1,16 @@
 ---
 id: assertion
-title: Assertion
+title: Твердження
 ---
 
-The [WDIO testrunner](https://webdriver.io/docs/clioptions) comes with a built in assertion library that allows you to make powerful assertions on various aspects of the browser or elements within your (web) application. It extends [Jests Matchers](https://jestjs.io/docs/en/using-matchers) functionality with additional, for e2e testing optimized, matchers, e.g.:
+[Тестове середовище WDIO](https://webdriver.io/docs/clioptions) постачається з вбудованою бібліотекою тверджень, яка дозволяє вам робити ефективні твердження щодо різних аспектів браузера або елементів у вашому (веб-) додатку. Вона розширює функціональність [Jests Matchers](https://jestjs.io/docs/en/using-matchers) додатковими, оптимізованими для e2e тестування, відповідниками, наприклад:
 
 ```js
 const $button = await $('button')
 await expect($button).toBeDisplayed()
 ```
 
-or
+або
 
 ```js
 const selectOptions = await $$('form select>option')
@@ -19,17 +19,17 @@ const selectOptions = await $$('form select>option')
 await expect(selectOptions).toHaveChildren({ gte: 1 })
 ```
 
-For the full list, see the [expect API doc](/docs/api/expect-webdriverio).
+Повний список можна знайти в документації до [expect API](/docs/api/expect-webdriverio).
 
-## Migrating from Chai
+## Міграція з Chai
 
-[Chai](https://www.chaijs.com/) and [expect-webdriverio](https://github.com/webdriverio/expect-webdriverio#readme) can coexist, and with some minor adjustments a smooth transition to expect-webdriverio can be achieved. If you've upgraded to WebdriverIO v6 then by default you will have access to all the assertions from `expect-webdriverio` out of the box. This means that globally wherever you use `expect` you would call an `expect-webdriverio` assertion. That is, unless you you set [`injectGlobals`](/docs/configuration#injectglobals) to `false` or have explicitly overridden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
+[Chai](https://www.chaijs.com/) та [expect-webdriverio](https://github.com/webdriverio/expect-webdriverio#readme) можуть співіснувати, та за допомогою невеликих налаштувань можна досягти плавного переходу на expect-webdriverio. Якщо ви оновили WebdriverIO до v6, то за замовчуванням ви матимете доступ до всіх тверджень `expect-webdriverio` з коробки. Це означає, що скрізь, де б ви не використовували `expect`, ви будете викликати твердження `expect-webdriverio`. Тобто, якщо тільки ви не встановили [`injectGlobals`](/docs/configuration#injectglobals) в `false` або не перевизначили глобальний `expect` для використання Chai. У цьому випадку ви не матимете доступу до жодного з тверджень expect-webdriverio без явного імпорту пакета expect-webdriverio туди, де він вам потрібен.
 
-This guide will show examples of how to migrate from Chai if it has been overridden locally and how to migrate from Chai if it has been overridden globally.
+У цьому гайді наведено приклади того, як перейти з Chai, якщо він був замінений локально, і як перейти з Chai, якщо він був замінений на глобальному рівні.
 
-### Local
+### Локально
 
-Assume Chai was imported explicitly in a file, e.g.:
+Припустимо, що Chai було явно імпортовано у файлі, наприклад:
 
 ```js
 // myfile.js - original code
@@ -43,7 +43,7 @@ describe('Homepage', () => {
 })
 ```
 
-To migrate this code remove the Chai import and use the new expect-webdriverio assertion method `toHaveUrl` instead:
+Щоб перенести цей код, видаліть імпорт Chai та замість нього використовуйте новий метод перевірки expect-webdriverio `toHaveUrl`:
 
 ```js
 // myfile.js - migrated code
@@ -55,7 +55,7 @@ describe('Homepage', () => {
 });
 ```
 
-If you wanted to use both Chai and expect-webdriverio in the same file you would keep the Chai import and `expect` would default to the expect-webdriverio assertion, e.g.:
+Якщо ви хочете використовувати і Chai, і expect-webdriverio в одному файлі, тоді вам слід зберегти імпорт Chai, а `expect` за замовчуванням використовуватиме твердження expect-webdriverio, наприклад:
 
 ```js
 // myfile.js
@@ -76,9 +76,9 @@ describe('Other element', () => {
 })
 ```
 
-### Global
+### Глобально
 
-Assume `expect` was globally overridden to use Chai. In order to use expect-webdriverio assertions we need to globally set a variable in the "before" hook, e.g.:
+Припустимо, що `expect` було глобально перевизначено для використання Chai. Для того, щоб використовувати твердження expect-webdriverio, нам потрібно глобально встановити змінну в хуку "before", наприклад:
 
 ```js
 // wdio.conf.js
@@ -90,7 +90,7 @@ before: async () => {
 }
 ```
 
-Now Chai and expect-webdriverio can be used alongside each other. In your code you would use Chai and expect-webdriverio assertions as follows, e.g.:
+Тепер Chai та expect-webdriverio можна використовувати разом. У вашому коді ви можете використовувати твердження Chai та expect-webdriverio наступним чином, наприклад:
 
 ```js
 // myfile.js
@@ -108,4 +108,4 @@ describe('Other element', () => {
 });
 ```
 
-To migrate you would slowly move each Chai assertion over to expect-webdriverio. Once all Chai assertions have been replaced throughout the code base the "before" hook can be deleted. A global find and replace to replace all instances of `wdioExpect` to `expect` will then finish off the migration.
+Для міграції вам слід поступово перемістити кожне твердження Chai до expect-webdriverio. Після того, як всі твердження Chai буде замінено по всьому коду, хук "before" можна буде видалити. Глобальний пошук і заміна для заміни всіх екземплярів `wdioExpect` на `expect` завершить міграцію.
