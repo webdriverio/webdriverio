@@ -32,13 +32,13 @@ export default class Page {
 
 Ми завжди експортуємо(`export`) екземпляр об'єкта сторінки та ніколи не створюємо його в тесті. Оскільки ми пишемо end-to-end тести, ми завжди розглядаємо сторінку як конструкцію без стану &mdash; так само як кожен HTTP-запит є конструкцією без стану.
 
-Sure, the browser can carry session information and therefore can display different pages based on different sessions, but this shouldn't be reflected within a page object. These sorts of state changes should live in your actual tests.
+Звичайно, браузер може зберігати інформацію про сесію і, відповідно, відображати різні сторінки на основі різних сесій, але це не повинно відображатися в об'єкті сторінки. Такі зміни стану повинні відбуватися у ваших реальних тестах.
 
-Let's start testing the first page. For demo purposes, we use [The Internet](http://the-internet.herokuapp.com) website by [Elemental Selenium](http://elementalselenium.com) as guinea pig. Let's try to build a page object example for the [login page](http://the-internet.herokuapp.com/login).
+Почнімо тестувати першу сторінку. Для демонстрації, як піддослідного кролика, ми використаємо вебсайт [The Internet](http://the-internet.herokuapp.com) від компанії [Elemental Selenium](http://elementalselenium.com). Спробуємо створити приклад об'єкта сторінки для [сторінки входу в систему](http://the-internet.herokuapp.com/login).
 
-## `Get` -ing Your Selectors
+## Отримаймо(`Get`) ваші селектори
 
-The first step is to write all important selectors that are required in our `login.page` object as getter functions:
+Перший крок - написати всі важливі селектори, які потрібні в нашому об'єкті `login.page`, як getter-функції:
 
 ```js
 // login.page.js
