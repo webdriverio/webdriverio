@@ -535,6 +535,7 @@ declare global {
         interface JasmineOpts extends jasmineNodeOpts {}
     }
     namespace ExpectWebdriverIO {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Matchers<R, T> extends jasmine.Matchers<R> {}
     }
 }

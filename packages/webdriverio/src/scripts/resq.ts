@@ -13,9 +13,9 @@ export const waitToLoadReact = function waitToLoadReact () {
 
 export const react$ = function react$ (
     selector: string,
-    props: any[],
-    state: Record<string, any>,
-    reactElement: HTMLElement
+    props: Record<string, unknown>,
+    state: Record<string, unknown>,
+    reactElement?: HTMLElement
 ) {
     props = props || {}
     state = state || {}
@@ -45,9 +45,9 @@ export const react$ = function react$ (
 
 export const react$$ = function react$$ (
     selector: string,
-    props: any[],
-    state: Record<string, string>,
-    reactElement: HTMLElement
+    props: Record<string, unknown>,
+    state: Record<string, unknown>,
+    reactElement?: HTMLElement
 ) {
     let elements = window.resq.resq$$(selector, reactElement)
 

@@ -1519,10 +1519,8 @@ export interface LambdaTestCapabilities {
 
 export interface BrowserStackCapabilities {
     browser?: string
-    // eslint-disable-next-line
     browser_version?: string
     os?: string
-    // eslint-disable-next-line
     os_version?: string
     osVersion?: string
     desired?: unknown

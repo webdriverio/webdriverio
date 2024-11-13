@@ -1,8 +1,22 @@
-import FeatureStats from './featureStats.js'
+import FeatureStats, { type Feature } from './featureStats.js'
 import FeatureUsage from './featureUsage.js'
 import { BStackLogger } from '../bstackLogger.js'
 import TestOpsConfig from './testOpsConfig.js'
 import type { TOUsageStats } from '../types.js'
+
+export interface UsageStat {
+    testEvents: {
+        started: Feature
+        finished: Feature
+    }
+    hookEvents: {
+        started: Feature
+        finished: Feature
+    }
+    logEvents: Feature
+    cbtSessionEvents: Feature
+    cbtSessionStats: Feature
+}
 
 class UsageStats {
     public static instance: UsageStats
@@ -42,7 +56,7 @@ class UsageStats {
         this.logStats.add(usageStats.logStats)
     }
 
-    public getFormattedData(workersData: any[]) {
+    public getFormattedData(workersData: { usageStats: UsageStat }[]) {
         this.addDataFromWorkers(workersData)
         const testOpsConfig = TestOpsConfig.getInstance()
         const usage: TOUsageStats = {
@@ -64,7 +78,7 @@ class UsageStats {
         return usage
     }
 
-    public addDataFromWorkers(workersData: any[]) {
+    public addDataFromWorkers(workersData: { usageStats: UsageStat }[]) {
         workersData.map(workerData => {
             try {
                 const usageStatsForWorker = UsageStats.fromJSON(workerData.usageStats)
@@ -111,7 +125,7 @@ class UsageStats {
         }
     }
 
-    public static fromJSON(data: any) {
+    public static fromJSON(data: UsageStat) {
         const usageStats = new UsageStats()
         usageStats.testStartedStats = FeatureStats.fromJSON(data.testEvents.started)
         usageStats.testFinishedStats = FeatureStats.fromJSON(data.testEvents.finished)

@@ -9,7 +9,7 @@ export interface WrapperMethods {
 
 export interface SpecFunction {
     specFn: Function
-    specFnArgs: any[]
+    specFnArgs: unknown[]
 }
 
 export interface BeforeHookParam<T> {

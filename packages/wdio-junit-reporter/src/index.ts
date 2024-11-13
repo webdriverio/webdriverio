@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import url from 'node:url'
 import os from 'node:os'
 

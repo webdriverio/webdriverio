@@ -29,7 +29,7 @@ export default async function mergeResults(
 
 async function getDataFromFiles (dir: string, filePattern: string | RegExp) {
     const fileNames = (await fs.readdir(dir)).filter((file) => file.match(filePattern))
-    const data: any[] = []
+    const data: unknown[] = []
 
     await Promise.all(fileNames.map(async (fileName) => {
         data.push(JSON.parse((await fs.readFile(`${dir}/${fileName}`)).toString()))

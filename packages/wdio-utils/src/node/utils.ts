@@ -32,7 +32,7 @@ export const canAccess = (file?: string) => {
     try {
         fs.accessSync(file)
         return true
-    } catch (err: any) {
+    } catch {
         return false
     }
 }

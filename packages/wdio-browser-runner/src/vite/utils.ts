@@ -127,7 +127,7 @@ export async function userfriendlyImport(preset: FrameworkPreset, pkg?: string) 
 
     try {
         return await import(pkg)
-    } catch (err: any) {
+    } catch {
         throw new Error(
             `Couldn't load preset "${preset}" given important dependency ("${pkg}") is not installed.\n` +
             `Please run:\n\n\tnpm install ${pkg}\n\tor\n\tyarn add --dev ${pkg}`

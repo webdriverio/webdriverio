@@ -5,6 +5,7 @@ import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptor
 import { restoreFunctions } from '../../constants.js'
 import type { SupportedScopes } from '../../types.js'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RestoreFunction = () => Promise<any>
 type ColorScheme = 'light' | 'dark'
 

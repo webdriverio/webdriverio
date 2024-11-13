@@ -225,7 +225,7 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
         if (result === 'APPIUM_MISSING') {
             packages.push('appium')
         } else if (update) {
-            // eslint-disable-next-line no-console
+
             console.log(
                 '\n=======',
                 '\nUsing globally installed appium', result,
@@ -665,7 +665,7 @@ export async function getProjectProps(cwd = process.cwd()): Promise<ProjectProps
             packageJson,
             path: path.dirname(packageJsonPath)
         }
-    } catch (err) {
+    } catch {
         return undefined
     }
 }

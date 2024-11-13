@@ -21,13 +21,14 @@ const {
     defineParameterType,
     defineStep
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 } = require('@cucumber/cucumber')
 
 const adapterFactory = {
-    init: async function initCucumberFramework (...args: any[]) {
+    init: async function initCucumberFramework (...args: unknown[]) {
         const { CucumberAdapter } = await import('./index.js')
-        // @ts-ignore just passing through args
-        const adapter = new CucumberAdapter(...args as any)
+        // @ts-expect-error just passing through args
+        const adapter = new CucumberAdapter(...args as unknown[])
         const instance = await adapter.init()
         return instance
     },

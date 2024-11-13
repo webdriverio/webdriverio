@@ -22,7 +22,7 @@ export default function isElementStable(elem: HTMLElement, done: (returnValue: b
                 done(true)
             })
         })
-    } catch (error) {
+    } catch {
         done(false)
     }
 }

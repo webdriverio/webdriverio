@@ -12,7 +12,7 @@ vi.mock('vm', () => {
         runInContext: () => any
 
         constructor () {
-            this.createContext = vi.fn(),
+            this.createContext = vi.fn()
             this.runInContext = vi.fn().mockImplementation(() => {
                 if (runInContextFail) {
                     throw new Error('boom!')
@@ -121,11 +121,13 @@ describe('handleResult', () => {
         const callback = vi.fn()
         repl['_isCommandRunning'] = true
 
+        // @ts-expect-error
         repl['_handleResult'](null, callback)
         expect(callback).toBeCalledWith(null, null)
         expect(repl['_isCommandRunning']).toBe(false)
         callback.mockClear()
 
+        // @ts-expect-error
         repl['_handleResult'](1, callback)
         expect(callback).toBeCalledWith(null, 1)
     })

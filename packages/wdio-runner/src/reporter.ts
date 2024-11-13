@@ -37,6 +37,7 @@ export default class BaseReporter {
         cid: string
         specs: string[]
         uid: string
+        file?: string
         title: string
         error?: Error
     }) {

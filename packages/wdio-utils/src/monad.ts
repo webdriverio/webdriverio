@@ -68,6 +68,7 @@ export default function WebDriver (options: Record<string, unknown>, modifier?: 
         /**
          * assign propertiesObject to itself so the client can be recreated
          */
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { puppeteer, ...propertiesObjectWithoutPuppeteer } = propertiesObject
         propertiesObject.__propertiesObject__ = { value: propertiesObjectWithoutPuppeteer }
 

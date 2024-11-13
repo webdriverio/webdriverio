@@ -1,21 +1,30 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
+import { WebDriverProtocol } from '@wdio/protocols'
+import { URL } from 'node:url'
 
 import logger from '@wdio/logger'
 import { transformCommandLogResult, sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
+import  { WebDriverResponseError, type WebDriverRequestError } from './error.js'
 import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
-import type { WebDriverResponse, RequestLibResponse, RequestOptions } from './types.js'
+import type { WebDriverResponse } from './types.js'
 
 import { isSuccessfulResponse } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
 import pkg from '../../package.json' with { type: 'json' }
 
+type RequestLibResponse = Options.RequestLibResponse
+type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
+
 const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'detached shadow root',
     'move target out of bounds'
+]
+
+export const COMMANDS_WITHOUT_RETRY = [
+    findCommandPathByName('performActions'),
 ]
 
 const DEFAULT_HEADERS = {
@@ -27,8 +36,8 @@ const DEFAULT_HEADERS = {
 
 const log = logger('webdriver')
 
-export abstract class WebDriverRequest extends EventEmitter {
-    protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
+export default abstract class WebDriverRequest extends EventEmitter {
+    #requestTimeout?: NodeJS.Timeout
 
     body?: Record<string, unknown>
     method: string
@@ -46,16 +55,28 @@ export abstract class WebDriverRequest extends EventEmitter {
     }
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
-        const { url, requestOptions } = await this.createOptions(options, sessionId)
-        this.emit('request', requestOptions)
-        return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
+        const { url, requestOptions } = await this._createOptions(options, sessionId)
+        let fullRequestOptions: RequestInit = Object.assign(
+            { method: this.method },
+            requestOptions
+        )
+        if (typeof options.transformRequest === 'function') {
+            fullRequestOptions = options.transformRequest(fullRequestOptions)
+        }
+
+        this.emit('request', fullRequestOptions)
+        return this._request(url, fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
-        const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
+    protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
+        const controller = new AbortController()
+        this.#requestTimeout = setTimeout(
+            () => controller.abort(),
+            options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default
+        )
+
         const requestOptions: RequestInit = {
-            method: this.method,
-            signal: AbortSignal.timeout(timeout)
+            signal: controller.signal
         }
 
         const requestHeaders: HeadersInit = new Headers({
@@ -70,7 +91,7 @@ export abstract class WebDriverRequest extends EventEmitter {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
-            requestOptions.body = this.body as any
+            requestOptions.body = this.body as unknown as BodyInit
             requestHeaders.set('Content-Length', `${contentLength}`)
         }
 
@@ -102,44 +123,18 @@ export abstract class WebDriverRequest extends EventEmitter {
 
         requestOptions.headers = requestHeaders
 
-        return {
-            url,
-            requestOptions: typeof options.transformRequest === 'function'
-                ? options.transformRequest(requestOptions)
-                : requestOptions
-        }
+        return { url, requestOptions }
     }
 
-    protected async _libRequest (url: URL, opts: RequestInit): Promise<Options.RequestLibResponse> {
-        try {
-            const response = await this.fetch(url, {
-                method: opts.method,
-                body: JSON.stringify(opts.body),
-                headers: opts.headers as Record<string, string>,
-                signal: opts.signal,
-            })
-
-            // Cloning the response to prevent body unusable error
-            const resp = response.clone()
-
-            return {
-                statusCode: resp.status,
-                body: await resp.json() ?? {},
-            } as Options.RequestLibResponse
-        } catch (err: unknown) {
-            if (!(err instanceof Error)) {
-                throw new WebDriverRequestError(
-                    new Error(`Failed to fetch ${url.href}: ${(err as Error).message || err || 'Unknown error'}`),
-                    url,
-                    opts
-                )
-            }
-
-            throw new WebDriverRequestError(err, url, opts)
-        }
+    protected async _libRequest(_url: URL, _options: RequestInit): Promise<RequestLibResponse> {
+        throw new Error('This function must be implemented')
     }
 
-    protected async _request (
+    protected _libPerformanceNow(): number {
+        throw new Error('This function must be implemented')
+    }
+
+    private async _request (
         url: URL,
         fullRequestOptions: RequestInit,
         transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse,
@@ -149,14 +144,18 @@ export abstract class WebDriverRequest extends EventEmitter {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.body as any))
+            log.info('DATA', transformCommandLogResult(fullRequestOptions.body as unknown as Record<string, unknown>))
         }
 
         const { ...requestLibOptions } = fullRequestOptions
-        const startTime = performance.now()
+        const startTime = this._libPerformanceNow()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: WebDriverRequestError) => err)
-        const durationMillisecond = performance.now() - startTime
+        const durationMillisecond = this._libPerformanceNow() - startTime
+
+        if (this.#requestTimeout) {
+            clearTimeout(this.#requestTimeout)
+        }
 
         /**
          * handle retries for requests
@@ -267,4 +266,16 @@ export abstract class WebDriverRequest extends EventEmitter {
 
         return retry(error)
     }
+}
+
+function findCommandPathByName (commandName: string) {
+    const command = Object.entries(WebDriverProtocol).find(
+        ([, command]) => Object.values(command).find(
+            (cmd) => cmd.command === commandName))
+
+    if (!command) {
+        throw new Error(`Couldn't find command "${commandName}"`)
+    }
+
+    return command[0]
 }

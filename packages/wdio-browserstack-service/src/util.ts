@@ -17,6 +17,7 @@ import logPatcher from './logPatcher.js'
 import PerformanceTester from './performance-tester.js'
 import { getProductMap, logBuildError, handleErrorForObservability, handleErrorForAccessibility } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
+import type { Errors } from './testHub/utils.js'
 
 import type { UserConfig, UploadType, BrowserstackConfig, BrowserstackOptions, LaunchResponse } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
@@ -152,7 +153,7 @@ function processError(error: Error, fn: Function, args: unknown[]) {
     let argsString: string
     try {
         argsString = JSON.stringify(args)
-    } catch (e) {
+    } catch {
         argsString = util.inspect(args, { depth: 2 })
     }
     CrashReporter.uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack || 'unknown error')
@@ -280,7 +281,7 @@ export const processTestObservabilityResponse = (response: LaunchResponse) => {
         return
     }
     if (!response.observability.success) {
-        handleErrorForObservability(response.observability)
+        handleErrorForObservability(response.observability as Errors)
         return
     }
     process.env[BROWSERSTACK_OBSERVABILITY] = 'true'
@@ -297,9 +298,9 @@ export const jsonifyAccessibilityArray = (
     dataArray: DataElement[],
     keyName: keyof DataElement,
     valueName: keyof DataElement
-): Record<string, any> => {
-    const result: Record<string, any> = {}
-    dataArray.forEach((element: any) => {
+): Record<string, unknown> => {
+    const result: Record<string, unknown> = {}
+    dataArray.forEach((element: Record<string, string>) => {
         result[element[keyName]] = element[valueName]
     })
     return result
@@ -311,7 +312,7 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
         return
     }
     if (!response.accessibility.success) {
-        handleErrorForAccessibility(response.accessibility)
+        handleErrorForAccessibility(response.accessibility as Errors)
         return
     }
 
@@ -322,14 +323,15 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
             'commands': response.accessibility.options.commandsToWrap.commands
         }
         if (scannerVersion) {
-            process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion
+            process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion as string
         }
         BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
         if (accessibilityToken) {
-            process.env.BSTACK_A11Y_JWT = accessibilityToken
+            process.env.BSTACK_A11Y_JWT = accessibilityToken as string
             process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
         }
         if (scriptsJson) {
+            // @ts-expect-error fix type
             AccessibilityScripts.update(scriptsJson)
             AccessibilityScripts.store()
         }
@@ -418,17 +420,17 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         }
         processLaunchBuildResponse(jsonResponse, options)
         launchBuildUsage.success()
-    } catch (error: any) {
+    } catch (error: unknown) {
         BStackLogger.debug(`TestHub build start failed: ${format(error)}`)
-        if (!error.success) {
+        if (!(error as Error & { success: boolean }).success) {
             launchBuildUsage.failed(error)
-            logBuildError(error)
+            logBuildError(error as Errors)
             return
         }
     }
 })
 
-export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
+export const validateCapsWithA11y = (deviceName?: string, platformMeta?: { [key: string]: string; }, chromeOptions?: Capabilities.ChromeOptions) => {
     /* Check if the current driver platform is eligible for Accessibility scan */
     try {
         if (deviceName) {
@@ -457,14 +459,14 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
     return false
 }
 
-export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }, world?: { [key: string]: any; }, isCucumber?: boolean ) => {
+export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: string; }, world?: { [key: string]: unknown; }, isCucumber?: boolean ) => {
     try {
         const includeTags = Array.isArray(accessibilityOptions?.includeTagsInTestingScope) ? accessibilityOptions?.includeTagsInTestingScope : []
         const excludeTags = Array.isArray(accessibilityOptions?.excludeTagsInTestingScope) ? accessibilityOptions?.excludeTagsInTestingScope : []
 
         if (isCucumber) {
             const tagsList: string[] = []
-            world?.pickle?.tags.map((tag: { [key: string]: any; }) => tagsList.push(tag.name))
+            ;(world?.pickle as { tags: { name: string }[] })?.tags.map((tag: { [key: string]: string; }) => tagsList.push(tag.name))
             const excluded = excludeTags?.some((exclude) => tagsList.includes(exclude))
             const included = includeTags?.length === 0 || includeTags?.some((include) => tagsList.includes(include))
 
@@ -492,7 +494,7 @@ export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | s
     return false
 }
 
-export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
+export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: unknown; } | undefined> => {
     if (!isBrowserStackSession) {
         BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
         return // since we are running only on Automate as of now
@@ -513,7 +515,7 @@ export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO
     }
 }
 
-export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
+export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: unknown; }>> => {
     if (!isBrowserStackSession) {
         BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
         return [] // since we are running only on Automate as of now
@@ -1128,9 +1130,9 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
 
 export function getBrowserStackUser(config: Options.Testrunner) {
     if (process.env.BROWSERSTACK_USERNAME) {
-        return process.env.BROWSERSTACK_USERNAME
+        return process.env.BROWSERSTACK_USERNAME as string
     }
-    return config.user
+    return config.user as string
 }
 
 export function getBrowserStackKey(config: Options.Testrunner) {
@@ -1140,7 +1142,7 @@ export function getBrowserStackKey(config: Options.Testrunner) {
     return config.key
 }
 
-export function isUndefined(value: string) {
+export function isUndefined(value: unknown) {
     let res = (value === undefined || value === null)
     if (typeof value === 'string') {
         res = res || value === ''
@@ -1148,7 +1150,7 @@ export function isUndefined(value: string) {
     return res
 }
 
-export function isTrue(value?: string) {
+export function isTrue(value?: unknown) {
     return (value + '').toLowerCase() === 'true'
 }
 
@@ -1339,7 +1341,7 @@ export const hasBrowserName = (cap: Capabilities.WebdriverIOConfig): boolean => 
     return browserStackCapabilities.browserName !== undefined
 }
 
-export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner }): boolean => {
+export const isValidCapsForHealing = (caps: WebdriverIO.Capabilities): boolean => {
 
     // Get all capability values
     const capValues = Object.values(caps)

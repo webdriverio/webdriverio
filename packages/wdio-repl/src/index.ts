@@ -43,7 +43,7 @@ export interface ReplConfig {
     useColor: boolean
 }
 
-export type ReplCallback = (err: Error | null, result: any) => void
+export type ReplCallback = (err: Error | null, result: unknown) => void
 
 export default class WDIORepl {
     static introMessage = INTRO_MESSAGE
@@ -78,13 +78,13 @@ export default class WDIORepl {
         try {
             const result = vm.runInContext(cmd, context)
             return this._handleResult(result, callback)
-        } catch (e: any) {
+        } catch (e: unknown) {
             this._isCommandRunning = false
-            return callback(e, undefined)
+            return callback(e as Error, undefined)
         }
     }
 
-    private _handleResult (result: any, callback: ReplCallback) {
+    private _handleResult (result: Promise<unknown>, callback: ReplCallback) {
         if (!result || typeof result.then !== 'function') {
             this._isCommandRunning = false
             return callback(null, result)
@@ -100,7 +100,7 @@ export default class WDIORepl {
             this._config.commandTimeout
         )
 
-        result.then((res: any) => {
+        result.then((res: unknown) => {
             /**
              * don't do anything if timeout was called
              */

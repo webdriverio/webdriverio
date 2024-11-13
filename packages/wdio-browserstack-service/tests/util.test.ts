@@ -390,7 +390,7 @@ describe('getCiInfo', () => {
     })
 
     it('should return null if no CI being used', () => {
-        expect(getCiInfo()).toBeNull
+        expect(getCiInfo()).toBeNull()
     })
 })
 

@@ -13,7 +13,7 @@ const log = logger('@wdio/local-runner')
  */
 interface RunnerInterface extends NodeJS.EventEmitter {
     sigintWasCalled: boolean
-    [key: string]: any
+    [key: string]: unknown
 }
 
 /**
@@ -35,13 +35,13 @@ runner.on('error', ({ name, message, stack }) => process.send!({
 }))
 
 process.on('message', (m: Workers.WorkerCommand) => {
-    if (!m || !m.command || !runner[m.command]) {
+    if (!m || !m.command || !runner[m.command] || typeof runner[m.command] !== 'function') {
         return
     }
 
     log.info(`Run worker command: ${m.command}`)
-    runner[m.command](m).then(
-        (result: any) => process.send!({
+    ;(runner[m.command] as Function)(m).then(
+        (result: unknown) => process.send!({
             origin: 'worker',
             name: 'finishedCommand',
             content: {

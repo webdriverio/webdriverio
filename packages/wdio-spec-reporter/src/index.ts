@@ -67,7 +67,8 @@ export default class SpecReporter extends WDIOReporter {
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
-        const processObj:any = process
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const processObj = process as any
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
@@ -510,9 +511,11 @@ export default class SpecReporter extends WDIOReporter {
 
                 )
                 for (const error of errors) {
-                    !error?.stack?.includes('new AssertionError')
-                        ? output.push(this.setMessageColor(error.message, State.FAILED))
-                        : output.push(...error.message.split('\n'))
+                    if (!error?.stack?.includes('new AssertionError')) {
+                        output.push(this.setMessageColor(error.message, State.FAILED))
+                    } else {
+                        output.push(...error.message.split('\n'))
+                    }
                     if (error.stack) {
                         output.push(...error.stack.split(/\n/g).map(value => this.setMessageColor(value)))
                     }

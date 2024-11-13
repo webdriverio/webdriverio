@@ -1,6 +1,6 @@
 import type { Options } from '@wdio/types'
 
-export const validObjectOrArray = (object: any): object is object | Array<any> => (Array.isArray(object) && object.length > 0) ||
+export const validObjectOrArray = (object: object): object is object | Array<unknown> => (Array.isArray(object) && object.length > 0) ||
     (typeof object === 'object' && Object.keys(object).length > 0)
 
 /**
@@ -61,8 +61,8 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
             if (typeof expectedOption.validate === 'function') {
                 try {
                     expectedOption.validate(optValue)
-                } catch (e: any) {
-                    throw new Error(`Type check for option "${name.toString()}" failed: ${e.message}`)
+                } catch (e: unknown) {
+                    throw new Error(`Type check for option "${name.toString()}" failed: ${(e as Error).message}`)
                 }
             }
 
@@ -74,7 +74,7 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
         }
     }
 
-    for (const [name, option] of Object.entries(options as any) as [keyof T, T[keyof T]][]) {
+    for (const [name, option] of Object.entries(options as object) as [keyof T, T[keyof T]][]) {
         /**
          * keep keys from source object if desired
          */

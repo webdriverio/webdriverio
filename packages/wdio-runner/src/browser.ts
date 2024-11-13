@@ -18,9 +18,16 @@ const ERROR_CHECK_INTERVAL = 500
 const DEFAULT_TIMEOUT = 60 * 1000
 
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
+
+interface Event {
+    type: string
+    title: string
+    fullTitle: string
+    specs: string[]
+}
 interface TestState {
     failures: number
-    events: any[]
+    events: Event[]
     errors?: WDIOErrorEvent[]
     hasViteError?: boolean
 }
@@ -35,7 +42,7 @@ interface LogMessage {
 declare global {
     interface Window {
         __wdioErrors__: WDIOErrorEvent[]
-        __wdioEvents__: any[]
+        __wdioEvents__: Event[]
         __wdioFailures__: number
         __coverage__?: unknown
     }
@@ -43,6 +50,7 @@ declare global {
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #retryOutdatedOptimizeDep = false
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
 
@@ -74,7 +82,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         try {
             const failures = await this.#loop()
             return failures
-        } catch (err: any) {
+        } catch (_err: unknown) {
+            const err = _err as Error
             if ((err as Error).message.includes('net::ERR_CONNECTION_REFUSE')) {
                 err.message = `Failed to load test page to run tests, make sure your browser can access "${browser.options.baseUrl}"`
             }
@@ -350,7 +359,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 /**
                  * need await here since ElementArray functions return a promise
                  */
-                result = (await result.map((res: any) => ({
+                result = (await result.map((res: WebdriverIO.Element) => ({
                     [ELEMENT_KEY]: res.elementId
                 }))).filter(Boolean)
             }
@@ -358,8 +367,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const resultMsg = this.#commandResponse({ id: payload.id, result })
             log.debug(`Return command result: ${resultMsg}`)
             return this.#sendWorkerResponse(id, resultMsg)
-        } catch (error: any) {
-            const { message, stack, name } = error
+        } catch (error: unknown) {
+            const { message, stack, name } = error as Error
             return this.#sendWorkerResponse(id, this.#commandResponse({ id: payload.id, error: { message, stack, name } }))
         }
     }
@@ -517,7 +526,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
     }
 
-    static init (cid: string, config: any, specs: string[], _: unknown, reporter: BaseReporter) {
+    static init (cid: string, config: Options.Testrunner, specs: string[], _: unknown, reporter: BaseReporter) {
         const framework = new BrowserFramework(cid, config, specs, reporter)
         return framework
     }

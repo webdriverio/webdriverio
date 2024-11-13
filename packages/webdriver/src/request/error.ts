@@ -27,7 +27,7 @@ abstract class WebDriverError extends Error {
     }
 
     #getExecCmdArgs(requestOptions: RequestInit): string {
-        const { body: cmdJson }: any = requestOptions
+        const { body: cmdJson } = requestOptions as unknown as { body: Record<string, unknown> }
 
         if (typeof cmdJson !== 'object') {
             return ''
@@ -54,7 +54,7 @@ export class WebDriverRequestError extends WebDriverError {
     opts: RequestInit
 
     statusCode?: number
-    body?: any
+    body?: unknown
     code?: string
 
     constructor (err: Error, url: URL, opts: RequestInit) {

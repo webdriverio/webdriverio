@@ -85,7 +85,9 @@ export async function $$ (
         res = []
         for (const el of selector) {
             const $el = await findElement.call(this, el)
-            $el && res.push($el)
+            if ($el) {
+                res.push($el)
+            }
         }
     }
 

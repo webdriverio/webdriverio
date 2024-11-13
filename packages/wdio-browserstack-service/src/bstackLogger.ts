@@ -42,7 +42,7 @@ export class BStackLogger {
         log.error(message)
     }
 
-    public static debug(message: string, param?: any) {
+    public static debug(message: string, param?: unknown) {
         this.logToFile(message, 'debug')
         if (param) {
             log.debug(message, param)

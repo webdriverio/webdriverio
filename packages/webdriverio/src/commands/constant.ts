@@ -24,7 +24,7 @@ export const formatArgs = function (
 ): FormattedActions[] {
     return actions.map((action: TouchAction) => {
         if (Array.isArray(action)) {
-            return formatArgs(scope, action) as any
+            return formatArgs(scope, action) as unknown as FormattedActions
         }
 
         if (typeof action === 'string') {

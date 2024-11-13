@@ -34,7 +34,7 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
         }, this.options.tbTunnelOpts)
 
         const capabilitiesEntries = Array.isArray(capabilities) ?
-            (capabilities as []).every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities)) ?
+            (capabilities as []).every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as Capabilities.RequestedMultiremoteCapabilities).capabilities)) ?
                 capabilities.flatMap((cap: Capabilities.RequestedMultiremoteCapabilities ) => Object.values(cap))
                 : capabilities
             : Object.values(capabilities)

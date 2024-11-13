@@ -247,6 +247,7 @@ async function nativeMobileScrollIntoView({
 
     if (hasScrolled && isVisible) {
         // Pause for stabilization
+        // eslint-disable-next-line wdio/no-pause
         return browser.pause(1000)
     } else if (isVisible) {
         // Element is already visible

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { h } from '@stencil/core'
 import { $ } from '@wdio/globals'
 import type { StencilEnvironment } from '../../../stencil/index.d.ts'

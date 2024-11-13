@@ -21,6 +21,7 @@ export default tseslint.config(
             '**/*.d.ts',
             'packages/wdio-protocols/src/protocols/webdriverBidi.ts',
             'packages/webdriverio/third_party/fake-timers.js',
+            'packages/wdio-protocols/src/commands'
         ],
     },
     eslint.configs.recommended,
@@ -101,7 +102,10 @@ export default tseslint.config(
         rules: {
             'dot-notation': 'off',
             'no-unused-vars': 'off',
-            '@typescript-eslint/no-unused-vars': 'error',
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+            ],
             '@typescript-eslint/consistent-type-imports': 'error',
             '@typescript-eslint/ban-ts-comment': 'off',
             '@typescript-eslint/no-unsafe-function-type': 'off',
@@ -137,18 +141,14 @@ export default tseslint.config(
         }
     }, {
         /**
-         * Eslint rules for all unit tests
+         * Eslint rules for /example directory and unit tests
          */
-        files: ['packages/**/*.test.ts'],
-        rules: {
-            'wdio/no-pause': 'off',
-            'wdio/no-debug': 'off',
-            '@typescript-eslint/no-explicit-any': 'off'
-        }
-    }, {
-        /**
-         * Eslint rules for /example directory
-         */
+        files: [
+            'examples/**/*.ts',
+            'examples/**/*.js',
+            'packages/**/*.test.ts',
+            'packages/**/tests/**/*.ts'
+        ],
         languageOptions: {
             globals: {
                 ...globals.mocha,
@@ -159,7 +159,9 @@ export default tseslint.config(
         },
         rules: {
             'no-undef': 'off',
+            'no-unused-vars': 'off',
             '@typescript-eslint/no-unused-vars': 'off',
+            '@typescript-eslint/no-explicit-any': 'off',
             'wdio/no-pause': 'off',
             'wdio/no-debug': 'off',
         }

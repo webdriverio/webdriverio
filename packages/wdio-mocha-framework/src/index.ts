@@ -68,7 +68,7 @@ class MochaAdapter {
         await mocha.loadFilesAsync({
             esmDecorator: (file: string) => `${file}?invalidateCache=${Math.random()}`
         })
-        mocha.reporter(NOOP as any)
+        mocha.reporter(NOOP as unknown as Mocha.Reporter)
         mocha.fullTrace()
 
         /**
@@ -105,13 +105,13 @@ class MochaAdapter {
             }
 
             this._hasTests = mochaRunner.total > 0
-        } catch (err: any) {
+        } catch (err: unknown) {
             const error = '' +
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialized.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
                 'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
                 `Spec file(s): ${this._specs.join(',')}\n` +
-                `Error: ${err.stack}`
+                `Error: ${(err as Error).stack}`
             this._specLoadError = new Error(error)
             log.warn(error)
         }
@@ -128,8 +128,8 @@ class MochaAdapter {
         const result = await new Promise((resolve) => {
             try {
                 this._runner = mocha.run(resolve)
-            } catch (err: any) {
-                runtimeError = err
+            } catch (err: unknown) {
+                runtimeError = err as Error
                 return resolve(1)
             }
 
@@ -175,7 +175,10 @@ class MochaAdapter {
         case 'afterSuite':
             params.payload = this._runner?.suite.suites[0]
             if (params.payload) {
-                params.payload.duration = params.payload.duration || (Date.now() - this._suiteStartDate)
+                (params.payload as { duration: number }).duration = (
+                    (params.payload as { duration: number }).duration ||
+                    (Date.now() - this._suiteStartDate)
+                )
             }
             break
         case 'beforeTest':
@@ -187,7 +190,7 @@ class MochaAdapter {
         return formatMessage(params)
     }
 
-    emit (event: string, payload: any, err?: MochaError) {
+    emit (event: string, payload: Record<string, unknown>, err?: MochaError) {
         /**
          * For some reason, Mocha fires a second 'suite:end' event for the root suite,
          * with no matching 'suite:start', so this can be ignored.
@@ -266,7 +269,7 @@ class MochaAdapter {
 
 const adapterFactory: { init?: Function } = {}
 
-adapterFactory.init = async function (...args: any[]) {
+adapterFactory.init = async function (...args: unknown[]) {
     // @ts-ignore just passing through args
     const adapter = new MochaAdapter(...args)
     const instance = await adapter.init()

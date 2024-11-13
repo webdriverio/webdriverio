@@ -2,7 +2,7 @@ import os from 'node:os'
 import util, { format } from 'node:util'
 import path from 'node:path'
 import fs from 'node:fs'
-import UsageStats from '../testOps/usageStats.js'
+import UsageStats, { type UsageStat } from '../testOps/usageStats.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
@@ -10,6 +10,7 @@ import { getDataFromWorkers } from '../data-store.js'
 import { getProductMap } from '../testHub/utils.js'
 import fetchWrap from '../fetchWrapper.js'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
+import type { FunnelData, EventProperties } from '../types.js'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -44,7 +45,7 @@ export function saveFunnelData(eventType: string, config: BrowserStackConfig): s
     return filePath
 }
 
-function redactCredentialsFromFunnelData(data: any) {
+function redactCredentialsFromFunnelData(data: FunnelData) {
     if (data) {
         if (data.userName) {
             data.userName = '[REDACTED]'
@@ -57,7 +58,7 @@ function redactCredentialsFromFunnelData(data: any) {
 }
 
 // Called from two different process
-export async function fireFunnelRequest(data: any): Promise<void> {
+export async function fireFunnelRequest(data: FunnelData): Promise<void> {
     const { userName, accessKey } = data
     redactCredentialsFromFunnelData(data)
 
@@ -99,8 +100,8 @@ function getProductList(config: BrowserStackConfig) {
     return products
 }
 
-function buildEventData(eventType: string, config: BrowserStackConfig): any {
-    const eventProperties: any = {
+function buildEventData(eventType: string, config: BrowserStackConfig) {
+    const eventProperties: EventProperties = {
         // Framework Details
         language_framework: getLanguageFramework(config.framework),
         referrer: getReferrer(config.framework),
@@ -117,11 +118,12 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
 
         // Product Details
         productMap: getProductMap(config),
-        product: getProductList(config),
+        product: getProductList(config)
     }
 
     if (eventType === 'SDKTestSuccessful') {
         const workerData = getDataFromWorkers()
+        // @ts-expect-error
         eventProperties.productUsage = getProductUsage(workerData)
     }
 
@@ -131,11 +133,11 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
         event_type: eventType,
         detectedFramework: 'WebdriverIO-' + config.framework,
         event_properties: eventProperties
-    }
+    } as unknown as FunnelData
 
 }
 
-function getProductUsage(workersData: any[]) {
+function getProductUsage(workersData: { usageStats: UsageStat }[]) {
     return {
         testObservability: UsageStats.getInstance().getFormattedData(workersData)
     }
@@ -159,8 +161,8 @@ const sendEvent = {
     tcgProxyFailure: (config: BrowserStackConfig) => fireFunnelTestEvent('SDKTestTcgProxyFailure', config),
 }
 
-function isProxyError(authResult: any): boolean {
-    return (authResult as BrowserstackHealing.InitErrorResponse).status === 502
+function isProxyError(authResult: { status?: number }): boolean {
+    return (authResult as BrowserstackHealing.InitErrorResponse)?.status === 502
 }
 
 function handleProxyError(config: BrowserStackConfig, isSelfHealEnabled: boolean | undefined) {
@@ -215,8 +217,17 @@ function handleInitializationFailure(status: number, config: BrowserStackConfig,
     }
 }
 
+interface AuthResult {
+    message: string
+    isAuthenticated: boolean
+    status: number
+    userId: string
+    groupId: string
+    isHealingEnabled: boolean
+}
+
 export function handleHealingInstrumentation(
-    authResult: BrowserstackHealing.InitErrorResponse | BrowserstackHealing.InitSuccessResponse,
+    authResult: AuthResult,
     config: BrowserStackConfig,
     isSelfHealEnabled: boolean | undefined,
 ) {
@@ -226,7 +237,7 @@ export function handleHealingInstrumentation(
             return
         }
 
-        const { message, isAuthenticated, status, userId, groupId, isHealingEnabled: isHealingEnabledForUser } = authResult as any
+        const { message, isAuthenticated, status, userId, groupId, isHealingEnabled: isHealingEnabledForUser } = authResult
 
         if (message === 'Upgrade required') {
             handleUpgradeRequired(isSelfHealEnabled)

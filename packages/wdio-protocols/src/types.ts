@@ -1,6 +1,6 @@
 // object with no match
 export interface ProtocolCommandResponse {
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 // webdriver.json
@@ -306,7 +306,7 @@ export interface BidiRequest {
     /**
      * types will be more defined later
      */
-    params: Record<string, any>
+    params: Record<string, unknown>
 }
 
 export type Context = string | DetailedContext

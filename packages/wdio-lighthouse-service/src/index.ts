@@ -30,7 +30,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         return this._setupHandler()
     }
 
-    async beforeCommand (commandName: string, params: any[]) {
+    async beforeCommand (commandName: string, params: unknown[]) {
         return Promise.all(this._command.map(async c => await c._beforeCmd(commandName, params)))
     }
 

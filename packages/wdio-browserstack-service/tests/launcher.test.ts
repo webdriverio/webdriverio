@@ -33,9 +33,6 @@ vi.mock('node:fs', () => ({
 }))
 
 vi.spyOn(utils, 'uploadLogs').mockImplementation((_user, _key, _uuid) => new Promise((resolve) => {
-    _user
-    _key
-    _uuid
     resolve('success')
 }))
 

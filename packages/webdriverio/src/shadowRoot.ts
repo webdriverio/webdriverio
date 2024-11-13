@@ -73,7 +73,7 @@ export class ShadowRootManager {
     /**
      * keep track of frame depth
      */
-    #commandResultHandler (result: { command: string, result: any }) {
+    #commandResultHandler (result: { command: string, result: { error?: Error } }) {
         if (result.command === 'switchToFrame' && !result.result.error) {
             this.#frameDepth++
         }
@@ -172,9 +172,11 @@ export class ShadowRootManager {
                 shadowElem.value.shadowRoot.sharedId,
                 shadowElem.value.shadowRoot.value.mode
             )
-            rootElem.sharedId
-                ? tree.addShadowElement(rootElem.sharedId, newTree)
-                : tree.addShadowElement(newTree)
+            if (rootElem.sharedId) {
+                tree.addShadowElement(rootElem.sharedId, newTree)
+            } else {
+                tree.addShadowElement(newTree)
+            }
             return
         }
 

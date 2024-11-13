@@ -27,6 +27,14 @@ const BROWSER_DRIVER_ERRORS = [
     'Command not found' // iedriver
 ]
 
+interface SessionInitializationResponse {
+    value: {
+        sessionId?: string,
+        capabilities?: WebdriverIO.Capabilities
+    },
+    sessionId: string
+}
+
 /**
  * start browser session with WebDriver protocol
  */
@@ -78,12 +86,12 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
         { capabilities }
     )
 
-    let response
+    let response: SessionInitializationResponse
     try {
-        response = await sessionRequest.makeRequest(params)
-    } catch (err: any) {
+        response = await sessionRequest.makeRequest(params) as SessionInitializationResponse
+    } catch (err: unknown) {
         log.error(err)
-        const message = getSessionError(err, params)
+        const message = getSessionError(err as Error, params)
         throw new Error('Failed to create session.\n' + message)
     }
     const sessionId = response.value.sessionId || response.sessionId
@@ -143,7 +151,7 @@ export function validateCapabilities (capabilities: WebdriverIO.Capabilities) {
  * @param  {Object}  body       body payload of response
  * @return {Boolean}            true if request was successful
  */
-export function isSuccessfulResponse (statusCode?: number, body?: WebDriverResponse) {
+export function isSuccessfulResponse (statusCode?: number, body?: WebDriverResponse<{ message: string, error: string, stackTrace: string, stacktrace: string }>) {
     /**
      * response contains a body
      */
@@ -210,6 +218,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
  */
 export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
@@ -217,6 +226,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
          * (e.g. set/get geolocation)
          */
         isMobile
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
             : WebDriverProtocol,
         /**
@@ -226,6 +236,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
         /**
          * only apply mobile protocol if session is actually for mobile
          */
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         isMobile ? deepmerge<any>(MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chromium commands if session is using Chrome or Edge
@@ -398,7 +409,7 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
         _bidiHandler: { value: handler },
         ...Object.values(WebDriverBidiProtocol).map((def) => def.socket).reduce((acc, cur) => {
             acc[cur.command] = {
-                value: function (this: Client, ...args: any) {
+                value: function (this: Client, ...args: unknown[]) {
                     const bidiFn = handler[cur.command] as Function | undefined
 
                     /**
@@ -422,7 +433,7 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
             return
         }
 
-        this.emit(payload.method, payload.params)
+        this.emit(payload.method as string, payload.params)
     } catch (err: unknown) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
     }

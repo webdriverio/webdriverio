@@ -7,7 +7,7 @@ import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
 
 declare type RawMatcherFn<Context extends MatcherContext = MatcherContext> = {
-    (this: Context, actual: any, ...expected: Array<any>): ExpectationResult;
+    (this: Context, actual: unknown, ...expected: Array<unknown>): ExpectationResult;
 };
 
 interface MatcherPayload {
@@ -31,6 +31,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  * @returns a matcher result computed in the Node.js environment
  */
 function createMatcher (matcherName: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | ChainablePromiseArray, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
@@ -68,7 +69,7 @@ function createMatcher (matcherName: string) {
         /**
          * Check if context is ChainablePromiseElement
          */
-        if (isContextObject && 'then' in context && typeof (context as any).selector === 'object') {
+        if (isContextObject && 'then' in context && typeof (context as { selector: string }).selector === 'object') {
             expectRequest.element = await context
         }
 

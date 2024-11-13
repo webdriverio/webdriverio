@@ -7,7 +7,7 @@ const log = logger('@wdio/utils:initializeServices')
 
 type IntialisedService = (
     [Services.ServiceClass | { default: Function }, WebdriverIO.ServiceOption, string] |
-    [Services.HookFunctions, Record<string, any>] |
+    [Services.HookFunctions, Record<string, unknown>] |
     [Services.ServiceClass, WebdriverIO.ServiceOption]
 )
 
@@ -143,8 +143,8 @@ export async function initializeLauncherService (
                 ignoredWorkerServices.push(serviceName)
             }
         }
-    } catch (err: any) {
-        throw new Error(`Failed to initialise launcher service ${serviceLabelToBeInitialised}: ${err.stack}`)
+    } catch (err: unknown) {
+        throw new Error(`Failed to initialise launcher service ${serviceLabelToBeInitialised}: ${(err as Error).stack}`)
     }
 
     return { ignoredWorkerServices, launcherServices }
@@ -190,7 +190,7 @@ export async function initializeWorkerService (
         }
 
         return initializedServices
-    } catch (err: any) {
-        throw new Error(`Failed to initialise service ${serviceLabelToBeInitialised}: ${err.stack}`)
+    } catch (err: unknown) {
+        throw new Error(`Failed to initialise service ${serviceLabelToBeInitialised}: ${(err as Error).stack}`)
     }
 }

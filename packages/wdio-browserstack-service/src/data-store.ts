@@ -27,7 +27,7 @@ export function getDataFromWorkers(){
     return workersData
 }
 
-export function saveWorkerData(data: Record<string, any>) {
+export function saveWorkerData(data: Record<string, unknown>) {
     const filePath = path.join(workersDataDirPath, 'worker-data-' + process.pid + '.json')
 
     try {

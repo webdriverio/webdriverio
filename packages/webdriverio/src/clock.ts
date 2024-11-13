@@ -22,7 +22,7 @@ function uninstallFakeTimers () {
 
 export class ClockManager {
     #browser: WebdriverIO.Browser
-    #resetFn: (() => Promise<any>) = () => Promise.resolve()
+    #resetFn: (() => Promise<unknown>) = () => Promise.resolve()
     #isInstalled = false
 
     constructor(browser: WebdriverIO.Browser) {
