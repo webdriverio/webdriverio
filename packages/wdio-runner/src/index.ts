@@ -75,22 +75,19 @@ export default class Runner extends EventEmitter {
         // ToDo(Christian): resolve type incompatibility between v8 and v9
         this._configParser.addService(snapshotService as any)
 
-        let filteredCaps = caps
-        if (this._isMultiremote) {
-            filteredCaps = {}
-            // filters out caps that are excluded in the multiremote capabilities for the current spec
-            Object.entries(caps).forEach(([browserName, browserCaps]) => {
+        this._caps = this._isMultiremote
+            ? Object.entries(caps).reduce((filteredCaps, [browserName, browserCaps]) => {
                 const ex = browserCaps.capabilities['wdio:exclude']
                 if (ex) {
                     const sp = this._configParser?.getSpecs(specs, ex)
                     if (sp && sp.length === 0) {
-                        return
+                        return filteredCaps
                     }
                 }
-                (filteredCaps as Capabilities.RequestedMultiremoteCapabilities)[browserName] = browserCaps
-            })
-        }
-        this._caps = filteredCaps
+                filteredCaps[browserName] = browserCaps
+                return filteredCaps
+            }, {} as Capabilities.RequestedMultiremoteCapabilities)
+            : caps
 
         /**
          * create `browser` stub only if `specFiltering` feature is enabled
@@ -100,46 +97,46 @@ export default class Runner extends EventEmitter {
             // @ts-ignore used in `/packages/webdriverio/src/protocol-stub.ts`
             _automationProtocol: this._config.automationProtocol,
             automationProtocol: './protocol-stub.js'
-        }, filteredCaps)
+        }, this._caps)
 
         /**
          * run `beforeSession` command before framework and browser are initiated
          */
         ;(await initializeWorkerService(
             this._config as Options.Testrunner,
-            filteredCaps as WebdriverIO.Capabilities,
+            this._caps as WebdriverIO.Capabilities,
             args.ignoredWorkerServices
         )).map(this._configParser.addService.bind(this._configParser))
 
-        const beforeSessionParams: BeforeSessionArgs = [this._config, filteredCaps, this._specs, this._cid]
+        const beforeSessionParams: BeforeSessionArgs = [this._config, this._caps, this._specs, this._cid]
         await executeHooksWithArgs('beforeSession', this._config.beforeSession, beforeSessionParams)
 
-        this._reporter = new BaseReporter(this._config, this._cid, { ...filteredCaps })
+        this._reporter = new BaseReporter(this._config, this._cid, { ...this._caps })
         await this._reporter.initReporters()
 
         /**
          * initialize framework
          */
-        this._framework = await this.#initFramework(cid, this._config, filteredCaps, this._reporter, specs)
-        process.send!({ name: 'testFrameworkInit', content: { cid, filteredCaps, specs, hasTests: this._framework.hasTests() } })
+        this._framework = await this.#initFramework(cid, this._config, this._caps, this._reporter, specs)
+        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() } })
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
         }
 
-        browser = await this._initSession(this._config, filteredCaps)
+        browser = await this._initSession(this._config, this._caps)
 
         /**
          * return if session initialization failed
          */
         if (!browser) {
-            const afterArgs: AfterArgs = [1, filteredCaps, this._specs]
+            const afterArgs: AfterArgs = [1, this._caps, this._specs]
             await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
             return this._shutdown(1, retries, true)
         }
 
         this._reporter.caps = browser.capabilities
 
-        const beforeArgs: BeforeArgs = [filteredCaps, this._specs, browser]
+        const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
         await executeHooksWithArgs('before', this._config.before, beforeArgs)
 
         /**
