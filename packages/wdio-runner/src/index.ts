@@ -76,6 +76,10 @@ export default class Runner extends EventEmitter {
         this._configParser.addService(snapshotService as any)
 
         this._caps = this._isMultiremote
+            /**
+             * Filter driver instances based on 'wdio:exclude' capability and allow
+             * user to exclude them if not needed for given spec file
+             */
             ? Object.entries(caps).reduce((filteredCaps, [browserName, browserCaps]) => {
                 const ex = browserCaps.capabilities['wdio:exclude']
                 if (ex) {
