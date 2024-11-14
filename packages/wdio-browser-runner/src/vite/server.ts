@@ -78,14 +78,6 @@ export class ViteServer extends EventEmitter {
     }
 
     async start () {
-        const vitePort = await getPort()
-        this.#viteConfig = deepmerge(this.#viteConfig, <Partial<InlineConfig>>{
-            server: {
-                ...this.#viteConfig.server,
-                port: vitePort
-            }
-        })
-
         /**
          * load additional Vite plugins for framework
          */
@@ -111,6 +103,17 @@ export class ViteServer extends EventEmitter {
             this.#viteConfig = deepmerge(this.#viteConfig, configToMerge)
             this.#viteConfig.plugins = [...(plugins || []), ...this.#viteConfig.plugins!]
         }
+
+        /**
+         * merge custom port into Vite config last
+         */
+        const vitePort = await getPort()
+        this.#viteConfig = deepmerge(this.#viteConfig, <Partial<InlineConfig>>{
+            server: {
+                ...this.#viteConfig.server,
+                port: vitePort
+            }
+        })
 
         /**
          * initialize Vite
