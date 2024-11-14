@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.2.15 (2024-11-14)
+
+#### :nail_care: Polish
+* `wdio-runner`
+  * [#13878](https://github.com/webdriverio/webdriverio/pull/13878) fix(@wdio/runner): Respect excludes in capabilities in multiremote case. ([@damencho](https://github.com/damencho))
+
+#### Committers: 1
+- Дамян Минков ([@damencho](https://github.com/damencho))
+
+
 ## v9.2.14 (2024-11-14)
 
 #### :rocket: New Feature
