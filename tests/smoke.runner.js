@@ -547,6 +547,29 @@ const multiremote = async () => {
             }
         }
     })
+
+    const { skippedSpecs, passed, failed } = await launch('multiremote', baseConfig, {
+        specs: [
+            path.resolve(__dirname, 'multiremote', 'test-filter1.js'),
+            path.resolve(__dirname, 'multiremote', 'test-filter2.js')
+        ],
+        capabilities: {
+            browserA: {
+                capabilities: { browserName: 'chrome',  }
+            },
+            browserB: {
+                capabilities: {
+                    browserName: 'chrome',
+                    'wdio:exclude': [
+                        path.resolve(__dirname, 'multiremote', 'test-filter2.js')
+                    ]
+                }
+            }
+        }
+    })
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(failed, 0)
 }
 
 /**
