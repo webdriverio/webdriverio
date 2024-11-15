@@ -55,19 +55,19 @@ export function waitUntil<ReturnValue>(
         }
 
         const err = new Error(`waitUntil condition failed with the following reason: ${e && e.message || e}`)
-        const origStack = err.stack
-        if (!origStack) {
+        const origStack = e.stack
+        if (!origStack || !err.stack) {
             throw err
         }
 
         /**
          * sanitize error message and clean up stack trace
          */
-        const [errMsg, ...waitUntilErrorStackLines] = origStack.split('\n')
+        const [errMsg, ...waitUntilErrorStackLines] = err.stack.split('\n')
         err.stack = [
             errMsg,
             ...(origStack.split('\n').slice(1)),
-            '\t---',
+            '    ---',
             ...waitUntilErrorStackLines
         ].filter((errorLine) => (
             !errorLine.includes('/node_modules/webdriverio/') &&
