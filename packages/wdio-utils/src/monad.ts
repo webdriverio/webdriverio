@@ -13,7 +13,7 @@ interface PropertiesObject {
     [key: string | symbol]: PropertyDescriptor
 }
 
-export default function WebDriver (options: Record<string, unknown>, modifier?: Function, propertiesObject: PropertiesObject = {}) {
+export default function WebDriver (options: object, modifier?: Function, propertiesObject: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
@@ -38,7 +38,9 @@ export default function WebDriver (options: Record<string, unknown>, modifier?: 
          */
         propertiesObject.commandList = { value: Object.keys(propertiesObject) }
         propertiesObject.options = { value: options }
-        propertiesObject.requestedCapabilities = { value: options.requestedCapabilities }
+        if ('requestedCapabilities' in options) {
+            propertiesObject.requestedCapabilities = { value: options.requestedCapabilities }
+        }
 
         /**
          * allow to wrap commands if necessary
@@ -78,7 +80,7 @@ export default function WebDriver (options: Record<string, unknown>, modifier?: 
         /**
          * register capabilities only to browser scope
          */
-        if (scopeType.name === 'Browser') {
+        if (scopeType.name === 'Browser' && 'capabilities' in options) {
             client.capabilities = options.capabilities
         }
 

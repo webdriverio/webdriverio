@@ -58,7 +58,7 @@ export default class SpecReporter extends WDIOReporter {
         /**
          * make spec reporter to write to output stream by default
          */
-        super(Object.assign({ stdout: true }, options))
+        super(Object.assign({ stdout: true } as Record<string, unknown>, options))
 
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false

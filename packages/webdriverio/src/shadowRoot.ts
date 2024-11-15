@@ -73,11 +73,12 @@ export class ShadowRootManager {
     /**
      * keep track of frame depth
      */
-    #commandResultHandler (result: { command: string, result: { error?: Error } }) {
-        if (result.command === 'switchToFrame' && !result.result.error) {
+    #commandResultHandler (result: { command: string, result: unknown }) {
+        const noResultError = typeof result.result === 'object' && result.result && 'error' in result.result && !result.result.error
+        if (result.command === 'switchToFrame' && noResultError) {
             this.#frameDepth++
         }
-        if (result.command === 'switchToParentFrame' && !result.result.error) {
+        if (result.command === 'switchToParentFrame' && noResultError) {
             this.#frameDepth = Math.max(0, this.#frameDepth - 1)
         }
     }

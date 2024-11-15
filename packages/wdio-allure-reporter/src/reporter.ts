@@ -513,10 +513,10 @@ export default class AllureReporter extends WDIOReporter {
     onAfterCommand(command: AfterCommandArgs) {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
-        const commandResult = command?.result?.value || command?.result?.error?.name ||  {}
+        const { value: commandResult } = command?.result as { value: unknown } || {}
         const isScreenshot = isScreenshotCommand(command)
         if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
-            this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
+            this.attachScreenshot('Screenshot', Buffer.from(commandResult as string, 'base64'))
         }
 
         if (disableWebdriverStepsReporting || this._isMultiremote || !this._state.currentStep) {

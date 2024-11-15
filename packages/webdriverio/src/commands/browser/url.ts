@@ -134,7 +134,7 @@ export async function url (
                 throw new Error(`Option "onBeforeLoad" must be a function, but received: ${typeof options.onBeforeLoad}`)
             }
 
-            resetPreloadScript = await this.addInitScript(options.onBeforeLoad)
+            resetPreloadScript = await this.addInitScript(options.onBeforeLoad as (() => void))
         }
 
         if (options.auth) {

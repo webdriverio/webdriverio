@@ -18,8 +18,7 @@ export function parseScriptResult(params: remote.ScriptCallFunctionParameters, r
 }
 
 export function deserializeValue(result: remote.ScriptLocalValue) {
-    // @ts-expect-error
-    const { type, value } = result
+    const { type, value } = result as any
     if (type === NonPrimitiveType.RegularExpression) {
         return new RegExp(value.pattern, value.flags)
     }

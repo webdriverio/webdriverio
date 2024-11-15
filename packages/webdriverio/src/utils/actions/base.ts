@@ -15,6 +15,7 @@ interface Sequence {
     type: string
     duration?: number
     origin?: (ElementReference | WebdriverIO.Element | 'pointer' | 'viewport') & { then?: Function }
+    value?: string
 }
 
 let actionIds = 0

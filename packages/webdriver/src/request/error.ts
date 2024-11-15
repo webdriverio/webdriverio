@@ -1,6 +1,8 @@
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
+
 import { REG_EXPS } from './constants.js'
+import type { WebDriverResponse } from './types.js'
 
 abstract class WebDriverError extends Error {
     abstract url: URL
@@ -86,14 +88,16 @@ export class WebDriverRequestError extends WebDriverError {
 export class WebDriverResponseError extends WebDriverError {
     url: URL
     opts: RequestInit
-    constructor (response: Options.RequestLibResponse, url: URL, opts: RequestInit) {
-        const errorObj = !response.body
+    constructor (response: unknown, url: URL, opts: RequestInit) {
+        const errorObj: { message?: string, error?: string, class?: string, name?: string } = !response || typeof response !== 'object' || !('body' in response) || !response.body
             ? new Error('Response has empty body')
             : typeof response.body === 'string' && response.body.length
                 ? new Error(response.body)
                 : typeof response.body !== 'object'
                     ? new Error('Unknown error')
-                    : response.body.value || response.body
+                    : 'value' in response.body && response.body.value
+                        ? response.body.value
+                        : response.body
 
         /**
          * e.g. in Firefox or Safari, error are following the following structure:

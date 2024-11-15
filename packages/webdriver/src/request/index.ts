@@ -223,7 +223,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         if (isSuccessfulResponse(response.statusCode, response.body)) {
             this.emit('response', { result: response.body })
             this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: true, retryCount })
-            return response.body
+            return response.body as WebDriverResponse<unknown>
         }
 
         const error = new WebDriverResponseError(response, url, fullRequestOptions)

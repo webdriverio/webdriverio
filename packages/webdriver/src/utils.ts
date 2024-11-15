@@ -151,11 +151,11 @@ export function validateCapabilities (capabilities: WebdriverIO.Capabilities) {
  * @param  {Object}  body       body payload of response
  * @return {Boolean}            true if request was successful
  */
-export function isSuccessfulResponse (statusCode?: number, body?: WebDriverResponse<{ message: string, error: string, stackTrace: string, stacktrace: string }>) {
+export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
     /**
      * response contains a body
      */
-    if (!body || typeof body.value === 'undefined') {
+    if (!body || typeof body !== 'object' || !('value' in body) || typeof body.value === 'undefined') {
         log.debug('request failed due to missing body')
         return false
     }
@@ -164,7 +164,8 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * ignore failing element request to enable lazy loading capability
      */
     if (
-        body.status === 7 && body.value && body.value.message &&
+        'status' in body && body.status === 7 && body.value && typeof body.value === 'object' &&
+        'message' in body.value && body.value.message && typeof body.value.message === 'string' &&
         (
             body.value.message.toLowerCase().startsWith('no such element') ||
             // Appium
@@ -180,12 +181,16 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * if it has a status property, it should be 0
      * (just here to stay backwards compatible to the jsonwire protocol)
      */
-    if (body.status && body.status !== 0) {
+    if ('status' in body && body.status && body.status !== 0) {
         log.debug(`request failed due to status ${body.status}`)
         return false
     }
 
-    const hasErrorResponse = body.value && (body.value.error || body.value.stackTrace || body.value.stacktrace)
+    const hasErrorResponse = body.value && (
+        (typeof body.value === 'object' && 'error' in body.value && body.value.error) ||
+        (typeof body.value === 'object' && 'stackTrace' in body.value && body.value.stackTrace) ||
+        (typeof body.value === 'object' && 'stacktrace' in body.value && body.value.stacktrace)
+    )
 
     /**
      * check status code
@@ -198,7 +203,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * if an element was not found we don't flag it as failed request because
      * we lazy load it
      */
-    if (statusCode === 404 && body.value && body.value.error === 'no such element') {
+    if (statusCode === 404 && typeof body.value === 'object' && body.value && 'error' in body.value && body.value.error === 'no such element') {
         return true
     }
 
@@ -206,7 +211,8 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * that has no error property (Appium only)
      */
     if (hasErrorResponse) {
-        log.debug('request failed due to response error:', body.value.error)
+        const errMsg = typeof body.value === 'object' && body.value && 'error' in body.value ? body.value.error : body.value
+        log.debug('request failed due to response error:', errMsg)
         return false
     }
 

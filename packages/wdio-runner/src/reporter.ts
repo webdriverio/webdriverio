@@ -34,12 +34,18 @@ export default class BaseReporter {
      * @param  {object} payload event payload
      */
     emit (e: string, payload: {
-        cid: string
-        specs: string[]
-        uid: string
+        cid?: string
+        specs?: string[]
+        uid?: string
         file?: string
-        title: string
+        title?: string
         error?: Error
+        sessionId?: string
+        config?: unknown
+        isMultiremote?: boolean
+        instanceOptions?: Options.Testrunner
+        capabilities?: unknown
+        retry?: number
     }) {
         payload.cid = this._cid
 
@@ -50,7 +56,7 @@ export default class BaseReporter {
         const isHookError = (
             e === 'hook:end' &&
             payload.error &&
-            mochaAllHooks.some(hook => payload.title.startsWith(hook))
+            mochaAllHooks.some(hook => payload.title?.startsWith(hook))
         )
         if (isTestError || isHookError) {
             this.#emitData({
