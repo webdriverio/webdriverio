@@ -190,6 +190,7 @@ export class NetworkManager {
             response.url = log.response.url
             const { headers: requestHeaders } = log.request
             const { fromCache, headers: responseHeaders, mimeType, status } = log.response
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             response.headers = headerListToObject(requestHeaders),
             response.response = {
                 fromCache,

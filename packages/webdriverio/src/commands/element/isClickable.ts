@@ -59,5 +59,5 @@ export async function isClickable (this: WebdriverIO.Element) {
     return browser.execute(isElementClickableScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    } as any as HTMLElement)
+    } as unknown as HTMLElement)
 }

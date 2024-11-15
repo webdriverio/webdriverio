@@ -33,8 +33,8 @@ const SERIALIZERS = [{
     /**
      * display error stack
      */
-    matches: (err: any) => err instanceof Error,
-    serialize: (err: any) => err.stack
+    matches: (err: unknown) => err instanceof Error,
+    serialize: (err: Error) => err.stack
 }, {
     /**
      * color commands blue
@@ -56,7 +56,7 @@ const SERIALIZERS = [{
 }]
 
 interface LoggerInterface extends log.Logger {
-    progress(...msg: any[]): void;
+    progress(...msg: string[]): void;
 }
 
 interface Loggers {
@@ -92,7 +92,7 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: log.LogL
         args = args.map((arg) => {
             for (const s of SERIALIZERS) {
                 if (s.matches(arg)) {
-                    return s.serialize(arg)
+                    return s.serialize(arg as Error & string) as string
                 }
             }
             return arg
@@ -124,7 +124,7 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: log.LogL
     }
 }
 
-const progress = function (this: any, data: string) {
+const progress = function (this: Logger & { name: string }, data: string) {
     if (process.stdout.isTTY && this.getLevel() <= log.levels.INFO) {
         const level = 'progress'
         const timestampFormatter = chalk.gray(new Date().toISOString())

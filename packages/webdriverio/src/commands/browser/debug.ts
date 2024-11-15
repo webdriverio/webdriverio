@@ -42,7 +42,6 @@ export function debug(
      * run repl in standalone mode
      */
     if (!process.env.WDIO_WORKER_ID || typeof process.send !== 'function') {
-        // eslint-disable-next-line
         console.log(WDIORepl.introMessage)
         const context = {
             browser: this,
@@ -68,7 +67,7 @@ export function debug(
     })
 
     let commandResolve = /* istanbul ignore next */ () => { }
-    process.on('message', (m: any) => {
+    process.on('message', (m: { name: string, origin: string, content: { cmd: string } }) => {
         if (m.origin !== 'debugger') {
             return
         }
@@ -80,7 +79,7 @@ export function debug(
 
         /* istanbul ignore if */
         if (m.name === 'eval') {
-            repl.eval(m.content.cmd, global, undefined, (err: Error | null, result: any) => {
+            repl.eval(m.content.cmd, global, undefined, (err: Error | null, result: unknown) => {
                 if (typeof process.send !== 'function') {
                     return
                 }

@@ -43,7 +43,7 @@ import { NAME_POLYFILL } from '../../polyfill.js'
  * @type protocol
  *
  */
-export async function execute<ReturnValue, InnerArguments extends any[]> (
+export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments
@@ -66,7 +66,7 @@ export async function execute<ReturnValue, InnerArguments extends any[]> (
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
             awaitPromise: true,
-            arguments: args.map((arg) => LocalValue.getArgument(arg)) as any,
+            arguments: args.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
             target: {
                 context
             }
@@ -86,5 +86,5 @@ export async function execute<ReturnValue, InnerArguments extends any[]> (
         `
     }
 
-    return this.executeScript(script, verifyArgsAndStripIfElement(args))
+    return this.executeScript(script, verifyArgsAndStripIfElement(args) as (string | number | boolean)[])
 }

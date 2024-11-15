@@ -169,7 +169,7 @@ export async function switchFrame (
                 const params: remote.ScriptCallFunctionParameters = {
                     functionDeclaration,
                     awaitPromise: false,
-                    arguments: args.map((arg) => LocalValue.getArgument(arg)) as any,
+                    arguments: args.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
                     target: { context: id }
                 }
 
@@ -368,9 +368,9 @@ function findContext (
 async function getFlatContextTree (browser: WebdriverIO.Browser): Promise<Record<string, FlatContextTree>> {
     const tree = await browser.browsingContextGetTree({})
 
-    const mapContext = (context: local.BrowsingContextInfo): any => [
+    const mapContext = (context: local.BrowsingContextInfo): string[] => [
         context.context,
-        ...(context.children || []).map(mapContext)
+        ...(context.children || []).map(mapContext).flat(Infinity) as string[]
     ]
 
     /**
@@ -378,9 +378,9 @@ async function getFlatContextTree (browser: WebdriverIO.Browser): Promise<Record
      * to children
      */
     const allContexts: Record<string, FlatContextTree> = tree.contexts.map(mapContext).flat(Infinity)
-        .reduce((acc, ctx) => {
+        .reduce((acc, ctx: string) => {
             const context = findContext(ctx, tree.contexts, byContextId)
-            acc[ctx] = context
+            acc[ctx] = context as unknown as FlatContextTree
             return acc
         }, {} as Record<string, FlatContextTree>)
     return allContexts

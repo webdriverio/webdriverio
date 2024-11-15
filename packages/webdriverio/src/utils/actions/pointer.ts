@@ -1,4 +1,3 @@
-/* eslint-disable no-dupe-class-members */
 import type { ElementReference } from '@wdio/protocols'
 import type { BaseActionParams, KeyActionType } from './base.js'
 import BaseAction from './base.js'
@@ -48,7 +47,7 @@ const MOVE_PARAM_DEFAULTS = {
 type PointerActionParams = Partial<typeof PARAM_DEFAULTS> & Partial<PointerActionUpParams>
 type PointerActionMoveParams = Partial<typeof MOVE_PARAM_DEFAULTS> & PointerActionParams
 
-function removeDefaultParams(seq: Record<string, any>) {
+function removeDefaultParams(seq: Record<string, unknown>) {
     for (const [key, value] of Object.entries(seq)) {
         if (value === 0 && !['x', 'y', 'button', 'duration'].includes(key)) {
             delete seq[key]

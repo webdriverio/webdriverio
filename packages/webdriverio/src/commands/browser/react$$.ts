@@ -57,8 +57,8 @@ export async function react$$ (
     await this.executeScript(resqScript, [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(
-        react$$Script as any, selector, props, state
-    ) as ElementReference[]
+        react$$Script, selector, props, state
+    ) as unknown as ElementReference[]
 
     const elements = await getElements.call(this, selector, res, { isReactElement: true })
     return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])

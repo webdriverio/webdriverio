@@ -45,7 +45,7 @@ export default class StaticServerLauncher implements Services.ServiceInstance {
         this._middleware.forEach(
             (ware: MiddleWareOption) => this._server!.use(ware.mount, ware.middleware as unknown as express.Application))
 
-        const listen = <(port: number) => Promise<any>> promisify(this._server.listen.bind(this._server))
+        const listen = <(port: number) => Promise<unknown>> promisify(this._server.listen.bind(this._server))
         await listen(this._port)
         log.info(`Static server running at http://localhost:${this._port}`)
     }

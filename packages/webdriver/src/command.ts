@@ -17,7 +17,7 @@ export default function (
 ) {
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return async function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse | BidiResponses | void> {
+    return async function protocolCommand (this: BaseClient, ...args: unknown[]): Promise<WebDriverResponse | BidiResponses | void> {
         const isBidiCommand = BIDI_COMMANDS.includes(command as BidiCommands)
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
@@ -30,7 +30,7 @@ export default function (
 
         const commandUsage = `${command}(${commandParams.map((p) => p.name).join(', ')})`
         const moreInfo = `\n\nFor more info see ${ref}\n`
-        const body: Record<string, any> = {}
+        const body: Record<string, unknown> = {}
 
         /**
          * log deprecation warning if command is deprecated
@@ -108,7 +108,7 @@ export default function (
              * inject url variables
              */
             if (i < variables.length) {
-                const encodedArg = doubleEncodeVariables ? encodeURIComponent(encodeURIComponent(arg)) : encodeURIComponent(arg)
+                const encodedArg = doubleEncodeVariables ? encodeURIComponent(encodeURIComponent(arg as string)) : encodeURIComponent(arg as string)
                 endpoint = endpoint.replace(`:${commandParams[i].name}`, encodedArg)
                 continue
             }
@@ -132,8 +132,8 @@ export default function (
 
                 if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
                     resultLog = `${result.value.slice(0, 61)}...`
-                } else if (command === 'executeScript' && body.script && body.script.includes('(() => window.__wdioEvents__)')) {
-                    resultLog = `[${result.value.length} framework events captured]`
+                } else if (command === 'executeScript' && typeof body.script === 'string' && body.script.includes('(() => window.__wdioEvents__)')) {
+                    resultLog = `[${(result.value as unknown[]).length} framework events captured]`
                 }
 
                 log.info('RESULT', resultLog)
@@ -142,7 +142,7 @@ export default function (
             this.emit('result', { command, method, endpoint, body, result })
 
             if (command === 'deleteSession') {
-                const shutdownDriver = body.deleteSessionOpts?.shutdownDriver !== false
+                const shutdownDriver = (body.deleteSessionOpts as { shutdownDriver: boolean }).shutdownDriver !== false
                 /**
                  * kill driver process if there is one
                  */
@@ -174,7 +174,7 @@ export default function (
                 }
             }
 
-            return result.value
+            return result.value as WebDriverResponse | BidiResponses
         })
     }
 }

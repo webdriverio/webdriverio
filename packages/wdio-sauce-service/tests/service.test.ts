@@ -71,7 +71,7 @@ beforeEach(() => {
         chromeB: { sessionId: 'sessionChromeB', executeScript: vi.fn() },
         chromeC: { sessionId: 'sessionChromeC', executeScript: vi.fn() },
         instances: ['chromeA', 'chromeB', 'chromeC'],
-    } as any as WebdriverIO.MultiRemoteBrowser
+    } as unknown as WebdriverIO.MultiRemoteBrowser
     vi.mocked(log.info).mockClear()
     vi.mocked(log.error).mockClear()
 })

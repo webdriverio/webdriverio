@@ -58,7 +58,7 @@ export async function isEqual (
             /* istanbul ignore next */
             function (el1: WebdriverIO.Element, el2: WebdriverIO.Element) { return el1 === el2 },
             getWebElement(this), getWebElement(el))
-    } catch (err: any) {
+    } catch {
         result = false
     }
 

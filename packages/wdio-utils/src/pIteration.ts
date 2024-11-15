@@ -235,7 +235,7 @@ export const someSeries = async <T>(array: T[], callback: Function, thisArg?: T)
  * @param {Object} [thisArg] - Value to use as *this* when executing the `callback`.
  * @return {Promise} - Returns a Promise with *true* as value if all elements passed the test, otherwise *false*.
  */
-export const every = <T>(array: T[], callback: any, thisArg?: T) => {
+export const every = <T>(array: T[], callback: Function, thisArg?: T) => {
     return new Promise<boolean>((resolve, reject) => {
         if (array.length === 0) {
             return resolve(true)

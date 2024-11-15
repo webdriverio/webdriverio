@@ -340,7 +340,7 @@ describe('before', () => {
     it('should set auth to default values if not provided', async () => {
         let service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
 
-        await service.beforeSession({} as any as any)
+        await service.beforeSession({} as unknown as any)
         await service.before(service['_config'] as any, [], browser)
 
         expect(service['_failReasons']).toEqual([])
@@ -348,7 +348,7 @@ describe('before', () => {
         expect(service['_config'].key).toEqual('NotSetKey')
 
         service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
-        service.beforeSession({ user: 'blah' } as any as any)
+        service.beforeSession({ user: 'blah' } as unknown as any)
         await service.before(service['_config'] as any, [], browser)
 
         expect(service['_failReasons']).toEqual([])
@@ -356,7 +356,7 @@ describe('before', () => {
         expect(service['_config'].user).toEqual('blah')
         expect(service['_config'].key).toEqual('NotSetKey')
         service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
-        service.beforeSession({ key: 'blah' } as any as any)
+        service.beforeSession({ key: 'blah' } as unknown as any)
         await service.before(service['_config'] as any, [], browser)
 
         expect(service['_failReasons']).toEqual([])

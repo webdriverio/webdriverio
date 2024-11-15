@@ -110,8 +110,8 @@ export default class BrowserRunner extends LocalRunner {
                     allowOrigins: [`http://localhost:${port}`]
                 }
             }
-        } catch (err: any) {
-            throw new Error(`Vite server failed to start: ${err.stack}`)
+        } catch (err: unknown) {
+            throw new Error(`Vite server failed to start: ${(err as Error).stack}`)
         }
 
         if (!runArgs.args.baseUrl && runArgs.command === 'run') {
@@ -183,6 +183,7 @@ export default class BrowserRunner extends LocalRunner {
                 ...this.#coverageOptions.perFile
                     ? Object.entries(summary)
                         .filter(([source]) => source !== 'total')
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         .map(([source, summary]: any) => (
                             getCoverageByFactor(this.#coverageOptions, summary, source.replace(this.#config.rootDir, '')))
                         )
@@ -278,5 +279,4 @@ export function mocked<T>(item: T, options: {
     partial: true;
     deep: true;
 }): MaybePartiallyMockedDeep<T>
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function mocked (item: any, options: any) {}
+export function mocked (_item: unknown, _options: unknown) {}

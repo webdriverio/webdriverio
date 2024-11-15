@@ -338,7 +338,7 @@ describe('addServiceDeps', () => {
 
     it('should not add appium if globally installed', () => {
         // @ts-ignore
-        // eslint-disable-next-line no-import-assign, @typescript-eslint/no-unused-vars
+
         cp.execSyncRes = '1.13.0'
         const packages: any = []
         addServiceDeps([{ package: '@wdio/appium-service', short: 'appium', purpose: 'e2e' }], packages)

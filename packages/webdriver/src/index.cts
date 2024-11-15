@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function command (method: string, encodeUri: string, commandInfo: any, doubleEncodeVariables = false) {
     return async function protocolCommand(this: unknown, ...args: unknown[]) {
         const commandESM = await import('./command.js')

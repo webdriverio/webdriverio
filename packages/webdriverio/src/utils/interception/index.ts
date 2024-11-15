@@ -1,4 +1,3 @@
-/* eslint-disable no-dupe-class-members */
 import EventEmitter from 'node:events'
 
 import logger from '@wdio/logger'
@@ -319,7 +318,7 @@ export default class WebDriverInterception {
         const handle = await this.#browser.getWindowHandle()
 
         log.trace(`Restoring mock for ${handle}`)
-        SESSION_MOCKS[handle].delete(this as any)
+        SESSION_MOCKS[handle].delete(this as WebDriverInterception)
 
         if (this.#mockId) {
             await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
@@ -415,6 +414,7 @@ export default class WebDriverInterception {
     on(event: 'continue', callback: (requestId: string) => void): WebDriverInterception
     on(event: 'fail', callback: (requestId: string) => void): WebDriverInterception
     on(event: 'overwrite', callback: (response: local.NetworkResponseCompletedParameters) => void): WebDriverInterception
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on(event: string, callback: (...args: any[]) => void): WebDriverInterception {
         this.#emitter.on(event, callback)
         return this
@@ -444,7 +444,7 @@ export default class WebDriverInterception {
 
         /* istanbul ignore next */
         const fn = async () => this.calls && (await this.calls).length > 0
-        const timer = new Timer(interval, timeout, fn, true) as any as Promise<boolean>
+        const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<boolean>
 
         return this.#browser.call(() => timer.catch((e) => {
             if (e.message === 'timeout') {

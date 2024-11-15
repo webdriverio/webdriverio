@@ -63,8 +63,8 @@ export async function $$ (
         if (globalThis.wdio?.execute) {
             const command = '$$' as const
             const res = 'elementId' in this
-                ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as any as ElementReference[]
-                : await globalThis.wdio.execute(command, selector) as any as ElementReference[]
+                ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as unknown as ElementReference[]
+                : await globalThis.wdio.execute(command, selector) as unknown as ElementReference[]
             const elements = await getElements.call(this, selector as Selector, res)
             return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
         }
@@ -85,7 +85,9 @@ export async function $$ (
         res = []
         for (const el of selector) {
             const $el = await findElement.call(this, el)
-            $el && res.push($el)
+            if ($el) {
+                res.push($el)
+            }
         }
     }
 

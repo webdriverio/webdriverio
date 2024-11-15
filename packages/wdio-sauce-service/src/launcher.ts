@@ -104,12 +104,13 @@ export default class SauceLauncher implements Services.ServiceInstance {
         try {
             const scProcess = await this._api.startSauceConnect(sauceConnectOpts)
             return scProcess
-        } catch (err: any) {
+        } catch (err: unknown) {
             ++retryCount
             /**
              * fail starting Sauce Connect eventually
              */
             if (
+                err instanceof Error &&
                 /**
                  * only fail for ENOENT errors due to racing condition
                  * see: https://github.com/saucelabs/node-saucelabs/issues/86
@@ -122,7 +123,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
             ) {
                 throw err
             }
-            log.debug(`Failed to start Sauce Connect Proxy due to ${err.stack}`)
+            log.debug(`Failed to start Sauce Connect Proxy due to ${(err as Error).stack}`)
             log.debug(`Retrying ${retryCount}/${MAX_SC_START_TRIALS}`)
             return this.startTunnel(sauceConnectOpts, retryCount)
         }

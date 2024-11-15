@@ -2,6 +2,18 @@ import path from 'node:path'
 import fs from 'node:fs'
 import os from 'node:os'
 
+interface Scripts {
+    scan: string
+    getResults: string
+    getResultsSummary: string
+    saveResults: string
+}
+
+interface Command {
+    name: string
+    class: string
+}
+
 class AccessibilityScripts {
     private static instance: AccessibilityScripts | null = null
 
@@ -9,7 +21,7 @@ class AccessibilityScripts {
     public getResults: string | null = null
     public getResultsSummary: string | null = null
     public saveTestResults: string | null = null
-    public commandsToWrap: Array<any> | null = null
+    public commandsToWrap: Array<Command> | null = null
 
     public browserstackFolderPath = path.join(os.homedir(), '.browserstack')
     public commandsPath = path.join(this.browserstackFolderPath, 'commands.json')
@@ -33,12 +45,12 @@ class AccessibilityScripts {
                     this.update(JSON.parse(data))
                 }
             }
-        } catch (error: any) {
+        } catch {
             /* Do nothing */
         }
     }
 
-    public update(data: { commands: any[], scripts: Record<string, any> }) {
+    public update(data: { commands: [], scripts: Scripts }) {
         if (data.scripts) {
             this.performScan = data.scripts.scan
             this.getResults = data.scripts.getResults

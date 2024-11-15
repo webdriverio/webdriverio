@@ -4,9 +4,9 @@ export interface CDPSessionOnMessageObject {
     params: Record<string, unknown>;
     error: {
         message: string;
-        data: any;
+        data: unknown;
     };
-    result?: any;
+    result?: unknown;
 }
 
 export default class DevtoolsGatherer {

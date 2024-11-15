@@ -13,15 +13,15 @@ export interface CommandArgs {
      */
     retries?: number
     command?: string
-    params?: any
+    params?: unknown
 }
 
 export interface BeforeCommandArgs extends CommandArgs {
-    body: any
+    body: unknown
 }
 
 export interface AfterCommandArgs extends CommandArgs {
-    result: any
+    result: unknown
 
     /**
      * custom commands also send along the command name

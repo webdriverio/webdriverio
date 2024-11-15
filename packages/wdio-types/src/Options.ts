@@ -6,7 +6,7 @@ export type SupportedProtocols = 'webdriver' | './protocol-stub.js'
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
 
-export interface RequestLibResponse<Body = any> {
+export interface RequestLibResponse<Body = unknown> {
     statusCode: number
     body?: Body
     rawBody?: Buffer
@@ -293,7 +293,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
     /**
      * A set of environment variables to be injected into the worker process.
      */
-    runnerEnv?: Record<string, any>
+    runnerEnv?: Record<string, string>
     /**
      * Files to watch when running `wdio` with the `--watch` flag.
      */

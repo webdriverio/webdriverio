@@ -151,7 +151,7 @@ describe('utils', () => {
                     options: { protocol, hostname, port, path, queryParams }
                 })
             // @ts-expect-error
-            } as any as WebdriverIO.MultiRemoteBrowserObject, true))
+            } as unknown as WebdriverIO.MultiRemoteBrowserObject, true))
                 .toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
         })
 

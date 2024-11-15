@@ -24,7 +24,7 @@ const sessionMock = {
 
 const driver = {
     evaluate: vi.fn()
-} as any as GathererDriver
+} as unknown as GathererDriver
 
 describe('PWAGatherer', () => {
     beforeEach(() => {

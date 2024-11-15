@@ -19,9 +19,9 @@ export interface Questionnair {
     expEnvHostname?: string
     expEnvPort?: string
     expEnvProtocol?: 'http' | 'https'
-    // eslint-disable-next-line
+
     env_user?: string
-    // eslint-disable-next-line
+
     env_key?: string
     region?: RegionOptions
     useSauceConnect?: boolean
@@ -145,6 +145,7 @@ export type ValueKeyIteratee<T> =
     | IterateeShorthand<T>;
 type IterateeShorthand<T> =
     | PropertyName
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     | [PropertyName, any]
     | PartialShallow<T>;
 type PropertyName = string | number | symbol;

@@ -90,7 +90,6 @@ describe('funnelInstrumentation', () => {
                 'percy': false,
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const finishExpectedEventData = {
                 ...expectedEventData,
                 event_type: 'SDKTestSuccessful',

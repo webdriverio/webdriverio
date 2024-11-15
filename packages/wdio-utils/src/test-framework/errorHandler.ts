@@ -7,7 +7,7 @@
  * @param {Array}   hookResults hook functions results array
  * @param {string}  cid         cid
  */
-export const logHookError = (hookName: string, hookResults: any[] = [], cid: string) => {
+export const logHookError = (hookName: string, hookResults: unknown[] = [], cid: string) => {
     const result = hookResults.find(result => result instanceof Error)
     if (typeof result === 'undefined') {
         return

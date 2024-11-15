@@ -1,5 +1,5 @@
-export interface WebDriverResponse {
-    value: any
+export interface WebDriverResponse<T = unknown> {
+    value: T
     /**
      * error case
      * https://w3c.github.io/webdriver/webdriver-spec.html#dfn-send-an-error

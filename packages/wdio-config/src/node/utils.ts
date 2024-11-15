@@ -30,8 +30,8 @@ export async function loadTypeScriptCompiler (tsConfigPath?: string) {
         process.env.WDIO_LOAD_TSX = '1'
         objectToEnv({ tsConfigPath })
         return true
-    } catch (err: any) {
-        log.debug(`Failed loading TSX: ${err.message}`)
+    } catch (err: unknown) {
+        log.debug(`Failed loading TSX: ${(err as Error).message}`)
         return false
     }
 }

@@ -30,7 +30,8 @@ import type {
     PlatformMeta,
     CurrentRunInfo,
     StdLog,
-    CBTData
+    CBTData,
+    IntegrationObject
 } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
@@ -76,8 +77,9 @@ class _InsightsHandler {
 
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
-        const desiredCapabilities = (this._userCaps ?? {})
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)
+        const desiredCapabilities = (this._userCaps ?? {}) as WebdriverIO.Capabilities
+        // @ts-expect-error
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!((desiredCapabilities)['appium:options']?.app)
     }
 
     registerListeners() {
@@ -238,7 +240,7 @@ class _InsightsHandler {
         }
     }
 
-    async beforeHook (test: Frameworks.Test|CucumberHook|undefined, context: any) {
+    async beforeHook (test: Frameworks.Test|CucumberHook|undefined, context: unknown) {
         if (!frameworkSupportsHook('before', this._framework)) {
             return
         }
@@ -291,6 +293,7 @@ class _InsightsHandler {
             This won't be needed for `afterAll`, as even if `afterAll` fails all the tests that we need are already run by then, so we don't need to send the stats for them separately
          */
         if (!result.passed && (hookType === 'BEFORE_EACH' || hookType === 'BEFORE_ALL' || hookType === 'AFTER_EACH')) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const sendTestSkip = async (skippedTest: any) => {
 
                 // We only need to send the tests that whose state is not determined yet. The state of tests which is determined will already be sent.
@@ -308,11 +311,12 @@ class _InsightsHandler {
             /*
                 Recursively send the tests as skipped for all suites below the hook. This is to handle nested describe blocks
              */
-            const sendSuiteSkipped = async (suite: any) => {
+            const sendSuiteSkipped = async (suite: { tests: unknown[], suites: unknown[] }) => {
                 for (const skippedTest of suite.tests) {
                     await sendTestSkip(skippedTest)
                 }
                 for (const skippedSuite of suite.suites) {
+                    // @ts-expect-error fix types here
                     await sendSuiteSkipped(skippedSuite)
                 }
             }
@@ -566,6 +570,7 @@ class _InsightsHandler {
      * private methods
      */
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private attachHookData (context: any, hookId: string): void {
         if (context.currentTest && context.currentTest.parent) {
             const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
@@ -580,6 +585,7 @@ class _InsightsHandler {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private setHooksFromSuite(parent: any, hookId: string): boolean {
         if (!parent) {
             return false
@@ -697,6 +703,7 @@ class _InsightsHandler {
 
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private getTestRunId(context: any): string|undefined {
         if (!context) {
             return
@@ -713,6 +720,7 @@ class _InsightsHandler {
         return this.getTestRunIdFromSuite(context.test.parent)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private getTestRunIdFromSuite(parent: any): string|undefined {
         if (!parent) {
             return
@@ -833,10 +841,10 @@ class _InsightsHandler {
     }
 
     async sendCBTInfo() {
-        const integrationsData: any = {}
+        const integrationsData: Record<string, IntegrationObject> = {}
 
         if (this._browser && this._platformMeta) {
-            const provider = getCloudProvider(this._browser)
+            const provider = getCloudProvider(this._browser) as keyof IntegrationObject
             integrationsData[provider] = this.getIntegrationsObject()
         }
 

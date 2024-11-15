@@ -114,7 +114,7 @@ describe('WebdriverIO module interface', () => {
                 automationProtocol: 'webdriver',
                 capabilities: {}
             })
-            const fakeFn = () => { return 'test' as any as HTMLElement }
+            const fakeFn = () => { return 'test' as unknown as HTMLElement }
 
             browser.addLocatorStrategy('test-strat', fakeFn)
             expect(browser.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
@@ -129,7 +129,7 @@ describe('WebdriverIO module interface', () => {
             })
 
             try {
-                const fakeFn = () => { return 'test' as any as HTMLElement }
+                const fakeFn = () => { return 'test' as unknown as HTMLElement }
                 browser.addLocatorStrategy('test-strat', fakeFn)
             } catch (error: any) {
                 browser.strategies.delete('test-strat')
@@ -207,7 +207,7 @@ describe('WebdriverIO module interface', () => {
                 }
             })
 
-            const fakeFn = () => { return 'test' as any as HTMLElement }
+            const fakeFn = () => { return 'test' as unknown as HTMLElement }
             driver.addLocatorStrategy('test-strat', fakeFn)
             expect(driver.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
         })
@@ -223,7 +223,7 @@ describe('WebdriverIO module interface', () => {
             })
 
             try {
-                const fakeFn = () => { return 'test' as any as HTMLElement }
+                const fakeFn = () => { return 'test' as unknown as HTMLElement }
                 driver.addLocatorStrategy('test-strat', fakeFn)
             } catch (error: any) {
                 driver.strategies.delete('test-strat')

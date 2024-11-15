@@ -5,7 +5,7 @@ const ARRLENGTH = 10
 const STRINGLIMIT = 1000
 const STRINGTRUNCATE = 200
 
-export const limit = function (rawVal?: any) {
+export const limit = function (rawVal?: unknown) {
     if (!rawVal) {
         return rawVal
     }

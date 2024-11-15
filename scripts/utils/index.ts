@@ -10,7 +10,6 @@ const githubRawHost = 'https://raw.githubusercontent.com/'
  */
 export async function downloadFromGitHub(githubUrl: string, branch: string, location = githubReadme) {
     const url = `${githubUrl}/${branch}/${location}`.replace(githubHost, githubRawHost)
-    // eslint-disable-next-line no-console
     console.log(`Downloading: ${url}`)
     const res = await fetch(url)
     return await res.text()

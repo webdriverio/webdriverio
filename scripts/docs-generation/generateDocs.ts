@@ -22,7 +22,7 @@ ${title}
 //////////////////////////////////////////////////`)
 }
 
-function writeSidebars(sidebars: any) {
+function writeSidebars(sidebars: unknown) {
     fs.writeFileSync(
         path.join(__dirname, '..', '..', 'website', 'sidebars.json'),
         JSON.stringify(sidebars, null, 2),
@@ -52,10 +52,8 @@ try {
 
     writeSidebars(sidebars)
 
-    // eslint-disable-next-line no-console
     console.log('=== Docs generated successfully! ===')
 } catch (err) {
-    // eslint-disable-next-line no-console
     console.error(err)
     process.exit(1)
 }

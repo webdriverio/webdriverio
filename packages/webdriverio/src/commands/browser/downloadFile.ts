@@ -65,7 +65,9 @@ export async function downloadFile(
 
     fs.mkdirSync(targetDirectory, { recursive: true })
     const zipFilePath = path.join(targetDirectory, `${fileName}.zip`)
-    fs.writeFileSync(zipFilePath, Buffer.from(base64Content, 'base64'))
+    const binaryString = atob(base64Content as string);
+    const bytes = Uint8Array.from(binaryString, char => char.charCodeAt(0))
+    fs.writeFileSync(zipFilePath, bytes)
 
     const zipData = fs.readFileSync(zipFilePath)
     const filesData: string[] = []

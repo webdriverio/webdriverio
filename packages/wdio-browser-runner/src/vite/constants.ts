@@ -11,7 +11,7 @@ const log = logger('@wdio/browser-runner:vite')
 export const DEFAULT_PROTOCOL = 'http'
 export const DEFAULT_HOSTNAME = 'localhost'
 export const DEFAULT_HOST = `${DEFAULT_PROTOCOL}://${DEFAULT_HOSTNAME}`
-export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] | undefined> = {
+export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, unknown] | undefined> = {
     react: ['@vitejs/plugin-react', 'default', {
         babel: {
             assumptions: {
@@ -63,6 +63,7 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
                  * cast to "any" here as Vite's esbuild dependency and WebdriverIOs one
                  * may differ and cause type issues here.
                  */
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 codeFrameFix() as any
             ],
         },

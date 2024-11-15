@@ -4,7 +4,7 @@ import type { ClientOptions, RawData, WebSocket } from 'ws'
 import Socket from './socket.js'
 import type * as remote from './remoteTypes.js'
 import type { CommandData } from './remoteTypes.js'
-import type { CommandResponse } from './localTypes.js'
+import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
 import type { Client } from '../types.js'
 
@@ -95,7 +95,7 @@ export class BidiCore {
     public async send (params: Omit<CommandData, 'id'>): Promise<CommandResponse> {
         const id = this.sendAsync(params)
         const failError = new Error(`WebDriver Bidi command "${params.method}" failed`)
-        const payload = await new Promise<CommandResponse>((resolve, reject) => {
+        const payload = await new Promise<CommandResponse | ErrorResponse>((resolve, reject) => {
             const t = setTimeout(() => {
                 reject(new Error(`Command ${params.method} with id ${id} (with the following parameter: ${JSON.stringify(params.params)}) timed out`))
                 this.#pendingCommands.delete(id)
@@ -106,7 +106,7 @@ export class BidiCore {
             })
         })
 
-        if (payload.error) {
+        if (payload.type === 'error') {
             failError.message += ` with error: ${payload.error} - ${payload.message}`
             if (payload.stacktrace) {
                 const driverStack = payload.stacktrace

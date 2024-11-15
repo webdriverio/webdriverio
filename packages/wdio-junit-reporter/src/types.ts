@@ -11,7 +11,7 @@ interface ClassNameFormatOptions {
     /**
      * Name of the current cucumber feature
      */
-    activeFeatureName?: any
+    activeFeatureName?: string
     /**
      * Context of the current suite
      */
@@ -19,7 +19,7 @@ interface ClassNameFormatOptions {
 }
 
 interface TestSuiteNameFormatOptions {
-    name?: any
+    name?: string
     suite: SuiteStats
 }
 

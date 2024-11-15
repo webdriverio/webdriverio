@@ -30,10 +30,10 @@ function ignore(patternsToIgnore: string[]) {
     })
 }
 
-function map(mapper: (line: string) => string) {
+function map(mapper: (line: Buffer) => string) {
     return new Transform({
         decodeStrings: false,
-        transform(chunk: any, encoding: BufferEncoding, next: TransformCallback) {
+        transform(chunk: Buffer, encoding: BufferEncoding, next: TransformCallback) {
             return next(null, mapper(chunk))
         },
         final(next: TransformCallback): void {

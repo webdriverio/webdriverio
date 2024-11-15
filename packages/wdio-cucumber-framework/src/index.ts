@@ -216,7 +216,8 @@ class CucumberAdapter {
         this._specs = plan?.map((pl) => path.resolve(pl.uri))
 
         // Filter features (of which at least some have line numbers) against the already filtered specs
-        if (this._config.cucumberFeaturesWithLineNumbers?.length! > 0) {
+        const lineNumbers = this._config.cucumberFeaturesWithLineNumbers?.length ?? 0
+        if (lineNumbers > 0) {
             this._specs = this._config.cucumberFeaturesWithLineNumbers!.filter(feature =>
                 this._specs.some(spec => path.resolve(feature).startsWith(spec))
             )
@@ -294,7 +295,7 @@ class CucumberAdapter {
             if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
                 result = failedCount
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             runtimeError = err
             result = 1
         } finally {
@@ -461,7 +462,7 @@ class CucumberAdapter {
         const wrapStep = this.wrapStep
         const cid = this._cid
 
-        let params: any
+        let params: unknown
         this._eventEmitter.on('getHookParams', (payload) => {
             params = payload
         })
@@ -518,7 +519,7 @@ class CucumberAdapter {
         timeout?: number,
         hookName: string | undefined = undefined,
     ): Function {
-        return function (this: Cucumber.World, ...args: any[]) {
+        return function (this: Cucumber.World, ...args: unknown[]) {
             const hookParams = getHookParams()
             const retryTest = isStep && isFinite(options.retry) ? options.retry : 0
 
@@ -530,8 +531,8 @@ class CucumberAdapter {
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },
-                { beforeFn: beforeFn as Function[], beforeFnArgs: (context: any) => [hookParams?.step, context] },
-                { afterFn: afterFn as Function[], afterFnArgs: (context: any) => [hookParams?.step, context] },
+                { beforeFn: beforeFn as Function[], beforeFnArgs: (context: unknown) => [hookParams?.step, context] },
+                { afterFn: afterFn as Function[], afterFnArgs: (context: unknown) => [hookParams?.step, context] },
                 cid,
                 retryTest, hookName, timeout)
         }
@@ -590,9 +591,9 @@ const adapterFactory: { init?: Function } = {}
  * tested by smoke tests
  */
 /* istanbul ignore next */
-adapterFactory.init = async function (...args: any[]) {
+adapterFactory.init = async function (...args: unknown[]) {
     // @ts-ignore just passing through args
-    const adapter = new _CucumberAdapter(...(args as any))
+    const adapter = new _CucumberAdapter(...(args as unknown))
     const instance = await adapter.init()
     return instance
 }

@@ -6,7 +6,7 @@ import { BStackLogger } from './bstackLogger.js'
 
 export default class PerformanceTester {
     static _observer: PerformanceObserver
-    static _csvWriter: any
+    static _csvWriter: { writeRecords: (arg0: unknown) => Promise<void> }
     private static _events: PerformanceEntry[] = []
     static started = false
 
@@ -98,6 +98,6 @@ export default class PerformanceTester {
         })
         this._csvWriter.writeRecords(dat)
             .then(() => BStackLogger.info('Performance CSV report generated successfully'))
-            .catch((error: any) => console.error(error))
+            .catch((error: unknown) => console.error(error))
     }
 }

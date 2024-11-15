@@ -22,7 +22,9 @@ interface CLIInterfaceEvent {
     name: string
     cid?: string
     fullTitle?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     content?: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     params?: any
     error?: TestError
 }
@@ -215,8 +217,7 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * for testing purposes call console log in a static method
      */
-    log (...args: any[]) {
-        // eslint-disable-next-line no-console
+    log (...args: unknown[]) {
         console.log(...args)
         return args
     }

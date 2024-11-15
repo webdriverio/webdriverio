@@ -36,7 +36,7 @@ import { getBrowserObject } from '@wdio/utils'
  * @type protocol
  *
  */
-export async function execute<ReturnValue, InnerArguments extends any[]> (
+export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     this: WebdriverIO.Element,
     script: string | ((...innerArgs: [WebdriverIO.Element, ...InnerArguments]) => ReturnValue),
     ...args: InnerArguments

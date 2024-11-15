@@ -37,7 +37,7 @@ export interface Event extends Extensible {
 }
 
 export type EventData = BrowsingContextEvent | LogEvent | NetworkEvent | ScriptEvent;
-export type Extensible = Record<string, any>;
+export type Extensible = Record<string, unknown>;
 export type JsInt = number;
 export type JsUint = number;
 export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'move target out of bounds' | 'no such alert' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such node' | 'no such request' | 'no such script' | 'no such storage partition' | 'no such user context' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation';
@@ -521,7 +521,7 @@ export type ScriptSpecialNumber = 'NaN' | '-0' | 'Infinity' | '-Infinity';
 
 export interface ScriptNumberValue {
   type: 'number';
-  value: Number | ScriptSpecialNumber;
+  value: number | ScriptSpecialNumber;
 }
 
 export interface ScriptBooleanValue {

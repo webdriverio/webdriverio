@@ -49,7 +49,7 @@ export default class FirefoxProfileLauncher {
                 continue
             }
 
-            this._profile.setPreference(preference, value)
+            this._profile.setPreference(preference, value as string)
         }
 
         if (this._options.proxy) {

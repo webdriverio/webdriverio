@@ -100,7 +100,7 @@ export async function getHTML(
         return browser.execute(getHTMLScript, {
             [ELEMENT_KEY]: elementId, // w3c compatible
             ELEMENT: elementId // jsonwp compatible
-        } as any as HTMLElement, includeSelectorTag)
+        } as unknown as HTMLElement, includeSelectorTag)
     }
 
     if (pierceShadowRoot && this.isBidi) {
@@ -126,7 +126,7 @@ export async function getHTML(
         const elementsWithShadowRootAndIdVerified = ((
             await Promise.all(
                 shadowRootElementPairs.map(([elemId, elem]) => (
-                    browser.execute((elem) => elem.tagName, { [ELEMENT_KEY]: elemId } as any as HTMLElement).then(
+                    browser.execute((elem) => elem.tagName, { [ELEMENT_KEY]: elemId } as unknown as HTMLElement).then(
                         () => [elemId, elem],
                         () => undefined
                     )
@@ -134,7 +134,7 @@ export async function getHTML(
             )
         ).filter(Boolean) as [string, string | undefined][]).map(([elemId, shadowId]) => [
             elemId,
-            { [ELEMENT_KEY]: elemId } as any as HTMLElement,
+            { [ELEMENT_KEY]: elemId } as unknown as HTMLElement,
             shadowId ? { [ELEMENT_KEY]: shadowId } : undefined
         ]) as [string, HTMLElement, HTMLElement | undefined][]
 
@@ -143,7 +143,7 @@ export async function getHTML(
          */
         const { html, shadowElementHTML } = await browser.execute(
             getHTMLShadowScript,
-            { [ELEMENT_KEY]: this.elementId } as any as HTMLElement,
+            { [ELEMENT_KEY]: this.elementId } as unknown as HTMLElement,
             includeSelectorTag,
             elementsWithShadowRootAndIdVerified
         )

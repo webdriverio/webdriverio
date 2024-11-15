@@ -126,7 +126,7 @@ export interface BrowserRunnerOptions {
 
 export interface RunArgs extends Workers.WorkerRunPayload {
     command: string
-    args: any
+    args: Record<string, string>
     cid: string
 }
 
@@ -138,4 +138,4 @@ export interface Environment {
     injectGlobals: boolean
 }
 
-export type MockFactoryWithHelper = (importOriginal: <T = unknown>() => Promise<T>) => any;
+export type MockFactoryWithHelper = (importOriginal: <T = unknown>() => Promise<T>) => unknown;

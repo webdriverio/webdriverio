@@ -62,7 +62,7 @@ export async function selectByVisibleText (
 
     const optionElement = await this.findElementFromElement(this.elementId, 'xpath', selections.join('|'))
 
-    if (optionElement && (optionElement as any).error === 'no such element') {
+    if (optionElement && (optionElement as unknown as { error: string }).error === 'no such element') {
         throw new Error(`Option with text "${text}" not found.`)
     }
 

@@ -11,7 +11,7 @@ export type { WorkerInstance }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
     command: string
-    args: any
+    args: Workers.WorkerMessageArgs
 }
 
 export default class LocalRunner {

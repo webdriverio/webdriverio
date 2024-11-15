@@ -94,7 +94,9 @@ export default class ConfigParser {
                     coverage: { enabled: this._initialConfig.coverage }
                 }]
             } else if (Array.isArray(this._config.runner) && this._config.runner[0] === 'browser') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (this._config.runner[1] as any).coverage = {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     ...(this._config.runner[1] as any).coverage,
                     enabled: this._initialConfig.coverage
                 }
@@ -161,8 +163,8 @@ export default class ConfigParser {
              * remove `watch` from config as far as it can be only passed as command line argument
              */
             delete this._config.watch
-        } catch (e: any) {
-            log.error(`Failed loading configuration file: ${filePath}:`, e.message)
+        } catch (e: unknown) {
+            log.error(`Failed loading configuration file: ${filePath}:`, (e as Error).message)
             throw e
         }
     }
@@ -215,7 +217,7 @@ export default class ConfigParser {
         /**
          * overwrite capabilities
          */
-        this._capabilities = validObjectOrArray(this._config.capabilities) ? this._config.capabilities : this._capabilities
+        this._capabilities = validObjectOrArray(this._config.capabilities as object) ? this._config.capabilities : this._capabilities
 
         /**
          * save original specs if Cucumber's feature line number is provided

@@ -131,9 +131,9 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isBidi).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: bidiResponse as any as WebdriverIO.Capabilities, requestedCapabilities }).isBidi)
+        expect(sessionEnvironmentDetector({ capabilities: bidiResponse as unknown as WebdriverIO.Capabilities, requestedCapabilities }).isBidi)
             .toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: bidiResponse as any as WebdriverIO.Capabilities, requestedCapabilities: requestedAppiumCapabilities }).isBidi)
+        expect(sessionEnvironmentDetector({ capabilities: bidiResponse as unknown as WebdriverIO.Capabilities, requestedCapabilities: requestedAppiumCapabilities }).isBidi)
             .toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: {
             webSocketUrl: true

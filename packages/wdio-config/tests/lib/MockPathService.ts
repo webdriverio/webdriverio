@@ -36,10 +36,10 @@ export default class MockPathService implements PathService {
      */
     getMocks() {
         return {
-            getcwdMock: this.getcwdMock as any as Function,
-            loadFileMock: this.loadFileMock as any as Function,
-            isFileMock: this.isFileMock as any as Function,
-            globMock: this.globMock as any as Function
+            getcwdMock: this.getcwdMock as unknown as Function,
+            loadFileMock: this.loadFileMock as unknown as Function,
+            isFileMock: this.isFileMock as unknown as Function,
+            globMock: this.globMock as unknown as Function
         }
     }
 

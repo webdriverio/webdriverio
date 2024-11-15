@@ -1,7 +1,7 @@
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
 
-export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<any>;
+export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>;
 
 export type AppConfig = {
     id?: string,
@@ -67,7 +67,9 @@ export interface BrowserstackConfig {
     /**
      * Set the Percy related config options under this key.
     */
-    percyOptions?: any;
+    percyOptions?: {
+        version?: string,
+    };
     /**
     * Set this to true to enable BrowserStack Accessibility Automation which will
     * automically conduct accessibility testing on your pre-existing test builds
@@ -79,7 +81,7 @@ export interface BrowserstackConfig {
     * Customise the Accessibility-related config options under this key.
     * For e.g. wcagVersion, bestPractice issues, needsReview issues etc.
     */
-    accessibilityOptions?: { [key: string]: any; };
+    accessibilityOptions?: { [key: string]: unknown; };
     /**
      * Set this with app file path present locally on your device or
      * app hashed id returned after uploading app to BrowserStack or
@@ -225,7 +227,7 @@ export interface UserConfig {
     buildTag?: string,
     bstackServiceVersion?: string,
     buildIdentifier?: string,
-    accessibilityOptions?: { [key: string]: any; }
+    accessibilityOptions?: { [key: string]: unknown; }
 }
 
 export interface UploadType {
@@ -242,7 +244,7 @@ export interface LogData {
     hook_run_uuid?: string
     message?: string
     level?: string
-    http_response?: any
+    http_response?: unknown
 }
 
 export interface StdLog extends LogData {
@@ -276,7 +278,7 @@ export interface LaunchResponse {
             status: string;
             commandsToWrap: {
                 scriptsToRun: string[];
-                commands: any[];
+                commands: unknown[];
             };
             scripts: {
                 name: string;
@@ -284,7 +286,7 @@ export interface LaunchResponse {
             }[];
             capabilities: {
                 name: string,
-                value: any
+                value: unknown
             }[];
         }
     };
@@ -292,7 +294,7 @@ export interface LaunchResponse {
 
 export interface UserConfigforReporting {
   framework?: string,
-  services?: any[],
+  services?: unknown[],
   capabilities?: WebdriverIO.Capabilities,
   env?: {
     'BROWSERSTACK_BUILD': string | undefined,
@@ -306,7 +308,7 @@ export interface CredentialsForCrashReportUpload {
   password?: string
 }
 
-interface IntegrationObject {
+export interface IntegrationObject {
     capabilities?: WebdriverIO.Capabilities,
     session_id?: string
     browser?: string
@@ -351,5 +353,47 @@ export interface TOUsageStats {
     enabled: boolean
     manuallySet: boolean
     buildHashedId?: string
-    events?: any
+    events?: unknown
+}
+
+export interface ProductMap {
+    observability: boolean
+    accessibility: boolean
+    percy: boolean
+    automate: boolean
+    app_automate: boolean
+}
+
+export interface EventProperties {
+    language_framework: string
+    referrer: string
+    language: string
+    languageVersion: string
+    buildName: string
+    buildIdentifier: string
+    os: string
+    hostname: string
+    productMap: ProductMap
+    product: string[]
+    productUsage?: {
+        testObservability: {
+            events: {
+                buildEvents: {
+                    finished: {
+                        status: string
+                        error?: string
+                        stoppedFrom: string
+                    }
+                }
+            }
+        }
+    }
+}
+
+export interface FunnelData {
+    userName?: string
+    accessKey?: string
+    event_type?: string,
+    detectedFramework?: string,
+    event_properties: EventProperties
 }

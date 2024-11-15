@@ -3,20 +3,21 @@ import { BStackLogger } from './bstackLogger.js'
 import fs from 'node:fs'
 import { fireFunnelRequest } from './instrumentation/funnelInstrumentation.js'
 import { BROWSERSTACK_TESTHUB_UUID, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_OBSERVABILITY } from './constants.js'
+import type { FunnelData } from './types.js'
 
 export default class BStackCleanup {
     static async startCleanup() {
         try {
             // Get funnel data object from saved file
             const funnelDataCleanup = process.argv.includes('--funnelData')
-            let funnelData = null
+            let funnelData: FunnelData | null = null
             if (funnelDataCleanup) {
                 const index = process.argv.indexOf('--funnelData')
                 const filePath = process.argv[index + 1]
                 funnelData = this.getFunnelDataFromFile(filePath)
             }
 
-            if (process.argv.includes('--observability')) {
+            if (process.argv.includes('--observability') && funnelData) {
                 await this.executeObservabilityCleanup(funnelData)
             }
 
@@ -28,7 +29,7 @@ export default class BStackCleanup {
             BStackLogger.error(error)
         }
     }
-    static async executeObservabilityCleanup(funnelData: any) {
+    static async executeObservabilityCleanup(funnelData: FunnelData) {
         if (!process.env[BROWSERSTACK_TESTHUB_JWT]) {
             return
         }
@@ -47,7 +48,7 @@ export default class BStackCleanup {
         }
     }
 
-    static updateO11yStopData(funnelData: any, status: string, error: unknown = undefined) {
+    static updateO11yStopData(funnelData: FunnelData, status: string, error: unknown = undefined) {
         const toData = funnelData?.event_properties?.productUsage?.testObservability
         // Return if no O11y data in funnel data
         if (!toData) {
@@ -65,7 +66,7 @@ export default class BStackCleanup {
         toData.events.buildEvents.finished = existingStopData
     }
 
-    static async sendFunnelData(funnelData: any) {
+    static async sendFunnelData(funnelData: FunnelData) {
         try {
             await fireFunnelRequest(funnelData)
             BStackLogger.debug('Funnel data sent successfully from cleanup')

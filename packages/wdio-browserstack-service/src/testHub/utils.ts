@@ -3,14 +3,24 @@ import { BROWSERSTACK_PERCY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBIL
 import type BrowserStackConfig from '../config.js'
 import { BStackLogger } from '../bstackLogger.js'
 import { isTrue } from '../util.js'
+import type { ProductMap } from '../types.js'
 
-export const getProductMap = (config: BrowserStackConfig): any => {
+interface ErrorType {
+    key: string
+    message: string
+}
+
+export interface Errors {
+    errors: ErrorType[]
+}
+
+export const getProductMap = (config: BrowserStackConfig): ProductMap => {
     return {
-        'observability': config.testObservability.enabled,
-        'accessibility': config.accessibility,
-        'percy': config.percy,
-        'automate': config.automate,
-        'app_automate': config.appAutomate
+        observability: config.testObservability.enabled,
+        accessibility: config.accessibility,
+        percy: config.percy,
+        automate: config.automate,
+        app_automate: config.appAutomate
     }
 }
 
@@ -27,17 +37,17 @@ export const shouldProcessEventForTesthub = (eventType: string): boolean => {
     return Boolean(process.env[BROWSERSTACK_ACCESSIBILITY] || process.env[BROWSERSTACK_OBSERVABILITY] || process.env[BROWSERSTACK_PERCY])!
 }
 
-export const handleErrorForObservability = (error: any): void => {
+export const handleErrorForObservability = (error: Errors | null): void => {
     process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
     logBuildError(error, 'observability')
 }
 
-export const handleErrorForAccessibility = (error: any): void => {
+export const handleErrorForAccessibility = (error: Errors | null): void => {
     process.env[BROWSERSTACK_ACCESSIBILITY] = 'false'
     logBuildError(error, 'accessibility')
 }
 
-export const logBuildError = (error: any, product: string = ''): void => {
+export const logBuildError = (error: Errors | null, product: string = ''): void => {
     if (!error || !error.errors) {
         BStackLogger.error(`${product.toUpperCase()} Build creation failed ${error!}`)
         return

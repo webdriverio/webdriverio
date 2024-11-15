@@ -35,7 +35,7 @@ export default function getHTMLShadow (
         /**
          * otherwise, we look up the registered shadow styles and html
          */
-        const styles = Array.from((shadow as any as ShadowRoot).adoptedStyleSheets || [])
+        const styles = Array.from((shadow as unknown as ShadowRoot).adoptedStyleSheets || [])
             .map(({ cssRules }) => Array.from(cssRules))
             .flat()
             .map(({ cssText }) => cssText)

@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
@@ -138,4 +138,4 @@ export async function handler(argv: InstallCommandArguments) {
 
     process.exit(0)
 }
-/* eslint-enable no-console */
+

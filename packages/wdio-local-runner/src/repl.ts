@@ -14,7 +14,7 @@ export default class WDIORunnerRepl extends WDIORepl {
         this.childProcess = childProcess
     }
 
-    private _getError (params: any) {
+    private _getError (params: Record<string, string>) {
         if (!params.error) {
             return null
         }
@@ -39,7 +39,7 @@ export default class WDIORunnerRepl extends WDIORepl {
         this.callback = callback
     }
 
-    onResult (params: any) {
+    onResult (params: Record<string, string>) {
         const error = this._getError(params)
 
         if (this.callback) {

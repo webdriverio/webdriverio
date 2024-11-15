@@ -17,8 +17,8 @@ import type { GathererDriver } from '../types.js'
 
 export default class PWAGatherer {
     private _frGatherer: typeof FRGatherer
-    private _networkRecorder: any
-    private _networkRecords: any[] = []
+    private _networkRecorder: typeof NetworkRecorder
+    private _networkRecords: typeof NetworkRecorder[] = []
 
     constructor (
         private _session: CDPSession,

@@ -22,7 +22,7 @@ describe('timer', () => {
         it('should be rejected by timeout', async () => {
             const timer = new Timer(20, 30, () => Promise.resolve(false))
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('timeout') as any as Record<string, unknown>)
+            await expect(timer).rejects.toMatchObject(new Error('timeout') as unknown as Record<string, unknown>)
             expect(processEmitSpy).not.toBeCalled()
         })
 
@@ -36,20 +36,20 @@ describe('timer', () => {
         it('should not be fulfilled when resolved with false value', async () => {
             const timer = new Timer(20, 30, () => Promise.resolve(false))
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('timeout') as any as Record<string, unknown>)
+            await expect(timer).rejects.toMatchObject(new Error('timeout') as unknown as Record<string, unknown>)
             expect(processEmitSpy).not.toBeCalled()
         })
 
         it('should be rejected', async () => {
             const timer = new Timer(20, 30, () => Promise.reject(new Error('err')))
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('err') as any as Record<string, unknown>)
+            await expect(timer).rejects.toMatchObject(new Error('err') as unknown as Record<string, unknown>)
         })
 
         it('should be rejected without promise', async () => {
             const timer = new Timer(20, 30, () => 0)
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('timeout') as any as Record<string, unknown>)
+            await expect(timer).rejects.toMatchObject(new Error('timeout') as unknown as Record<string, unknown>)
         })
 
         it('should be fulfilled without promise', async () => {

@@ -31,7 +31,7 @@ describe('waitForStable', () => {
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout },
             selector,
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForStable()
         expect(vi.mocked(elem.waitUntil).mock.calls[0][1]?.interval).toEqual(5)
@@ -45,7 +45,7 @@ describe('waitForStable', () => {
             waitForStable: tmpElem.waitForStable,
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForStable({
             timeout,

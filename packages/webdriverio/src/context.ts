@@ -36,7 +36,7 @@ export class ContextManager {
              * which is WebDriver Classic only
              */
             if (event.command === 'switchToWindow') {
-                this.setCurrentContext(event.body.handle)
+                this.setCurrentContext((event.body as { handle: string }).handle)
             }
 
             /**

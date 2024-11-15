@@ -7,7 +7,7 @@ export enum PrimitiveType {
     Null = 'null',
     String = 'string',
     Number = 'number',
-    SpecialNumber = 'number',
+    SpecialNumber = 'Infinity',
     Boolean = 'boolean',
     BigInt = 'bigint'
 }

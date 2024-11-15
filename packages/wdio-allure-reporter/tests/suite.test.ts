@@ -13,7 +13,7 @@ import { TYPE } from '../src/types.js'
  * this is not a real package and only used to utilize helper
  * methods without having to ignore them for test coverage
  */
-// eslint-disable-next-line
+
 import { clean, getResults, mapBy } from './helpers/wdio-allure-helper.js'
 
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'

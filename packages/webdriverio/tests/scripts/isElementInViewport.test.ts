@@ -28,7 +28,7 @@ describe('isElementInViewport script', () => {
                 top: 33,
                 left: 455
             })
-        } as any as HTMLElement
+        } as unknown as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(true)
     })
@@ -48,7 +48,7 @@ describe('isElementInViewport script', () => {
                 top: 33,
                 left: 455
             })
-        } as any as HTMLElement
+        } as unknown as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(true)
     })
@@ -61,7 +61,7 @@ describe('isElementInViewport script', () => {
                 top: 601,
                 left: 455
             })
-        } as any as HTMLElement
+        } as unknown as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(false)
     })
@@ -74,7 +74,7 @@ describe('isElementInViewport script', () => {
                 top: -55,
                 left: 455
             })
-        } as any as HTMLElement
+        } as unknown as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(false)
     })
@@ -87,7 +87,7 @@ describe('isElementInViewport script', () => {
                 top: 33,
                 left: 801
             })
-        } as any as HTMLElement
+        } as unknown as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(false)
     })
@@ -100,7 +100,7 @@ describe('isElementInViewport script', () => {
                 top: 33,
                 left: -22
             })
-        } as any as HTMLElement
+        } as unknown as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(false)
     })

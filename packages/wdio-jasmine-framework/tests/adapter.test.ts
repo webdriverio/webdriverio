@@ -528,6 +528,7 @@ describe('loadFiles', () => {
         delete adapter['_hasTests']
 
         // @ts-ignore outdated types
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         adapter['_jrunner']!.loadRequires = vi.fn().mockImplementation(() => { throw new Error('foo') }),
 
         adapter._loadFiles()

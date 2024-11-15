@@ -11,6 +11,7 @@ const NOOP = () => {}
  * @return {promise} Promise-based Timer.
  */
 class Timer {
+    #retPromise: Promise<boolean>
     private _conditionExecutedCnt = 0
     private _resolve: Function = NOOP
     private _reject: Function = NOOP
@@ -27,14 +28,20 @@ class Timer {
         private _fn: Function,
         private _leading = false
     ) {
-        const retPromise = new Promise<boolean>((resolve, reject) => {
+        this.#retPromise = new Promise<boolean>((resolve, reject) => {
             this._resolve = resolve
             this._reject = reject
         })
 
         this._start()
+    }
 
-        return retPromise as any
+    then (thennable?: (result: boolean) => void, catchable?: (reason: Error) => boolean) {
+        return this.#retPromise.then(thennable, catchable)
+    }
+
+    catch<ReturnValue> (catchable?: (reason: Error) => ReturnValue): Promise<ReturnValue> {
+        return this.#retPromise.catch(catchable) as Promise<ReturnValue>
     }
 
     private _start () {
@@ -84,12 +91,12 @@ class Timer {
         }
 
         result.then(
-            (res: any) => this._checkCondition(undefined, res),
+            (res: unknown) => this._checkCondition(undefined, res),
             (err: Error) => this._checkCondition(err)
         )
     }
 
-    private _checkCondition (err?: Error, res?: any) {
+    private _checkCondition (err?: Error, res?: unknown) {
         ++this._conditionExecutedCnt
         this._lastError = err
 

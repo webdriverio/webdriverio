@@ -13,12 +13,11 @@ import { PercyLogger } from './PercyLogger.js'
 import { PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS, CAPTURE_MODES } from '../constants.js'
 
 class _PercyHandler {
-    private _testMetadata: { [key: string]: any } = {}
     private _sessionName?: string
     private _isPercyCleanupProcessingUnderway?: boolean = false
-    private _percyScreenshotCounter: any = 0
-    private _percyDeferredScreenshots: any = []
-    private _percyScreenshotInterval: any = null
+    private _percyScreenshotCounter = 0
+    private _percyDeferredScreenshots: ({ sessionName: string, eventName: string | null })[] = []
+    private _percyScreenshotInterval: NodeJS.Timeout | null = null
     private _percyCaptureMap?: PercyCaptureMap
 
     constructor (
@@ -59,7 +58,7 @@ class _PercyHandler {
                 await (this._isAppAutomate ? PercySDK.screenshotApp(this._percyCaptureMap?.getName( sessionName ? sessionName : (this._sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, this._percyCaptureMap?.getName( sessionName ? sessionName : (this._sessionName as string), eventName)))
                 this._percyScreenshotCounter -= 1
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             this._percyScreenshotCounter -= 1
             this._percyCaptureMap?.decrement(sessionName ? sessionName : (this._sessionName as string), eventName as string)
             PercyLogger.error(`Error while trying to auto capture Percy screenshot ${err}`)
@@ -126,12 +125,14 @@ class _PercyHandler {
             } while (this._percyScreenshotInterval)
             this._percyScreenshotInterval = setInterval(async () => {
                 if (!this._isPercyCleanupProcessingUnderway) {
-                    clearInterval(this._percyScreenshotInterval)
+                    if (this._percyScreenshotInterval) {
+                        clearInterval(this._percyScreenshotInterval)
+                    }
                     await this.cleanupDeferredScreenshots()
                     this._percyScreenshotInterval = null
                 }
             }, 1000)
-        } catch (err: any) {
+        } catch (err: unknown) {
             PercyLogger.error(`Error while trying to cleanup deferred screenshots ${err}`)
         }
     }
@@ -157,7 +158,7 @@ class _PercyHandler {
             if (eventName) {
                 this.deferCapture(this._sessionName as string, eventName)
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             PercyLogger.error(`Error while trying to calculate auto capture parameters ${err}`)
         }
     }

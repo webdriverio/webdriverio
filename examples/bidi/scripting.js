@@ -13,6 +13,6 @@ await browser.scriptAddPreloadScript({
 
 await browser.url('https://webdriver.io')
 await browser.pause(2000)
-// eslint-disable-next-line no-undef
+
 console.log(await browser.execute(() => window.bar))
 await browser.deleteSession()

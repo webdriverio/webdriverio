@@ -9,9 +9,9 @@ export default function isElementClickable (elem: HTMLElement) {
     }
 
     // Edge before switching to Chromium
-    const isOldEdge = !!(window as any).StyleMedia
+    const isOldEdge = !!(window as unknown as { StyleMedia: unknown }).StyleMedia
     // returns true for Chrome and Firefox and false for Safari, Edge and IE
-    const scrollIntoViewFullSupport = !((window as any).safari || isOldEdge)
+    const scrollIntoViewFullSupport = !((window as { safari?: boolean }).safari || isOldEdge)
 
     // get overlapping element
     function getOverlappingElement (elem: HTMLElement, context?: Document) {
@@ -75,7 +75,7 @@ export default function isElementClickable (elem: HTMLElement) {
         // @ts-ignore
         let elemsWithShadowRoot = [].concat(elementsFromPoint)
         elemsWithShadowRoot = elemsWithShadowRoot.filter(function (x: HTMLElement) {
-            return x && x.shadowRoot && (x.shadowRoot as any).elementFromPoint
+            return x && x.shadowRoot && (x.shadowRoot as ShadowRoot).elementFromPoint
         })
 
         // getOverlappingElements of every element with shadowRoot
@@ -83,7 +83,7 @@ export default function isElementClickable (elem: HTMLElement) {
         for (let i = 0; i < elemsWithShadowRoot.length; ++i) {
             const shadowElement = elemsWithShadowRoot[i]
             shadowElementsFromPoint = shadowElementsFromPoint.concat(
-                getOverlappingElements(elem, (shadowElement as HTMLElement).shadowRoot as any) as any
+                getOverlappingElements(elem, (shadowElement as HTMLElement).shadowRoot as unknown as Document) as HTMLElement[]
             )
         }
         // remove duplicates and parents
@@ -122,7 +122,7 @@ export default function isElementClickable (elem: HTMLElement) {
     }
 
     function hasOverlaps(elem: HTMLElement) {
-        return !isOverlappingElementMatch(getOverlappingElements(elem) as any as HTMLElement[], elem)
+        return !isOverlappingElementMatch(getOverlappingElements(elem) as unknown as HTMLElement[], elem)
     }
 
     function isFullyDisplayedInViewport(elem: HTMLElement) {

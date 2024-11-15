@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ChildProcess } from 'node:child_process'
 
 import logger from '@wdio/logger'
@@ -50,7 +51,7 @@ export default class WebDriver {
         const bidiPrototype: PropertyDescriptorMap = {}
         if (isBidi(requestedCapabilities, capabilities)) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string, options.strictSSL))
+            Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as unknown as string, options.strictSSL))
         }
 
         const monad = webdriverMonad(

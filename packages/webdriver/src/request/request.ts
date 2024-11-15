@@ -34,10 +34,10 @@ export default class FetchRequest extends WebDriverRequest {
                 statusCode: resp.status,
                 body: await resp.json() ?? {},
             } as Options.RequestLibResponse
-        } catch (err: any) {
+        } catch (err: unknown) {
             if (!(err instanceof Error)) {
                 throw new WebDriverRequestError(
-                    new Error(`Failed to fetch ${url.href}: ${err.message || err || 'Unknown error'}`),
+                    new Error(`Failed to fetch ${url.href}: ${(err as Error).message || err || 'Unknown error'}`),
                     url,
                     opts
                 )

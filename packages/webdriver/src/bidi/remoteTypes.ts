@@ -19,7 +19,7 @@ export interface Command {
 
 export type CommandData = BrowserCommand | BrowsingContextCommand | InputCommand | NetworkCommand | ScriptCommand | SessionCommand | StorageCommand;
 export interface EmptyParams extends Extensible {}
-export type Extensible = Record<string, any>;
+export type Extensible = Record<string, unknown>;
 export type JsInt = number;
 export type JsUint = number;
 export type SessionCommand = SessionEnd | SessionNew | SessionStatus | SessionSubscribe | SessionUnsubscribe;
@@ -640,7 +640,7 @@ export type ScriptSpecialNumber = 'NaN' | '-0' | 'Infinity' | '-Infinity';
 
 export interface ScriptNumberValue {
   type: 'number';
-  value: Number | ScriptSpecialNumber;
+  value: number | ScriptSpecialNumber;
 }
 
 export interface ScriptBooleanValue {

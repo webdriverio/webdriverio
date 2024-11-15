@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
@@ -97,7 +98,6 @@ export async function generate3rdPartyDocs (sidebars: any) {
                 return
             }
 
-            // eslint-disable-next-line no-console
             console.log(`Generated docs for ${packageName}`)
             items.push(category === 'api' ? `${category}/${id}` : id)
         }

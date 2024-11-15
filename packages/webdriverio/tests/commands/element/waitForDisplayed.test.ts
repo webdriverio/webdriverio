@@ -30,7 +30,7 @@ describe('waitForDisplayed', () => {
             elementId: 123,
             waitUntil: vi.fn().mockImplementation(cb),
             options : { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForDisplayed({ timeout })
         expect(cb).toBeCalled()
@@ -59,7 +59,7 @@ describe('waitForDisplayed', () => {
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => true),
             options: { waitforTimeout: 50, waitforInterval: 5 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         const result = await elem.waitForDisplayed({ timeout })
         expect(result).toBe(true)
@@ -76,7 +76,7 @@ describe('waitForDisplayed', () => {
             waitUntil: tmpElem.waitUntil,
             isDisplayed: vi.fn(() => false),
             options: { waitforTimeout: 500, waitforInterval: 50 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         try {
             await elem.waitForDisplayed({ timeout, withinViewport: true })
@@ -96,7 +96,7 @@ describe('waitForDisplayed', () => {
             waitUntil: tmpElem.waitUntil,
             isDisplayed: tmpElem.isDisplayed,
             options: { waitforTimeout: 500, waitforInterval: 50 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
         // @ts-expect-error
         elem.getElement = () => Promise.resolve(elem)
 
@@ -117,7 +117,7 @@ describe('waitForDisplayed', () => {
             waitUntil: vi.fn().mockImplementation(cb),
             isDisplayed: vi.fn(() => true),
             options: { waitforTimeout: 500, waitforInterval: 50 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         await elem.waitForDisplayed({ reverse: true })
         expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
@@ -134,7 +134,7 @@ describe('waitForDisplayed', () => {
             waitUntil: tmpElem.waitUntil,
             isDisplayed: vi.fn(() => false),
             options: { waitforTimeout: 500 },
-        } as any as WebdriverIO.Element
+        } as unknown as WebdriverIO.Element
 
         try {
             await elem.waitForDisplayed({ timeout, timeoutMsg: 'Element foo never displayed' })

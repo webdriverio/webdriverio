@@ -631,6 +631,7 @@ describe('launcher', () => {
 
             expect(sleep).not.toHaveBeenCalled()
             expect(launcher['_runnerStarted']).toBe(1)
+            // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
             expect(vi.mocked(launcher.runner?.run!).mock.calls[0][0]).toHaveProperty('cid', '0-5')
             expect(launcher['_getRunnerId'](0)).toBe('0-0')
 

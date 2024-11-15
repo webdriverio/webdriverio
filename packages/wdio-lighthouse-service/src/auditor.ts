@@ -61,11 +61,11 @@ export default class Auditor {
                 GatherContext: { gatherMode: 'navigation' },
                 ...params
             }, auditContext)
-        } catch (error: any) {
+        } catch (error: unknown) {
             log.error(error)
             return {
                 score: 0,
-                error
+                error: error as Error
             }
         }
     }
@@ -77,7 +77,7 @@ export default class Auditor {
     updateCommands (browser: WebdriverIO.Browser, customFn?: CustomInstanceCommands<WebdriverIO.Browser>['addCommand']) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && fnName !== 'updateCommands' && !fnName.startsWith('_'))
-        commands.forEach(fnName => browser.addCommand(fnName, customFn || (this[fnName as keyof Auditor] as any).bind(this)))
+        commands.forEach(fnName => browser.addCommand(fnName, customFn || (this[fnName as keyof Auditor] as Function).bind(this)))
     }
 
     /**
@@ -160,14 +160,14 @@ export default class Auditor {
     }
 
     async _auditPWA (
-        params: any,
+        params: unknown,
         auditsToBeRun = Object.keys(PWA_AUDITS) as PWAAudits[]
     ): Promise<AuditResult> {
         const audits: RunAuditResult[] = await Promise.all(
             Object.entries(PWA_AUDITS)
                 .filter(([name]) => auditsToBeRun.includes(name as PWAAudits))
                 .map<Promise<RunAuditResult>>(
-                    async ([name, Audit]) => [name, await this._audit(Audit, params)]
+                    async ([name, Audit]) => [name, await this._audit(Audit, params as object)]
                 )
         )
         return {

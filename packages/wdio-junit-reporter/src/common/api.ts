@@ -10,8 +10,9 @@ export const events = {
  * @param {object} msg - event payload
  * @private
  */
-const tellReporter = (event: string, msg: any = {}) => {
-    process.emit(event as any, msg)
+const tellReporter = (event: string, msg: object = {}) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    process.emit(event as any, msg as any)
 }
 
 /**

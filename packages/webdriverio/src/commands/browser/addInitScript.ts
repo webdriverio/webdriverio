@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import type { local } from 'webdriver'
+import type { local, remote } from 'webdriver'
 
 import { deserializeValue } from '../../utils/bidi/index.js'
 
@@ -127,6 +127,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     this: WebdriverIO.Browser,
     script: string | InitScriptFunction<Payload> | InitScriptFunctionArg1<Payload, Arg1> | InitScriptFunctionArg2<Payload, Arg1, Arg2> | InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> | InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> | InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...args: any
 ): Promise<InitScript<Payload>> {
     /**
@@ -140,7 +141,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
         throw new Error('This command is only supported when automating browser using WebDriver Bidi protocol')
     }
 
-    const serializedParameters = (args || []).map((arg: any) => JSON.stringify(arg))
+    const serializedParameters = (args || []).map((arg: unknown) => JSON.stringify(arg))
     const context = await this.getWindowHandle()
     const fn = `(emit) => {
         const closure = new Function(\`return ${script.toString()}\`)
@@ -162,7 +163,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     const emitter = new EventEmitter()
     const messageHandler = (msg: local.ScriptMessageParameters) => {
         if (msg.channel === channel) {
-            emitter.emit('data', deserializeValue(msg.data as any))
+            emitter.emit('data', deserializeValue(msg.data as remote.ScriptLocalValue))
         }
     }
     this.on('script.message', messageHandler)

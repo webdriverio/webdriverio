@@ -35,7 +35,7 @@ export async function keys (
     if (typeof value === 'string') {
         keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS)
     } else if (Array.isArray(value)) {
-        const charArray: (keyof typeof UNICODE_CHARACTERS)[] = value as any
+        const charArray = value as (keyof typeof UNICODE_CHARACTERS)[]
         for (const charSet of charArray) {
             keySequence = keySequence.concat(checkUnicode(charSet))
         }

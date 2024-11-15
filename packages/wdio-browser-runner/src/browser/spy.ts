@@ -26,6 +26,7 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
     /**
      * parameter is added by hoisting plugin if factory comes with a parameter
      */
+    // eslint-disable-next-line prefer-rest-params
     const actualImport = arguments[2]
 
     const mockLocalFile = path.startsWith('/') || path.startsWith('./') || path.startsWith('../')
@@ -51,4 +52,4 @@ export function unmock(moduleName: string) {
 /**
  * utility helper for type conversions
  */
-export function mocked<T>(item: T) { return item as any as MaybeMocked<T> }
+export function mocked<T>(item: T) { return item as unknown as MaybeMocked<T> }

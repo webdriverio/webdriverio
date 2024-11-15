@@ -1,20 +1,20 @@
 export interface Driver<T> {
     newSession(
         options: T,
-        modifier?: (...args: any[]) => any,
-        userPrototype?: Record<string, any>,
-        customCommandWrapper?: (...args: any[]) => any
-    ): any
+        modifier?: (...args: unknown[]) => unknown,
+        userPrototype?: Record<string, unknown>,
+        customCommandWrapper?: (...args: unknown[]) => unknown
+    ): unknown
 
     attachToSession(
-        options: any,
-        modifier?: (...args: any[]) => any,
-        userPrototype?: Record<string, any>,
-        customCommandWrapper?: (...args: any[]) => any
-    ): any
+        options: unknown,
+        modifier?: (...args: unknown[]) => unknown,
+        userPrototype?: Record<string, unknown>,
+        customCommandWrapper?: (...args: unknown[]) => unknown
+    ): unknown
 
     reloadSession (
-        client: any,
+        client: unknown,
         newCapabilities: WebdriverIO.Capabilities
-    ): any
+    ): unknown
 }

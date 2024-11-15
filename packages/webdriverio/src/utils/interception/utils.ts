@@ -14,7 +14,7 @@ export function parseOverwrite<
     overwrite: T,
     request: local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters
 ): Overwrite<T> {
-    const result: Overwrite<T> = {} as any
+    const result: Overwrite<T> = {} as unknown as Overwrite<T>
     if ('body' in overwrite && overwrite.body) {
         const bodyOverwrite = typeof overwrite.body === 'function'
             ? overwrite.body(request as local.NetworkBeforeRequestSentParameters)

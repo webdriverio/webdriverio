@@ -60,5 +60,5 @@ export async function isStable (this: WebdriverIO.Element) {
     return await browser.executeAsync(isElementStable, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    } as any as HTMLElement)
+    } as unknown as HTMLElement)
 }

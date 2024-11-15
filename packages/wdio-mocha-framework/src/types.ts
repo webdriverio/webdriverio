@@ -78,13 +78,13 @@ export interface MochaError {
     message: string
     stack: string
     type: string
-    expected: any
-    actual: any
+    expected: unknown
+    actual: unknown
 }
 
 export interface FrameworkMessage {
     type: string
-    payload?: any
+    payload?: unknown
     err?: MochaError
 }
 
@@ -102,6 +102,6 @@ export interface FormattedMessage {
     duration?: number
     currentTest?: string
     error?: MochaError
-    context?: any
+    context?: unknown
     body?: string
 }

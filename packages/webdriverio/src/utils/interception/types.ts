@@ -12,6 +12,7 @@ type Overwrite <T, Request> = T | ((request: Request) => T)
 type Methods = 'POST' | 'GET' | 'DELETE' | 'PUT' | 'PATCH' | 'OPTIONS' | 'HEAD'
 
 export interface RequestWithOptions {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body?: Overwrite<any, local.NetworkBeforeRequestSentParameters>
     cookies?: Overwrite<Cookie[], local.NetworkBeforeRequestSentParameters>
     headers?: Overwrite<Record<string, string>, local.NetworkBeforeRequestSentParameters>

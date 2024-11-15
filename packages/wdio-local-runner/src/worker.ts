@@ -5,6 +5,7 @@ import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
 import type { Options, Workers } from '@wdio/types'
+import type { ReplConfig } from '@wdio/repl'
 
 import logger from '@wdio/logger'
 
@@ -42,7 +43,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     stderr: WritableStreamBuffer
     childProcess?: ChildProcess
     sessionId?: string
-    server?: Record<string, any>
+    server?: Record<string, string>
     logsAggregator: string[] = []
 
     instances?: Record<string, { sessionId: string }>
@@ -191,9 +192,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         if (childProcess && payload.origin === 'debugger' && payload.name === 'start') {
             replQueue.add(
                 childProcess,
-                { prompt: `[${cid}] \u203A `, ...payload.params },
+                { prompt: `[${cid}] \u203A `, ...payload.params } as ReplConfig,
                 () => this.emit('message', Object.assign(payload, { cid })),
-                (ev: any) => this.emit('message', ev)
+                (ev: unknown) => this.emit('message', ev)
             )
             return replQueue.next()
         }

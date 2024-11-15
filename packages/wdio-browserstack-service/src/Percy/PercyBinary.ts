@@ -10,7 +10,7 @@ import { PercyLogger } from './PercyLogger.js'
 
 class PercyBinary {
     #hostOS = process.platform
-    #httpPath: any = null
+    #httpPath: string | null = null
     #binaryName = 'percy'
 
     #orderedPaths = [
@@ -44,7 +44,7 @@ class PercyBinary {
             if (hasDir) {
                 return true
             }
-        } catch (err) {
+        } catch {
             return false
         }
     }
@@ -92,7 +92,7 @@ class PercyBinary {
         })
     }
 
-    async download(destParentDir: any): Promise<string> {
+    async download(destParentDir: string): Promise<string> {
         if (!await this.#checkPath(destParentDir)){
             await fsp.mkdir(destParentDir)
         }
@@ -101,9 +101,10 @@ class PercyBinary {
         const binaryPath = path.join(destParentDir, binaryName)
         const downloadedFileStream = fs.createWriteStream(zipFilePath)
 
-        const response = await fetch(this.#httpPath)
+        const response = await fetch(this.#httpPath as unknown as URL)
 
-        await pipeline(response.body as any, downloadedFileStream)
+        // @ts-expect-error stream type
+        await pipeline(response.body as unknown as RequestInit, downloadedFileStream)
 
         return new Promise((resolve, reject) => {
             yauzl.open(zipFilePath, { lazyEntries: true }, function (err, zipfile) {
@@ -142,7 +143,7 @@ class PercyBinary {
                 })
 
                 zipfile.once('end', () => {
-                    fs.chmod(binaryPath, '0755', function (zipErr: any) {
+                    fs.chmod(binaryPath, '0755', function (zipErr: Error) {
                         if (zipErr) {
                             reject(zipErr)
                         }

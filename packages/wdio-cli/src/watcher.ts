@@ -103,7 +103,7 @@ export default class Watcher {
             }
 
             // Do not pass the `spec` command line option to `this.run()`
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
             const { spec: _, ...args } = this._args
             return runSpecs.map((spec) => {
                 return this.run({

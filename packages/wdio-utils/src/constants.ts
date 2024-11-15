@@ -93,7 +93,7 @@ export const DEFAULT_PATH = '/'
 /* istanbul ignore next */
 export const HOOK_DEFINITION = {
     type: 'object' as const,
-    validate: (param: any) => {
+    validate: (param: unknown) => {
         /**
          * option must be an array
          */

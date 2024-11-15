@@ -1,4 +1,4 @@
-import type { ITestCaseHookParameter } from '@cucumber/cucumber'
+import type { ITestCaseHookParameter, World } from '@cucumber/cucumber'
 import type { Pickle, PickleStep, TestStep, Feature } from '@cucumber/messages'
 
 import type { Frameworks } from '@wdio/types'
@@ -100,7 +100,7 @@ export interface CucumberOptions {
     /**
      * Parameters to be passed to your World
      */
-    worldParameters?: any;
+    worldParameters?: unknown;
     /**
      * Timeout in milliseconds for step definitions.
      * @default 60000
@@ -189,7 +189,7 @@ export interface HookFunctionExtension {
      * @param world     world object containing information on pickle and test step
      * @param context   Cucumber World object
      */
-    beforeScenario?(world: ITestCaseHookParameter, context: Object): void;
+    beforeScenario?(world: ITestCaseHookParameter, context: World): void;
 
     /**
      *
@@ -198,7 +198,7 @@ export interface HookFunctionExtension {
      * @param scenario scenario data
      * @param context  Cucumber World object
      */
-    beforeStep?(step: PickleStep, scenario: Pickle, context: Object): void;
+    beforeStep?(step: PickleStep, scenario: Pickle, context: World): void;
 
     /**
      *
@@ -211,7 +211,7 @@ export interface HookFunctionExtension {
      * @param result.duration duration of scenario in milliseconds
      * @param context         Cucumber World object
      */
-    afterStep?(step: PickleStep, scenario: Pickle, result: Frameworks.PickleResult, context: Object): void;
+    afterStep?(step: PickleStep, scenario: Pickle, result: Frameworks.PickleResult, context: World): void;
 
     /**
      *
@@ -223,7 +223,7 @@ export interface HookFunctionExtension {
      * @param result.duration   duration of scenario in milliseconds
      * @param context           Cucumber World object
      */
-    afterScenario?(world: ITestCaseHookParameter, result: Frameworks.PickleResult, context: Object): void;
+    afterScenario?(world: ITestCaseHookParameter, result: Frameworks.PickleResult, context: World): void;
 
     /**
      *
@@ -241,6 +241,16 @@ export interface StepDefinitionOptions {
 export interface TestHookDefinitionConfig {
     code: Function;
     line: number;
-    options: any;
+    options: unknown;
     uri: string;
+}
+
+export interface Payload {
+    cid?: string
+    uid?: string
+    specs?: string[]
+    error?: Error
+    parent?: unknown
+    title?: string
+    fullTitle?: string
 }
