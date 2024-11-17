@@ -19,6 +19,7 @@ export function getContextManager(browser: WebdriverIO.Browser) {
 export class ContextManager {
     #browser: WebdriverIO.Browser
     #currentContext?: string
+    #mobileContext?: string
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
@@ -50,31 +51,53 @@ export class ContextManager {
             ) {
                 this.#currentContext = undefined
             }
+            this.setCurrentContext(event.body.handle)
+
+            /**
+             * Keep track of the context to which we switch
+             */
+            if (event.command === 'switchContext') {
+                this.#mobileContext = event.body.name
+            }
+        })
+
+        this.#browser.on('result', (event) => {
+            if (event.command === 'getContext') {
+                this.setCurrentContext(event.result.value)
+            }
+            if (
+                event.command === 'switchContext' &&
+                event.result.value === null &&
+                this.#mobileContext
+            ) {
+                this.setCurrentContext(this.#mobileContext)
+            }
         })
     }
 
     /**
-     * Only run this session helper if BiDi is enabled and we're not in unit tests.
+     * Only run this session helper if Mobile or BiDi is enabled and we're not in unit tests.
      */
     #isEnabled () {
-        return !process.env.WDIO_UNIT_TESTS && this.#browser.isBidi
+        return !process.env.WDIO_UNIT_TESTS && (this.#browser.isBidi || this.#browser.isMobile)
     }
 
     /**
      * set context at the start of the session
      */
-    async initialize () {
+    async initialize() {
         if (!this.#isEnabled()) {
             return ''
         }
 
-        const windowHandle = await this.#browser.getWindowHandle()
+        const windowHandle = this.#browser.isNativeContext ? 'NATIVE_APP' : await this.#browser.getWindowHandle()
         this.#currentContext = windowHandle
         return windowHandle
     }
 
-    setCurrentContext (context: string) {
+    setCurrentContext(context: string) {
         this.#currentContext = context
+        this.#browser.isNativeContext = context ? context === 'NATIVE_APP' : this.#browser.isNativeContext
     }
 
     async getCurrentContext () {

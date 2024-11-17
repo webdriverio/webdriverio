@@ -147,4 +147,30 @@ describe('monad', () => {
         const client = monad(sessionId)
         expect(client.commandList).toHaveLength(0)
     })
+
+    it('should allow modifying isNativeContext but prevent changes to other flags', () => {
+        const monad = webdriverMonad({}, (client: any) => client, {
+            isMobile: { value: true },
+            isNativeContext: { value: true }
+        })
+        const client = monad(sessionId)
+
+        expect(client.isMobile).toBe(true)
+        expect(client.isNativeContext).toStrictEqual({ value: true })
+
+        expect(() => {
+            client.isMobile = false
+        }).toThrow(TypeError)
+
+        const isMobileDescriptor = Object.getOwnPropertyDescriptor(client, 'isMobile')
+        expect(isMobileDescriptor?.writable).toBe(false)
+        expect(isMobileDescriptor?.configurable).toBe(false)
+
+        client.isNativeContext = false
+        expect(client.isNativeContext).toBe(false)
+
+        const isNativeContextDescriptor = Object.getOwnPropertyDescriptor(client, 'isNativeContext')
+        expect(isNativeContextDescriptor?.writable).toBe(true)
+        expect(isNativeContextDescriptor?.configurable).toBe(true)
+    })
 })

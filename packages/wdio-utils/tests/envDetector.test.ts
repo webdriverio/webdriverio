@@ -182,6 +182,52 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: standalonev4Caps, requestedCapabilities }).isSeleniumStandalone).toBe(true)
     })
 
+    it('isNativeContext', () => {
+        const requestedCapabilities = { browserName: '' }
+
+        // Native app with Appium capabilities
+        const nativeAppCaps = {
+            platformName: 'iOS',
+            app: 'myApp.app',
+            browserName: undefined
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: nativeAppCaps, requestedCapabilities }).isNativeContext).toBe(true)
+
+        // Auto Webview enabled (not native context)
+        const autoWebviewCaps = {
+            platformName: 'iOS',
+            app: 'myApp.app',
+            browserName: undefined,
+            autoWebview: true
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: autoWebviewCaps, requestedCapabilities }).isNativeContext).toBe(false)
+
+        // Missing native-specific keys
+        const noNativeKeysCaps = {
+            platformName: 'iOS',
+            browserName: undefined
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: noNativeKeysCaps, requestedCapabilities }).isNativeContext).toBe(false)
+
+        // Browser name present (not native context)
+        const browserNameCaps = {
+            platformName: 'iOS',
+            browserName: 'Safari',
+            app: 'myApp.app'
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: browserNameCaps, requestedCapabilities }).isNativeContext).toBe(false)
+
+        // Android native app
+        const androidNativeCaps = {
+            platformName: 'Android',
+            app: 'myApp.apk',
+            appPackage: 'com.example.app',
+            appActivity: '.MainActivity',
+            browserName: undefined
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: androidNativeCaps, requestedCapabilities }).isNativeContext).toBe(true)
+    })
+
     it('should not detect mobile app for browserName===undefined', function () {
         const requestedCapabilities = { browserName: '' }
         const capabilities = {}

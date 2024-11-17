@@ -201,6 +201,23 @@ function isAppiumCapability(capabilityName: string) {
 }
 
 /**
+ * Detects if the session is in a native context
+ * @param  {object}  capabilities session capabilities
+ * @return {Boolean}              true if session is in a native context
+ */
+function isNativeContext(capabilities: WebdriverIO.Capabilities): boolean {
+    const isAppiumAppCapPresent = (capabilities: Capabilities.RequestedStandaloneCapabilities) => {
+        const appiumKeys = ['app', 'bundleId', 'appPackage', 'appActivity', 'appWaitActivity', 'appWaitPackage']
+        return appiumKeys.some(key => (capabilities as Capabilities.AppiumCapabilities)[key as keyof Capabilities.AppiumCapabilities] !== undefined)
+    }
+    const isBrowserNameFalse = !!capabilities.browserName === false
+    // @ts-expect-error
+    const isAutoWebviewFalse = capabilities.autoWebview !== true
+
+    return isBrowserNameFalse && isAppiumAppCapPresent(capabilities) && isAutoWebviewFalse
+}
+
+/**
  * detects if session has support for WebDriver Bidi
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session has WebDriver Bidi support
@@ -263,9 +280,10 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
+        isNativeContext: isNativeContext(capabilities),
         isSauce: isSauce(capabilities),
         isBidi: isBidi({}, capabilities),
-        isChromium: isChromium(capabilities)
+        isChromium: isChromium(capabilities),
     }
 }
 
@@ -289,9 +307,10 @@ export function sessionEnvironmentDetector({
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
+        isNativeContext: isNativeContext(capabilities),
         isSauce: isSauce(requestedCapabilities),
         isSeleniumStandalone: isSeleniumStandalone(capabilities),
         isBidi: isBidi(requestedCapabilities, capabilities),
-        isChromium: isChromium(capabilities)
+        isChromium: isChromium(capabilities),
     }
 }
