@@ -74,10 +74,9 @@ describe('isDisplayed test', () => {
         elem = await browser.$('#foo')
         vi.mocked(fetch).mockClear()
         expect(await elem.isDisplayed()).toBe(true)
-        // Due to mobileMode being enabled we will have extra calls to fetch
-        expect(fetch).toBeCalledTimes(3)
+        expect(fetch).toBeCalledTimes(1)
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
