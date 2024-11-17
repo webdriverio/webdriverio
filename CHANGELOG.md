@@ -23,6 +23,31 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.2.15 (2024-11-14)
+
+#### :nail_care: Polish
+* `wdio-runner`
+  * [#13878](https://github.com/webdriverio/webdriverio/pull/13878) fix(@wdio/runner): Respect excludes in capabilities in multiremote case. ([@damencho](https://github.com/damencho))
+
+#### Committers: 1
+- Дамян Минков ([@damencho](https://github.com/damencho))
+
+
+## v9.2.14 (2024-11-14)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#13870](https://github.com/webdriverio/webdriverio/pull/13870) feat: enhance scrollIntoView to support native mobile ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`, `wdio-reporter`, `wdio-spec-reporter`
+  * [#13880](https://github.com/webdriverio/webdriverio/pull/13880) polish(@wdio/reporter): better display retried scenarios ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.2.12 (2024-11-11)
 
 #### :bug: Bug Fix

@@ -326,7 +326,7 @@ const createTestStatsInstance = (
     return testStat
 }
 
-export const SUITES_WITH_RETRY = {
+export const SUITES_WITH_TEST_RETRY = {
     [suiteIds[0]]: {
         uid: suiteIds[0],
         title: suiteIds[0].slice(0, -1),
@@ -342,7 +342,25 @@ export const SUITES_WITH_RETRY = {
         ],
     },
 }
-Object.values(SUITES_WITH_RETRY).forEach((suite) => {
+Object.values(SUITES_WITH_TEST_RETRY).forEach((suite) => {
+    // @ts-expect-error
+    suite.hooksAndTests = [...suite.tests]
+})
+
+export const SUITES_WITH_RETRIES = {
+    [suiteIds[0]]: {
+        uid: suiteIds[0],
+        title: suiteIds[0].slice(0, -1),
+        file: '/foo/bar/loo.e2e.js',
+        hooks: [],
+        retries: 1,
+        tests: [
+            createTestStatsInstance('foo1', 'foo', 'pass'),
+            createTestStatsInstance('bar1', 'bar', 'pass'),
+        ],
+    },
+}
+Object.values(SUITES_WITH_RETRIES).forEach((suite) => {
     // @ts-expect-error
     suite.hooksAndTests = [...suite.tests]
 })

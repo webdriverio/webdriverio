@@ -4,6 +4,7 @@ export interface StateCount {
     passed: number
     failed: number
     skipped: number
+    retried: number
 }
 
 export interface Symbols {
@@ -11,6 +12,7 @@ export interface Symbols {
     skipped: string
     pending: string
     failed: string
+    retried: string
 }
 
 export interface SpecReporterOptions {
@@ -80,6 +82,7 @@ export enum State {
     PASSED = 'passed',
     PENDING = 'pending',
     SKIPPED = 'skipped',
+    RETRIED = 'retried'
 }
 
 export interface TestLink {
