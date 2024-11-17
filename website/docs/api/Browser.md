@@ -72,6 +72,7 @@ console.log(driver.isMobile) // outputs: true
 console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 console.log(driver.isNativeContext) // outputs: true
+console.log(driver.mobileContext) // outputs: NATIVE_APP
 ```
 
 This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
