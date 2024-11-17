@@ -43,5 +43,12 @@
     "WDIO",
     "webdriver",
     "webdriverio"
-  ]
+  ],
+  "prettier.proseWrap": "never",
+  "emmet.preferences": {
+
+  },
+  "[markdown]": {
+    "editor.formatOnSave": false
+}
 }

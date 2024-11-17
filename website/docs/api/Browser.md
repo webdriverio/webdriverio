@@ -23,6 +23,7 @@ A browser object has the following properties:
 | `isMobile` | `Boolean` | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags). |
 | `isIOS` | `Boolean` | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags). |
 | `isAndroid` | `Boolean` | Indicates an Android session. See more under [Mobile Flags](#mobile-flags). |
+| `isNativeContext`       | `Boolean`  | Indicates if the mobile is in the `NATIVE_APP` context. See more under [Mobile Flags](#mobile-flags).
 
 ## Methods
 
@@ -69,6 +70,7 @@ You can access these flags in your test like so:
 console.log(driver.isMobile) // outputs: true
 console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
+console.log(driver.isNativeContext) // outputs: true
 ```
 
 This can be useful if, for example, you want to define selectors in your [page objects](../pageobjects) based on the device type, like this:
