@@ -73,13 +73,16 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
         propertiesObject.__propertiesObject__ = { value: propertiesObjectWithoutPuppeteer }
 
         /**
-         * We need to be able to reset the nativeContext property in case we switch
+         * We need to be able to overwrite some properties in case it changes during the session
          */
-        propertiesObject.isNativeContext = {
-            value: propertiesObject.isNativeContext,
-            writable: true,
-            configurable: true,
-        }
+        const writableProperties = ['isNativeContext', 'mobileContext']
+        writableProperties.forEach((property) => {
+            propertiesObject[property] = {
+                value: propertiesObject[property],
+                writable: true,
+                configurable: true,
+            }
+        })
 
         let client = Object.create(prototype, propertiesObject)
         client.sessionId = sessionId

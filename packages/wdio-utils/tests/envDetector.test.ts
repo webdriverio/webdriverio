@@ -228,6 +228,50 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: androidNativeCaps, requestedCapabilities }).isNativeContext).toBe(true)
     })
 
+    it('mobileContext', () => {
+        const requestedCapabilities = { browserName: '' }
+
+        // Native app with Appium capabilities
+        const nativeAppCaps = {
+            platformName: 'iOS',
+            app: 'myApp.app',
+            browserName: undefined
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: nativeAppCaps, requestedCapabilities }).mobileContext).toBe('NATIVE_APP')
+
+        // Auto Webview enabled for iOS
+        const autoIOSWebviewCaps = {
+            platformName: 'iOS',
+            app: 'myApp.app',
+            browserName: undefined,
+            autoWebview: true
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: autoIOSWebviewCaps, requestedCapabilities }).mobileContext).toBe('WEBVIEW_')
+
+        // Auto Webview enabled for Android
+        const autoAndroidWebviewCaps = {
+            platformName: 'android',
+            app: 'myApp.apk',
+            browserName: undefined,
+            autoWebview: true
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: autoAndroidWebviewCaps, requestedCapabilities }).mobileContext).toBe(undefined)
+
+        // Safari name present
+        const safariNameCaps = {
+            platformName: 'iOS',
+            browserName: 'Safari',
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: safariNameCaps, requestedCapabilities }).mobileContext).toBe('WEBVIEW_')
+
+        // Chrome name present
+        const chromeNameCaps = {
+            platformName: 'Android',
+            browserName: 'chrome',
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: chromeNameCaps, requestedCapabilities }).mobileContext).toBe('CHROMIUM')
+    })
+
     it('should not detect mobile app for browserName===undefined', function () {
         const requestedCapabilities = { browserName: '' }
         const capabilities = {}

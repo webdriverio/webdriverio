@@ -151,12 +151,14 @@ describe('monad', () => {
     it('should allow modifying isNativeContext but prevent changes to other flags', () => {
         const monad = webdriverMonad({}, (client: any) => client, {
             isMobile: { value: true },
-            isNativeContext: { value: true }
+            isNativeContext: { value: true },
+            mobileContext : { value: 'foo' }
         })
         const client = monad(sessionId)
 
         expect(client.isMobile).toBe(true)
         expect(client.isNativeContext).toStrictEqual({ value: true })
+        expect(client.mobileContext).toStrictEqual({ value: 'foo' })
 
         expect(() => {
             client.isMobile = false
@@ -172,5 +174,12 @@ describe('monad', () => {
         const isNativeContextDescriptor = Object.getOwnPropertyDescriptor(client, 'isNativeContext')
         expect(isNativeContextDescriptor?.writable).toBe(true)
         expect(isNativeContextDescriptor?.configurable).toBe(true)
+
+        client.mobileContext = 'foo'
+        expect(client.mobileContext).toBe('foo')
+
+        const mobileContextDescriptor = Object.getOwnPropertyDescriptor(client, 'mobileContext')
+        expect(mobileContextDescriptor?.writable).toBe(true)
+        expect(mobileContextDescriptor?.configurable).toBe(true)
     })
 })

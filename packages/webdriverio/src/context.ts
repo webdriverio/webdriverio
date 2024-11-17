@@ -97,7 +97,10 @@ export class ContextManager {
 
     setCurrentContext(context: string) {
         this.#currentContext = context
-        this.#browser.isNativeContext = context ? context === 'NATIVE_APP' : this.#browser.isNativeContext
+        if (this.#browser.isMobile) {
+            this.#browser.isNativeContext = context ? context === 'NATIVE_APP' : this.#browser.isNativeContext
+            this.#browser.mobileContext = context || undefined
+        }
     }
 
     async getCurrentContext () {

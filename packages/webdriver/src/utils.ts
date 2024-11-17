@@ -262,7 +262,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isBidi, isChromium, isNativeContext }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isBidi, isChromium, isNativeContext, mobileContext }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -274,6 +274,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
         isBidi: { value: isBidi },
         isChromium: { value: isChromium },
         isNativeContext: { value: isNativeContext },
+        mobileContext: { value: mobileContext },
     }
 }
 

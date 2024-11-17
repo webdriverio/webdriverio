@@ -21,6 +21,7 @@ export interface SessionFlags {
     isMobile: boolean
     isIOS: boolean
     isNativeContext: boolean
+    mobileContext: string | undefined
     isSauce: boolean
     isSeleniumStandalone: boolean
     isBidi: boolean
