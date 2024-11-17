@@ -157,8 +157,8 @@ describe('monad', () => {
         const client = monad(sessionId)
 
         expect(client.isMobile).toBe(true)
-        expect(client.isNativeContext).toStrictEqual({ value: true })
-        expect(client.mobileContext).toStrictEqual({ value: 'foo' })
+        expect(client.isNativeContext).toBe(true)
+        expect(client.mobileContext).toBe('foo')
 
         expect(() => {
             client.isMobile = false

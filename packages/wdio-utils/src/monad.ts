@@ -78,7 +78,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
         const writableProperties = ['isNativeContext', 'mobileContext']
         writableProperties.forEach((property) => {
             propertiesObject[property] = {
-                value: propertiesObject[property],
+                value: propertiesObject[property]?.value,
                 writable: true,
                 configurable: true,
             }

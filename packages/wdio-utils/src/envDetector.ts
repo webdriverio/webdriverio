@@ -225,11 +225,9 @@ function isNativeContext(capabilities: WebdriverIO.Capabilities): boolean {
 function mobileContext(capabilities: WebdriverIO.Capabilities): string | undefined {
     return isNativeContext(capabilities) ? 'NATIVE_APP' :
         // Android webviews are always WEBVIEW_<package_name>, Chrome will always be CHROMIUM
-        // So if it's not Chrome, then undefined
+        // We can only determine it for Android and Chrome, for all other, including iOS, we return undefined
         isAndroid(capabilities) && capabilities?.browserName?.toLowerCase() === 'chrome' ? 'CHROMIUM' :
-            // All iOS webviews are named WEBVIEW_<random_number>
-            isIOS(capabilities) ? 'WEBVIEW_' :
-                undefined
+            undefined
 }
 
 /**

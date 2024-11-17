@@ -56,21 +56,23 @@ export class ContextManager {
             /**
              * Keep track of the context to which we switch
              */
-            if (event.command === 'switchContext') {
+            if (this.#browser.isMobile && event.command === 'switchContext') {
                 this.#mobileContext = event.body.name
             }
         })
 
         this.#browser.on('result', (event) => {
-            if (event.command === 'getContext') {
-                this.setCurrentContext(event.result.value)
-            }
-            if (
-                event.command === 'switchContext' &&
-                event.result.value === null &&
-                this.#mobileContext
-            ) {
-                this.setCurrentContext(this.#mobileContext)
+            if (this.#browser.isMobile) {
+                if (event.command === 'getContext') {
+                    this.setCurrentContext(event.result.value)
+                }
+                if (
+                    event.command === 'switchContext' &&
+                    event.result.value === null &&
+                    this.#mobileContext
+                ) {
+                    this.setCurrentContext(this.#mobileContext)
+                }
             }
         })
     }
@@ -90,7 +92,22 @@ export class ContextManager {
             return ''
         }
 
-        const windowHandle = this.#browser.isNativeContext ? 'NATIVE_APP' : await this.#browser.getWindowHandle()
+        /**
+         * If we're in a mobile context, we need to get the current context if it's not already set.
+         */
+        if (
+            this.#browser.isMobile &&
+            !this.#browser.isNativeContext &&
+            !this.#browser.mobileContext
+        ) {
+            const context = await this.#browser.getContext()
+            this.#browser.mobileContext = typeof context === 'string' ?
+                context : typeof context === 'object' ?
+                    context.id :
+                    undefined
+        }
+
+        const windowHandle = this.#browser.mobileContext || await this.#browser.getWindowHandle()
         this.#currentContext = windowHandle
         return windowHandle
     }

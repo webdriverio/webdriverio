@@ -246,7 +246,7 @@ describe('sessionEnvironmentDetector', () => {
             browserName: undefined,
             autoWebview: true
         } as WebdriverIO.Capabilities
-        expect(sessionEnvironmentDetector({ capabilities: autoIOSWebviewCaps, requestedCapabilities }).mobileContext).toBe('WEBVIEW_')
+        expect(sessionEnvironmentDetector({ capabilities: autoIOSWebviewCaps, requestedCapabilities }).mobileContext).toBe(undefined)
 
         // Auto Webview enabled for Android
         const autoAndroidWebviewCaps = {
@@ -262,7 +262,7 @@ describe('sessionEnvironmentDetector', () => {
             platformName: 'iOS',
             browserName: 'Safari',
         } as WebdriverIO.Capabilities
-        expect(sessionEnvironmentDetector({ capabilities: safariNameCaps, requestedCapabilities }).mobileContext).toBe('WEBVIEW_')
+        expect(sessionEnvironmentDetector({ capabilities: safariNameCaps, requestedCapabilities }).mobileContext).toBe(undefined)
 
         // Chrome name present
         const chromeNameCaps = {
@@ -270,6 +270,12 @@ describe('sessionEnvironmentDetector', () => {
             browserName: 'chrome',
         } as WebdriverIO.Capabilities
         expect(sessionEnvironmentDetector({ capabilities: chromeNameCaps, requestedCapabilities }).mobileContext).toBe('CHROMIUM')
+
+        // Desktop
+        const desktopCaps = {
+            browserName: 'chrome',
+        } as WebdriverIO.Capabilities
+        expect(sessionEnvironmentDetector({ capabilities: desktopCaps, requestedCapabilities }).mobileContext).toBe(undefined)
     })
 
     it('should not detect mobile app for browserName===undefined', function () {
