@@ -494,11 +494,11 @@ export type NewWindowOptions = {
 }
 
 export type ClickOptions = {
-    button?: Button | ButtonNames,
-    x?: number,
-    y?: number,
-    skipRelease?: boolean
-    duration?: number
+    button: Button | ButtonNames,
+    x: number,
+    y: number,
+    skipRelease: boolean
+    duration: number
 }
 
 export type WaitForOptions = {

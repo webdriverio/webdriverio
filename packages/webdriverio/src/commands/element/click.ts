@@ -157,9 +157,10 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
         x: 0,
         y: 0,
         skipRelease: false,
+        duration: 0
     }
 
-    const { button = 0, x, y, skipRelease, duration = 0 }: ClickOptions = { ...defaultOptions, ...options }
+    const { button, x, y, skipRelease, duration }: ClickOptions = { ...defaultOptions, ...options }
 
     if (
         typeof x !== 'number'
