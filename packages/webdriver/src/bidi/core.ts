@@ -15,7 +15,7 @@ export class BidiCore {
     #id = 0
     #ws: WebSocket
     #isConnected = false
-    #waitForConnected = Promise.resolve()
+    #waitForConnected = Promise.resolve(false)
     #webSocketUrl: string
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
 
@@ -37,11 +37,18 @@ export class BidiCore {
             return
         }
 
-        this.#waitForConnected = new Promise<void>((resolve) => this.#ws.on('open', () => {
-            log.info('Connected session to Bidi protocol')
-            this.#isConnected = true
-            resolve()
-        }))
+        this.#waitForConnected = new Promise<boolean>((resolve) => {
+            this.#ws.on('open', () => {
+                log.info('Connected session to Bidi protocol')
+                this.#isConnected = true
+                resolve(this.#isConnected)
+            })
+            this.#ws.on('error', (err) => {
+                log.warn(`Couldn't connect to Bidi protocol: ${err.message}`)
+                this.#isConnected = false
+                resolve(this.#isConnected)
+            })
+        })
         return this.#waitForConnected
     }
 
