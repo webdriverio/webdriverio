@@ -10,7 +10,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const IGNORED_COMMANDS = ['getElements']
 
 const elementScope = 'element'
-const scopes = ['device'].concat(elementScope)
+const scopes = ['mobile'].concat(elementScope)
 const baseDir = path.resolve(__dirname, '../..', 'src', 'commands')
 
 const files = scopes.flatMap(scope => {
