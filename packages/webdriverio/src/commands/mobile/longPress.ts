@@ -14,7 +14,7 @@ import type { LongPressOptions } from '../../types.js'
         // opens the Contacts menu on iOS where you can quickly create
         // a new contact, edit your home screen, or remove the app
         // clicks 30 horizontal and 10 vertical pixels away from location of the icon (from center point of element)
-        await contacts.click({ x: 30, y: 10 })
+        await contacts.longPress({ x: 30, y: 10 })
     })
  * </example>
  *
