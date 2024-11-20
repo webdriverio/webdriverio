@@ -272,6 +272,11 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone },
         isBidi: {
+            /**
+             * Return the value of this flag dynamically based on whether the
+             * BidiHandler was able to connect to the `webSocketUrl` url provided
+             * by the session response.
+             */
             get: function (this: Client & { _bidiHandler?: BidiHandler }) {
                 return Boolean(this._bidiHandler?.isConnected)
             }
