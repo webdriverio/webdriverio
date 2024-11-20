@@ -66,12 +66,12 @@ export class BidiCore {
     }
 
     public close () {
-        if (!this.#isConnected) {
+        if (!this._isConnected) {
             return
         }
 
         log.info(`Close Bidi connection to ${this.#webSocketUrl}`)
-        this.#isConnected = false
+        this._isConnected = false
         this.#ws.off('message', this.#handleResponse.bind(this))
         this.#ws.close()
         this.#ws.terminate()
