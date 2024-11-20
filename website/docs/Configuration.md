@@ -289,7 +289,7 @@ The same as the `capabilities` section described above, except with the option t
 You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
 
 Type: `Object`|`Object[]`<br />
-Default: `[{ 'wdio:maxInstances': 5, browserName: 'firefox' }]`
+Default: `[{ 'maxInstances': 5, browserName: 'firefox' }]`
 
 ### maxInstances
 
