@@ -387,7 +387,7 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
                     /**
                      * attach the client to the handler to emit events
                      */
-                    handler.client = this
+                    handler.attachClient(this)
 
                     this.emit(cur.command, args)
                     return bidiFn?.apply(handler, args)

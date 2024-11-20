@@ -31,6 +31,15 @@ export class BidiCore {
         this.#ws.on('message', this.#handleResponse.bind(this))
     }
 
+    /**
+     * We initiate the Bidi instance before a WebdriverIO instance is created.
+     * In order to emit Bidi events we have to attach the WebdriverIO instance
+     * to the Bidi instance afterwards.
+     */
+    public attachClient (client: Client) {
+        this.client = client
+    }
+
     public async connect () {
         /**
          * don't connect and stale unit tests when the websocket url is set to a dummy value
@@ -54,6 +63,27 @@ export class BidiCore {
             })
         })
         return this.#waitForConnected
+    }
+
+    public close () {
+        if (!this.#isConnected) {
+            return
+        }
+
+        log.info(`Close Bidi connection to ${this.#webSocketUrl}`)
+        this.#isConnected = false
+        this.#ws.off('message', this.#handleResponse.bind(this))
+        this.#ws.close()
+        this.#ws.terminate()
+    }
+
+    public reconnect (webSocketUrl: string, opts?: ClientOptions) {
+        log.info(`Reconnect to new Bidi session at ${webSocketUrl}`)
+        this.close()
+        this.#webSocketUrl = webSocketUrl
+        this.#ws = new Socket(this.#webSocketUrl, opts) as WebSocket
+        this.#ws.on('message', this.#handleResponse.bind(this))
+        return this.connect()
     }
 
     /**
@@ -87,7 +117,7 @@ export class BidiCore {
                 return
             }
 
-            log.debug('BIDI RESULT', data.toString())
+            log.info('BIDI RESULT', data.toString())
             this.client?.emit('bidiResult', payload)
             const resolve = this.#pendingCommands.get(payload.id)
             if (!resolve) {
