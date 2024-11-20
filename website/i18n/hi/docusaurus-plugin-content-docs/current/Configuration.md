@@ -237,13 +237,15 @@ Type: `Object`<br /> Default: `{}`
 
 आप वही विक्रेता और ब्राउज़र विशिष्ट क्षमताओं को लागू कर सकते हैं जैसा कि के ऊपर परिभाषित किया गया है।
 
-Type: `Object`|`Object[]`<br /> Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
+Type: `Object`|`Object[]`<br /> Default: `[{ 'wdio:maxInstances': 5, browserName: 'firefox' }]`
 
 ### maxInstances
 
 कुल समानांतर चलने वाले श्रमिकों की अधिकतम संख्या।
 
 __नोट:__ कि यह `100`तक की संख्या हो सकती है, जब कुछ बाहरी विक्रेताओं जैसे सॉस लैब्स की मशीनों पर परीक्षण किए जा रहे हों। वहां, परीक्षणों का परीक्षण एक मशीन पर नहीं, बल्कि कई वीएम पर किया जाता है। यदि परीक्षण स्थानीय विकास मशीन पर चलाना है, तो ऐसी संख्या का उपयोग करें जो अधिक उचित हो, जैसे `3`, `4`, या `5`। अनिवार्य रूप से, यह उन ब्राउज़रों की संख्या है जो समवर्ती रूप से शुरू होंगे और एक ही समय में आपके परीक्षण चलाएंगे, इसलिए यह इस बात पर निर्भर करता है कि आपकी मशीन पर कितनी रैम है, और आपकी मशीन पर कितने अन्य ऐप्स चल रहे हैं।
+
+You can also apply `maxInstances` within your capability objects using the `wdio:maxInstances` capability. This will limit the amount of parallel sessions for that particular capability.
 
 Type: `Number`<br /> Default: `100`
 

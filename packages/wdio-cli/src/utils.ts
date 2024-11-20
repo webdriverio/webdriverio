@@ -946,6 +946,11 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
                 ? ['src/**/*.ts', 'src/**/*.d.ts', 'src/**/*.tsx', 'src/**/*.vue']
                 : ['test', 'wdio.conf.ts']
     }
+
+    if (parsedAnswers.framework === 'cucumber') {
+        config.include.push('features')
+    }
+
     await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
     await fs.writeFile(
         parsedAnswers.tsConfigFilePath,
