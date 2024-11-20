@@ -34,6 +34,7 @@ export class BidiCore {
          * Note: the value is defined in __mocks__/fetch.ts
          */
         if (process.env.WDIO_UNIT_TESTS) {
+            this.#isConnected = true
             return
         }
 
