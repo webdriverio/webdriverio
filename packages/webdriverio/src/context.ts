@@ -83,7 +83,7 @@ export class ContextManager {
         }
 
         const windowHandle = await this.#browser.getWindowHandle()
-        this.#currentContext = windowHandle
+        this.setCurrentContext(windowHandle)
         return windowHandle
     }
 
