@@ -24,7 +24,7 @@ import type { LongPressOptions } from '../../types.js'
         const contacts = $('~Contacts')
         // opens the Contacts menu on iOS where you can quickly create
         // a new contact, edit your home screen, or remove the app
-        await contacts.click({ duration: 5 * 1000 })
+        await contacts.longPress({ duration: 5 * 1000 })
     })
  * </example>
  *
