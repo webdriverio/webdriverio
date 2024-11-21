@@ -1,4 +1,4 @@
-import type { Capabilities } from '@wdio/types'
+import { getMobileContext, getNativeContext } from './utils/mobile.js'
 
 const contextManager = new Map<WebdriverIO.Browser, ContextManager>()
 
@@ -27,8 +27,12 @@ export class ContextManager {
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
         const capabilities = this.#browser.capabilities
-        this.#isNativeContext = this.getInitialNativeContext(capabilities)
-        this.#mobileContext = this.getInitialMobileContext(capabilities)
+        this.#isNativeContext = getNativeContext({ capabilities, isMobile: this.#browser.isMobile })
+        this.#mobileContext = getMobileContext({
+            capabilities,
+            isAndroid: this.#browser.isAndroid,
+            isNativeContext: this.#isNativeContext
+        })
 
         if (!this.#isEnabled()) {
             return
@@ -151,29 +155,5 @@ export class ContextManager {
 
     get mobileContext() {
         return this.#mobileContext
-    }
-
-    getInitialNativeContext(capabilities: WebdriverIO.Capabilities): boolean {
-        if (!capabilities || typeof capabilities !== 'object' || !this.#browser.isMobile) {
-            return false // No capabilities provided or invalid format
-        }
-
-        const isAppiumAppCapPresent = (capabilities: Capabilities.RequestedStandaloneCapabilities) => {
-            const appiumKeys = ['app', 'bundleId', 'appPackage', 'appActivity', 'appWaitActivity', 'appWaitPackage']
-            return appiumKeys.some(key => (capabilities as Capabilities.AppiumCapabilities)[key as keyof Capabilities.AppiumCapabilities] !== undefined)
-        }
-        const isBrowserNameFalse = !!capabilities?.browserName === false
-        // @ts-expect-error
-        const isAutoWebviewFalse = capabilities?.autoWebview !== true
-
-        return isBrowserNameFalse && isAppiumAppCapPresent(capabilities) && isAutoWebviewFalse
-    }
-
-    getInitialMobileContext(capabilities: WebdriverIO.Capabilities): string | undefined {
-        return this.#isNativeContext ? 'NATIVE_APP' :
-        // Android webviews are always WEBVIEW_<package_name>, Chrome will always be CHROMIUM
-        // We can only determine it for Android and Chrome, for all other, including iOS, we return undefined
-            this.#browser.isAndroid && capabilities?.browserName?.toLowerCase() === 'chrome' ? 'CHROMIUM' :
-                undefined
     }
 }
