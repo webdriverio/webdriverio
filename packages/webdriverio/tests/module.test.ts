@@ -78,7 +78,7 @@ describe('WebdriverIO module interface', () => {
     describe('remote function', () => {
         it('creates a webdriver session', async () => {
             const options: any = {
-                capabilities: {},
+                capabilities: { browserName: 'chrome' },
                 logLevel: 'trace'
             }
             const browser = await remote(options)
@@ -89,7 +89,7 @@ describe('WebdriverIO module interface', () => {
         it('allows to propagate a modifier', async () => {
             const browser = await remote({
                 automationProtocol: 'webdriver',
-                capabilities: {}
+                capabilities: { browserName: 'chrome' }
             }, (client: any) => {
                 client.foobar = 'barfoo'
                 return client
@@ -104,7 +104,7 @@ describe('WebdriverIO module interface', () => {
                 automationProtocol: 'webdriver',
                 user: 'foo',
                 key: 'bar',
-                capabilities: {}
+                capabilities: { browserName: 'chrome' }
             })
             expect(detectBackend).toBeCalled()
         })
@@ -112,7 +112,7 @@ describe('WebdriverIO module interface', () => {
         it('should attach custom locators to the strategies', async () => {
             const browser = await remote({
                 automationProtocol: 'webdriver',
-                capabilities: {}
+                capabilities: { browserName: 'chrome' }
             })
             const fakeFn = () => { return 'test' as any as HTMLElement }
 
@@ -125,7 +125,7 @@ describe('WebdriverIO module interface', () => {
             expect.assertions(1)
             const browser = await remote({
                 automationProtocol: 'webdriver',
-                capabilities: {}
+                capabilities: { browserName: 'chrome' }
             })
 
             try {

@@ -56,6 +56,27 @@ export const getPrototype = (scope: 'browser' | 'element') => {
         puppeteer: { value: null, writable: true }
     }
 
+    if (scope === 'browser') {
+        /**
+         * Returns a boolean if the current context is the Mobile native context
+         */
+        prototype.isNativeContext = {
+            get: function (this: WebdriverIO.Browser) {
+                const context = getContextManager(this)
+                return context.isNativeContext
+            }
+        }
+        /**
+         * Returns the current mobile context which could be `NATIVE_APP` or `WEBVIEW_***`
+         */
+        prototype.mobileContext = {
+            get: function (this: WebdriverIO.Browser) {
+                const context = getContextManager(this)
+                return context.mobileContext
+            }
+        }
+    }
+
     /**
      * register action commands
      */
