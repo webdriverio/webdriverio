@@ -4,7 +4,7 @@ import type { Capabilities, Options, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
-import type { Dialog as DialogImport } from './dialog.js'
+import type { Dialog as DialogImport } from './session/dialog.js'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'

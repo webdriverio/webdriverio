@@ -3,8 +3,8 @@ import type { CheerioAPI } from 'cheerio'
 import { prettify as prettifyFn } from 'htmlfy'
 
 import { getBrowserObject } from '@wdio/utils'
-import { getShadowRootManager } from '../../shadowRoot.js'
-import { getContextManager } from '../../context.js'
+import { getShadowRootManager } from '../../session/shadowRoot.js'
+import { getContextManager } from '../../session/context.js'
 import getHTMLScript from '../../scripts/getHTML.js'
 import getHTMLShadowScript from '../../scripts/getHTMLShadow.js'
 

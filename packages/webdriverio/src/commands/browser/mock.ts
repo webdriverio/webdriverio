@@ -2,7 +2,7 @@ import { getBrowserObject } from '@wdio/utils'
 
 import type { MockFilterOptions } from '../../utils/interception/types.js'
 import WebDriverInterception from '../../utils/interception/index.js'
-import { getContextManager } from '../../context.js'
+import { getContextManager } from '../../session/context.js'
 
 export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
 

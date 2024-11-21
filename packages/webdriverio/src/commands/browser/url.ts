@@ -1,6 +1,6 @@
 import { validateUrl } from '../../utils/index.js'
-import { getNetworkManager } from '../../networkManager.js'
-import { getContextManager } from '../../context.js'
+import { getNetworkManager } from '../../session/networkManager.js'
+import { getContextManager } from '../../session/context.js'
 import type { InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'

@@ -1,7 +1,7 @@
 import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
-import { getContextManager } from '../../context.js'
+import { getContextManager } from '../../session/context.js'
 import type { NewWindowOptions } from '../../types.js'
 import logger from '@wdio/logger'
 const log = logger('webdriverio:newWindow')

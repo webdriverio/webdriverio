@@ -1,4 +1,4 @@
-import { getContextManager } from '../../context.js'
+import { getContextManager } from '../../session/context.js'
 
 /**
  *

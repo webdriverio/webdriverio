@@ -12,11 +12,8 @@ import detectBackend from './utils/detectBackend.js'
 import { getProtocolDriver } from './utils/driver.js'
 import { WDIO_DEFAULTS, SupportedAutomationProtocols, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
-import { getShadowRootManager } from './shadowRoot.js'
-import { getNetworkManager } from './networkManager.js'
-import { getDialogManager } from './dialog.js'
-import { getContextManager } from './context.js'
-import { getPolyfillManager } from './polyfill.js'
+import { registerSessionManager } from './session/index.js'
+
 import type { AttachOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
@@ -82,13 +79,7 @@ export const remote = async function(
     }
 
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
-    await Promise.all([
-        getPolyfillManager(instance).initialize(),
-        getShadowRootManager(instance).initialize(),
-        getNetworkManager(instance).initialize(),
-        getDialogManager(instance).initialize(),
-        getContextManager(instance).initialize()
-    ])
+    await registerSessionManager(instance)
     return instance
 }
 
@@ -114,16 +105,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     ) as WebdriverIO.Browser
 
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
-    // @ts-expect-error `bidiHandler` is a private property
-    await driver._bidiHandler?.connect().then(() => (
-        Promise.all([
-            getPolyfillManager(driver).initialize(),
-            getShadowRootManager(driver).initialize(),
-            getNetworkManager(driver).initialize(),
-            getDialogManager(driver).initialize(),
-            getContextManager(driver).initialize()
-        ])
-    ))
+    await registerSessionManager(driver)
     return driver
 }
 

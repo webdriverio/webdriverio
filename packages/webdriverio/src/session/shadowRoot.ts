@@ -1,21 +1,15 @@
 import { type local } from 'webdriver'
 import logger from '@wdio/logger'
 
-import customElementWrapper from './scripts/customElement.js'
 import type { remote } from 'webdriver'
 
-const shadowRootManager = new Map<WebdriverIO.Browser, ShadowRootManager>()
+import { SessionManager } from './session.js'
+import customElementWrapper from '../scripts/customElement.js'
+
 const log = logger('webdriverio:ShadowRootManager')
 
 export function getShadowRootManager(browser: WebdriverIO.Browser) {
-    const existingShadowRootManager = shadowRootManager.get(browser)
-    if (existingShadowRootManager) {
-        return existingShadowRootManager
-    }
-
-    const newContext = new ShadowRootManager(browser)
-    shadowRootManager.set(browser, newContext)
-    return newContext
+    return SessionManager.getSessionManager(browser, ShadowRootManager)
 }
 
 /**
@@ -23,7 +17,7 @@ export function getShadowRootManager(browser: WebdriverIO.Browser) {
  * It allows to do deep element lookups and pierce into shadow DOMs across
  * all components of a page.
  */
-export class ShadowRootManager {
+export class ShadowRootManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
@@ -31,6 +25,7 @@ export class ShadowRootManager {
     #frameDepth = 0
 
     constructor(browser: WebdriverIO.Browser) {
+        super(browser, ShadowRootManager.name)
         this.#browser = browser
 
         /**
