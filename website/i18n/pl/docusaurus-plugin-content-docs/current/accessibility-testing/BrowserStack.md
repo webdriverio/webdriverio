@@ -1,20 +1,20 @@
 ---
 id: browserstack
-title: BrowserStack Accessibility Testing
+title: Testy Dostępności z BrowserStack
 ---
 
-# BrowserStack Accessibility Testing
+# Testy Dostępności BrowserStack
 
-You can easily integrate accessibility tests in your WebdriverIO test suites using the [Automated tests feature of BrowserStack Accessibility Testing](https://www.browserstack.com/docs/accessibility/automated-tests?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
+Możesz łatwo zintegrować testy dostępności w zestawach testowych WebdriverIO za pomocą [funkcji zautomatyzowanych testów w ramach Testów Dostępności BrowserStack](https://www.browserstack.com/docs/accessibility/automated-tests?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
 
-## Advantages of Automated Tests in BrowserStack Accessibility Testing
+## Zalety zautomatyzowanych testów w Testach Dostępności BrowserStack
 
-To use Automated tests in BrowserStack Accessibility Testing, your tests should be running on BrowserStack Automate.
+Aby skorzystać ze zautomatyzowanych testów w Testach Dostępności BrowserStack, twoje testy powinny być uruchomione na BrowserStack Automate.
 
-The following are the advantages of Automated tests:
+Zalety zautomatyzowanych testów:
 
-- Seamlessly integrates into your pre-existing automation test suite.
-- No code changes are required in test cases.
+- Bezproblemowo integruje się z istniejącym wcześniej zestawem zautomatyzowanych testów.
+- Nie trzeba wprowadzać żadnych zmian w kodzie przypadków testowych.
 - Requires zero additional maintenance for accessibility testing.
 - Understand historical trends and gain test-case insights.
 
