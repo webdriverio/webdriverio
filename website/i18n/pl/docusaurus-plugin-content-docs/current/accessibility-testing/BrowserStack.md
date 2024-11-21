@@ -15,49 +15,49 @@ Zalety zautomatyzowanych testów:
 
 - Bezproblemowo integruje się z istniejącym wcześniej zestawem zautomatyzowanych testów.
 - Nie trzeba wprowadzać żadnych zmian w kodzie przypadków testowych.
-- Requires zero additional maintenance for accessibility testing.
-- Understand historical trends and gain test-case insights.
+- Brak wymogu dodatkowej konserwacji dla testów dostępności.
+- Zrozum historyczne tendencje i dowiedz się więcej na temat przypadków testowych.
 
-## Get Started with BrowserStack Accessibility Testing
+## Jak zacząć z Testami Dostępności BrowserStack?
 
-Follow these steps to integrate your WebdriverIO test suites with BrowserStack's Accessibility Testing:
+Żeby zintegrować zestawy testowe WebdriverIO z Testami Dostępności BrowserStack wykonaj następujące czynności:
 
-1. Install `@wdio/browserstack-service` npm package.
+1. Zainstaluj pakiet npm `@wdio/browserstack-service`.
 
 ```bash npm2yarn
 npm install --save-dev @wdio/browserstack-service
 ```
 
-2. Update `wdio.conf.js` config file.
+2. Aktualizuj plik konfiguracyjny `wdio.conf.js`.
 
 ```javascript
 exports.config = {
     //...
-    user: '<browserstack_username>' || process.env.BROWSERSTACK_USERNAME,
-    key: '<browserstack_access_key>' || process.env.BROWSERSTACK_ACCESS_KEY,
+    user: '<browserstack_username>' || proces. nv.BROWSERSTACK_USERNAME,
+    key: '<browserstack_access_key>' || process.env. LOCAL_LABEL
     commonCapabilities: {
       'bstack:options': {
-        projectName: "Your static project name goes here",
-        buildName: "Your static build/job name goes here"
+        projectName: "Statyczna nazwa Twojego projektu",
+        buildName: "Statyczna nazwa Twojego buildu/joba"
       }
     },
     services: [
       ['browserstack', {
         accessibility: true,
-        // Optional configuration options
+        // Nieobowiązkowe opcje konfiguracji
         accessibilityOptions: {
           'wcagVersion': 'wcag21a',
           'includeIssueType': {
             'bestPractice': false,
             'needsReview': true
           },
-          'includeTagsInTestingScope': ['Specify tags of test cases to be included'],
-          'excludeTagsInTestingScope': ['Specify tags of test cases to be excluded']
+          'includeTagsInTestingScope': ['Tagi przypadków testowych, które należy uwzględnić'],
+          'excludeTagsInTestingScope': ['Tagi przypadków testowych, które należy pominąć']
         },
       }]
     ],
-    //...
-  };
+    //. .
+};
 ```
 
-You can view detailed instructions [here](https://www.browserstack.com/docs/accessibility/automated-tests/get-started/webdriverio?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
+Dokładniejsze instrukcje [tutaj](https://www.browserstack.com/docs/accessibility/automated-tests/get-started/webdriverio?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
