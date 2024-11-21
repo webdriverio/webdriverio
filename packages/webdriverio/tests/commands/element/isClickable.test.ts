@@ -55,11 +55,7 @@ describe('isClickable test', () => {
             execute: vi.fn(),
             options: {},
             isMobile: true,
-            getContext: vi.fn()
-                // We call the getContext method extra in the implicitWait function
-                // That's why we need to mock it twice
-                .mockResolvedValueOnce('Webview')
-                .mockRejectedValue(new Error('command does not exist'))
+            getContext: vi.fn().mockRejectedValue(new Error('command does not exist'))
         }
         await elem.isClickable.call(scope)
         expect(scope.execute).toBeCalledTimes(1)

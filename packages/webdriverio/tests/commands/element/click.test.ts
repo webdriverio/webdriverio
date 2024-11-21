@@ -147,11 +147,11 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
         await elem.click({ duration: 1000 })
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[3][0].pathname)
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions[0])
             .toMatchSnapshot()
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[2])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions[0].actions[2])
             .toStrictEqual({ type: 'pause', duration: 1000 })
     })
 
