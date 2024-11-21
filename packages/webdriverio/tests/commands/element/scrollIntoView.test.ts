@@ -102,10 +102,9 @@ describe('scrollIntoView test', () => {
         it('scrolls by default the element to the top', async () => {
             await elem.scrollIntoView()
             const { calls } = vi.mocked(fetch).mock
-            expect(calls).toHaveLength(3)
-            const [[contextCallUrl], [secondContextCallUrl], [executeCallUrl, executeCallOptions]] = calls as any
+            expect(calls).toHaveLength(2)
+            const [[contextCallUrl], [executeCallUrl, executeCallOptions]] = calls as any
             expect(contextCallUrl.pathname).toEqual('/session/foobar-123/context')
-            expect(secondContextCallUrl.pathname).toEqual('/session/foobar-123/context')
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
                 expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
@@ -116,10 +115,9 @@ describe('scrollIntoView test', () => {
         it('scrolls element when using boolean scroll options', async () => {
             await elem.scrollIntoView(true)
             const { calls } = vi.mocked(fetch).mock
-            expect(calls).toHaveLength(3)
-            const [[contextCallUrl], [secondContextCallUrl], [executeCallUrl, executeCallOptions]] = calls as any
+            expect(calls).toHaveLength(2)
+            const [[contextCallUrl], [executeCallUrl, executeCallOptions]] = calls as any
             expect(contextCallUrl.pathname).toEqual('/session/foobar-123/context')
-            expect(secondContextCallUrl.pathname).toEqual('/session/foobar-123/context')
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
                 expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
@@ -130,10 +128,9 @@ describe('scrollIntoView test', () => {
         it('scrolls element using scroll into view options', async () => {
             await elem.scrollIntoView({ block: 'end', inline: 'center' })
             const { calls } = vi.mocked(fetch).mock
-            expect(calls).toHaveLength(3)
-            const [[contextCallUrl], [secondContextCallUrl], [executeCallUrl, executeCallOptions]] = calls as any
+            expect(calls).toHaveLength(2)
+            const [[contextCallUrl], [executeCallUrl, executeCallOptions]] = calls as any
             expect(contextCallUrl.pathname).toEqual('/session/foobar-123/context')
-            expect(secondContextCallUrl.pathname).toEqual('/session/foobar-123/context')
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
                 expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
@@ -176,7 +173,7 @@ describe('scrollIntoView test', () => {
             await elem.scrollIntoView()
 
             // We're in the native context and will start scrolling
-            expect(browser.getContext).toBeCalledTimes(2)
+            expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called and returns the default iOS scrollable element
             const [[selector]] = (browser.$$ as Mock).mock.calls
             expect(selector).toEqual(defaultIOSSelector)
@@ -196,7 +193,7 @@ describe('scrollIntoView test', () => {
             await elem.scrollIntoView()
 
             // We're in the native context and will start scrolling
-            expect(browser.getContext).toBeCalledTimes(2)
+            expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called and returns the default iOS scrollable element
             const [[selector]] = (browser.$$ as Mock).mock.calls
             expect(selector).toEqual(defaultIOSSelector)
@@ -225,7 +222,7 @@ describe('scrollIntoView test', () => {
             })
 
             // We're in the native context and will start scrolling
-            expect(browser.getContext).toBeCalledTimes(2)
+            expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called but we have a provided scrollable element so it should not return the default iOS scrollable element
             expect((browser.$$ as Mock).mock.calls).toHaveLength(0)
             // call the mobileScrollUntilVisible
@@ -253,7 +250,7 @@ describe('scrollIntoView test', () => {
                 await elem.scrollIntoView()
             } catch (err: any) {
                 // We're in the native context and will start scrolling
-                expect(browser.getContext).toBeCalledTimes(2)
+                expect(browser.getContext).toBeCalledTimes(1)
                 // getScrollableElement is called and returns the default iOS scrollable element
                 const [[selector]] = (browser.$$ as Mock).mock.calls
                 expect(selector).toEqual(defaultIOSSelector)
@@ -278,7 +275,7 @@ describe('scrollIntoView test', () => {
                 await elem.scrollIntoView({ maxScrolls: 5 })
             } catch (err: any) {
                 // We're in the native context and will start scrolling
-                expect(browser.getContext).toBeCalledTimes(2)
+                expect(browser.getContext).toBeCalledTimes(1)
                 // getScrollableElement is called and returns the default iOS scrollable element
                 const [[selector]] = (browser.$$ as Mock).mock.calls
                 expect(selector).toEqual(defaultIOSSelector)
@@ -324,7 +321,7 @@ describe('scrollIntoView test', () => {
             await elem.scrollIntoView()
 
             // We're in the native context and will start scrolling
-            expect(browser.getContext).toBeCalledTimes(2)
+            expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called and returns the default iOS scrollable element
             const [[selector]] = (browser.$$ as Mock).mock.calls
             expect(selector).toEqual(defaultAndroidSelector)
@@ -344,7 +341,7 @@ describe('scrollIntoView test', () => {
             await elem.scrollIntoView()
 
             // We're in the native context and will start scrolling
-            expect(browser.getContext).toBeCalledTimes(2)
+            expect(browser.getContext).toBeCalledTimes(1)
             // getScrollableElement is called and returns the default iOS scrollable element
             const [[selector]] = (browser.$$ as Mock).mock.calls
             expect(selector).toEqual(defaultAndroidSelector)
@@ -368,7 +365,7 @@ describe('scrollIntoView test', () => {
                 await elem.scrollIntoView()
             } catch (err: any) {
                 // We're in the native context and will start scrolling
-                expect(browser.getContext).toBeCalledTimes(2)
+                expect(browser.getContext).toBeCalledTimes(1)
                 // getScrollableElement is called and returns the default iOS scrollable element
                 const [[selector]] = (browser.$$ as Mock).mock.calls
                 expect(selector).toEqual(defaultAndroidSelector)

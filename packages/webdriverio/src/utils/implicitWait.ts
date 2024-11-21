@@ -10,7 +10,7 @@ const log = logger('webdriverio')
  */
 export default async function implicitWait (currentElement: WebdriverIO.Element, commandName: string): Promise<WebdriverIO.Element> {
     const browser = getBrowserObject(currentElement)
-    const skipForMobileScroll = browser.isMobile && await browser.getContext() === 'NATIVE_APP' && commandName === 'scrollIntoView'
+    const skipForMobileScroll = browser.isMobile && await browser.isNativeContext && commandName === 'scrollIntoView'
 
     if (!currentElement.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/) && !skipForMobileScroll) {
         log.debug(
