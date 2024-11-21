@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import { ELEMENT_KEY, type local, type remote } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
-import { getContextManager } from '../../context.js'
+import { getContextManager } from '../../session/context.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'

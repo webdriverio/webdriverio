@@ -1,16 +1,8 @@
 import { type local } from 'webdriver'
-
-export const networkManager = new Map<WebdriverIO.Browser, NetworkManager>()
+import { SessionManager } from './session.js'
 
 export function getNetworkManager(browser: WebdriverIO.Browser) {
-    const existingNetworkManager = networkManager.get(browser)
-    if (existingNetworkManager) {
-        return existingNetworkManager
-    }
-
-    const newContext = new NetworkManager(browser)
-    networkManager.set(browser, newContext)
-    return newContext
+    return SessionManager.getSessionManager(browser, NetworkManager)
 }
 
 type Context = string
@@ -22,13 +14,14 @@ const SUPPORTED_NAVIGATION_PROTOCOLS = ['http', 'https', 'data', 'file']
  * It allows to do deep element lookups and pierce into shadow DOMs across
  * all components of a page.
  */
-export class NetworkManager {
+export class NetworkManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #requests = new Map<Context, WebdriverIO.Request>()
     #lastNetworkId?: string
 
     constructor(browser: WebdriverIO.Browser) {
+        super(browser, NetworkManager.name)
         this.#browser = browser
 
         /**
@@ -42,6 +35,8 @@ export class NetworkManager {
         /**
          * listen on required bidi events
          */
+        console.log('\n\nREGISTER IT ALL\n\n');
+
         this.#initialize = this.#browser.sessionSubscribe({
             events: [
                 'browsingContext.navigationStarted',
@@ -169,6 +164,7 @@ export class NetworkManager {
 
     #responseCompleted (log: local.NetworkResponseCompletedParameters) {
         const response = this.#findRootRequest(log.navigation)
+        console.log('-----> response', log.navigation, response)
         if (!response) {
             return
         }

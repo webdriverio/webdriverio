@@ -1,16 +1,8 @@
 import { type local } from 'webdriver'
-
-const dialogManager = new Map<WebdriverIO.Browser, DialogManager>()
+import { SessionManager } from './session.js'
 
 export function getDialogManager(browser: WebdriverIO.Browser) {
-    const existingDialogManager = dialogManager.get(browser)
-    if (existingDialogManager) {
-        return existingDialogManager
-    }
-
-    const newContext = new DialogManager(browser)
-    dialogManager.set(browser, newContext)
-    return newContext
+    return SessionManager.getSessionManager(browser, DialogManager)
 }
 
 /**
@@ -18,12 +10,13 @@ export function getDialogManager(browser: WebdriverIO.Browser) {
  * It allows to do deep element lookups and pierce into shadow DOMs across
  * all components of a page.
  */
-export class DialogManager {
+export class DialogManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #autoHandleDialog = true
 
     constructor(browser: WebdriverIO.Browser) {
+        super(browser, DialogManager.name)
         this.#browser = browser
 
         /**

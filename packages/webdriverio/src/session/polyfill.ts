@@ -1,6 +1,11 @@
 import logger from '@wdio/logger'
 
-const polyfillManager = new Map<WebdriverIO.Browser, PolyfillManager>()
+import { SessionManager } from './session.js'
+
+export function getPolyfillManager(browser: WebdriverIO.Browser) {
+    return SessionManager.getSessionManager(browser, PolyfillManager)
+}
+
 const log = logger('webdriverio:PolyfillManager')
 
 export const NAME_POLYFILL = (
@@ -10,24 +15,15 @@ export const NAME_POLYFILL = (
     '__globalThis.__name = __name;'
 )
 
-export function getPolyfillManager(browser: WebdriverIO.Browser) {
-    const existingPolyfillManager = polyfillManager.get(browser)
-    if (existingPolyfillManager) {
-        return existingPolyfillManager
-    }
-
-    const newContext = new PolyfillManager(browser)
-    polyfillManager.set(browser, newContext)
-    return newContext
-}
-
 /**
  * This class is responsible for setting polyfill scripts in the browser.
  */
-export class PolyfillManager {
+export class PolyfillManager extends SessionManager {
     #initialize: Promise<boolean>
 
     constructor(browser: WebdriverIO.Browser) {
+        super(browser, PolyfillManager.name)
+
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */

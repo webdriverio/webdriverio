@@ -1,18 +1,12 @@
 import logger from '@wdio/logger'
-import { getMobileContext, getNativeContext } from './utils/mobile.js'
 
-const contextManager = new Map<WebdriverIO.Browser, ContextManager>()
+import { SessionManager } from './session.js'
+import { getMobileContext, getNativeContext } from '../utils/mobile.js'
+
 const log = logger('webdriverio:context')
 
 export function getContextManager(browser: WebdriverIO.Browser) {
-    const existingContextManager = contextManager.get(browser)
-    if (existingContextManager) {
-        return existingContextManager
-    }
-
-    const newContext = new ContextManager(browser)
-    contextManager.set(browser, newContext)
-    return newContext
+    return SessionManager.getSessionManager(browser, ContextManager)
 }
 
 /**
@@ -20,13 +14,14 @@ export function getContextManager(browser: WebdriverIO.Browser) {
  * require to be executed in a specific context. This class is responsible for keeping track
  * of the current context and providing the current context the user is in.
  */
-export class ContextManager {
+export class ContextManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #currentContext?: string
     #mobileContext?: string
     #isNativeContext: boolean
 
     constructor(browser: WebdriverIO.Browser) {
+        super(browser, ContextManager.name)
         this.#browser = browser
         const capabilities = this.#browser.capabilities
         this.#isNativeContext = getNativeContext({ capabilities, isMobile: this.#browser.isMobile })
