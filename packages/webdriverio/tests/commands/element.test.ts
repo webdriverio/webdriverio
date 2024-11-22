@@ -27,7 +27,7 @@ test(scopes.join(', ') + ' commands list and strategies', () => {
         ...new Set([...elementPrototype, ...files])
     ]
 
-    const expected = ['puppeteer', ...files, 'strategies']
+    const expected = [...new Set(['puppeteer', ...files, 'strategies'])]
 
     expect(combinedPrototype.sort()).toEqual(expected.sort())
 })
