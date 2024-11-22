@@ -96,6 +96,48 @@ Tenga cuidado de no sobrecargar el ámbito del navegador `` con demasiados coman
 
 Recomendamos definir lógica personalizada en [objetos de página](pageobjects), así que están vinculados a una página específica.
 
+### Multiremote
+
+`addCommand` works in a similar way for multiremote, except the new command will propagate down to the children instances. You have to be mindful when using `this` object since the multiremote `browser` and its children instances have different `this`.
+
+This example shows how to add a new command for multiremote.
+
+```js
+import { multiremotebrowser } from '@wdio/globals'
+
+multiremotebrowser.addCommand('getUrlAndTitle', async function (this: WebdriverIO.MultiRemoteBrowser, customVar: any) {
+    // `this` refers to:
+    //      - MultiRemoteBrowser scope for browser
+    //      - Browser scope for instances
+    return {
+        url: await this.getUrl(),
+        title: await this.getTitle(),
+        customVar: customVar
+    }
+})
+
+multiremotebrowser.getUrlAndTitle()
+/*
+{
+    url: [ 'https://webdriver.io/', 'https://webdriver.io/' ],
+    title: [
+        'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO',
+        'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO'
+    ],
+    customVar: undefined
+}
+*/
+
+multiremotebrowser.getInstance('browserA').getUrlAndTitle()
+/*
+{
+    url: 'https://webdriver.io/',
+    title: 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO',
+    customVar: undefined
+}
+*/
+```
+
 ## Definiciones de Tipo de Contenido
 
 Con TypeScript, es fácil ampliar las interfaces WebdriverIO. Añade tipos a tus comandos personalizados como este:
