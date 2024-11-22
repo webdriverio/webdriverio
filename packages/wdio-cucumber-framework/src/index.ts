@@ -54,7 +54,7 @@ function getResultObject(
     }
 }
 
-class CucumberAdapter {
+export class CucumberAdapter {
     private _cwd = process.cwd()
     private _newId = IdGenerator.incrementing()
     private _cucumberOpts: Required<CucumberOptions>
@@ -566,7 +566,7 @@ export const publishCucumberReport = async (cucumberMessageDir: string): Promise
 }
 
 const _CucumberAdapter = CucumberAdapter
-const adapterFactory: { init?: Function } = {}
+export const adapterFactory: { init?: Function } = {}
 
 /**
  * tested by smoke tests
