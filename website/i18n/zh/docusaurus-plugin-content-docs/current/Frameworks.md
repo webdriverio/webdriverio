@@ -427,7 +427,7 @@ import { Given, When, Then } from '@cucumber/cucumber'
 Now, if you use Cucumber already for other types of tests unrelated to WebdriverIO for which you use a specific version you need to import these helpers in your e2e tests from the WebdriverIO Cucumber package, e.g.:
 
 ```js
-import { Given, When, Then } from '@wdio/cucumber-framework'
+import { Given, When, Then, world, context } from '@wdio/cucumber-framework'
 ```
 
 This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independent Cucumber version for other types of testing.
