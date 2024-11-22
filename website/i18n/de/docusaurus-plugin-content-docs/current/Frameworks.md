@@ -427,7 +427,7 @@ import { Given, When, Then } from '@cucumber/cucumber'
 Wenn Sie Cucumber jetzt bereits für andere Arten von Tests verwenden, die nichts mit WebdriverIO zu tun haben und für die Sie eine bestimmte Version verwenden, müssen Sie diese Helfer in Ihre e2e-Tests aus dem WebdriverIO Cucumber-Paket importieren, z.B.:
 
 ```js
-import { Given, When, Then } from '@wdio/cucumber-framework'
+import { Given, When, Then, world, context } from '@wdio/cucumber-framework'
 ```
 
 Dadurch wird sichergestellt, dass Sie die richtigen Helfer innerhalb des WebdriverIO-Frameworks verwenden, und Sie können eine unabhängige Cucumber-Version für andere Arten von Tests verwenden.
