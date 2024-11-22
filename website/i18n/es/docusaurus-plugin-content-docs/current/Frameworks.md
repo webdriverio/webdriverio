@@ -427,7 +427,7 @@ import { Given, When, Then } from '@cucumber/cucumber'
 Esto asegura que usted utilice los ayudantes adecuados dentro del framework WebdriverIO y le permite usar una versión independiente de Cupeber para otros tipos de pruebas.
 
 ```js
-import { Given, When, Then } from '@wdio/cucumber-framework'
+import { Given, When, Then, world, context } from '@wdio/cucumber-framework'
 ```
 
 This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independent Cucumber version for other types of testing.
