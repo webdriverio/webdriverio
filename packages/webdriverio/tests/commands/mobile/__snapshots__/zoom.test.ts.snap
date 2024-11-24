@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`zoom test > should execute a zoom for Android with the correct values 1`] = `
+{
+  "args": [
+    {
+      "elementId": {
+        "pinch": "mockFunction",
+      },
+      "percent": 0.8,
+      "speed": 888,
+    },
+  ],
+  "script": "mobile: pinchOpenGesture",
+}
+`;
+
+exports[`zoom test > should execute a zoom for iOS with the correct values 1`] = `
+{
+  "args": [
+    {
+      "elementId": {
+        "pinch": "mockFunction",
+      },
+      "scale": 8,
+      "velocity": 1500,
+    },
+  ],
+  "script": "mobile: pinch",
+}
+`;

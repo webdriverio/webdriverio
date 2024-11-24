@@ -58,3 +58,5 @@ export * from './element/waitUntil.js'
  * Add it to the Element scope, but not to the docs by providing a different folder
  */
 export * from './mobile/longPress.js'
+export * from './mobile/pinch.js'
+export * from './mobile/zoom.js'
