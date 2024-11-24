@@ -493,11 +493,15 @@ export type NewWindowOptions = {
     windowFeatures?: string
 }
 
-export type ClickOptions = {
-    button: Button | ButtonNames,
+export type LongPressOptions = {
     x: number,
     y: number,
-    skipRelease:boolean
+    duration: number
+}
+
+export type ClickOptions = LongPressOptions & {
+    button: Button | ButtonNames,
+    skipRelease: boolean
 }
 
 export type WaitForOptions = {

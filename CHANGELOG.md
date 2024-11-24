@@ -23,6 +23,53 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.3.1 (2024-11-22)
+
+#### :rocket: New Feature
+* `webdriver`, `webdriverio`
+  * [#13905](https://github.com/webdriverio/webdriverio/pull/13905) feat: add two new mobile flags ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#13910](https://github.com/webdriverio/webdriverio/pull/13910) chore(@wdio/cucumber-framework): better re-export all Cucumber primitives ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#13904](https://github.com/webdriverio/webdriverio/pull/13904) propagate addCommand to children for multiremote ([@ccharnkij](https://github.com/ccharnkij))
+
+#### Committers: 3
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v9.3.0 (2024-11-20)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#13895](https://github.com/webdriverio/webdriverio/pull/13895) Add an element `longPress` command ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#13838](https://github.com/webdriverio/webdriverio/pull/13838) fix(webdriverio): reconnect to bidi on reloadSession ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13896](https://github.com/webdriverio/webdriverio/pull/13896) fix(webdriver): make isBidi flag dependent on whether WebdriverIO can connect to the websocket url ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#13892](https://github.com/webdriverio/webdriverio/pull/13892) fix(webdriverio): better handle context when closing windows ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#13902](https://github.com/webdriverio/webdriverio/pull/13902) fix(@wdio/cli): fix typing when creating cucumber projects ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#13888](https://github.com/webdriverio/webdriverio/pull/13888) feat: add longpress logic ([@wswebcreation](https://github.com/wswebcreation))
+  * [#13883](https://github.com/webdriverio/webdriverio/pull/13883) polish(webdriverio): improve error stack of waitUntil command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#13903](https://github.com/webdriverio/webdriverio/pull/13903) chore(docs): add info setting up maxInstances and specs in docs ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.2.15 (2024-11-14)
 
 #### :nail_care: Polish

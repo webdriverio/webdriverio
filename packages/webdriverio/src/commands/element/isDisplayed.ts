@@ -11,7 +11,7 @@ interface IsDisplayedParams {
 /**
  *
  * Return true if the selected DOM-element is displayed (even when the element is outside the viewport).
- * If you want to verify that the element is also not within the viewport, use the isDisplayedInViewport command.
+ * If you want to verify that the element is also within the viewport, provide the `withinViewport` flag to the command.
  *
  * :::info
  *

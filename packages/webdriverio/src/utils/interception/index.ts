@@ -176,7 +176,6 @@ export default class WebDriverInterception {
             }).catch(this.#handleNetworkProvideResponseError)
         }
 
-        this.#calls.push(request)
         const { overwrite } = this.#respondOverwrites[0].once
             ? this.#respondOverwrites.shift() || {}
             : this.#respondOverwrites[0]
