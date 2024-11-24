@@ -8,7 +8,7 @@ import { calculateAndroidPinchAndZoomSpeed, validatePinchAndZoomOptions } from '
  *
  * :::info
  *
- * Pinching is done based on native mobile gestures. It is only supported for the following drivers:
+ * Zooming is done based on native mobile gestures. It is only supported for the following drivers:
  * - [appium-uiautomator2-driver](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-mobile-gestures.md#mobile-pinchopengesture) for Android
  * - [appium-xcuitest-driver](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-pinch) for iOS
  *
@@ -18,9 +18,9 @@ import { calculateAndroidPinchAndZoomSpeed, validatePinchAndZoomOptions } from '
     :zoom.js
     it('should demonstrate a zoom on Google maps', async () => {
         const mapsElement = $('//*[@resource-id="com.google.android.apps.maps:id/map_frame"]')
-        // Pinch with the default duration scale
+        // Zoom with the default duration scale
         await mapsElement.zoom()
-        // Pinch with a custom duration and scale
+        // Zoom with a custom duration and scale
         await mapsElement.zoom({ duration: 4000, scale: 0.9 })
     })
  * </example>
