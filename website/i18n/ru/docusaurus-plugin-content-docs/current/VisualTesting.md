@@ -37,7 +37,7 @@ The service is a lightweight module to retrieve the needed data and screenshots 
 Please use the property `isHybridApp:true` in your service settings when you want to use it for Hybrid Apps.
 :::
 
-## Installation
+## Установка
 
 The easiest way is to keep `@wdio/visual-service` as a dev-dependency in your `package.json`, via:
 
@@ -45,7 +45,7 @@ The easiest way is to keep `@wdio/visual-service` as a dev-dependency in your `p
 npm install --save-dev @wdio/visual-service
 ```
 
-## Usage
+## Использование
 
 `@wdio/visual-service` can be used as a normal service. You can set it up in your configuration file with the following:
 
@@ -166,7 +166,7 @@ The way tabbable elements are selected is based on the module [tabbable](https:/
 
 :::
 
-#### How does it work
+#### Как это работает
 
 Both methods will create a `canvas` element on your website and draw lines and dots to show you where your TAB would go if an end-user would use it. After that, it will create a full-page screenshot to give you a good overview of the flow.
 
@@ -184,7 +184,7 @@ the `checkTabbablePage` will first create the _actual_ image and then compare it
 Both methods use the same options as the [`saveFullPageScreen`](https://github.com/wswebcreation/webdriver-image-comparison/blob/master/docs/OPTIONS.md#savefullpagescreen-or-savetabbablepage) or the
 [`compareFullPageScreen`](https://github.com/wswebcreation/webdriver-image-comparison/blob/master/docs/OPTIONS.md#comparefullpagescreen-or-comparetabbablepage).
 
-#### Example
+#### Пример
 
 This is an example of how the tabbing works on our [guinea pig website](http://guinea-pig.webdriver.io/image-compare.html):
 
@@ -197,7 +197,7 @@ Update the baseline images through the command line by adding the argument `--up
 - automatically copy the actual take screenshot and put it in the baseline folder
 - if there are differences it will let the test pass because the baseline has been updated
 
-**Usage:**
+**Использование:**
 
 ```sh
 npm run test.local.desktop  --update-visual-baseline
@@ -229,21 +229,21 @@ We now also support typescript types. Add the following to the `types` in your `
 
 ## System Requirements
 
-### Version 5 and up
+### Версия 5 и выше
 
 For version 5 and up, this module is a purely JavaScript-based module with no additional system dependencies beyond the general [project requirements](/docs/gettingstarted#system-requirements). It uses [Jimp](https://github.com/jimp-dev/jimp) which is an image processing library for Node written entirely in JavaScript, with zero native dependencies.
 
-### Version 4 and Lower
+### Версия 4 и ниже
 
 For version 4 and lower, this module relies on [Canvas](https://github.com/Automattic/node-canvas), a canvas implementation for Node.js. Canvas depends on [Cairo](https://cairographics.org/).
 
-#### Installation Details
+#### Детали установки
 
 By default, binaries for macOS, Linux and Windows will be downloaded during your project's `npm install`. If you don't have a supported OS or processor architecture, the module will be compiled on your system. This requires several dependencies, including Cairo and Pango.
 
 For detailed installation information, see the [node-canvas wiki](https://github.com/Automattic/node-canvas/wiki/_pages). Below are one-line installation instructions for common operating systems. Note that `libgif/giflib`, `librsvg`, and `libjpeg` are optional and only needed for GIF, SVG, and JPEG support, respectively. Cairo v1.10.0 or later is required.
 
-\<Tabs
+<Tabs
 defaultValue="osx"
 values={[
 {label: 'OS', value: 'osx'},
