@@ -1,6 +1,6 @@
 ---
 id: writing-tests
-title: Writing Tests
+title: Написание тестов
 ---
 
 import Tabs from '@theme/Tabs';
@@ -16,7 +16,7 @@ import TabItem from '@theme/TabItem';
 
 Within your tests, you can _save_ screenshots or match the current visual state of your application under test with a baseline. For that, the service provides [custom matcher](/docs/api/expect-webdriverio#visual-matcher), as well as _check_ methods:
 
-\<Tabs
+<Tabs
 defaultValue="mocha"
 values={[
 {label: 'Mocha', value: 'mocha'},
@@ -347,9 +347,9 @@ Then('I should be able to compare some screenshots with a baseline', async funct
 </TabItem>
 </Tabs>
 
-:::note IMPORTANT
+:::note ВАЖНО
 
-This service provides `save` and `check` methods. If you run your tests for the first time you **SHOULD NOT** combine `save` and `compare` methods, the `check`-methods will automatically create a baseline image for you
+Этот сервис предоставляет методы `save` и `check`. Если вы запускаете тесты впервые, то вам **НЕ СЛЕДУЕТ** комбинировать методы `save` и `compare`, метод `check` автоматически создаст для вас исходное изображение
 
 ```sh
 #####################################################################################
