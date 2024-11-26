@@ -29,6 +29,10 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 * `webdriverio`
   * [#13914](https://github.com/webdriverio/webdriverio/pull/13914) feat: add pinch and zoom ([@wswebcreation](https://github.com/wswebcreation))
 
+#### :bug: Bug Fix
+* `webdriver`
+  * [#13852](https://github.com/webdriverio/webdriverio/pull/13852) fix(webdriver): use undici for requests in Node.js ([@christian-bromann](https://github.com/christian-bromann))
+
 #### :nail_care: Polish
 * `webdriverio`
   * [#13916](https://github.com/webdriverio/webdriverio/pull/13916) feat: Add dragAndDrop for Mobile ([@wswebcreation](https://github.com/wswebcreation))
