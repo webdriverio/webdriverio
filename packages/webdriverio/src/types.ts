@@ -95,6 +95,7 @@ interface AsyncIterators<T> {
 
 export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
+    [Symbol.iterator](): IterableIterator<WebdriverIO.Element>
 
     /**
      * Amount of element fetched.

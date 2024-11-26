@@ -489,6 +489,15 @@ async function bar() {
     expectType<WebdriverIO.Element[]>(
         await browser.$$('foo').filter(async () => true)
     )
+
+    for await (const el of browser.$$('foo')) {
+        expectType<WebdriverIO.Element>(el)
+    }
+    const panels = await browser.$$('foo');
+    for (const panel of panels) {
+        await expect(panel).toHaveAttr('class', 'false');
+    }
+
     type Random = {
         foo: WebdriverIO.Element
         bar: WebdriverIO.Browser
