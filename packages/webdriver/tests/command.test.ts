@@ -6,8 +6,9 @@ import logger from '@wdio/logger'
 import type { CommandEndpoint } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
+import '../src/browser.js'
 // @ts-expect-error mock feature
-import RequestMock, { thenMock } from '../src/request/request.js'
+import { WebDriverRequest as RequestMock, thenMock } from '../src/request/request.js'
 import commandWrapper from '../src/command.js'
 import type { BaseClient } from '../src/types.js'
 
@@ -52,7 +53,7 @@ vi.mock('../src/request/request', () => {
     const thenMock = vi.fn().mockResolvedValue({ value: 15 })
     return {
         thenMock,
-        default: vi.fn().mockReturnValue({
+        WebDriverRequest: vi.fn().mockReturnValue({
             makeRequest: () => ({
                 then: thenMock,
                 catch: vi.fn()
@@ -72,6 +73,8 @@ class FakeClient extends EventEmitter {
     isFirefox = false
     isBidi = false
     isSeleniumStandalone = false
+    isNativeContext = false
+    mobileContext = ''
     sessionId = '123'
     capabilities = {}
     requestedCapabilities = {}
@@ -89,7 +92,7 @@ describe('command wrapper', () => {
     })
 
     it('should fail if wrong arguments are passed in', async () => {
-        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint).bind({})
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint).bind({} as unknown)
         await expect(commandFn)
             .rejects
             .toThrow(/Wrong parameters applied for findElementFromElement/)

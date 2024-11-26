@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
-import Request from './request/request.js'
+import { environment } from './environment.js'
 import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
@@ -120,7 +120,7 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = new Request(method, endpoint, body, isHubCommand)
+        const request = new environment.value.Request(method, endpoint, body, isHubCommand)
         request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { command, method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))

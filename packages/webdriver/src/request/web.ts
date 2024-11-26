@@ -1,10 +1,10 @@
-import WebDriverRequest from './index.js'
+import { WebDriverRequest } from './request.js'
 
 /**
  * Cross platform implementation of a fetch based request using native fetch
  */
-export default class FetchRequest extends WebDriverRequest {
-    protected fetch (url: URL, opts: RequestInit) {
+export class FetchRequest extends WebDriverRequest {
+    fetch (url: URL, opts: RequestInit) {
         return fetch(url, opts)
     }
 }

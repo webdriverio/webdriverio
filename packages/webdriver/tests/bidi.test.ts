@@ -1,5 +1,7 @@
 import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
+
+import '../src/node.js'
 import { BidiCore } from '../src/bidi/core.js'
 
 vi.mock('ws')
@@ -77,7 +79,7 @@ describe('BidiCore', () => {
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:68:'))
+            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:70:'))
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
         })

@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import type { ClientOptions, RawData, WebSocket } from 'ws'
 
-import Socket from './socket.js'
+import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse } from './localTypes.js'
@@ -27,7 +27,7 @@ export class BidiCore {
     constructor (webSocketUrl: string, opts?: ClientOptions) {
         this.#webSocketUrl = webSocketUrl
         log.info(`Connect to webSocketUrl ${this.#webSocketUrl}`)
-        this.#ws = new Socket(this.#webSocketUrl, opts) as WebSocket
+        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
         this.#ws.on('message', this.#handleResponse.bind(this))
     }
 
@@ -81,7 +81,7 @@ export class BidiCore {
         log.info(`Reconnect to new Bidi session at ${webSocketUrl}`)
         this.close()
         this.#webSocketUrl = webSocketUrl
-        this.#ws = new Socket(this.#webSocketUrl, opts) as WebSocket
+        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
         this.#ws.on('message', this.#handleResponse.bind(this))
         return this.connect()
     }

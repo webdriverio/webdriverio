@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
-import { WebDriverProtocol } from '@wdio/protocols'
 
 import logger from '@wdio/logger'
 import { transformCommandLogResult, sleep } from '@wdio/utils'
@@ -19,10 +18,6 @@ const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'move target out of bounds'
 ]
 
-export const COMMANDS_WITHOUT_RETRY = [
-    findCommandPathByName('performActions'),
-]
-
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
@@ -32,7 +27,7 @@ const DEFAULT_HEADERS = {
 
 const log = logger('webdriver')
 
-export default abstract class WebDriverRequest extends EventEmitter {
+export abstract class WebDriverRequest extends EventEmitter {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
     body?: Record<string, unknown>
@@ -51,12 +46,12 @@ export default abstract class WebDriverRequest extends EventEmitter {
     }
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
-        const { url, requestOptions } = await this._createOptions(options, sessionId)
+        const { url, requestOptions } = await this.createOptions(options, sessionId)
         this.emit('request', requestOptions)
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
+    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
         const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
         const requestOptions: RequestInit = {
             method: this.method,
@@ -109,7 +104,9 @@ export default abstract class WebDriverRequest extends EventEmitter {
 
         return {
             url,
-            requestOptions: options.transformRequest?.(requestOptions) || requestOptions
+            requestOptions: typeof options.transformRequest === 'function'
+                ? options.transformRequest(requestOptions)
+                : requestOptions
         }
     }
 
@@ -270,16 +267,4 @@ export default abstract class WebDriverRequest extends EventEmitter {
 
         return retry(error)
     }
-}
-
-function findCommandPathByName (commandName: string) {
-    const command = Object.entries(WebDriverProtocol).find(
-        ([, command]) => Object.values(command).find(
-            (cmd) => cmd.command === commandName))
-
-    if (!command) {
-        throw new Error(`Couldn't find command "${commandName}"`)
-    }
-
-    return command[0]
 }

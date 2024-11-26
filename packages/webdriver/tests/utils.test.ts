@@ -2,6 +2,8 @@ import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import type { Capabilities, Options } from '@wdio/types'
 
+import '../src/browser.js'
+
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     startWebDriverSession, setupDirectConnect, validateCapabilities

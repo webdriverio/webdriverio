@@ -11,7 +11,10 @@
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
-      "import": "./build/index.js",
+      "browserSource": "./src/browser.js",
+      "browser": "./build/index.js",
+      "importSource": "./src/node.ts",
+      "import": "./build/node.js",
       "requireSource": "./src/index.cts",
       "require": "./build/index.cjs"
     }

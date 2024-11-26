@@ -12,7 +12,7 @@ class WebDriver {
         userPrototype = {},
         customCommandWrapper?: () => any
     ): Promise<any> {
-        const WebDriver = (await import('./index.js')).default
+        const WebDriver = (await import('./node.js')).default
         return WebDriver.newSession(options, modifier, userPrototype, customCommandWrapper)
     }
 
@@ -25,7 +25,7 @@ class WebDriver {
         userPrototype = {},
         commandWrapper?: () => any
     ): Promise<any> {
-        const WebDriver = (await import('./index.js')).default
+        const WebDriver = (await import('./node.js')).default
         return WebDriver.attachToSession(options, modifier, userPrototype, commandWrapper)
     }
 
@@ -37,7 +37,7 @@ class WebDriver {
      * @returns {string}           the new session id of the browser
      */
     static async reloadSession (instance: any) {
-        const WebDriver = (await import('./index.js')).default
+        const WebDriver = (await import('./node.js')).default
         return WebDriver.reloadSession(instance)
     }
 
