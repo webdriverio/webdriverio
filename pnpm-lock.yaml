@@ -1433,8 +1433,8 @@ importers:
         specifier: workspace:*
         version: link:../wdio-types
       nock:
-        specifier: 14.0.0-beta.14
-        version: 14.0.0-beta.14
+        specifier: 14.0.0-beta.18
+        version: 14.0.0-beta.18
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
@@ -4263,8 +4263,8 @@ packages:
       react: ^17.x || ^18.x
       react-dom: ^17.x || ^18.x
 
-  '@mswjs/interceptors@0.35.6':
-    resolution: {integrity: sha512-PpD687w7qLxVMK176bpQjbzU9O0VC75QnBK5U1lKd29s4hIuxfTItUD6raNKyQ6BN8b64/8HE34RuYTkwH9uPQ==}
+  '@mswjs/interceptors@0.36.10':
+    resolution: {integrity: sha512-GXrJgakgJW3DWKueebkvtYgGKkxA7s0u5B0P5syJM5rvQUnrpLPigvci8Hukl7yEM+sU06l+er2Fgvx/gmiRgg==}
     engines: {node: '>=18'}
 
   '@napi-rs/wasm-runtime@0.2.4':
@@ -10874,8 +10874,8 @@ packages:
   no-case@3.0.4:
     resolution: {integrity: sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg==}
 
-  nock@14.0.0-beta.14:
-    resolution: {integrity: sha512-nbUIuqYkixyazl4hWBQ+EJzb5F0/NJabIQFEEIQwBHPaG+RxvVSs4uSCasHMnCrNuCmOndxgUBqS860g6/OwJw==}
+  nock@14.0.0-beta.18:
+    resolution: {integrity: sha512-pG+QkbovRb8XMdSTnV/GgFWdwWAv2y7bWMzdCQnk2gQ3JjrpHgBAd0V8IIIhSBLJVvrOAqhSBsZrxSntISvXjA==}
     engines: {node: '>= 18'}
 
   node-abi@3.67.0:
@@ -17975,7 +17975,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@mswjs/interceptors@0.35.6':
+  '@mswjs/interceptors@0.36.10':
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
       '@open-draft/logger': 0.3.0
@@ -26380,9 +26380,9 @@ snapshots:
       lower-case: 2.0.2
       tslib: 2.8.1
 
-  nock@14.0.0-beta.14:
+  nock@14.0.0-beta.18:
     dependencies:
-      '@mswjs/interceptors': 0.35.6
+      '@mswjs/interceptors': 0.36.10
       json-stringify-safe: 5.0.1
       propagate: 2.0.1
 

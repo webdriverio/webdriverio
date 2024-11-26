@@ -217,7 +217,7 @@ export default class WebDriver {
 /**
  * Helper methods consumed by webdriverio package
  */
-export { getPrototype, DEFAULTS, command, getEnvironmentVars, initiateBidi, parseBidiMessage }
+export { getPrototype, DEFAULTS, command, getEnvironmentVars, initiateBidi, parseBidiMessage, WebDriver }
 export * from './types.js'
 export * from './constants.js'
 export * from './bidi/handler.js'

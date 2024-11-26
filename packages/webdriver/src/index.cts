@@ -1,7 +1,7 @@
 function command (method: string, encodeUri: string, commandInfo: any, doubleEncodeVariables = false) {
     return async function protocolCommand(this: unknown, ...args: unknown[]) {
-        const commandESM = await import('./command.js')
-        return commandESM.default(method, encodeUri, commandInfo, doubleEncodeVariables).apply(this, args)
+        const commandESM = await import('./node.js')
+        return commandESM.command(method, encodeUri, commandInfo, doubleEncodeVariables).apply(this, args)
     }
 }
 
