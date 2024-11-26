@@ -99,15 +99,9 @@ describe('validatePinchAndZoomOptions', () => {
         isMobile: true,
         isIOS: false,
     }
-
     const mockBrowserIOS = {
         isMobile: true,
         isIOS: true,
-    }
-
-    const mockBrowserNonMobile = {
-        isMobile: false,
-        isIOS: false,
     }
 
     it('returns default values for valid inputs with no options', () => {
@@ -176,16 +170,6 @@ describe('validatePinchAndZoomOptions', () => {
                 options: { duration: 200 },
             })
         }).toThrow("The 'duration' option must be between 500 and 10000 ms")
-    })
-
-    it('throws for non-mobile platforms', () => {
-        expect(() => {
-            validatePinchAndZoomOptions({
-                browser: mockBrowserNonMobile as unknown as WebdriverIO.Browser,
-                gesture: 'pinch',
-                options: {},
-            })
-        }).toThrow('The pinch command is only available for mobile platforms.')
     })
 
     it('throws for invalid options object', () => {

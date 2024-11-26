@@ -22,6 +22,18 @@ describe('zoom test', () => {
         vi.mocked(fetch).mockClear()
     })
 
+    it('should throw an error for non-mobile platforms', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+            } as any
+        })
+        // @ts-expect-error
+        elem = await browser.$('#foo')
+        expect(elem.zoom()).rejects.toThrow('The zoom command is only available for mobile platforms.')
+    })
+
     it('should execute a zoom for iOS with the correct values', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',

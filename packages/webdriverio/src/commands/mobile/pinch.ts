@@ -35,6 +35,11 @@ export async function pinch(
     options: Partial<PinchAndZoomOptions> = {}
 ) {
     const browser = getBrowserObject(this)
+
+    if (!browser.isMobile) {
+        throw new Error('The pinch command is only available for mobile platforms.')
+    }
+
     const { duration, scale } = validatePinchAndZoomOptions({ browser, gesture: 'pinch', options })
 
     const gestureConfig = browser.isIOS

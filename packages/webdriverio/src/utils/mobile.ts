@@ -46,10 +46,6 @@ export function calculateAndroidPinchAndZoomSpeed({ browser, duration, scale }:
 export function validatePinchAndZoomOptions({ browser, gesture, options }:
     { browser: WebdriverIO.Browser, gesture: 'pinch' | 'zoom', options: Partial<PinchAndZoomOptions> }
 ): { scale: number, duration: number } {
-    if (!browser.isMobile) {
-        throw new Error(`The ${gesture} command is only available for mobile platforms.`)
-    }
-
     if (typeof options !== 'undefined' && (typeof options !== 'object' || Array.isArray(options))) {
         throw new TypeError('Options must be an object')
     }
