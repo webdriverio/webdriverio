@@ -27,6 +27,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
 
     const eventHandler = new EventEmitter()
     const EVENTHANDLER_FUNCTIONS = Object.getOwnPropertyNames(Object.getPrototypeOf(eventHandler))
+        .filter((fnName) => fnName !== 'constructor')
 
     /**
      * WebDriver monad

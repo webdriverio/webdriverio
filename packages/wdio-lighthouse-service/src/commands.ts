@@ -209,7 +209,7 @@ export default class CommandHandler {
             // ignore
         }
         if (this._browser) {
-            this._browser.emit(method as keyof BrowserEvents, data.params)
+            this._browser.emit(method as keyof BrowserEvents, data.params as any)
         }
     }
 

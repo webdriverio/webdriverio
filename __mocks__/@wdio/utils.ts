@@ -120,3 +120,4 @@ export const startWebDriver = vi.fn((params) => {
 export const setupBrowser = vi.fn()
 export const setupDriver = vi.fn()
 export const enableFileLogging = vi.fn()
+export * from '../../packages/wdio-utils/src/EventEmitter.js'

@@ -1,3 +1,5 @@
+import safeStringify from 'safe-stringify'
+
 export type EventMap = Record<string, any[]>
 export type EventKey<T extends EventMap> = string & keyof T
 export type EventListener<T extends EventMap, K extends EventKey<T>> =
@@ -117,7 +119,7 @@ export class EventEmitter<T extends EventMap> {
 
     emit<K extends EventKey<T>>(eventName: K, ...args: T[K]): boolean {
         // Broadcast the event to all windows/tabs
-        this.channel.postMessage({ eventName, args })
+        this.channel.postMessage(JSON.parse(safeStringify({ eventName, args })))
 
         // Execute local listeners
         this.#executeListeners(eventName, args)

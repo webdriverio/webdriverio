@@ -1417,6 +1417,9 @@ importers:
       safaridriver:
         specifier: ^0.1.2
         version: 0.1.2
+      safe-stringify:
+        specifier: ^1.1.1
+        version: 1.1.1
       split2:
         specifier: ^4.2.0
         version: 4.2.0
