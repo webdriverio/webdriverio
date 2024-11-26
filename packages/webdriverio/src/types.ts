@@ -504,6 +504,11 @@ export type ClickOptions = LongPressOptions & {
     skipRelease: boolean
 }
 
+export type PinchAndZoomOptions = {
+    duration: number
+    scale: number,
+}
+
 export type WaitForOptions = {
     timeout?: number,
     interval?: number,
