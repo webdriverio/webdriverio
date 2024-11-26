@@ -9,5 +9,6 @@ export function getExternal(pkg: PackageJson) {
         ...Object.keys(pkg.dependencies || {}),
         ...Object.keys(pkg.peerDependencies || {}),
         ...Object.keys(pkg.optionalDependencies || {}),
+        './node.js'
     ]
 }

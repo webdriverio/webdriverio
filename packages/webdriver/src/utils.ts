@@ -10,9 +10,9 @@ import {
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
-import Request from './request/request.js'
 import type { WebDriverResponse } from './request/types.js'
 import command from './command.js'
+import { environment } from './environment.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
 import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
@@ -72,7 +72,7 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     }
 
     validateCapabilities(capabilities.alwaysMatch)
-    const sessionRequest = new Request(
+    const sessionRequest = new environment.value.Request(
         'POST',
         '/session',
         { capabilities }
