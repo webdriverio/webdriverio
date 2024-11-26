@@ -7,6 +7,7 @@ import type { Options } from '@wdio/types'
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
 import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
 import type { WebDriverResponse, RequestLibResponse, RequestOptions } from './types.js'
+import type { WDIOEventMap } from '../types.js'
 
 import { isSuccessfulResponse } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
@@ -26,7 +27,7 @@ const DEFAULT_HEADERS = {
 
 const log = logger('webdriver')
 
-export abstract class WebDriverRequest extends EventEmitter {
+export abstract class WebDriverRequest extends EventEmitter<WDIOEventMap> {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
     body?: Record<string, unknown>

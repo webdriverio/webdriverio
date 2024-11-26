@@ -27,6 +27,11 @@ import TraceGatherer from './gatherer/trace.js'
 const log = logger('@wdio/lighthouse-service:CommandHandler')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
+/**
+ * just take any type from `BrowserEvents` as we don't have types for all CDP commands
+ */
+type IgnoreCommandValueType = BrowserEvents['bidiCommand'][0]
+
 function isCDPSessionOnMessageObject(
     data: any
 ): data is CDPSessionOnMessageObject {
@@ -209,7 +214,7 @@ export default class CommandHandler {
             // ignore
         }
         if (this._browser) {
-            this._browser.emit(method as keyof BrowserEvents, data.params as any)
+            this._browser.emit(method as keyof BrowserEvents, data.params as IgnoreCommandValueType)
         }
     }
 

@@ -1,12 +1,13 @@
 import safeStringify from 'safe-stringify'
 
-export type EventMap = Record<string, any[]>
+export type EventMap = Record<string, unknown[]>
 export type EventKey<T extends EventMap> = string & keyof T
 export type EventListener<T extends EventMap, K extends EventKey<T>> =
     (...args: T[K]) => void
+type Listener<T extends EventMap> = EventListener<T, any>
 
 export class EventEmitter<T extends EventMap> {
-    #listeners: Map<EventKey<T>, Set<EventListener<T, any>>>
+    #listeners: Map<EventKey<T>, Set<Listener<T>>>
 
     private channelName: string
     private channel: BroadcastChannel
@@ -51,7 +52,7 @@ export class EventEmitter<T extends EventMap> {
             )
         }
 
-        listeners.add(listener as EventListener<T, any>)
+        listeners.add(listener as Listener<T>)
         return this
     }
 
@@ -88,7 +89,7 @@ export class EventEmitter<T extends EventMap> {
                 }
             }
         } else {
-            listeners.delete(listener as EventListener<T, any>)
+            listeners.delete(listener as Listener<T>)
         }
 
         if (listeners.size === 0) {

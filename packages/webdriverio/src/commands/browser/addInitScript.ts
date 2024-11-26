@@ -159,7 +159,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     await this.sessionSubscribe({
         events: ['script.message']
     })
-    const emitter = new EventEmitter()
+    const emitter = new EventEmitter<DialogEvents<Payload>>()
     const messageHandler = (msg: local.ScriptMessageParameters) => {
         if (msg.channel === channel) {
             emitter.emit('data', deserializeValue(msg.data as any))
@@ -176,4 +176,8 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
         on: emitter.on.bind(emitter)
     }
     return returnVal
+}
+
+type DialogEvents<Payload> = {
+    'data': [Payload]
 }
