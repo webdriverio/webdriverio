@@ -108,9 +108,9 @@ class Launcher {
         exitHook(this._exitHandler.bind(this))
         let exitCode = 0
         let error: HookError | undefined = undefined
+        const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
 
         try {
-            const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
             const { ignoredWorkerServices, launcherServices } = await initializeLauncherService(config, caps)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
@@ -137,20 +137,7 @@ class Launcher {
             ])
 
             exitCode = await this._runMode(config, caps)
-
-            /**
-             * run onComplete hook
-             * Even if it fails we still want to see result and end logger stream.
-             * Also ensure that user hooks are run before service hooks so that e.g.
-             * a user can use plugin service, e.g. shared store service is still
-             * available running hooks in this order
-             */
-            log.info('Run onComplete hook')
-            const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface.result)
-            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
-
-            // if any of the onComplete hooks failed, update the exit code
-            exitCode = onCompleteResults.includes(1) ? 1 : exitCode
+            exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
 
             await logger.waitForBuffer()
 
@@ -165,6 +152,8 @@ class Launcher {
                     exitCode = exitCode || 1
                 }
             }
+
+            exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
         }
 
         if (error) {
@@ -172,6 +161,28 @@ class Launcher {
             throw error
         }
         return exitCode
+    }
+
+    /**
+     * run onComplete hook
+     * Even if it fails we still want to see result and end logger stream.
+     * Also ensure that user hooks are run before service hooks so that e.g.
+     * a user can use plugin service, e.g. shared store service is still
+     * available running hooks in this order
+     */
+    async #runOnCompleteHook (
+        config: Required<Options.Testrunner>,
+        caps: Capabilities.TestrunnerCapabilities,
+        exitCode: number
+    ): Promise<number> {
+        log.info('Run onComplete hook')
+        const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface!.result)
+        if (this._launcher) {
+            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
+        }
+
+        // if any of the onComplete hooks failed, update the exit code
+        return onCompleteResults.includes(1) ? 1 : exitCode
     }
 
     /**
