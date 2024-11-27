@@ -25,7 +25,11 @@ export class FetchRequest extends WebDriverRequest {
          */
         const dispatcher = environment.value.variables.PROXY_URL
             ? new ProxyAgent(environment.value.variables.PROXY_URL)
-            : new Agent({ connectTimeout: options.connectionRetryTimeout })
+            : new Agent({
+                connectTimeout: options.connectionRetryTimeout,
+                headersTimeout: options.connectionRetryTimeout,
+                bodyTimeout: options.connectionRetryTimeout,
+            })
 
         ;(requestOptions as UndiciRequestInit).dispatcher = dispatcher
         return { url, requestOptions }
