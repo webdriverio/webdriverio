@@ -168,9 +168,6 @@ export interface BrowserstackConfig {
      * @default false
     */
     turboScale?: boolean;
-
-    testhubBuildUuid?: string;
-    buildProductMap?: { [key: string]: any; };
 }
 
 /**
