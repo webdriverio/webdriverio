@@ -137,10 +137,7 @@ class Launcher {
             ])
 
             exitCode = await this._runMode(config, caps)
-            exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
-
             await logger.waitForBuffer()
-
             this.interface.finalise()
         } catch (err) {
             error = err as HookError
