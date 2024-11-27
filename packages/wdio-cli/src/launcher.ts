@@ -157,6 +157,7 @@ class Launcher {
             this.interface.logHookError(error)
             throw error
         }
+
         return exitCode
     }
 
