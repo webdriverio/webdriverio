@@ -300,6 +300,8 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     'browserstack.wdioService'?: string
     'browserstack.buildIdentifier'?: string
     'browserstack.localIdentifier'?: string
+    'browserstack.testhubBuildUuid'?: string
+    'browserstack.buildProductMap'?: { [key: string]: any }
 
     'goog:chromeOptions'?: ChromeOptions
     'moz:firefoxOptions'?: FirefoxOptions
@@ -1729,7 +1731,10 @@ export interface BrowserStackCapabilities {
      * Hides data that you send to or retrieve from the remote browsers through the following commands:
      * Example: 'setValues, getValues, setCookies, getCookies'
      */
-    maskCommands?: string
+    maskCommands?: string,
+
+    testhubBuildUuid?: string,
+    buildProductMap?: { [key: string]: any }
 }
 
 export interface SauceLabsVisualCapabilities {
