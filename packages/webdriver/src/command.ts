@@ -186,6 +186,9 @@ export default function (
             }
 
             return result.value
+        }).catch((error) => {
+            this.emit('result', { command, method, endpoint, body, result: { error } })
+            throw error
         })
     }
 }
