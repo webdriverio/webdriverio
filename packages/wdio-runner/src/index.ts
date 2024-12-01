@@ -283,7 +283,7 @@ export default class Runner extends EventEmitter {
          * register command event
          */
         browser.on('command', (command: any) => {
-            const patternWithFlags = this._config?.onBeforeCommandTextPatternMasker
+            const patternWithFlags = this._config?.onBeforeCommandTextPatternsMasker
             const maskedCommand = maskedBodyText(command, patternWithFlags)
 
             return this._reporter?.emit('client:beforeCommand', Object.assign(maskedCommand, { sessionId: browser.sessionId }))
@@ -293,7 +293,7 @@ export default class Runner extends EventEmitter {
          * register result event
          */
         browser.on('result', (result: any) => {
-            const patternWithFlags = this._config?.onBeforeCommandTextPatternMasker
+            const patternWithFlags = this._config?.onBeforeCommandTextPatternsMasker
             const maskedResult = maskedBodyText(result, patternWithFlags)
 
             return this._reporter?.emit('client:afterCommand', Object.assign(maskedResult, { sessionId: browser.sessionId }))

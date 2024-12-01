@@ -330,7 +330,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      *  - It does not mask values for appium logs. @see {@link https://appium.io/docs/en/2.0/guides/log-filters|log filter}
      *  - It does not mask the value in BrowserStack `Text Logs` (@see {@link https://www.browserstack.com/docs/automate/selenium/hide-sensitive-data|hide sensitive data})  and `Network Logs` @see {@link https://www.browserstack.com/docs/automate/selenium/enable-network-logs|network logs}
 `    */
-    onBeforeCommandTextPatternMasker?: string[]
+    onBeforeCommandTextPatternsMasker?: string[]
 }
 
 export interface TSConfigPathsOptions {
