@@ -1353,7 +1353,7 @@ export function getObservabilityProduct(options: (BrowserstackConfig & Browserst
         : (isTurboScale(options) ? 'turboscale' : 'automate')
 }
 
-export function maskedBodyText(commandOrResult: { body?:{ text? : string } }, patternsWithFlags: string[] = []) {
+export function maskedBodyText(commandOrResult: { body?:{ text? : string } }, patternsWithFlags: RegExp[] = []) {
     let maskedCommand = commandOrResult
     if (patternsWithFlags.length > 0 && !!commandOrResult?.body?.text && patternsWithFlags.find(pattern => commandOrResult?.body?.text?.match(pattern))) {
         maskedCommand = {
