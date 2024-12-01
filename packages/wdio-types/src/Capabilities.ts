@@ -378,7 +378,7 @@ export interface WebdriverIOCapabilities {
      * Unfortunately, this will not masked values for appium logs. @see {@link https://appium.io/docs/en/2.0/guides/log-filters|log filter}
      */
     // TODO review to use an array of patterns if the solution is accepted!!
-    'wdio:OnBeforeCommandTextPatternMasker'?:string
+    'wdio:OnBeforeCommandTextPatternMasker'?:string[]
 }
 
 export interface ChromeOptions {
