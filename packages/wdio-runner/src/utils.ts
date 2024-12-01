@@ -212,3 +212,17 @@ export function transformExpectArgs (arg: any) {
 
     return arg
 }
+
+export function maskedBodyText(commandOrResult: { body?:{ text?:string } }, patternsWithFlags: RegExp[] = []) {
+    let maskedCommand = commandOrResult
+    if (patternsWithFlags.length > 0 && !!commandOrResult?.body?.text && patternsWithFlags.find(pattern => pattern.test(commandOrResult?.body?.text!))) {
+        maskedCommand = {
+            ...commandOrResult,
+            body: {
+                ...commandOrResult.body,
+                text: '**SECURE**'
+            }
+        }
+    }
+    return maskedCommand
+}

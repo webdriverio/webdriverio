@@ -323,11 +323,13 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
     tsConfigPath?: string
 
     /**
-     * Regex pattern in the format `/pattern/flags` used to masked sensitive information on the onBeforeCommand hook for commands using the `text` parameter.
-     * Usage of onBeforeCommand hook will be for example all reporters and the BrowserStack insights and percy service.
+     * Regex pattern in the format `/pattern/flags` used to mask sensitive information on the onBeforeCommand hook for commands using the `text` parameter.
+     * The onBeforeCommand hook will be used by, for example, all reporters and the BrowserStack insights/Percy tool.
      * The `text` parameter matches the `elementSendKeys` and `sendAlertText` commands.
-     * Unfortunately, this will not masked values for appium logs. @see {@link https://appium.io/docs/en/2.0/guides/log-filters|log filter}
-     */
+     * Unfortunately:
+     *  - It does not mask values for appium logs. @see {@link https://appium.io/docs/en/2.0/guides/log-filters|log filter}
+     *  - It does not mask the value in BrowserStack `Text Logs` (@see {@link https://www.browserstack.com/docs/automate/selenium/hide-sensitive-data|hide sensitive data})  and `Network Logs` @see {@link https://www.browserstack.com/docs/automate/selenium/enable-network-logs|network logs}
+`    */
     onBeforeCommandTextPatternMasker?: string
 }
 
