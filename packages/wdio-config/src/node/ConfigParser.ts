@@ -29,6 +29,7 @@ interface TestrunnerOptionsWithParameters extends Options.Testrunner {
     capabilities?: Capabilities.TestrunnerCapabilities
     rootDir: string
     tsConfigPath?: string
+    OnBeforeCommandTextPatternMasker?: string
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
@@ -36,6 +37,8 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
     'wdio:specs'?: Spec[]
     exclude?: string[]
     'wdio:exclude'?: string[]
+    OnBeforeCommandTextPatternMasker?: string
+    'wdio:OnBeforeCommandTextPatternMasker'?:string
 }
 
 export default class ConfigParser {
@@ -203,6 +206,12 @@ export default class ConfigParser {
             this._config.exclude = object['wdio:exclude'] as string[]
         } else if (object.exclude && object.exclude.length > 0) {
             this._config.exclude = object.exclude as string[]
+        }
+
+        if (object['wdio:OnBeforeCommandTextPatternMasker']) {
+            this._config.OnBeforeCommandTextPatternMasker = object['wdio:OnBeforeCommandTextPatternMasker']
+        } else if (object.OnBeforeCommandTextPatternMasker) {
+            this._config.OnBeforeCommandTextPatternMasker = object.OnBeforeCommandTextPatternMasker
         }
 
         /**

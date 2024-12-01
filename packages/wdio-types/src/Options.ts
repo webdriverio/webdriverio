@@ -51,7 +51,7 @@ export interface Connection {
      */
     path?: string
     /**
-     * Query paramaters that are propagated to the driver server.
+     * Query parameters that are propagated to the driver server.
      */
     queryParams?: {
         [name: string]: string
@@ -176,7 +176,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
     /**
      * Type of runner
      * - local: every spec file group is spawned in its own local process
-     *   running an independant browser session
+     *   running an independent browser session
      * - browser: all spec files are run within the browser
      */
     runner?: 'local' | 'browser' | ['browser', WebdriverIO.BrowserRunnerOptions] | ['local', never]
@@ -276,7 +276,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     reporters?: ReporterEntry[]
     /**
-     * Determines in which interval the reporter should check if they are synchronised
+     * Determines in which interval the reporter should check if they are synchronized
      * if they report their logs asynchronously (e.g. if logs are streamed to a 3rd
      * party vendor).
      */
@@ -321,6 +321,14 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * TSX custom TSConfig path
      */
     tsConfigPath?: string
+
+    /**
+     * Regex pattern in the format `/pattern/flags` used to masked sensitive information on the onBeforeCommand hook for commands using the `text` parameter.
+     * Usage of onBeforeCommand hook will be for example all reporters and the BrowserStack insights and percy service.
+     * The `text` parameter matches the `elementSendKeys` and `sendAlertText` commands.
+     * Unfortunately, this will not masked values for appium logs. @see {@link https://appium.io/docs/en/2.0/guides/log-filters|log filter}
+     */
+    onBeforeCommandTextPatternMasker?: string
 }
 
 export interface TSConfigPathsOptions {

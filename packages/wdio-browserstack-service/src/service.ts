@@ -175,15 +175,30 @@ export default class BrowserstackService implements Services.ServiceInstance {
                  * register command event
                  */
                 this._browser.on('command', async (command) => {
+
+                    const patternWithFlags = this._config.onBeforeCommandTextPatternMasker
+                    const replacer = '**SECURE**'
+
+                    let maskedCommand = command
+                    if (!!patternWithFlags && !!command?.body?.text && command.body.text.match(patternWithFlags)) {
+                        maskedCommand = {
+                            ...command,
+                            body: {
+                                ...command.body,
+                                text: replacer
+                            }
+                        }
+                    }
+
                     if (shouldProcessEventForTesthub('')) {
                         this._insightsHandler?.browserCommand(
                             'client:beforeCommand',
-                            Object.assign(command, { sessionId }),
+                            Object.assign(maskedCommand, { sessionId }),
                             this._currentTest
                         )
                     }
                     await this._percyHandler?.browserBeforeCommand(
-                        Object.assign(command, { sessionId }),
+                        Object.assign(maskedCommand, { sessionId }),
                     )
                 })
 
