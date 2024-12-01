@@ -213,7 +213,7 @@ export function transformExpectArgs (arg: any) {
     return arg
 }
 
-export function maskedBodyText(commandOrResult: { body?:{ text?:string } }, patternsWithFlags: string[] = []) {
+export function maskedBodyText(commandOrResult: { body?:{ text?:string } }, patternsWithFlags: RegExp[] = []) {
     let maskedCommand = commandOrResult
     if (patternsWithFlags.length > 0 && !!commandOrResult?.body?.text && patternsWithFlags.find(pattern => commandOrResult?.body?.text?.match(pattern))) {
         maskedCommand = {
