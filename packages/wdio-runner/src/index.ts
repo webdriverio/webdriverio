@@ -282,18 +282,32 @@ export default class Runner extends EventEmitter {
         /**
          * register command event
          */
-        browser.on('command', (command: any) => this._reporter?.emit(
-            'client:beforeCommand',
-            Object.assign(command, { sessionId: browser.sessionId })
-        ))
+        browser.on('command', (command: any) => {
+            let maskedCommand = command
+            // TODO move into a config
+            const patternWithFlags = this._config.onBeforeCommandTextPatternMasker
+
+            if (!!patternWithFlags && !!command?.body?.text && command.body.text.match(patternWithFlags)) {
+                maskedCommand = {
+                    ...command,
+                    body: {
+                        ...command.body,
+                        text: '**SECURE**'
+                    }
+                }
+            }
+            return this._reporter?.emit('client:beforeCommand', Object.assign(maskedCommand, { sessionId: browser.sessionId }))
+        })
 
         /**
          * register result event
          */
-        browser.on('result', (result: any) => this._reporter?.emit(
-            'client:afterCommand',
-            Object.assign(result, { sessionId: browser.sessionId })
-        ))
+        browser.on('result', (result: any) => {
+            // TODO dprevost to remove
+            console.log('result', result)
+            return this._reporter?.emit('client:afterCommand', Object.assign(result, { sessionId: browser.sessionId }))
+        }
+        )
 
         return browser
     }
