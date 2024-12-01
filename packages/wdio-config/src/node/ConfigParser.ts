@@ -29,7 +29,7 @@ interface TestrunnerOptionsWithParameters extends Options.Testrunner {
     capabilities?: Capabilities.TestrunnerCapabilities
     rootDir: string
     tsConfigPath?: string
-    OnBeforeCommandTextPatternMasker?: string
+    OnBeforeCommandTextPatternMasker?: string[]
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
@@ -37,8 +37,8 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
     'wdio:specs'?: Spec[]
     exclude?: string[]
     'wdio:exclude'?: string[]
-    OnBeforeCommandTextPatternMasker?: string
-    'wdio:OnBeforeCommandTextPatternMasker'?:string
+    OnBeforeCommandTextPatternMasker?: string[]
+    'wdio:OnBeforeCommandTextPatternMasker'?:string[]
 }
 
 export default class ConfigParser {
@@ -208,10 +208,10 @@ export default class ConfigParser {
             this._config.exclude = object.exclude as string[]
         }
 
-        if (object['wdio:OnBeforeCommandTextPatternMasker']) {
-            this._config.OnBeforeCommandTextPatternMasker = object['wdio:OnBeforeCommandTextPatternMasker']
-        } else if (object.OnBeforeCommandTextPatternMasker) {
-            this._config.OnBeforeCommandTextPatternMasker = object.OnBeforeCommandTextPatternMasker
+        if (object['wdio:OnBeforeCommandTextPatternMasker'] && object['wdio:OnBeforeCommandTextPatternMasker'].length > 0) {
+            this._config.OnBeforeCommandTextPatternMasker = object['wdio:OnBeforeCommandTextPatternMasker'] as string[]
+        } else if (object.OnBeforeCommandTextPatternMasker && object.OnBeforeCommandTextPatternMasker.length > 0) {
+            this._config.OnBeforeCommandTextPatternMasker = object.OnBeforeCommandTextPatternMasker as string[]
         }
 
         /**
