@@ -4,6 +4,7 @@ import type { TraceEvent } from '@tracerbench/trace-event'
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/api/CDPSession.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 import type { TracingOptions } from 'puppeteer-core/lib/esm/puppeteer/cdp/Tracing.js'
+import type { BrowserEvents } from 'webdriverio'
 
 import type { RequestPayload } from './handler/network.js'
 import NetworkHandler from './handler/network.js'
@@ -25,6 +26,11 @@ import TraceGatherer from './gatherer/trace.js'
 
 const log = logger('@wdio/lighthouse-service:CommandHandler')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
+
+/**
+ * just take any type from `BrowserEvents` as we don't have types for all CDP commands
+ */
+type IgnoreCommandValueType = BrowserEvents['bidiCommand'][0]
 
 function isCDPSessionOnMessageObject(
     data: any
@@ -208,7 +214,7 @@ export default class CommandHandler {
             // ignore
         }
         if (this._browser) {
-            this._browser.emit(method, data.params)
+            this._browser.emit(method as keyof BrowserEvents, data.params as IgnoreCommandValueType)
         }
     }
 
