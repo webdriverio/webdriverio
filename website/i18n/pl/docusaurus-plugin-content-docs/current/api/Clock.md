@@ -1,15 +1,15 @@
 ---
 id: clock
-title: The Clock Object
+title: Obiekt zegara (The Clock Object)
 ---
 
-You can modify the browser system clock using the [`emulate`](/docs/emulation) command. It overrides native global functions related to time allowing them to be controlled synchronously via `clock.tick()` or the yielded clock object. This includes controlling:
+Możesz modyfikować zegar systemowy przeglądarki za pomocą polecenia [`emulate`](/docs/emulation). Zastępuje ono natywne funkcje globalne związane z czasem, co pozwala na kontrolowanie ich synchronicznie z wykorzystaniem `clock.tick()` lub zwracanego obiektu zegara. Obejmuje to kontrolę nad:
 
 - `setTimeout`
 - `clearTimeout`
 - `setInterval`
 - `clearInterval`
-- `Date Objects`
+- `obiekty typu Date`
 
 The clock starts at the unix epoch (timestamp of 0). This means that when you instantiate new Date in your application, it will have a time of January 1st, 1970 if you don't pass any other options to the `emulate` command.
 
