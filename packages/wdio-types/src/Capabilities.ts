@@ -160,7 +160,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     'browserstack.accessibility'?: boolean
     'browserstack.accessibilityOptions'?: { [key: string]: any; }
     'browserstack.testhubBuildUuid'?: string
-    'browserstack.buildProductMap'?: { [key: string]: any }
+    'browserstack.buildProductMap'?: { [key: string]: boolean }
     /**
      * @private
      */
@@ -1242,7 +1242,7 @@ export interface BrowserStackCapabilities {
     accessibilityOptions?: { [key: string]: any; }
 
     testhubBuildUuid?: string
-    buildProductMap?: { [key: string]: any; }
+    buildProductMap?: { [key: string]: boolean; }
 
     'browserstack.buildIdentifier'?: string
     'browserstack.localIdentifier'?: string
