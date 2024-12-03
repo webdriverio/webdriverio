@@ -178,7 +178,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     'browserstack.buildIdentifier'?: string
     'browserstack.localIdentifier'?: string
     'browserstack.testhubBuildUuid'?: string
-    'browserstack.buildProductMap'?: { [key: string]: any }
+    'browserstack.buildProductMap'?: { [key: string]: boolean }
 
     'goog:chromeOptions'?: ChromeOptions
     'moz:firefoxOptions'?: FirefoxOptions
@@ -1673,7 +1673,7 @@ export interface BrowserStackCapabilities {
     maskCommands?: string,
 
     testhubBuildUuid?: string,
-    buildProductMap?: { [key: string]: any }
+    buildProductMap?: { [key: string]: boolean }
 }
 
 export interface SauceLabsVisualCapabilities {
