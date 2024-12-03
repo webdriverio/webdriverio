@@ -10,7 +10,7 @@ export function getNativeContext({ capabilities, isMobile }:
 
     const isAppiumAppCapPresent = (capabilities: Capabilities.RequestedStandaloneCapabilities) => {
         const appiumKeys = ['app', 'bundleId', 'appPackage', 'appActivity', 'appWaitActivity', 'appWaitPackage']
-        return appiumKeys.some(key => (capabilities as Capabilities.AppiumCapabilities)[key as keyof Capabilities.AppiumCapabilities] !== undefined)
+        return appiumKeys.some(key => (capabilities as Capabilities.AppiumCapabilities)[key as keyof Capabilities.AppiumCapabilities] !== undefined || capabilities['appium:options']?.[key] !== undefined)
     }
     const isBrowserNameFalse = !!capabilities?.browserName === false
     // @ts-expect-error
