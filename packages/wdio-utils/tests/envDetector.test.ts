@@ -60,6 +60,13 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: tvOSCapsBS, requestedCapabilities }).isMobile).toBe(true)
         const androidCapsBS = { 'bstack:options': { ...chromeCaps, 'platformName': 'Android' } }
         expect(sessionEnvironmentDetector({ capabilities: androidCapsBS, requestedCapabilities }).isMobile).toBe(true)
+
+        const geckoAppiumCaps = { 'appium:automationName': 'Gecko' }
+        expect(sessionEnvironmentDetector({ capabilities: geckoAppiumCaps, requestedCapabilities }).isMobile).toBe(false)
+        const safariAppiumCaps = { 'appium:options': { automationName: 'safari' } }
+        expect(sessionEnvironmentDetector({ capabilities: safariAppiumCaps, requestedCapabilities }).isMobile).toBe(false)
+        const chromiumAppiumCaps = { 'appium:automationName': 'chrome' }
+        expect(sessionEnvironmentDetector({ capabilities: chromiumAppiumCaps, requestedCapabilities }).isMobile).toBe(false)
     })
 
     it('isW3C', () => {
