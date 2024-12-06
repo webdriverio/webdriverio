@@ -1,6 +1,9 @@
 import type { Capabilities } from '@wdio/types'
 import type { PinchAndZoomOptions } from '../types.js'
 
+const appiumKeys = ['app', 'bundleId', 'appPackage', 'appActivity', 'appWaitActivity', 'appWaitPackage'] as const
+type AppiumKeysType = typeof appiumKeys[number]
+
 export function getNativeContext({ capabilities, isMobile }:
     { capabilities: WebdriverIO.Capabilities, isMobile: boolean }
 ): boolean {
@@ -9,8 +12,10 @@ export function getNativeContext({ capabilities, isMobile }:
     }
 
     const isAppiumAppCapPresent = (capabilities: Capabilities.RequestedStandaloneCapabilities) => {
-        const appiumKeys = ['app', 'bundleId', 'appPackage', 'appActivity', 'appWaitActivity', 'appWaitPackage']
-        return appiumKeys.some(key => (capabilities as Capabilities.AppiumCapabilities)[key as keyof Capabilities.AppiumCapabilities] !== undefined || capabilities['appium:options']?.[key] !== undefined)
+        return appiumKeys.some((key) => (
+            (capabilities as Capabilities.AppiumCapabilities)[key as keyof Capabilities.AppiumCapabilities] !== undefined ||
+            (capabilities as WebdriverIO.Capabilities)['appium:options']?.[key as AppiumKeysType] !== undefined)
+        )
     }
     const isBrowserNameFalse = !!capabilities?.browserName === false
     // @ts-expect-error

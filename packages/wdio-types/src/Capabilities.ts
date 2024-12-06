@@ -6,6 +6,11 @@ import type {
 
 type JSONLike = | { [property: string]: JSONLike } | readonly JSONLike[] | string | number | boolean | null
 
+// Type to remove 'appium:' prefix from property keys
+type RemoveAppiumPrefix<T> = {
+    [K in keyof T as K extends `appium:${infer R}` ? R : K]: T[K]
+}
+
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal'
 export type LoggingPreferenceType =
     'OFF' | 'SEVERE' | 'WARNING' |
@@ -275,6 +280,8 @@ export interface WithRequestedMultiremoteCapabilities {
 export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIOCapabilities,
     WebdriverIO.WDIOVSCodeServiceOptions, AppiumXCUITestCapabilities, AppiumAndroidCapabilities {
 
+    // Appium Options
+    'appium:options'?: AppiumOptions
     // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Aerokube Moon specific
@@ -325,6 +332,8 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
      */
     'se:cdp'?: string
 }
+
+export type AppiumOptions = RemoveAppiumPrefix<AppiumCapabilities & AppiumXCUITestCapabilities & AppiumAndroidCapabilities>
 
 export interface WebdriverIOCapabilities {
     /**
