@@ -106,6 +106,15 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
     const browserName = (capabilities.browserName || '').toLowerCase()
     const bsOptions = capabilities['bstack:options'] || {}
     const browserstackBrowserName = (bsOptions.browserName || '').toLowerCase()
+
+    /**
+     * it is _not_ a mobile session if automationName is set to start a mobile session
+     */
+    const automationName = capabilities['appium:options']?.automationName || capabilities['appium:automationName']
+    if (automationName && ['gecko', 'safari', 'chrome', 'chromium'].includes(automationName.toLocaleLowerCase())) {
+        return false
+    }
+
     /**
      * we have mobile capabilities if
      */
