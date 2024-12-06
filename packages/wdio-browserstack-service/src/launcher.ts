@@ -45,7 +45,8 @@ import BrowserStackConfig from './config'
 import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation'
 import AiHandler from './ai-handler'
 import { BStackLogger } from './bstackLogger'
-
+import { getProductMap } from './instrumentation/funnelInstrumentation'
+import TestOpsConfig from './testOps/testOpsConfig'
 const log = logger('@wdio/browserstack-service')
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
@@ -321,6 +322,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 PercyLogger.error(`Error while setting up Percy ${err}`)
             }
         }
+
+        this._updateCaps(capabilities, 'testhubBuildUuid')
+        this._updateCaps(capabilities, 'buildProductMap')
 
         if (!this._options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
@@ -603,7 +607,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string) {
+    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?: string) {
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
                 if (!capability['bstack:options']) {
@@ -615,6 +619,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             capability['appium:app'] = value
                         } else if (capType === 'buildIdentifier' && value) {
                             capability['bstack:options'] = { buildIdentifier: value }
+                        } else if (capType === 'testhubBuildUuid') {
+                            capability['bstack:options'] = { testhubBuildUuid: TestOpsConfig.getInstance().buildHashedId }
+                        } else if (capType === 'buildProductMap') {
+                            capability['bstack:options'] = { buildProductMap: getProductMap(this.browserStackConfig) }
                         }
                     } else if (capType === 'local'){
                         capability['browserstack.local'] = true
@@ -628,6 +636,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         }
                     } else if (capType === 'localIdentifier') {
                         capability['browserstack.localIdentifier'] = value
+                    } else if (capType === 'testhubBuildUuid') {
+                        capability['browserstack.testhubBuildUuid'] = TestOpsConfig.getInstance().buildHashedId
+                    } else if (capType === 'buildProductMap') {
+                        capability['browserstack.buildProductMap'] = getProductMap(this.browserStackConfig)
                     }
                 } else if (capType === 'local') {
                     capability['bstack:options'].local = true
@@ -641,6 +653,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     }
                 } else if (capType === 'localIdentifier') {
                     capability['bstack:options'].localIdentifier = value
+                } else if (capType === 'testhubBuildUuid') {
+                    capability['bstack:options'].testhubBuildUuid = TestOpsConfig.getInstance().buildHashedId
+                } else if (capType === 'buildProductMap') {
+                    capability['bstack:options'].buildProductMap = getProductMap(this.browserStackConfig)
                 }
             })
         } else if (typeof capabilities === 'object') {
@@ -654,6 +670,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
                         } else if (capType === 'buildIdentifier' && value) {
                             (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { buildIdentifier: value }
+                        } else if (capType === 'testhubBuildUuid') {
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { testhubBuildUuid: TestOpsConfig.getInstance().buildHashedId }
+                        } else if (capType === 'buildProductMap') {
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { buildProductMap: getProductMap(this.browserStackConfig) }
                         }
                     } else if (capType === 'local'){
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
@@ -667,6 +687,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         }
                     } else if (capType === 'localIdentifier') {
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.localIdentifier'] = value
+                    } else if (capType === 'testhubBuildUuid') {
+                        (caps.capabilities as Capabilities.Capabilities)['browserstack.testhubBuildUuid'] = TestOpsConfig.getInstance().buildHashedId
+                    } else if (capType === 'buildProductMap') {
+                        (caps.capabilities as Capabilities.Capabilities)['browserstack.buildProductMap'] = getProductMap(this.browserStackConfig)
                     }
                 } else if (capType === 'local'){
                     (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true
@@ -680,6 +704,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     }
                 } else if (capType === 'localIdentifier') {
                     (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.localIdentifier = value
+                } else if (capType === 'testhubBuildUuid') {
+                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.testhubBuildUuid = TestOpsConfig.getInstance().buildHashedId
+                } else if (capType === 'buildProductMap') {
+                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.buildProductMap = getProductMap(this.browserStackConfig)
                 }
             })
         } else {

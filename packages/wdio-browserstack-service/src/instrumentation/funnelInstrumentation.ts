@@ -79,7 +79,7 @@ function getProductList(config: BrowserStackConfig) {
     return products
 }
 
-function getProductMap(config: BrowserStackConfig): any {
+export function getProductMap(config: BrowserStackConfig): any {
     return {
         'observability': config.testObservability.enabled,
         'accessibility': config.accessibility,
