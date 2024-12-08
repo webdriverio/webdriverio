@@ -4,6 +4,11 @@
     "javascript",
     "typescript",
   ],
+  // auto-save
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+
   // Debugging.
   "debug.javascript.unmapMissingSources": true,
   "files.exclude": {

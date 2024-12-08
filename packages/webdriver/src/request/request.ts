@@ -31,14 +31,16 @@ export abstract class WebDriverRequest extends EventEmitter {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
     body?: Record<string, unknown>
+    maskedBody?: Record<string, unknown>
     method: string
     endpoint: string
     isHubCommand: boolean
     requiresSessionId: boolean
 
-    constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false) {
+    constructor (method: string, endpoint: string, body?: Record<string, unknown>, maskedBody?: Record<string, unknown>, isHubCommand: boolean = false) {
         super()
         this.body = body
+        this.maskedBody = maskedBody
         this.method = method
         this.endpoint = endpoint
         this.isHubCommand = isHubCommand
@@ -47,13 +49,13 @@ export abstract class WebDriverRequest extends EventEmitter {
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
         const { url, requestOptions } = await this.createOptions(options, sessionId)
-        this.emit('request', requestOptions)
+        this.emit('request', requestOptions.maskedBody ? { ...requestOptions, body: requestOptions.maskedBody } : requestOptions)
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
+    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit & {maskedBody?: any};}> {
         const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
-        const requestOptions: RequestInit = {
+        const requestOptions: RequestInit & {maskedBody?: any} = {
             method: this.method,
             signal: AbortSignal.timeout(timeout)
         }
@@ -71,6 +73,7 @@ export abstract class WebDriverRequest extends EventEmitter {
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
             requestOptions.body = this.body as any
+            requestOptions.maskedBody = this.maskedBody
             requestHeaders.set('Content-Length', `${contentLength}`)
         }
 
@@ -141,7 +144,7 @@ export abstract class WebDriverRequest extends EventEmitter {
 
     protected async _request (
         url: URL,
-        fullRequestOptions: RequestInit,
+        fullRequestOptions: RequestInit & {maskedBody?: any},
         transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse,
         totalRetryCount = 0,
         retryCount = 0
@@ -149,14 +152,15 @@ export abstract class WebDriverRequest extends EventEmitter {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.body as any))
+            log.info('DATA', transformCommandLogResult((fullRequestOptions.maskedBody || fullRequestOptions.body) as any))
         }
 
-        const { ...requestLibOptions } = fullRequestOptions
         const startTime = performance.now()
-        let response = await this._libRequest(url!, requestLibOptions)
+        let response = await this._libRequest(url!, { ...fullRequestOptions })
             .catch((err: WebDriverRequestError) => err)
         const durationMillisecond = performance.now() - startTime
+
+        const maskedFullRequestsOptions =  fullRequestOptions.maskedBody ? { ...fullRequestOptions, body: fullRequestOptions.maskedBody } : fullRequestOptions
 
         /**
          * handle retries for requests
@@ -171,7 +175,7 @@ export abstract class WebDriverRequest extends EventEmitter {
             if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
                 log.error(error.message)
                 this.emit('response', { error })
-                this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+                this.emit('performance', { request: maskedFullRequestsOptions, durationMillisecond, success: false, error, retryCount })
                 throw error
             }
 
@@ -185,7 +189,7 @@ export abstract class WebDriverRequest extends EventEmitter {
             ++retryCount
 
             this.emit('retry', { error, retryCount })
-            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+            this.emit('performance', { request: maskedFullRequestsOptions, durationMillisecond, success: false, error, retryCount })
             log.warn(error.message)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
             return this._request(url, fullRequestOptions, transformResponse, totalRetryCount, retryCount)
@@ -210,7 +214,7 @@ export abstract class WebDriverRequest extends EventEmitter {
             /**
              * throw if request error is unknown
              */
-            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error: response, retryCount })
+            this.emit('performance', { request: maskedFullRequestsOptions, durationMillisecond, success: false, error: response, retryCount })
             throw response
         }
 
@@ -223,11 +227,11 @@ export abstract class WebDriverRequest extends EventEmitter {
          */
         if (isSuccessfulResponse(response.statusCode, response.body)) {
             this.emit('response', { result: response.body })
-            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: true, retryCount })
+            this.emit('performance', { request: maskedFullRequestsOptions, durationMillisecond, success: true, retryCount })
             return response.body
         }
 
-        const error = new WebDriverResponseError(response, url, fullRequestOptions)
+        const error = new WebDriverResponseError(response, url, maskedFullRequestsOptions)
 
         /**
          * hub commands don't follow standard response formats
@@ -239,7 +243,7 @@ export abstract class WebDriverRequest extends EventEmitter {
              * directly without using a hub, therefore throw
              */
             if (typeof response.body === 'string' && response.body.startsWith('<!DOCTYPE html>')) {
-                this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+                this.emit('performance', { request: maskedFullRequestsOptions, durationMillisecond, success: false, error, retryCount })
                 return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
             }
 
@@ -253,7 +257,7 @@ export abstract class WebDriverRequest extends EventEmitter {
         if (error.name === 'stale element reference') {
             log.warn('Request encountered a stale element - terminating request')
             this.emit('response', { error })
-            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+            this.emit('performance', { request: maskedFullRequestsOptions, durationMillisecond, success: false, error, retryCount })
             throw error
         }
 

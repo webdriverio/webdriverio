@@ -51,7 +51,7 @@ export interface Connection {
      */
     path?: string
     /**
-     * Query paramaters that are propagated to the driver server.
+     * Query parameters that are propagated to the driver server.
      */
     queryParams?: {
         [name: string]: string
@@ -176,7 +176,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
     /**
      * Type of runner
      * - local: every spec file group is spawned in its own local process
-     *   running an independant browser session
+     *   running an independent browser session
      * - browser: all spec files are run within the browser
      */
     runner?: 'local' | 'browser' | ['browser', WebdriverIO.BrowserRunnerOptions] | ['local', never]
@@ -276,7 +276,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     reporters?: ReporterEntry[]
     /**
-     * Determines in which interval the reporter should check if they are synchronised
+     * Determines in which interval the reporter should check if they are synchronized
      * if they report their logs asynchronously (e.g. if logs are streamed to a 3rd
      * party vendor).
      */
@@ -321,6 +321,18 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * TSX custom TSConfig path
      */
     tsConfigPath?: string
+
+    /**
+     * Regex pattern in the format `/pattern/flags` used to mask sensitive information on the onBeforeCommand hook for commands using the `text` parameter.
+     * The onBeforeCommand hook will be used by, for example, all reporters and the BrowserStack insights/Percy tool.
+     * The `text` parameter matches the `elementSendKeys` and `sendAlertText` commands.
+     * Unfortunately:
+     *  - It does not mask values for appium logs. @see {@link https://appium.io/docs/en/2.0/guides/log-filters|log filter}
+     *  - It does not mask the value in BrowserStack `Text Logs` (@see {@link https://www.browserstack.com/docs/automate/selenium/hide-sensitive-data|hide sensitive data})  and `Network Logs` @see {@link https://www.browserstack.com/docs/automate/selenium/enable-network-logs|network logs}
+     *
+     * Example: `onBeforeCommandTextPatternsMasker: [/\/password\/i]` will mask the text `password` in the `elementSendKeys` and `sendAlertText` commands.
+`    */
+    onBeforeCommandTextPatternsMasker?: RegExp[]
 }
 
 export interface TSConfigPathsOptions {

@@ -8,7 +8,8 @@ import {
     getParentSuiteName,
     isBrowserstackSession,
     patchConsoleLogs,
-    isTrue
+    isTrue,
+    maskedBodyText
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
@@ -175,15 +176,19 @@ export default class BrowserstackService implements Services.ServiceInstance {
                  * register command event
                  */
                 this._browser.on('command', async (command) => {
+
+                    const patternWithFlags = this._config.onBeforeCommandTextPatternsMasker
+                    const maskedCommand = maskedBodyText(command, patternWithFlags)
+
                     if (shouldProcessEventForTesthub('')) {
                         this._insightsHandler?.browserCommand(
                             'client:beforeCommand',
-                            Object.assign(command, { sessionId }),
+                            Object.assign(maskedCommand, { sessionId }),
                             this._currentTest
                         )
                     }
                     await this._percyHandler?.browserBeforeCommand(
-                        Object.assign(command, { sessionId }),
+                        Object.assign(maskedCommand, { sessionId }),
                     )
                 })
 
@@ -191,15 +196,18 @@ export default class BrowserstackService implements Services.ServiceInstance {
                  * register result event
                  */
                 this._browser.on('result', (result) => {
+                    const patternWithFlags = this._config.onBeforeCommandTextPatternsMasker
+                    const maskedResults = maskedBodyText(result, patternWithFlags)
+
                     if (shouldProcessEventForTesthub('')) {
                         this._insightsHandler?.browserCommand(
                             'client:afterCommand',
-                            Object.assign(result, { sessionId }),
+                            Object.assign(maskedResults, { sessionId }),
                             this._currentTest
                         )
                     }
                     this._percyHandler?.browserAfterCommand(
-                        Object.assign(result, { sessionId }),
+                        Object.assign(maskedResults, { sessionId }),
                     )
                 })
             } catch (err) {
