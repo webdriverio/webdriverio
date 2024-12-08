@@ -4,6 +4,9 @@
     "javascript",
     "typescript",
   ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
   // Debugging.
   "debug.javascript.unmapMissingSources": true,
   "files.exclude": {
@@ -43,5 +46,5 @@
     "WDIO",
     "webdriver",
     "webdriverio"
-  ]
+  ],
 }
