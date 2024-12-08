@@ -198,7 +198,7 @@ describe('BaseReporter', () => {
         expect(process.send).toHaveBeenCalledWith(expect.objectContaining({ name: 'printFailureMessage' }))
     })
 
-    it('should send printFailureMessage when reporter throws an error', async () => {
+    it('should send printFailureMessage and continue when reporter throws an error', async () => {
         const faultyReporter = 'dot'
         const workingReporter = ['dot', { foo: 'bar' }]
         const reporter = new BaseReporter({
@@ -217,7 +217,6 @@ describe('BaseReporter', () => {
 
         expect(faultyReporterInstance.emit).toBeCalledTimes(1)
         expect(workingReporterInstance.emit).toBeCalledTimes(1)
-
         expect(process.send).toBeCalledTimes(1)
         expect(process.send).toHaveBeenCalledWith({
             'content': {
