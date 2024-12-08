@@ -99,9 +99,9 @@ export default function (
                     : getArgumentType(arg)
                 throw new Error(
                     `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
-                    `Expected: ${commandParam.type}\n` +
-                    `Actual: ${actual}` +
-                    moreInfo
+                        `Expected: ${commandParam.type}\n` +
+                        `Actual: ${actual}` +
+                        moreInfo
                 )
             }
 
@@ -120,10 +120,35 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = new environment.value.Request(method, endpoint, body, isHubCommand)
+        /**
+        * Masking text value when matching regEx
+        */
+        const isMaskingEnabled = true
+        let maskedBody: Record<string, any> | undefined
+        let maskedArgs: string[] | undefined
+        if (isMaskingEnabled) {
+            const regExPatterns = [/@mask@.*/i]
+            const sensitiveReplacer = '*SECURE*'
+            const hasSensitiveTextData = Object.entries(body).some(([commandParam, paramValue]) => commandParam === 'text' && regExPatterns.some((pattern) => pattern.test(paramValue)))
+            if (hasSensitiveTextData) {
+                maskedBody = {
+                    ...body,
+                    text: sensitiveReplacer
+                }
+                maskedArgs = args.map((arg) => regExPatterns.some((pattern) => pattern.test(arg)) ? sensitiveReplacer : arg)
+            }
+        }
+
+        const request = new environment.value.Request(
+            method,
+            endpoint,
+            body,
+            maskedBody,
+            isHubCommand
+        )
         request.on('performance', (...args) => this.emit('request.performance', ...args))
-        this.emit('command', { command, method, endpoint, body })
-        log.info('COMMAND', commandCallStructure(command, args))
+        this.emit('command', { command, method, endpoint, body: maskedBody || body })
+        log.info('COMMAND', commandCallStructure(command, maskedArgs || args))
         /**
          * use then here so we can better unit test what happens before and after the request
          */
@@ -140,7 +165,7 @@ export default function (
                 log.info('RESULT', resultLog)
             }
 
-            this.emit('result', { command, method, endpoint, body, result })
+            this.emit('result', { command, method, endpoint, body: maskedBody || body, result })
 
             if (command === 'deleteSession') {
                 /**
@@ -187,7 +212,7 @@ export default function (
 
             return result.value
         }).catch((error) => {
-            this.emit('result', { command, method, endpoint, body, result: { error } })
+            this.emit('result', { command, method, endpoint, body: maskedBody || body, result: { error } })
             throw error
         })
     }
