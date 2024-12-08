@@ -472,7 +472,7 @@ describe('wdio-runner', () => {
             expect(log.error).toHaveBeenCalledWith('foo')
         })
 
-        it('should emit runner:start if the initialisation failed', async () => {
+        it('should emit runner:start if the initialization failed', async () => {
             const runner = new WDIORunner()
             runner['_configParser'] = { getCapabilities: vi.fn().mockReturnValue([{ browserName: 'safari' }]) } as any
             runner['_browser'] = {} as any as BrowserObject
