@@ -21,7 +21,9 @@ export default function (
 
     // TODO dprevost to move to a better place!
     const maskingRegExps = maskingPatterns.map((regexString) => {
-        if (!regexString.startsWith('/')) {return new RegExp(regexString)}
+        if (!regexString.startsWith('/')) {
+            return new RegExp(regexString)
+        }
         const lastSlashIndex = regexString.lastIndexOf('/')
         const pattern = regexString.slice(1, lastSlashIndex)
         const flags = regexString.slice(lastSlashIndex + 1)
