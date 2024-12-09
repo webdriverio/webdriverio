@@ -248,7 +248,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
              */
             const onErrorMessage = (data: Buffer) => {
                 error = data.toString() || 'Appium exited without unknown error message'
-                log.error(error)
+                if (!data.toString().includes('Debugger attached')) {
+                    log.error(error)
+                }
                 rejectOnce(new Error(error))
             }
 
