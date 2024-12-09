@@ -515,7 +515,9 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                                 ? (question.choices(answers)[0] as any as { value: any }).value
                                 : question.choices(answers)[0]
                             : (question.choices[0] as { value: any }).value
-                                ? (question.choices[0] as { value: any }).value
+                                ? question.type === 'checkbox'
+                                    ? [(question.choices[0] as { value: any }).value]
+                                    : (question.choices[0] as { value: any }).value
                                 : question.choices[0]
                         : {}
             })
