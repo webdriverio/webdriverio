@@ -175,7 +175,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
                  * register command event
                  */
                 this._browser.on('command', async (command) => {
-
                     if (shouldProcessEventForTesthub('')) {
                         this._insightsHandler?.browserCommand(
                             'client:beforeCommand',
