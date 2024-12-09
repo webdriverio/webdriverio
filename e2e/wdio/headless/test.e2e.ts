@@ -1,6 +1,9 @@
 /// <reference types="@wdio/lighthouse-service" />
-import { browser, $, expect } from '@wdio/globals'
+
 import os from 'node:os'
+import url from 'node:url'
+import path from 'node:path'
+import { browser, $, expect } from '@wdio/globals'
 
 describe('main suite 1', () => {
     it('supports snapshot testing', async () => {
@@ -543,6 +546,29 @@ describe('main suite 1', () => {
             await expect($('#tinymce')).not.toBePresent()
             await browser.switchFrame($('iframe'))
             await expect($('#tinymce')).toBePresent()
+        })
+    })
+
+    describe('open resources with different protocols', () => {
+        it('http', async () => {
+            browser.url('http://guinea-pig.webdriver.io/')
+            await expect(browser).toHaveUrl('http://guinea-pig.webdriver.io/')
+        })
+
+        it('https', async () => {
+            await browser.url('https://webdriver.io/')
+            await expect(browser).toHaveUrl('https://webdriver.io/')
+        })
+
+        it('data', async () => {
+            await browser.url('data:text/html,<h1>Test</h1>')
+            await expect($('h1')).toHaveText('Test')
+        })
+
+        it('file', async () => {
+            const resource = path.resolve(__dirname, '__fixtures__', 'test.html')
+            await browser.url(url.pathToFileURL(resource).href)
+            await expect($('h1')).toHaveText('Hello World')
         })
     })
 })
