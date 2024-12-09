@@ -11,7 +11,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
-import { initializeInstance, getInstancesData, maskedBodyText } from './utils.js'
+import { initializeInstance, getInstancesData } from './utils.js'
 import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
     TestFramework, SessionStartedMessage, SessionEndedMessage, SnapshotResultMessage
@@ -283,20 +283,14 @@ export default class Runner extends EventEmitter {
          * register command event
          */
         browser.on('command', (command: any) => {
-            const patternWithFlags = this._config?.onBeforeCommandTextPatternsMasker
-            const maskedCommand = maskedBodyText(command, patternWithFlags)
-
-            return this._reporter?.emit('client:beforeCommand', Object.assign(maskedCommand, { sessionId: browser.sessionId }))
+            return this._reporter?.emit('client:beforeCommand', Object.assign(command, { sessionId: browser.sessionId }))
         })
 
         /**
          * register result event
          */
         browser.on('result', (result: any) => {
-            const patternWithFlags = this._config?.onBeforeCommandTextPatternsMasker
-            const maskedResult = maskedBodyText(result, patternWithFlags)
-
-            return this._reporter?.emit('client:afterCommand', Object.assign(maskedResult, { sessionId: browser.sessionId }))
+            return this._reporter?.emit('client:afterCommand', Object.assign(result, { sessionId: browser.sessionId }))
         }
         )
 

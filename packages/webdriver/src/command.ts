@@ -14,9 +14,11 @@ export default function (
     method: string,
     endpointUri: string,
     commandInfo: CommandEndpoint,
-    doubleEncodeVariables = false
+    doubleEncodeVariables = false,
+    maskingPatterns: string[] = []
 ) {
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
+    console.log('maskingPatterns', maskingPatterns)
 
     return async function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse | BidiResponses | void> {
         const isBidiCommand = BIDI_COMMANDS.includes(command as BidiCommands)
@@ -123,19 +125,24 @@ export default function (
         /**
         * Masking text value when matching regEx
         */
-        const isMaskingEnabled = true
         let maskedBody: Record<string, any> | undefined
         let maskedArgs: string[] | undefined
-        if (isMaskingEnabled) {
-            const regExPatterns = [/@mask@.*/i]
+        if (maskingPatterns.length > 0 && commandInfo.parameters.some((param) => param.name === 'text')) {
             const sensitiveReplacer = '*SECURE*'
-            const hasSensitiveTextData = Object.entries(body).some(([commandParam, paramValue]) => commandParam === 'text' && regExPatterns.some((pattern) => pattern.test(paramValue)))
+            const maskingRegExps = maskingPatterns.map((regexString) => {
+                if (!regexString.startsWith('/')) {return new RegExp(regexString)}
+                const lastSlashIndex = regexString.lastIndexOf('/')
+                const pattern = regexString.slice(1, lastSlashIndex)
+                const flags = regexString.slice(lastSlashIndex + 1)
+                return new RegExp(pattern, flags)
+            })
+            const hasSensitiveTextData = Object.entries(body).some(([commandParam, paramValue]) => commandParam === 'text' && maskingRegExps.some((pattern) => pattern.test(paramValue)))
             if (hasSensitiveTextData) {
                 maskedBody = {
                     ...body,
                     text: sensitiveReplacer
                 }
-                maskedArgs = args.map((arg) => regExPatterns.some((pattern) => pattern.test(arg)) ? sensitiveReplacer : arg)
+                maskedArgs = args.map((arg) => maskingRegExps.some((pattern) => pattern.test(arg)) ? sensitiveReplacer : arg)
             }
         }
 

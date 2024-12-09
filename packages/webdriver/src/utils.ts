@@ -208,7 +208,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone, maskingPatterns }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     const ProtocolCommands = deepmerge<any>(
         /**
@@ -249,7 +249,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone) }
+            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone, maskingPatterns) }
         }
     }
 
@@ -262,7 +262,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, maskingPatterns }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -282,6 +282,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
             }
         },
         isChromium: { value: isChromium },
+        maskingPatterns: { value: maskingPatterns }
     }
 }
 
