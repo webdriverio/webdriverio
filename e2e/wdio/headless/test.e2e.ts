@@ -5,6 +5,8 @@ import url from 'node:url'
 import path from 'node:path'
 import { browser, $, expect } from '@wdio/globals'
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+
 describe('main suite 1', () => {
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
@@ -549,7 +551,7 @@ describe('main suite 1', () => {
         })
     })
 
-    describe('open resources with different protocols', () => {
+    describe.only('open resources with different protocols', () => {
         it('http', async () => {
             browser.url('http://guinea-pig.webdriver.io/')
             await expect(browser).toHaveUrl('http://guinea-pig.webdriver.io/')
