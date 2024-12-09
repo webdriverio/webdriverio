@@ -108,7 +108,12 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
     const browserstackBrowserName = (bsOptions.browserName || '').toLowerCase()
 
     /**
-     * it is _not_ a mobile session if automationName is set to start a mobile session
+     * There are cases where sessions with `appium:*` prefixed capabilities do not fully support all "native"-mobile commands.  
+     * In this case the `appium:automationName` is set with something else than the 
+     * `xcuitest|uiautomator2|flutter|espress|..` value. This can be a browser driver or 
+     * a "wrapped" appium browser-driver. See also https://github.com/webdriverio/webdriverio/issues/13947
+     * Return `isMobile:false` for those cases. There we also accepts that specific mobile browser
+     * tests (like the FF one on Android) are not seen as a mobile one
      */
     const automationName = capabilities['appium:options']?.automationName || capabilities['appium:automationName']
     if (automationName && ['gecko', 'safari', 'chrome', 'chromium'].includes(automationName.toLocaleLowerCase())) {
