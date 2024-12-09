@@ -157,7 +157,7 @@ describe('BaseReporter', () => {
         expect(process.send).not.toBeCalled()
     })
 
-    it('should send printFailureMessage', async () => {
+    it('should send printFailureMessage on `test:fail`', async () => {
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',
             reporters: [
@@ -169,12 +169,69 @@ describe('BaseReporter', () => {
 
         const payload = { foo: [1, 2, 3] }
         reporter.emit('test:fail', payload)
-        expect(reporter['_reporters'].map((r) => vi.mocked(r.emit).mock.calls)).toEqual([
-            [['test:fail', Object.assign(payload, { cid: '0-0' })]],
-            [['test:fail', Object.assign(payload, { cid: '0-0' })]]
-        ])
+
+        reporter['_reporters'].forEach((reporter) => {
+            expect(reporter.emit).toHaveBeenCalledWith('test:fail', { ...payload,  cid: '0-0' })
+        })
         expect(process.send).toBeCalledTimes(1)
-        expect(vi.mocked(process.send)!.mock.calls[0][0].name).toBe('printFailureMessage')
+        expect(process.send).toHaveBeenCalledWith(expect.objectContaining({ name: 'printFailureMessage' }))
+    })
+
+    it('should send printFailureMessage on `hook:end`', async () => {
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: [
+                'dot',
+                ['dot', { foo: 'bar' }]
+            ]
+        } as Options.Testrunner, '0-0', capability)
+        await reporter.initReporters()
+        const error = new Error('foobar')
+
+        const payload = { foo: [1, 2, 3], error, title: '"before all" hook' }
+        reporter.emit('hook:end', payload)
+
+        reporter['_reporters'].forEach((reporter) => {
+            expect(reporter.emit).toHaveBeenCalledWith('hook:end', { ...payload,  cid: '0-0' })
+        })
+        expect(process.send).toBeCalledTimes(1)
+        expect(process.send).toHaveBeenCalledWith(expect.objectContaining({ name: 'printFailureMessage' }))
+    })
+
+    it('should send printFailureMessage and continue when reporter throws an error', async () => {
+        const faultyReporter = 'dot'
+        const workingReporter = ['dot', { foo: 'bar' }]
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: [faultyReporter, workingReporter] } as Options.Testrunner, '0-0', capability)
+
+        await reporter.initReporters()
+        const faultyReporterInstance = reporter['_reporters'][0]
+        const workingReporterInstance = reporter['_reporters'][1]
+        vi.spyOn(faultyReporterInstance, 'emit').mockImplementation(() => {
+            throw new Error('Reporter throws an error')
+        })
+
+        const payload = { foo: [1] }
+        reporter.emit('any', payload)
+
+        expect(faultyReporterInstance.emit).toBeCalledTimes(1)
+        expect(workingReporterInstance.emit).toBeCalledTimes(1)
+        expect(process.send).toBeCalledTimes(1)
+        expect(process.send).toHaveBeenCalledWith({
+            'content': {
+                'cid': '0-0',
+                'error': {
+                    'message': 'Reporter throws an error',
+                    'stack': expect.stringContaining('Error: Reporter throws an error\n    at DotReporter.<anonymous>')
+
+                },
+                'fullTitle': 'reporter DotReporter',
+            },
+            'name': 'printFailureMessage',
+            'origin': 'reporter',
+        })
+
     })
 
     it('should allow to load custom reporters', async () => {
