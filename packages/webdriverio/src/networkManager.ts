@@ -102,7 +102,7 @@ export class NetworkManager {
              */
             !log.navigation ||
             /**
-             * ignore urls that do not start with http
+             * ignore urls that users wouldn't navigate to
              */
             !SUPPORTED_NAVIGATION_PROTOCOLS.some((protocol) => log.url.startsWith(protocol))
         ) {
