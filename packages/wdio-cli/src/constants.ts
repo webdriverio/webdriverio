@@ -88,7 +88,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'Cucumber with Serenity/JS (https://serenity-js.org/)', value: '@serenity-js/webdriverio$--$@serenity-js/webdriverio$--$cucumber' },
     ],
     reporter: [
-        { name: 'spec', value: '@wdio/spec-reporter$--$spec' },
+        { name: 'spec', value: '@wdio/spec-reporter$--$spec', checked: true },
         { name: 'dot', value: '@wdio/dot-reporter$--$dot' },
         { name: 'junit', value: '@wdio/junit-reporter$--$junit' },
         { name: 'allure', value: '@wdio/allure-reporter$--$allure' },
@@ -212,7 +212,7 @@ export const MOBILE_ENVIRONMENTS = [
 ]
 
 export const BROWSER_ENVIRONMENTS = [
-    { name: 'Chrome', value: 'chrome' },
+    { name: 'Chrome', value: 'chrome', checked: true },
     { name: 'Firefox', value: 'firefox' },
     { name: 'Safari', value: 'safari' },
     { name: 'Microsoft Edge', value: 'MicrosoftEdge' }
@@ -326,7 +326,6 @@ export const QUESTIONNAIRE = [{
     name: 'browserEnvironment',
     message: 'With which browser should we start?',
     choices: BROWSER_ENVIRONMENTS,
-    default: ['chrome'],
     when: /* instanbul ignore next */ (answers: Questionnair) => (
         getTestingPurpose(answers) === 'e2e' &&
         answers.e2eEnvironment === 'web'
@@ -566,12 +565,7 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'reporters',
     message: 'Which reporter do you want to use?',
-    choices: SUPPORTED_PACKAGES.reporter,
-    // @ts-ignore
-    default: [SUPPORTED_PACKAGES.reporter.find(
-        /* istanbul ignore next */
-        ({ name }) => name === 'spec').value
-    ]
+    choices: SUPPORTED_PACKAGES.reporter
 }, {
     type: 'checkbox',
     name: 'plugins',

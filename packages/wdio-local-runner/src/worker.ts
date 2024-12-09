@@ -106,20 +106,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         /**
-         * only attach ts loader if
+         * propagate node flags to child process, e.g. `--import tsx`
          */
-        if (
-            /**
-             * autoCompile feature is enabled
-             */
-            process.env.WDIO_LOAD_TSX === '1' &&
-            /**
-             * the `@wdio/cli` didn't already attached the loader to the environment
-             */
-            !(process.env.NODE_OPTIONS || '').includes('--import tsx')
-        ) {
-            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx'
-        }
+        runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
         const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
