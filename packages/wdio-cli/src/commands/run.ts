@@ -6,23 +6,13 @@ import type { Argv } from 'yargs'
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
 import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
+import { coerceOptsFor } from '../utils.js'
 import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 
 export const command = 'run <configPath>'
 
 export const desc = 'Run your WDIO configuration file to initialize your tests. (default)'
-
-const coerceOpts = (opts: { [x: string]: boolean | string | number }) => {
-    for (const key in opts) {
-        if (opts[key] === 'true') {
-            opts[key] = true
-        } else if (opts[key] === 'false') {
-            opts[key] = false
-        }
-    }
-    return opts
-}
 
 export const cmdArgs = {
     watch: {
@@ -110,15 +100,15 @@ export const cmdArgs = {
     },
     mochaOpts: {
         desc: 'Mocha options',
-        coerce: coerceOpts
+        coerce: coerceOptsFor('mocha')
     },
     jasmineOpts: {
         desc: 'Jasmine options',
-        coerce: coerceOpts
+        coerce: coerceOptsFor('jasmine')
     },
     cucumberOpts: {
         desc: 'Cucumber options',
-        coerce: coerceOpts
+        coerce: coerceOptsFor('cucumber')
     },
     coverage: {
         desc: 'Enable coverage for browser runner'
@@ -223,9 +213,10 @@ export async function handler(argv: RunCommandArguments) {
         // The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
         // This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
         // see https://nodejs.org/api/module.html#customization-hooks
-        // and https://tsx.is/node#es-modules-only
-        const moduleLoaderFlag = (nodeVersion('major') >= 20 && nodeVersion('minor') >= 6) ||
-          (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
+        // and https://tsx.is/dev-api/node-cli#module-mode-only
+        const moduleLoaderFlag = nodeVersion('major') >= 21 ||
+            (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
+            (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
         NODE_OPTIONS += ` ${moduleLoaderFlag} tsx`
         const tsConfigPathFromEnvVar = (process.env.TSCONFIG_PATH &&
             path.resolve(process.cwd(), process.env.TSCONFIG_PATH)) || (process.env.TSX_TSCONFIG_PATH &&

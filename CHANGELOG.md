@@ -23,6 +23,207 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.4.1 (2024-11-27)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13925](https://github.com/webdriverio/webdriverio/pull/13925) fix(webdriverio): support types for sync iteration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v9.4.0 (2024-11-26)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#13914](https://github.com/webdriverio/webdriverio/pull/13914) feat: add pinch and zoom ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#13852](https://github.com/webdriverio/webdriverio/pull/13852) fix(webdriver): use undici for requests in Node.js ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#13916](https://github.com/webdriverio/webdriverio/pull/13916) feat: Add dragAndDrop for Mobile ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v9.3.1 (2024-11-22)
+
+#### :rocket: New Feature
+* `webdriver`, `webdriverio`
+  * [#13905](https://github.com/webdriverio/webdriverio/pull/13905) feat: add two new mobile flags ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#13910](https://github.com/webdriverio/webdriverio/pull/13910) chore(@wdio/cucumber-framework): better re-export all Cucumber primitives ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#13904](https://github.com/webdriverio/webdriverio/pull/13904) propagate addCommand to children for multiremote ([@ccharnkij](https://github.com/ccharnkij))
+
+#### Committers: 3
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v9.3.0 (2024-11-20)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#13895](https://github.com/webdriverio/webdriverio/pull/13895) Add an element `longPress` command ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#13838](https://github.com/webdriverio/webdriverio/pull/13838) fix(webdriverio): reconnect to bidi on reloadSession ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13896](https://github.com/webdriverio/webdriverio/pull/13896) fix(webdriver): make isBidi flag dependent on whether WebdriverIO can connect to the websocket url ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#13892](https://github.com/webdriverio/webdriverio/pull/13892) fix(webdriverio): better handle context when closing windows ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#13902](https://github.com/webdriverio/webdriverio/pull/13902) fix(@wdio/cli): fix typing when creating cucumber projects ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#13888](https://github.com/webdriverio/webdriverio/pull/13888) feat: add longpress logic ([@wswebcreation](https://github.com/wswebcreation))
+  * [#13883](https://github.com/webdriverio/webdriverio/pull/13883) polish(webdriverio): improve error stack of waitUntil command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#13903](https://github.com/webdriverio/webdriverio/pull/13903) chore(docs): add info setting up maxInstances and specs in docs ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v9.2.15 (2024-11-14)
+
+#### :nail_care: Polish
+* `wdio-runner`
+  * [#13878](https://github.com/webdriverio/webdriverio/pull/13878) fix(@wdio/runner): Respect excludes in capabilities in multiremote case. ([@damencho](https://github.com/damencho))
+
+#### Committers: 1
+- Дамян Минков ([@damencho](https://github.com/damencho))
+
+
+## v9.2.14 (2024-11-14)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#13870](https://github.com/webdriverio/webdriverio/pull/13870) feat: enhance scrollIntoView to support native mobile ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`, `wdio-reporter`, `wdio-spec-reporter`
+  * [#13880](https://github.com/webdriverio/webdriverio/pull/13880) polish(@wdio/reporter): better display retried scenarios ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v9.2.12 (2024-11-11)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13874](https://github.com/webdriverio/webdriverio/pull/13874) fix(webdriverio): include documentElement when looking up elements without scope ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13869](https://github.com/webdriverio/webdriverio/pull/13869) fix(webdriverio): null check for switchFrame ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#13872](https://github.com/webdriverio/webdriverio/pull/13872) fix(@wdio/sauce-service): don't rely on vulnerable ip package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v9.2.11 (2024-11-07)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13863](https://github.com/webdriverio/webdriverio/pull/13863) fix(webdriverio): properly handle unresolved element on `switchFrame` input in non-BIDI scenario ([@gavvvr](https://github.com/gavvvr))
+  * [#13857](https://github.com/webdriverio/webdriverio/pull/13857) fix(webdriverio): switchWindow supports exact window handle match ([@jan-molak](https://github.com/jan-molak))
+* `wdio-browserstack-service`
+  * [#13858](https://github.com/webdriverio/webdriverio/pull/13858) fix: stacktrace for testobservability ([@07souravkunda](https://github.com/07souravkunda))
+  * [#13833](https://github.com/webdriverio/webdriverio/pull/13833) Build Unification - WDIO Mocha, Cucumber, Jasmine - Browserstack Test Observability, Accessibility & Percy ([@amaanbs](https://github.com/amaanbs))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#13864](https://github.com/webdriverio/webdriverio/pull/13864) Show complete error ([@07souravkunda](https://github.com/07souravkunda))
+
+#### :memo: Documentation
+* `eslint-plugin-wdio`
+  * [#13866](https://github.com/webdriverio/webdriverio/pull/13866) docs(eslint-plugin-wdio): add example to use Eslint v9 ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#13865](https://github.com/webdriverio/webdriverio/pull/13865) docs: various documentation fixes ([@gavvvr](https://github.com/gavvvr))
+
+#### Committers: 6
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Kirill Gavrilov ([@gavvvr](https://github.com/gavvvr))
+- Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v9.2.10 (2024-11-05)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#13850](https://github.com/webdriverio/webdriverio/pull/13850) fix(@wdio/cli): improve detection when no capabilities are provided ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#13854](https://github.com/webdriverio/webdriverio/pull/13854) fix(@wdio/cli): improve passing framework parameters ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13844](https://github.com/webdriverio/webdriverio/pull/13844) Fixing typo during wdio config wizard ([@diemol](https://github.com/diemol))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Diego Molina ([@diemol](https://github.com/diemol))
+
+
+## v9.2.9 (2024-11-01)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#13843](https://github.com/webdriverio/webdriverio/pull/13843) fix(@wdio/appium-service): don't transform chromedriver_autodownload arg ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v9.2.8 (2024-11-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13837](https://github.com/webdriverio/webdriverio/pull/13837) fix(webdriverio): reset frame context if refresh command is called ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#13796](https://github.com/webdriverio/webdriverio/pull/13796) feat(chromedriver): set NODE_OPTIONS empty to allow electron to work ([@Delta456](https://github.com/Delta456))
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#13842](https://github.com/webdriverio/webdriverio/pull/13842) chore(@wdio/spec-reporter): use base name of app path in prefix ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+
+
+## v9.2.5 (2024-10-29)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#13827](https://github.com/webdriverio/webdriverio/pull/13827) fix(webdriverio): disable context manager for mobile ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#13825](https://github.com/webdriverio/webdriverio/pull/13825) Fix moduleLoaderFlag ([@jenskuhrjorgensen](https://github.com/jenskuhrjorgensen))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jens Kuhr Jørgensen ([@jenskuhrjorgensen](https://github.com/jenskuhrjorgensen))
+
+
 ## v9.2.4 (2024-10-28)
 
 #### :bug: Bug Fix

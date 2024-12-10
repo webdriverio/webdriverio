@@ -236,7 +236,6 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     case `/session/${sessionId}/execute/sync`: {
         const script = Function(body.script)
         const args = transformPropertyWithMockFunction(body.args.map((arg: any) => (arg && (arg.ELEMENT || arg[ELEMENT_KEY])) || arg))
-
         let result: any = null
         if (body.script.includes('resq')) {
             if (body.script.includes('react$$')) {
@@ -275,6 +274,8 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         } else if (body.script.includes('scrollX')) {
             result = [0, 0]
         } else if (body.script.includes('function isFocused')) {
+            result = true
+        } else if (body.script.includes('mobile:')) {
             result = true
         } else {
             result = script.apply(this, args)

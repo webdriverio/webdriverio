@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import type { ClientOptions, RawData, WebSocket } from 'ws'
 
-import Socket from './socket.js'
+import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse } from './localTypes.js'
@@ -14,18 +14,30 @@ const RESPONSE_TIMEOUT = 1000 * 60
 export class BidiCore {
     #id = 0
     #ws: WebSocket
-    #isConnected = false
-    #waitForConnected = Promise.resolve()
+    #waitForConnected = Promise.resolve(false)
     #webSocketUrl: string
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
 
     client: Client | undefined
+    /**
+     * @private
+     */
+    private _isConnected = false
 
     constructor (webSocketUrl: string, opts?: ClientOptions) {
         this.#webSocketUrl = webSocketUrl
         log.info(`Connect to webSocketUrl ${this.#webSocketUrl}`)
-        this.#ws = new Socket(this.#webSocketUrl, opts) as WebSocket
+        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
         this.#ws.on('message', this.#handleResponse.bind(this))
+    }
+
+    /**
+     * We initiate the Bidi instance before a WebdriverIO instance is created.
+     * In order to emit Bidi events we have to attach the WebdriverIO instance
+     * to the Bidi instance afterwards.
+     */
+    public attachClient (client: Client) {
+        this.client = client
     }
 
     public async connect () {
@@ -34,15 +46,44 @@ export class BidiCore {
          * Note: the value is defined in __mocks__/fetch.ts
          */
         if (process.env.WDIO_UNIT_TESTS) {
+            this._isConnected = true
             return
         }
 
-        this.#waitForConnected = new Promise<void>((resolve) => this.#ws.on('open', () => {
-            log.info('Connected session to Bidi protocol')
-            this.#isConnected = true
-            resolve()
-        }))
+        this.#waitForConnected = new Promise<boolean>((resolve) => {
+            this.#ws.on('open', () => {
+                log.info('Connected session to Bidi protocol')
+                this._isConnected = true
+                resolve(this._isConnected)
+            })
+            this.#ws.on('error', (err) => {
+                log.warn(`Couldn't connect to Bidi protocol: ${err.message}`)
+                this._isConnected = false
+                resolve(this._isConnected)
+            })
+        })
         return this.#waitForConnected
+    }
+
+    public close () {
+        if (!this._isConnected) {
+            return
+        }
+
+        log.info(`Close Bidi connection to ${this.#webSocketUrl}`)
+        this._isConnected = false
+        this.#ws.off('message', this.#handleResponse.bind(this))
+        this.#ws.close()
+        this.#ws.terminate()
+    }
+
+    public reconnect (webSocketUrl: string, opts?: ClientOptions) {
+        log.info(`Reconnect to new Bidi session at ${webSocketUrl}`)
+        this.close()
+        this.#webSocketUrl = webSocketUrl
+        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
+        this.#ws.on('message', this.#handleResponse.bind(this))
+        return this.connect()
     }
 
     /**
@@ -58,7 +99,7 @@ export class BidiCore {
     }
 
     get isConnected () {
-        return this.#isConnected
+        return this._isConnected
     }
 
     /**
@@ -76,7 +117,7 @@ export class BidiCore {
                 return
             }
 
-            log.debug('BIDI RESULT', data.toString())
+            log.info('BIDI RESULT', data.toString())
             this.client?.emit('bidiResult', payload)
             const resolve = this.#pendingCommands.get(payload.id)
             if (!resolve) {
@@ -124,7 +165,7 @@ export class BidiCore {
     }
 
     public sendAsync (params: Omit<CommandData, 'id'>) {
-        if (!this.#isConnected) {
+        if (!this._isConnected) {
             throw new Error('No connection to WebDriver Bidi was established')
         }
 

@@ -1,6 +1,5 @@
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 
-import ip from 'ip'
 import {
     default as SauceLabs,
     type SauceLabsOptions,
@@ -10,7 +9,7 @@ import {
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
-import { makeCapabilityFactory } from './utils.js'
+import { makeCapabilityFactory, getLocalIpAddress } from './utils.js'
 import type { SauceServiceConfig } from './types.js'
 import path from 'node:path'
 
@@ -51,7 +50,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
             noAutodetect: true,
             tunnelIdentifier: sauceConnectTunnelIdentifier,
             ...this._options.sauceConnectOpts,
-            noSslBumpDomains: `127.0.0.1,localhost,${ip.address()}` + (
+            noSslBumpDomains: `127.0.0.1,localhost,${getLocalIpAddress()}` + (
                 this._options.sauceConnectOpts?.noSslBumpDomains
                     ? `,${this._options.sauceConnectOpts.noSslBumpDomains}`
                     : ''

@@ -10,9 +10,9 @@ import {
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
-import Request from './request/request.js'
 import type { WebDriverResponse } from './request/types.js'
 import command from './command.js'
+import { environment } from './environment.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
 import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
@@ -72,7 +72,7 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     }
 
     validateCapabilities(capabilities.alwaysMatch)
-    const sessionRequest = new Request(
+    const sessionRequest = new environment.value.Request(
         'POST',
         '/session',
         { capabilities }
@@ -262,7 +262,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isBidi, isChromium }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -271,7 +271,16 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
         isFirefox: { value: isFirefox },
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone },
-        isBidi: { value: isBidi },
+        isBidi: {
+            /**
+             * Return the value of this flag dynamically based on whether the
+             * BidiHandler was able to connect to the `webSocketUrl` url provided
+             * by the session response.
+             */
+            get: function (this: Client & { _bidiHandler?: BidiHandler }) {
+                return Boolean(this._bidiHandler?.isConnected)
+            }
+        },
         isChromium: { value: isChromium },
     }
 }
@@ -366,7 +375,7 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
     const bidiReqOpts = strictSSL ? {} : { rejectUnauthorized: false }
     const handler = new BidiHandler(socketUrl, bidiReqOpts)
-    handler.connect().then(() => log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
+    handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 
     return {
         _bidiHandler: { value: handler },
@@ -378,7 +387,7 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
                     /**
                      * attach the client to the handler to emit events
                      */
-                    handler.client = this
+                    handler.attachClient(this)
 
                     this.emit(cur.command, args)
                     return bidiFn?.apply(handler, args)

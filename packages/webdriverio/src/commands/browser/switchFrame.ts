@@ -70,6 +70,10 @@ export async function switchFrame (
     this: WebdriverIO.Browser,
     context: WebdriverIO.Element | ChainablePromiseElement | string | null | ((tree: FlatContextTree) => boolean | Promise<boolean>)
 ) {
+    function isPossiblyUnresolvedElement(input: typeof context): input is WebdriverIO.Element | ChainablePromiseElement {
+        return Boolean(input) && typeof input === 'object' && typeof (input as WebdriverIO.Element).getElement === 'function'
+    }
+
     /**
      * Check if Bidi is supported, if not, just use the WebDriver Classic `switchToFrame`
      */
@@ -79,6 +83,13 @@ export async function switchFrame (
         }
         if (typeof context === 'string') {
             throw new Error('Cannot use a string to fetch a context in WebDriver Classic')
+        }
+        if (isPossiblyUnresolvedElement(context)) {
+            const element = await context.getElement()
+            await element.waitForExist({
+                timeoutMsg: `Can't switch to frame with selector ${element.selector} because it doesn't exist`
+            })
+            return switchToFrame(this, element)
         }
         return switchToFrame(this, context)
     }
@@ -248,8 +259,11 @@ export async function switchFrame (
      * If given context is a WebdriverIO.Element the user wants to switch to an iframe
      * that was previously queried.
      */
-    if (typeof context === 'object' && typeof (context as WebdriverIO.Element).getElement === 'function') {
+    if (isPossiblyUnresolvedElement(context)) {
         const element = await context.getElement()
+        await element.waitForExist({
+            timeoutMsg: `Can't switch to frame with selector ${element.selector} because it doesn't exist`
+        })
         return switchToFrameUsingElement(this, element)
     }
 

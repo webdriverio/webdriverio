@@ -2,7 +2,8 @@ import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
-import Request from './request/request.js'
+import { environment } from './environment.js'
+import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 
@@ -119,7 +120,7 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = new Request(method, endpoint, body, isHubCommand)
+        const request = new environment.value.Request(method, endpoint, body, isHubCommand)
         request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { command, method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
@@ -142,15 +143,25 @@ export default function (
             this.emit('result', { command, method, endpoint, body, result })
 
             if (command === 'deleteSession') {
+                /**
+                 * close WebDriver Bidi socket
+                 */
+                const browser = this as { _bidiHandler?: BidiHandler }
+                browser._bidiHandler?.close()
+
                 const shutdownDriver = body.deleteSessionOpts?.shutdownDriver !== false
                 /**
                  * kill driver process if there is one
                  */
                 if (shutdownDriver && 'wdio:driverPID' in this.capabilities && this.capabilities['wdio:driverPID']) {
                     log.info(`Kill driver process with PID ${this.capabilities['wdio:driverPID']}`)
-                    const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
-                    if (!killedSuccessfully) {
-                        log.warn('Failed to kill driver process, manually clean-up might be required')
+                    try {
+                        const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
+                        if (!killedSuccessfully) {
+                            log.warn('Failed to kill driver process, manually clean-up might be required')
+                        }
+                    } catch (err) {
+                        log.warn('Failed to kill driver process', err)
                     }
 
                     setTimeout(() => {
@@ -175,6 +186,9 @@ export default function (
             }
 
             return result.value
+        }).catch((error) => {
+            this.emit('result', { command, method, endpoint, body, result: { error } })
+            throw error
         })
     }
 }

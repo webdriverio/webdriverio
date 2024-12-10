@@ -17,6 +17,7 @@
     "@wdio/browser-runner": "workspace:*",
     "@wdio/config": "workspace:*",
     "@wdio/cli": "workspace:*",
+    "@wdio/cucumber-framework": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/junit-reporter": "workspace:*",

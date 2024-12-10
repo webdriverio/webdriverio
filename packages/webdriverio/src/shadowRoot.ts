@@ -27,6 +27,7 @@ export class ShadowRootManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
+    #documentElement?: remote.ScriptNodeRemoteValue
     #frameDepth = 0
 
     constructor(browser: WebdriverIO.Browser) {
@@ -117,7 +118,7 @@ export class ShadowRootManager {
 
         const eventType = args[1].value
         if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
-            const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem, isDocument] = args
+            const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem, isDocument, documentElement] = args
             if (!this.#shadowRoots.has(logEntry.source.context)) {
                 /**
                  * initiate shadow tree for context
@@ -144,6 +145,11 @@ export class ShadowRootManager {
                     this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
                 }
             }
+
+            /**
+             * store document element
+             */
+            this.#documentElement = documentElement as remote.ScriptNodeRemoteValue
 
             const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
@@ -189,6 +195,8 @@ export class ShadowRootManager {
             return []
         }
 
+        let documentElement: string | undefined
+
         /**
          * if we have a scope, try to find sub tree, otherwise use root tree
          */
@@ -197,6 +205,11 @@ export class ShadowRootManager {
             if (subTree) {
                 tree = subTree
             }
+        } else {
+            /**
+             * ensure to include to document root if no scope is provided
+             */
+            documentElement = this.#documentElement?.sharedId
         }
 
         const elements = tree.getAllLookupScopes()
@@ -204,7 +217,10 @@ export class ShadowRootManager {
         /**
          * make sure to send back a unique list of elements
          */
-        return [...new Set(elements).values()]
+        return [
+            ...(documentElement ? [documentElement] : []),
+            ...new Set(elements).values()
+        ]
     }
 
     getShadowElementPairsByContextId (contextId: string, scope?: string): [string, string | undefined][] {

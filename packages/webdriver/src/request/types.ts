@@ -1,3 +1,5 @@
+import type { Options } from '@wdio/types'
+
 export interface WebDriverResponse {
     value: any
     /**
@@ -14,3 +16,6 @@ export interface WebDriverResponse {
     status?: number
     sessionId?: string
 }
+
+export type RequestLibResponse = Options.RequestLibResponse
+export type RequestOptions = Omit<Options.WebDriver, 'capabilities'>

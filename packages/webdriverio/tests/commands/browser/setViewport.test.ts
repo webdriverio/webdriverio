@@ -28,7 +28,7 @@ describe('setWindowSize', () => {
         await browser.setViewport({ width: 777, height: 888, devicePixelRatio: 123 })
         expect(browsingContextSetViewport).toBeCalledTimes(1)
         expect(browsingContextSetViewport).toBeCalledWith({
-            context: 'fake-context',
+            context: '',
             viewport: {
                 width: 777,
                 height: 888,

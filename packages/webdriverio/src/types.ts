@@ -95,6 +95,7 @@ interface AsyncIterators<T> {
 
 export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
+    [Symbol.iterator](): IterableIterator<WebdriverIO.Element>
 
     /**
      * Amount of element fetched.
@@ -493,11 +494,20 @@ export type NewWindowOptions = {
     windowFeatures?: string
 }
 
-export type ClickOptions = {
-    button: Button | ButtonNames,
+export type LongPressOptions = {
     x: number,
     y: number,
-    skipRelease:boolean
+    duration: number
+}
+
+export type ClickOptions = LongPressOptions & {
+    button: Button | ButtonNames,
+    skipRelease: boolean
+}
+
+export type PinchAndZoomOptions = {
+    duration: number
+    scale: number,
 }
 
 export type WaitForOptions = {
@@ -506,6 +516,22 @@ export type WaitForOptions = {
     timeoutMsg?: string,
     reverse?: boolean,
     withinViewport?: boolean
+}
+
+export enum MobileScrollDirection {
+    Down = 'down',
+    Up = 'up',
+    Left = 'left',
+    Right = 'right',
+}
+
+export type MobileScrollIntoViewOptions = {
+    direction?: MobileScrollDirection;
+    maxScrolls?: number;
+    scrollableElement?: WebdriverIO.Element;
+}
+
+export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions, MobileScrollIntoViewOptions {
 }
 
 export type WaitUntilOptions = {

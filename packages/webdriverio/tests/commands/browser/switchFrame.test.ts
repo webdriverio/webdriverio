@@ -2,6 +2,7 @@ import path from 'node:path'
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 import { remote } from '../../../src/index.js'
 import { getContextManager } from '../../../src/context.js'
+import { ELEMENT_KEY } from 'webdriver'
 
 let browser: WebdriverIO.Browser
 
@@ -48,6 +49,22 @@ describe('switchFrame command', () => {
                     elementId: 'some-elem-123'
                 })
             )
+        })
+
+        it('should switch context via unresolved WDIO element', async () => {
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame')
+            await browser.switchFrame(browser.$('iframe'))
+            expect(switchToFrame).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ELEMENT_KEY]: 'some-elem-123'
+                })
+            )
+        })
+
+        it('switch to parent frame', async () => {
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame')
+            await browser.switchFrame(null)
+            expect(switchToFrame).toHaveBeenCalledWith(null)
         })
     })
 
@@ -113,6 +130,7 @@ describe('switchFrame command', () => {
             elemExecute.mockResolvedValue({
                 context: '5D4662C2B4465334DFD34239BA1E9E66'
             })
+            vi.spyOn(elem, 'waitForExist').mockResolvedValue({})
 
             await browser.switchFrame(elem)
             expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')

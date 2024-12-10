@@ -15,6 +15,7 @@ export function getNetworkManager(browser: WebdriverIO.Browser) {
 
 type Context = string
 const UNKNOWN_NAVIGATION_ID = 'UNKNOWN_NAVIGATION_ID'
+const SUPPORTED_NAVIGATION_PROTOCOLS = ['http', 'https', 'data', 'file']
 
 /**
  * This class is responsible for managing shadow roots and their elements.
@@ -101,9 +102,9 @@ export class NetworkManager {
              */
             !log.navigation ||
             /**
-             * ignore urls that do not start with http
+             * ignore urls that users wouldn't navigate to
              */
-            !log.url.startsWith('http')
+            !SUPPORTED_NAVIGATION_PROTOCOLS.some((protocol) => log.url.startsWith(protocol))
         ) {
             /**
              * Chrome v127 and below does not support yet navigation ids, hence we have to

@@ -73,20 +73,24 @@ class Timer {
     }
 
     private _tick () {
-        const result = this._fn()
+        try {
+            const result = this._fn()
 
-        if (!result) {
-            return this._checkCondition(new Error(TIMEOUT_ERROR))
+            if (!result) {
+                return this._checkCondition(new Error(TIMEOUT_ERROR))
+            }
+
+            if (typeof result.then !== 'function') {
+                return this._checkCondition(undefined, result)
+            }
+
+            result.then(
+                (res: any) => this._checkCondition(undefined, res),
+                (err: Error) => this._checkCondition(err)
+            )
+        } catch (err: unknown) {
+            return this._checkCondition(err as Error)
         }
-
-        if (typeof result.then !== 'function') {
-            return this._checkCondition(undefined, result)
-        }
-
-        result.then(
-            (res: any) => this._checkCondition(undefined, res),
-            (err: Error) => this._checkCondition(err)
-        )
     }
 
     private _checkCondition (err?: Error, res?: any) {

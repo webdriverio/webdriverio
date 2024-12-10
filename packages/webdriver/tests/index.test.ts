@@ -5,6 +5,8 @@ import logger, { logMock } from '@wdio/logger'
 import { sessionEnvironmentDetector } from '@wdio/utils'
 import { startWebDriver } from '@wdio/utils'
 
+import '../src/browser.js'
+
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
 import { initCount } from '../src/bidi/core.js'
