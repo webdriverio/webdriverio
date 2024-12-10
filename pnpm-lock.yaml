@@ -868,9 +868,6 @@ importers:
       '@wdio/utils':
         specifier: workspace:*
         version: link:../wdio-utils
-      decamelize:
-        specifier: ^6.0.0
-        version: 6.0.0
       deepmerge-ts:
         specifier: ^7.0.3
         version: 7.1.0
