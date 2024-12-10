@@ -1,5 +1,12 @@
 import { vi } from 'vitest'
 
+/**
+ * This flag helps to indicate that WebdriverIO is running in a unit test environment.
+ * Setting this environment changes the behavior of some functions to e.g. not exit
+ * the process or enter code sections that are hard to mock out.
+ */
+process.env.WDIO_UNIT_TESTS = '1'
+
 const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
 
@@ -229,7 +236,6 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     case `/session/${sessionId}/execute/sync`: {
         const script = Function(body.script)
         const args = transformPropertyWithMockFunction(body.args.map((arg: any) => (arg && (arg.ELEMENT || arg[ELEMENT_KEY])) || arg))
-
         let result: any = null
         if (body.script.includes('resq')) {
             if (body.script.includes('react$$')) {
@@ -268,6 +274,8 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         } else if (body.script.includes('scrollX')) {
             result = [0, 0]
         } else if (body.script.includes('function isFocused')) {
+            result = true
+        } else if (body.script.includes('mobile:')) {
             result = true
         } else {
             result = script.apply(this, args)

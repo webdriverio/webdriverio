@@ -14,6 +14,8 @@ export function getNetworkManager(browser: WebdriverIO.Browser) {
 }
 
 type Context = string
+const UNKNOWN_NAVIGATION_ID = 'UNKNOWN_NAVIGATION_ID'
+const SUPPORTED_NAVIGATION_PROTOCOLS = ['http', 'https', 'data', 'file']
 
 /**
  * This class is responsible for managing shadow roots and their elements.
@@ -24,6 +26,7 @@ export class NetworkManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #requests = new Map<Context, WebdriverIO.Request>()
+    #lastNetworkId?: string
 
     constructor(browser: WebdriverIO.Browser) {
         this.#browser = browser
@@ -31,7 +34,7 @@ export class NetworkManager {
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.VITEST_WORKER_ID || browser.options?.automationProtocol !== 'webdriver') {
+        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
             this.#initialize = Promise.resolve(true)
             return
         }
@@ -66,7 +69,7 @@ export class NetworkManager {
             return
         }
 
-        const request = log.context ? this.#requests.get(log.context) : undefined
+        const request = this.#findRootRequest(log.navigation)
         if (!request) {
             return
         }
@@ -99,16 +102,17 @@ export class NetworkManager {
              */
             !log.navigation ||
             /**
-             * ignore urls that do not start with http
+             * ignore urls that users wouldn't navigate to
              */
-            !log.url.startsWith('http')
+            !SUPPORTED_NAVIGATION_PROTOCOLS.some((protocol) => log.url.startsWith(protocol))
         ) {
             /**
              * Chrome v127 and below does not support yet navigation ids, hence we have to
              * accept that we have to accept the event without it
              */
             if (log.navigation === null && log.url === '') {
-                return this.#requests.set(log.context, {
+                this.#lastNetworkId = UNKNOWN_NAVIGATION_ID
+                return this.#requests.set(UNKNOWN_NAVIGATION_ID, {
                     url: '',
                     headers: {},
                     timestamp: log.timestamp,
@@ -120,7 +124,8 @@ export class NetworkManager {
             return
         }
 
-        this.#requests.set(log.context, {
+        this.#lastNetworkId = log.navigation
+        this.#requests.set(log.navigation, {
             url: log.url,
             headers: {},
             timestamp: log.timestamp,
@@ -131,7 +136,7 @@ export class NetworkManager {
     }
 
     #fetchError (log: local.NetworkFetchErrorParameters) {
-        const response = log.context ? this.#requests.get(log.context) : undefined
+        const response = this.#findRootRequest(log.navigation)
         if (!response) {
             return
         }
@@ -143,8 +148,27 @@ export class NetworkManager {
         request.error = log.errorText
     }
 
+    #findRootRequest (navigationId: string | null) {
+        const response = this.#requests.get(navigationId || UNKNOWN_NAVIGATION_ID)
+        if (response) {
+            return response
+        }
+
+        /**
+         * Chrome v127 and below does not support yet navigation ids, hence we have to
+         * just pick the first request object and assume it is the root request. This
+         * will break if the user operates on multiple windows at the same time.
+         *
+         * @see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1054
+         */
+        const firstRequest = this.#requests.values().next().value
+        return this.#lastNetworkId
+            ? this.#requests.get(this.#lastNetworkId) || firstRequest
+            : firstRequest
+    }
+
     #responseCompleted (log: local.NetworkResponseCompletedParameters) {
-        const response = log.context ? this.#requests.get(log.context) : undefined
+        const response = this.#findRootRequest(log.navigation)
         if (!response) {
             return
         }
@@ -190,8 +214,8 @@ export class NetworkManager {
         response.children?.push(request)
     }
 
-    getRequestResponseData(context: Context) {
-        return this.#requests.get(context)
+    getRequestResponseData(navigationId: string) {
+        return this.#requests.get(navigationId)
     }
 
     /**
@@ -199,10 +223,10 @@ export class NetworkManager {
      * @param context browsing context id
      * @returns the number of requests that are currently pending
      */
-    getPendingRequests(context: Context): WebdriverIO.Request[] {
-        const request = this.#requests.get(context)
+    getPendingRequests(navigationId: string): WebdriverIO.Request[] {
+        const request = this.#requests.get(navigationId)
         if (!request) {
-            throw new Error(`Couldn't find request for context ${context}`)
+            throw new Error(`Couldn't find request for navigation with id ${navigationId}`)
         }
 
         const subRequests = (request.children || [])

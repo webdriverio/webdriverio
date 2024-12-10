@@ -1,6 +1,8 @@
 import { capabilitiesEnvironmentDetector } from '@wdio/utils'
 import type { Capabilities } from '@wdio/types'
 
+const NOOP = () => {}
+
 /**
  * create `browser` object with capabilities and environment flags before session is started
  * so that Mocha/Jasmine users can filter their specs based on flags or use capabilities in test titles
@@ -16,6 +18,9 @@ export default class ProtocolStub {
             customCommands: [], // internally used to transfer custom commands to the actual protocol instance
             overwrittenCommands: [], // internally used to transfer overwritten commands to the actual protocol instance
             commandList: [],
+            getWindowHandle: NOOP,
+            on: NOOP,
+            off: NOOP,
             ...capabilitiesEnvironmentDetector(capabilities)
         }
 

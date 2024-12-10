@@ -236,7 +236,7 @@ export async function missingConfigurationPrompt(command: string, configPath: st
         console.log(`No WebdriverIO configuration found in "${process.cwd()}"`)
 
         /* istanbul ignore next */
-        return !process.env.VITEST_WORKER_ID && process.exit(0)
+        return !process.env.WDIO_UNIT_TESTS && process.exit(0)
     }
 
     const parsedAnswers = await parseAnswers(false)

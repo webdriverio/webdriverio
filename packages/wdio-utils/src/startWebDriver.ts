@@ -18,7 +18,11 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
      * only import `startWebDriver` when run in Node.js
      */
     if (globalThis.process) {
-        const { startWebDriver } = await import('./node/index.js')
+        /**
+         * import like this so Vite doesn't inline the import
+         */
+        const nodeModule = './node.js'
+        const { startWebDriver } = await import(nodeModule)
         return startWebDriver(options)
     }
 

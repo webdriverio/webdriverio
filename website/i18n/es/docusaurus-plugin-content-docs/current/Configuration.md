@@ -237,13 +237,15 @@ Lo mismo que la sección `capacidades` descrita anteriormente excepto con la opc
 
 Puede aplicar las mismas capacidades específicas del proveedor y del navegador según lo definido [arriba](/docs/configuration#capabilities).
 
-Type: `Object`|`Object[]`<br /> Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
+Type: `Object`|`Object[]`<br /> Default: `[{ 'wdio:maxInstances': 5, browserName: 'firefox' }]`
 
 ### maxInstances
 
 Número máximo de trabajadores en ejecución paralela.
 
 __Nota:__ que puede ser un número de hasta `100`, cuando las pruebas se están llevando a cabo en algunos proveedores externos como las máquinas de Sauce Lang. Las pruebas no se prueban en una sola máquina, sino en múltiples máquinas virtuales. Si las pruebas deben ejecutarse en una máquina de desarrollo local, utilice un número más razonable, tales como `3`, `4`o `5`. Esencialmente, este es el número de navegadores que se iniciarán simultáneamente y ejecutarán tus pruebas al mismo tiempo, para que dependa de la cantidad de RAM que hay en su máquina, y de cuántas otras aplicaciones están ejecutándose en su máquina.
+
+You can also apply `maxInstances` within your capability objects using the `wdio:maxInstances` capability. This will limit the amount of parallel sessions for that particular capability.
 
 Type: `Number`<br /> Default: `100`
 

@@ -20,9 +20,17 @@ A browser object has the following properties:
 | `sessionId` | `String` | Session id assigned from the remote server. |
 | `options` | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
 | `commandList` | `String[]` | A list of commands registered to the browser instance |
+| `isW3C` | `Boolean` | Indicates if this is a W3C session |
+| `isChrome` | `Boolean` | Indicates if this Chrome instance |
+| `isFirefox` | `Boolean` | Indicates if this Firefox instance |
+| `isBidi` | `Boolean` | Indicates if this session uses Bidi |
+| `isSauce` | `Boolean` | Indicates if this session is Running on Sauce Labs |
 | `isMobile` | `Boolean` | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags). |
 | `isIOS` | `Boolean` | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags). |
 | `isAndroid` | `Boolean` | Indicates an Android session. See more under [Mobile Flags](#mobile-flags). |
+| `isNativeContext` | `Boolean`  | Indicates if the mobile is in the `NATIVE_APP` context. See more under [Mobile Flags](#mobile-flags). |
+| `mobileContext` | `string`  | The will provide the **current** context the driver is in, for example `NATIVE_APP`, `WEBVIEW_<packageName>` for Android or `WEBVIEW_<pid>` for iOS. It will save an extra WebDriver to `driver.getContext()`. See more under [Mobile Flags](#mobile-flags). |
+
 
 ## Methods
 

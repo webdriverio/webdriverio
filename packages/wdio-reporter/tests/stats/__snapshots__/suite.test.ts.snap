@@ -11,6 +11,7 @@ exports[`should get initialized 1`] = `
   "hooks": [],
   "hooksAndTests": [],
   "parent": "foobar",
+  "retries": 0,
   "rule": undefined,
   "suites": [],
   "tags": [

@@ -23,8 +23,8 @@ const config = {
 }
 
 const expectedEventData = {
-    userName: config.userName,
-    accessKey: config.accessKey,
+    userName: '[REDACTED]',
+    accessKey: '[REDACTED]',
     event_type: 'SDKTestAttempted',
     detectedFramework: 'WebdriverIO-framework',
     event_properties: {
@@ -127,7 +127,7 @@ describe('funnelInstrumentation', () => {
     })
 
     it('fireFunnelRequest sends request with correct data', async () => {
-        const data = { key: 'value', userName: 'some_name', accessKey: 'some_key' }
+        const data = { key: 'value', userName: '[REDACTED]', accessKey: '[REDACTED]' }
         mockedFetch.mockReturnValueOnce(Promise.resolve(Response.json({})))
         await FunnelTestEvent.fireFunnelRequest(data)
         expect(fetch).toHaveBeenCalledWith(FUNNEL_INSTRUMENTATION_URL, expect.objectContaining({

@@ -1,5 +1,5 @@
 import os from 'node:os'
-import util from 'node:util'
+import util, { format } from 'node:util'
 import path from 'node:path'
 import fs from 'node:fs'
 import UsageStats from '../testOps/usageStats.js'
@@ -7,6 +7,7 @@ import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
 import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
 import { getDataFromWorkers } from '../data-store.js'
+import { getProductMap } from '../testHub/utils.js'
 import fetchWrap from '../fetchWrapper.js'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 
@@ -22,7 +23,7 @@ async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig
         BStackLogger.debug('Funnel event success')
         config.sentFunnelData()
     } catch (error) {
-        BStackLogger.debug('Exception in sending funnel data: ' + error)
+        BStackLogger.debug(`Exception in sending funnel data: ${format(error)}`)
     }
 }
 
@@ -43,11 +44,26 @@ export function saveFunnelData(eventType: string, config: BrowserStackConfig): s
     return filePath
 }
 
+function redactCredentialsFromFunnelData(data: any) {
+    if (data) {
+        if (data.userName) {
+            data.userName = '[REDACTED]'
+        }
+        if (data.accessKey) {
+            data.accessKey = '[REDACTED]'
+        }
+    }
+    return data
+}
+
 // Called from two different process
 export async function fireFunnelRequest(data: any): Promise<void> {
+    const { userName, accessKey } = data
+    redactCredentialsFromFunnelData(data)
+
     BStackLogger.debug('Sending SDK event with data ' + util.inspect(data, { depth: 6 }))
 
-    const encodedAuth = Buffer.from(`${data.userName}:${data.accessKey}`, 'utf8').toString('base64')
+    const encodedAuth = Buffer.from(`${userName}:${accessKey}`, 'utf8').toString('base64')
     const response = await fetchWrap(FUNNEL_INSTRUMENTATION_URL, {
         method: 'POST',
         headers: {
@@ -81,16 +97,6 @@ function getProductList(config: BrowserStackConfig) {
         products.push('app-automate')
     }
     return products
-}
-
-function getProductMap(config: BrowserStackConfig): any {
-    return {
-        'observability': config.testObservability.enabled,
-        'accessibility': config.accessibility,
-        'percy': config.percy,
-        'automate': config.automate,
-        'app_automate': config.appAutomate
-    }
 }
 
 function buildEventData(eventType: string, config: BrowserStackConfig): any {

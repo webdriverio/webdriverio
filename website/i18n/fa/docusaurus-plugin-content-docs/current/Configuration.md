@@ -237,13 +237,15 @@ Type: `Object`<br /> Default: `{}`
 
 می‌توانید همان قابلیت‌های خاص سازنده و مرورگر را که [در بالا](/docs/configuration#capabilities) توضیح داده شده است، اعمال کنید.
 
-Type: `Object`|`Object[]`<br /> Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
+Type: `Object`|`Object[]`<br /> Default: `[{ 'wdio:maxInstances': 5, browserName: 'firefox' }]`
 
 ### maxInstances
 
 حداکثر تعداد کل worker ها در حال اجرا موازی.
 
 __توجه:__ ممکن است عددی به زیادی `100`باشد، زمانی که تست ها بر روی برخی از فروشندگان خارجی مانند دستگاه های Sauce Labs انجام می شود. در آنجا، تست ها بر روی یک ماشین واحد آزمایش نمی شوند، بلکه روی چندین ماشین مجازی تست می شوند. اگر قرار است آزمایش‌ها روی یک ماشین توسعه محلی اجرا شوند، از عددی استفاده کنید که معقول‌تر است، مانند `4`، `3`، یا `5`. اساساً، این تعداد مرورگرهایی است که همزمان راه‌اندازی می‌شوند و آزمایش‌های شما را همزمان اجرا می‌کنند، بنابراین بستگی به میزان رم دستگاه شما و تعداد برنامه‌های دیگر در حال اجرا در دستگاه شما دارد.
+
+You can also apply `maxInstances` within your capability objects using the `wdio:maxInstances` capability. This will limit the amount of parallel sessions for that particular capability.
 
 Type: `Number`<br /> Default: `100`
 

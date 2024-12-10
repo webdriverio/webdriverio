@@ -5,6 +5,8 @@ import logger, { logMock } from '@wdio/logger'
 import { sessionEnvironmentDetector } from '@wdio/utils'
 import { startWebDriver } from '@wdio/utils'
 
+import '../src/browser.js'
+
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
 import { initCount } from '../src/bidi/core.js'
@@ -26,6 +28,9 @@ vi.mock('../src/bidi/core.js', () => {
             connect = vi.fn().mockResolvedValue({})
             constructor () {
                 ++initCount
+            }
+            waitForConnected() {
+                return Promise.resolve()
             }
             get socket () {
                 return {
@@ -90,7 +95,8 @@ describe('WebDriver', () => {
                     capabilities: {
                         alwaysMatch: {
                             browserName: 'firefox',
-                            webSocketUrl: true
+                            webSocketUrl: true,
+                            unhandledPromptBehavior: 'ignore'
                         },
                         firstMatch: [{}]
                     }
@@ -113,7 +119,8 @@ describe('WebDriver', () => {
                     capabilities: {
                         alwaysMatch: {
                             browserName: 'firefox',
-                            webSocketUrl: true
+                            webSocketUrl: true,
+                            unhandledPromptBehavior: 'ignore'
                         },
                         firstMatch: [{}]
                     }

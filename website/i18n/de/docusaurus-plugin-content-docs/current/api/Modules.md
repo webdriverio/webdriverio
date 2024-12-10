@@ -32,7 +32,7 @@ const client = await WebDriver.newSession({
 })
 ```
 
-#### `attachSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
+#### `attachToSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
 
 Verbindet sich mit einer bereits laufenden Automatisierungs-Session.
 
@@ -51,7 +51,7 @@ Verbindet sich mit einer bereits laufenden Automatisierungs-Session.
 
 ```js
 const client = await WebDriver.newSession({...})
-const clonedClient = await WebDriver.attachSession(client)
+const clonedClient = await WebDriver.attachToSession(client)
 ```
 
 #### `reloadSession(instance)`

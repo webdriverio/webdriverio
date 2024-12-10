@@ -190,6 +190,10 @@ export const multiremote = async function (
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
         driver.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
+            driver.instances.forEach(instance =>
+                driver.getInstance(instance).addCommand(name, fn, attachToElement)
+            )
+
             return origAddCommand(
                 name,
                 fn,

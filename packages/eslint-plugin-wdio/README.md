@@ -22,6 +22,8 @@ npm install eslint-plugin-wdio --save-dev
 
 This plugin export a recommended configuration that enforce good practices.
 
+### With Eslint v8 and below
+
 To enable this configuration use the extends property in your `.eslintrc` config file:
 
 ```json
@@ -34,7 +36,25 @@ To enable this configuration use the extends property in your `.eslintrc` config
 }
 ```
 
-See [ESLint documentation](https://eslint.org/docs/user-guide/configuring#extending-configuration-files) for more information about extending configuration files.
+### With Eslint v9 and Flat Config
+
+If you are using the latest version of Eslint with the [flat configuration](https://eslint.org/docs/latest/use/configure/migration-guide), you can embed this plugin as follows:
+
+```js
+// eslint.config.mjs
+import { config as wdioConfig } from "eslint-plugin-wdio";
+
+export default [
+    {
+        extends: [
+            wdioConfig['flat/recommended'],
+            // ...
+        ]
+    }
+];
+```
+
+See [ESLint documentation](https://eslint.org/docs/latest/use/configure/configuration-files) for more information about extending configuration files.
 
 ## List of supported rules
 

@@ -38,7 +38,7 @@ class AccessibilityScripts {
         }
     }
 
-    public update(data: { commands: [any], scripts: { scan: null; getResults: null; getResultsSummary: null; saveResults: null; }; }) {
+    public update(data: { commands: any[], scripts: Record<string, any> }) {
         if (data.scripts) {
             this.performScan = data.scripts.scan
             this.getResults = data.scripts.getResults

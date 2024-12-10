@@ -17,6 +17,7 @@ const remoteConfig: Capabilities.WebdriverIOConfig = {
 declare global {
     namespace WebdriverIO {
         interface Browser {
+            myCustomCommand: (arg: any) => Promise<void>
             myOtherCustomCommand: (param: string) => Promise<{ param: string, commandResult: string }>
         }
 
@@ -348,10 +349,24 @@ describe('addCommand', () => {
             })
 
             expect(typeof browser.myCustomCommand).toBe('function')
+            expect(typeof browser.getInstance('browserA').myCustomCommand).toBe('function')
+            expect(typeof browser.getInstance('browserB').myCustomCommand).toBe('function')
             // @ts-expect-error undefined custom command
             const { param, commandResult } = await browser.myCustomCommand('barfoo')
             expect(param).toBe('barfoo')
             expect(commandResult).toEqual(['foobar', 'foobar'])
+
+            const resultA = await browser.getInstance('browserA').myCustomCommand('barfoo')
+            // @ts-expect-error undefined custom command
+            expect(resultA.param).toBe('barfoo')
+            // @ts-expect-error undefined custom command
+            expect(resultA.commandResult).toEqual('foobar')
+
+            const resultB = await browser.getInstance('browserB').myCustomCommand('barfoo')
+            // @ts-expect-error undefined custom command
+            expect(resultB.param).toBe('barfoo')
+            // @ts-expect-error undefined custom command
+            expect(resultB.commandResult).toEqual('foobar')
         })
 
         test('should allow to register custom commands to a single multiremote instance', async () => {

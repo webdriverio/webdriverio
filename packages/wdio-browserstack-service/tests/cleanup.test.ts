@@ -4,7 +4,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs'
 import * as FunnelTestEvent from '../src/instrumentation/funnelInstrumentation.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { TESTOPS_JWT_ENV } from '../src/constants.js'
+import { BROWSERSTACK_TESTHUB_JWT } from '../src/constants.js'
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
@@ -31,7 +31,7 @@ describe('BStackCleanup', () => {
         it('executes observability cleanup if --observability is present in argv', async () => {
             vi.spyOn(utils, 'stopBuildUpstream')
             process.argv.push('--observability')
-            process.env[TESTOPS_JWT_ENV] = 'some jwt'
+            process.env[BROWSERSTACK_TESTHUB_JWT] = 'some jwt'
 
             await BStackCleanup.startCleanup()
 
@@ -61,7 +61,7 @@ describe('BStackCleanup', () => {
         })
 
         it('invoke stop call for observability when jwt is set', async () => {
-            process.env[TESTOPS_JWT_ENV] = 'jwtToken'
+            process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwtToken'
             await BStackCleanup.executeObservabilityCleanup({})
             expect(stopBuildUpstreamSpy).toBeCalledTimes(1)
         })

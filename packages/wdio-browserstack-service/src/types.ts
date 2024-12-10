@@ -185,6 +185,7 @@ export interface TestMeta {
 
 export interface CurrentRunInfo {
     uuid?: string,
+    name?: string,
     test?: Frameworks.Test,
     finished?: boolean
 }
@@ -214,7 +215,8 @@ export interface TestData {
     hooks?: string[],
     meta?: TestMeta,
     tags?: string[],
-    test_run_id?: string
+    test_run_id?: string,
+    product_map?: {}
 }
 
 export interface UserConfig {
@@ -254,7 +256,38 @@ export interface ScreenshotLog extends LogData {
 export interface LaunchResponse {
     jwt: string,
     build_hashed_id: string,
-    allow_screenshots?: boolean
+    observability?: {
+        success: boolean;
+        options: {
+            allow_screenshots?: boolean;
+        },
+        errors?: {
+            key: string;
+            message: string;
+        }[];
+    },
+    accessibility?: {
+        success: boolean;
+        errors?: {
+            key: string;
+            message: string;
+        }[];
+        options: {
+            status: string;
+            commandsToWrap: {
+                scriptsToRun: string[];
+                commands: any[];
+            };
+            scripts: {
+                name: string;
+                command: string;
+            }[];
+            capabilities: {
+                name: string,
+                value: any
+            }[];
+        }
+    };
 }
 
 export interface UserConfigforReporting {
@@ -320,4 +353,3 @@ export interface TOUsageStats {
     buildHashedId?: string
     events?: any
 }
-

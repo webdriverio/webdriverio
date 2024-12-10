@@ -1119,3 +1119,60 @@ describe('test step naming', () => {
         )
     })
 })
+
+describe('request fails', () => {
+    const outputDir = temporaryDirectory()
+    let reporter: any
+
+    beforeEach(() => {
+        clean(outputDir)
+        reporter = new AllureReporter({ outputDir, disableMochaHooks: false })
+    })
+
+    it('should attachJSON with error name in onAfterCommand when the command fails', () => {
+        const command = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/element',
+            result : {
+                error: {
+                    name: 'SomeError',
+                }
+            }
+        }
+        const attachJSONSpy = vi.spyOn(reporter, 'attachJSON')
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(testStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(command)
+
+        reporter.onAfterCommand(command)
+
+        reporter.onTestPass()
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        expect(attachJSONSpy).toHaveBeenCalledWith('Response', 'SomeError')
+    })
+
+    it('should attachJSON with empty json in onAfterCommand when the command fails', () => {
+        const command = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/element',
+            result : {}
+        }
+        const attachJSONSpy = vi.spyOn(reporter, 'attachJSON')
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(testStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(command)
+
+        reporter.onAfterCommand(command)
+
+        reporter.onTestPass()
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        expect(attachJSONSpy).toHaveBeenCalledWith('Response', {})
+    })
+})

@@ -275,5 +275,9 @@ export const launcher = class WebdriverMockLauncher {
     onPrepare(config: WebdriverIO.Config) {
         config.hostname = 'localhost'
         config.port = 4444
+        config.runnerEnv = {
+            ...(config.runnerEnv || {}),
+            WDIO_USE_NATIVE_FETCH: 'true'
+        }
     }
 }

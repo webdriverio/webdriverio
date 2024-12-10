@@ -128,10 +128,31 @@ describe('click test', () => {
             .toBe(20)
         expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[0].y)
             .toBe(15)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[2])
+            .toStrictEqual({ type: 'pause', duration: 0 })
         expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[1])
             .toMatchSnapshot()
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[2])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions[0].actions[3])
             .toStrictEqual({ type: 'pointerUp', button: 2 })
+    })
+
+    it('should to send a duration to execute a longPress on a mobile device', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+        await elem.click({ duration: 1000 })
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
+            .toBe('/session/foobar-123/actions')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions[0])
+            .toMatchSnapshot()
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions[0].actions[2])
+            .toStrictEqual({ type: 'pause', duration: 1000 })
     })
 
     it('should throw an error if the passed argument is not an options object', async () => {
@@ -169,6 +190,7 @@ describe('click test', () => {
         })
         const elem = await browser.$('#foo')
 
+        // @ts-expect-error invalid param
         expect(elem.click({ button: 'not-supported' })).rejects.toThrow('Button type not supported.')
     })
 
@@ -176,7 +198,7 @@ describe('click test', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
+                browserName: 'foobar',
             }
         })
         const elem = await browser.$('#foo')

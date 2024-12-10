@@ -201,37 +201,105 @@ export type Environments = 'XCUITest' | 'UIAutomation' | 'UiAutomator'
  */
 export type SupportedEnvironments = Partial<Record<Platform, Partial<Record<Environments, string>>>>
 
-export type SupportedMethods = (
-    'session.status' |
-    'session.new' |
-    'session.subscribe' |
-    'session.unsubscribe' |
-    'browsingContext.captureScreenshot' |
-    'browsingContext.close' |
-    'browsingContext.create' |
-    'browsingContext.getTree' |
-    'browsingContext.handleUserPrompt' |
-    'browsingContext.navigate' |
-    'browsingContext.reload' |
-    'browsingContext.contextCreated' |
-    'browsingContext.contextDestroyed' |
-    'browsingContext.navigationStarted' |
-    'browsingContext.fragmentNavigated' |
-    'browsingContext.domContentLoaded' |
-    'browsingContext.load' |
-    'browsingContext.downloadWillBegin' |
-    'browsingContext.navigationAborted' |
-    'browsingContext.navigationFailed' |
-    'browsingContext.userPromptClosed' |
-    'browsingContext.userPromptOpened' |
-    'script.disown' |
-    'script.callFunction' |
-    'script.evaluate' |
-    'script.getRealms' |
-    'script.realmCreated' |
-    'script.realmDestoyed' |
-    'log.entryAdded'
-)
+// Session Methods
+export type SessionMethods =
+    | 'session.status'
+    | 'session.new'
+    | 'session.end'
+    | 'session.subscribe'
+    | 'session.unsubscribe';
+
+// Browser Methods
+export type BrowserMethods =
+    | 'browser.close'
+    | 'browser.createUserContext'
+    | 'browser.getClientWindows'
+    | 'browser.getUserContexts'
+    | 'browser.removeUserContext'
+    | 'browser.setClientWindowState';
+
+// BrowsingContext Methods
+export type BrowsingContextMethods =
+    | 'browsingContext.activate'
+    | 'browsingContext.captureScreenshot'
+    | 'browsingContext.close'
+    | 'browsingContext.create'
+    | 'browsingContext.getTree'
+    | 'browsingContext.handleUserPrompt'
+    | 'browsingContext.locateNodes'
+    | 'browsingContext.navigate'
+    | 'browsingContext.print'
+    | 'browsingContext.reload'
+    | 'browsingContext.setViewport'
+    | 'browsingContext.traverseHistory'
+    | 'browsingContext.contextCreated'
+    | 'browsingContext.contextDestroyed'
+    | 'browsingContext.navigationStarted'
+    | 'browsingContext.fragmentNavigated'
+    | 'browsingContext.historyUpdated'
+    | 'browsingContext.domContentLoaded'
+    | 'browsingContext.load'
+    | 'browsingContext.downloadWillBegin'
+    | 'browsingContext.navigationAborted'
+    | 'browsingContext.navigationFailed'
+    | 'browsingContext.userPromptClosed'
+    | 'browsingContext.userPromptOpened';
+
+// Network Methods
+export type NetworkMethods =
+    | 'network.addIntercept'
+    | 'network.continueRequest'
+    | 'network.continueResponse'
+    | 'network.continueWithAuth'
+    | 'network.failRequest'
+    | 'network.provideResponse'
+    | 'network.removeIntercept'
+    | 'network.setCacheBehavior'
+    | 'network.authRequired'
+    | 'network.beforeRequestSent'
+    | 'network.fetchError'
+    | 'network.responseCompleted'
+    | 'network.responseStarted';
+
+// Script Methods
+export type ScriptMethods =
+    | 'script.addPreloadScript'
+    | 'script.disown'
+    | 'script.callFunction'
+    | 'script.evaluate'
+    | 'script.getRealms'
+    | 'script.removePreloadScript'
+    | 'script.realmCreated'
+    | 'script.realmDestroyed';
+
+// Storage Methods
+export type StorageMethods =
+    | 'storage.getCookies'
+    | 'storage.setCookie'
+    | 'storage.deleteCookies';
+
+// Log Methods
+export type LogMethods =
+    | 'log.entryAdded';
+
+// Input Methods
+export type InputMethods =
+    | 'input.performActions'
+    | 'input.releaseActions'
+    | 'input.setFiles';
+
+/**
+ * Combined Type for Supported Methods
+ */
+export type SupportedMethods =
+    | SessionMethods
+    | BrowserMethods
+    | BrowsingContextMethods
+    | NetworkMethods
+    | ScriptMethods
+    | StorageMethods
+    | LogMethods
+    | InputMethods;
 
 export interface BidiRequest {
     method: SupportedMethods

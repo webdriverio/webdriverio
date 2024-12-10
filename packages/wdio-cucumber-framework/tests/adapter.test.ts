@@ -19,8 +19,11 @@ vi.mock('@wdio/utils')
 vi.mock('@wdio/utils/node')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber', async (orig) => {
-    const origMod = await orig() as typeof Cucumber
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { default: _def, ...origMod } = await orig() as typeof Cucumber
+
     const mod = {
+        ...origMod,
         setDefinitionFunctionWrapper: vi.fn(),
         BeforeAll: vi.fn(),
         AfterAll: vi.fn(),
@@ -106,6 +109,10 @@ describe('CucumberAdapter', () => {
             .toContain('World')
         expect(Object.keys(packageExports))
             .toContain('DataTable')
+        expect(Object.keys(packageExports))
+            .toContain('world')
+        expect(Object.keys(packageExports))
+            .toContain('context')
     })
 
     it('can be initiated with tests', async () => {

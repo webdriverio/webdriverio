@@ -1,10 +1,13 @@
 /// <reference types="@wdio/lighthouse-service" />
-import { browser, $, expect } from '@wdio/globals'
+
 import os from 'node:os'
+import url from 'node:url'
+import path from 'node:path'
+import { browser, $, expect } from '@wdio/globals'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 describe('main suite 1', () => {
-    afterEach(() => browser.setViewport({ width: 1200, height: 900 }))
-
     it('supports snapshot testing', async () => {
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
@@ -56,7 +59,7 @@ describe('main suite 1', () => {
         })
 
         after(async () => {
-            await browser.setViewport({ width: 900, height: 600 })
+            await browser.setViewport({ width: 1200, height: 900 })
         })
     })
 
@@ -144,10 +147,13 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it.skip(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x:0, y:0 }
-                    document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
+                    document.onmousemove = (e) => {
+                        mouse.x = e.clientX
+                        mouse.y = e.clientY
+                    }
                     //@ts-ignore
                     document.mouseMoveTo = mouse
                 })
@@ -181,10 +187,13 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it.skip(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
+            it(`moves to position x,y inside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await browser.execute(() => {
                     const mouse = { x: 0, y: 0 }
-                    document.onmousemove = function(e){ mouse.x = e.clientX, mouse.y = e.clientY }
+                    document.onmousemove = (e) => {
+                        mouse.x = e.clientX
+                        mouse.y = e.clientY
+                    }
                     //@ts-ignore
                     document.mouseMoveTo = mouse
                 })
@@ -256,10 +265,10 @@ describe('main suite 1', () => {
             const inputDescription = typeof input === 'boolean' ? input : JSON.stringify(input)
             it(`should vertically scroll like the native scrollIntoView when passing ${inputDescription} as argument`, async () => {
                 const searchInput = await $('.searchinput')
-                await searchInput.scrollIntoView(input as any)
+                await searchInput.scrollIntoView(input)
                 const wdioY = await browser.execute(() => window.scrollY)
 
-                await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, input as any)
+                await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, input)
                 const nativeY = await browser.execute(() => window.scrollY)
 
                 expect(Math.floor(wdioY)).toEqual(Math.floor(nativeY))
@@ -267,10 +276,10 @@ describe('main suite 1', () => {
 
             it(`should horizontally scroll like the native scrollIntoView when passing ${inputDescription} as argument`, async () => {
                 const searchInput = await $('.searchinput')
-                await searchInput.scrollIntoView(input as any)
+                await searchInput.scrollIntoView(input)
                 const wdioX = await browser.execute(() => window.scrollX)
 
-                await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, input as any)
+                await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, input)
                 const nativeX = await browser.execute(() => window.scrollX)
 
                 expect(Math.floor(wdioX)).toEqual(Math.floor(nativeX))
@@ -364,7 +373,7 @@ describe('main suite 1', () => {
         /**
          * fails due to https://github.com/GoogleChromeLabs/chromium-bidi/issues/2556
          */
-        it.skip('should be able to handle dialogs', async () => {
+        it('should be able to handle dialogs', async () => {
             await browser.url('http://guinea-pig.webdriver.io')
             browser.execute(() => alert('123'))
             const dialog = await new Promise<WebdriverIO.Dialog>((resolve) => browser.on('dialog', resolve))
@@ -434,6 +443,17 @@ describe('main suite 1', () => {
     })
 
     describe('context management', () => {
+        const closeAllWindowsButFirst = async () => {
+            const allHandles = await browser.getWindowHandles()
+
+            if (allHandles.length < 2) {return}
+            for (const windowHandle of allHandles.slice(1)) {
+                await browser.switchToWindow(windowHandle)
+                await browser.closeWindow()
+            }
+            await browser.switchToWindow(allHandles[0])
+        }
+
         it('should allow user to switch between contexts', async () => {
             await browser.url('http://guinea-pig.webdriver.io/')
 
@@ -477,16 +497,80 @@ describe('main suite 1', () => {
             // Verify element text to ensure the browsing context has changed and can interact with elements
             await expect(await $('.page').getText()).toBe('Second page!')
         })
+
+        it('should see that content is no longer displayed when window is closed', async () => {
+            await browser.url('https://the-internet.herokuapp.com/iframe')
+            const elementalSeleniumLink = await $('/html/body/div[3]/div/div/a')
+            await elementalSeleniumLink.waitForDisplayed()
+            await elementalSeleniumLink.click()
+            await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 3)
+            await browser.switchWindow('https://elementalselenium.com/')
+            await $('#__docusaurus_skipToContent_fallback').waitForDisplayed()
+            await browser.closeWindow()
+            await $('#__docusaurus_skipToContent_fallback').waitForDisplayed({ reverse: true })
+            await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 2)
+            await browser.switchWindow('https://the-internet.herokuapp.com/iframe')
+        })
     })
 
-    const closeAllWindowsButFirst = async () => {
-        const allHandles = await browser.getWindowHandles()
+    describe('switchFrame', () => {
+        afterEach(async () => {
+            await browser.switchFrame(null)
+        })
 
-        if (allHandles.length < 2) {return}
-        for (const windowHandle of allHandles.slice(1)) {
-            await browser.switchToWindow(windowHandle)
-            await browser.closeWindow()
-        }
-        await browser.switchToWindow(allHandles[0])
-    }
+        it('can switch to a frame via url', async () => {
+            await browser.url('https://www.w3schools.com/tags/tryit.asp?filename=tryhtml_iframe')
+            await browser.switchFrame('https://www.w3schools.com')
+            expect(await browser.execute(() => [document.title, document.URL]))
+                .toEqual(['W3Schools Online Web Tutorials', 'https://www.w3schools.com/'])
+        })
+
+        it('can switch to a frame via element', async () => {
+            await browser.url('https://the-internet.herokuapp.com/nested_frames')
+            await browser.switchFrame($('frame'))
+            expect(await browser.execute(() => document.URL))
+                .toBe('https://the-internet.herokuapp.com/frame_top')
+        })
+
+        it('can switch to a frame via function', async () => {
+            await browser.url('https://the-internet.herokuapp.com/nested_frames')
+            await browser.switchFrame(() => document.URL.includes('frame_right'))
+            expect(await browser.execute(() => document.URL))
+                .toBe('https://the-internet.herokuapp.com/frame_right')
+        })
+
+        it('should reset the frame when the page is reloaded', async () => {
+            await browser.url('https://the-internet.herokuapp.com/iframe')
+            await expect($('#tinymce')).not.toBePresent()
+            await browser.switchFrame($('iframe'))
+            await expect($('#tinymce')).toBePresent()
+            await browser.refresh()
+            await expect($('#tinymce')).not.toBePresent()
+            await browser.switchFrame($('iframe'))
+            await expect($('#tinymce')).toBePresent()
+        })
+    })
+
+    describe.only('open resources with different protocols', () => {
+        it('http', async () => {
+            browser.url('http://guinea-pig.webdriver.io/')
+            await expect(browser).toHaveUrl('http://guinea-pig.webdriver.io/')
+        })
+
+        it('https', async () => {
+            await browser.url('https://webdriver.io/')
+            await expect(browser).toHaveUrl('https://webdriver.io/')
+        })
+
+        it('data', async () => {
+            await browser.url('data:text/html,<h1>Test</h1>')
+            await expect($('h1')).toHaveText('Test')
+        })
+
+        it('file', async () => {
+            const resource = path.resolve(__dirname, '__fixtures__', 'test.html')
+            await browser.url(url.pathToFileURL(resource).href)
+            await expect($('h1')).toHaveText('Hello World')
+        })
+    })
 })

@@ -32,11 +32,11 @@ export function log(options: BuildOptions, pkg: PackageJson): Plugin {
         name: 'LogPlugin',
         setup(build) {
             build.onStart(() => {
-                console.log(`${l.name(pkg.name)} 🏗️ Building ${l.format(options.format)} package: ${l.file(srcFile)} → ${l.file(outFile)}`)
+                console.log(`${l.name(pkg.name)} 🏗️ Building ${l.format(`${options.platform}:${options.format}`)} package: ${l.file(srcFile)} → ${l.file(outFile)}`)
             })
             build.onEnd((result) => {
                 if (result.errors.length === 0) {
-                    console.log(`${l.name(pkg.name)} ✅ Success building ${l.format(options.format)} package: ${l.file(srcFile)} → ${l.file(outFile)}`)
+                    console.log(`${l.name(pkg.name)} ✅ Success building ${l.format(`${options.platform}:${options.format}`)} package: ${l.file(srcFile)} → ${l.file(outFile)}`)
                 }
             })
         }
@@ -139,6 +139,27 @@ export function externalScripts(): Plugin {
                 external: true,
                 pluginName: name
             }))
+        }
+    }
+}
+
+export function runBuildScript(absWorkingDir: string, pkg: PackageJson): Plugin {
+    return {
+        name: `build-${pkg.name || 'unknown'}`,
+        setup(build) {
+            build.onEnd(async () => {
+                const child =cp.spawn('pnpm',
+                    ['run', 'build'],
+                    { cwd: absWorkingDir, stdio: 'inherit' }
+                )
+                child.on('exit', (code) => {
+                    if (code !== 0) {
+                        console.log(`${l.name(pkg.name)} ❌ Failed run build script for ${pkg.name}`)
+                        return
+                    }
+                    console.log(`${l.name(pkg.name)} ✅ Successfully ran build script for ${pkg.name}: "${pkg.scripts?.build}"`)
+                })
+            })
         }
     }
 }

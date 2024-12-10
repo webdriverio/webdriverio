@@ -6,8 +6,9 @@ import logger from '@wdio/logger'
 import type { CommandEndpoint } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
+import '../src/browser.js'
 // @ts-expect-error mock feature
-import RequestMock, { thenMock } from '../src/request/request.js'
+import { WebDriverRequest as RequestMock, thenMock, catchMock } from '../src/request/request.js'
 import commandWrapper from '../src/command.js'
 import type { BaseClient } from '../src/types.js'
 
@@ -49,16 +50,22 @@ const commandEndpoint: CommandEndpoint = {
 }
 
 vi.mock('../src/request/request', () => {
-    const thenMock = vi.fn().mockResolvedValue({ value: 15 })
+    const thenMock = vi.fn()
+    const catchMock = vi.fn()
+
+    const promise = { then: thenMock, catch: catchMock }
+    const WebDriverRequest = vi.fn().mockReturnValue({
+        makeRequest: () => (promise),
+        on: vi.fn()
+    })
+
+    thenMock.mockReturnValue(promise)
+    catchMock
+
     return {
         thenMock,
-        default: vi.fn().mockReturnValue({
-            makeRequest: () => ({
-                then: thenMock,
-                catch: vi.fn()
-            }),
-            on: vi.fn()
-        })
+        catchMock,
+        WebDriverRequest,
     }
 })
 
@@ -72,12 +79,15 @@ class FakeClient extends EventEmitter {
     isFirefox = false
     isBidi = false
     isSeleniumStandalone = false
+    isNativeContext = false
+    mobileContext = ''
     sessionId = '123'
     capabilities = {}
     requestedCapabilities = {}
     options = {
         logLevel: 'warn' as Options.WebDriverLogTypes
     } as any
+    emit = vi.fn()
 }
 
 const scope: BaseClient = new FakeClient()
@@ -86,10 +96,14 @@ type mockResponse = (...args: any[]) => any
 describe('command wrapper', () => {
     beforeEach(() => {
         vi.mocked(log.warn).mockClear()
+        vi.mocked(scope.emit).mockClear()
+        vi.mocked(RequestMock).mockClear()
+        vi.mocked(thenMock).mockClear()
+        vi.mocked(catchMock).mockClear()
     })
 
     it('should fail if wrong arguments are passed in', async () => {
-        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint).bind({})
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint).bind({} as unknown)
         await expect(commandFn)
             .rejects
             .toThrow(/Wrong parameters applied for findElementFromElement/)
@@ -121,8 +135,8 @@ describe('command wrapper', () => {
     it('should do a proper request', async () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
         await commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
-        const callback = thenMock.mock.calls[0][0]
-        expect(callback({ value: 14 })).toBe(14)
+        const thenCallback = thenMock.mock.calls[0][0]
+        expect(thenCallback({ value: 14 })).toBe(14)
         vi.mocked(thenMock).mockClear()
 
         expect(RequestMock).toHaveBeenCalledWith(
@@ -188,6 +202,23 @@ describe('command wrapper', () => {
         const commandFn = commandWrapper(commandMethod, commandPath, deprecatedCommandEndpoint)
         await commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
         expect(log.warn).toBeCalledWith('The "findElementFromElement" command will soon be deprecated.')
+    })
+
+    it('should emit result when request throws', async () => {
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        await commandFn.call(scope, '/path', 'css selector', '#body')
+
+        const errorCallback = catchMock.mock.calls[0][0]
+
+        const error = new Error('Request failed')
+        expect(() => errorCallback(error)).toThrow(error)
+        expect(scope.emit).toBeCalledWith('result', {
+            command: 'findElementFromElement',
+            method: 'POST',
+            endpoint: '/session/:sessionId/element/%2Fpath/element',
+            body: { using: 'css selector', value: '#body' },
+            result: { error }
+        })
     })
 })
 

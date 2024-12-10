@@ -3,7 +3,6 @@ import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars, initiateBidi, parseBidiMessage } from 'webdriver'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
-import { browser } from '@wdio/globals'
 import safeStringify from 'safe-stringify'
 
 /**
@@ -27,6 +26,8 @@ interface CommandMessagePromise {
 const HIDE_REPORTER_FOR_COMMANDS = ['saveScreenshot', 'savePDF']
 const mochaFramework = document.querySelector('mocha-framework')
 let id = 0
+let browser: WebdriverIO.Browser | undefined
+
 export default class ProxyDriver {
     static #commandMessages = new Map<number, CommandMessagePromise>()
 
@@ -154,6 +155,7 @@ export default class ProxyDriver {
             value: { cid }
         })
 
+        browser = client
         return client
     }
 
@@ -251,6 +253,11 @@ export default class ProxyDriver {
         if (!cid) {
             return
         }
+
+        if (!browser) {
+            throw new Error('Could not connect to browser')
+        }
+
         for (const commandName of value.customCommands) {
             browser.addCommand(commandName, this.#getMockedCommand(commandName))
         }

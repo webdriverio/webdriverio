@@ -128,9 +128,9 @@ export const config = {
         // maxInstances can get overwritten per capability. So if you have an in house Selenium
         // grid with only 5 firefox instance available you can make sure that not more than
         // 5 instance gets started at a time.
-        maxInstances: 5,
+        'wdio:maxInstances': 5,
         browserName: 'firefox',
-        specs: [
+        'wdio:specs': [
             'test/ffOnly/*'
         ],
         'moz:firefoxOptions': {
@@ -259,7 +259,7 @@ export const config = {
     // Specify a custom tsconfig path - WDIO uses `tsx` to compile TypeScript files
     // Your TSConfig is automatically detected from the current working directory
     // but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH env var
-    // See the `tsx` docs: https://tsx.is/usage#custom-tsconfig-json-path
+    // See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
     tsConfigPath: 'path/to/tsconfig.json',
     //
     // =====

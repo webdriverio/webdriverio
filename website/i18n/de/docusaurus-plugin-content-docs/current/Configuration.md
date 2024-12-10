@@ -237,13 +237,15 @@ Type: `Object`<br /> Default: `{}`
 
 Sie können die gleichen anbieter- und browserspezifischen Capabilities wie oben[anwenden](/docs/configuration#capabilities).
 
-Type: `Object`|`Object[]`<br /> Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
+Type: `Object`|`Object[]`<br /> Default: `[{ 'wdio:maxInstances': 5, browserName: 'firefox' }]`
 
 ### maxInstances
 
 Maximale Anzahl parallel laufender Worker insgesamt.
 
 __Hinweis:__ kann eine Zahl sein, die bis `100` oder weiter geht, wenn die Tests auf einigen externen Cloud Anbietern durchgeführt werden. Dort werden die Tests nicht auf einer einzelnen Maschine, sondern auf mehreren VMs getestet. Wenn die Tests auf einem lokalen Entwicklungscomputer ausgeführt werden sollen, verwenden Sie eine sinnvollere Zahl, z. B. `3`, `4`oder `5`. Im Wesentlichen ist dies die Anzahl der Browser, die gleichzeitig gestartet werden und Ihre Tests gleichzeitig ausführen, also hängt es davon ab, wie viel RAM auf Ihrem Computer vorhanden ist und wie viele andere Apps auf Ihrem Computer ausgeführt werden.
+
+You can also apply `maxInstances` within your capability objects using the `wdio:maxInstances` capability. This will limit the amount of parallel sessions for that particular capability.
 
 Type: `Number`<br /> Default: `100`
 
