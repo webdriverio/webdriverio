@@ -10,6 +10,7 @@ import {
     convertPackageHashToObject,
     getProjectRoot,
     detectPackageManager,
+    getProjectProps,
 } from './utils.js'
 import type { Questionnair } from './types.js'
 
@@ -242,6 +243,10 @@ export const isNuxtProject = [
         return false
     }
 }).some(Boolean)
+
+export const projectProps = await getProjectProps(process.cwd())
+export const isProjectExisting = Boolean(projectProps)
+export const nameInPackageJsonIsNotCreateWdioDefault = projectProps?.packageJson?.name !== 'my-new-project' ? true : false
 
 function selectDefaultService (serviceNames: string | string[]) {
     serviceNames = Array.isArray(serviceNames) ? serviceNames : [serviceNames]
