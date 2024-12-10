@@ -2,6 +2,7 @@ import { type local } from 'webdriver'
 import logger from '@wdio/logger'
 
 import customElementWrapper from './scripts/customElement.js'
+import type { remote } from 'webdriver'
 
 const shadowRootManager = new Map<WebdriverIO.Browser, ShadowRootManager>()
 const log = logger('webdriverio:ShadowRootManager')
@@ -26,6 +27,7 @@ export class ShadowRootManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
+    #documentElement?: remote.ScriptNodeRemoteValue
     #frameDepth = 0
 
     constructor(browser: WebdriverIO.Browser) {
@@ -34,7 +36,7 @@ export class ShadowRootManager {
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.VITEST_WORKER_ID || browser.options?.automationProtocol !== 'webdriver') {
+        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
             this.#initialize = Promise.resolve(true)
             return
         }
@@ -47,7 +49,7 @@ export class ShadowRootManager {
         }).then(() => true, () => false)
         this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
         this.#browser.on('result', this.#commandResultHandler.bind(this))
-        this.#browser.on('browsingContext.navigationStarted', this.#handleNavigationStarted.bind(this))
+        this.#browser.on('bidiCommand', this.#handleBidiCommand.bind(this))
         browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
@@ -60,8 +62,12 @@ export class ShadowRootManager {
     /**
      * keep track of navigation events and remove shadow roots when they are no longer needed
      */
-    #handleNavigationStarted (context: local.BrowsingContextNavigationInfo) {
-        this.#shadowRoots.delete(context.context)
+    #handleBidiCommand (command: Omit<remote.CommandData, 'id'>) {
+        if (command.method !== 'browsingContext.navigate') {
+            return
+        }
+        const params = command.params as remote.BrowsingContextNavigateParameters
+        this.#shadowRoots.delete(params.context)
     }
 
     /**
@@ -112,7 +118,7 @@ export class ShadowRootManager {
 
         const eventType = args[1].value
         if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
-            const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem, isDocument] = args
+            const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem, isDocument, documentElement] = args
             if (!this.#shadowRoots.has(logEntry.source.context)) {
                 /**
                  * initiate shadow tree for context
@@ -139,6 +145,11 @@ export class ShadowRootManager {
                     this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
                 }
             }
+
+            /**
+             * store document element
+             */
+            this.#documentElement = documentElement as remote.ScriptNodeRemoteValue
 
             const tree = this.#shadowRoots.get(logEntry.source.context)
             if (!tree) {
@@ -184,6 +195,8 @@ export class ShadowRootManager {
             return []
         }
 
+        let documentElement: string | undefined
+
         /**
          * if we have a scope, try to find sub tree, otherwise use root tree
          */
@@ -192,9 +205,22 @@ export class ShadowRootManager {
             if (subTree) {
                 tree = subTree
             }
+        } else {
+            /**
+             * ensure to include to document root if no scope is provided
+             */
+            documentElement = this.#documentElement?.sharedId
         }
 
-        return tree.getAllLookupScopes()
+        const elements = tree.getAllLookupScopes()
+
+        /**
+         * make sure to send back a unique list of elements
+         */
+        return [
+            ...(documentElement ? [documentElement] : []),
+            ...new Set(elements).values()
+        ]
     }
 
     getShadowElementPairsByContextId (contextId: string, scope?: string): [string, string | undefined][] {
@@ -329,12 +355,13 @@ export class ShadowRootTree {
     }
 
     remove (element: string): boolean {
-        for (const child of this.children) {
-            if (child.element === element) {
-                return this.children.delete(child)
+        const childArray = Array.from(this.children)
+        for (let i = childArray.length - 1; i >= 0; i--) {
+            if (childArray[i].element === element) {
+                return this.children.delete(childArray[i])
             }
 
-            const wasFound = child.remove(element)
+            const wasFound = childArray[i].remove(element)
             if (wasFound) {
                 return true
             }

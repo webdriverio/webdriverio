@@ -5,8 +5,8 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
-import WebDriverRequest from '../src/request/request.js'
-import { COMMANDS_WITHOUT_RETRY } from '../src/request/index.js'
+import '../src/browser.js'
+import { FetchRequest } from '../src/request/web.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fetch')
@@ -26,15 +26,15 @@ describe('webdriver request', () => {
     })
 
     it('should have some default options', () => {
-        const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
+        const req = new FetchRequest('POST', '/foo/bar', { foo: 'bar' })
         expect(req.method).toBe('POST')
         expect(req.endpoint).toBe('/foo/bar')
     })
 
     it('should be able to make request', async () => {
-        const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
+        const req = new FetchRequest('POST', '/foo/bar', { foo: 'bar' })
         const url =  new URL('/foo/bar', baseUrl)
-        req['_createOptions'] = vi.fn().mockImplementation((opts, sessionId) => ({
+        req.createOptions = vi.fn().mockImplementation((opts, sessionId) => ({
             url,
             requestOptions:{
                 foo: 'bar',
@@ -55,7 +55,7 @@ describe('webdriver request', () => {
     })
 
     it('should pick up the fullRequestOptions returned by transformRequest', async () => {
-        const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
+        const req = new FetchRequest('POST', '/foo/bar', { foo: 'bar' })
         const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
             ...requestOptions,
             body: { foo: 'baz' }
@@ -76,7 +76,7 @@ describe('webdriver request', () => {
     })
 
     it('should resolve with the body returned by transformResponse', async () => {
-        const req = new WebDriverRequest('POST', 'session/:sessionId/element', { foo: 'requestBody' })
+        const req = new FetchRequest('POST', 'session/:sessionId/element', { foo: 'requestBody' })
 
         const transformResponse = vi.fn().mockImplementation((response) => ({
             ...response,
@@ -101,13 +101,13 @@ describe('webdriver request', () => {
 
     describe('createOptions', () => {
         it('fails if command requires sessionId but none given', async () => {
-            const req = new WebDriverRequest('POST', `${webdriverPath}/:sessionId/element`, {})
-            await expect(() => req['_createOptions']({ logLevel: 'warn' })).rejects.toThrow('A sessionId is required')
+            const req = new FetchRequest('POST', `${webdriverPath}/:sessionId/element`, {})
+            await expect(() => req.createOptions({ logLevel: 'warn' })).rejects.toThrow('A sessionId is required')
         })
 
         it('creates proper options set', async () => {
-            const req = new WebDriverRequest('POST', `${webdriverPath}/:sessionId/element`, {})
-            const { url, requestOptions } = await req['_createOptions']({
+            const req = new FetchRequest('POST', `${webdriverPath}/:sessionId/element`, {})
+            const { url, requestOptions } = await req.createOptions({
                 protocol: 'https',
                 hostname: 'localhost',
                 port: 4445,
@@ -119,14 +119,14 @@ describe('webdriver request', () => {
 
             expect((url! as URL).href)
                 .toBe('https://localhost:4445/session/foobar12345/element')
-            expect([...requestOptions.headers.keys()])
+            expect([...(requestOptions.headers as unknown as Map<string, string>).keys()])
                 .toEqual(['accept', 'connection', 'content-length', 'content-type', 'foo', 'user-agent'])
             expect(requestOptions.signal?.aborted).toBeFalsy()
         })
 
         it('ignors path when command is a hub command', async () => {
-            const req = new WebDriverRequest('POST', '/grid/api/hub', {}, true)
-            const options = await req['_createOptions']({
+            const req = new FetchRequest('POST', '/grid/api/hub', {}, true)
+            const options = await req.createOptions({
                 protocol: 'https',
                 hostname: 'localhost',
                 port: 4445,
@@ -137,23 +137,23 @@ describe('webdriver request', () => {
         })
 
         it('should add authorization header if user and key is given', async () => {
-            const req = new WebDriverRequest('POST', webdriverPath, { some: 'body' })
+            const req = new FetchRequest('POST', webdriverPath, { some: 'body' })
             const user = 'foo'
             const key = 'bar'
-            const { requestOptions } = await req['_createOptions']({
+            const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 user,
                 key,
                 path: '/',
                 logLevel: 'warn'
             })
-            expect(requestOptions.headers.get('Authorization')).toEqual('Basic ' + btoa(user + ':' + key))
+            expect((requestOptions.headers as unknown as Map<string, string>).get('Authorization')).toEqual('Basic ' + btoa(user + ':' + key))
             expect(requestOptions.body).toEqual({ some: 'body' })
         })
 
         it('sets request body to "undefined" when request object is empty and DELETE is used', async () => {
-            const req = new WebDriverRequest('DELETE', webdriverPath, {})
-            const { requestOptions } = await req['_createOptions']({
+            const req = new FetchRequest('DELETE', webdriverPath, {})
+            const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
                 logLevel: 'warn'
@@ -162,8 +162,8 @@ describe('webdriver request', () => {
         })
 
         it('sets request body to "undefined" when request object is empty and GET is used', async () => {
-            const req = new WebDriverRequest('GET', `${webdriverPath}/title`, {})
-            const { requestOptions } = await req['_createOptions']({
+            const req = new FetchRequest('GET', `${webdriverPath}/title`, {})
+            const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
                 logLevel: 'warn'
@@ -172,8 +172,8 @@ describe('webdriver request', () => {
         })
 
         it('should attach an empty object body when POST is used', async () => {
-            const req = new WebDriverRequest('POST', '/status', {})
-            const { requestOptions } = await req['_createOptions']({
+            const req = new FetchRequest('POST', '/status', {})
+            const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
                 logLevel: 'warn'
@@ -182,45 +182,45 @@ describe('webdriver request', () => {
         })
 
         it('should add the Content-Length header when a request object has a body', async () => {
-            const req = new WebDriverRequest('POST', webdriverPath, { foo: 'bar' })
-            const { requestOptions } = await req['_createOptions']({
+            const req = new FetchRequest('POST', webdriverPath, { foo: 'bar' })
+            const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
                 logLevel: 'warn'
             })
-            expect([...requestOptions.headers.keys()])
+            expect([...(requestOptions.headers as unknown as Map<string, string>).keys()])
                 .toEqual(['accept', 'connection', 'content-length', 'content-type', 'user-agent'])
-            expect(requestOptions.headers.get('Content-Length')).toBe('13')
+            expect((requestOptions.headers as unknown as Map<string, string>).get('Content-Length')).toBe('13')
         })
 
         it('should add Content-Length as well any other header provided in the request options if there is body in the request object', async () => {
-            const req = new WebDriverRequest('POST', webdriverPath, { foo: 'bar' })
-            const { requestOptions } = await req['_createOptions']({
+            const req = new FetchRequest('POST', webdriverPath, { foo: 'bar' })
+            const { requestOptions } = await req.createOptions({
                 ...defaultOptions, path: '/',
                 headers: { foo: 'bar' },
                 logLevel: 'warn'
             })
-            expect(requestOptions.headers.get('foo')).toContain('bar')
-            expect(requestOptions.headers.get('Content-Length')).toBe('13')
+            expect((requestOptions.headers as unknown as Map<string, string>).get('foo')).toContain('bar')
+            expect((requestOptions.headers as unknown as Map<string, string>).get('Content-Length')).toBe('13')
         })
 
         it('should add only the headers provided if the request body is empty', async () => {
-            const req = new WebDriverRequest('POST', webdriverPath)
-            const { requestOptions } = await req['_createOptions']({
+            const req = new FetchRequest('POST', webdriverPath)
+            const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
                 headers: { foo: 'bar' },
                 logLevel: 'warn'
             })
-            expect([...requestOptions.headers.keys()]).not.toContain('content-length')
-            expect(requestOptions.headers.get('foo')).toContain('bar')
+            expect([...(requestOptions.headers as unknown as Map<string, string>).keys()]).not.toContain('content-length')
+            expect((requestOptions.headers as unknown as Map<string, string>).get('foo')).toContain('bar')
         })
     })
 
     describe('_request', () => {
         it('should make a request', async () => {
             const expectedResponse = { value: { 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' } }
-            const req = new WebDriverRequest('POST', webdriverPath, {})
+            const req = new FetchRequest('POST', webdriverPath, {})
             req.emit = vi.fn()
 
             const url = new URL('/session/foobar-123/element', baseUrl)
@@ -239,7 +239,7 @@ describe('webdriver request', () => {
         })
 
         it('should short circuit if request throws a stale element exception', async () => {
-            const req = new WebDriverRequest('POST', 'session/:sessionId/element', {})
+            const req = new FetchRequest('POST', 'session/:sessionId/element', {})
             req.emit = vi.fn()
 
             const url = new URL('/session/foobar-123/element/some-sub-sub-elem-231/click', baseUrl)
@@ -257,7 +257,7 @@ describe('webdriver request', () => {
         })
 
         it('should not fail code due to an empty server response', async () => {
-            const req = new WebDriverRequest('POST', webdriverPath, {})
+            const req = new FetchRequest('POST', webdriverPath, {})
             req.emit = vi.fn()
 
             const url = new URL('/empty', baseUrl)
@@ -273,7 +273,7 @@ describe('webdriver request', () => {
         })
 
         it('should retry requests but still fail', async () => {
-            const req = new WebDriverRequest('POST', webdriverPath, {})
+            const req = new FetchRequest('POST', webdriverPath, {})
             req.emit = vi.fn()
 
             const url = new URL('/failing', baseUrl)
@@ -293,7 +293,7 @@ describe('webdriver request', () => {
         })
 
         it('should retry and eventually respond', async () => {
-            const req = new WebDriverRequest('POST', webdriverPath, {})
+            const req = new FetchRequest('POST', webdriverPath, {})
             req.emit = vi.fn()
 
             const url = new URL('/failing', baseUrl)
@@ -313,7 +313,7 @@ describe('webdriver request', () => {
         })
 
         it('should manage hub commands', async () => {
-            const req = new WebDriverRequest('POST', '/grid/api/hub', {}, true)
+            const req = new FetchRequest('POST', '/grid/api/hub', {}, true)
             expect(await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -324,7 +324,7 @@ describe('webdriver request', () => {
         })
 
         it('should fail if hub command is called on node', async () => {
-            const req = new WebDriverRequest('POST', '/grid/api/testsession', {}, true)
+            const req = new FetchRequest('POST', '/grid/api/testsession', {}, true)
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -341,7 +341,7 @@ describe('webdriver request', () => {
         describe('"ETIMEDOUT" error', () => {
             it('should throw if timeout happens too often', async () => {
                 const retryCnt = 3
-                const req = new WebDriverRequest('POST', '/timeout', {}, true)
+                const req = new FetchRequest('POST', '/timeout', {}, true)
                 const reqRetryCnt = vi.fn()
                 req.on('retry', reqRetryCnt)
                 const result = await req.makeRequest({
@@ -360,7 +360,7 @@ describe('webdriver request', () => {
             })
 
             it('should use error from "getRequestError" helper', async () => {
-                const req = new WebDriverRequest('GET', '/timeout', {}, true)
+                const req = new FetchRequest('GET', '/timeout', {}, true)
                 req.emit = vi.fn()
                 const reqOpts = {
                     protocol: 'https',
@@ -381,7 +381,7 @@ describe('webdriver request', () => {
 
         it('should return proper response if retry passes', async () => {
             const retryCnt = 7
-            const req = new WebDriverRequest('POST', '/timeout', {}, true)
+            const req = new FetchRequest('POST', '/timeout', {}, true)
             const reqRetryCnt = vi.fn()
             req.on('retry', reqRetryCnt)
             const result = await req.makeRequest({
@@ -397,11 +397,11 @@ describe('webdriver request', () => {
             )
             expect(result).toEqual({ value: {} })
             expect(reqRetryCnt).toBeCalledTimes(5)
-        })
+        }, 20_000)
 
         it('should retry on connection refused error', async () => {
             const retryCnt = 7
-            const req = new WebDriverRequest('POST', '/connectionRefused', {}, false)
+            const req = new FetchRequest('POST', '/connectionRefused', {}, false)
             const reqRetryCnt = vi.fn()
             req.on('retry', reqRetryCnt)
             const result = await req.makeRequest({
@@ -416,10 +416,10 @@ describe('webdriver request', () => {
             )
             expect(result).toEqual({ value: { foo: 'bar' } })
             expect(reqRetryCnt).toBeCalledTimes(5)
-        })
+        }, 20_000)
 
         it('should throw if request error is unknown', async () => {
-            const req = new WebDriverRequest('POST', '/sumoerror', {}, true)
+            const req = new FetchRequest('POST', '/sumoerror', {}, true)
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -433,10 +433,6 @@ describe('webdriver request', () => {
             )
             expect(result.message).toEqual(expect.stringContaining('ups'))
         })
-    })
-
-    it('defines correct exceptions for request retries', () => {
-        expect(COMMANDS_WITHOUT_RETRY).toMatchSnapshot()
     })
 
     afterEach(() => {

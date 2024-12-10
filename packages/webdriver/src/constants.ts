@@ -1,5 +1,6 @@
-import os from 'node:os'
 import type { Options } from '@wdio/types'
+
+import { environment } from './environment.js'
 import type { RemoteConfig } from './types.js'
 
 export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
@@ -139,7 +140,7 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
      */
     cacheDir: {
         type: 'string',
-        default: process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()
+        default: environment.value.variables.WEBDRIVER_CACHE_DIR
     }
 }
 

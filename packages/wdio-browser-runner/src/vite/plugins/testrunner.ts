@@ -5,7 +5,6 @@ import { builtinModules } from 'node:module'
 import logger from '@wdio/logger'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
-import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
 import {
@@ -29,7 +28,6 @@ const protocolCommandList = Object.values(commands).map(
         ({ command }) => command
     )
 ).flat()
-const WDIO_PACKAGES = ['webdriverio', 'expect-webdriverio']
 const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
@@ -89,19 +87,6 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
              */
             if (id === 'expect-webdriverio') {
                 return wdioExpectModulePath
-            }
-
-            if (id === '@wdio/logger') {
-                const newId = await resolveWDIOModule(id)
-                return path.resolve(path.dirname(newId), 'browser.js')
-            }
-
-            /**
-             * make sure WDIO imports are resolved properly as ESM module
-             */
-            if (id.startsWith('@wdio') || WDIO_PACKAGES.includes(id)) {
-                const resolvedId = await resolveWDIOModule(id)
-                return resolvedId
             }
 
             /**
@@ -193,20 +178,4 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             return { id: await polyfillPath(id), moduleSideEffects: false }
         },
     }]
-}
-
-/**
- * Resolves the path of a WDIO module.
- *
- * @param {string} pkgName - The name of the WDIO module to resolve.
- * @return {string} The resolved path of the WDIO module.
- */
-async function resolveWDIOModule (pkgName: string) {
-    try {
-        const pkgPath = await resolve(pkgName, import.meta.url)
-        return url.fileURLToPath(pkgPath)
-    } catch {
-        const pkgPath = await resolve(pkgName, url.pathToFileURL(path.resolve(process.cwd())).href)
-        return url.fileURLToPath(pkgPath)
-    }
 }

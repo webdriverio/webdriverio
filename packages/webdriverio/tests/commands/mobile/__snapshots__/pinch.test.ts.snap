@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`pinch test > should execute a pinch for Android with the correct values 1`] = `
+{
+  "args": [
+    {
+      "elementId": {
+        "pinch": "mockFunction",
+      },
+      "percent": 0.8,
+      "speed": 888,
+    },
+  ],
+  "script": "mobile: pinchCloseGesture",
+}
+`;
+
+exports[`pinch test > should execute a pinch for iOS with the correct values 1`] = `
+{
+  "args": [
+    {
+      "elementId": {
+        "pinch": "mockFunction",
+      },
+      "scale": 0.8,
+      "velocity": -1500,
+    },
+  ],
+  "script": "mobile: pinch",
+}
+`;

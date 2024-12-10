@@ -1,8 +1,9 @@
+import type fs from 'node:fs'
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 
-import { describe, it, vi, expect } from 'vitest'
+import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 import { resolve } from 'import-meta-resolve'
 
 import { getTemplate, userfriendlyImport, getErrorTemplate, getFilesFromDirectory } from '../../src/vite/utils.js'
@@ -24,6 +25,14 @@ vi.mock('import-meta-resolve', () => ({
 vi.mock('fakeDep', () => ({
     default: 'I am fake'
 }))
+
+const join = vi.spyOn(path, 'join')
+beforeAll(() => {
+    join.mockImplementation((...args) => `/foo/bar/${args[args.length - 1]}`)
+})
+afterAll(() => {
+    join.mockRestore()
+})
 
 // skip for Windows
 if (os.platform() !== 'win32') {
@@ -68,6 +77,7 @@ describe('getFilesFromDirectory', () => {
     })
 
     it('returns all files and subfiles', async () => {
+        join.mockRestore()
         const files = await getFilesFromDirectory(path.join(__dirname, '..', '__fixtures__', '__mocks__'))
         expect(files.map((f) => path.basename(f))).toEqual(['otherModule.js', 'someModule.ts'])
     })

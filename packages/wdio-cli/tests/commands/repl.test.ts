@@ -59,7 +59,6 @@ describe('Command: repl', () => {
 
         expect(global.$).not.toBeUndefined()
         expect(global.$$).not.toBeUndefined()
-        // @ts-expect-error
         expect(global.browser).not.toBeUndefined()
     })
 

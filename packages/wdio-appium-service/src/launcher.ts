@@ -1,3 +1,4 @@
+import os from 'node:os'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import url from 'node:url'
@@ -59,7 +60,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         /**
          * Windows needs to be started through `cmd` and the command needs to be an arg
          */
-        if (process.platform === 'win32') {
+        if (os.platform() === 'win32') {
             this._appiumCliArgs.unshift('/c', command)
             command = 'cmd'
         }
@@ -72,6 +73,8 @@ export default class AppiumLauncher implements Services.ServiceInstance {
      * to Appium server
      */
     private _setCapabilities(port: number) {
+        let capabilityWasUpdated = false
+
         /**
          * Multiremote sessions
          */
@@ -80,6 +83,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 const cap = (capability.capabilities as Capabilities.W3CCapabilities) || capability
                 const c = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
                 if (!isCloudCapability(c) && isAppiumCapability(c)) {
+                    capabilityWasUpdated = true
                     Object.assign(
                         capability,
                         DEFAULT_CONNECTION,
@@ -101,6 +105,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 Object.values(cap).forEach(c => {
                     const capability = (c.capabilities as Capabilities.W3CCapabilities).alwaysMatch || (c.capabilities as Capabilities.W3CCapabilities) || c
                     if (!isCloudCapability(capability) && isAppiumCapability(capability)) {
+                        capabilityWasUpdated = true
                         Object.assign(
                             c,
                             DEFAULT_CONNECTION,
@@ -111,6 +116,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 }
                 )
             } else if (!isCloudCapability(w3cCap.alwaysMatch || cap) && isAppiumCapability(w3cCap.alwaysMatch || cap)) {
+                capabilityWasUpdated = true
                 Object.assign(
                     cap,
                     DEFAULT_CONNECTION,
@@ -119,6 +125,8 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 )
             }
         })
+
+        return capabilityWasUpdated
     }
 
     async onPrepare() {
@@ -136,7 +144,15 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         this._args.port = typeof this._args.port === 'number' ? this._args.port
             : await getPort({ port: DEFAULT_APPIUM_PORT })
 
-        this._setCapabilities(this._args.port)
+        /**
+         * only actually start Appium server if we detect a capability that
+         * would indicate a that a local Appium session is needed
+         */
+        const capabilityWasUpdated = this._setCapabilities(this._args.port)
+        if (!capabilityWasUpdated) {
+            log.warn('Could not identify any capability that indicates a local Appium session, skipping Appium launch')
+            return
+        }
 
         /**
          * Append cli arguments
@@ -151,29 +167,50 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
         if (this._logPath) {
             this._redirectLogStream(this._logPath)
+        } else {
+            log.info('Appium logs written to stdout')
+            this._process.stdout.on('data', this.#logStdout)
+            this._process.stderr.on('data', this.#logStderr)
         }
+    }
+
+    #logStdout = (data: Buffer) => {
+        log.debug(data.toString())
+    }
+
+    #logStderr = (data: Buffer) => {
+        log.warn(data.toString())
     }
 
     onComplete() {
         this._isShuttingDown = true
-        // Kill appium and all process' spawned from it
+
+        /**
+         * Kill appium and all process' spawned from it
+         */
         if (this._process && this._process.pid) {
-            // Ensure all child processes are also killed
+            /**
+             * remove stdio event listener
+             */
+            this._process.stdout.off('data', this.#logStdout)
+            this._process.stderr.off('data', this.#logStderr)
+
+            /**
+             * Ensure all child processes are also killed
+             */
             log.info('Killing entire Appium tree')
             treeKill(this._process.pid, 'SIGTERM', (err) => {
                 if (err) {
-                    log.warn('Failed to kill process:', err)
-                } else {
-                    log.info(
-                        'Process and its children successfully terminated'
-                    )
+                    return log.warn('Failed to kill process:', err)
                 }
+
+                log.info('Process and its children successfully terminated')
             })
         }
     }
     private _startAppium(command: string, args: Array<string>, timeout = APPIUM_START_TIMEOUT) {
         log.info(`Will spawn Appium process: ${command} ${args.join(' ')}`)
-        const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         // just for validate the first error
         let errorCaptured = false
         // to set a timeout for the promise
@@ -182,8 +219,8 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         let error: string
 
         return new Promise<ChildProcessByStdio<null, Readable, Readable>>((resolve, reject) => {
-
             let outputBuffer = ''
+
             /**
              * set timeout for promise. If Appium does not start within given timeout,
              * e.g. if the port is already in use, reject the promise.
@@ -191,6 +228,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             timeoutId = setTimeout(() => {
                 rejectOnce(new Error('Timeout: Appium did not start within expected time'))
             }, timeout)
+
             /**
              * reject promise if Appium does not start within given timeout,
              * e.g. if the port is already in use
@@ -205,26 +243,31 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                 }
             }
 
-            process.stdout.on('data', (data) => {
-                outputBuffer += data.toString()
-                if (outputBuffer.includes('Appium REST http interface listener started')) {
-                    outputBuffer = ''
-                    log.info(`Appium started with ID: ${process.pid}`)
-                    clearTimeout(timeoutId)
-                    resolve(process)
-                }
-            })
-
             /**
              * only capture first error to print it in case Appium failed to start.
              */
-            process.stderr.once('data', (data) => {
+            const onErrorMessage = (data: Buffer) => {
                 error = data.toString() || 'Appium exited without unknown error message'
                 log.error(error)
                 rejectOnce(new Error(error))
-            })
+            }
 
-            process.once('exit', (exitCode: number) => {
+            const onStdout = (data: Buffer) => {
+                outputBuffer += data.toString()
+                if (outputBuffer.includes('Appium REST http interface listener started')) {
+                    outputBuffer = ''
+                    log.info(`Appium started with ID: ${appiumProcess.pid}`)
+                    clearTimeout(timeoutId)
+
+                    appiumProcess.stdout.off('data', onStdout)
+                    appiumProcess.stderr.off('data', onErrorMessage)
+                    resolve(appiumProcess)
+                }
+            }
+
+            appiumProcess.stdout.on('data', onStdout)
+            appiumProcess.stderr.once('data', onErrorMessage)
+            appiumProcess.once('exit', (exitCode: number) => {
                 if (this._isShuttingDown) {
                     return
                 }

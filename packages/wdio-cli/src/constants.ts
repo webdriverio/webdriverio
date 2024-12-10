@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import module from 'node:module'
 import { HOOK_DEFINITION } from '@wdio/utils'
 import type { Options, Services, Reporters } from '@wdio/types'
 
@@ -11,7 +12,9 @@ import {
     detectPackageManager,
 } from './utils.js'
 import type { Questionnair } from './types.js'
-import pkgJSON from '../package.json' with { type: 'json' }
+
+const require = module.createRequire(import.meta.url)
+const pkgJSON = require('../package.json')
 
 export const pkg = pkgJSON
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
@@ -311,7 +314,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'list',
     name: 'mobileEnvironment',
-    message: 'Which mobile environment you\'ld like to automate?',
+    message: 'Which mobile environment you\'d like to automate?',
     choices: MOBILE_ENVIRONMENTS,
     when: /* instanbul ignore next */ (answers: Questionnair) => (
         getTestingPurpose(answers) === 'e2e' &&

@@ -6,8 +6,8 @@ Welcome to the WebdriverIO example repository. Here you can find a lot of stuff 
 ```sh
 git clone git@github.com:webdriverio/webdriverio.git
 cd ./webdriverio
-npm install
-npm run setup
+pnpm install
+pnpm run setup
 ```
 
 Then just follow the instructions and test it out. Have fun!

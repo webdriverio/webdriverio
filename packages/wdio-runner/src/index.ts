@@ -51,7 +51,6 @@ export default class Runner extends EventEmitter {
         this._configParser = new ConfigParser(configFile, args)
         this._cid = cid
         this._specs = specs
-        this._caps = caps
 
         /**
          * add config file
@@ -80,6 +79,24 @@ export default class Runner extends EventEmitter {
         // ToDo(Christian): resolve type incompatibility between v8 and v9
         this._configParser.addService(snapshotService as any)
 
+        this._caps = this._isMultiremote
+            /**
+             * Filter driver instances based on 'wdio:exclude' capability and allow
+             * user to exclude them if not needed for given spec file
+             */
+            ? Object.entries(caps).reduce((filteredCaps, [browserName, browserCaps]) => {
+                const ex = browserCaps.capabilities['wdio:exclude']
+                if (ex) {
+                    const sp = this._configParser?.getSpecs(specs, ex)
+                    if (sp && sp.length === 0) {
+                        return filteredCaps
+                    }
+                }
+                filteredCaps[browserName] = browserCaps
+                return filteredCaps
+            }, {} as Capabilities.RequestedMultiremoteCapabilities)
+            : caps
+
         /**
          * create `browser` stub only if `specFiltering` feature is enabled
          */
@@ -88,28 +105,28 @@ export default class Runner extends EventEmitter {
             // @ts-ignore used in `/packages/webdriverio/src/protocol-stub.ts`
             _automationProtocol: this._config.automationProtocol,
             automationProtocol: './protocol-stub.js'
-        }, caps)
+        }, this._caps)
 
         /**
          * run `beforeSession` command before framework and browser are initiated
          */
         ;(await initializeWorkerService(
             this._config as Options.Testrunner,
-            caps as WebdriverIO.Capabilities,
+            this._caps as WebdriverIO.Capabilities,
             args.ignoredWorkerServices
         )).map(this._configParser.addService.bind(this._configParser))
 
         const beforeSessionParams: BeforeSessionArgs = [this._config, this._caps, this._specs, this._cid]
         await executeHooksWithArgs('beforeSession', this._config.beforeSession, beforeSessionParams)
 
-        this._reporter = new BaseReporter(this._config, this._cid, { ...caps })
+        this._reporter = new BaseReporter(this._config, this._cid, { ...this._caps })
         await this._reporter.initReporters()
 
         /**
          * initialize framework
          */
-        this._framework = await this.#initFramework(cid, this._config, caps, this._reporter, specs)
-        process.send!({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this._framework.hasTests() } })
+        this._framework = await this.#initFramework(cid, this._config, this._caps, this._reporter, specs)
+        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() } })
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
         }

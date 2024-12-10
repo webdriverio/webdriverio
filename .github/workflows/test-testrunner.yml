@@ -28,7 +28,9 @@ jobs:
           filename: webdriverio-build.zip
 
       - name: Testrunner Tests
-        run: pnpm run test:e2e:testrunner
+        run: |
+          pnpm run test:e2e:testrunner
+          pnpm run test:e2e:classic
         shell: bash
 
       - uses: actions/upload-artifact@v4

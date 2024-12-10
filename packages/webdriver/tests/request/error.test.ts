@@ -4,6 +4,7 @@ import type { MockedFunction } from 'vitest'
 import { transformCommandLogResult } from '@wdio/utils'
 import { describe, it, expect, vi } from 'vitest'
 
+import '../../src/browser.js'
 import { WebDriverResponseError, WebDriverRequestError } from '../../src/request/error.js'
 
 const cmdURL = new URL('http://localhost:1234/session/abc123/url')

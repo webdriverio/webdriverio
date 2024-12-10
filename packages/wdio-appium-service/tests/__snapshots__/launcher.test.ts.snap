@@ -26,6 +26,8 @@ exports[`Appium launcher > onPrepare > should set correct config properties for 
 
 exports[`Appium launcher > onPrepare > should set correct config properties for mac 1`] = `
 [
+  "/c",
+  "path/to/my_custom_appium",
   "--base-path",
   "/",
   "--address",

@@ -32,6 +32,14 @@ export function formatCliArgs(args: KeyValueArgs): string[] {
             continue
         }
 
+        /**
+         * there are some special options that should not be transformed
+         */
+        if (key === 'chromedriver_autodownload') {
+            cliArgs.push(key)
+            continue
+        }
+
         cliArgs.push(`--${kebabCase(key)}`)
         // Only non-boolean and non-null values are added as option values
         if (typeof value !== 'boolean') {

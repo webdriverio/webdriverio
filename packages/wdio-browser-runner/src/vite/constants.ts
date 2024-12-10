@@ -59,7 +59,11 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             // Enable esbuild polyfill plugins
             plugins: [
                 esbuildCommonjs(['@testing-library/vue']),
-                codeFrameFix()
+                /**
+                 * cast to "any" here as Vite's esbuild dependency and WebdriverIOs one
+                 * may differ and cause type issues here.
+                 */
+                codeFrameFix() as any
             ],
         },
     },

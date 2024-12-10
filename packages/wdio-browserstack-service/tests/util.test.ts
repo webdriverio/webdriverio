@@ -1,10 +1,13 @@
 import path from 'node:path'
 
-import { describe, expect, it, vi, beforeEach, afterEach, beforeAll } from 'vitest'
+import type { LaunchResponse } from '../src/types.js'
+
+import { describe, expect, it, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import gitRepoInfo from 'git-repo-info'
 import CrashReporter from '../src/crash-reporter.js'
 import logger from '@wdio/logger'
 import * as utils from '../src/util.js'
+import logPatcher from '../src/logPatcher.js'
 import {
     getBrowserDescription,
     getBrowserCapabilities,
@@ -34,12 +37,18 @@ import {
     validateCapsWithA11y,
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
-    createAccessibilityTestRun,
     isTrue,
-    uploadLogs
+    uploadLogs,
+    getObservabilityProduct,
+    isUndefined,
+    processTestObservabilityResponse,
+    processAccessibilityResponse,
+    processLaunchBuildResponse,
+    jsonifyAccessibilityArray
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_JWT_ENV } from '../src/constants.js'
+import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
+import * as testHubUtils from '../src/testHub/utils.js'
 
 const log = logger('test')
 
@@ -656,7 +665,7 @@ describe('getScenarioExamples', () => {
 describe('stopBuildUpstream', () => {
     it('return error if completed but jwt token not present', async () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        delete process.env[TESTOPS_JWT_ENV]
+        delete process.env[BROWSERSTACK_TESTHUB_JWT]
 
         const result: any = await stopBuildUpstream()
 
@@ -667,7 +676,7 @@ describe('stopBuildUpstream', () => {
 
     it('return success if completed', async () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        process.env[TESTOPS_JWT_ENV] = 'jwt'
+        process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwt'
 
         vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({})))
 
@@ -678,7 +687,7 @@ describe('stopBuildUpstream', () => {
 
     it('return error if failed', async () => {
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
-        process.env[TESTOPS_JWT_ENV] = 'jwt'
+        process.env[BROWSERSTACK_TESTHUB_JWT] = 'jwt'
 
         vi.mocked(fetch).mockReturnValueOnce(Promise.reject(Response.json({})))
 
@@ -694,12 +703,13 @@ describe('stopBuildUpstream', () => {
 
 describe('launchTestSession', () => {
     vi.mocked(gitRepoInfo).mockReturnValue({} as any)
+    vi.spyOn(testHubUtils, 'getProductMap').mockReturnValue({} as any)
 
     it('return undefined if completed', async () => {
 
         vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ build_hashed_id: 'build_id', jwt: 'jwt' })))
 
-        const result: any = await launchTestSession( { framework: 'framework' } as any, { }, {})
+        const result: any = await launchTestSession( { framework: 'framework' } as any, { }, {}, {})
         assertMethodCalls(vi.mocked(fetch), 'POST', 1)
         expect(result).toEqual(undefined)
     })
@@ -1029,75 +1039,6 @@ describe('isAccessibilityAutomationSession', () => {
     })
 })
 
-describe('createAccessibilityTestRun', () => {
-    const logInfoMock = vi.spyOn(log, 'error')
-
-    beforeEach (() => {
-        vi.mocked(logInfoMock).mockClear()
-        vi.mocked(gitRepoInfo).mockReturnValue({} as any)
-    })
-
-    it('return null if BrowserStack credentials are undefined', async () => {
-        const result = await createAccessibilityTestRun( { framework: 'framework' } as any, {})
-        expect(result).toEqual(null)
-        expect(logInfoMock.mock.calls[0][0])
-            .toContain('Exception while creating test run for BrowserStack Accessibility Automation: Missing BrowserStack credentials')
-    })
-
-    it('return undefined if completed', async () => {
-        vi.spyOn(utils, 'getGitMetaData').mockReturnValue({} as any)
-        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ data: { accessibilityToken: 'someToken', id: 'id', scannerVersion: '0.0.6.0' } })))
-
-        const result = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, {})
-        expect(fetch).toBeCalledTimes(1)
-        expect(result).toEqual('0.0.6.0')
-    })
-
-    it('return undefined if completed', async () => {
-        vi.spyOn(utils, 'getGitMetaData').mockReturnValue({} as any)
-        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ accessibilityToken: 'someToken', id: 'id', scannerVersion: '0.0.6.0' })))
-
-        const result: any = await createAccessibilityTestRun( { framework: 'framework' } as any, { user: 'user', key: 'key' }, { bstackServiceVersion: '1.2.3' })
-        expect(fetch).toBeCalledTimes(1)
-        expect(result).toEqual(null)
-        expect(logInfoMock.mock.calls[0][0]).contains('Exception while creating test run for BrowserStack Accessibility Automation')
-    })
-
-    afterEach(() => {
-        vi.mocked(fetch).mockClear()
-    })
-})
-
-describe('stopAccessibilityTestRun', () => {
-    beforeEach (() => {
-        vi.mocked(gitRepoInfo).mockReturnValue({} as any)
-    })
-
-    it('return error object if ally token not defined', async () => {
-        process.env.BSTACK_A11Y_JWT = undefined
-        const result: any = await utils.stopAccessibilityTestRun()
-        expect(result).toEqual({ 'message': 'Build creation had failed.', 'status': 'error' })
-    })
-
-    it('return success object if ally token defined and no error in response data', async () => {
-        process.env.BSTACK_A11Y_JWT = 'someToken'
-        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ data: {} })))
-        const result: any = await utils.stopAccessibilityTestRun()
-        expect(result).toEqual({ 'message': '', 'status': 'success' })
-    })
-
-    it('return error object if ally token defined and no error in response data', async () => {
-        process.env.BSTACK_A11Y_JWT = 'someToken'
-        vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ data: { error: 'Some Error occurred' } })))
-        const result = await utils.stopAccessibilityTestRun()
-        expect(result).toEqual({ 'message': 'Invalid request: Some Error occurred', 'status': 'error' })
-    })
-
-    afterEach(() => {
-        vi.mocked(fetch).mockClear()
-    })
-})
-
 describe('getA11yResults', () => {
     const browser = {
         sessionId: 'session123',
@@ -1138,8 +1079,10 @@ describe('getA11yResults', () => {
     })
 
     it('return results object if bstack as well as accessibility session', async () => {
+        process.env.BSTACK_A11Y_JWT = 'abc'
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResults((browser as WebdriverIO.Browser), true, true)
+        delete process.env.BSTACK_A11Y_JWT
         expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
@@ -1184,8 +1127,10 @@ describe('getA11yResultsSummary', () => {
     })
 
     it('return results object if bstack as well as accessibility session', async () => {
+        process.env.BSTACK_A11Y_JWT = 'abc'
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, true)
+        delete process.env.BSTACK_A11Y_JWT
         expect(browser.executeAsync).toBeCalledTimes(2)
     })
 })
@@ -1263,21 +1208,22 @@ describe('frameworkSupportsHook', function () {
 
 describe('uploadLogs', function () {
     beforeAll(() => {
+        vi.mocked(fetch).mockClear()
         vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ status: 'success', message: 'Logs uploaded Successfully' })))
     })
     it('should return if user is undefined', async function () {
         await uploadLogs(undefined, 'some_key', 'some_uuid')
         expect(fetch).not.toHaveBeenCalled()
-        vi.mocked(fetch).mockClear()
     })
     it('should return if key is undefined', async function () {
         await uploadLogs('some_user', undefined, 'some_uuid')
         expect(fetch).not.toHaveBeenCalled()
-        vi.mocked(fetch).mockClear()
     })
     it('should upload the logs', async function () {
         await uploadLogs('some_user', 'some_key', 'some_uuid')
         expect(fetch).toHaveBeenCalled()
+    })
+    afterAll(() => {
         vi.mocked(fetch).mockClear()
     })
 })
@@ -1305,5 +1251,207 @@ describe('getFailureObject', function () {
         expect(getFailureObject(error)).toMatchObject({
             failure: [{ backtrace: [error.stack.toString()] }]
         })
+    })
+})
+
+describe('getObservabilityProduct', () => {
+    it ('should return app automate', function () {
+        expect(getObservabilityProduct(undefined, true)).toEqual('app-automate')
+    })
+})
+
+describe('isUndefined', () => {
+    it ('should return true for empty string', function () {
+        expect(isUndefined('')).toEqual(true)
+    })
+})
+
+describe('processTestObservabilityResponse', () => {
+    let response: LaunchResponse, handleErrorForObservabilitySpy
+    beforeAll(() => {
+        response = {
+            jwt: 'abc',
+            build_hashed_id: 'abc',
+            observability: {
+                success: true,
+                options: {},
+                errors: undefined
+            },
+            accessibility: {
+                success: true,
+                options: {
+                    status: 'true',
+                    commandsToWrap: {
+                        scriptsToRun: [],
+                        commands: []
+                    },
+                    scripts: [{
+                        name: 'abc',
+                        command: 'abc'
+                    }],
+                    capabilities: [{
+                        name: 'abc',
+                        value: 'abc'
+                    }]
+                },
+                errors: undefined
+            }
+        }
+    })
+    it ('processTestObservabilityResponse should not log an error', function () {
+        processTestObservabilityResponse(response)
+        expect(process.env[BROWSERSTACK_OBSERVABILITY]).toEqual('true')
+    })
+    it ('processTestObservabilityResponse should log error if observability success is false', function () {
+        handleErrorForObservabilitySpy = vi.spyOn(testHubUtils, 'handleErrorForObservability').mockReturnValue({} as any)
+        const res = response
+        res.observability!.success = false
+        processTestObservabilityResponse(res)
+        expect(handleErrorForObservabilitySpy).toBeCalled()
+    })
+    it ('processTestObservabilityResponse should log error if observability field not found', function () {
+        handleErrorForObservabilitySpy = vi.spyOn(testHubUtils, 'handleErrorForObservability').mockReturnValue({} as any)
+        const res = response
+        res.observability = undefined
+        processTestObservabilityResponse(res)
+        expect(handleErrorForObservabilitySpy).toBeCalled()
+    })
+    afterEach(() => {
+        handleErrorForObservabilitySpy?.mockClear()
+    })
+})
+
+describe('processAccessibilityResponse', () => {
+    let response: LaunchResponse, handleErrorForAccessibilitySpy
+    beforeAll(() => {
+        response = {
+            jwt: 'abc',
+            build_hashed_id: 'abc',
+            observability: {
+                success: true,
+                options: {},
+                errors: undefined
+            },
+            accessibility: {
+                success: true,
+                options: {
+                    status: 'true',
+                    commandsToWrap: {
+                        scriptsToRun: [],
+                        commands: []
+                    },
+                    scripts: [{
+                        name: 'abc',
+                        command: 'abc'
+                    }],
+                    capabilities: [
+                        {
+                            name: 'accessibilityToken',
+                            value: 'abc'
+                        },
+                        {
+                            name: 'scannerVersion',
+                            value: 'abc'
+                        }
+                    ]
+                },
+                errors: undefined
+            }
+        }
+    })
+    it ('processAccessibilityResponse should not log an error', function () {
+        processAccessibilityResponse(response)
+        expect(process.env[BROWSERSTACK_ACCESSIBILITY]).toEqual('true')
+    })
+    it ('processAccessibilityResponse should log error if accessibility success is false', function () {
+        handleErrorForAccessibilitySpy = vi.spyOn(testHubUtils, 'handleErrorForAccessibility').mockReturnValue({} as any)
+        const res = response
+        res.accessibility!.success = false
+        processAccessibilityResponse(res)
+        expect(handleErrorForAccessibilitySpy).toBeCalled()
+    })
+    it ('processAccessibilityResponse should log error if accessibility field not found', function () {
+        handleErrorForAccessibilitySpy = vi.spyOn(testHubUtils, 'handleErrorForAccessibility').mockReturnValue({} as any)
+        const res = response
+        res.accessibility = undefined
+        processAccessibilityResponse(res)
+        expect(handleErrorForAccessibilitySpy).toBeCalled()
+    })
+    afterEach(() => {
+        handleErrorForAccessibilitySpy?.mockClear()
+    })
+})
+
+describe('processLaunchBuildResponse', () => {
+    let response: LaunchResponse, observabilitySpy, accessibilitySpy
+    beforeAll(() => {
+        response = {
+            jwt: 'abc',
+            build_hashed_id: 'abc',
+            observability: {
+                success: true,
+                options: {},
+                errors: undefined
+            },
+            accessibility: {
+                success: true,
+                options: {
+                    status: 'true',
+                    commandsToWrap: {
+                        scriptsToRun: [],
+                        commands: []
+                    },
+                    scripts: [{
+                        name: 'abc',
+                        command: 'abc'
+                    }],
+                    capabilities: [{
+                        name: 'accessibilityToken',
+                        value: 'abc'
+                    }]
+                },
+                errors: undefined
+            }
+        }
+    })
+    beforeEach(() => {
+        observabilitySpy = vi.spyOn(utils, 'processTestObservabilityResponse').mockImplementation(() => {})
+        accessibilitySpy = vi.spyOn(utils, 'processAccessibilityResponse').mockImplementation(() => {})
+    })
+    it ('processTestObservabilityResponse should be called', function () {
+        processLaunchBuildResponse(response, { testObservability: true, accessibility: true, capabilities: {} })
+        expect(process.env[BROWSERSTACK_OBSERVABILITY]).toEqual('true')
+    })
+    it ('processAccessibilityResponse should be called', function () {
+        processLaunchBuildResponse(response, { testObservability: true, accessibility: true, capabilities: {} })
+        expect(process.env[BROWSERSTACK_ACCESSIBILITY]).toEqual('true')
+    })
+    afterEach(() => {
+        observabilitySpy?.mockClear()
+        accessibilitySpy?.mockClear()
+    })
+})
+
+describe('jsonifyAccessibilityArray', () => {
+    const array = [{
+        name: 'accessibilityToken',
+        value: 'abc'
+    }]
+    it('jsonifyAccessibilityArray', () => {
+        expect(jsonifyAccessibilityArray(array, 'name', 'value')).toEqual({ 'accessibilityToken': 'abc' })
+    })
+})
+
+describe('logPatcher', () => {
+    const BSTestOpsPatcher = new logPatcher({})
+    const emitSpy = vi.spyOn(process, 'emit')
+    it('logPatcher methods should emit data', () => {
+        BSTestOpsPatcher.info('abc')
+        BSTestOpsPatcher.error('abc')
+        BSTestOpsPatcher.warn('abc')
+        BSTestOpsPatcher.trace('abc')
+        BSTestOpsPatcher.debug('abc')
+        BSTestOpsPatcher.log('abc')
+        expect(emitSpy).toBeCalled()
     })
 })

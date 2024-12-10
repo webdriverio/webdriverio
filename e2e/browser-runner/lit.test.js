@@ -52,7 +52,7 @@ describe('Lit Component testing', () => {
         expect(window.mochaGlobalSetupExecuted).toBe(true)
     })
 
-    it('should render component', async () => {
+    it('should render component', async function () {
         /**
          * only run snapshot tests in non-Safari browsers as shadow dom piercing
          * is not yet supported in Safari
@@ -70,7 +70,7 @@ describe('Lit Component testing', () => {
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! How are you today?')
     })
 
-    it('should render with mocked component function', async () => {
+    it('should render with mocked component function', async function () {
         /**
          * only run snapshot tests in non-Safari browsers as shadow dom piercing
          * is not yet supported in Safari
@@ -98,14 +98,14 @@ describe('Lit Component testing', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
-    describe('shadow root piercing', () => {
-        it('should allow to pierce into closed shadow roots', async () => {
+    describe('shadow root piercing', function () {
+        it('should allow to pierce into closed shadow roots', async function () {
             /**
              * only run snapshot tests in non-Safari browsers as shadow dom piercing
              * is not yet supported in Safari
              */
             if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
-                return
+                return this.skip()
             }
 
             render(
@@ -139,13 +139,13 @@ describe('Lit Component testing', () => {
             `)
         })
 
-        it('can fetch multiple elements within various closed shadow roots', async () => {
+        it('can fetch multiple elements within various closed shadow roots', async function () {
             /**
              * only run snapshot tests in non-Safari browsers as shadow dom piercing
              * is not yet supported in Safari
              */
             if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
-                return
+                return this.skip()
             }
 
             render(
@@ -538,7 +538,7 @@ describe('Lit Component testing', () => {
             expect(error.message).toBe('expected bar to be foo')
         })
 
-        it('should support nested element calls', async () => {
+        it('should support nested element calls', async function () {
             render(
                 html`<section>
                     <div class="first">
@@ -830,9 +830,9 @@ describe('Lit Component testing', () => {
         expect(a.tagName).toBe('X-FOO')
     })
 
-    it('connectedCallback should not fail if no original connectedCallback is defined', function(){
+    it('connectedCallback should not fail if no original connectedCallback is defined', function () {
         // only in bidi the customElementWrapper is not available
-        if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
+        if (!browser.isBidi) {
             return this.skip()
         }
 
@@ -842,9 +842,9 @@ describe('Lit Component testing', () => {
         a.connectedCallback()
     })
 
-    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function() {
+    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function () {
         // only in bidi the customElementWrapper is not available
-        if (!browser.isBidi || browser.options?.automationProtocol !== 'webdriver') {
+        if (!browser.isBidi) {
             return this.skip()
         }
         class Foo extends HTMLElement { }

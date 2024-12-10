@@ -310,7 +310,7 @@ async function bar() {
     const el4 = elems[0]
     const el5 = await el4.$('')
     expectType<string>(await el4.getAttribute('class'))
-    expectType<void>(await el5.scrollIntoView(false))
+    expectType<void|unknown>(await el5.scrollIntoView(false))
 
     // async iterator
     const iteratorResult = await $$('').map((el) => el.getText())
@@ -489,6 +489,15 @@ async function bar() {
     expectType<WebdriverIO.Element[]>(
         await browser.$$('foo').filter(async () => true)
     )
+
+    for await (const el of browser.$$('foo')) {
+        expectType<WebdriverIO.Element>(el)
+    }
+    const panels = await browser.$$('foo')
+    for (const panel of panels) {
+        await expect(panel).toHaveAttr('class', 'false')
+    }
+
     type Random = {
         foo: WebdriverIO.Element
         bar: WebdriverIO.Browser

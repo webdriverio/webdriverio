@@ -8,7 +8,7 @@ import { checkUnicode } from '../../utils/index.js'
  * on it. To use characters like "Left arrow" or "Back space", import the `Key` object from the WebdriverIO package.
  *
  * Modifier like `Control`, `Shift`, `Alt` and `Command` will stay pressed so you need to trigger them again to release
- * them. Modifiying a click however requires you to use the WebDriver Actions API through the
+ * them. Modifying a click however requires you to use the WebDriver Actions API through the
  * [performActions](https://webdriver.io/docs/api/webdriver#performactions) method.
  *
  * :::info

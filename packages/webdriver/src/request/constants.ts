@@ -9,7 +9,7 @@ export const RETRYABLE_ERROR_CODES = [
     'ETIMEDOUT', 'ECONNRESET', 'EADDRINUSE', 'ECONNREFUSED', 'EPIPE', 'ENOTFOUND',
     'ENETUNREACH', 'EAI_AGAIN',
     // additional error codes we like to retry
-    'UND_ERR_CONNECT_TIMEOUT'
+    'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET'
 ]
 
 export const REG_EXPS = {

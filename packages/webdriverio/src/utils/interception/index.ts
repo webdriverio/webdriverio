@@ -149,29 +149,33 @@ export default class WebDriverInterception {
         }
 
         /**
-         * continue the request without modifications, if:
+         * continue mock if not matching filter
          */
-        const continueRequest = (
-            /**
-             * - mock has no request/respond overwrites
-             * - no request modifications are set, e.g. no overwrite is set
-             */
-            !this.#matchesFilterOptions(request) ||
-            this.#respondOverwrites.length === 0 ||
-            !this.#respondOverwrites[0].overwrite
-        )
-
-        /**
-         * check if request matches the mock url
-         */
-        if (continueRequest) {
+        if (!this.#matchesFilterOptions(request)) {
             this.#emitter.emit('continue', request.request.request)
             return this.#browser.networkProvideResponse({
                 request: request.request.request
             }).catch(this.#handleNetworkProvideResponseError)
         }
 
+        /**
+         * mark mock to be "called"
+         */
         this.#calls.push(request)
+
+        /**
+         * continue response as mock has no respond overwrites
+         */
+        if (
+            this.#respondOverwrites.length === 0 ||
+            !this.#respondOverwrites[0].overwrite
+        ) {
+            this.#emitter.emit('continue', request.request.request)
+            return this.#browser.networkProvideResponse({
+                request: request.request.request
+            }).catch(this.#handleNetworkProvideResponseError)
+        }
+
         const { overwrite } = this.#respondOverwrites[0].once
             ? this.#respondOverwrites.shift() || {}
             : this.#respondOverwrites[0]

@@ -6,7 +6,7 @@ import { remote } from '../../../src/index.js'
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-describe('isEnabled test', () => {
+describe('execute test', () => {
     it('should execute the script', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -18,8 +18,8 @@ describe('isEnabled test', () => {
         await browser.execute((a, b, c) => a + b + c, 1, 2, 3)
         expect((vi.mocked(fetch).mock.calls[1][0] as any).pathname)
             .toBe('/session/foobar-123/execute/sync')
-        expect(vi.mocked(fetch).mock.calls[1][1]?.body).toMatchObject(JSON.stringify({
-            script: 'return ((a, b, c) => a + b + c).apply(null, arguments)',
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]?.body as string)).toEqual(expect.objectContaining({
+            script: expect.stringContaining('return ((a, b, c) => a + b + c).apply(null, arguments)'),
             args: [1, 2, 3]
         }))
     })

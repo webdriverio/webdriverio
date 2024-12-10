@@ -75,8 +75,12 @@ export default async function run() {
         )
 
         console.error(`${output}\n\n${err.stack}`)
+
+        /**
+         * only exit process if we are run by a user and not running unit tests
+         */
         /* istanbul ignore if */
-        if (!process.env.VITEST_WORKER_ID) {
+        if (!process.env.WDIO_UNIT_TESTS) {
             process.exit(1)
         }
     }

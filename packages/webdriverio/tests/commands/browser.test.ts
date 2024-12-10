@@ -11,10 +11,16 @@ const files = fs
 
 test(scope + ' commands list and strategies', () => {
     const prototype = Object.keys(getPrototype(scope))
-    const expected = ['puppeteer', ...files, 'strategies']
+    const expected = [
+        'puppeteer', ...files, 'strategies',
+        // Normally the flags are not "returned" because they are added in a different step
+        'isNativeContext', 'mobileContext'
+    ]
     /**
      * ignored commands that are just there for documentation purposes
      */
     const ignored = ['addCommand', 'overwriteCommand']
-    expect(prototype).toEqual(expected.filter((cmd) => !ignored.includes(cmd)))
+    expect(prototype.sort()).toEqual(
+        expected.filter((cmd) => !ignored.includes(cmd)).sort()
+    )
 })

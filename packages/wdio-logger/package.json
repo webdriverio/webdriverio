@@ -1,6 +1,6 @@
 {
   "name": "@wdio/logger",
-  "version": "9.1.0",
+  "version": "9.1.3",
   "description": "A helper utility for logging of WebdriverIO packages",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger",
@@ -12,8 +12,8 @@
   "exports": {
     ".": {
       "browserSource": "./src/browser.ts",
-      "types": "./build/index.d.ts",
       "browser": "./build/browser.js",
+      "types": "./build/index.d.ts",
       "import": "./build/index.js",
       "require": "./build/index.cjs"
     },

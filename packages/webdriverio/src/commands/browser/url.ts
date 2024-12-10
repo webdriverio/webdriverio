@@ -1,5 +1,5 @@
 import { validateUrl } from '../../utils/index.js'
-import { networkManager } from '../../networkManager.js'
+import { getNetworkManager } from '../../networkManager.js'
 import { getContextManager } from '../../context.js'
 import type { InitScript } from './addInitScript.js'
 
@@ -7,52 +7,6 @@ type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
 
 const DEFAULT_NETWORK_IDLE_TIMEOUT = 5000
 const DEFAULT_WAIT_STATE = 'complete'
-
-interface UrlCommandOptions {
-    /**
-     * The desired state the requested resource should be in before finishing the command.
-     * It supports the following states:
-     *
-     *  - `none`: no wait after the page request is made and the response is received
-     *  - `interactive`: wait until the page is interactive
-     *  - `complete`: wait until the DOM tree of the page is fully loaded
-     *  - `networkIdle`: wait until there are no pending network requests
-     *
-     * @default 'complete'
-     */
-    wait?: WaitState
-    /**
-     * Headers to be sent with the request.
-     * @default {}
-     */
-    headers?: Record<string, string>
-    /**
-     * Basic authentication credentials
-     * Note: this will overwrite the existing `Authorization` header if provided in the `headers` option
-     */
-    auth?: {
-        user: string
-        pass: string
-    }
-    /**
-     * If set to a number, the command will wait for the specified amount of milliseconds for the page to load
-     * all responses before returning.
-     *
-     * Note: for this to have an impact, it requires the `wait` option to be set to `networkIdle`
-     *
-     * @default 5000
-     */
-    timeout?: number
-    /**
-     * A function that is being called before your page has loaded all of its resources. It allows you to easily
-     * mock the environment, e.g. overwrite Web APIs that your application uses.
-     *
-     * Note: the provided function is being serialized and executed in the browser context. You can not pass in variables
-     * from the Node.js context. Furthermore changes to the environment only apply for this specific page load.
-     * Checkout `browser.addPreloadScript` for a more versatile way to mock the environment.
-     */
-    onBeforeLoad?: () => any
-}
 
 /**
  *
@@ -196,23 +150,37 @@ export async function url (
             mock.requestOnce({ headers: options.headers })
         }
 
+        /**
+         * WebDriver Classic allowed to provide a `pageLoadStrategy` capability.
+         * To ensure backwards combatibility, we need to map the `pageLoadStrategy`
+         * to the WebDriver Bidi spec.
+         *
+         * see https://www.w3.org/TR/webdriver2/#navigation
+         */
+        const classicPageLoadStrategy = this.capabilities.pageLoadStrategy === 'none'
+            ? 'none'
+            : this.capabilities.pageLoadStrategy === 'normal'
+                ? 'complete'
+                : this.capabilities.pageLoadStrategy === 'eager'
+                    ? 'interactive'
+                    : undefined
+
         const wait = options.wait === 'networkIdle'
             ? 'complete'
-            : options.wait || DEFAULT_WAIT_STATE
-        await this.browsingContextNavigate({
+            : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
+        const navigation = await this.browsingContextNavigate({
             context,
             url: path,
             wait
         })
 
-        const network = networkManager.get(this)
-        const request = network?.getRequestResponseData(context)
-
         if (mock) {
             await mock.restore()
         }
 
-        if (network && options.wait === 'networkIdle') {
+        const network = getNetworkManager(this)
+
+        if (options.wait === 'networkIdle') {
             const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
             await this.waitUntil(async () => {
                 return network.getPendingRequests(context).length === 0
@@ -229,6 +197,18 @@ export async function url (
             await resetPreloadScript.remove()
         }
 
+        /**
+         * wait until we have a request object
+         */
+        const request = await this.waitUntil(
+            () => network.getRequestResponseData(navigation.navigation as string),
+            /**
+             * set a short interval to immediately return once the first request payload comes in
+             */
+            {
+                interval: 1,
+            }
+        )
         return request
     }
 
@@ -237,4 +217,50 @@ export async function url (
     }
 
     await this.navigateTo(validateUrl(path))
+}
+
+interface UrlCommandOptions {
+    /**
+     * The desired state the requested resource should be in before finishing the command.
+     * It supports the following states:
+     *
+     *  - `none`: no wait after the page request is made and the response is received
+     *  - `interactive`: wait until the page is interactive
+     *  - `complete`: wait until the DOM tree of the page is fully loaded
+     *  - `networkIdle`: wait until there are no pending network requests
+     *
+     * @default 'complete'
+     */
+    wait?: WaitState
+    /**
+     * Headers to be sent with the request.
+     * @default {}
+     */
+    headers?: Record<string, string>
+    /**
+     * Basic authentication credentials
+     * Note: this will overwrite the existing `Authorization` header if provided in the `headers` option
+     */
+    auth?: {
+        user: string
+        pass: string
+    }
+    /**
+     * If set to a number, the command will wait for the specified amount of milliseconds for the page to load
+     * all responses before returning.
+     *
+     * Note: for this to have an impact, it requires the `wait` option to be set to `networkIdle`
+     *
+     * @default 5000
+     */
+    timeout?: number
+    /**
+     * A function that is being called before your page has loaded all of its resources. It allows you to easily
+     * mock the environment, e.g. overwrite Web APIs that your application uses.
+     *
+     * Note: the provided function is being serialized and executed in the browser context. You can not pass in variables
+     * from the Node.js context. Furthermore changes to the environment only apply for this specific page load.
+     * Checkout `browser.addPreloadScript` for a more versatile way to mock the environment.
+     */
+    onBeforeLoad?: () => any
 }

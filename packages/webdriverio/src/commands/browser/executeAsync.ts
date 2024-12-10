@@ -5,6 +5,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../context.js'
+import { NAME_POLYFILL } from '../../polyfill.js'
 
 /**
  * :::warning
@@ -101,7 +102,10 @@ export async function executeAsync<ReturnValue, InnerArguments extends any[]>(
      * a function parameter, therefore we need to check if it starts with "function () {"
      */
     if (typeof script === 'function') {
-        script = `return (${script}).apply(null, arguments)`
+        script = `
+            ${NAME_POLYFILL}
+            return (${script}).apply(null, arguments)
+        `
     }
 
     return this.executeAsyncScript(script, verifyArgsAndStripIfElement(args))

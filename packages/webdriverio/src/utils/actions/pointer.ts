@@ -48,6 +48,14 @@ const MOVE_PARAM_DEFAULTS = {
 type PointerActionParams = Partial<typeof PARAM_DEFAULTS> & Partial<PointerActionUpParams>
 type PointerActionMoveParams = Partial<typeof MOVE_PARAM_DEFAULTS> & PointerActionParams
 
+function removeDefaultParams(seq: Record<string, any>) {
+    for (const [key, value] of Object.entries(seq)) {
+        if (value === 0 && !['x', 'y', 'button', 'duration'].includes(key)) {
+            delete seq[key]
+        }
+    }
+}
+
 function mapButton(params: PointerActionParams | ButtonNames | Button) {
     const buttons = {
         left: 0,
@@ -97,6 +105,7 @@ export default class PointerAction extends BaseAction {
         } else if (params) {
             Object.assign(seq, params)
         }
+        removeDefaultParams(seq)
 
         this.sequence.push(seq)
         return this
@@ -125,11 +134,15 @@ export default class PointerAction extends BaseAction {
     down (button?: ButtonNames): PointerAction
     down (params?: PointerActionParams): PointerAction
     down (params: PointerActionParams | Button | ButtonNames = {}) {
-        this.sequence.push({
+        const seq = {
             type: 'pointerDown',
             ...PARAM_DEFAULTS,
-            ...mapButton(params)
-        })
+            ...mapButton(params),
+        }
+
+        removeDefaultParams(seq)
+
+        this.sequence.push(seq)
         return this
     }
 

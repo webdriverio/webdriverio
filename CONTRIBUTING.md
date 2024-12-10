@@ -66,13 +66,13 @@ See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/.github/S
 
 The flowcharts provide a high level overview of the WebdriverIO ecosystem and how the different packages interact with each other.
 
-[WDIO Commands](flowcharts/WDIOCommands.md) - Explains the wdio config, install and repl command workflows.
+[WDIO Commands](https://webdriver.io/docs/flowcharts/wdiocommands) - Explains the wdio config, install and repl command workflows.
 
-[Create local worker process](flowcharts/CreateLocalWorkerProcess.md) - Explains the interaction between the @wdio/cli, @wdio/local-runner and @wdio/runner packages and how a worker process is created.
+[Create local worker process](https://webdriver.io/docs/flowcharts/createlocalworkerprocess) - Explains the interaction between the @wdio/cli, @wdio/local-runner and @wdio/runner packages and how a worker process is created.
 
-[Test execution](flowcharts/TestExecution.md) - Overview of how the tests are run in the local runner worker process.
+[Test execution](https://webdriver.io/docs/flowcharts/testexecution) - Overview of how the tests are run in the local runner worker process.
 
-[High level overview](flowcharts/HighLevelOverview.md) - Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
+[High level overview](https://webdriver.io/docs/flowcharts/highleveloverview) - Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
 
 ## Proposing a Change
 
@@ -163,7 +163,7 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 If you start making changes to specific packages, make sure you listen to file changes and transpile the code every time you press save. To do that for all packages, run:
 
 ```sh
-npm run dev
+pnpm run dev
 ```
 
 If you only work on a single package, you can watch only for that one by calling:
@@ -278,13 +278,13 @@ With the `--watch` flag the unit tests will be re-run as soon as you change some
 WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is set up in a way so it doesn't require an actual browser driver since all requests are mocked using the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service). This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
 
 ```sh
-npm run test:smoke
+pnpm run test:smoke
 ```
 
 There is one [`smoke.runner.js`](https://github.com/webdriverio/webdriverio/blob/main/tests/smoke.runner.js) file that triggers all tests. It contains several [test suites](https://github.com/webdriverio/webdriverio/blob/main/tests/smoke.runner.js#L365-L384) defined that run in different environments, e.g. Mocha, Jasmine and Cucumber. You can run a specific test suite by calling, e.g.:
 
 ```sh
-npm run test:smoke mochaTestrunner
+pnpm run test:smoke mochaTestrunner
 ```
 
 Every of these test suites are functions that trigger the wdio testrunner programmatically using the [`launch`](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/launch.js) helper method. All you need to pass in is a path to your config file and with what you want to overwrite the config. Most of the smoke test use a [common config file](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/config.js) and overwrite properties specific for their use case.
@@ -296,7 +296,7 @@ If you test custom WebDriver commands, you can define your own scenario of mock 
 To make sure that we don't accidentally change the types and cause users' test to break, we run some simple TypeScript checks. You can run all the type definition tests by running:
 
 ```sh
-npm run test:typings
+pnpm run test:typings
 ```
 
 This will run all the tests for all the type definitions WebdriverIO provides. These tests just check if TypeScript can compile them according to the generated type definitions. All the type checks are located in `/webdriverio/tests/typings`. If you extend a WebdriverIO command or interfaces for other type definitions, please ensure that you have used it in these files. The directory contains tests for the asynchronous usage of WebdriverIO.
@@ -393,7 +393,7 @@ $ git checkout v6
 Before you can start, please export an `GITHUB_AUTH` token into your environment in order to allow the executing script to fetch data about pull requests and set proper labels. Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such a token with only having the `public_repo` field enabled. Then export it into your environment and run the backport script. It fetches all commits connected with PRs that are labeled with `backport-requested` and cherry-picks them into the maintenance branch. Via an interactive console you can get the chance to review the PR again and whether you want to backport it or not. To start the process, just execute:
 
 ```sh
-npm run backport
+pnpm run backport
 ```
 
 If during the process a cherry-pick fails, you can always abort and manually troubleshoot. If you are not able to resolve the problem, create an issue in the repo and include the author of that PR. A successful backport of two PRs will look like this:

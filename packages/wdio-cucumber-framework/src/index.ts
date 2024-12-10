@@ -15,27 +15,9 @@ import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 
 import {
-    After,
-    AfterAll,
-    AfterStep,
-
-    Before,
-    BeforeAll,
-    BeforeStep,
-
-    Given,
-    When,
-    Then,
-
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
     supportCodeLibraryBuilder,
-    setWorldConstructor,
-    defineParameterType,
-    defineStep,
-
-    DataTable,
-    World,
     Status,
 } from '@cucumber/cucumber'
 import Gherkin from '@cucumber/gherkin'
@@ -72,7 +54,7 @@ function getResultObject(
     }
 }
 
-class CucumberAdapter {
+export class CucumberAdapter {
     private _cwd = process.cwd()
     private _newId = IdGenerator.incrementing()
     private _cucumberOpts: Required<CucumberOptions>
@@ -544,7 +526,7 @@ class CucumberAdapter {
  * @returns {Promise<void>} - A Promise that resolves when the report is successfully published.
  * @throws {Error} - Throws an error if there are issues with file reading or the publishing process.
  */
-const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> => {
+export const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> => {
     const url = process.env.CUCUMBER_PUBLISH_REPORT_URL || 'https://messages.cucumber.io/api/reports'
     const token = process.env.CUCUMBER_PUBLISH_REPORT_TOKEN
     if (!token) {
@@ -584,7 +566,7 @@ const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> 
 }
 
 const _CucumberAdapter = CucumberAdapter
-const adapterFactory: { init?: Function } = {}
+export const adapterFactory: { init?: Function } = {}
 
 /**
  * tested by smoke tests
@@ -598,34 +580,7 @@ adapterFactory.init = async function (...args: any[]) {
 }
 
 export default adapterFactory
-export {
-    CucumberAdapter,
-    adapterFactory,
-
-    After,
-    AfterAll,
-    AfterStep,
-
-    Before,
-    BeforeAll,
-    BeforeStep,
-
-    Given,
-    When,
-    Then,
-
-    DataTable,
-
-    World,
-
-    setDefaultTimeout,
-    setDefinitionFunctionWrapper,
-    setWorldConstructor,
-    defineParameterType,
-    defineStep,
-
-    publishCucumberReport
-}
+export * from '@cucumber/cucumber'
 
 declare global {
     namespace WebdriverIO {

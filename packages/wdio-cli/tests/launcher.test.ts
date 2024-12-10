@@ -5,7 +5,7 @@ import { sleep, enableFileLogging } from '@wdio/utils'
 import Launcher from '../src/launcher.js'
 
 const caps: WebdriverIO.Capabilities = {
-    maxInstances: 1,
+    'wdio:maxInstances': 1,
     browserName: 'chrome'
 }
 
@@ -79,7 +79,21 @@ describe('launcher', () => {
 
         it('should fail when no capabilities are set', async () => {
             launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
-            const exitCode = await launcher['_runMode']({ specs: ['./'], shard } as any, undefined as any)
+            const exitCode = await launcher['_runMode']({ specs: ['./'], shard } as any)
+            expect(exitCode).toEqual(1)
+            expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
+        })
+
+        it('should fail when no capabilities are set (empty capabilities array)', async () => {
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
+            const exitCode = await launcher['_runMode']({ specs: ['./'], shard } as any, [])
+            expect(exitCode).toEqual(1)
+            expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
+        })
+
+        it('should fail when no capabilities are set (empty capabilities array)', async () => {
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
+            const exitCode = await launcher['_runMode']({ specs: ['./'], shard } as any, {})
             expect(exitCode).toEqual(1)
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })

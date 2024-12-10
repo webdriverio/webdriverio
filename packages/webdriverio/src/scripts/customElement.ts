@@ -16,7 +16,7 @@ export default function customElementWrapper () {
             while (parentNode.parentNode) {
                 parentNode = parentNode.parentNode
             }
-            console.debug('[WDIO]', 'newShadowRoot', this, parentNode, parentNode === document)
+            console.debug('[WDIO]', 'newShadowRoot', this, parentNode, parentNode === document, document.documentElement)
             return origConnectedCallback?.call(this)
         }
 
@@ -35,7 +35,7 @@ export default function customElementWrapper () {
         while (parentNode.parentNode) {
             parentNode = parentNode.parentNode
         }
-        console.debug('[WDIO]', 'newShadowRoot', this, parentNode, parentNode === document)
+        console.debug('[WDIO]', 'newShadowRoot', this, parentNode, parentNode === document, document.documentElement)
         return shadowRoot
     }
 }

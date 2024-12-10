@@ -21,10 +21,14 @@ describe('WDIOReporter', () => {
 
     it('constructor', () => {
         new WDIOReporter({ logFile: '/some/logpath' })
+        expect(eventsOnSpy.mock.calls).toHaveLength(20)
         expect(eventsOnSpy).toBeCalledWith('client:beforeCommand', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:afterCommand', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('client:beforeAssertion', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('client:afterAssertion', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('runner:start', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('suite:start', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('suite:retry', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('hook:start', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('hook:end', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('test:start', expect.any(Function))

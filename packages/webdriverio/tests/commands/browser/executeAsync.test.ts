@@ -5,7 +5,7 @@ import { remote } from '../../../src/index.js'
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-describe('isEnabled test', () => {
+describe('executeAsync test', () => {
     it('should allow to check if an element is enabled', async () => {
         const browser: WebdriverIO.Browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -18,8 +18,8 @@ describe('isEnabled test', () => {
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/execute/async')
-        expect(vi.mocked(fetch).mock.calls[1][1]?.body).toMatchObject(JSON.stringify({
-            script: 'return (() => "foobar").apply(null, arguments)',
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]?.body as string)).toEqual(expect.objectContaining({
+            script: expect.stringContaining('return (() => "foobar").apply(null, arguments)'),
             args: [1, 2, 3]
         }))
     })

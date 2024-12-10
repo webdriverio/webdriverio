@@ -8,7 +8,7 @@ const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
 /**
  * BaseReporter
- * responsible for initialising reporters for every testrun and propagating events
+ * responsible for initializing reporters for every testrun and propagating events
  * to all these reporters
  */
 export default class BaseReporter {
@@ -53,7 +53,23 @@ export default class BaseReporter {
             })
         }
 
-        this._reporters.forEach((reporter) => reporter.emit(e, payload))
+        this._reporters.forEach((reporter) => {
+            try {
+                reporter.emit(e, payload)
+            } catch (err: any) {
+                // When reporter throws an exception, log the error and continue with the next reporter
+                this.#emitData({
+                    origin: 'reporter',
+                    name: 'printFailureMessage',
+                    content: {
+                        cid: this._cid,
+                        // Destructing of message and stack is required else nothing is outputted
+                        error: { message: err?.message, stack: err?.stack },
+                        fullTitle: `reporter ${reporter.constructor.name}`,
+                    }
+                })
+            }
+        })
     }
 
     onMessage (listener: (ev: any) => void) {
@@ -149,7 +165,7 @@ export default class BaseReporter {
                     return resolve(true)
                 }
 
-                log.info(`Wait for ${unsyncedReporter.length} reporter to synchronise`)
+                log.info(`Wait for ${unsyncedReporter.length} reporter to synchronize`)
                 // wait otherwise
             }, this._config.reporterSyncInterval)
         })

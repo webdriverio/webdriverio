@@ -129,7 +129,8 @@ describe('Command: run', () => {
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
             expect(execa).toBeCalledTimes(1)
             const moduleLoaderFlag = (
-                (runCmd.nodeVersion('major') >= 20 && runCmd.nodeVersion('minor') >= 6) ||
+                runCmd.nodeVersion('major') >= 21 ||
+                (runCmd.nodeVersion('major') === 20 && runCmd.nodeVersion('minor') >= 6) ||
                 (runCmd.nodeVersion('major') === 18 && runCmd.nodeVersion('minor') >= 19)
             )
                 ? '--import'

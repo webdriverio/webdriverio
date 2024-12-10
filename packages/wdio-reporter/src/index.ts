@@ -92,6 +92,17 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteStart(suite)
         })
 
+        /**
+         * This event is currently only supported by Cucumber and is emitted instead of a new
+         * 'suite:start' event when a suite is retried. This is useful for reporters that want to
+         * display the number of times a suite was retried.
+         */
+        this.on('suite:retry', (suite: Suite) => {
+            const suiteStat = this.suites[suite.uid!]
+            suiteStat.retry()
+            this.onSuiteRetry(suiteStat)
+        })
+
         this.on('hook:start', /* istanbul ignore next */ (hook: Hook) => {
             const hookStats = new HookStats(hook)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
@@ -296,6 +307,9 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onTestEnd(testStats: TestStats) { }
+    /* istanbul ignore next */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSuiteRetry(suiteStats: SuiteStats) { }
     /* istanbul ignore next */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSuiteEnd(suiteStats: SuiteStats) { }

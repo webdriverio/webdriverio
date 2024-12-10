@@ -169,4 +169,14 @@ describe('argument formatting', () => {
         expect(args[6]).toBe('\'/Users/frodo/My Projects/the-ring/the-ring.app\'')
         expect(args.length).toBe(7)
     })
+
+    test('it should not format certain other arguments', () => {
+        const args = formatCliArgs({
+            allowInsecure: true,
+            chromedriver_autodownload: true,
+        })
+
+        expect(args[0]).toBe('--allow-insecure')
+        expect(args[1]).toBe('chromedriver_autodownload')
+    })
 })

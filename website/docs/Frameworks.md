@@ -60,7 +60,23 @@ it('should test something', (done) => {
 
 ### Mocha Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. The following options however are supported:
+The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --mochaOpts.grep "my test" --mochaOpts.bail --no-mochaOpts.checkLeaks
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Mocha options are supported:
 
 #### require
 The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
@@ -164,7 +180,23 @@ You can then configure your Jasmine environment by setting a `jasmineOpts` prope
 
 ### Jasmine Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
+The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration). You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --jasmineOpts.grep "my test" --jasmineOpts.failSpecWithNoExpectations --no-jasmineOpts.random
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Jasmine options are supported:
 
 #### defaultTimeoutInterval
 Default Timeout Interval for Jasmine operations.
@@ -251,7 +283,8 @@ For example, if you want to run only the tests that are tagged with `@smoke`, yo
 
 ```sh
 # When you only want to run tests that hold the tag "@smoke"
-npx wdio ./wdio.conf.js --cucumberOpts.tags="@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.tags="@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.name="some scenario name" --cucumberOpts.failFast
 ```
 
 This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that only tests with this tag are executed.
@@ -447,7 +480,7 @@ import { Given, When, Then } from '@cucumber/cucumber'
 Now, if you use Cucumber already for other types of tests unrelated to WebdriverIO for which you use a specific version you need to import these helpers in your e2e tests from the WebdriverIO Cucumber package, e.g.:
 
 ```js
-import { Given, When, Then } from '@wdio/cucumber-framework'
+import { Given, When, Then, world, context } from '@wdio/cucumber-framework'
 ```
 
 This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independent Cucumber version for other types of testing.

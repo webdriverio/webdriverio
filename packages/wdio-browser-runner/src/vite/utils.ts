@@ -11,13 +11,15 @@ import { MOCHA_VARIABELS } from '../constants.js'
 import type { Environment, FrameworkPreset } from '../types.js'
 
 const log = logger('@wdio/browser-runner')
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, p = process) {
     const root = options.rootDir || process.cwd()
-    const rootFileUrl = url.pathToFileURL(root).href
     const isHeadless = options.headless || Boolean(process.env.CI)
     const alias = (options.viteConfig as (InlineConfig | undefined))?.resolve?.alias || {}
     const usesTailwindCSS = await hasFileByExtensions(path.join(root, 'tailwind.config'))
+    const mochaCSSHref = path.join(__dirname, 'third_party', 'mocha.css')
+    const mochaJSSrc = path.join(__dirname, 'third_party', 'mocha.js')
 
     /**
      * clean up some values that might cause serialization issues
@@ -35,10 +37,6 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
     } catch (err: unknown) {
         log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
     }
-
-    const mochaPath = await resolve('mocha', `${rootFileUrl}/node_modules`)
-    const mochaCSSHref = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.css')
-    const mochaJSSrc = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.js')
 
     return /* html */`
     <!doctype html>
