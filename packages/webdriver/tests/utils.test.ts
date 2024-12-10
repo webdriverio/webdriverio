@@ -413,11 +413,24 @@ describe('utils', () => {
             })
         })
         describe('given invalid regular expression', () => {
-            it('should still return a Regex with some literal string', () => {
+            it('should still return a Regex with some random literal string', () => {
                 const regex = 'some string'
 
                 expect(toRegularExpression(regex)).toEqual(/some string/)
             })
+
+            it('should do best effort when missing beginning slash', () => {
+                const regex = '.*password/'
+
+                expect(toRegularExpression(regex)).toEqual(/.*password\//)
+            })
+
+            it('should do best effort when missing end slash', () => {
+                const regex = '/.*password'
+
+                expect(toRegularExpression(regex)).toEqual(/\/.*password/)
+            })
+
             it('should even work with empty string, interesting!', () => {
                 const regex = ''
 

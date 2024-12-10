@@ -417,12 +417,13 @@ export function toRegularExpressions (regExp : string[]) {
 }
 
 export function toRegularExpression (regExp : string): RegExp {
-    if (!regExp.startsWith('/')) {
+    const lastSlashIndex = regExp.lastIndexOf('/')
+
+    if (!regExp.startsWith('/') || lastSlashIndex === 0) {
         // When not surrounded by slashes we do our best to convert it to a RegExp
         return new RegExp(regExp)
     }
 
-    const lastSlashIndex = regExp.lastIndexOf('/')
     const pattern = regExp.slice(1, lastSlashIndex)
     const flags = regExp.slice(lastSlashIndex + 1)
 
