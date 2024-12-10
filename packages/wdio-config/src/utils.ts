@@ -1,5 +1,3 @@
-import decamelize from 'decamelize'
-
 import type { Options } from '@wdio/types'
 
 export const validObjectOrArray = (object: any): object is object | Array<any> => (Array.isArray(object) && object.length > 0) ||
@@ -87,24 +85,3 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
 
     return params
 }
-
-export function objectToEnv (params?: Record<string, any>) {
-    /**
-     * apply all config options as environment variables
-     */
-    for (const [key, value] of Object.entries(params || {})) {
-        const envKey = decamelize(key).toUpperCase()
-        if (Array.isArray(value)) {
-            process.env[envKey] = value.join(',')
-        } else if (typeof value === 'boolean' && value) {
-            process.env[envKey] = '1'
-        } else if (value instanceof RegExp) {
-            process.env[envKey] = value.toString()
-        } else if (typeof value === 'object') {
-            process.env[envKey] = JSON.stringify(value)
-        } else if (value && typeof value.toString === 'function') {
-            process.env[envKey] = value.toString()
-        }
-    }
-}
-

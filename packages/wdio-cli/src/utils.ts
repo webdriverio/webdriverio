@@ -1161,3 +1161,13 @@ export function coerceOptsFor(framework: 'cucumber' | 'mocha' | 'jasmine') {
 
     throw new Error(`Unsupported framework "${framework}"`)
 }
+
+enum NodeVersion {
+    'major' = 0,
+    'minor' = 1,
+    'patch' = 2
+}
+
+export function nodeVersion(type: keyof typeof NodeVersion): number {
+    return process.versions.node.split('.').map(Number)[NodeVersion[type]]
+}
