@@ -47,6 +47,7 @@
     "import-meta-resolve": "^4.0.0",
     "locate-app": "^2.2.24",
     "safaridriver": "^0.1.2",
+    "safe-stringify": "^1.1.1",
     "split2": "^4.2.0",
     "wait-port": "^1.1.0"
   },
