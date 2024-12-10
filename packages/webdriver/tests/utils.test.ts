@@ -452,5 +452,9 @@ describe('utils', () => {
 
             expect(toRegularExpressions([regex1.toString(), regex2.toString()])).toEqual([regex1, regex2])
         })
+
+        it('should support undefined', () => {
+            expect(toRegularExpressions(undefined)).toEqual(undefined)
+        })
     })
 })

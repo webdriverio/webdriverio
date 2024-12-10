@@ -6,7 +6,6 @@ import { environment } from './environment.js'
 import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
-import { toRegularExpressions } from './utils.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
@@ -17,10 +16,9 @@ export default function (
     endpointUri: string,
     commandInfo: CommandEndpoint,
     doubleEncodeVariables = false,
-    maskingPatterns: string[] = []
+    maskingPatterns: RegExp[] = []
 ) {
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
-    const maskingRegExps = toRegularExpressions(maskingPatterns)
 
     return async function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse | BidiResponses | void> {
         const isBidiCommand = BIDI_COMMANDS.includes(command as BidiCommands)
@@ -131,13 +129,13 @@ export default function (
         let maskedArgs: string[] | undefined
         if (maskingPatterns.length > 0 && commandInfo.parameters.some((param) => param.name === 'text')) {
 
-            const hasSensitiveTextData = Object.entries(body).some(([commandParam, paramValue]) => commandParam === 'text' && maskingRegExps.some((pattern) => pattern.test(paramValue)))
+            const hasSensitiveTextData = Object.entries(body).some(([commandParam, paramValue]) => commandParam === 'text' && maskingPatterns.some((pattern) => pattern.test(paramValue)))
             if (hasSensitiveTextData) {
                 maskedBody = {
                     ...body,
                     text: sensitiveReplacer
                 }
-                maskedArgs = args.map((arg) => maskingRegExps.some((pattern) => pattern.test(arg)) ? sensitiveReplacer : arg)
+                maskedArgs = args.map((arg) => maskingPatterns.some((pattern) => pattern.test(arg)) ? sensitiveReplacer : arg)
             }
         }
 

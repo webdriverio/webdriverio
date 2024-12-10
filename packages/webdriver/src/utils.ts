@@ -247,9 +247,10 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
         {} as Protocol
     ) as Protocol
 
+    const maskingRegExps = toRegularExpressions(maskingPatterns)
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone, maskingPatterns) }
+            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone, maskingRegExps) }
         }
     }
 
@@ -412,8 +413,8 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
     }
 }
 
-export function toRegularExpressions (regExp : string[]) {
-    return regExp.map(toRegularExpression)
+export function toRegularExpressions (regExp : string[] | undefined) {
+    return regExp?.map(toRegularExpression)
 }
 
 export function toRegularExpression (regExp : string): RegExp {
