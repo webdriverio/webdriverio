@@ -32,7 +32,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@browserstack/ai-sdk-node": "1.5.9",
+    "@browserstack/ai-sdk-node": "1.5.17",
     "@percy/appium-app": "^2.0.1",
     "@percy/selenium-webdriver": "^2.0.3",
     "@types/gitconfiglocal": "^2.0.1",
