@@ -155,7 +155,7 @@ The `emulate` command also supports emulating a certain mobile or desktop device
 For example, to switch the user agent and viewport to an iPhone 15, just run:
 
 ```ts
-const restore = await browser.emulate('iPhone 15')
+const restore = await browser.emulate('device', 'iPhone 15')
 // test your application ...
 
 // reset to original viewport and user agent
