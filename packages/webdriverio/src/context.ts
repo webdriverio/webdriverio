@@ -1,6 +1,8 @@
+import logger from '@wdio/logger'
 import { getMobileContext, getNativeContext } from './utils/mobile.js'
 
 const contextManager = new Map<WebdriverIO.Browser, ContextManager>()
+const log = logger('webdriverio:context')
 
 export function getContextManager(browser: WebdriverIO.Browser) {
     const existingContextManager = contextManager.get(browser)
@@ -122,11 +124,19 @@ export class ContextManager {
             !this.#isNativeContext &&
             !this.#mobileContext
         ) {
-            const context = await this.#browser.getContext()
-            this.#mobileContext = typeof context === 'string' ?
-                context : typeof context === 'object' ?
-                    context.id :
-                    undefined
+            const context = await this.#browser.getContext().catch((err) => {
+                log.warn(
+                    `Error getting context: ${err}\n\n` +
+                    `WebDriver capabilities: ${JSON.stringify(this.#browser.capabilities)}\n` +
+                    `Requested WebDriver capabilities: ${JSON.stringify(this.#browser.requestedCapabilities)}`
+                )
+                return undefined
+            })
+            this.#mobileContext = typeof context === 'string'
+                ? context
+                : typeof context === 'object'
+                    ? context.id
+                    : undefined
         }
 
         const windowHandle = this.#mobileContext || await this.#browser.getWindowHandle()
