@@ -54,7 +54,6 @@ updates:
     - dependency-name: "inquirer"
     - dependency-name: "read-pkg-up"
     - dependency-name: "formdata-node"
-    - dependency-name: "cli-spinners"
     # fails to update and requires investigations
     - dependency-name: "vite"
     - dependency-name: "puppeteer-core"
