@@ -125,7 +125,11 @@ export class ContextManager {
             !this.#mobileContext
         ) {
             const context = await this.#browser.getContext().catch((err) => {
-                log.warn(`Error getting context: ${err}`)
+                log.warn(
+                    `Error getting context: ${err}\n\n` +
+                    `WebDriver capabilities: ${JSON.stringify(this.#browser.capabilities)}\n` +
+                    `Requested WebDriver capabilities: ${JSON.stringify(this.#browser.requestedCapabilities)}`
+                )
                 return undefined
             })
             this.#mobileContext = typeof context === 'string'
