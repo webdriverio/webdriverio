@@ -23,6 +23,45 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.4.2 (2024-12-12)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#13963](https://github.com/webdriverio/webdriverio/pull/13963) Remove unused cli-spinners dependency ([@alexparish](https://github.com/alexparish))
+  * [#13944](https://github.com/webdriverio/webdriverio/pull/13944) fix(@wdio/cli): use require to import json file ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13932](https://github.com/webdriverio/webdriverio/pull/13932) fix(@wdio/cli): ensure onComplete hooks is executed ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`, `webdriverio`
+  * [#13960](https://github.com/webdriverio/webdriverio/pull/13960) fix(webdriverio): support opening file urls ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#13949](https://github.com/webdriverio/webdriverio/pull/13949) fix(@wdio/utils): properly detect Appium browser sessions ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-runner`
+  * [#13958](https://github.com/webdriverio/webdriverio/pull/13958) fix(@wdio/runner): Continue emitting event on the runner even when a reporter throws an error ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `webdriverio`
+  * [#13941](https://github.com/webdriverio/webdriverio/pull/13941) fix(webdriverio): add 'appium:options' when checking for native context ([@ricardorlg](https://github.com/ricardorlg))
+* `wdio-allure-reporter`, `webdriver`
+  * [#13922](https://github.com/webdriverio/webdriverio/pull/13922) fix: Catch requests failure to trigger the `result` and `onAfterCommand` event ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#13970](https://github.com/webdriverio/webdriverio/pull/13970) fix(@wdio/cli): Serenity/JS supports WebdriverIO 9 ([@jan-molak](https://github.com/jan-molak))
+* `wdio-utils`, `webdriverio`
+  * [#13950](https://github.com/webdriverio/webdriverio/pull/13950) fix(webdriverio): don't fail if getContext is not supported ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`, `wdio-types`
+  * [#13951](https://github.com/webdriverio/webdriverio/pull/13951) Changes to send SDK instrumentation in capabilities  v9 ([@jainam-bs](https://github.com/jainam-bs))
+
+#### :memo: Documentation
+* [#13965](https://github.com/webdriverio/webdriverio/pull/13965) Update Emulation.md - device emulation ([@jochen-testingbot](https://github.com/jochen-testingbot))
+
+#### Committers: 7
+- Alex Parish ([@alexparish](https://github.com/alexparish))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Jainam Shah ([@jainam-bs](https://github.com/jainam-bs))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Jochen ([@jochen-testingbot](https://github.com/jochen-testingbot))
+- ricardo larrahondo ([@ricardorlg](https://github.com/ricardorlg))
+
+
 ## v9.4.1 (2024-11-27)
 
 #### :bug: Bug Fix
