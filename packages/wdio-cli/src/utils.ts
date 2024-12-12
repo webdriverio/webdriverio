@@ -1012,8 +1012,7 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
     }
 
     const serenityScripts = {
-        'serenity': 'failsafe serenity:update serenity:clean wdio serenity:report',
-        'serenity:update': 'serenity-bdd update',
+        'serenity': 'failsafe serenity:clean wdio serenity:report',
         'serenity:clean': 'rimraf target',
         'wdio': `wdio run ${ pathToWdioConfig }`,
         'serenity:report': 'serenity-bdd run',
