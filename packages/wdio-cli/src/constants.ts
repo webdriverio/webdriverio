@@ -44,7 +44,8 @@ $ npm run ${ runScript }
 
 export const CONFIG_HELPER_SERENITY_BANNER = `
 Learn more about Serenity/JS:
-  🔗 https://serenity-js.org
+  🔗 https://serenity-js.org/
+  🔗 https://serenity-js.org/handbook/test-runners/webdriverio/
 `
 
 export const DEPENDENCIES_INSTALLATION_MESSAGE = `
