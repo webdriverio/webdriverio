@@ -6,7 +6,7 @@ title: はじめに
 WebdriverIO ドキュメントへようこそ。 ここではまずWebdriverIOを始めるための紹介をします。 なにか問題や分からないことがあった場合は、 [Discord サポート ](https://discord.webdriver.io) に問い合わせることで、サポートを受けることができます。 またはWebdriverIOの [X](https://twitter.com/webdriverio) への問い合わせも可能です。
 
 :::info
-これらは、WebdriverIO の最新バージョン (__>=8.x__) のドキュメントです。 もしもまだ古いバージョンを使用している場合は、 対象バージョンの[ドキュメント Web サイト](/versions)にアクセスしてください。
+These are the docs for the latest version (__>=9.x__) of WebdriverIO. もしもまだ古いバージョンを使用している場合は、 対象バージョンの[ドキュメント Web サイト](/versions)にアクセスしてください。
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
@@ -122,7 +122,7 @@ pnpm create wdio@latest . --yes
 ```
 
 </TabItem>
-<TabItem value="pnpm">
+<TabItem value="bun">
 
 ```sh
 bun create wdio@latest . --yes
