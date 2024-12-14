@@ -5,8 +5,8 @@ title: شروع کار
 
 به مستندات WebdriverIO خوش آمدید. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
-:::نکته 
-اینها اسناد آخرین نسخه (__>= 8.x__) WebdriverIO هستند. اگر هنوز از نسخه قدیمی‌تر استفاده می‌کنید، لطفاً از [وب‌سایت اسناد قدیمی](/versions) دیدن کنید!
+:::info
+These are the docs for the latest version (__>=9.x__) of WebdriverIO. اگر هنوز از نسخه قدیمی‌تر استفاده می‌کنید، لطفاً از [وب‌سایت اسناد قدیمی](/versions) دیدن کنید!
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
@@ -122,7 +122,7 @@ pnpm create wdio@latest . --yes
 ```
 
 </TabItem>
-<TabItem value="pnpm">
+<TabItem value="bun">
 
 ```sh
 bun create wdio@latest . --yes
