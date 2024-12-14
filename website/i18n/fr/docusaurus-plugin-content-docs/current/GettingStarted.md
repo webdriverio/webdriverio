@@ -6,7 +6,7 @@ title: Premiers pas
 Bienvenue sur la documentation de WebdriverIO. Cela vous aidera à démarrer rapidement. Si vous rencontrez des problèmes, vous pouvez trouver de l'aide et des réponses sur notre [Discord Support Server](https://discord.webdriver.io) ou vous pouvez me contacter sur [Twitter](https://twitter.com/webdriverio).
 
 :::info
-Ce sont les documents de la dernière version (__>=8.x__) de WebdriverIO. Si vous utilisez toujours une version plus ancienne, veuillez visiter les [anciens sites de documentation](/versions)!
+These are the docs for the latest version (__>=9.x__) of WebdriverIO. Si vous utilisez toujours une version plus ancienne, veuillez visiter les [anciens sites de documentation](/versions)!
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Démarrage avec les guides" />
@@ -117,7 +117,7 @@ pnpm create wdio@latest . --yes
 ```
 
 </TabItem>
-<TabItem value="pnpm">
+<TabItem value="bun">
 
 ```sh
 bun create wdio@latest . --yes
