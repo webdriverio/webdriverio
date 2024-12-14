@@ -6,7 +6,7 @@ title: शुरू करें
 WebdriverIO दस्तावेज़ीकरण में आपका स्वागत है। यह आपको तेजी से आरंभ करने में मदद करेगा। यदि आप समस्याओं में भाग लेते हैं, तो आप हमारे [डिसॉर्ड सपोर्ट सर्वर](https://discord.webdriver.io) पर सहायता और उत्तर पा सकते हैं या आप मुझे [ट्विटर](https://twitter.com/webdriverio)पर हिट कर सकते हैं।
 
 :::info
-ये WebdriverIO के नवीनतम संस्करण (__>=8.x__) के लिए दस्तावेज़ हैं। यदि आप अभी भी पुराने संस्करण का उपयोग कर रहे हैं, तो कृपया [पुरानी प्रलेखन वेबसाइटों पर जाएँ](/versions)!
+These are the docs for the latest version (__>=9.x__) of WebdriverIO. यदि आप अभी भी पुराने संस्करण का उपयोग कर रहे हैं, तो कृपया [पुरानी प्रलेखन वेबसाइटों पर जाएँ](/versions)!
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="शुरू करें" />
@@ -122,7 +122,7 @@ pnpm create wdio@latest . --yes
 ```
 
 </TabItem>
-<TabItem value="pnpm">
+<TabItem value="bun">
 
 ```sh
 bun create wdio@latest . --yes
