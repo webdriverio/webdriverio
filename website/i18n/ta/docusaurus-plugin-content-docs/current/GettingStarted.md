@@ -6,7 +6,7 @@ title: தொடங்குதல்
 WebdriverIO ஆவணப்படுத்தலுக்கு வரவேற்கிறோம். விரைவாகத் தொடங்க இது உதவும். நீங்கள் சிக்கல்களைச் சந்திக்க நேர்ந்தால், எங்கள் [Discord Support Server](https://discord.webdriver.io) இல் உதவி மற்றும் பதில்களைக் காணலாம் அல்லது [Twitter](https://twitter.com/webdriverio)இல் எங்களை அணுகலாம்.
 
 :::info
-WebdriverIO இன் சமீபத்திய பதிப்பின் (__>=8.x__) ஆவணங்கள் இவை. நீங்கள் இன்னும் பழைய பதிப்பைப் பயன்படுத்துகிறீர்கள் என்றால், தயவுசெய்து [old documentation websites](/versions) யைப் பார்வையிடவும்!
+These are the docs for the latest version (__>=9.x__) of WebdriverIO. நீங்கள் இன்னும் பழைய பதிப்பைப் பயன்படுத்துகிறீர்கள் என்றால், தயவுசெய்து [old documentation websites](/versions) யைப் பார்வையிடவும்!
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="WebdriverIO உடன் தொடங்குதல்" />
@@ -122,7 +122,7 @@ pnpm create wdio@latest . --yes
 ```
 
 </TabItem>
-<TabItem value="pnpm">
+<TabItem value="bun">
 
 ```sh
 bun create wdio@latest . --yes
