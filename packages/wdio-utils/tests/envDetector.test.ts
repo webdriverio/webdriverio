@@ -141,7 +141,7 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: bidiResponse as any as WebdriverIO.Capabilities, requestedCapabilities }).isBidi)
             .toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: bidiResponse as any as WebdriverIO.Capabilities, requestedCapabilities: requestedAppiumCapabilities }).isBidi)
-            .toBe(false)
+            .toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: {
             webSocketUrl: true
         }, requestedCapabilities: {} }).isBidi).toBe(false)
