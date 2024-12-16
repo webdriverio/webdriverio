@@ -1527,6 +1527,7 @@ export interface BrowserStackCapabilities {
     desired?: unknown
     device?: string
     platformName?: string
+    platformVersion?: string
     /**
      * Specify a name for a logical group of builds.
      */
