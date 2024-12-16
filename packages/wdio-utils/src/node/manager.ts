@@ -113,7 +113,11 @@ export async function setupDriver (options: Omit<Options.WebDriver, 'capabilitie
         if (isEdge(cap.browserName)) {
             return setupEdgedriver(cacheDir, cap.browserVersion)
         } else if (isFirefox(cap.browserName)) {
-            // Some Firefox channels are allowed to be set for the browserVersion but not for geckodriver
+            /**
+             * Some Firefox channels are allowed to be set for the browserVersion.
+             * We unset these variables here to make `node-geckodriver` download
+             * the latest driver version.
+             */
             const version = firefoxChannels.includes(cap.browserVersion ?? '')
                 ? undefined
                 : cap.browserVersion
