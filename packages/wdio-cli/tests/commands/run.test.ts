@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import path from 'node:path'
 
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
@@ -114,19 +115,25 @@ describe('Command: run', () => {
         it('should set TSX_TSCONFIG_PATH if TSCONFIG_PATH is set', async () => {
             process.env.TSCONFIG_PATH = '/foo/bar/loo/tsconfig.e2e.json'
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(process.env.TSX_TSCONFIG_PATH).toBe('/foo/bar/loo/tsconfig.e2e.json')
+            expect(process.env.TSX_TSCONFIG_PATH).toContain(
+                `${path.sep}foo${path.sep}bar${path.sep}loo${path.sep}tsconfig.e2e.json`
+            )
         })
 
         it('should set TSX_TSCONFIG_PATH if found in params', async () => {
             vi.mocked(fs.access).mockResolvedValue()
             await runCmd.handler({ configPath: '/wdio.conf.ts', tsConfigPath: '/bar/foo/tsconfig.e2e.json' } as any)
-            expect(process.env.TSX_TSCONFIG_PATH).toBe('/bar/foo/tsconfig.e2e.json')
+            expect(process.env.TSX_TSCONFIG_PATH).toContain(
+                `${path.sep}bar${path.sep}foo${path.sep}tsconfig.e2e.json`
+            )
         })
 
         it('should restart process if custom tsconfig was found next to the wdio.config', async () => {
             vi.mocked(fs.access).mockResolvedValue()
             await runCmd.handler({ configPath: '/full/path/wdio.conf.ts' } as any)
-            expect(process.env.TSX_TSCONFIG_PATH).toBe('/full/path/tsconfig.json')
+            expect(process.env.TSX_TSCONFIG_PATH).toContain(
+                `${path.sep}full${path.sep}path${path.sep}tsconfig.json`
+            )
         })
     })
 
