@@ -1,4 +1,5 @@
 import exitHook from 'async-exit-hook'
+import { resolve } from 'import-meta-resolve'
 
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
@@ -8,9 +9,8 @@ import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
-import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
+import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
-import type { HookError } from './utils.js'
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
 
@@ -65,6 +65,29 @@ class Launcher {
      * @return  {Promise}  that only gets resolved with either an exitCode or an error
      */
     async run(): Promise<undefined | number> {
+        /**
+         * add tsx to process NODE_OPTIONS so it will be passed along the worker process
+         */
+        const tsxPath = resolve('tsx', import.meta.url)
+        if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
+            /**
+             * The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
+             * This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
+             * see https://nodejs.org/api/module.html#customization-hooks and https://tsx.is/dev-api/node-cli#module-mode-only
+             */
+            const moduleLoaderFlag = nodeVersion('major') >= 21 ||
+                (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
+                (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
+            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} ${moduleLoaderFlag} ${tsxPath}`
+        }
+
+        /**
+         * load tsx in the main process if config file is a .ts file to allow config parser to load it
+         */
+        if (this._configFilePath.endsWith('.ts')) {
+            await import(tsxPath)
+        }
+
         await this.configParser.initialize(this._args)
         const config = this.configParser.getConfig()
 

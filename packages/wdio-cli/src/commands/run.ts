@@ -1,6 +1,6 @@
-import path from 'node:path'
 import fs from 'node:fs/promises'
-import { execa } from 'execa'
+import path from 'node:path'
+
 import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
@@ -172,16 +172,6 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
         })
 }
 
-enum NodeVersion {
-    'major' = 0,
-    'minor' = 1,
-    'patch' = 2
-}
-
-export function nodeVersion(type: keyof typeof NodeVersion): number {
-    return process.versions.node.split('.').map(Number)[NodeVersion[type]]
-}
-
 export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
 
@@ -196,53 +186,25 @@ export async function handler(argv: RunCommandArguments) {
     }
 
     /**
-     * In order to load TypeScript files in ESM we need to apply the tsx loader.
-     * Let's have WebdriverIO set it automatically if the user doesn't.
+     * In order to support custom tsconfig path option we have to check here whether a custom path
+     * path was provided and set the `TSX_TSCONFIG_PATH` environment variable accordingly. In a later
+     * step within the Launcher we will then load tsx with the custom tsconfig path.
      */
-    const nodePath = process.argv[0]
-    let NODE_OPTIONS = process.env.NODE_OPTIONS || ''
-    const isTSFile = wdioConf.fullPath.endsWith('.ts') || wdioConf.fullPath.endsWith('.mts') || confAccess?.endsWith('.ts') || confAccess?.endsWith('.mts')
-    const runsWithLoader = (
-        Boolean(
-            process.argv.find((arg) => arg.startsWith('--import') || arg.startsWith('--loader')) &&
-            process.argv.find((arg) => arg.endsWith('tsx'))
-        ) ||
-        NODE_OPTIONS?.includes('tsx')
+    const tsConfigPathFromEnvVar = (
+        process.env.TSCONFIG_PATH && path.resolve(process.cwd(), process.env.TSCONFIG_PATH)
+    ) || (
+        process.env.TSX_TSCONFIG_PATH && path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH)
     )
-    if (isTSFile && !runsWithLoader && nodePath) {
-        // The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
-        // This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
-        // see https://nodejs.org/api/module.html#customization-hooks
-        // and https://tsx.is/dev-api/node-cli#module-mode-only
-        const moduleLoaderFlag = nodeVersion('major') >= 21 ||
-            (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
-            (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
-        NODE_OPTIONS += ` ${moduleLoaderFlag} tsx`
-        const tsConfigPathFromEnvVar = (process.env.TSCONFIG_PATH &&
-            path.resolve(process.cwd(), process.env.TSCONFIG_PATH)) || (process.env.TSX_TSCONFIG_PATH &&
-            path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH))
-        const tsConfigPathFromParams = params.tsConfigPath &&
-            path.resolve(process.cwd(), params.tsConfigPath)
-        const tsConfigPathRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
-        if (tsConfigPathFromParams) {
-            console.log('Deprecated: use the TSCONFIG_PATH environment variable instead')
-        }
-        const localTSConfigPath = (
-            tsConfigPathFromEnvVar ||
-            tsConfigPathFromParams ||
-            tsConfigPathRelativeToWdioConfig)
-        const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
-        const p = await execa(nodePath, process.argv.slice(1), {
-            reject: false,
-            cwd: process.cwd(),
-            stdio: 'inherit',
-            env: {
-                ...process.env,
-                ...(hasLocalTSConfig ? { TSX_TSCONFIG_PATH: localTSConfigPath } : {}),
-                NODE_OPTIONS
-            }
-        })
-        return !process.env.WDIO_UNIT_TESTS && process.exit(p.exitCode)
+    const tsConfigPathFromParams = params.tsConfigPath && path.resolve(process.cwd(), params.tsConfigPath)
+    const tsConfigPathRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
+    const localTSConfigPath = (
+        tsConfigPathFromEnvVar ||
+        tsConfigPathFromParams ||
+        tsConfigPathRelativeToWdioConfig
+    )
+    const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
+    if (hasLocalTSConfig) {
+        process.env.TSX_TSCONFIG_PATH = localTSConfigPath
     }
 
     /**

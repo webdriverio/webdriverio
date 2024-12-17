@@ -515,7 +515,9 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                                 ? (question.choices(answers)[0] as any as { value: any }).value
                                 : question.choices(answers)[0]
                             : (question.choices[0] as { value: any }).value
-                                ? (question.choices[0] as { value: any }).value
+                                ? question.type === 'checkbox'
+                                    ? [(question.choices[0] as { value: any }).value]
+                                    : (question.choices[0] as { value: any }).value
                                 : question.choices[0]
                         : {}
             })
@@ -1158,4 +1160,14 @@ export function coerceOptsFor(framework: 'cucumber' | 'mocha' | 'jasmine') {
     }
 
     throw new Error(`Unsupported framework "${framework}"`)
+}
+
+enum NodeVersion {
+    'major' = 0,
+    'minor' = 1,
+    'patch' = 2
+}
+
+export function nodeVersion(type: keyof typeof NodeVersion): number {
+    return process.versions.node.split('.').map(Number)[NodeVersion[type]]
 }

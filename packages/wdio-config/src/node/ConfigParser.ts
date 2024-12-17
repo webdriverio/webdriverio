@@ -5,7 +5,7 @@ import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
 import type { Capabilities, Options, Reporters, Services } from '@wdio/types'
 
 import FileSystemPathService from './FileSystemPathService.js'
-import { makeRelativeToCWD, loadTypeScriptCompiler } from './utils.js'
+import { makeRelativeToCWD } from './utils.js'
 import { removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
@@ -79,7 +79,6 @@ export default class ConfigParser {
          * multiple times, e.g. when used with the packages/wdio-cli/src/watcher.ts
          */
         if (!this.#isInitialised) {
-            await loadTypeScriptCompiler(this._config.tsConfigPath)
             await this.addConfigFile(this.#configFilePath)
         }
 
