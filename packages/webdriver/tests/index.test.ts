@@ -160,12 +160,15 @@ describe('WebDriver', () => {
         })
 
         it('attaches bidi handler if socket url is given', async () => {
+            const wid = process.env.WDIO_UNIT_TESTS
+            delete process.env.WDIO_UNIT_TESTS
             vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl: 'ws://foo/bar' } }))
             await WebDriver.newSession({
                 path: '/',
                 capabilities: { browserName: 'firefox' }
             })
             expect(initCount()).toBe(1)
+            process.env.WDIO_UNIT_TESTS = wid
         })
     })
 

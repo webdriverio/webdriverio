@@ -1,14 +1,12 @@
+import fs from 'node:fs/promises'
+
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { execa } from 'execa'
 import * as runCmd from '../../src/commands/run.js'
 import * as configCmd from '../../src/commands/config.js'
 
 vi.mock('yargs')
-vi.mock('execa')
 vi.mock('node:child_process', () => ({
     default: {
         spawn: vi.fn(),
@@ -19,16 +17,17 @@ vi.mock('node:child_process', () => ({
 vi.mock('node:fs/promises', async (orig) => ({
     ...(await orig()) as any,
     default: {
-        access: vi.fn().mockResolvedValue(true),
+        access: vi.fn().mockResolvedValue(''),
         readFile: vi.fn()
     }
 }))
 vi.mock('./../../src/launcher', () => ({
     default: class {
+        constructor (public wdioConfPath: string) {}
         run() {
             return {
                 then: vi.fn().mockReturnValue({
-                    catch: vi.fn().mockReturnValue('launcher-mock')
+                    catch: vi.fn().mockReturnValue(`launcher-mock(${this.wdioConfPath})`)
                 })
             }
         }
@@ -47,8 +46,7 @@ describe('Command: run', () => {
     const onMock = vi.fn((s, c) => c())
 
     beforeEach(() => {
-        vi.mocked(fs.access).mockClear()
-        vi.mocked(execa).mockClear()
+        vi.mocked(fs.access).mockResolvedValue()
         vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
             return undefined as never
         })
@@ -66,16 +64,9 @@ describe('Command: run', () => {
             .toContain('sample.conf')
     })
 
-    it('should allow if config is of type .ts ', async () => {
-        vi.mocked(fs.access).mockResolvedValue()
-        vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-        await runCmd.handler({ configPath: 'sample.conf.ts' } as any)
-        expect(execa).toBeCalled()
-    })
-
     it('should use local conf if nothing defined', async () => {
-        await runCmd.handler({ argv: {} } as any)
-        expect(fs.access).toBeCalledTimes(6)
+        const launcher = await runCmd.handler({ argv: {} } as any)
+        expect(launcher).toContain('wdio.conf.js')
     })
 
     it('should use Watcher if "--watch" flag is passed', async () => {
@@ -89,7 +80,7 @@ describe('Command: run', () => {
 
         const result = await runCmd.handler({ configPath: 'foo/bar' } as any)
 
-        expect(result).toBe('launcher-mock')
+        expect(result).toContain('launcher-mock')
     })
 
     it('should start process if stdin isTTY = false', async () => {
@@ -115,95 +106,32 @@ describe('Command: run', () => {
     })
 
     describe('launch', () => {
-        const originalProcess = globalThis.process
-
         afterEach(() => {
-            vi.mocked(execa).mockClear()
-            globalThis.process = originalProcess
+            delete process.env.TSCONFIG_PATH
+            delete process.env.TSX_TSCONFIG_PATH
         })
 
-        it('should restart process if esm loader is needed', async () => {
+        it('should set TSX_TSCONFIG_PATH if TSCONFIG_PATH is set', async () => {
+            process.env.TSCONFIG_PATH = '/foo/bar/loo/tsconfig.e2e.json'
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(process.env.TSX_TSCONFIG_PATH).toBe('/foo/bar/loo/tsconfig.e2e.json')
+        })
+
+        it('should set TSX_TSCONFIG_PATH if found in params', async () => {
             vi.mocked(fs.access).mockResolvedValue()
-            expect(execa).toBeCalledTimes(0)
-            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(execa).toBeCalledTimes(1)
-            const moduleLoaderFlag = (
-                runCmd.nodeVersion('major') >= 21 ||
-                (runCmd.nodeVersion('major') === 20 && runCmd.nodeVersion('minor') >= 6) ||
-                (runCmd.nodeVersion('major') === 18 && runCmd.nodeVersion('minor') >= 19)
-            )
-                ? '--import'
-                : '--loader'
-            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain(moduleLoaderFlag)
+            await runCmd.handler({ configPath: '/wdio.conf.ts', tsConfigPath: '/bar/foo/tsconfig.e2e.json' } as any)
+            expect(process.env.TSX_TSCONFIG_PATH).toBe('/bar/foo/tsconfig.e2e.json')
         })
 
-        it('should use the import flag for tsx for Node >= 20.6.0', async () => {
-            globalThis.process = { ...originalProcess, versions: { node: '20.6.0' } }
+        it('should restart process if custom tsconfig was found next to the wdio.config', async () => {
             vi.mocked(fs.access).mockResolvedValue()
-            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--import tsx')
-        })
-
-        it('should use the import flag for tsx for Node >= 18.19.0', async () => {
-            globalThis.process = { ...originalProcess, versions: { node: '18.19.0' } }
-            vi.mocked(fs.access).mockResolvedValue()
-            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--import tsx')
-        })
-
-        it('should use the loader flag for tsx for Node < 20.6.0', async () => {
-            globalThis.process = { ...originalProcess, versions: { node: '20.5.1' } }
-            vi.mocked(fs.access).mockResolvedValue()
-            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--loader tsx')
-        })
-
-        it('should use the loader flag for tsx for Node < 18.19.0', async () => {
-            globalThis.process = { ...originalProcess, versions: { node: '18.18.1' } }
-            vi.mocked(fs.access).mockResolvedValue()
-            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
-                .toContain('--loader tsx')
-        })
-
-        it('should load custom tsconfig', async () => {
-            vi.mocked(fs.access).mockResolvedValueOnce().mockRejectedValueOnce({}).mockResolvedValue()
-            expect(execa).toBeCalledTimes(0)
-            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
-            process.env.TSX_PROJECT = `${path.sep}config${path.sep}tsconfig.e2e.json`
-            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(execa).toBeCalledTimes(1)
-            expect(vi.mocked(execa).mock.calls[0][2]!.env.TSX_PROJECT)
-                .toContain(`${path.sep}config${path.sep}tsconfig.e2e.json`)
-        })
-
-        it('should not restart if loader is already provided via --loader', async () => {
-            expect(execa).toBeCalledTimes(0)
-            process.env.NODE_OPTIONS = '--loader tsx'
-            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(execa).toBeCalledTimes(0)
-        })
-
-        it('should not restart if loader is already provided via --import', async () => {
-            expect(execa).toBeCalledTimes(0)
-            process.env.NODE_OPTIONS = '--import tsx'
-            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(execa).toBeCalledTimes(0)
+            await runCmd.handler({ configPath: '/full/path/wdio.conf.ts' } as any)
+            expect(process.env.TSX_TSCONFIG_PATH).toBe('/full/path/tsconfig.json')
         })
     })
 
     afterEach(() => {
         vi.mocked(console.error).mockReset()
-        vi.mocked(fs.access).mockClear()
         vi.mocked(configCmd.missingConfigurationPrompt).mockClear()
     })
 })

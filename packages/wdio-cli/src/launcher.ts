@@ -1,4 +1,5 @@
 import exitHook from 'async-exit-hook'
+import { resolve } from 'import-meta-resolve'
 
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
@@ -67,7 +68,7 @@ class Launcher {
         /**
          * add tsx to process NODE_OPTIONS so it will be passed along the worker process
          */
-        const tsxPath = import.meta.resolve('tsx')
+        const tsxPath = resolve('tsx', import.meta.url)
         if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
             /**
              * The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.

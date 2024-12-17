@@ -372,6 +372,23 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
  * @returns prototype with interface for bidi primitives
  */
 export function initiateBidi (socketUrl: string, strictSSL: boolean = true): PropertyDescriptorMap {
+    /**
+     * don't connect and stale unit tests when the websocket url is set to a dummy value
+     */
+    const isUnitTesting = process.env.WDIO_UNIT_TESTS
+    if (isUnitTesting) {
+        log.info('Skip connecting to WebDriver Bidi interface due to unit tests')
+        return {
+            _bidiHandler: {
+                value: {
+                    isConnected: true,
+                    waitForConnected: () => Promise.resolve(),
+                    socket: { on: () => {}, off: () => {} }
+                }
+            }
+        }
+    }
+
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
     const bidiReqOpts = strictSSL ? {} : { rejectUnauthorized: false }
     const handler = new BidiHandler(socketUrl, bidiReqOpts)

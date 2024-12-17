@@ -1,6 +1,6 @@
-import path from 'node:path'
 import fs from 'node:fs/promises'
-import { execa } from 'execa'
+import path from 'node:path'
+
 import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
@@ -187,9 +187,9 @@ export async function handler(argv: RunCommandArguments) {
 
     /**
      * In order to support custom tsconfig path option we have to check here whether a custom path
-     * path was provided and restart the process with the custom tsconfig path set as an environment variable.
+     * path was provided and set the `TSX_TSCONFIG_PATH` environment variable accordingly. In a later
+     * step within the Launcher we will then load tsx with the custom tsconfig path.
      */
-    const nodePath = process.argv[0]
     const tsConfigPathFromEnvVar = (
         process.env.TSCONFIG_PATH && path.resolve(process.cwd(), process.env.TSCONFIG_PATH)
     ) || (
@@ -203,17 +203,8 @@ export async function handler(argv: RunCommandArguments) {
         tsConfigPathRelativeToWdioConfig
     )
     const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
-    if (hasLocalTSConfig && nodePath) {
-        const p = await execa(nodePath, process.argv.slice(1), {
-            reject: false,
-            cwd: process.cwd(),
-            stdio: 'inherit',
-            env: {
-                ...process.env,
-                ...(hasLocalTSConfig ? { TSX_TSCONFIG_PATH: localTSConfigPath } : {}),
-            }
-        })
-        return !process.env.WDIO_UNIT_TESTS && process.exit(p.exitCode)
+    if (hasLocalTSConfig) {
+        process.env.TSX_TSCONFIG_PATH = localTSConfigPath
     }
 
     /**
