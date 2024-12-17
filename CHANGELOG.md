@@ -23,6 +23,27 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.4.3 (2024-12-17)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-config`, `wdio-local-runner`, `webdriver`
+  * [#13962](https://github.com/webdriverio/webdriverio/pull/13962) fix(@wdio/cli): propagate node-options to worker env ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`, `webdriver`
+  * [#13978](https://github.com/webdriverio/webdriverio/pull/13978) fix(webdriver): enable Bidi commands for Appium sessions ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-types`
+  * [#13988](https://github.com/webdriverio/webdriverio/pull/13988) wdio-types: add `platformVersion` field for BrowserStackCapabilities ([@Delta456](https://github.com/Delta456))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#13983](https://github.com/webdriverio/webdriverio/pull/13983) fix(@wdio/utils): Unset geckodriver when stable is set as browserVersion ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+- [@alphabetkrish](https://github.com/alphabetkrish)
+
+
 ## v9.4.2 (2024-12-12)
 
 #### :bug: Bug Fix
