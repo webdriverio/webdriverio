@@ -7,7 +7,7 @@ Cada comando en WebdriverIO es una operación asíncrona. Se lanza una solicitud
 
 Por lo tanto, el tiempo es un componente crucial en todo el proceso de prueba. Cuando una acción determinada depende del estado de una acción diferente, es necesario asegurarse de que se ejecutan en el orden correcto. Los tiempos de espera desempeñan un papel importante a la hora de abordar estas cuestiones.
 
-<LiteYouTubeEmbed id="5oI37h4qxEw&" title="Timeouts" />
+<LiteYouTubeEmbed id="5oI37h4qxEw" title="Timeouts" />
 
 ## WebDriver Timeouts
 
