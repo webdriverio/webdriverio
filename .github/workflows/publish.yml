@@ -49,7 +49,6 @@ jobs:
           cache: 'pnpm'
       - name: NPM Setup
         run: |
-          npm i -g npm
           npm set registry "https://registry.npmjs.org/"
           npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
           npm whoami
