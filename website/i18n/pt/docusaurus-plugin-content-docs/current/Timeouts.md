@@ -7,7 +7,9 @@ Each command in WebdriverIO is an asynchronous operation. A request is fired to 
 
 Therefore, time is a crucial component in the whole testing process. When a certain action depends on the state of a different action, you need to make sure that they get executed in the right order. Timeouts play an important role when dealing with these issues.
 
-## Selenium timeouts
+<LiteYouTubeEmbed id="5oI37h4qxEw&" title="Timeouts" />
+
+## WebDriver Timeouts
 
 ### Session Script Timeout
 
