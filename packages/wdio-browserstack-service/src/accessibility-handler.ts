@@ -8,16 +8,20 @@ import Listener from './testOps/listener.js'
 
 import {
     getA11yResultsSummary,
+    getAppA11yResultsSummary,
     getA11yResults,
     performA11yScan,
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
     isAccessibilityAutomationSession,
+    isAppAccessibilityAutomationSession,
     isBrowserstackSession,
     o11yClassErrorHandler,
     shouldScanTestForAccessibility,
     validateCapsWithA11y,
-    isTrue
+    isTrue,
+    validateCapsWithAppA11y,
+    getAppA11yResults
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 
@@ -37,7 +41,7 @@ class _AccessibilityHandler {
     constructor (
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
         _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
-        isAppAutomate?: boolean,
+        private isAppAutomate: boolean,
         private _framework?: string,
         _accessibilityAutomation?: boolean | string,
         _accessibilityOpts?: { [key: string]: unknown; }
@@ -48,6 +52,8 @@ class _AccessibilityHandler {
             browser_name: caps.browserName,
             // @ts-expect-error invalid caps property
             browser_version: caps?.browserVersion || (caps as WebdriverIO.Capabilities)?.version || 'latest',
+            platform_name: caps?.platformName,
+            platform_version: this._getCapabilityValue(caps, 'appium:platformVersion', 'platformVersion'),
             os_name: this._getCapabilityValue(_capabilities, 'os', 'os'),
             os_version: this._getCapabilityValue(_capabilities, 'osVersion', 'os_version')
         }
@@ -94,23 +100,34 @@ class _AccessibilityHandler {
         this._sessionId = sessionId
         this._accessibility = isTrue(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
 
-        if (isBrowserstackSession(this._browser) && isAccessibilityAutomationSession(this._accessibility)) {
-            const deviceName = this._getCapabilityValue(this._caps, 'deviceName', 'device')
-            const chromeOptions = this._getCapabilityValue(this._caps, 'goog:chromeOptions', '') as Capabilities.ChromeOptions
+        if (isBrowserstackSession(this._browser)) {
+            if (isAccessibilityAutomationSession(this._accessibility) && !this.isAppAutomate) {
+                const deviceName = this._getCapabilityValue(this._caps, 'deviceName', 'device')
+                const chromeOptions = this._getCapabilityValue(this._caps, 'goog:chromeOptions', '') as Capabilities.ChromeOptions
 
-            this._accessibility = validateCapsWithA11y(deviceName as string, this._platformA11yMeta as unknown as Record<string, string>, chromeOptions)
+                this._accessibility = validateCapsWithA11y(deviceName as string, this._platformA11yMeta as unknown as Record<string, string>, chromeOptions)
+            }
+            if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
+                this._accessibility = validateCapsWithAppA11y(this._platformA11yMeta)
+            }
         }
 
         (this._browser as WebdriverIO.Browser).getAccessibilityResultsSummary = async () => {
-            return await getA11yResultsSummary((this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
+            if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
+                return await getAppA11yResultsSummary(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility, this._sessionId)
+            }
+            return await getA11yResultsSummary(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
         }
 
         (this._browser as WebdriverIO.Browser).getAccessibilityResults = async () => {
-            return await getA11yResults((this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
+            if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
+                return await getAppA11yResults(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility, this._sessionId)
+            }
+            return await getA11yResults(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
         }
 
         (this._browser as WebdriverIO.Browser).performScan = async () => {
-            return await performA11yScan((this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
+            return await performA11yScan(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
         }
 
         if (!this._accessibility) {
