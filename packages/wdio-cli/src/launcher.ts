@@ -93,7 +93,7 @@ class Launcher {
 
         const capabilities = this.configParser.getCapabilities()
         this.isParallelMultiremote = Array.isArray(capabilities) &&
-            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities))
+            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
         this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
@@ -119,7 +119,7 @@ class Launcher {
             : 1
 
         this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
-        config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
+        config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport).toString()
 
         const [runnerName, runnerOptions] = Array.isArray(config.runner) ? config.runner : [config.runner, {} as WebdriverIO.BrowserRunnerOptions]
         const Runner = (await initializePlugin(runnerName, 'runner') as Services.RunnerPlugin).default

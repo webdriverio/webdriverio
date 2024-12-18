@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 exports.SevereServiceError = class SevereServiceError extends Error {
     constructor(message = 'Severe Service Error occurred.') {
         super(message)

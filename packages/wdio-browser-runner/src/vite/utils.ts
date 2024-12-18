@@ -34,7 +34,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         const sourceMapSupportDir = await resolve('source-map-support', import.meta.url)
         sourceMapScript = /*html*/`<script src="/@fs/${url.fileURLToPath(path.dirname(sourceMapSupportDir))}/browser-source-map-support.js"></script>`
         sourceMapSetupCommand = 'sourceMapSupport.install()'
-    } catch (err: unknown) {
+    } catch (err) {
         log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
     }
 
@@ -127,7 +127,7 @@ export async function userfriendlyImport(preset: FrameworkPreset, pkg?: string) 
 
     try {
         return await import(pkg)
-    } catch (err: any) {
+    } catch {
         throw new Error(
             `Couldn't load preset "${preset}" given important dependency ("${pkg}") is not installed.\n` +
             `Please run:\n\n\tnpm install ${pkg}\n\tor\n\tyarn add --dev ${pkg}`

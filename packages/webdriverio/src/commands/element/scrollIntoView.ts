@@ -126,9 +126,9 @@ export async function scrollIntoView (
         await browser.action('wheel')
             .scroll({ duration: 0, x: deltaX, y: deltaY, origin: this })
             .perform()
-    } catch (err: any) {
+    } catch (err) {
         log.warn(
-            `Failed to execute "scrollIntoView" using WebDriver Actions API: ${err.message}!\n` +
+            `Failed to execute "scrollIntoView" using WebDriver Actions API: ${(err as Error).message}!\n` +
             'Re-attempting using `Element.scrollIntoView` via Web API.'
         )
         await scrollIntoViewWeb.call(this, options)
@@ -247,6 +247,7 @@ async function nativeMobileScrollIntoView({
 
     if (hasScrolled && isVisible) {
         // Pause for stabilization
+        // eslint-disable-next-line wdio/no-pause
         return browser.pause(1000)
     } else if (isVisible) {
         // Element is already visible
@@ -274,7 +275,7 @@ function scrollIntoViewWeb (
         {
             [ELEMENT_KEY]: this.elementId, // w3c compatible
             ELEMENT: this.elementId, // jsonwp compatible
-        } as any as HTMLElement,
+        } as unknown as HTMLElement,
         options,
     )
 }

@@ -55,7 +55,7 @@ beforeEach(() => {
         executeAsync: async () => { 'done' },
         getUrl: () => { return 'https://www.google.com/'},
         on: vi.fn(),
-    } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 })
 
 describe('startPercy', () => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type * as Automation from './Automation.js'
 import type * as Capabilities from './Capabilities.js'
 import type * as Options from './Options.js'

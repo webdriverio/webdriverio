@@ -14,9 +14,7 @@ export default function getLogger (component: string) {
 
         // check if the method is available on console (web doesn't have
         // 'silent', for example) before adding to acc
-        // eslint-disable-next-line no-console
         if (console[prop]) {
-            // eslint-disable-next-line no-console
             // @ts-ignore
             acc[prop] = console[prop].bind(console, `${component}:`)
         }

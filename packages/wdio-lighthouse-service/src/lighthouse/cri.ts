@@ -28,7 +28,7 @@ export default class ChromeProtocolPatched extends CriConnection {
     /**
      * force every command to be send with the given session id
      */
-    sendCommand(method: string, sessionId?: string, ...paramArgs: any[]) {
+    sendCommand(method: string, sessionId?: string, ...paramArgs: unknown[]) {
         return super.sendCommand(method, sessionId || this._sessionId, ...paramArgs)
     }
 }

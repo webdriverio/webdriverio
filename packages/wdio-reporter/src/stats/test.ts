@@ -31,7 +31,7 @@ export interface Test {
 
 interface Output {
     command: string
-    params: any
+    params: unknown[]
     method: 'PUT' | 'POST' | 'GET' | 'DELETE'
     endpoint: string
     body: {}

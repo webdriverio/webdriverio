@@ -85,7 +85,7 @@ export default class TestingBotService implements Services.ServiceInstance {
      * After test
      * @param {object} test Test
      */
-    afterTest (test: Frameworks.Test, context: any, results: Frameworks.TestResult) {
+    afterTest (_test: Frameworks.Test, _context: unknown, results: Frameworks.TestResult) {
         if (!results.passed) {
             ++this._failures
         }
@@ -225,7 +225,7 @@ export default class TestingBotService implements Services.ServiceInstance {
     }
 
     getBody (failures: number, calledOnReload = false, browserName?: string) {
-        const body = { test: {} as any }
+        const body = { test: {} as Record<string, string | undefined> }
 
         /**
          * set default values
@@ -245,11 +245,11 @@ export default class TestingBotService implements Services.ServiceInstance {
         }
 
         for (const prop of jobDataProperties) {
-            if (!(this._capabilities as Record<string, any>)[prop]) {
+            if (!(this._capabilities as Record<string, unknown>)[prop]) {
                 continue
             }
 
-            body.test[prop] = (this._capabilities as Record<string, any>)[prop]
+            body.test[prop] = (this._capabilities as Record<string, string>)[prop]
         }
 
         if (browserName) {

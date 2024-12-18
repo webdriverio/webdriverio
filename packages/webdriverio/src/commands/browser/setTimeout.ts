@@ -55,9 +55,9 @@ export async function setTimeout(
 
     const implicit = timeouts.implicit as number
     // Previously also known as `page load` with JsonWireProtocol
-    const pageLoad = (timeouts as any)['page load'] || timeouts.pageLoad
+    const pageLoad = (timeouts as unknown as { 'page load': number })['page load'] || timeouts.pageLoad
     const script = timeouts.script as number
-    const setTimeouts: any = this.setTimeouts.bind(this)
+    const setTimeouts = this.setTimeouts.bind(this)
 
     return setTimeouts(implicit, pageLoad, script)
 }

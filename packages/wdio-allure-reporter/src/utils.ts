@@ -50,7 +50,7 @@ export const getTestStatus = (
  * @param object {Object}
  * @private
  */
-export const isEmpty = (object: any) =>
+export const isEmpty = (object: object) =>
     !object || Object.keys(object).length === 0
 
 /**

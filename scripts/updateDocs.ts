@@ -23,10 +23,9 @@ const BUILD_DIR = path.resolve(__dirname, '..', 'website', 'build')
 const UPLOAD_OPTIONS = { partSize: 10 * 1024 * 1024, queueSize: 1 }
 const IGNORE_FILE_SUFFIX = ['*.rb']
 
-/* eslint-disable no-console */
 const timestamp = Date.now()
 const s3 = new S3({ region })
-const files = await readDir(BUILD_DIR, IGNORE_FILE_SUFFIX)
+const files: string[] = await readDir(BUILD_DIR, IGNORE_FILE_SUFFIX)
 
 const version = `v${PKG_VERSION.split('.')[0]}`
 const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${BUCKET_NAME}`
@@ -100,4 +99,3 @@ await Promise.all(objectsToDelete.map((obj) => (
 )))
 console.log('Deleted obsolete items successfully')
 console.log('Successfully updated webdriver.io docs')
-/* eslint-enable no-console */

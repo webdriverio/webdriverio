@@ -10,9 +10,9 @@ import type {
 
 declare global {
     // Firstly variable '_wdioDynamicJasmineResultErrorList' gets reference to test result in packages/wdio-jasmine-framework/src/index.ts and then used here in wdio-utils/ as workaround for Jasmine
-    // eslint-disable-next-line no-var
+    // eslint-disable-next-line no-var, @typescript-eslint/no-explicit-any
     var _wdioDynamicJasmineResultErrorList: any | undefined
-    // eslint-disable-next-line no-var
+    // eslint-disable-next-line no-var, @typescript-eslint/no-explicit-any
     var _jasmineTestResult: any | undefined
 }
 
@@ -102,7 +102,8 @@ export const testFrameworkFnWrapper = async function (
             error = globalThis._wdioDynamicJasmineResultErrorList[0]
             globalThis._wdioDynamicJasmineResultErrorList = undefined
         }
-    } catch (err: any) {
+    } catch (_err: unknown) {
+        const err = _err instanceof Error ? _err : new Error(typeof _err === 'string' ? _err : 'An unknown error occurred')
         if (err.stack) {
             err.stack = filterStackTrace(err.stack)
         }

@@ -10,11 +10,11 @@ vi.mock('../../../src/commands/browser/mock', () => {
     let clearedMocks = 0
     const bumpCall = () => ++clearedMocks
     const SESSION_MOCKS: Record<string, any> = {}
-    SESSION_MOCKS['foobar'] = new Set()
-    SESSION_MOCKS['foobar'].add({ restore: vi.fn(bumpCall) })
-    SESSION_MOCKS['foobar'].add({ restore: vi.fn(bumpCall) })
-    SESSION_MOCKS['barfoo'] = new Set()
-    SESSION_MOCKS['barfoo'].add({ restore: vi.fn(bumpCall) })
+    SESSION_MOCKS.foobar = new Set()
+    SESSION_MOCKS.foobar.add({ restore: vi.fn(bumpCall) })
+    SESSION_MOCKS.foobar.add({ restore: vi.fn(bumpCall) })
+    SESSION_MOCKS.barfoo = new Set()
+    SESSION_MOCKS.barfoo.add({ restore: vi.fn(bumpCall) })
     return { SESSION_MOCKS, getMockCalls: () => clearedMocks, default: vi.fn() }
 })
 

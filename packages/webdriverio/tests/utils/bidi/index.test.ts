@@ -69,7 +69,7 @@ function getErrorStack () {
     try {
         parseScriptResult(params, exception)
     } catch (e) {
-        error = e
+        error = e as Error
     }
 
     if (!error) {
@@ -158,7 +158,7 @@ describe('getFailureLine', () => {
                 ]
             },
             text: 'Error: foobar'
-        },
+        }
 
         customStack = `Error: foobar
     at parseScriptResult (/path/to/webdriverio/packages/webdriverio/build/index.js:816:11)

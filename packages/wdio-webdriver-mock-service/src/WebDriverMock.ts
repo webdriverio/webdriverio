@@ -18,7 +18,7 @@ type protocolFlattenedType = { method: string, endpoint: string, commandData: Co
 const protocolFlattened: Map<string, protocolFlattenedType> = new Map()
 
 export interface CommandMock {
-    [commandName: string]: (...args: any[]) => nock.Interceptor
+    [commandName: string]: (...args: unknown[]) => nock.Interceptor
 }
 
 for (const protocol of protocols) {
@@ -36,7 +36,7 @@ export default class WebDriverMock {
         this.scope = nock(`http://${host}:${port}`, {
             encodedQueryParams: true
         })
-        this.command = new Proxy({}, { get: this.get.bind(this) })
+        this.command = new Proxy({}, { get: this.get.bind(this) }) as unknown as CommandMock
     }
 
     /**
@@ -67,19 +67,19 @@ export default class WebDriverMock {
         }
     }
 
-    get(obj: any, commandName: string) {
+    get(_obj: unknown, commandName: string) {
 
         const { method, endpoint, commandData } = protocolFlattened.get(commandName) as protocolFlattenedType
 
-        return (...args: any[]) => {
+        return (...args: unknown[]) => {
             let urlPath = endpoint
             for (const [i, param] of Object.entries(commandData.variables || [])) {
-                urlPath = urlPath.replace(`:${param.name}`, args[parseInt(i)])
+                urlPath = urlPath.replace(`:${param.name}`, args[parseInt(i)] as string)
             }
 
             if (method === 'POST') {
                 const reqMethod = method.toLowerCase() as RequestMethods
-                return this.scope[reqMethod](WebDriverMock.pathMatcher(urlPath), (body: Record<string, any>) => {
+                return this.scope[reqMethod](WebDriverMock.pathMatcher(urlPath), (body: Record<string, unknown>) => {
                     for (const param of commandData.parameters) {
                         /**
                          * check if parameter was set

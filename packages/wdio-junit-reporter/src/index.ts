@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import url from 'node:url'
 import os from 'node:os'
 
@@ -313,7 +314,7 @@ class JunitReporter extends WDIOReporter {
                 this._buildOrderedReport(builder, runner, specFileName, '', isCucumberFrameworkRunner)
             }
         })
-        return builder.build() as any as string
+        return builder.build() as unknown as string
     }
 
     private _buildOrderedReport(builder: any, runner: RunnerStats, specFileName: string, type: string, isCucumberFrameworkRunner: boolean) {

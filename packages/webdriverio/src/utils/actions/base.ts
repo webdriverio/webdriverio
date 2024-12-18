@@ -1,4 +1,5 @@
 import { ELEMENT_KEY } from 'webdriver'
+import type { ElementReference } from '@wdio/protocols'
 
 export type ActionType = 'key' | 'pointer' | 'wheel'
 export type KeyActionType = 'mouse' | 'pen' | 'touch'
@@ -10,6 +11,13 @@ export interface BaseActionParams {
     parameters?: ActionParameters
 }
 
+interface Sequence {
+    type: string
+    duration?: number
+    origin?: (ElementReference | WebdriverIO.Element | 'pointer' | 'viewport') & { then?: Function }
+    value?: string
+}
+
 let actionIds = 0
 
 export default class BaseAction {
@@ -17,7 +25,7 @@ export default class BaseAction {
     #type: ActionType
     #parameters: ActionParameters
     #instance: WebdriverIO.Browser
-    protected sequence: any[] = []
+    protected sequence: Sequence[] = []
 
     constructor (
         protected instance: WebdriverIO.Browser,
@@ -69,7 +77,7 @@ export default class BaseAction {
              * resolve promise element
              */
             if (typeof seq.origin.then === 'function') {
-                await seq.origin.waitForExist()
+                await (seq.origin as WebdriverIO.Element).waitForExist()
                 seq.origin = await seq.origin
             }
 

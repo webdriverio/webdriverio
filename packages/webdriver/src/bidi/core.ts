@@ -4,7 +4,7 @@ import type { ClientOptions, RawData, WebSocket } from 'ws'
 import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
 import type { CommandData } from './remoteTypes.js'
-import type { CommandResponse } from './localTypes.js'
+import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
 import type { Client } from '../types.js'
 
@@ -127,7 +127,7 @@ export class BidiCore {
 
             this.#pendingCommands.delete(payload.id)
             resolve(payload)
-        } catch (err: unknown) {
+        } catch (err) {
             const error = err instanceof Error ? err : new Error(`Failed parse message: ${String(err)}`)
             log.error(`Failed parse message: ${error.message}`)
         }
@@ -136,7 +136,7 @@ export class BidiCore {
     public async send (params: Omit<CommandData, 'id'>): Promise<CommandResponse> {
         const id = this.sendAsync(params)
         const failError = new Error(`WebDriver Bidi command "${params.method}" failed`)
-        const payload = await new Promise<CommandResponse>((resolve, reject) => {
+        const payload = await new Promise<CommandResponse | ErrorResponse>((resolve, reject) => {
             const t = setTimeout(() => {
                 reject(new Error(`Command ${params.method} with id ${id} (with the following parameter: ${JSON.stringify(params.params)}) timed out`))
                 this.#pendingCommands.delete(id)
@@ -147,9 +147,9 @@ export class BidiCore {
             })
         })
 
-        if (payload.error) {
+        if (payload.type === 'error' || 'error' in payload) {
             failError.message += ` with error: ${payload.error} - ${payload.message}`
-            if (payload.stacktrace) {
+            if (payload.stacktrace && typeof payload.stacktrace === 'string') {
                 const driverStack = payload.stacktrace
                     .split('\n')
                     .filter(Boolean)

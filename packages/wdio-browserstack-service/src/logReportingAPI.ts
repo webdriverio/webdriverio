@@ -10,7 +10,7 @@ const LOG_LEVELS = {
 }
 
 class logReportingAPI extends Transport {
-    log(info: any, callback: undefined|Function = undefined) {
+    log(info: { level: string | null, message: string | null }, callback: undefined|Function = undefined) {
         setImmediate(() => {
             this.emit('logged', info)
         })
@@ -28,9 +28,9 @@ class logReportingAPI extends Transport {
         }
     }
 
-    logToTestOps = (level = LOG_LEVELS.INFO, message = '', consoleLog = true) => {
+    logToTestOps = (level = LOG_LEVELS.INFO, message: string | null = '', consoleLog = true) => {
         if (consoleLog) {
-            (consoleHolder as any)[level.toLowerCase()](message)
+            consoleHolder[level.toLowerCase() as 'info' | 'log'](message)
         }
         (process.emit as Function)(`bs:addLog:${process.pid}`, {
             timestamp: new Date().toISOString(),
@@ -42,23 +42,23 @@ class logReportingAPI extends Transport {
     }
 
     /* Patching this would show user an extended trace on their cli */
-    trace = (message: any) => {
+    trace = (message: string | null) => {
         this.logToTestOps(LOG_LEVELS.TRACE, message)
     }
 
-    debug = (message: any) => {
+    debug = (message: string | null) => {
         this.logToTestOps(LOG_LEVELS.DEBUG, message)
     }
 
-    info = (message: any) => {
+    info = (message: string | null) => {
         this.logToTestOps(LOG_LEVELS.INFO, message)
     }
 
-    warn = (message: any) => {
+    warn = (message: string | null) => {
         this.logToTestOps(LOG_LEVELS.WARN, message)
     }
 
-    error = (message: any) => {
+    error = (message: string | null) => {
         this.logToTestOps(LOG_LEVELS.ERROR, message)
     }
 }

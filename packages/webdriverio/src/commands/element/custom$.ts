@@ -35,7 +35,7 @@ import type { CustomStrategyFunction } from '../../types.js'
 export async function custom$ (
     this: WebdriverIO.Element,
     strategyName: string,
-    ...strategyArguments: any[]
+    ...strategyArguments: unknown[]
 ) {
     const browserObject = getBrowserObject(this)
     const strategy = browserObject.strategies.get(strategyName) as CustomStrategyFunction

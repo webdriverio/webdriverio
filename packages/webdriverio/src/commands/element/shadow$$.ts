@@ -50,7 +50,7 @@ export async function shadow$$ (
         const res = await browser.findElementsFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
         const elements = await getElements.call(this, selector as Selector, res, { isShadowElement: true })
         return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
-    } catch (err: unknown) {
+    } catch (err) {
         log.warn(
             `Failed to fetch element within shadow DOM using WebDriver command: ${(err as Error).message}!\n` +
             'Falling back to JavaScript shim.'

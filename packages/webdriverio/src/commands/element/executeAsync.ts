@@ -51,7 +51,7 @@ import { getBrowserObject } from '@wdio/utils'
  * @type protocol
  * @deprecated Please use `execute` instead
  */
-export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
+export async function executeAsync<ReturnValue, InnerArguments extends unknown[]> (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     script:
         string |

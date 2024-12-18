@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+
 import WDIOReporter from '@wdio/reporter'
 
 export default class CustomReporter extends WDIOReporter {

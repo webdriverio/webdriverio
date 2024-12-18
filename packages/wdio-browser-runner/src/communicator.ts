@@ -106,6 +106,6 @@ export class ServerWorkerCommunicator {
         const msg: WorkerMessage = { id, client }
         this.#pendingMessages.set(id, msg)
         const args: Workers.WorkerRequest['args'] = { id, message }
-        return worker.postMessage('workerRequest', args, true)
+        return worker.postMessage('workerRequest', args as unknown as Workers.WorkerMessageArgs, true)
     }
 }

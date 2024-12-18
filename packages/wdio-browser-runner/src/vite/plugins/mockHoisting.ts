@@ -33,7 +33,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 try {
                     const orig = await fs.readFile(id.slice(MOCK_PREFIX.length + (os.platform() === 'win32' ? 1 : 0)))
                     return orig.toString()
-                } catch (err: unknown) {
+                } catch (err) {
                     log.error(`Failed to read file (${id}) for mocking: ${(err as Error).message}`)
                     return ''
                 }
@@ -75,7 +75,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     sourceRoot: path.dirname(id)
                 })
                 log.trace(`Parsed file for mocking: ${id} in ${Date.now() - start}ms`)
-            } catch (err) {
+            } catch {
                 return { code }
             }
 
@@ -327,7 +327,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 const newCode = print(ast, { sourceMapName: id })
                 log.trace(`Transformed file for mocking: ${id} in ${Date.now() - start}ms`)
                 return newCode
-            } catch (err: any) {
+            } catch (err) {
                 log.trace(`Failed to transformed file (${id}) for mocking: ${(err as Error).stack}`)
                 return { code }
             }

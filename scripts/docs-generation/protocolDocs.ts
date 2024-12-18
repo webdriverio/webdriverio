@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
@@ -40,7 +41,7 @@ export function generateProtocolDocs (sidebars: any) {
     }
 
     for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
-        const protocol = PROTOCOL_NAMES[protocolName as any as keyof typeof PROTOCOL_NAMES] as string
+        const protocol = PROTOCOL_NAMES[protocolName as unknown as keyof typeof PROTOCOL_NAMES] as string
 
         for (const [, methods] of Object.entries(definition)) {
             for (const [, description] of Object.entries(methods) as any) {
@@ -107,7 +108,6 @@ export function generateProtocolDocs (sidebars: any) {
         const [preemble, ...apiDocs] = protocolDocs[protocolName]
         fs.writeFileSync(docPath, preemble + apiDocs.join('\n---\n'), { encoding: 'utf-8' })
 
-        // eslint-disable-next-line no-console
         console.log(`Generated docs for ${protocolName} protocol`)
 
         protocolDocEntry.items.push(`${category}/${protocolName}`)

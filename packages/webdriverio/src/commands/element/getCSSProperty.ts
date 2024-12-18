@@ -185,7 +185,7 @@ async function getPseudoElementCSSValue (
     const browser = getBrowserObject(elem)
     const { cssProperty, pseudoElement }  = options
     const cssValue = await browser.execute(
-        (elem: Element, pseudoElement: string, cssProperty: string) => (window.getComputedStyle(elem, pseudoElement))[cssProperty as any],
+        (elem: Element, pseudoElement: string, cssProperty: string) => (window.getComputedStyle(elem, pseudoElement))[cssProperty as unknown as number],
         elem as unknown as Element,
         pseudoElement,
         cssProperty

@@ -361,18 +361,18 @@ async function bar() {
     const reactWrapper = await browser.react$('')
     const reactWrapperWithOptions = await browser.react$('', {
         props: {},
-        state: true
+        state: { someValue: true }
     })
     const reactElement = await reactWrapper.react$('')
     const reactElementWithOptions = await reactWrapper.react$('', {
         props: {},
-        state: true
+        state: { someValue: true }
     })
     await reactElement.click()
     const reactElements = await reactWrapper.react$$('')
     const reactElementsWithOptions = await reactWrapper.react$$('', {
         props: {},
-        state: true
+        state: { someValue: true }
     })
     await reactElements[0].click()
 

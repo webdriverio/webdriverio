@@ -129,7 +129,7 @@ describe('Mocha smoke test', () => {
                 await elem.click()
                 return false
             }, { timeout: 1000 })
-        } catch (err) {
+        } catch {
             // ignored
         }
         assert.equal(JSON.stringify(await elem.getSize()), JSON.stringify({ width: 1, height: 2 }))

@@ -53,7 +53,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         // added to maintain backward compatibility with webdriverIO v5
-        this._config || (this._config = this._options)
+        if (!this._config) {
+            this._config = this._options
+        }
+
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
         this._percy = isTrue(process.env.BROWSERSTACK_PERCY)
@@ -205,7 +208,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             } catch (err) {
                 BStackLogger.error(`Error in service class before function: ${err}`)
                 if (shouldProcessEventForTesthub('')) {
-                    CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+                    CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err ? (err as Error).stack as string : 'unknown error')
                 }
             }
 
@@ -241,7 +244,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    async beforeHook (test: Frameworks.Test|CucumberHook, context: any) {
+    async beforeHook (test: Frameworks.Test|CucumberHook, context: unknown) {
         if (this._config.framework !== 'cucumber') {
             this._currentTest = test as Frameworks.Test // not update currentTest when this is called for cucumber step
         }
@@ -385,8 +388,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (!this._browser.isMultiremote) {
             BStackLogger.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
-            const browserName = (this._browser as any as WebdriverIO.MultiRemoteBrowser).instances.filter(
-                (browserName: string) => this._browser && (this._browser as any as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
+            const browserName = (this._browser as unknown as WebdriverIO.MultiRemoteBrowser).instances.filter(
+                (browserName: string) => this._browser && (this._browser as unknown as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
             BStackLogger.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
@@ -410,11 +413,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
-        const desiredCapabilities = (this._caps ?? {})
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)
+        const desiredCapabilities = (this._caps ?? {}) as WebdriverIO.Capabilities
+        return (
+            !!browserDesiredCapabilities['appium:app'] ||
+            !!desiredCapabilities['appium:app'] ||
+            !!desiredCapabilities['appium:options']?.app
+        )
     }
 
-    _updateJob (requestBody: any) {
+    _updateJob (requestBody: unknown) {
         return this._multiRemoteAction((sessionId: string, browserName: string) => {
             BStackLogger.info(browserName
                 ? `Update multiremote job for browser "${browserName}" and sessionId ${sessionId}`
@@ -433,7 +440,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return action(this._browser.sessionId)
         }
 
-        const multiremotebrowser = this._browser as any as WebdriverIO.MultiRemoteBrowser
+        const multiremotebrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
         return Promise.all(multiremotebrowser.instances
             .filter((browserName: string) => {
                 const cap = getBrowserCapabilities(multiremotebrowser, this._caps, browserName)
@@ -445,7 +452,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         )
     }
 
-    _update(sessionId: string, requestBody: any) {
+    _update(sessionId: string, requestBody: unknown) {
         if (!isBrowserstackSession(this._browser)) {
             return Promise.resolve()
         }
@@ -453,7 +460,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         BStackLogger.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
 
         const encodedAuth = Buffer.from(`${this._config.user}:${this._config.key}`, 'utf8').toString('base64')
-        const headers: any = {
+        const headers: Record<string, string> = {
             'Content-Type': 'application/json; charset=utf-8',
             Authorization: `Basic ${encodedAuth}`,
         }
@@ -483,7 +490,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             let browserUrl
 
             const encodedAuth = Buffer.from(`${this._config.user}:${this._config.key}`, 'utf8').toString('base64')
-            const headers: any = {
+            const headers: Record<string, string> = {
                 'Content-Type': 'application/json; charset=utf-8',
                 Authorization: `Basic ${encodedAuth}`,
             }
@@ -546,7 +553,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return this._executeCommand('annotate', { data, level: 'info' })
     }
 
-    private async _executeCommand<T = any>(
+    private async _executeCommand<T = unknown>(
         action: string,
         args?: object,
     ) {
@@ -558,7 +565,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const script = `browserstack_executor: ${JSON.stringify(cmd)}`
 
         if (this._browser.isMultiremote) {
-            const multiRemoteBrowser = this._browser as any as WebdriverIO.MultiRemoteBrowser
+            const multiRemoteBrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
             return Promise.all(Object.keys(this._caps).map(async (browserName) => {
                 const browser = multiRemoteBrowser.getInstance(browserName)
                 return (await browser.execute<T, []>(script))

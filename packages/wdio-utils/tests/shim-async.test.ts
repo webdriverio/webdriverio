@@ -290,7 +290,7 @@ describe('wrapCommand', () => {
         }]
         scope.options = options
         const rawCommand = vi.fn().mockReturnValue(Promise.resolve(scope))
-        const commandA = wrapCommand('$$', rawCommand).bind(scope) as any as (sel: string) => Promise<any>[]
+        const commandA = wrapCommand('$$', rawCommand).bind(scope) as unknown as (sel: string) => Promise<any>[]
 
         const expectedResults = ['foobarA', 'foobarB', 'foobarC']
         let i = 0
@@ -311,7 +311,7 @@ describe('wrapCommand', () => {
         }
         scope.options = options
         const rawCommand = vi.fn().mockReturnValue(Promise.resolve(scope))
-        const commandA = wrapCommand('$', rawCommand).bind(scope) as any as (sel: string) => Promise<any>[]
+        const commandA = wrapCommand('$', rawCommand).bind(scope) as unknown as (sel: string) => Promise<any>[]
 
         try {
             for await (const elem of commandA('selector')) {

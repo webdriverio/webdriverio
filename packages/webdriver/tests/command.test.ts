@@ -60,8 +60,6 @@ vi.mock('../src/request/request', () => {
     })
 
     thenMock.mockReturnValue(promise)
-    catchMock
-
     return {
         thenMock,
         catchMock,

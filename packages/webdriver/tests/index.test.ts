@@ -174,7 +174,7 @@ describe('WebDriver', () => {
 
     describe('attachToSession', () => {
         it('should allow to attach to existing session', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as any as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as unknown as TestClient
             await client.getUrl()
             expect(fetch).toHaveBeenCalledWith(
                 expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
@@ -184,7 +184,7 @@ describe('WebDriver', () => {
         })
 
         it('should allow to attach to existing session2', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions }) as unknown as TestClient
             await client.getUrl()
             expect(fetch).toHaveBeenCalledWith(
                 expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
@@ -194,7 +194,7 @@ describe('WebDriver', () => {
         })
 
         it('should allow to attach to existing session - W3C', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions }) as unknown as TestClient
             await client.getUrl()
 
             expect(client.isChromium).toBeFalsy()
@@ -209,7 +209,7 @@ describe('WebDriver', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isChromium: true,
                 isMobile: true
-            }) as any as TestClient
+            }) as unknown as TestClient
 
             await client.getUrl()
 
@@ -267,7 +267,7 @@ describe('WebDriver', () => {
                     'appium:automationName': 'foo',
                     'platformName': 'ios',
                 }
-            }) as any as TestClient
+            }) as unknown as TestClient
             expect(client.isMobile).toBe(true)
             expect(client.isLocked).toBeTruthy()
             expect(client.shake).toBeTruthy()

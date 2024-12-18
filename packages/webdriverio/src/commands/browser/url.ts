@@ -134,7 +134,7 @@ export async function url (
                 throw new Error(`Option "onBeforeLoad" must be a function, but received: ${typeof options.onBeforeLoad}`)
             }
 
-            resetPreloadScript = await this.addInitScript(options.onBeforeLoad)
+            resetPreloadScript = await this.addInitScript(options.onBeforeLoad as (() => void))
         }
 
         if (options.auth) {
@@ -262,5 +262,5 @@ interface UrlCommandOptions {
      * from the Node.js context. Furthermore changes to the environment only apply for this specific page load.
      * Checkout `browser.addPreloadScript` for a more versatile way to mock the environment.
      */
-    onBeforeLoad?: () => any
+    onBeforeLoad?: () => unknown
 }

@@ -50,7 +50,7 @@ export class ContextManager {
              * which is WebDriver Classic only
              */
             if (event.command === 'switchToWindow') {
-                this.setCurrentContext(event.body.handle)
+                this.setCurrentContext((event.body as { handle: string }).handle)
             }
 
             /**
@@ -69,7 +69,7 @@ export class ContextManager {
              * Keep track of the context to which we switch
              */
             if (this.#browser.isMobile && event.command === 'switchContext') {
-                this.#mobileContext = event.body.name
+                this.#mobileContext = (event.body as { name: string }).name
             }
         })
 
@@ -88,11 +88,11 @@ export class ContextManager {
 
             if (this.#browser.isMobile) {
                 if (event.command === 'getContext') {
-                    this.setCurrentContext(event.result.value)
+                    this.setCurrentContext((event.result as { value: string }).value)
                 }
                 if (
                     event.command === 'switchContext' &&
-                    event.result.value === null &&
+                    (event.result as { value: string | null }).value === null &&
                     this.#mobileContext
                 ) {
                     this.setCurrentContext(this.#mobileContext)

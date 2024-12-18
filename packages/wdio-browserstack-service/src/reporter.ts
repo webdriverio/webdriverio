@@ -111,7 +111,7 @@ class _TestReporter extends WDIOReporter {
                     // Sometimes in cases where a file has two suites. Then the file name be unknown for second suite, so getting the filename from first suite
                     filename = this._suiteName || suiteStats.file
                 }
-            } catch (e) {
+            } catch {
                 BStackLogger.debug('Error in decoding file name of suite')
             }
         }

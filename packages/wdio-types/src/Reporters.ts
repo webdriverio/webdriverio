@@ -49,12 +49,12 @@ export interface Options {
      * Note: `logFile` must not be set, unless `stdout` is set to `true`.
      */
     writeStream?: WriteStream | {
-        write: (content: any) => boolean
+        write: (content: unknown) => boolean
     }
     /**
      * allow random typings from 3rd party reporters
      */
-    [key: string]: any
+    [key: string]: unknown
 }
 
 export interface ReporterInstance extends EventEmitter {

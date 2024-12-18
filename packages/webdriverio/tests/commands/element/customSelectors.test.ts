@@ -22,7 +22,7 @@ describe('custom$', () => {
         browser.addLocatorStrategy('test', (selector: string, root: HTMLElement) => [
             { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-${root}` },
             { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-other-${root}` }
-        ] as any as HTMLElement[])
+        ] as unknown as HTMLElement[])
 
         const elem = await browser.$('#foo')
         const elems = await elem.custom$$('test', '.test')

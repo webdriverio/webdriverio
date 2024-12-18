@@ -65,16 +65,16 @@ export default async function run() {
     try {
         const cp = await handler(args)
         return cp
-    } catch (err: any) {
+    } catch (err) {
         const output = await new Promise((resolve) => (
             yargs(hideBin(process.argv)).parse('--help', (
                 err: Error,
-                argv: Record<string, any>,
+                argv: Record<string, string>,
                 output: string
             ) => resolve(output)))
         )
 
-        console.error(`${output}\n\n${err.stack}`)
+        console.error(`${output}\n\n${(err as Error).stack}`)
 
         /**
          * only exit process if we are run by a user and not running unit tests

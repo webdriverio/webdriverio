@@ -22,7 +22,7 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => vi.fn(),
             contains: () => false
-        } as any as Element
+        } as unknown as Element
         global.document = { elementFromPoint: () => elemMock } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
@@ -41,7 +41,7 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => vi.fn(),
             contains: () => true
-        } as any as Element
+        } as unknown as Element
         global.document = { elementFromPoint: () => 'some element' as any } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
@@ -60,7 +60,7 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: vi.fn(),
             contains: () => { throw new Error('should not be called in old Edge!') }
-        } as any as Element
+        } as unknown as Element
         // emulate old Edge
         // @ts-expect-error
         global.window.StyleMedia = (() => { }) as any
@@ -89,7 +89,7 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: vi.fn(),
             contains: () => { throw new Error('should not be called in old Edge!') }
-        } as any as Element
+        } as unknown as Element
         // emulate old Edge
         // @ts-expect-error
         global.window.StyleMedia = (() => { }) as any
@@ -122,7 +122,7 @@ describe('isElementClickable script', () => {
             }],
             scrollIntoView: () => vi.fn(),
             contains: () => false
-        } as any as Element
+        } as unknown as Element
         global.document = {
             // only return elemMock in getOverlappingRects
             elementFromPoint: (x: number) => {
@@ -146,7 +146,7 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => vi.fn(),
             contains: () => false
-        } as any as Element
+        } as unknown as Element
         global.document = {
             elementFromPoint: () => ({
                 shadowRoot: {
@@ -174,7 +174,7 @@ describe('isElementClickable script', () => {
             scrollIntoView: () => vi.fn(),
             contains: () => false,
             disabled: true
-        } as any as Element
+        } as unknown as Element
         global.document = { elementFromPoint: () => elemMock } as any
 
         expect(isElementClickable(elemMock)).toBe(false)
@@ -193,7 +193,7 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: vi.fn(),
             contains: () => false
-        } as any as Element
+        } as unknown as Element
         global.document = { elementFromPoint: () => null } as any
 
         expect(isElementClickable(elemMock)).toBe(false)
@@ -213,7 +213,7 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => vi.fn(),
             contains: () => false
-        } as any as Element
+        } as unknown as Element
         global.document = {
             elementFromPoint: () => ({
                 shadowRoot: { elementFromPoint: () => null }
@@ -234,7 +234,7 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => vi.fn(),
             contains: () => false
-        } as any as Element
+        } as unknown as Element
         global.document = { elementFromPoint: () => elemMock } as any
 
         expect(isElementClickable(elemMock)).toBe(false)

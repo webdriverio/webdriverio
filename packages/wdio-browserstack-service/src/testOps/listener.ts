@@ -26,7 +26,7 @@ class Listener {
     private readonly logEvents: FeatureStats = this.usageStats.logStats
     private requestBatcher?: RequestQueueHandler
     private pendingUploads = 0
-    private static _accessibilityOptions?: { [key: string]: any; }
+    private static _accessibilityOptions?: { [key: string]: unknown; }
     private static _testRunAccessibilityVar?: boolean = false
 
     // Making the constructor private to use singleton pattern
@@ -40,7 +40,7 @@ class Listener {
         return Listener.instance
     }
 
-    public static setAccessibilityOptions(options:  { [key: string]: any; } | undefined) {
+    public static setAccessibilityOptions(options:  { [key: string]: unknown; } | undefined) {
         Listener._accessibilityOptions = options
     }
 
@@ -225,7 +225,7 @@ class Listener {
                     await batchAndPostEvents(DATA_BATCH_ENDPOINT, 'BATCH_DATA', data)
                     BStackLogger.debug('callback: marking events success ' + data.length)
                     this.eventsSuccess(data)
-                } catch (e) {
+                } catch {
                     BStackLogger.debug('callback: marking events failed ' + data.length)
                     this.eventsFailed(data)
                 } finally {

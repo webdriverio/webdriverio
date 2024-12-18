@@ -12,6 +12,13 @@ interface JSONConversionSettings {
     nestedGroups?: boolean
 }
 
+export interface Feature {
+    triggeredCount: number
+    sentCount: number
+    failedCount: number
+    groups: Feature[]
+}
+
 class FeatureStats {
     private triggeredCount: number = 0
     private sentCount: number = 0
@@ -126,7 +133,7 @@ class FeatureStats {
         }
     }
 
-    public static fromJSON(json: any): FeatureStats {
+    public static fromJSON(json: Feature): FeatureStats {
         const stats = new FeatureStats()
 
         if (!json || isObjectEmpty(json)) {

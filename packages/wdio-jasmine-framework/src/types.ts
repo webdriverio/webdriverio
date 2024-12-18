@@ -37,6 +37,7 @@ export interface ResultHandlerPayload {
 
 export interface FrameworkMessage {
     type: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload?: any
     err?: jasmine.FailedExpectation
 }
@@ -55,7 +56,7 @@ export interface FormattedMessage {
     duration?: number
     currentTest?: string
     error?: jasmine.FailedExpectation
-    context?: any
+    context?: unknown
 
     /**
      * jasmine specific

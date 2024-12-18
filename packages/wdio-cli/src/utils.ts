@@ -47,7 +47,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const NPM_COMMAND = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
 const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
 const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
-export const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
+export const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, unknown>) => Promise<string>
 
 export class HookError extends SevereServiceError {
     public origin: string
@@ -63,7 +63,7 @@ export class HookError extends SevereServiceError {
 export async function runServiceHook(
     launcher: Services.ServiceInstance[],
     hookName: keyof Services.HookFunctions,
-    ...args: any[]
+    ...args: unknown[]
 ) {
     const start = Date.now()
     return Promise.all(launcher.map(async (service: Services.ServiceInstance) => {
@@ -71,10 +71,10 @@ export async function runServiceHook(
             if (typeof service[hookName] === 'function') {
                 await (service[hookName] as Function)(...args)
             }
-        } catch (err: any) {
-            const message = `A service failed in the '${hookName}' hook\n${err.stack}\n\n`
+        } catch (err) {
+            const message = `A service failed in the '${hookName}' hook\n${(err as Error).stack}\n\n`
 
-            if (err instanceof SevereServiceError || err.name === 'SevereServiceError') {
+            if (err instanceof SevereServiceError || (err as Error).name === 'SevereServiceError') {
                 return { status: 'rejected', reason: message, origin: hookName }
             }
 
@@ -98,7 +98,7 @@ export async function runServiceHook(
  * @param {object} config
  * @param {object} capabilities
  */
-export async function runLauncherHook(hook: Function | Function[], ...args: any[]) {
+export async function runLauncherHook(hook: Function | Function[], ...args: unknown[]) {
     if (typeof hook === 'function') {
         hook = [hook]
     }
@@ -113,8 +113,8 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
     return Promise.all(hook.map((hook) => {
         try {
             return hook(...args)
-        } catch (err: any) {
-            return catchFn(err)
+        } catch (err) {
+            return catchFn(err as Error)
         }
     })).catch(catchFn)
 }
@@ -142,8 +142,8 @@ export async function runOnCompleteHook(
         try {
             await hook(exitCode, config, capabilities, results)
             return 0
-        } catch (err: any) {
-            log.error(`Error in onCompleteHook: ${err.stack}`)
+        } catch (err) {
+            log.error(`Error in onCompleteHook: ${(err as Error).stack}`)
             if (err instanceof SevereServiceError) {
                 throw new HookError(err.message, 'onComplete')
             }
@@ -225,7 +225,7 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
         if (result === 'APPIUM_MISSING') {
             packages.push('appium')
         } else if (update) {
-            // eslint-disable-next-line no-console
+
             console.log(
                 '\n=======',
                 '\nUsing globally installed appium', result,
@@ -315,7 +315,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         try {
             await config.initialize()
         } catch (e) {
-            throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}` :
+            throw Error((e as { code: string }).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}` :
                 `Could not parse ${arg.option}, failed with error: ${(e as Error).message}`)
         }
         if (typeof arg.capabilities === 'undefined') {
@@ -371,7 +371,7 @@ export async function hasPackage(pkg: string) {
     try {
         await resolve(pkg, import.meta.url)
         return true
-    } catch (err: any) {
+    } catch {
         return false
     }
 }
@@ -511,13 +511,13 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                          * pick first choice, select value if it exists
                          */
                         ? typeof question.choices === 'function'
-                            ? (question.choices(answers)[0] as any as { value: any }).value
-                                ? (question.choices(answers)[0] as any as { value: any }).value
+                            ? (question.choices(answers)[0] as unknown as { value: unknown }).value
+                                ? (question.choices(answers)[0] as unknown as { value: unknown }).value
                                 : question.choices(answers)[0]
-                            : (question.choices[0] as { value: any }).value
+                            : (question.choices[0] as { value: unknown }).value
                                 ? question.type === 'checkbox'
-                                    ? [(question.choices[0] as { value: any }).value]
-                                    : (question.choices[0] as { value: any }).value
+                                    ? [(question.choices[0] as { value: unknown }).value]
+                                    : (question.choices[0] as { value: unknown }).value
                                 : question.choices[0]
                         : {}
             })
@@ -665,7 +665,7 @@ export async function getProjectProps(cwd = process.cwd()): Promise<ProjectProps
             packageJson,
             path: path.dirname(packageJsonPath)
         }
-    } catch (err) {
+    } catch {
         return undefined
     }
 }
@@ -983,8 +983,8 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
             await generateTestFiles(parsedAnswers)
             console.log(chalk.green(chalk.bold('✔ Success!\n')))
         }
-    } catch (err: any) {
-        throw new Error(`⚠️ Couldn't write config file: ${err.stack}`)
+    } catch (err) {
+        throw new Error(`⚠️ Couldn't write config file: ${(err as Error).stack}`)
     }
 }
 
@@ -1029,10 +1029,10 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
         try {
             console.log(`Adding ${chalk.bold(`"${ script }"`)} script to package.json`)
             await runProgram(NPM_COMMAND, args, { cwd: parsedAnswers.projectRootDir })
-        } catch (err: any) {
+        } catch (err) {
             const [preArgs, scriptPath] = args.join(' ').split('=')
             console.error(
-                `⚠️  Couldn't add script to package.json: "${err.message}", you can add it manually ` +
+                `⚠️  Couldn't add script to package.json: "${(err as Error).message}", you can add it manually ` +
                 `by running:\n\n\t${NPM_COMMAND} ${preArgs}="${scriptPath}"`
             )
             return false

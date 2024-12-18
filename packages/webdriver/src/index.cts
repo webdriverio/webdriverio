@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const esmModule = import('./node.js')
 
 function command (method: string, encodeUri: string, commandInfo: any, doubleEncodeVariables = false) {

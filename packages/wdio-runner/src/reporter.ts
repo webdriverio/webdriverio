@@ -13,7 +13,7 @@ const mochaAllHooks = ['"before all" hook', '"after all" hook']
  */
 export default class BaseReporter {
     private _reporters: Reporters.ReporterInstance[] = []
-    private listeners: ((ev: any) => void)[] = []
+    private listeners: ((ev: unknown) => void)[] = []
 
     constructor(
         private _config: Options.Testrunner,
@@ -33,7 +33,20 @@ export default class BaseReporter {
      * @param  {string} e       event name
      * @param  {object} payload event payload
      */
-    emit (e: string, payload: any) {
+    emit (e: string, payload: {
+        cid?: string
+        specs?: string[]
+        uid?: string
+        file?: string
+        title?: string
+        error?: Error
+        sessionId?: string
+        config?: unknown
+        isMultiremote?: boolean
+        instanceOptions?: Options.Testrunner
+        capabilities?: unknown
+        retry?: number
+    }) {
         payload.cid = this._cid
 
         /**
@@ -43,7 +56,7 @@ export default class BaseReporter {
         const isHookError = (
             e === 'hook:end' &&
             payload.error &&
-            mochaAllHooks.some(hook => payload.title.startsWith(hook))
+            mochaAllHooks.some(hook => payload.title?.startsWith(hook))
         )
         if (isTestError || isHookError) {
             this.#emitData({
@@ -56,15 +69,19 @@ export default class BaseReporter {
         this._reporters.forEach((reporter) => {
             try {
                 reporter.emit(e, payload)
-            } catch (err: any) {
-                // When reporter throws an exception, log the error and continue with the next reporter
+            } catch (err) {
+                const error = err instanceof Error ? err : new Error(`An unknown error occurred: ${err}`)
+
+                /**
+                 * When reporter throws an exception, log the error and continue with the next reporter
+                 */
                 this.#emitData({
                     origin: 'reporter',
                     name: 'printFailureMessage',
                     content: {
                         cid: this._cid,
                         // Destructing of message and stack is required else nothing is outputted
-                        error: { message: err?.message, stack: err?.stack },
+                        error: { message: error.message, stack: error.stack },
                         fullTitle: `reporter ${reporter.constructor.name}`,
                     }
                 })
@@ -72,7 +89,7 @@ export default class BaseReporter {
         })
     }
 
-    onMessage (listener: (ev: any) => void) {
+    onMessage (listener: (ev: unknown) => void) {
         this.listeners.push(listener)
     }
 
@@ -131,7 +148,7 @@ export default class BaseReporter {
     /**
      * emit data either through process or listener
      */
-    #emitData (payload: any) {
+    #emitData (payload: unknown) {
         if (typeof process.send === 'function') {
             return process.send!(payload)
         }

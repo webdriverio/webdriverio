@@ -62,7 +62,8 @@ export default class AllureReporter extends WDIOReporter {
 
         this.registerListeners()
 
-        const processObj:any = process
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const processObj: any = process
 
         if (options.addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
@@ -75,7 +76,9 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         const { reportedEnvironmentVars } = this._options
-        reportedEnvironmentVars && this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
+        if (reportedEnvironmentVars) {
+            this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
+        }
     }
 
     attachLogs() {
@@ -111,7 +114,7 @@ export default class AllureReporter extends WDIOReporter {
         )
     }
 
-    attachJSON(name: string, json: any) {
+    attachJSON(name: string, json: unknown) {
         const isStr = typeof json === 'string'
         const content = isStr ? json : JSON.stringify(json, null, 2)
 
@@ -502,7 +505,7 @@ export default class AllureReporter extends WDIOReporter {
 
         this._startStep(stepName as string)
 
-        if (!isEmpty(payload)) {
+        if (typeof payload === 'object' && !isEmpty(payload as object)) {
             this.attachJSON('Request', payload)
         }
     }
@@ -510,10 +513,14 @@ export default class AllureReporter extends WDIOReporter {
     onAfterCommand(command: AfterCommandArgs) {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
-        const commandResult = command?.result?.value || command?.result?.error?.name ||  {}
+        const commandResult = (
+            (command?.result as { value?: unknown } | undefined)?.value ||
+            (command?.result as { error?: Error } | undefined)?.error?.name ||
+            {}
+        )
         const isScreenshot = isScreenshotCommand(command)
         if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
-            this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
+            this.attachScreenshot('Screenshot', Buffer.from(commandResult as string, 'base64'))
         }
 
         if (disableWebdriverStepsReporting || this._isMultiremote || !this._state.currentStep) {
@@ -666,7 +673,11 @@ export default class AllureReporter extends WDIOReporter {
          */
         if (useCucumberStepReporter && !disableMochaHooks) {
             // closing the cucumber hook (in this case, it's reported as a step)
-            hook.error ? this.onTestFail(hook) : this.onTestPass()
+            if (hook.error) {
+                this.onTestFail(hook)
+            } else {
+                this.onTestPass()
+            }
 
             // remove cucumber hook (reported as a step) from a suite if it has no steps or attachments.
             const currentItem = this._state.currentAllureStepableEntity?.wrappedItem
@@ -885,7 +896,7 @@ export default class AllureReporter extends WDIOReporter {
 
     addStep({
         step
-    }: any) {
+    }: { step: { title: string, attachment: { name: string, content: string, type: ContentType }, status: AllureStatus } }) {
         if (!this._state.currentAllureStepableEntity) {
             return
         }
@@ -902,7 +913,7 @@ export default class AllureReporter extends WDIOReporter {
     addArgument({
         name,
         value
-    }: any) {
+    }: { name: string, value: string }) {
         if (!this._state.currentTest) {
             return
         }

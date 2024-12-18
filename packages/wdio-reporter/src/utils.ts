@@ -64,7 +64,7 @@ export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
  * have a hard assertion model (Mocha)
  * @param {*} e  An event emitted by a framework adapter
  */
-export function getErrorsFromEvent(e: { errors?: any; error?: any }) {
+export function getErrorsFromEvent(e: { errors?: Error[]; error?: Error }) {
     if (e.errors) {
         return e.errors
     }

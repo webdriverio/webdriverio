@@ -30,9 +30,10 @@ describe('BStackCleanup', () => {
     describe('startCleanup', () => {
         it('executes observability cleanup if --observability is present in argv', async () => {
             vi.spyOn(utils, 'stopBuildUpstream')
-            process.argv.push('--observability')
+            process.argv.push('--observability', '--funnelData')
             process.env[BROWSERSTACK_TESTHUB_JWT] = 'some jwt'
 
+            vi.spyOn(BStackCleanup, 'getFunnelDataFromFile').mockReturnValue({ data: 123 })
             await BStackCleanup.startCleanup()
 
             expect(utils.stopBuildUpstream).toHaveBeenCalledTimes(1)

@@ -53,7 +53,7 @@ beforeEach(() => {
         browserB: {},
         execute: vi.fn(),
         on: vi.fn(),
-    } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     insightsHandler = new InsightsHandler(browser, 'framework')
 })
 

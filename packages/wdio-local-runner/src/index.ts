@@ -11,7 +11,7 @@ export type { WorkerInstance }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
     command: string
-    args: any
+    args: Workers.WorkerMessageArgs
 }
 
 export default class LocalRunner {
@@ -61,7 +61,7 @@ export default class LocalRunner {
 
         for (const [cid, worker] of Object.entries(this.workerPool)) {
             const { capabilities, server, sessionId, config, isMultiremote, instances } = worker
-            let payload = {}
+            let payload: Partial<Workers.WorkerMessageArgs> = {}
 
             /**
              * put connection information to payload if in watch mode
@@ -74,7 +74,7 @@ export default class LocalRunner {
                     watch: true,
                     isMultiremote,
                     instances
-                }
+                } as unknown as Workers.WorkerMessageArgs
             } else if (!worker.isBusy) {
                 delete this.workerPool[cid]
                 continue

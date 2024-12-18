@@ -122,10 +122,10 @@ export async function isDisplayed (
         return await this.isElementDisplayed(this.elementId)
     }
 
-    const isDisplayed = await browser.execute(isElementDisplayedScript, this as any as HTMLElement)
+    const isDisplayed = await browser.execute(isElementDisplayedScript, this as unknown as HTMLElement)
 
     if (isDisplayed && commandParams?.withinViewport) {
-        return browser.execute(isElementInViewportScript, this as any as HTMLElement)
+        return browser.execute(isElementInViewportScript, this as unknown as HTMLElement)
     }
 
     return isDisplayed

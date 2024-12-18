@@ -101,7 +101,7 @@ describe('getBrowserCapabilities', () => {
                     browser: 'browser'
                 }
             }
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as unknown as WebdriverIO.MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {}, 'browserA'))
             .toEqual(browser.browserA.capabilities as any)
     })
@@ -111,7 +111,7 @@ describe('getBrowserCapabilities', () => {
             isMultiremote: true,
             getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
             browserA: {}
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as unknown as WebdriverIO.MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {}, 'browserB')).toEqual({})
     })
 
@@ -121,7 +121,7 @@ describe('getBrowserCapabilities', () => {
                 browser: 'browser',
                 os: 'OS X',
             }
-        } as any as WebdriverIO.Browser
+        } as unknown as WebdriverIO.Browser
         expect(getBrowserCapabilities(browser, { os: 'Windows' }))
             .toEqual({ os:'Windows', browser: 'browser' } as any)
     })
@@ -136,7 +136,7 @@ describe('getBrowserCapabilities', () => {
                     os: 'OS X',
                 }
             }
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as unknown as WebdriverIO.MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {
             browserA: { capabilities: { os: 'Windows' } } }, 'browserA'))
             .toEqual({ os:'Windows', browser: 'browser' } as any)
@@ -147,7 +147,7 @@ describe('getBrowserCapabilities', () => {
             isMultiremote: true,
             getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
             browserA: {}
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as unknown as WebdriverIO.MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {}, 'browserB'))
             .toEqual({})
     })
@@ -157,7 +157,7 @@ describe('getBrowserCapabilities', () => {
             isMultiremote: true,
             getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
             browserA: {}
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as unknown as WebdriverIO.MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, { browserB: {} } as any, 'browserB'))
             .toEqual({})
     })
@@ -327,6 +327,7 @@ describe('getCiInfo', () => {
             process.env.bamboo_buildNumber = '123'
             expect(getCiInfo()).toBeInstanceOf(Object)
             delete process.env.APviwPVEYOR
+            delete process.env.bamboo_buildNumber
         })
 
         it('should return object if any CI being used - Wercker', () => {
@@ -390,7 +391,7 @@ describe('getCiInfo', () => {
     })
 
     it('should return null if no CI being used', () => {
-        expect(getCiInfo()).toBeNull
+        expect(getCiInfo()).toBeNull()
     })
 })
 
@@ -1065,7 +1066,7 @@ describe('getA11yResults', () => {
         execute: vi.fn(),
         executeAsync: vi.fn(),
         on: vi.fn(),
-    } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
     it('return false if BrowserStack Session', async () => {
         const result: any = await utils.getA11yResults((browser as WebdriverIO.Browser), false, false)
@@ -1113,7 +1114,7 @@ describe('getA11yResultsSummary', () => {
         execute: vi.fn(),
         executeAsync: vi.fn(),
         on: vi.fn(),
-    } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
     it('return false if BrowserStack Session', async () => {
         const result: any = await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), false, false)

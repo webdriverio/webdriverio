@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import safeStringify from 'safe-stringify'
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
@@ -19,6 +20,7 @@ class HTMLReporter extends BaseReporter {
          * to the element within the Shadow DOM
          */
         const getElementById = document.getElementById.bind(document)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
         document.getElementById = () => document.querySelector('mocha-framework')?.shadowRoot?.querySelector('#mocha')!
         super(runner, options)
         document.getElementById = getElementById

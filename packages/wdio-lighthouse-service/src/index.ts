@@ -30,7 +30,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         return this._setupHandler()
     }
 
-    async beforeCommand (commandName: string, params: any[]) {
+    async beforeCommand (commandName: string, params: unknown[]) {
         return Promise.all(this._command.map(async c => await c._beforeCmd(commandName, params)))
     }
 
@@ -115,7 +115,7 @@ export default class DevToolsService implements Services.ServiceInstance {
             (this._browser as WebdriverIO.MultiRemoteBrowser).instances.map(i => (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(i))
 
         for (const browser of browsers) {
-            const puppeteer = await (browser as WebdriverIO.Browser).getPuppeteer().catch(() => undefined) as any as PuppeteerBrowser
+            const puppeteer = await (browser as WebdriverIO.Browser).getPuppeteer().catch(() => undefined) as unknown as PuppeteerBrowser
             if (!puppeteer) {
                 return setUnsupportedCommand(browser as WebdriverIO.Browser)
             }

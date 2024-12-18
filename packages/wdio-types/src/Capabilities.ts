@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
     WebDriver as WebDriverOptions,
     WebdriverIO as WebDriverIOOptions,
@@ -1518,10 +1519,8 @@ export interface LambdaTestCapabilities {
 
 export interface BrowserStackCapabilities {
     browser?: string
-    // eslint-disable-next-line
     browser_version?: string
     os?: string
-    // eslint-disable-next-line
     os_version?: string
     osVersion?: string
     desired?: unknown

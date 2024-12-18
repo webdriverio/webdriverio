@@ -34,7 +34,7 @@ export interface Trace {
 interface StartedInBrowserEvent extends TraceEventArgs {
     data: {
         frames: {
-            parent: any
+            parent: unknown
             processId: number
         }[]
     }
@@ -47,14 +47,14 @@ interface NavigationStartEvent extends TraceEventArgs {
 }
 
 export interface WaitPromise {
-    promise: Promise<any>
+    promise: Promise<unknown>
     cancel: Function
 }
 
 export default class TraceGatherer extends EventEmitter {
     private _failingFrameLoadIds: string[] = []
     private _pageLoadDetected = false
-    private _networkListeners: Record<string, (params: any) => void> = {}
+    private _networkListeners: Record<string, (params: unknown) => void> = {}
 
     private _frameId?: string
     private _loaderId?: string
@@ -244,7 +244,7 @@ export default class TraceGatherer extends EventEmitter {
             const mainFrame = (
                 startedInBrowserEvt &&
                 startedInBrowserEvt.args &&
-                (startedInBrowserEvt.args as StartedInBrowserEvent).data.frames?.find((frame: any) => !frame.parent)
+                (startedInBrowserEvt.args as StartedInBrowserEvent).data.frames?.find((frame: { parent?: unknown }) => !frame.parent)
             )
             if (mainFrame && mainFrame.processId) {
                 const threadNameEvt = traceEvents.traceEvents.find(e => e.ph === 'R' &&
@@ -267,8 +267,8 @@ export default class TraceGatherer extends EventEmitter {
             }
             this.emit('tracingComplete', this._trace)
             this.finishTracing()
-        } catch (err: any) {
-            log.error(`Error capturing tracing logs: ${err.stack}`)
+        } catch (err) {
+            log.error(`Error capturing tracing logs: ${(err as Error).stack}`)
             this.emit('tracingError', err)
             return this.finishTracing()
         }
