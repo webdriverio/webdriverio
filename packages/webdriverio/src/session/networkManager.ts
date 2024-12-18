@@ -35,8 +35,6 @@ export class NetworkManager extends SessionManager {
         /**
          * listen on required bidi events
          */
-        console.log('\n\nREGISTER IT ALL\n\n');
-
         this.#initialize = this.#browser.sessionSubscribe({
             events: [
                 'browsingContext.navigationStarted',
