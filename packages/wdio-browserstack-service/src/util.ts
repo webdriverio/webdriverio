@@ -216,12 +216,15 @@ export async function nodeRequest(requestType: string, apiEndpoint: string, opti
         if (error && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
             const errorMessage = errorMessageJson ? errorMessageJson.message : null
-            const logMessage = errorMessage ? `${errorMessage} - ${error.stack}` : error.stack
-            if (isLogUpload) {
-                BStackLogger.debug(logMessage)
-            } else {
-                BStackLogger.error(`${errorMessage} - ${error.stack}`)
+            if (errorMessage) {
+                const message = `${errorMessage} - ${error.stack}`
+                if (isLogUpload) {
+                    BStackLogger.debug(message)
+                } else {
+                    BStackLogger.error(message)
+                }
             }
+
             if (isLogUpload) {
                 return
             }
@@ -1215,8 +1218,8 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
     formData.append('data', new FileStream(zip), 'logs.gz')
     formData.append('clientBuildUuid', clientBuildUuid)
 
-    const requestOptions = {
-        body: formData,
+    const requestOptions: RequestInit = {
+        body: formData as BodyInit,
         headers: {
             'Authorization': getBasicAuthHeader(user, key)
         }

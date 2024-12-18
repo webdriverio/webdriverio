@@ -14,7 +14,7 @@ dns.setDefaultResultOrder('ipv4first')
  */
 export class FetchRequest extends WebDriverRequest {
     fetch (url: URL, opts: RequestInit) {
-        return fetch(url, opts as UndiciRequestInit) as Promise<Response>
+        return fetch(url, opts as UndiciRequestInit) as unknown as Promise<Response>
     }
 
     async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false) {

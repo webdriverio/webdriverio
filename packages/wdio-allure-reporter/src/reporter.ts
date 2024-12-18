@@ -505,7 +505,7 @@ export default class AllureReporter extends WDIOReporter {
 
         this._startStep(stepName as string)
 
-        if (!isEmpty(payload)) {
+        if (typeof payload === 'object' && !isEmpty(payload as object)) {
             this.attachJSON('Request', payload)
         }
     }

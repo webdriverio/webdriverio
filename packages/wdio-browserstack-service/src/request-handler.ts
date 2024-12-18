@@ -67,9 +67,7 @@ export default class RequestQueueHandler {
 
     callCallback = async (data: UploadType[], kind: string) => {
         BStackLogger.debug('calling callback with kind ' + kind)
-        if (this.callback) {
-            await this.callback(data)
-        }
+        await this.callback?.(data)
     }
 
     resetEventBatchPolling () {
