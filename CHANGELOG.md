@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.40.0 (2024-12-18)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#13861](https://github.com/webdriverio/webdriverio/pull/13861) Fix stack testobservability v7 ([@07souravkunda](https://github.com/07souravkunda))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-types`
+  * [#13952](https://github.com/webdriverio/webdriverio/pull/13952) Changes to send SDK instrumentation in capabilities v7 ([@jainam-bs](https://github.com/jainam-bs))
+
+#### Committers: 2
+- Jainam Shah ([@jainam-bs](https://github.com/jainam-bs))
+- Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
+
+
 ## v7.39.0 (2024-10-07)
 
 #### :nail_care: Polish
