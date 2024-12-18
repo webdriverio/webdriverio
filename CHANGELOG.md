@@ -21,6 +21,28 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.41.0 (2024-12-18)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#13876](https://github.com/webdriverio/webdriverio/pull/13876) v8/@wdio-util: downgrade geckodriver version ([@Delta456](https://github.com/Delta456))
+* `wdio-browserstack-service`
+  * [#13860](https://github.com/webdriverio/webdriverio/pull/13860) Fix stacktrace testobservability v8 ([@07souravkunda](https://github.com/07souravkunda))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-types`
+  * [#13926](https://github.com/webdriverio/webdriverio/pull/13926) Changes to send SDK instrumentation in capabilities v8 ([@jainam-bs](https://github.com/jainam-bs))
+* `wdio-browserstack-service`
+  * [#13734](https://github.com/webdriverio/webdriverio/pull/13734) Fix Percy instrumentation ([@akanksha1909](https://github.com/akanksha1909))
+
+#### Committers: 5
+- Akanksha singh ([@akanksha1909](https://github.com/akanksha1909))
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Jainam Shah ([@jainam-bs](https://github.com/jainam-bs))
+- Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+
+
 ## v8.40.6 (2024-10-02)
 
 #### :bug: Bug Fix
