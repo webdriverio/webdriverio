@@ -149,7 +149,7 @@ export default function (
                 const browser = this as { _bidiHandler?: BidiHandler }
                 browser._bidiHandler?.close()
 
-                const shutdownDriver = (body.deleteSessionOpts as { shutdownDriver: boolean }).shutdownDriver !== false
+                const shutdownDriver = (body.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
                 /**
                  * kill driver process if there is one
                  */

@@ -70,7 +70,7 @@ export abstract class WebDriverRequest extends EventEmitter {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
-            requestOptions.body = this.body as any
+            requestOptions.body = this.body as unknown as BodyInit
             requestHeaders.set('Content-Length', `${contentLength}`)
         }
 
@@ -149,7 +149,7 @@ export abstract class WebDriverRequest extends EventEmitter {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.body as any))
+            log.info('DATA', transformCommandLogResult(fullRequestOptions.body))
         }
 
         const { ...requestLibOptions } = fullRequestOptions
@@ -224,7 +224,7 @@ export abstract class WebDriverRequest extends EventEmitter {
         if (isSuccessfulResponse(response.statusCode, response.body)) {
             this.emit('response', { result: response.body })
             this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: true, retryCount })
-            return response.body
+            return response.body as WebDriverResponse<unknown>
         }
 
         const error = new WebDriverResponseError(response, url, fullRequestOptions)

@@ -1,8 +1,6 @@
 import { transformCommandLogResult } from '@wdio/utils'
-import type { Options } from '@wdio/types'
 
 import { REG_EXPS } from './constants.js'
-import type { WebDriverResponse } from './types.js'
 
 abstract class WebDriverError extends Error {
     abstract url: URL

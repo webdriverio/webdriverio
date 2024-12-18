@@ -6,6 +6,9 @@ export interface Job {
     caps: WebdriverIO.Capabilities
     specs: string[]
     hasTests: boolean
+    baseUrl?: string
+    config?: TestrunnerOptions & { sessionId?: string }
+    capabilities?: WebdriverIO.Capabilities
 }
 
 export type WorkerMessageArgs = Omit<Job, 'caps' | 'specs' | 'hasTests'>

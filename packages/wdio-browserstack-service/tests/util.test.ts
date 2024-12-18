@@ -327,6 +327,7 @@ describe('getCiInfo', () => {
             process.env.bamboo_buildNumber = '123'
             expect(getCiInfo()).toBeInstanceOf(Object)
             delete process.env.APviwPVEYOR
+            delete process.env.bamboo_buildNumber
         })
 
         it('should return object if any CI being used - Wercker', () => {

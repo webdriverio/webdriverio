@@ -96,7 +96,7 @@ class _PercyHandler {
                             )
                         ) ||
                         /* execute script sync / async */
-                        (args.endpoint.includes('/session/:sessionId/execute') && args.body?.script) ||
+                        Boolean(args.endpoint.includes('/session/:sessionId/execute') && (args.body as { script: string }).script) ||
                         /* Touch action for Appium */
                         (args.endpoint.includes('/session/:sessionId/touch'))
                     )
@@ -149,7 +149,8 @@ class _PercyHandler {
             } else if (endpoint.includes('screenshot') && ['screenshot', 'auto'].includes(this._percyAutoCaptureMode as string)) {
                 eventName = 'screenshot'
             } else if (endpoint.includes('actions') && ['auto'].includes(this._percyAutoCaptureMode as string)) {
-                if (args.body && args.body.actions && Array.isArray(args.body.actions) && args.body.actions.length && args.body.actions[0].type === 'key') {
+                const actionsBody = (args.body as { actions: { type: string }[] }).actions
+                if (actionsBody && Array.isArray(actionsBody) && actionsBody.length && actionsBody[0].type === 'key') {
                     eventName = 'keys'
                 }
             } else if (endpoint.includes('/session/:sessionId/element') && endpoint.includes('value') && ['auto'].includes(this._percyAutoCaptureMode as string)) {

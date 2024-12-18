@@ -147,9 +147,9 @@ export class BidiCore {
             })
         })
 
-        if (payload.type === 'error') {
+        if (payload.type === 'error' || 'error' in payload) {
             failError.message += ` with error: ${payload.error} - ${payload.message}`
-            if (payload.stacktrace) {
+            if (payload.stacktrace && typeof payload.stacktrace === 'string') {
                 const driverStack = payload.stacktrace
                     .split('\n')
                     .filter(Boolean)

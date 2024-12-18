@@ -3,7 +3,6 @@ import { BROWSERSTACK_PERCY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBIL
 import type BrowserStackConfig from '../config.js'
 import { BStackLogger } from '../bstackLogger.js'
 import { isTrue } from '../util.js'
-import type { ProductMap } from '../types.js'
 
 interface ErrorType {
     key: string
@@ -14,7 +13,7 @@ export interface Errors {
     errors: ErrorType[]
 }
 
-export const getProductMap = (config: BrowserStackConfig): ProductMap => {
+export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean } => {
     return {
         observability: config.testObservability.enabled,
         accessibility: config.accessibility,

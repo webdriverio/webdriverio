@@ -18,6 +18,7 @@ export function parseScriptResult(params: remote.ScriptCallFunctionParameters, r
 }
 
 export function deserializeValue(result: remote.ScriptLocalValue) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { type, value } = result as any
     if (type === NonPrimitiveType.RegularExpression) {
         return new RegExp(value.pattern, value.flags)

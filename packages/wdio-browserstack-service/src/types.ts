@@ -356,14 +356,6 @@ export interface TOUsageStats {
     events?: unknown
 }
 
-export interface ProductMap {
-    observability: boolean
-    accessibility: boolean
-    percy: boolean
-    automate: boolean
-    app_automate: boolean
-}
-
 export interface EventProperties {
     language_framework: string
     referrer: string
@@ -373,7 +365,7 @@ export interface EventProperties {
     buildIdentifier: string
     os: string
     hostname: string
-    productMap: ProductMap
+    productMap: { [key: string]: boolean }
     product: string[]
     productUsage?: {
         testObservability: {

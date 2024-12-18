@@ -319,8 +319,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
         }
 
-        this._updateCaps(capabilities, 'testhubBuildUuid')
-        this._updateCaps(capabilities, 'buildProductMap')
+        this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'testhubBuildUuid')
+        this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'buildProductMap')
 
         if (!this._options.browserstackLocal) {
             return BStackLogger.info('browserstackLocal is not enabled - skipping...')

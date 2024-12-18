@@ -414,11 +414,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
         const desiredCapabilities = (this._caps ?? {}) as WebdriverIO.Capabilities
-        // @
         return (
             !!browserDesiredCapabilities['appium:app'] ||
             !!desiredCapabilities['appium:app'] ||
-            // @ts-expect-error
             !!desiredCapabilities['appium:options']?.app
         )
     }

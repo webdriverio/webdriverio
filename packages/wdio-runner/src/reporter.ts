@@ -69,15 +69,19 @@ export default class BaseReporter {
         this._reporters.forEach((reporter) => {
             try {
                 reporter.emit(e, payload)
-            } catch (err: any) {
-                // When reporter throws an exception, log the error and continue with the next reporter
+            } catch (err: unknown) {
+                const error = err instanceof Error ? err : new Error(`An unknown error occurred: ${err}`)
+
+                /**
+                 * When reporter throws an exception, log the error and continue with the next reporter
+                 */
                 this.#emitData({
                     origin: 'reporter',
                     name: 'printFailureMessage',
                     content: {
                         cid: this._cid,
                         // Destructing of message and stack is required else nothing is outputted
-                        error: { message: err?.message, stack: err?.stack },
+                        error: { message: error.message, stack: error.stack },
                         fullTitle: `reporter ${reporter.constructor.name}`,
                     }
                 })

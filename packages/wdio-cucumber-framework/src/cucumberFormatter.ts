@@ -172,7 +172,9 @@ export default class CucumberFormatter extends Formatter {
             type: 'hook',
             state: result.status,
             error,
-            duration: Date.now() - (this._testStart?.getTime() || 0),
+            duration: this._testStart
+                ? Date.now() - this._testStart.getTime()
+                : 0,
         })
 
         this.emit('hook:end', payload)
@@ -253,7 +255,9 @@ export default class CucumberFormatter extends Formatter {
             title: title,
             state,
             error,
-            duration: Date.now() - (this._testStart?.getTime() || 0),
+            duration: this._testStart
+                ? Date.now() - this._testStart.getTime()
+                : 0,
             passed: ['pass', 'skip'].includes(state),
             file: uri,
         }
@@ -354,7 +358,9 @@ export default class CucumberFormatter extends Formatter {
                 title: this.getTitle(this._currentDoc.feature),
                 type: 'feature',
                 file: this._currentDoc.uri,
-                duration: Date.now() - (this._featureStart?.getTime() || 0),
+                duration: this._featureStart
+                    ? Date.now() - this._featureStart.getTime()
+                    : 0,
                 tags: this._currentDoc.feature?.tags,
             }
             this.emit('suite:end', payload)
@@ -557,7 +563,9 @@ export default class CucumberFormatter extends Formatter {
             parent: getFeatureId(doc?.uri as string, doc?.feature as Feature),
             type: 'scenario',
             file: doc?.uri,
-            duration: Date.now() - (this._scenarioStart?.getTime() || 0),
+            duration: this._scenarioStart
+                ? Date.now() - this._scenarioStart.getTime()
+                : 0,
             tags: scenario.tags,
         }
 
@@ -581,7 +589,9 @@ export default class CucumberFormatter extends Formatter {
                 title: this.getTitle(this._currentDoc.feature as Feature),
                 type: 'feature',
                 file: this._currentDoc.uri,
-                duration: Date.now() - (this._featureStart?.getTime() || 0),
+                duration: this._featureStart
+                    ? Date.now() - this._featureStart.getTime()
+                    : 0,
                 tags: this._currentDoc.feature?.tags,
             }
 
@@ -604,7 +614,9 @@ export default class CucumberFormatter extends Formatter {
             title: this.getTitle(gherkinDocEvent.feature as Feature),
             type: 'feature',
             file: gherkinDocEvent.uri,
-            duration: Date.now() - (this._featureStart?.getTime() || 0),
+            duration: this._featureStart
+                ? Date.now() - this._featureStart.getTime()
+                : 0,
             tags: gherkinDocEvent.feature?.tags,
         }
 

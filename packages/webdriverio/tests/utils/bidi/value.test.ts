@@ -57,7 +57,7 @@ describe('LocalValue', () => {
               },
               {
                 "type": "bigint",
-                "value": "9007199254740991"
+                "value": 9007199254740991
               },
               {
                 "type": "map",

@@ -78,8 +78,7 @@ class _InsightsHandler {
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
         const desiredCapabilities = (this._userCaps ?? {}) as WebdriverIO.Capabilities
-        // @ts-expect-error
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!((desiredCapabilities)['appium:options']?.app)
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(desiredCapabilities['appium:options']?.app)
     }
 
     registerListeners() {
@@ -536,7 +535,7 @@ class _InsightsHandler {
 
         // log screenshot
         const body = 'body' in args ? args.body : undefined
-        const result = 'result' in args ? args.result : undefined
+        const result = 'result' in args ? args.result as { value: string } : undefined
         if (Boolean(process.env[TESTOPS_SCREENSHOT_ENV]) && isScreenshotCommand(args) && result?.value) {
             await this.listener.onScreenshot([{
                 test_run_uuid: testMeta.uuid,

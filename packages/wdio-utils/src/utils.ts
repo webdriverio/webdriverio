@@ -112,15 +112,19 @@ export function commandCallStructure (commandName: string, args: unknown[], unfu
  * result strings e.g. if it contains a screenshot
  * @param {object} result WebDriver response body
  */
-export function transformCommandLogResult (result: { file?: string, script?: string }) {
-    if (typeof result.file === 'string' && isBase64(result.file)) {
+export function transformCommandLogResult (result: unknown) {
+    if (typeof result === 'undefined') {
+        return '<empty result>'
+    } else if (typeof result !== 'object' || !result) {
+        return result
+    } else if ('file' in result && typeof result.file === 'string' && isBase64(result.file)) {
         return SCREENSHOT_REPLACEMENT
-    } else if (typeof result.script === 'string' && isBase64(result.script)) {
+    } else if ('script' in result && typeof result.script === 'string' && isBase64(result.script)) {
         return SCRIPT_PLACEHOLDER
-    } else if (typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
+    } else if ('script' in result && typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
         const newScript = result.script.match(REGEX_SCRIPT_NAME)![2]
         return { ...result, script: `${newScript}(...) [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
-    } else if (typeof result.script === 'string' && result.script.startsWith('!function(')) {
+    } else if ('script' in result && typeof result.script === 'string' && result.script.startsWith('!function(')) {
         return { ...result, script: `<minified function> [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
     }
 

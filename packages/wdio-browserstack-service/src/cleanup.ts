@@ -14,7 +14,7 @@ export default class BStackCleanup {
             if (funnelDataCleanup) {
                 const index = process.argv.indexOf('--funnelData')
                 const filePath = process.argv[index + 1]
-                funnelData = this.getFunnelDataFromFile(filePath)
+                funnelData = BStackCleanup.getFunnelDataFromFile(filePath)
             }
 
             if (process.argv.includes('--observability') && funnelData) {
