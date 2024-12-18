@@ -254,7 +254,7 @@ class JasmineAdapter {
             // @ts-ignore outdated types
             this._grep(this._jrunner.env.topSuite())
             this._hasTests = this._totalTests > 0
-        } catch (err: unknown) {
+        } catch (err) {
             log.warn(
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialized.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +

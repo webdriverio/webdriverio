@@ -205,7 +205,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         Object.assign(result, { sessionId }),
                     )
                 })
-            } catch (err: unknown) {
+            } catch (err) {
                 BStackLogger.error(`Error in service class before function: ${err}`)
                 if (shouldProcessEventForTesthub('')) {
                     CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err ? (err as Error).stack as string : 'unknown error')

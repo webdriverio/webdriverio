@@ -509,7 +509,7 @@ export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO
         const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
         BStackLogger.debug(util.format(results as string))
         return ( results as { [key: string]: unknown; } | undefined )
-    } catch (err: unknown) {
+    } catch (err) {
         BStackLogger.error('Accessibility Scan could not be performed : ' + err)
         return
     }

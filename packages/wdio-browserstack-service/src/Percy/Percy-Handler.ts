@@ -58,7 +58,7 @@ class _PercyHandler {
                 await (this._isAppAutomate ? PercySDK.screenshotApp(this._percyCaptureMap?.getName( sessionName ? sessionName : (this._sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, this._percyCaptureMap?.getName( sessionName ? sessionName : (this._sessionName as string), eventName)))
                 this._percyScreenshotCounter -= 1
             }
-        } catch (err: unknown) {
+        } catch (err) {
             this._percyScreenshotCounter -= 1
             this._percyCaptureMap?.decrement(sessionName ? sessionName : (this._sessionName as string), eventName as string)
             PercyLogger.error(`Error while trying to auto capture Percy screenshot ${err}`)
@@ -132,7 +132,7 @@ class _PercyHandler {
                     this._percyScreenshotInterval = null
                 }
             }, 1000)
-        } catch (err: unknown) {
+        } catch (err) {
             PercyLogger.error(`Error while trying to cleanup deferred screenshots ${err}`)
         }
     }
@@ -159,7 +159,7 @@ class _PercyHandler {
             if (eventName) {
                 this.deferCapture(this._sessionName as string, eventName)
             }
-        } catch (err: unknown) {
+        } catch (err) {
             PercyLogger.error(`Error while trying to calculate auto capture parameters ${err}`)
         }
     }

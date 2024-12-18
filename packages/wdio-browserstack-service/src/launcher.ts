@@ -195,7 +195,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     process.env.BEST_PLATFORM_CID = cid
                 }
             }
-        } catch (err: unknown) {
+        } catch (err) {
             PercyLogger.error(`Error while setting best platform for Percy snapshot at worker start ${err}`)
         }
     }
@@ -314,7 +314,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     projectName: this._projectName
                 })
                 this._updateBrowserStackPercyConfig()
-            } catch (err: unknown) {
+            } catch (err) {
                 PercyLogger.error(`Error while setting up Percy ${err}`)
             }
         }
@@ -461,7 +461,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.on('beforeExit', handler)
             process.on('SIGINT', handler)
             process.on('SIGTERM', handler)
-        } catch (err: unknown) {
+        } catch (err) {
             PercyLogger.debug(`Error in percy setup ${format(err)}`)
             process.env[BROWSERSTACK_PERCY] = 'false'
         }

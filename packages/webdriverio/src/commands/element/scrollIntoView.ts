@@ -126,7 +126,7 @@ export async function scrollIntoView (
         await browser.action('wheel')
             .scroll({ duration: 0, x: deltaX, y: deltaY, origin: this })
             .perform()
-    } catch (err: unknown) {
+    } catch (err) {
         log.warn(
             `Failed to execute "scrollIntoView" using WebDriver Actions API: ${(err as Error).message}!\n` +
             'Re-attempting using `Element.scrollIntoView` via Web API.'

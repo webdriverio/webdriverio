@@ -267,7 +267,7 @@ export default class TraceGatherer extends EventEmitter {
             }
             this.emit('tracingComplete', this._trace)
             this.finishTracing()
-        } catch (err: unknown) {
+        } catch (err) {
             log.error(`Error capturing tracing logs: ${(err as Error).stack}`)
             this.emit('tracingError', err)
             return this.finishTracing()

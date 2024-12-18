@@ -158,7 +158,7 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                         const template = await getTemplate(options, env, spec)
                         log.debug(`Render template for ${req.originalUrl}`)
                         res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
-                    } catch (err: unknown) {
+                    } catch (err) {
                         const template = getErrorTemplate(req.originalUrl, err as Error)
                         log.error(`Failed to render template: ${(err as Error).message}`)
                         res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))

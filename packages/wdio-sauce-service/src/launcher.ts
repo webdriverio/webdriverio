@@ -104,7 +104,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
         try {
             const scProcess = await this._api.startSauceConnect(sauceConnectOpts)
             return scProcess
-        } catch (err: unknown) {
+        } catch (err) {
             ++retryCount
             /**
              * fail starting Sauce Connect eventually

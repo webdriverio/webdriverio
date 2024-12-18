@@ -110,7 +110,7 @@ export default class BrowserRunner extends LocalRunner {
                     allowOrigins: [`http://localhost:${port}`]
                 }
             }
-        } catch (err: unknown) {
+        } catch (err) {
             throw new Error(`Vite server failed to start: ${(err as Error).stack}`)
         }
 
@@ -190,7 +190,7 @@ export default class BrowserRunner extends LocalRunner {
                         .flat()
                     : getCoverageByFactor(this.#coverageOptions, summary.total)
             )
-        } catch (err: unknown) {
+        } catch (err) {
             console.error(`Failed to generate code coverage report: ${(err as Error).message}`)
             return false
         }

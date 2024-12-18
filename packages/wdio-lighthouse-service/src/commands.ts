@@ -118,7 +118,7 @@ export default class CommandHandler {
             }
             this._traceEvents = JSON.parse(traceBuffer.toString())
             this._isTracing = false
-        } catch (err: unknown) {
+        } catch (err) {
             throw new Error(`Couldn't parse trace events: ${(err as Error).message}`)
         }
 

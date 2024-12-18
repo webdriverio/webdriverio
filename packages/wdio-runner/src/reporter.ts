@@ -69,7 +69,7 @@ export default class BaseReporter {
         this._reporters.forEach((reporter) => {
             try {
                 reporter.emit(e, payload)
-            } catch (err: unknown) {
+            } catch (err) {
                 const error = err instanceof Error ? err : new Error(`An unknown error occurred: ${err}`)
 
                 /**

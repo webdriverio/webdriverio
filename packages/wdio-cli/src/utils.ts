@@ -71,7 +71,7 @@ export async function runServiceHook(
             if (typeof service[hookName] === 'function') {
                 await (service[hookName] as Function)(...args)
             }
-        } catch (err: unknown) {
+        } catch (err) {
             const message = `A service failed in the '${hookName}' hook\n${(err as Error).stack}\n\n`
 
             if (err instanceof SevereServiceError || (err as Error).name === 'SevereServiceError') {
@@ -113,7 +113,7 @@ export async function runLauncherHook(hook: Function | Function[], ...args: unkn
     return Promise.all(hook.map((hook) => {
         try {
             return hook(...args)
-        } catch (err: unknown) {
+        } catch (err) {
             return catchFn(err as Error)
         }
     })).catch(catchFn)
@@ -142,7 +142,7 @@ export async function runOnCompleteHook(
         try {
             await hook(exitCode, config, capabilities, results)
             return 0
-        } catch (err: unknown) {
+        } catch (err) {
             log.error(`Error in onCompleteHook: ${(err as Error).stack}`)
             if (err instanceof SevereServiceError) {
                 throw new HookError(err.message, 'onComplete')
@@ -983,7 +983,7 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
             await generateTestFiles(parsedAnswers)
             console.log(chalk.green(chalk.bold('✔ Success!\n')))
         }
-    } catch (err: unknown) {
+    } catch (err) {
         throw new Error(`⚠️ Couldn't write config file: ${(err as Error).stack}`)
     }
 }
@@ -1029,7 +1029,7 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
         try {
             console.log(`Adding ${chalk.bold(`"${ script }"`)} script to package.json`)
             await runProgram(NPM_COMMAND, args, { cwd: parsedAnswers.projectRootDir })
-        } catch (err: unknown) {
+        } catch (err) {
             const [preArgs, scriptPath] = args.join(' ').split('=')
             console.error(
                 `⚠️  Couldn't add script to package.json: "${(err as Error).message}", you can add it manually ` +

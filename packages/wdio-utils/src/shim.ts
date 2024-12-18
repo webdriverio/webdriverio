@@ -129,7 +129,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
         let commandError
         try {
             commandResult = await fn.apply(this, args)
-        } catch (err: unknown) {
+        } catch (err) {
             commandError = err
         }
 
@@ -383,7 +383,7 @@ export async function executeAsync(this: WebdriverIOInstance, fn: Function, retr
         }
 
         return await result
-    } catch (err: unknown) {
+    } catch (err) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
             return await executeAsync.call(this, fn, retries, args)

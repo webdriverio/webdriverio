@@ -105,7 +105,7 @@ class MochaAdapter {
             }
 
             this._hasTests = mochaRunner.total > 0
-        } catch (err: unknown) {
+        } catch (err) {
             const error = '' +
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialized.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
@@ -128,7 +128,7 @@ class MochaAdapter {
         const result = await new Promise((resolve) => {
             try {
                 this._runner = mocha.run(resolve)
-            } catch (err: unknown) {
+            } catch (err) {
                 runtimeError = err as Error
                 return resolve(1)
             }

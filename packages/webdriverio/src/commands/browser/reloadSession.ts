@@ -66,7 +66,7 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
      */
     try {
         await this.deleteSession({ shutdownDriver })
-    } catch (err: unknown) {
+    } catch (err) {
         /**
          * ignoring all exceptions that could be caused by browser.deleteSession()
          * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)

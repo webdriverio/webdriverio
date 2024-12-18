@@ -38,7 +38,7 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
     try {
         const resolvedMock = await factory(actualImport)
         window.__wdioMockCache__.set(mockPath, resolvedMock)
-    } catch (err: unknown) {
+    } catch (err) {
         const error = err as Error
         throw new Error(`${ERROR_MESSAGE}\n${error.message}: ${error.stack}`)
     }

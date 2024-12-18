@@ -143,7 +143,7 @@ export async function initializeLauncherService (
                 ignoredWorkerServices.push(serviceName)
             }
         }
-    } catch (err: unknown) {
+    } catch (err) {
         throw new Error(`Failed to initialise launcher service ${serviceLabelToBeInitialised}: ${(err as Error).stack}`)
     }
 
@@ -190,7 +190,7 @@ export async function initializeWorkerService (
         }
 
         return initializedServices
-    } catch (err: unknown) {
+    } catch (err) {
         throw new Error(`Failed to initialise service ${serviceLabelToBeInitialised}: ${(err as Error).stack}`)
     }
 }

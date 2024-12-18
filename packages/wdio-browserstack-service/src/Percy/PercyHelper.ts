@@ -73,7 +73,7 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Test
             })
             return bestPlatformCaps
         }
-    } catch (err: unknown) {
+    } catch (err) {
         PercyLogger.error(`Error while trying to determine best platform for Percy snapshot ${err}`)
         return null
     }

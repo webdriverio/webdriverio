@@ -42,7 +42,7 @@ export default class WDIOReporter extends EventEmitter {
         if (this.options.outputDir) {
             try {
                 fs.mkdirSync(this.options.outputDir, { recursive: true })
-            } catch (err: unknown) {
+            } catch (err) {
                 throw new Error(`Couldn't create output directory at "${this.options.outputDir}": ${(err as Error).stack}`)
             }
         }

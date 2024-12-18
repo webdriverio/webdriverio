@@ -141,7 +141,7 @@ export default class CrashReporter {
                     break
                 }
             }
-        } catch (err: unknown) {
+        } catch (err) {
             /* Wrong configuration like strings instead of json objects could break this method, needs no action */
             BStackLogger.error(`Error in parsing user config PII with error ${err ? ((err as Error).stack || err) : err}`)
             return configWithoutPII

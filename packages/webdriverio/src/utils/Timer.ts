@@ -95,7 +95,7 @@ class Timer {
                 (res: unknown) => this._checkCondition(undefined, res),
                 (err: Error) => this._checkCondition(err)
             )
-        } catch (err: unknown) {
+        } catch (err) {
             return this._checkCondition(err as Error)
         }
     }

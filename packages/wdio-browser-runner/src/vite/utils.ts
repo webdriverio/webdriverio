@@ -34,7 +34,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         const sourceMapSupportDir = await resolve('source-map-support', import.meta.url)
         sourceMapScript = /*html*/`<script src="/@fs/${url.fileURLToPath(path.dirname(sourceMapSupportDir))}/browser-source-map-support.js"></script>`
         sourceMapSetupCommand = 'sourceMapSupport.install()'
-    } catch (err: unknown) {
+    } catch (err) {
         log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
     }
 

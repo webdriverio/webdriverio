@@ -88,7 +88,7 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     let response: SessionInitializationResponse
     try {
         response = await sessionRequest.makeRequest(params) as SessionInitializationResponse
-    } catch (err: unknown) {
+    } catch (err) {
         log.error(err)
         const message = getSessionError(err as Error, params)
         throw new Error('Failed to create session.\n' + message)
@@ -439,7 +439,7 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
         }
 
         this.emit(payload.method as string, payload.params)
-    } catch (err: unknown) {
+    } catch (err) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
     }
 }

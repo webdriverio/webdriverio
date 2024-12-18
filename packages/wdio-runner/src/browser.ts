@@ -425,7 +425,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 pass: result.pass,
                 message: result.message()
             }))
-        } catch (err: unknown) {
+        } catch (err) {
             const errorMessage = err instanceof Error ? (err as Error).stack : err
             const message = `Failed to execute expect command "${payload.matcherName}": ${errorMessage}`
             return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))

@@ -277,7 +277,7 @@ export class CucumberAdapter {
             if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
                 result = failedCount
             }
-        } catch (err: unknown) {
+        } catch (err) {
             runtimeError = err
             result = 1
         } finally {

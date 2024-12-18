@@ -126,7 +126,7 @@ export abstract class WebDriverRequest extends EventEmitter {
                 statusCode: resp.status,
                 body: await resp.json() ?? {},
             } as Options.RequestLibResponse
-        } catch (err: unknown) {
+        } catch (err) {
             if (!(err instanceof Error)) {
                 throw new WebDriverRequestError(
                     new Error(`Failed to fetch ${url.href}: ${(err as Error).message || err || 'Unknown error'}`),

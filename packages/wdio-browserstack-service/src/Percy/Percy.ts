@@ -150,7 +150,7 @@ class Percy {
             }
             this.percyCaptureMode = response.percy_capture_mode
             this.percy = response.success
-        } catch (err: unknown) {
+        } catch (err) {
             PercyLogger.error(`Percy unable to fetch project token: ${err}`)
             return null
         }

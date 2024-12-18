@@ -304,7 +304,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         try {
             const entryPath = await resolve(command, import.meta.url)
             return url.fileURLToPath(entryPath)
-        } catch (err: unknown) {
+        } catch (err) {
             const errorMessage = (
                 'Appium is not installed locally. Please install via e.g. `npm i --save-dev appium`.\n' +
                 'If you use globally installed appium please add: `appium: { command: \'appium\' }`\n' +

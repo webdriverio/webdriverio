@@ -127,7 +127,7 @@ export class BidiCore {
 
             this.#pendingCommands.delete(payload.id)
             resolve(payload)
-        } catch (err: unknown) {
+        } catch (err) {
             const error = err instanceof Error ? err : new Error(`Failed parse message: ${String(err)}`)
             log.error(`Failed parse message: ${error.message}`)
         }

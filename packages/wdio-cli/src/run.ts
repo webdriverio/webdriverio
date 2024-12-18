@@ -65,7 +65,7 @@ export default async function run() {
     try {
         const cp = await handler(args)
         return cp
-    } catch (err: unknown) {
+    } catch (err) {
         const output = await new Promise((resolve) => (
             yargs(hideBin(process.argv)).parse('--help', (
                 err: Error,
