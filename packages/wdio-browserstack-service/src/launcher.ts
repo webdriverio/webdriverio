@@ -555,7 +555,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                                     if (capability?.accessibility) {
                                         accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
                                         accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
-                                        accessibilityOpts.pollingTimeout = process.env.POLLING_TIMEOUT
+                                        accessibilityOpts.pollingTimeout = process.env.BSTACK_A11Y_POLLING_TIMEOUT
                                         accessibilityOpts.authorization = process.env.BSTACK_A11Y_AUTHORIZATION
                                     }
                                     capability['browserstack.accessibilityOptions'] = accessibilityOpts
@@ -569,7 +569,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                                 if (capability['bstack:options'].accessibility) {
                                     accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
                                     accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
-                                    accessibilityOpts.pollingTimeout = process.env.POLLING_TIMEOUT
+                                    accessibilityOpts.pollingTimeout = process.env.BSTACK_A11Y_POLLING_TIMEOUT
                                     accessibilityOpts.authorization = process.env.BSTACK_A11Y_AUTHORIZATION
                                 }
                                 capability['bstack:options'].accessibilityOptions = accessibilityOpts
@@ -592,7 +592,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                                 if ((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility']) {
                                     accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
                                     accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
-                                    accessibilityOpts.pollingTimeout = process.env.POLLING_TIMEOUT
+                                    accessibilityOpts.pollingTimeout = process.env.BSTACK_A11Y_POLLING_TIMEOUT
                                     accessibilityOpts.authorization = process.env.BSTACK_A11Y_AUTHORIZATION
                                 }
                                 (caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibilityOptions'] = accessibilityOpts
@@ -606,7 +606,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             if ((caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility) {
                                 accessibilityOpts.authToken = process.env.BSTACK_A11Y_JWT
                                 accessibilityOpts.scannerVersion = process.env.BSTACK_A11Y_SCANNER_VERSION
-                                accessibilityOpts.pollingTimeout = process.env.POLLING_TIMEOUT
+                                accessibilityOpts.pollingTimeout = process.env.BSTACK_A11Y_POLLING_TIMEOUT
                                 accessibilityOpts.authorization = process.env.BSTACK_A11Y_AUTHORIZATION
                             }
                             (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibilityOptions = accessibilityOpts

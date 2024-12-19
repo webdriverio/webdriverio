@@ -30,7 +30,7 @@ import {
     UPLOAD_LOGS_ADDRESS,
     UPLOAD_LOGS_ENDPOINT,
     consoleHolder,
-    POLLING_TIMEOUT,
+    BSTACK_A11Y_POLLING_TIMEOUT,
     BSTACK_A11Y_AUTHORIZATION,
     TESTOPS_SCREENSHOT_ENV,
     BROWSERSTACK_TESTHUB_UUID,
@@ -329,7 +329,7 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
             process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
         }
         if (pollingTimeout) {
-            process.env.POLLING_TIMEOUT = pollingTimeout
+            process.env.BSTACK_A11Y_POLLING_TIMEOUT = BSTACK_A11Y_POLLING_TIMEOUT
         }
         if (auth_header.Authorization) {
             process.env.BSTACK_A11Y_AUTHORIZATION = auth_header.Authorization
