@@ -31,6 +31,7 @@ import {
     UPLOAD_LOGS_ADDRESS,
     UPLOAD_LOGS_ENDPOINT,
     consoleHolder,
+    BSTACK_A11Y_POLLING_TIMEOUT,
     TESTOPS_SCREENSHOT_ENV,
     BROWSERSTACK_TESTHUB_UUID,
     PERF_MEASUREMENT_ENV,
@@ -317,7 +318,7 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
     }
 
     if (response.accessibility.options) {
-        const { accessibilityToken, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
+        const { accessibilityToken, pollingTimeout, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
         const scriptsJson = {
             'scripts': jsonifyAccessibilityArray(response.accessibility.options.scripts, 'name', 'command'),
             'commands': response.accessibility.options.commandsToWrap.commands
@@ -329,6 +330,9 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
         if (accessibilityToken) {
             process.env.BSTACK_A11Y_JWT = accessibilityToken
             process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
+        }
+        if (pollingTimeout) {
+            process.env.BSTACK_A11Y_POLLING_TIMEOUT = pollingTimeout
         }
         if (scriptsJson) {
             AccessibilityScripts.update(scriptsJson)
