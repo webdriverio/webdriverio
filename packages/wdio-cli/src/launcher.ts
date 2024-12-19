@@ -35,6 +35,8 @@ export interface EndMessage {
     retries: number
 }
 
+const TS_FILE_EXTENSIONS = ['.ts', '.tsx']
+
 class Launcher {
     public configParser: ConfigParser
     public isMultiremote = false
@@ -84,7 +86,7 @@ class Launcher {
         /**
          * load tsx in the main process if config file is a .ts file to allow config parser to load it
          */
-        if (this._configFilePath.endsWith('.ts')) {
+        if (TS_FILE_EXTENSIONS.some((ext) => this._configFilePath.endsWith(ext))) {
             await import(tsxPath)
         }
 
