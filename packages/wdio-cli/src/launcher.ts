@@ -35,7 +35,7 @@ export interface EndMessage {
     retries: number
 }
 
-const TS_FILE_EXTENSIONS = ['.ts', '.tsx']
+const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 
 class Launcher {
     public configParser: ConfigParser

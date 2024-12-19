@@ -23,6 +23,21 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.4.4 (2024-12-19)
+
+#### :nail_care: Polish
+* `wdio-testingbot-service`
+  * [#13991](https://github.com/webdriverio/webdriverio/pull/13991) @wdio/testingbot-service: Update TestingBot Tunnel typings: add noCache and noBump ([@jochen-testingbot](https://github.com/jochen-testingbot))
+
+#### :house: Internal
+* `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-firefox-profile-service`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-json-reporter`, `wdio-junit-reporter`, `wdio-lighthouse-service`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-protocols`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-shared-store-service`, `wdio-smoke-test-cjs-service`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-testingbot-service`, `wdio-types`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#13867](https://github.com/webdriverio/webdriverio/pull/13867) chore: upgrade to Eslint v9 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jochen ([@jochen-testingbot](https://github.com/jochen-testingbot))
+
+
 ## v9.4.3 (2024-12-17)
 
 #### :bug: Bug Fix
