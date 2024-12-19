@@ -6,6 +6,7 @@ import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
 import util from 'node:util'
+import axios from 'axios'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -39,7 +40,10 @@ import {
     BROWSERSTACK_OBSERVABILITY,
     BROWSERSTACK_ACCESSIBILITY,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
-    GIT_META_DATA_TRUNCATED
+    GIT_META_DATA_TRUNCATED,
+    APP_ALLY_ENDPOINT,
+    APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
+    APP_ALLY_ISSUES_ENDPOINT
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -545,15 +549,14 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
     }
 
     try {
-        if (isAccessibilityAutomationSession(isAccessibility) && !isAppAutomate) {
-            const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
-            BStackLogger.debug(util.format(results as string))
-            return ( results as { [key: string]: any; } | undefined )
-        } else if (isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
+        if (isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
             const results: unknown = await (browser as WebdriverIO.Browser).execute(formatString(AccessibilityScripts.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string, {})
             BStackLogger.debug(util.format(results as string))
             return ( results as { [key: string]: any; } | undefined )
         }
+        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
+        BStackLogger.debug(util.format(results as string))
+        return ( results as { [key: string]: any; } | undefined )
     } catch (err : any) {
         BStackLogger.error('Accessibility Scan could not be performed : ' + err)
         return
@@ -579,6 +582,66 @@ export const getA11yResults = async (isAppAutomate: boolean, browser: WebdriverI
     } catch {
         BStackLogger.error('No accessibility results were found.')
         return []
+    }
+}
+
+export const getAppA11yResults = async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<Array<{ [key: string]: any; }>> => {
+    if (!isBrowserStackSession) {
+        return [] // since we are running only on Automate as of now
+    }
+
+    if (!isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
+        BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
+        return []
+    }
+
+    try {
+        BStackLogger.debug('Performing scan before getting results summary')
+        await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
+        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
+        const upperTimeLimit = Date.now() + 360000 // 30 seconds
+        const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
+        const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
+        console.log(`params ${JSON.stringify(params)}`)
+        console.log(`header ${JSON.stringify(header)}`)
+        const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
+        console.log('Polling Result:', JSON.stringify(apiRespone))
+        const result = apiRespone?.data?.data?.issues
+        console.log('Polling Result:', JSON.stringify(result))
+        return result
+    } catch {
+        BStackLogger.error('No accessibility summary was found.')
+        return []
+    }
+}
+
+export const getAppA11yResultsSummary = async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<{ [key: string]: any; }> => {
+    if (!isBrowserStackSession) {
+        return {} // since we are running only on Automate as of now
+    }
+
+    if (!isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
+        BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
+        return {}
+    }
+
+    try {
+        BStackLogger.debug('Performing scan before getting results summary')
+        await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
+        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_SUMMARY_ENDPOINT}`
+        const upperTimeLimit = Date.now() + 360000 // 30 seconds
+        const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
+        const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
+        console.log(`params ${JSON.stringify(params)}`)
+        console.log(`header ${JSON.stringify(header)}`)
+        const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
+        console.log('Polling Result:', JSON.stringify(apiRespone))
+        const result = apiRespone?.data?.data?.summary
+        console.log('Polling Result:', JSON.stringify(result))
+        return result
+    } catch {
+        BStackLogger.error('No accessibility summary was found.')
+        return {}
     }
 }
 
@@ -1414,4 +1477,67 @@ export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner 
 
     // Check if there are any capabilities and if at least one has a browser name
     return capValues.length > 0 && capValues.some(hasBrowserName)
+}
+
+type PollingResult = {
+    data: any;
+    headers: Record<string, any>;
+    message?: string; // Optional message for timeout cases
+  };
+
+async function pollApi(
+    url: string,
+    params: Record<string, any>,
+    headers: Record<string, string>,
+    upperLimit: number,
+    startTime = Date.now()
+): Promise<PollingResult> {
+    try {
+        params.timestamp = Date.now() / 1000
+        console.log(`current timestamp ${params.timestamp}`)
+        const response = await axios.get(url, { params, headers })
+
+        // If the request succeeds (non-404), return the result
+        return {
+            data: response.data,
+            headers: response.headers,
+            message: 'Polling succeeded.',
+        }
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+            const nextPollTime = parseInt(error.response.headers.next_poll_time, 10) * 1000
+            console.log(`timeInMillis ${nextPollTime}`)
+            if (isNaN(nextPollTime)) {
+                console.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
+                return {
+                    data: null,
+                    headers: error.response.headers,
+                    message: 'Invalid timeInMillis header value. Polling stopped.',
+                }
+            }
+
+            const elapsedTime = nextPollTime - Date.now()
+            console.log(`elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`)
+            // Stop polling if the upper time limit is reached
+            if (nextPollTime > upperLimit) {
+                console.log('Polling stopped due to upper time limit.')
+                return {
+                    data: null,
+                    headers: error.response.headers,
+                    message: 'Polling stopped due to upper time limit.',
+                }
+            }
+
+            console.log(`Polling again in ${elapsedTime}ms with params:`, params)
+
+            // Wait for the specified time and poll again
+            await new Promise(resolve => setTimeout(resolve, elapsedTime))
+
+            // Recursive call
+            return pollApi(url, params, headers, upperLimit, startTime)
+        }
+        console.error('Unexpected error occurred:')
+        return { data: {}, headers: {}, message: 'Unexpected error occurred.' }
+
+    }
 }

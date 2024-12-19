@@ -8,6 +8,7 @@ import Listener from './testOps/listener.js'
 
 import {
     getA11yResultsSummary,
+    getAppA11yResultsSummary,
     getA11yResults,
     performA11yScan,
     getUniqueIdentifier,
@@ -19,7 +20,8 @@ import {
     shouldScanTestForAccessibility,
     validateCapsWithA11y,
     isTrue,
-    validateCapsWithAppA11y
+    validateCapsWithAppA11y,
+    getAppA11yResults
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 
@@ -111,10 +113,16 @@ class _AccessibilityHandler {
         }
 
         (this._browser as WebdriverIO.Browser).getAccessibilityResultsSummary = async () => {
+            if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
+                return await getAppA11yResultsSummary(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility, this._sessionId)
+            }
             return await getA11yResultsSummary(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
         }
 
         (this._browser as WebdriverIO.Browser).getAccessibilityResults = async () => {
+            if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
+                return await getAppA11yResults(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility, this._sessionId)
+            }
             return await getA11yResults(this.isAppAutomate, (this._browser as WebdriverIO.Browser), isBrowserstackSession(this._browser), this._accessibility)
         }
 
@@ -158,16 +166,21 @@ class _AccessibilityHandler {
 
             /* This is to be used when test events are sent */
             Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanTest)
-            if (!isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
-                const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
-                if (!isPageOpened) {
-                    return
-                }
-            } else {
+            if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
                 this._testMetadata[testIdentifier] = {
                     scanTestForAccessibility : shouldScanTest,
                     accessibilityScanStarted : true
                 }
+                this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
+
+                if (shouldScanTest) {
+                    BStackLogger.info('AppAutomate test case execution has started.')
+                }
+                return
+            }
+            const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
+            if (!isPageOpened) {
+                return
             }
 
             this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
@@ -232,16 +245,25 @@ class _AccessibilityHandler {
 
         try {
             const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions, world, true)
-            if (!isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
-                const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
-                if (!isPageOpened) {
-                    return
-                }
-            } else {
+            if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
                 this._testMetadata[uniqueId] = {
                     scanTestForAccessibility : shouldScanScenario,
                     accessibilityScanStarted : true
                 }
+                this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
+                if (this._sessionId) {
+                    /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
+                    AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanScenario
+                }
+                Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanScenario)
+                if (shouldScanScenario) {
+                    BStackLogger.info('AppAutomate test case execution has started.')
+                }
+                return
+            }
+            const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
+            if (!isPageOpened) {
+                return
             }
             if (this._sessionId) {
                 /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
