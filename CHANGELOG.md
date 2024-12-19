@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.4.5 (2024-12-19)
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#13995](https://github.com/webdriverio/webdriverio/pull/13995) fix: Fixes an error message. ([@damencho](https://github.com/damencho))
+
+#### Committers: 1
+- Дамян Минков ([@damencho](https://github.com/damencho))
+
+
 ## v9.4.4 (2024-12-19)
 
 #### :nail_care: Polish
