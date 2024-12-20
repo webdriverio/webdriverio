@@ -6,7 +6,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
-    userImport, getBrowserObject, enableFileLogging,
+    userImport, getBrowserObject, enableFileLogging, isAppiumCapability
 } from '../src/utils.js'
 
 describe('utils', () => {
@@ -299,5 +299,24 @@ describe('enableFileLogging', () => {
 
         expect(fs.mkdir).toHaveBeenCalledWith(path.join(outputDir), { recursive: true })
         expect(process.env.WDIO_LOG_PATH).toBe(expectedLogPath)
+    })
+})
+
+describe('isAppiumCapability', () => {
+    it('should return true if it indicates an Appium capability', () => {
+        expect(isAppiumCapability({})).toBe(false)
+        expect(isAppiumCapability({ browserName: 'chrome' })).toBe(false)
+        // @ts-expect-error outdated jsonwp cap
+        expect(isAppiumCapability({ automationName: 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:automationName': 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:options': { automationName: 'android' } })).toBe(true)
+        // @ts-expect-error outdated jsonwp cap
+        expect(isAppiumCapability({ deviceName: 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:deviceName': 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:options': { deviceName: 'android' } })).toBe(true)
+        // @ts-expect-error outdated jsonwp cap
+        expect(isAppiumCapability({ appiumVersion: 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:appiumVersion': 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:options': { appiumVersion: 'android' } })).toBe(true)
     })
 })
