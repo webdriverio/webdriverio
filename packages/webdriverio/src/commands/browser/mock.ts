@@ -42,7 +42,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
         const strictMock = await browser.mock('**', {
             // mock all json responses
             statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
+            requestHeaders: { 'Content-Type': 'application/json' },
             responseHeaders: { 'Cache-Control': 'no-cache' },
             postData: 'foobar'
         })
@@ -50,7 +50,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
         // comparator function
         const apiV1Mock = await browser.mock('**' + '/api/v1', {
             statusCode: (statusCode) => statusCode >= 200 && statusCode <= 203,
-            headers: (headers) => headers['Authorization'] && headers['Authorization'].startsWith('Bearer '),
+            requestHeaders: (headers) => headers['Authorization'] && headers['Authorization'].startsWith('Bearer '),
             responseHeaders: (headers) => headers['Impersonation'],
             postData: (data) => typeof data === 'string' && data.includes('foo')
         })
@@ -104,7 +104,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  * @param {String}              url                             url to mock
  * @param {MockFilterOptions=}  filterOptions                   filter mock resource by additional options
  * @param {String|Function=}    filterOptions.method            filter resource by HTTP method
- * @param {Object|Function=}    filterOptions.headers           filter resource by specific request headers
+ * @param {Object|Function=}    filterOptions.requestHeaders    filter resource by specific request headers
  * @param {Object|Function=}    filterOptions.responseHeaders   filter resource by specific response headers
  * @param {String|Function=}    filterOptions.postData          filter resource by request postData
  * @param {Number|Function=}    filterOptions.statusCode        filter resource by response statusCode
