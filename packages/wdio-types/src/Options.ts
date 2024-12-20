@@ -248,6 +248,8 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
     specFileRetriesDelay?: number
     /**
      * Whether or not retried spec files should be retried immediately or deferred to the end of the queue
+     *
+     * @default false
      */
     specFileRetriesDeferred?: boolean
     /**

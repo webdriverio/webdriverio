@@ -912,7 +912,7 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner & { capa
      */
     specFileRetriesDeferred: {
         type: 'boolean',
-        default: true
+        default: false
     },
     /**
      * whether or not print the log output grouped by test files
