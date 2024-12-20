@@ -432,8 +432,7 @@ export const validateCapsWithAppA11y = (deviceName?: any, platformMeta?: { [key:
     console.log(`platformMeta ${JSON.stringify(platformMeta)}`)
     try {
         if (platformMeta?.platform_name && String(platformMeta?.platform_name).toLowerCase() === 'android') {
-
-            if (platformMeta?.os_version && parseInt(platformMeta?.os_version.toString()) < 11) {
+            if (parseInt(platformMeta?.platform_version?.toString()) < 11) {
                 BStackLogger.warn('App Accessibility Automation tests are supported on OS version 11 and above for Android devices.')
                 return false
             }

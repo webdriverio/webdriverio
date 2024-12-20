@@ -52,7 +52,7 @@ class _AccessibilityHandler {
             browser_name: caps.browserName,
             browser_version: caps?.browserVersion || (caps as Capabilities.DesiredCapabilities)?.version || 'latest',
             platform_name: caps?.platformName,
-            plaform_version: this._getCapabilityValue(_capabilities, 'appium:platformVersion', 'platformVersion'),
+            platform_version: this._getCapabilityValue(caps, 'appium:platformVersion', 'platformVersion'),
             os_name: this._getCapabilityValue(_capabilities, 'os', 'os'),
             os_version: this._getCapabilityValue(_capabilities, 'osVersion', 'os_version')
         }
