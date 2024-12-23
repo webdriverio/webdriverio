@@ -1513,12 +1513,21 @@ export interface LambdaTestCapabilities {
     locale?: string
     idleTimeout?: number
     queueTimeout?: number
+    /**
+     * Appium specific
+     */
     autoGrantPermissions?: boolean
     autoAcceptAlerts?: boolean
     otherApps?: Array<string>
     isRealMobile?: boolean
     networkThrottling?: string
     deviceOrientation?: 'portrait' | 'landscape'
+    bundleId?: string
+    appPackage?: string
+    appActivity?: string
+    appWaitActivity?: string
+    appWaitPackage?: string
+    autoWebview?: boolean
 }
 
 export interface BrowserStackCapabilities {
