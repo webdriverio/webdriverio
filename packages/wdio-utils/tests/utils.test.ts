@@ -314,9 +314,11 @@ describe('isAppiumCapability', () => {
         expect(isAppiumCapability({ deviceName: 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:deviceName': 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:options': { deviceName: 'android' } })).toBe(true)
+        expect(isAppiumCapability({ 'lt:options': { deviceName: 'android' } })).toBe(true)
         // @ts-expect-error outdated jsonwp cap
         expect(isAppiumCapability({ appiumVersion: 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:appiumVersion': 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:options': { appiumVersion: 'android' } })).toBe(true)
+        expect(isAppiumCapability({ 'lt:options': { appiumVersion: 'android' } })).toBe(true)
     })
 })
