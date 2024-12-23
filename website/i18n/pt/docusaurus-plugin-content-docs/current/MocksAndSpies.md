@@ -23,7 +23,7 @@ const userListMock = await browser.mock('**/users/list')
 // status code, only mock successful requests to json resources
 const strictMock = await browser.mock('**', {
     // mock all json responses
-    headers: { 'Content-Type': 'application/json' },
+    requestHeaders: { 'Content-Type': 'application/json' },
     // that were successful
     statusCode: 200
 })
