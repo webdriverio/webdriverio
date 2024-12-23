@@ -33,6 +33,39 @@ describe('getNativeContext', () => {
         expect(getNativeContext({ capabilities, isMobile: true })).toBe(true)
     })
 
+    it('should return false if Appium app capabilities are present using "appium:options", but `autoWebview` is true', () => {
+        const capabilities = {
+            browserName: undefined,
+            'appium:options': {
+                app: '/path/to/app.apk',
+                autoWebview: true,
+            }
+        } as WebdriverIO.Capabilities
+        expect(getNativeContext({ capabilities, isMobile: true })).toBe(false)
+    })
+
+    it('should return true if Appium app capabilities are present using "lt:options" and valid', () => {
+        const capabilities = {
+            browserName: undefined,
+            autoWebview: false,
+            'lt:options': {
+                app: '/path/to/app.apk'
+            }
+        } as WebdriverIO.Capabilities
+        expect(getNativeContext({ capabilities, isMobile: true })).toBe(true)
+    })
+
+    it('should return false if Appium app capabilities are present using "lt:options", but `autoWebview` is true', () => {
+        const capabilities = {
+            browserName: undefined,
+            'lt:options': {
+                app: '/path/to/app.apk',
+                autoWebview: true,
+            }
+        } as WebdriverIO.Capabilities
+        expect(getNativeContext({ capabilities, isMobile: true })).toBe(false)
+    })
+
     it('should return false if Appium app capabilities are present but `autoWebview` is true', () => {
         const capabilities = {
             app: '/path/to/app.apk',

@@ -297,6 +297,8 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, 
     'experitest:accessKey'?: string
     //LambdaTest w3c specific
     'LT:Options'?: LambdaTestCapabilities
+    // LT w3c specific as "officially" documented
+    'lt:options'?: LambdaTestCapabilities
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
@@ -1451,8 +1453,10 @@ export interface LambdaTestCapabilities {
     deviceName?: string
     platformVersion?: string
     app?: string
+    appiumVersion?: string
     browserName?: string
     browserVersion?: string
+    w3c?: boolean
     /**
      * Set the resolution of the VM.
      */
@@ -1509,12 +1513,21 @@ export interface LambdaTestCapabilities {
     locale?: string
     idleTimeout?: number
     queueTimeout?: number
+    /**
+     * Appium specific
+     */
     autoGrantPermissions?: boolean
     autoAcceptAlerts?: boolean
     otherApps?: Array<string>
     isRealMobile?: boolean
-    networkThrottling?: string,
+    networkThrottling?: string
     deviceOrientation?: 'portrait' | 'landscape'
+    bundleId?: string
+    appPackage?: string
+    appActivity?: string
+    appWaitActivity?: string
+    appWaitPackage?: string
+    autoWebview?: boolean
 }
 
 export interface BrowserStackCapabilities {
