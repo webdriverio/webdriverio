@@ -35,7 +35,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
-    "dateformat": "4.5.1",
+    "dateformat": "5.0.3",
     "json-stringify-safe": "^5.0.1"
   },
   "devDependencies": {
