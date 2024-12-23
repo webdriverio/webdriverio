@@ -252,6 +252,16 @@ The report data will give you the opportunity to build your own visual report wi
 You need to use `@wdio/visual-testing` version `5.2.0` or higher
 :::
 
+### `disableBlinkingCursor`
+
+- **Type:** `boolean`
+- **Mandatory:** No
+- **Default:** `false`
+- **Supported:** Web, Hybrid App (Webview)
+
+En/Disable all `input`, `textarea`, `[contenteditable]` caret "blinking" in the application. If set to `true` the caret will be set to `transparent` before taking a screenshot
+and reset when done
+
 ### `disableCSSAnimation`
 
 - **Type:** `boolean`
@@ -259,7 +269,7 @@ You need to use `@wdio/visual-testing` version `5.2.0` or higher
 - **Default:** `false`
 - **Supported:** Web, Hybrid App (Webview)
 
-En/Disable all CSS animations and the input caret and the input caret in the application. If set to true all animations will be disabled before taking a screenshot
+En/Disable all CSS animations in the application. If set to `true` all animations will be disabled before taking a screenshot
 and reset when done
 
 ### `enableLayoutTesting`
