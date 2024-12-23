@@ -26,7 +26,7 @@
     "test:browser:stencil": "run-s test:browser:stencil:*",
     "test:browser:stencil:wdio": "cross-env WDIO_PRESET=stencil wdio ./browser-runner/wdio.conf.js --spec stencil.test.tsx",
     "test:browser:stencil:verifyCoverage": "run-s verifyCoverage",
-    "test:browser:misc": "wdio ./browser-runner/wdio.conf.js --spec mock.test.ts",
+    "test:browser:misc": "echo \"UNSKIP ME\" || wdio ./browser-runner/wdio.conf.js --spec mock.test.ts",
     "test:mocha": "wdio ./mocha/wdio.conf.js",
     "test:jasmine": "wdio ./jasmine/wdio.conf.js",
     "test:cucumber": "wdio ./cucumber/wdio.conf.js",

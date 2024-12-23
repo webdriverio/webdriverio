@@ -14,12 +14,18 @@ export function getNativeContext({ capabilities, isMobile }:
     const isAppiumAppCapPresent = (capabilities: Capabilities.RequestedStandaloneCapabilities) => {
         return appiumKeys.some((key) => (
             (capabilities as Capabilities.AppiumCapabilities)[key as keyof Capabilities.AppiumCapabilities] !== undefined ||
-            (capabilities as WebdriverIO.Capabilities)['appium:options']?.[key as AppiumKeysType] !== undefined)
-        )
+            (capabilities as WebdriverIO.Capabilities)['appium:options']?.[key as AppiumKeysType] !== undefined ||
+            (capabilities as WebdriverIO.Capabilities)['lt:options']?.[key as AppiumKeysType] !== undefined
+        ))
     }
     const isBrowserNameFalse = !!capabilities?.browserName === false
-    // @ts-expect-error
-    const isAutoWebviewFalse = capabilities?.autoWebview !== true
+    const isAutoWebviewFalse = !(
+        // @ts-expect-error
+        capabilities?.autoWebview === true ||
+        capabilities['appium:autoWebview'] === true ||
+        capabilities['appium:options']?.autoWebview === true ||
+        capabilities['lt:options']?.autoWebview === true
+    )
 
     return isBrowserNameFalse && isAppiumAppCapPresent(capabilities) && isAutoWebviewFalse
 }
