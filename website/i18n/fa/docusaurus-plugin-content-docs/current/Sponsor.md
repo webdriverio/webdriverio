@@ -85,6 +85,8 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     width="250"
 />
 
+<ImageSwitcher lightImageSrc="/img/sponsors/lambdatest_black.svg" darkImageSrc="/img/sponsors/lambdatest_white.svg" alt="Lambdatest" target="_blank" link="https://www.lambdatest.com/" width="250" />
+
 Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-sponsor-26921/checkout?interval=month&amount=500&contributeAs=me).
 
 <br />
