@@ -160,7 +160,8 @@ export default class JasmineReporter {
                 passedExpectations: [],
                 status: 'unknown',
                 pendingReason: '',
-                debugLogs: null
+                debugLogs: null,
+                filename: suite.filename
             })
             this.specDone({
                 id,
@@ -173,7 +174,8 @@ export default class JasmineReporter {
                 duration: null,
                 properties: {},
                 pendingReason: '',
-                debugLogs: null
+                debugLogs: null,
+                filename: suite.filename
             })
         }
 
