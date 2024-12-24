@@ -147,6 +147,7 @@ class JasmineAdapter {
                 deprecationWarnings: [],
                 status: '',
                 debugLogs: null,
+                filename: '',
                 ...(error ? { error } : {})
             }
 
