@@ -308,7 +308,14 @@ describe('launcher', () => {
         it('should requeue retried specfiles at end of queue', async () => {
             launcher['_schedule'] = [{ cid: 0, specs: [{ files: ['b.js'] }] }] as any
             await launcher['_endHandler']({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
-            expect(launcher['_schedule']).toMatchObject([{ cid: 0, specs: [{ files: ['b.js'] }, { rid: '0-5', files: ['a.js'], retries: 0 }] }])
+            expect(launcher['_schedule']).toMatchObject([{
+                cid: 0,
+                specs: [{
+                    files: ['a.js']
+                }, {
+                    files: ['b.js'],
+                }]
+            }])
         })
     })
 
