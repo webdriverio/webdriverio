@@ -36,6 +36,7 @@ const wdioReporter: EventEmitter = {
 
 const hookPayload = (type: string, error?: Error) => ({
     debugLogs: null,
+    filename: '',
     id: '',
     description: `"${type} all" hook`,
     duration: null,
