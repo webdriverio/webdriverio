@@ -46,6 +46,15 @@ export default function Sponsors () {
                         width="150"
                         target="_blank"
                     />
+
+                    <ImageSwitcher
+                        lightImageSrc="/img/sponsors/lambdatest_black.svg"
+                        darkImageSrc="/img/sponsors/lambdatest_white.svg"
+                        alt="Lambdatest"
+                        link="https://www.lambdatest.com/"
+                        width="200"
+                        target="_blank"
+                    />
                 </div>
             </div>
         </div>
