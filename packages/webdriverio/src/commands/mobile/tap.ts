@@ -101,24 +101,67 @@ async function nativeTap(element: WebdriverIO.Element, browser: WebdriverIO.Brow
     }
 
     try {
+        // for native apps we might not have the elementId when an element is not in the viewport
+        if (!element.elementId) {
+            throw new Error('no such element')
+        }
+
         return await executeNativeTap(browser, { elementId: element.elementId })
     } catch (error) {
         let err = error as Error
         if (typeof error === 'string') {
             err = new Error(error)
         }
-        if (!err.message.includes('element click intercepted')) {
-            // we only apply the workaround when the click got intercepted
+        if (!err.message.includes('no such element')) {
+            // we only apply the scrollIntoView when the elementId is not available
             // so that the middleware can handle any other errors
             throw err
         }
-        const scrollIntoViewOptions: MobileScrollIntoViewOptions = {
-            direction: options?.direction,
-            maxScrolls: options?.maxScrolls,
-            scrollableElement: options?.scrollableElement,
-        }
-        await element.scrollIntoView(scrollIntoViewOptions)
+        const scrollIntoViewOptions: MobileScrollIntoViewOptions = Object.fromEntries(
+            Object.entries({
+                direction: options?.direction,
+                maxScrolls: options?.maxScrolls,
+                scrollableElement: options?.scrollableElement,
+            }).filter(([_, value]) => value !== undefined)
+        )
+        try {
+            await element.scrollIntoView(scrollIntoViewOptions)
 
-        return await executeNativeTap(browser, { elementId: element.elementId })
+            return await executeNativeTap(browser, { elementId: element.elementId })
+        } catch (scrollError) {
+            // We don't want to overcomplicate the error handling from the scrollIntoView by providing
+            // extra arguments to the scrollIntoView method. Instead, we throw a more tap user-friendly error
+            let err = scrollError as Error
+            if (typeof scrollError === 'string') {
+                err = new Error(scrollError)
+            }
+            if (err.message.includes('Element not found within scroll limit of')) {
+                throw new Error(`Element not found within the automatic 'tap' scroll limit of ${scrollIntoViewOptions?.maxScrolls || '10'} scrolls by scrolling "${scrollIntoViewOptions?.direction || 'down'}". ` +
+                    `The 'tap' methods will automatically scroll if it can't find the element. It might be that 'direction|maxScrolls|scrollableElement' are not correct. You can change change them like this:
+
+await elem.tap({
+    direction: 'left' // possible options are: 'up|down|left|right'
+    maxScrolls: 15,
+    scrollableElement: $('#scrollable'),
+});
+
+                `)
+            } else if (err.message.includes('Default scrollable element')) {
+                const match = err.message.match(/Default scrollable element '(.*?)' was not found/)
+                const scrollableElement = match?.[1] || 'unknown-scrollable-element'
+
+                throw new Error(`The 'tap' method tried to automatically scroll to the element but couldn't find the default scrollable element. '${scrollableElement}' ` +
+                    `If needed you can provide a custom scrollable element, together with the 'direction' and the 'maxScrolls' like this:
+
+await elem.tap({
+    scrollableElement: $('#scrollable'),
+});
+
+                `)
+            }
+
+            throw err
+        }
+
     }
 }

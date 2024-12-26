@@ -77,3 +77,35 @@ exports[`tap test > should call the iOS mobile tap command for native mobile whe
   "script": "mobile: tap",
 }
 `;
+
+exports[`tap test > should call the scrollIntoView which throws a \`Default scrollable element\` error 1`] = `
+[Error: The 'tap' method tried to automatically scroll to the element but couldn't find the default scrollable element. '\`-ios predicate string:type == "XCUIElementTypeApplication\`' If needed you can provide a custom scrollable element, together with the 'direction' and the 'maxScrolls' like this:
+
+await elem.tap({
+    scrollableElement: $('#scrollable'),
+});
+
+                ]
+`;
+
+exports[`tap test > should call the scrollIntoView which throws a \`Default scrollable element\` error for an unknown default selector 1`] = `
+[Error: The 'tap' method tried to automatically scroll to the element but couldn't find the default scrollable element. 'unknown-scrollable-element' If needed you can provide a custom scrollable element, together with the 'direction' and the 'maxScrolls' like this:
+
+await elem.tap({
+    scrollableElement: $('#scrollable'),
+});
+
+                ]
+`;
+
+exports[`tap test > should call the scrollIntoView which throws a \`Element not found within scroll limit of\` error 1`] = `
+[Error: Element not found within the automatic 'tap' scroll limit of 10 scrolls by scrolling "down". The 'tap' methods will automatically scroll if it can't find the element. It might be that 'direction|maxScrolls|scrollableElement' are not correct. You can change change them like this:
+
+await elem.tap({
+    direction: 'left' // possible options are: 'up|down|left|right'
+    maxScrolls: 15,
+    scrollableElement: $('#scrollable'),
+});
+
+                ]
+`;

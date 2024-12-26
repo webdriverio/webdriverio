@@ -156,26 +156,21 @@ describe('tap test', () => {
         const elem = await browser.$('#foo')
         const nativeTapSpy = vi.spyOn(browser, 'execute')
             .mockRejectedValueOnce(
-                new Error('element click intercepted')
+                new Error('no such element')
             )
             .mockResolvedValueOnce(undefined)
         const scrollSpy = vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
 
         await elem.tap()
 
-        expect(scrollSpy).toHaveBeenCalledWith({
-            direction: undefined,
-            maxScrolls: undefined,
-            scrollableElement: undefined,
-        })
-
+        expect(scrollSpy).toHaveBeenCalledWith({})
         expect(nativeTapSpy).toHaveBeenCalledTimes(2)
 
         nativeTapSpy.mockRestore()
         scrollSpy.mockRestore()
     })
 
-    it('should call the scrollIntoView which throws an error', async () => {
+    it('should call the scrollIntoView which throws a default error', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -187,7 +182,7 @@ describe('tap test', () => {
         const elem = await browser.$('#foo')
         const nativeTapSpy = vi.spyOn(browser, 'execute')
             .mockRejectedValueOnce(
-                new Error('element click intercepted')
+                new Error('no such element')
             )
             .mockResolvedValueOnce(undefined)
         const scrollSpy = vi.spyOn(elem, 'scrollIntoView')
@@ -196,6 +191,87 @@ describe('tap test', () => {
             )
 
         await expect(elem.tap()).rejects.toThrow('scroll failed')
+        expect(nativeTapSpy).toHaveBeenCalledTimes(1)
+
+        nativeTapSpy.mockRestore()
+        scrollSpy.mockRestore()
+    })
+
+    it('should call the scrollIntoView which throws a `Element not found within scroll limit of` error', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+        const nativeTapSpy = vi.spyOn(browser, 'execute')
+            .mockRejectedValueOnce(
+                new Error('no such element')
+            )
+            .mockResolvedValueOnce(undefined)
+        const scrollSpy = vi.spyOn(elem, 'scrollIntoView')
+            .mockRejectedValueOnce(
+                new Error('Element not found within scroll limit of')
+            )
+
+        await expect(elem.tap()).rejects.toThrowErrorMatchingSnapshot()
+        expect(nativeTapSpy).toHaveBeenCalledTimes(1)
+
+        nativeTapSpy.mockRestore()
+        scrollSpy.mockRestore()
+    })
+
+    it('should call the scrollIntoView which throws a `Default scrollable element` error', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+        const nativeTapSpy = vi.spyOn(browser, 'execute')
+            .mockRejectedValueOnce(
+                new Error('no such element')
+            )
+            .mockResolvedValueOnce(undefined)
+        const scrollSpy = vi.spyOn(elem, 'scrollIntoView')
+            .mockRejectedValueOnce(
+                new Error('Default scrollable element \'`-ios predicate string:type == "XCUIElementTypeApplication`\' was not found')
+            )
+
+        await expect(elem.tap()).rejects.toThrowErrorMatchingSnapshot()
+        expect(nativeTapSpy).toHaveBeenCalledTimes(1)
+
+        nativeTapSpy.mockRestore()
+        scrollSpy.mockRestore()
+    })
+
+    it('should call the scrollIntoView which throws a `Default scrollable element` error for an unknown default selector', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+        const nativeTapSpy = vi.spyOn(browser, 'execute')
+            .mockRejectedValueOnce(
+                new Error('no such element')
+            )
+            .mockResolvedValueOnce(undefined)
+        const scrollSpy = vi.spyOn(elem, 'scrollIntoView')
+            .mockRejectedValueOnce(
+                new Error('Default scrollable element `foo-bar` was not found')
+            )
+
+        await expect(elem.tap()).rejects.toThrowErrorMatchingSnapshot()
         expect(nativeTapSpy).toHaveBeenCalledTimes(1)
 
         nativeTapSpy.mockRestore()
