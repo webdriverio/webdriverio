@@ -1,0 +1,79 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`tap test > should call the Android mobile tap command for native mobile when a tap is executed with x and y coordinates 1`] = `
+{
+  "args": [
+    {
+      "x": 50,
+      "y": 30,
+    },
+  ],
+  "script": "mobile: clickGesture",
+}
+`;
+
+exports[`tap test > should call the Android mobile tap command for native mobile when a tap is on an elements 1`] = `
+{
+  "args": [
+    {
+      "elementId": "some-elem-123",
+    },
+  ],
+  "script": "mobile: clickGesture",
+}
+`;
+
+exports[`tap test > should call the action command for mobile web when a tap is executed with x and y coordinates 1`] = `
+{
+  "actions": [
+    {
+      "button": 0,
+      "duration": 100,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 50,
+      "y": 30,
+    },
+    {
+      "button": 0,
+      "type": "pointerDown",
+    },
+    {
+      "duration": 10,
+      "type": "pause",
+    },
+    {
+      "button": 0,
+      "type": "pointerUp",
+    },
+  ],
+  "id": "action1",
+  "parameters": {
+    "pointerType": "touch",
+  },
+  "type": "pointer",
+}
+`;
+
+exports[`tap test > should call the iOS mobile tap command for native mobile when a tap is executed with x and y coordinates 1`] = `
+{
+  "args": [
+    {
+      "x": 50,
+      "y": 30,
+    },
+  ],
+  "script": "mobile: tap",
+}
+`;
+
+exports[`tap test > should call the iOS mobile tap command for native mobile when a tap is on an element 1`] = `
+{
+  "args": [
+    {
+      "elementId": "some-elem-123",
+    },
+  ],
+  "script": "mobile: tap",
+}
+`;

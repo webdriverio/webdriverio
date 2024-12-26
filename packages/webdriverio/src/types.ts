@@ -495,7 +495,7 @@ export type NewWindowOptions = {
     windowFeatures?: string
 }
 
-export type TapOptions = {
+export type TapOptions = MobileScrollIntoViewOptions &{
     x: number,
     y: number
 }

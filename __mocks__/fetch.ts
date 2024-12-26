@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest'
 
 /**
@@ -93,6 +94,16 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         body.capabilities.alwaysMatch.mobileMode
     ) {
         sessionResponse.capabilities.deviceName = 'iNode'
+    }
+
+    if (
+        body &&
+        body.capabilities &&
+        body.capabilities.alwaysMatch.mobileMode &&
+        body.capabilities.alwaysMatch.nativeAppMode
+    ) {
+        sessionResponse.capabilities.app = 'mockApp'
+        delete sessionResponse.capabilities.browserName
     }
 
     if (

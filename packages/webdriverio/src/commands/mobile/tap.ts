@@ -1,39 +1,38 @@
 import { getBrowserObject } from '@wdio/utils'
-import type { TapOptions } from '../../types.js'
+import type { MobileScrollIntoViewOptions, TapOptions } from '../../types.js'
 
 /**
  *
- * Performs a tap gesture on the given element on the screen.
- *
- * <example>
-    :tap.offset.js
-    it('should demonstrate a longPress using an offset on the iOS Contacts icon', async () => {
-        const contacts = $('~Contacts')
-        // opens the Contacts menu on iOS where you can quickly create
-        // a new contact, edit your home screen, or remove the app
-        // clicks 30 horizontal and 10 vertical pixels away from location of the icon (from center point of element)
-        await contacts.longPress({ x: 30, y: 10 })
-    })
- * </example>
+ * Performs a tap gesture on the given element or on given coordinates on the screen.
+ * This command differs from the `click` command as it:
+ * - can tap on a specific coordinate on the screen (when x and y are set) based on a W3C Action.
+ *   The click command can only click on an offset calculated from the center of the element.
+ * - uses the native tap gesture for Android (mobile: clickGesture) or iOS (mobile: tap) for natives apps
+ *   instead of the WebDriver command which is more reliable.
+ * - will, in comparison to the `click` command, automatically scroll to the element for native apps
+ *   if it's not within the viewport.
  *
  * <example>
     :tap.example.js
-    it('should be able to open the contacts menu on iOS by executing a longPress of 5 seconds', async () => {
+    it('should be able tap an on element on iOS', async () => {
         const contacts = $('~Contacts')
-        // opens the Contacts menu on iOS where you can quickly create
-        // a new contact, edit your home screen, or remove the app
-        await contacts.longPress({ duration: 5 * 1000 })
+        // opens the Contacts menu on iOS
+        await contacts.tap()
     })
  * </example>
  *
- * @param {TapOptions=} options     Long press options (optional)
- * @param {number=}     options.x   Number (optional, mandatory if y is set)
- * @param {number=}     options.y   Number (optional, mandatory if x is set)
+ * @param {TapOptions=} options                     Long press options (optional)
+ * @param {number=}     options.x                   Number (optional, mandatory if y is set)
+ * @param {number=}     options.y                   Number (optional, mandatory if x is set)
+ * @param {string=}     options.direction           Can be one of `down`, `up`, `left` or `right`, default is `down`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {number=}     options.maxScrolls          The max amount of scrolls until it will stop searching for the element, default is `10`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {Element=}    options.scrollableElement   Element that is used to scroll within. If no element is provided it will use the following selector for iOS `-ios predicate string:type == "XCUIElementTypeApplication"` and the following for Android `//android.widget.ScrollView'`. If more elements match the default selector, then by default it will pick the first matching element. <br /> <strong>MOBILE-NATIVE-APP-ONLY</strong>
  */
-export function tap(
+export async function tap(
     this: WebdriverIO.Element,
     options?: TapOptions
 ) {
+    const element = this
     const browser = getBrowserObject(this)
 
     if (!browser.isMobile) {
@@ -54,4 +53,72 @@ export function tap(
         throw new TypeError(`If ${options.x !== undefined ? 'x' : 'y'} is set, then ${options.x !== undefined ? 'y' : 'x'} must be set as well.`)
     }
 
+    if (browser.isNativeContext) {
+        return await nativeTap(element, browser, options)
+    }
+
+    return await webTap(element, browser, options)
+}
+
+/**
+ * Execute the tap gesture on the given element or coordinates on a mobile browser.
+*/
+async function webTap(element: WebdriverIO.Element, browser: WebdriverIO.Browser, options?: TapOptions) {
+    // If no options are passed, just click the element with the default click
+    if (options === undefined) {
+        return element.click()
+    }
+
+    const { x, y } = options
+
+    return await browser.action(
+        'pointer', {
+            parameters: { pointerType: 'touch' }
+        })
+        .move({ x, y })
+        .down({ button: 0 })
+        .pause(10)
+        .up({ button: 0 })
+        .perform()
+}
+
+type ExecuteTapOptions = TapOptions & { elementId?: string }
+
+/**
+ * Execute the native tap action on the given element or coordinates on a mobile device
+ */
+async function executeNativeTap(browser: WebdriverIO.Browser, options?: Partial<ExecuteTapOptions>) {
+    return await browser.execute(`mobile: ${browser.isIOS ? 'tap' : 'clickGesture'}`, { ...options })
+}
+
+/**
+ * Execute the tap gesture on the given element or coordinates on a mobile device in the native context
+ */
+async function nativeTap(element: WebdriverIO.Element, browser: WebdriverIO.Browser, options: Partial<TapOptions> = {}) {
+    // When x and y are set then tap on the coordinates on the screen through the mobile command
+    if (options.x !== undefined && options.y !== undefined) {
+        return executeNativeTap(browser, { x:options.x, y:options.y })
+    }
+
+    try {
+        return await executeNativeTap(browser, { elementId: element.elementId })
+    } catch (error) {
+        let err = error as Error
+        if (typeof error === 'string') {
+            err = new Error(error)
+        }
+        if (!err.message.includes('element click intercepted')) {
+            // we only apply the workaround when the click got intercepted
+            // so that the middleware can handle any other errors
+            throw err
+        }
+        const scrollIntoViewOptions: MobileScrollIntoViewOptions = {
+            direction: options?.direction,
+            maxScrolls: options?.maxScrolls,
+            scrollableElement: options?.scrollableElement,
+        }
+        await element.scrollIntoView(scrollIntoViewOptions)
+
+        return await executeNativeTap(browser, { elementId: element.elementId })
+    }
 }
