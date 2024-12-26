@@ -107,9 +107,7 @@ class _AccessibilityHandler {
         }
 
         if (isBrowserstackSession(this._browser) && isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
-            const deviceName = this._getCapabilityValue(this._caps, 'deviceName', 'device')
-
-            this._accessibility = validateCapsWithAppA11y(deviceName, this._platformA11yMeta)
+            this._accessibility = validateCapsWithAppA11y(this._platformA11yMeta)
         }
 
         (this._browser as WebdriverIO.Browser).getAccessibilityResultsSummary = async () => {
@@ -338,10 +336,11 @@ class _AccessibilityHandler {
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: any) {
         BStackLogger.debug('Performing scan before saving results')
         await performA11yScan(this.isAppAutomate, browser, true, true)
-        if (!isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
-            const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(accessibilityScripts.saveTestResults as string, dataForExtension)
-            BStackLogger.debug(util.format(results as string))
+        if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
+            return
         }
+        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(accessibilityScripts.saveTestResults as string, dataForExtension)
+        BStackLogger.debug(util.format(results as string))
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {

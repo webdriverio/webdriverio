@@ -427,9 +427,9 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
     }
 })
 
-export const validateCapsWithAppA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }) => {
+export const validateCapsWithAppA11y = (platformMeta?: { [key: string]: any; }) => {
     /* Check if the current driver platform is eligible for AppAccessibility scan */
-    console.log(`platformMeta ${JSON.stringify(platformMeta)}`)
+    BStackLogger.debug(`platformMeta ${JSON.stringify(platformMeta)}`)
     try {
         if (platformMeta?.platform_name && String(platformMeta?.platform_name).toLowerCase() === 'android') {
             if (parseInt(platformMeta?.platform_version?.toString()) < 11) {
@@ -510,8 +510,8 @@ export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | s
 
 export const isAppAccessibilityAutomationSession = (accessibilityFlag?: boolean | string, isAppAutomate?: boolean) => {
     try {
-        const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
-        return accessibilityFlag && hasA11yJwtToken && isAppAutomate
+        const accessibilityAutomation = isAccessibilityAutomationSession(accessibilityFlag)
+        return accessibilityAutomation && isAppAutomate
     } catch (error) {
         BStackLogger.debug(`Exception in verifying the Accessibility session with error : ${error}`)
     }
@@ -602,15 +602,16 @@ export const getAppA11yResults = async (isAppAutomate: boolean, browser: Webdriv
         BStackLogger.debug('Performing scan before getting results summary')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
         const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
-        const upperTimeLimit = Date.now() + 360000 // 30 seconds
+        let upperTimeLimit = Date.now() + 360000 // 30 seconds
+        if (process.env[BSTACK_A11Y_POLLING_TIMEOUT]) {
+            upperTimeLimit = Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT])
+        }
         const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
         const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
-        console.log(`params ${JSON.stringify(params)}`)
-        console.log(`header ${JSON.stringify(header)}`)
         const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
-        console.log('Polling Result:', JSON.stringify(apiRespone))
+        BStackLogger.debug(`apiRespone: ${JSON.stringify(apiRespone)}`)
         const result = apiRespone?.data?.data?.issues
-        console.log('Polling Result:', JSON.stringify(result))
+        BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
         return result
     } catch {
         BStackLogger.error('No accessibility summary was found.')
@@ -635,12 +636,10 @@ export const getAppA11yResultsSummary = async (isAppAutomate: boolean, browser: 
         const upperTimeLimit = Date.now() + 360000 // 30 seconds
         const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
         const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
-        console.log(`params ${JSON.stringify(params)}`)
-        console.log(`header ${JSON.stringify(header)}`)
         const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
-        console.log('Polling Result:', JSON.stringify(apiRespone))
+        BStackLogger.debug(`apiRespone: ${JSON.stringify(apiRespone)}`)
         const result = apiRespone?.data?.data?.summary
-        console.log('Polling Result:', JSON.stringify(result))
+        BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
         return result
     } catch {
         BStackLogger.error('No accessibility summary was found.')
@@ -1497,7 +1496,7 @@ async function pollApi(
 ): Promise<PollingResult> {
     try {
         params.timestamp = Date.now() / 1000
-        console.log(`current timestamp ${params.timestamp}`)
+        BStackLogger.debug(`current timestamp ${params.timestamp}`)
         const response = await axios.get(url, { params, headers })
 
         // If the request succeeds (non-404), return the result
@@ -1509,9 +1508,9 @@ async function pollApi(
     } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
             const nextPollTime = parseInt(error.response.headers.next_poll_time, 10) * 1000
-            console.log(`timeInMillis ${nextPollTime}`)
+            BStackLogger.debug(`timeInMillis ${nextPollTime}`)
             if (isNaN(nextPollTime)) {
-                console.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
+                BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
                 return {
                     data: null,
                     headers: error.response.headers,
@@ -1520,10 +1519,10 @@ async function pollApi(
             }
 
             const elapsedTime = nextPollTime - Date.now()
-            console.log(`elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`)
+            BStackLogger.debug(`elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`)
             // Stop polling if the upper time limit is reached
             if (nextPollTime > upperLimit) {
-                console.log('Polling stopped due to upper time limit.')
+                BStackLogger.warn('Polling stopped due to upper time limit.')
                 return {
                     data: null,
                     headers: error.response.headers,
@@ -1531,15 +1530,17 @@ async function pollApi(
                 }
             }
 
-            console.log(`Polling again in ${elapsedTime}ms with params:`, params)
+            BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
 
             // Wait for the specified time and poll again
             await new Promise(resolve => setTimeout(resolve, elapsedTime))
 
             // Recursive call
             return pollApi(url, params, headers, upperLimit, startTime)
+        } else if (axios.isAxiosError(error)) {
+            return { data: {}, headers: {}, message: error?.response?.data.message }
         }
-        console.error('Unexpected error occurred:')
+        BStackLogger.error('Unexpected error occurred:')
         return { data: {}, headers: {}, message: 'Unexpected error occurred.' }
 
     }
