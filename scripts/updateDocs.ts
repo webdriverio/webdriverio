@@ -31,34 +31,52 @@ const version = `v${PKG_VERSION.split('.')[0]}`
 const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${BUCKET_NAME}`
 
 /**
+ * Split array in series
+ * @param list array to split
+ * @param size size of each chunk
+ * @returns array of chunks
+ */
+function splitInSeries<T>(list: T[], size: number): T[][] {
+    const result: T[][] = []
+
+    for (let i = 0; i < list.length; i += size) {
+        result.push(list.slice(i, i + size))
+    }
+
+    return result
+}
+
+/**
  * upload assets
  */
 console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)
-await Promise.all(files.map(async (file) => {
-    try {
-        const mimeType = mime.lookup(file)
-        if (!mimeType) {
-            throw new Error(`Couldn't find mime type for ${file}`)
-        }
+for (const filesBatch of splitInSeries(files, 10)) {
+    await Promise.all(filesBatch.map(async (file) => {
+        try {
+            const mimeType = mime.lookup(file)
+            if (!mimeType) {
+                throw new Error(`Couldn't find mime type for ${file}`)
+            }
 
-        const res = await new Upload({
-            client: s3,
-            params: {
-                Bucket: bucketName,
-                Key: file.replace(BUILD_DIR + '/', ''),
-                Body: fs.createReadStream(file),
-                ContentType: mimeType,
-                ACL: 'public-read',
-            },
-            ...UPLOAD_OPTIONS
-        }).done()
-        console.log(`${file} uploaded`)
-        return res
-    } catch (err) {
-        console.error(`Couldn't upload file ${file}: ${(err as Error).stack}`)
-        throw err
-    }
-}))
+            const res = await new Upload({
+                client: s3,
+                params: {
+                    Bucket: bucketName,
+                    Key: file.replace(BUILD_DIR + '/', ''),
+                    Body: fs.createReadStream(file),
+                    ContentType: mimeType,
+                    ACL: 'public-read',
+                },
+                ...UPLOAD_OPTIONS
+            }).done()
+            console.log(`${file} uploaded`)
+            return res
+        } catch (err) {
+            console.error(`Couldn't upload file ${file}: ${(err as Error).stack}`)
+            throw err
+        }
+    }))
+}
 
 /**
  * invalidate distribution

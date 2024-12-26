@@ -571,7 +571,7 @@ class Launcher {
 
         if (!passed && retries > 0) {
             // Default is true, so test for false explicitly
-            const requeue = this.configParser.getConfig().specFileRetriesDeferred !== false ? 'push' : 'unshift'
+            const requeue = this.configParser.getConfig().specFileRetriesDeferred ? 'push' : 'unshift'
             this._schedule[parseInt(rid, 10)].specs[requeue]({ files: specs, retries: retries - 1, rid })
         } else {
             this._exitCode = this._isWatchModeHalted() ? 0 : this._exitCode || exitCode
