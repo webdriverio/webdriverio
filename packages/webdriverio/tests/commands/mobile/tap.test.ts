@@ -144,8 +144,63 @@ describe('tap test', () => {
         clickSpy.mockRestore()
     })
 
-    // Now create a test where the element throws an error and the scrollIntoView command is called
-    // Also create a test where the scroll throws an error.
+    it('should call the scrollIntoView command when the element is not in view', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+        const nativeTapSpy = vi.spyOn(browser, 'execute')
+            .mockRejectedValueOnce(
+                new Error('element click intercepted')
+            )
+            .mockResolvedValueOnce(undefined)
+        const scrollSpy = vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+
+        await elem.tap()
+
+        expect(scrollSpy).toHaveBeenCalledWith({
+            direction: undefined,
+            maxScrolls: undefined,
+            scrollableElement: undefined,
+        })
+
+        expect(nativeTapSpy).toHaveBeenCalledTimes(2)
+
+        nativeTapSpy.mockRestore()
+        scrollSpy.mockRestore()
+    })
+
+    it('should call the scrollIntoView which throws an error', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+        const nativeTapSpy = vi.spyOn(browser, 'execute')
+            .mockRejectedValueOnce(
+                new Error('element click intercepted')
+            )
+            .mockResolvedValueOnce(undefined)
+        const scrollSpy = vi.spyOn(elem, 'scrollIntoView')
+            .mockRejectedValueOnce(
+                new Error('scroll failed')
+            )
+
+        await expect(elem.tap()).rejects.toThrow('scroll failed')
+        expect(nativeTapSpy).toHaveBeenCalledTimes(1)
+
+        nativeTapSpy.mockRestore()
+        scrollSpy.mockRestore()
+    })
 
     it('should throw an error if tap command is called for a desktop session', async () => {
         const browser = await remote({
@@ -156,7 +211,7 @@ describe('tap test', () => {
         })
         const elem = await browser.$('#foo')
 
-        await await expect(elem.tap()).rejects.toThrow('The tap command is only available for mobile platforms.')
+        await expect(elem.tap()).rejects.toThrow('The tap command is only available for mobile platforms.')
     })
 
     it('should throw an error if the passed argument to the tap command missing the mandatory x or y value', async () => {
