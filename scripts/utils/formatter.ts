@@ -47,6 +47,9 @@ export default function (docfile: any) {
 
             paramTags.push(tag)
             paramStr.push(tag.name)
+        } else if (tag.type === 'rowInfo') {
+            paramTags.push(tag)
+            paramStr.push(tag.string)
         } else if (tag.type === 'property') {
             tag.joinedTypes = Array.isArray(tag.types)
                 ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
