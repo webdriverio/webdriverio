@@ -30,6 +30,7 @@ export default function (docfile: any) {
     let tagVersion = ''
     let tagAuthor = ''
     let tagType = ''
+    let tagMobileElement = false
 
     for (const tag of javadoc.tags) {
         if (tag.type === 'param') {
@@ -80,6 +81,8 @@ export default function (docfile: any) {
             tagVersion = tag.string
         } else if (tag.type === 'deprecated') {
             tagDeprecated = true
+        } else if (tag.type === 'mobileElement') {
+            tagMobileElement = true
         } else if (tag.type === 'author') {
             tagAuthor = tag.string
         } else if (tag.type === 'type') {
@@ -218,7 +221,7 @@ export default function (docfile: any) {
         customEditUrl: `${repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
-        isElementScope : scope === 'element',
+        isElementScope : scope === 'element' || tagMobileElement,
         isNetworkScope : scope === 'network',
         isMockScope : scope === 'mock',
         isDialogScope : scope === 'dialog',

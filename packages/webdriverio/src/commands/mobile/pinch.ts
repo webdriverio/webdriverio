@@ -29,6 +29,7 @@ import { calculateAndroidPinchAndZoomSpeed, validatePinchAndZoomOptions } from '
  * @param {PinchOptions=} options           pinch options (optional)
  * @param {number=}       options.duration  The duration in millisecond of how fast the pinch should be executed, minimal is 500 ms and max is 10000 ms. The default is 1500 ms (1.5 seconds) (optional)
  * @param {number=}       options.scale     The scale of how big the pinch should be according to the screen. Valid values must be float numbers in range 0..1, where 1.0 is 100% (optional)
+ * @mobileElement
  */
 export async function pinch(
     this: WebdriverIO.Element,

@@ -29,6 +29,7 @@ import { calculateAndroidPinchAndZoomSpeed, validatePinchAndZoomOptions } from '
  * @param {PinchAndZoomOptions=}    options           Zoom options (optional)
  * @param {number=}                 options.duration  The duration in millisecond of how fast the zoom should be executed, minimal is 500 ms and max is 10000 ms. The default is 1500 ms (1.5 seconds) (optional)
  * @param {number=}                 options.scale     The scale of how big the zoom should be according to the screen. Valid values must be float numbers in range 0..1, where 1.0 is 100% (optional)
+ * @mobileElement
  */
 export async function zoom(
     this: WebdriverIO.Element,

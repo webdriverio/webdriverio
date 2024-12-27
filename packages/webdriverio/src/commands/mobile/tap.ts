@@ -1,32 +1,47 @@
+import logger from '@wdio/logger'
+
 import { getBrowserObject } from '@wdio/utils'
 import type { MobileScrollIntoViewOptions, TapOptions } from '../../types.js'
 
+const log = logger('webdriver')
 /**
  *
- * Performs a tap gesture on the given element or on given coordinates on the screen.
- * This command differs from the `click` command as it:
- * - can tap on a specific coordinate on the screen (when x and y are set) based on a W3C Action.
- *   The click command can only click on an offset calculated from the center of the element.
- * - uses the native tap gesture for Android (mobile: clickGesture) or iOS (mobile: tap) for natives apps
- *   instead of the WebDriver command which is more reliable.
- * - will, in comparison to the `click` command, automatically scroll to the element for native apps
- *   if it's not within the viewport.
+ * Performs a tap gesture on the given element and will **automatically scroll** if it can't be found.
+ *
+ * Internally it uses:
+ * - the `click` command for Web environments (Chrome/Safari browsers, or hybrid apps)
+ * - the Android [`mobile: clickGesture`](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-mobile-gestures.md#mobile-clickgesture) or iOS [`mobile: tap`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-tap) for Natives apps
+ * This difference makes the `tap` command a more reliable alternative to the `click` command for mobile apps.
+ *
+ * For Native Apps this command differs from the `click` command as it will <strong>automatically swipe</strong> to the element for native apps by using the `scrollIntoView` command.
  *
  * <example>
     :tap.example.js
-    it('should be able tap an on element on iOS', async () => {
-        const contacts = $('~Contacts')
-        // opens the Contacts menu on iOS
-        await contacts.tap()
+    it('should be able to tap an on element', async () => {
+        const elem = $('~myElement')
+        // It will automatically scroll to the element if it's not already in the viewport
+        await elem.tap()
     })
  * </example>
  *
- * @param {TapOptions=} options                     Long press options (optional)
- * @param {number=}     options.x                   Number (optional, mandatory if y is set)
- * @param {number=}     options.y                   Number (optional, mandatory if x is set)
+ * <example>
+    :tap.scroll.options.example.js
+    it('should be able to swipe right 3 times in a custom scroll areas to an element and tap on the element', async () => {
+        const elem = $('~myElement')
+        // Swipe right 3 times in the custom scrollable element to find the element
+        await elem.tap({
+            direction: 'right',
+            maxScrolls: 3,
+            scrollableElement: $('#scrollable')
+        })
+    })
+ * </example>
+ *
+ * @param {TapOptions=} options                     Tap options (optional)
  * @param {string=}     options.direction           Can be one of `down`, `up`, `left` or `right`, default is `down`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @param {number=}     options.maxScrolls          The max amount of scrolls until it will stop searching for the element, default is `10`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @param {Element=}    options.scrollableElement   Element that is used to scroll within. If no element is provided it will use the following selector for iOS `-ios predicate string:type == "XCUIElementTypeApplication"` and the following for Android `//android.widget.ScrollView'`. If more elements match the default selector, then by default it will pick the first matching element. <br /> <strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @mobileElement
  */
 export async function tap(
     this: WebdriverIO.Element,
@@ -46,60 +61,41 @@ export async function tap(
         throw new TypeError('Options must be an object.')
     }
 
-    if (
-        typeof options !== 'undefined' &&
-        (options.x === undefined || options.y === undefined)
-    ) {
-        throw new TypeError(`If ${options.x !== undefined ? 'x' : 'y'} is set, then ${options.x !== undefined ? 'y' : 'x'} must be set as well.`)
-    }
-
     if (browser.isNativeContext) {
         return await nativeTap(element, browser, options)
     }
 
-    return await webTap(element, browser, options)
+    if (options) {
+        // @ts-expect-error property doesn't exist on LoggerInterface
+        log.warn('The options object is not supported in Web environments and will be ignored.')
+    }
+
+    return await webTap(element)
 }
 
 /**
- * Execute the tap gesture on the given element or coordinates on a mobile browser.
+ * Execute the tap gesture on the given element on a mobile browser.
 */
-async function webTap(element: WebdriverIO.Element, browser: WebdriverIO.Browser, options?: TapOptions) {
-    // If no options are passed, just click the element with the default click
-    if (options === undefined) {
-        return element.click()
-    }
-
-    const { x, y } = options
-
-    return await browser.action(
-        'pointer', {
-            parameters: { pointerType: 'touch' }
-        })
-        .move({ x, y })
-        .down({ button: 0 })
-        .pause(10)
-        .up({ button: 0 })
-        .perform()
+async function webTap(element: WebdriverIO.Element) {
+    return element.click()
 }
 
 type ExecuteTapOptions = TapOptions & { elementId?: string }
 
 /**
- * Execute the native tap action on the given element or coordinates on a mobile device
+ * Execute the native tap action on the given element on a mobile device
  */
 async function executeNativeTap(browser: WebdriverIO.Browser, options?: Partial<ExecuteTapOptions>) {
-    return await browser.execute(`mobile: ${browser.isIOS ? 'tap' : 'clickGesture'}`, { ...options })
+    return await browser.execute(
+        `mobile: ${browser.isIOS ? 'tap' : 'clickGesture'}`,
+        { ...options, ...(browser.isIOS ? { x: 0, y: 0 } : {}) }
+    )
 }
 
 /**
- * Execute the tap gesture on the given element or coordinates on a mobile device in the native context
+ * Execute the tap gesture on the given element on a mobile device in the native context
  */
 async function nativeTap(element: WebdriverIO.Element, browser: WebdriverIO.Browser, options: Partial<TapOptions> = {}) {
-    // When x and y are set then tap on the coordinates on the screen through the mobile command
-    if (options.x !== undefined && options.y !== undefined) {
-        return executeNativeTap(browser, { x:options.x, y:options.y })
-    }
-
     try {
         // for native apps we might not have the elementId when an element is not in the viewport
         if (!element.elementId) {
