@@ -71,7 +71,7 @@ test('onPrepare only sets unique noSslBumpDomains values', async () => {
     const startTunnelMock = vi.fn()
     service.startTunnel = startTunnelMock
     await service.onPrepare(config, caps)
-    if (os.arch() === 'win32') {
+    if (os.type() === 'Windows_NT') {
         expect(startTunnelMock.mock.calls[0][0].noSslBumpDomains).toBe('127.0.0.1,localhost,::1,foo,bar')
     } else {
         expect(startTunnelMock.mock.calls[0][0].noSslBumpDomains).toBe('127.0.0.1,localhost,foo,bar')
