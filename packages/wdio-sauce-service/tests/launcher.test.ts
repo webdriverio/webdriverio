@@ -57,6 +57,22 @@ test('onPrepare w/ SauceConnect w/ tunnelIdentifier w/ JWP', async () => {
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
+test('onPrepare only sets unique noSslBumpDomains values', async () => {
+    const options: SauceServiceConfig = {
+        sauceConnect: true,
+        sauceConnectOpts: {
+            noSslBumpDomains: 'foo,bar,127.0.0.1,bar'
+        }
+    }
+    const caps = [{}] as WebdriverIO.Capabilities[]
+    const config = {} as Options.Testrunner
+    const service = new SauceServiceLauncher(options, caps as never, config)
+    const startTunnelMock = vi.fn()
+    service.startTunnel = startTunnelMock
+    await service.onPrepare(config, caps)
+    expect(startTunnelMock.mock.calls[0][0].noSslBumpDomains).toBe('127.0.0.1,localhost,foo,bar')
+})
+
 test('onPrepare w/ SauceConnect w/o tunnelIdentifier w/ JWP', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true,
