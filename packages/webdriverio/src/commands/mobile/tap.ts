@@ -127,7 +127,6 @@ async function elementTap(browser: WebdriverIO.Browser, element: WebdriverIO.Ele
     }
 
     if (options) {
-        // @ts-expect-error property doesn't exist on LoggerInterface
         log.warn('The options object is not supported in Web environments and will be ignored.')
     }
 
