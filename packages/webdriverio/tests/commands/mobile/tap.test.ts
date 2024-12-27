@@ -7,25 +7,7 @@ vi.mock('fetch')
 const log = logger('test')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-describe('tap test', () => {
-    it('should call the click command for mobile web when a tap is executed where no options are provided', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar',
-                mobileMode: true,
-            } as any
-        })
-        const elem = await browser.$('#foo')
-        const clickSpy = vi.spyOn(elem, 'click').mockResolvedValue(undefined)
-
-        await elem.tap()
-
-        expect(clickSpy).toHaveBeenCalledWith()
-
-        clickSpy.mockRestore()
-    })
-
+describe('element tap test', () => {
     it('should log a warning when the tap command for mobile web is executed and options are provided', async () => {
         const logSpy = vi.spyOn(log, 'warn')
         const browser = await remote({
@@ -46,7 +28,25 @@ describe('tap test', () => {
         clickSpy.mockRestore()
     })
 
-    it('should call the Android mobile tap command for native mobile when a tap is on an elements', async () => {
+    it('should call the click command for mobile web when a tap is executed where no options are provided', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+        const clickSpy = vi.spyOn(elem, 'click').mockResolvedValue(undefined)
+
+        await elem.tap()
+
+        expect(clickSpy).toHaveBeenCalledWith()
+
+        clickSpy.mockRestore()
+    })
+
+    it('should call the Android mobile tap command for native mobile', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -70,7 +70,7 @@ describe('tap test', () => {
         clickSpy.mockRestore()
     })
 
-    it('should call the iOS mobile tap command for native mobile when a tap is on an element', async () => {
+    it('should call the iOS mobile tap command for native mobile', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -120,7 +120,7 @@ describe('tap test', () => {
         scrollSpy.mockRestore()
     })
 
-    it('should call the scrollIntoView which throws a default error', async () => {
+    it('should call the scrollIntoView which throws a mocked error and the execution stops', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -134,7 +134,6 @@ describe('tap test', () => {
             .mockRejectedValueOnce(
                 new Error('no such element')
             )
-            .mockResolvedValueOnce(undefined)
         const scrollSpy = vi.spyOn(elem, 'scrollIntoView')
             .mockRejectedValueOnce(
                 new Error('scroll failed')
@@ -228,6 +227,77 @@ describe('tap test', () => {
         scrollSpy.mockRestore()
     })
 
+    afterEach(() => {
+        vi.mocked(fetch).mockClear()
+    })
+})
+
+describe('screen tap test', () => {
+    it('should call the Android mobile tap command for native mobile', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                app: 'app',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+
+        await browser.tap({ x: 10, y: 20 })
+
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0].pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]?.body as any))
+            .toMatchSnapshot()
+    })
+
+    it('should call the iOS mobile tap command for native mobile', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'iOS',
+                app: 'app',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+
+        await browser.tap({ x: 10, y: 20 })
+
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0].pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]?.body as any))
+            .toMatchSnapshot()
+    })
+
+    it('should call the action command for mobile web when a tap is executed with x and y coordinates', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'iOS',
+                browserName: 'foobar',
+                mobileMode: true,
+            } as any
+        })
+
+        await browser.tap({ x: 10, y: 20 })
+
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[1][0].pathname)
+            .toBe('/session/foobar-123/actions')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]?.body as any).actions[0])
+            .toMatchSnapshot()
+    })
+
+    afterEach(() => {
+        vi.mocked(fetch).mockClear()
+    })
+})
+
+describe('generic error test', () => {
     it('should throw an error if tap command is called for a desktop session', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -237,7 +307,7 @@ describe('tap test', () => {
         })
         const elem = await browser.$('#foo')
 
-        await expect(elem.tap()).rejects.toThrow('The tap command is only available for mobile platforms.')
+        await expect(elem.tap()).rejects.toThrowErrorMatchingSnapshot()
     })
 
     it('should throw an error if the passed argument to the tap command is not an options object', async () => {
@@ -251,7 +321,77 @@ describe('tap test', () => {
         const elem = await browser.$('#foo')
 
         // @ts-expect-error invalid param
-        await expect(elem.tap([])).rejects.toThrow('Options must be an object.')
+        await expect(elem.tap([])).rejects.toThrowErrorMatchingSnapshot()
+    })
+
+    it('should throw an error if only x or y is provided', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+
+        await expect(elem.tap({ x: 50 })).rejects.toThrowErrorMatchingSnapshot()
+        await expect(elem.tap({ y: 50 })).rejects.toThrowErrorMatchingSnapshot()
+    })
+
+    it('should throw an error if x and y are provided along with other arguments', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+            } as any
+        })
+        const elem = await browser.$('#foo')
+
+        // @ts-expect-error invalid param
+        await expect(elem.tap({ x: 50, y: 100, direction: 'down' })).rejects.toThrowErrorMatchingSnapshot()
+    })
+
+    it('should throw an error if invalid coordinates are provided for screen tap', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+
+        await expect(browser.tap({ x: -10, y: 50 }))
+            .rejects.toThrow('The x value must be positive.')
+    })
+
+    it('should throw an error if invalid coordinates are provided for screen tap', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+
+        await expect(browser.tap({ x: 10, y: -50 }))
+            .rejects.toThrow('The y value must be positive.')
+    })
+
+    it('should throw an error if invalid coordinates are provided for screen tap', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                platformName: 'Android',
+                mobileMode: true,
+                nativeAppMode: true,
+            } as any
+        })
+
+        await expect(browser.tap({ x: -10, y: -50 }))
+            .rejects.toThrow('The x and y values must be positive.')
     })
 
     afterEach(() => {

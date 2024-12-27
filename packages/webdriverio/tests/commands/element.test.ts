@@ -8,7 +8,6 @@ vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const IGNORED_COMMANDS = ['getElements']
-
 const elementScope = 'element'
 const scopes = ['mobile'].concat(elementScope)
 const baseDir = path.resolve(__dirname, '../..', 'src', 'commands')

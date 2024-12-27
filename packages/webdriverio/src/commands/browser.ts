@@ -42,3 +42,7 @@ export * from './browser/touchAction.js'
 export * from './browser/uploadFile.js'
 export * from './browser/url.js'
 export * from './browser/waitUntil.js'
+/**
+ * Add it to the Browser scope, but not to the docs by providing a different folder
+ */
+export * from './mobile/tap.js'

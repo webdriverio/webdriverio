@@ -44,23 +44,66 @@ const log = logger('webdriver')
  * @mobileElement
  */
 export async function tap(
-    this: WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     options?: TapOptions
 ) {
-    const element = this
-    const browser = getBrowserObject(this)
+    const isElement = (this as WebdriverIO.Element).selector !== undefined
+    const element = isElement ? (this as WebdriverIO.Element) : null
+    const browser = isElement ? getBrowserObject(this) : (this as WebdriverIO.Browser)
 
     if (!browser.isMobile) {
         throw new Error('The tap command is only available for mobile platforms.')
     }
 
-    if (
-        typeof options !== 'undefined' &&
-        (typeof options !== 'object' || Array.isArray(options))
-    ) {
-        throw new TypeError('Options must be an object.')
+    validateTapOptions(options)
+
+    if (element) {
+        return await elementTap(browser, element, options)
     }
 
+    if (!options || options.x === undefined || options.y === undefined) {
+        throw new Error('The tap command requires x and y coordinates to be set for screen taps.')
+    }
+
+    return await screenTap(browser, options)
+}
+
+/**
+ * Helper to validate the tap options
+ */
+function validateTapOptions(options?: TapOptions): void {
+    if (options) {
+        if (typeof options !== 'object' || Array.isArray(options)) {
+            throw new TypeError('Options must be an object.')
+        }
+
+        const { x, y, ...otherArgs } = options
+
+        if ((x === undefined) !== (y === undefined)) {
+            throw new TypeError(`If ${x !== undefined ? 'x' : 'y'} is set, then ${x !== undefined ? 'y' : 'x'} must also be set.`)
+        }
+        if (x !== undefined && y !== undefined && Object.keys(otherArgs).length > 0) {
+            throw new TypeError(`If x and y are provided, no other arguments are allowed. Found: ${Object.keys(otherArgs).join(', ')}`)
+        }
+
+        const invalidCoordinates = []
+        if (x !== undefined && x < 0) {
+            invalidCoordinates.push('x')
+
+        }
+        if (y !== undefined && y < 0) {
+            invalidCoordinates.push('y')
+        }
+        if (invalidCoordinates.length > 0) {
+            throw new TypeError(`The ${invalidCoordinates.join(' and ')} value${invalidCoordinates.length > 1 ? 's' : ''} must be positive.`)
+        }
+    }
+}
+
+/**
+ * Execute the tap gesture on the given element on a mobile device
+ */
+async function elementTap(browser: WebdriverIO.Browser, element: WebdriverIO.Element, options?: TapOptions) {
     if (browser.isNativeContext) {
         return await nativeTap(element, browser, options)
     }
@@ -88,7 +131,7 @@ type ExecuteTapOptions = TapOptions & { elementId?: string }
 async function executeNativeTap(browser: WebdriverIO.Browser, options?: Partial<ExecuteTapOptions>) {
     return await browser.execute(
         `mobile: ${browser.isIOS ? 'tap' : 'clickGesture'}`,
-        { ...options, ...(browser.isIOS ? { x: 0, y: 0 } : {}) }
+        { ...(browser.isIOS ? { x: 0, y: 0 } : {}), ...options }
     )
 }
 
@@ -98,6 +141,7 @@ async function executeNativeTap(browser: WebdriverIO.Browser, options?: Partial<
 async function nativeTap(element: WebdriverIO.Element, browser: WebdriverIO.Browser, options: Partial<TapOptions> = {}) {
     try {
         // for native apps we might not have the elementId when an element is not in the viewport
+        // so we throw an error and try to scroll into view
         if (!element.elementId) {
             throw new Error('no such element')
         }
@@ -160,4 +204,25 @@ await elem.tap({
         }
 
     }
+}
+
+/**
+ * Execute the tap gesture on the screen on a mobile device.
+ */
+async function screenTap(browser: WebdriverIO.Browser, options: TapOptions) {
+    const { x, y } = options
+
+    if (browser.isNativeContext) {
+        return await executeNativeTap(browser, options)
+    }
+
+    return await browser.action(
+        'pointer', {
+            parameters: { pointerType: 'touch' }
+        })
+        .move({ x, y })
+        .down({ button: 0 })
+        .pause(10)
+        .up({ button: 0 })
+        .perform()
 }
