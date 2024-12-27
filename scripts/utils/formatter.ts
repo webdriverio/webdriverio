@@ -30,6 +30,8 @@ export default function (docfile: any) {
     let tagVersion = ''
     let tagAuthor = ''
     let tagType = ''
+    let tagMobileElement = false
+    let tagSkipUsage = false
 
     for (const tag of javadoc.tags) {
         if (tag.type === 'param') {
@@ -45,6 +47,9 @@ export default function (docfile: any) {
 
             paramTags.push(tag)
             paramStr.push(tag.name)
+        } else if (tag.type === 'rowInfo') {
+            paramTags.push(tag)
+            paramStr.push(tag.string)
         } else if (tag.type === 'property') {
             tag.joinedTypes = Array.isArray(tag.types)
                 ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -80,6 +85,10 @@ export default function (docfile: any) {
             tagVersion = tag.string
         } else if (tag.type === 'deprecated') {
             tagDeprecated = true
+        } else if (tag.type === 'mobileElement') {
+            tagMobileElement = true
+        } else if (tag.type === 'skipUsage') {
+            tagSkipUsage = true
         } else if (tag.type === 'author') {
             tagAuthor = tag.string
         } else if (tag.type === 'type') {
@@ -218,7 +227,8 @@ export default function (docfile: any) {
         customEditUrl: `${repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
-        isElementScope : scope === 'element',
+        isElementScope: scope === 'element' || tagMobileElement,
+        isSkipUsage: tagSkipUsage,
         isNetworkScope : scope === 'network',
         isMockScope : scope === 'mock',
         isDialogScope : scope === 'dialog',

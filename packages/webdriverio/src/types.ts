@@ -495,6 +495,11 @@ export type NewWindowOptions = {
     windowFeatures?: string
 }
 
+export type TapOptions = MobileScrollIntoViewOptions & {
+    x?: number,
+    y?: number
+}
+
 export type LongPressOptions = {
     x: number,
     y: number,

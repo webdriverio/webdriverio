@@ -1,0 +1,123 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`element tap test > should call the Android mobile tap command for native mobile 1`] = `
+{
+  "args": [
+    {
+      "elementId": "some-elem-123",
+    },
+  ],
+  "script": "mobile: clickGesture",
+}
+`;
+
+exports[`element tap test > should call the iOS mobile tap command for native mobile 1`] = `
+{
+  "args": [
+    {
+      "elementId": "some-elem-123",
+      "x": 0,
+      "y": 0,
+    },
+  ],
+  "script": "mobile: tap",
+}
+`;
+
+exports[`element tap test > should call the scrollIntoView which throws a \`Default scrollable element\` error 1`] = `
+[Error: The 'tap' method tried to automatically scroll to the element but couldn't find the default scrollable element. '\`-ios predicate string:type == "XCUIElementTypeApplication\`' If needed you can provide a custom scrollable element, together with the 'direction' and the 'maxScrolls' like this:
+
+await elem.tap({
+    scrollableElement: $('#scrollable'),
+});
+
+                ]
+`;
+
+exports[`element tap test > should call the scrollIntoView which throws a \`Default scrollable element\` error for an unknown default selector 1`] = `
+[Error: The 'tap' method tried to automatically scroll to the element but couldn't find the default scrollable element. 'unknown-scrollable-element' If needed you can provide a custom scrollable element, together with the 'direction' and the 'maxScrolls' like this:
+
+await elem.tap({
+    scrollableElement: $('#scrollable'),
+});
+
+                ]
+`;
+
+exports[`element tap test > should call the scrollIntoView which throws a \`Element not found within scroll limit of\` error 1`] = `
+[Error: Element not found within the automatic 'tap' scroll limit of 10 scrolls by scrolling "down". The 'tap' methods will automatically scroll if it can't find the element. It might be that 'direction|maxScrolls|scrollableElement' are not correct. You can change change them like this:
+
+await elem.tap({
+    direction: 'left' // possible options are: 'up|down|left|right'
+    maxScrolls: 15,
+    scrollableElement: $('#scrollable'),
+});
+
+                ]
+`;
+
+exports[`generic error test > should throw an error if only x or y is provided 1`] = `[TypeError: If x is set, then y must also be set.]`;
+
+exports[`generic error test > should throw an error if only x or y is provided 2`] = `[TypeError: If y is set, then x must also be set.]`;
+
+exports[`generic error test > should throw an error if tap command is called for a desktop session 1`] = `[Error: The tap command is only available for mobile platforms.]`;
+
+exports[`generic error test > should throw an error if the passed argument to the tap command is not an options object 1`] = `[TypeError: Options must be an object.]`;
+
+exports[`generic error test > should throw an error if x and y are provided along with other arguments 1`] = `[TypeError: If x and y are provided, no other arguments are allowed. Found: direction]`;
+
+exports[`screen tap test > should call the Android mobile tap command for native mobile 1`] = `
+{
+  "args": [
+    {
+      "x": 10,
+      "y": 20,
+    },
+  ],
+  "script": "mobile: clickGesture",
+}
+`;
+
+exports[`screen tap test > should call the action command for mobile web when a tap is executed with x and y coordinates 1`] = `
+{
+  "actions": [
+    {
+      "button": 0,
+      "duration": 100,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 10,
+      "y": 20,
+    },
+    {
+      "button": 0,
+      "type": "pointerDown",
+    },
+    {
+      "duration": 10,
+      "type": "pause",
+    },
+    {
+      "button": 0,
+      "type": "pointerUp",
+    },
+  ],
+  "id": "action1",
+  "parameters": {
+    "pointerType": "touch",
+  },
+  "type": "pointer",
+}
+`;
+
+exports[`screen tap test > should call the iOS mobile tap command for native mobile 1`] = `
+{
+  "args": [
+    {
+      "x": 10,
+      "y": 20,
+    },
+  ],
+  "script": "mobile: tap",
+}
+`;

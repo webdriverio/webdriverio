@@ -35,6 +35,7 @@ import type { LongPressOptions } from '../../types.js'
  * @param {number=}           options.x         Number (optional)
  * @param {number=}           options.y         Number (optional)
  * @param {number=}           options.duration  Duration of the press in ms, default is 1500 ms <br /><strong>MOBILE-ONLY</strong>
+ * @mobileElement
  */
 export function longPress(
     this: WebdriverIO.Element,

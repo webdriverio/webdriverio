@@ -37,7 +37,7 @@ describe('longPress test', () => {
         })
         const elem = await browser.$('#foo')
 
-        expect(elem.longPress()).rejects.toThrow('The longPress command is only available for mobile platforms.')
+        await expect(elem.longPress()).rejects.toThrow('The longPress command is only available for mobile platforms.')
     })
 
     it('should throw an error if the passed argument is not an options object', async () => {
@@ -51,7 +51,7 @@ describe('longPress test', () => {
         const elem = await browser.$('#foo')
 
         // @ts-expect-error invalid param
-        expect(elem.longPress([])).rejects.toThrow('Options must be an object')
+        await expect(elem.longPress([])).rejects.toThrow('Options must be an object')
     })
 
     afterEach(() => {

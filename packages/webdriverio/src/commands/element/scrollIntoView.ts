@@ -172,7 +172,7 @@ async function getScrollableElement({
     throw new Error(
         `Default scrollable element '${browser.isIOS ? defaultIosSelector : defaultAndroidSelector}' was not found. Our advice is to provide a scrollable element like this:
 
-        await elem.scrollIntoView({ scrollableElement: $('#scrollable') });
+await elem.scrollIntoView({ scrollableElement: $('#scrollable') });
 
         `
     )
@@ -257,10 +257,10 @@ async function nativeMobileScrollIntoView({
     throw new Error(`Element not found within scroll limit of ${mobileOptions.maxScrolls} scrolls by scrolling "${mobileOptions.scrollDirection}". ` +
         `Are you sure the element is within the scrollable element or the direction is correct? You can change the scrollable element or direction like this:
 
-        await elem.scrollIntoView({
-            direction: 'left' // posible options are: 'up|down|left|right'
-            scrollableElement: $('#scrollable'),
-        });
+await elem.scrollIntoView({
+    direction: 'left' // possible options are: 'up|down|left|right'
+    scrollableElement: $('#scrollable'),
+});
 
         `)
 }

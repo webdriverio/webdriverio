@@ -30,5 +30,6 @@
  * @param {Element|DragAndDropCoordinate}   target            destination element or object with x and y properties
  * @param {DragAndDropOptions=}             options           dragAndDrop command options
  * @param {Number=}                         options.duration  how long the drag should take place
+ * @mobileElement
  */
 // actual implementation is located in packages/webdriverio/src/element/dragAndDrop.ts
