@@ -3,20 +3,29 @@ import logger from '@wdio/logger'
 import { getBrowserObject } from '@wdio/utils'
 import type { MobileScrollIntoViewOptions, TapOptions } from '../../types.js'
 
+// @TODO: Fix the docs
+
 const log = logger('webdriver')
 /**
  *
- * Performs a tap gesture on the given element and will **automatically scroll** if it can't be found.
+ * Performs a tap gesture on:
+ * - the given element. It will **automatically scroll** if it can't be found.
+ * - the screen on a mobile device by providing `x` and `y` coordinates
  *
  * Internally it uses:
- * - the `click` command for Web environments (Chrome/Safari browsers, or hybrid apps)
- * - the Android [`mobile: clickGesture`](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-mobile-gestures.md#mobile-clickgesture) or iOS [`mobile: tap`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-tap) for Natives apps
+ * - Element tap:
+ *      - the `click` command for Web environments (Chrome/Safari browsers, or hybrid apps)
+ *      - the Android [`mobile: clickGesture`](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-mobile-gestures.md#mobile-clickgesture) or iOS [`mobile: tap`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-tap) for Natives apps, including the `scrollIntoView` command for automatic scrolling
+ * - Screen tap:
+ *      - the `action` command for Web environments (Chrome/Safari browsers, or hybrid apps)
+ *      - the Android [`mobile: clickGesture`](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-mobile-gestures.md#mobile-clickgesture) or iOS [`mobile: tap`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-tap) for Natives apps
+ *
  * This difference makes the `tap` command a more reliable alternative to the `click` command for mobile apps.
  *
  * For Native Apps this command differs from the `click` command as it will <strong>automatically swipe</strong> to the element for native apps by using the `scrollIntoView` command.
  *
  * <example>
-    :tap.example.js
+    :element.tap.example.js
     it('should be able to tap an on element', async () => {
         const elem = $('~myElement')
         // It will automatically scroll to the element if it's not already in the viewport
@@ -25,7 +34,7 @@ const log = logger('webdriver')
  * </example>
  *
  * <example>
-    :tap.scroll.options.example.js
+    :element.tap.scroll.options.example.js
     it('should be able to swipe right 3 times in a custom scroll areas to an element and tap on the element', async () => {
         const elem = $('~myElement')
         // Swipe right 3 times in the custom scrollable element to find the element
@@ -37,11 +46,20 @@ const log = logger('webdriver')
     })
  * </example>
  *
+ * <example>
+    :screen.tap.example.js
+    it('should be able to tap on screen coordinates', async () => {
+        await browser.tap({ x: 200, y: 400 })
+    })
+ * </example>
+ *
  * @param {TapOptions=} options                     Tap options (optional)
- * @param {string=}     options.direction           Can be one of `down`, `up`, `left` or `right`, default is `down`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
- * @param {number=}     options.maxScrolls          The max amount of scrolls until it will stop searching for the element, default is `10`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
- * @param {Element=}    options.scrollableElement   Element that is used to scroll within. If no element is provided it will use the following selector for iOS `-ios predicate string:type == "XCUIElementTypeApplication"` and the following for Android `//android.widget.ScrollView'`. If more elements match the default selector, then by default it will pick the first matching element. <br /> <strong>MOBILE-NATIVE-APP-ONLY</strong>
- * @mobileElement
+ * @param {number=}     options.x                   Number (optional, mandatory if y is set) <br /><strong>Only for SCREEN tap, not for ELEMENT tap</strong>
+ * @param {number=}     options.y                   Number (optional, mandatory if x is set) <br /><strong>Only for SCREEN tap, not for ELEMENT tap</strong>
+ * @param {string=}     options.direction           Can be one of `down`, `up`, `left` or `right`, default is `down`. <br /><strong>Only for ELEMENT tap, not for SCREEN tap</strong><br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {number=}     options.maxScrolls          The max amount of scrolls until it will stop searching for the element, default is `10`. <br /><strong>Only for ELEMENT tap, not for SCREEN tap</strong><br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {Element=}    options.scrollableElement   Element that is used to scroll within. If no element is provided it will use the following selector for iOS `-ios predicate string:type == "XCUIElementTypeApplication"` and the following for Android `//android.widget.ScrollView'`. If more elements match the default selector, then by default it will pick the first matching element. <br /><strong>Only for ELEMENT tap, not for SCREEN tap</strong><br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @skipUsage
  */
 export async function tap(
     this: WebdriverIO.Browser | WebdriverIO.Element,

@@ -29,6 +29,8 @@ This protocol command is embedded in the following convenient method<%= it.alter
 :::
 <% } %>
 
+<% if (!it.isSkipUsage) { %>
+
 ##### Usage
 
 ```js
@@ -45,6 +47,8 @@ await clock.<%= it.command %>(<%= it.paramString %>)
 <%= it.isMobile ? 'driver' : 'browser' %>.<%= it.command %>(<%= it.paramString %>)
 <% } %>
 ```
+
+<% } %>
 
 <% if (it.paramTags.length) { %>
 ##### Parameters
