@@ -531,10 +531,22 @@ export enum MobileScrollDirection {
     Right = 'right',
 }
 
-export type MobileScrollIntoViewOptions = {
+export type XY = {
+    x: number,
+    y: number
+}
+
+export type SwipeOptions = {
     direction?: MobileScrollDirection;
-    maxScrolls?: number;
+    duration?: number;
+    from?: XY;
+    percent?: number;
     scrollableElement?: WebdriverIO.Element;
+    to?: XY;
+}
+
+export type MobileScrollIntoViewOptions = SwipeOptions & {
+    maxScrolls?: number;
 }
 
 export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions, MobileScrollIntoViewOptions {
