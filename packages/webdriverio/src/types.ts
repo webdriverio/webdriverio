@@ -541,7 +541,7 @@ export type SwipeOptions = {
     duration?: number;
     from?: XY;
     percent?: number;
-    scrollableElement?: WebdriverIO.Element;
+    scrollableElement?: WebdriverIO.Element ;
     to?: XY;
 }
 

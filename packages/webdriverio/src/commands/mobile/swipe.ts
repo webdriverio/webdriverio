@@ -4,6 +4,11 @@ import type { SwipeOptions, XY } from '../../types.js'
 import { MobileScrollDirection } from '../../types.js'
 
 const log = logger('webdriverio')
+const SWIPE_DEFAULTS = {
+    DIRECTION: MobileScrollDirection.Down,
+    DURATION: 1500,
+    PERCENT: 0.95,
+}
 
 /**
  *
@@ -44,8 +49,8 @@ const log = logger('webdriverio')
  * @rowInfo Left    ::<strong>Starting Point:</strong><br/>You place your finger on the right side of the screen.<br/><strong>Movement:</strong><br/>You slide your finger horizontally to the left.><br/><strong>Action:</strong><br/>The response to this gesture depends on the application:<br />- It can move to the next item in a carousel or a set of images.<br />- In a navigation context, it might go back to the previous page or close the current view.<br />- On the home screen, it usually switches to the next virtual desktop or screen.
  * @rowInfo Right   ::<strong>Starting Point:</strong><br/>You place your finger on the left side of the screen.<br/><strong>Movement:</strong><br/>You slide your finger horizontally to the right.<br/><strong>Action:</strong><br/>Similar to swiping left, but in the opposite direction:<br />-- It often moves to the previous item in a carousel or gallery.<br />- Can be used to open side menus or navigation drawers in apps.<br />- On the home screen, it typically switches to the previous virtual desktop.
  * @rowInfo Up      ::<strong>Starting Point:</strong><br/>You place your finger towards the bottom of the screen.<br/><strong>Movement:</strong><br/>You slide your finger upwards towards the top of the screen.><br/><strong>Action:</strong><br/>Depending on the context, different actions can occur:<br />- On the home screen or in a list, this usually scrolls the content downwards.<br />- In a full-screen app, it might open additional options or the app drawer.<br />- On certain interfaces, it could trigger a 'refresh' action or open a search bar.
- * @param {number=}         options.duration          The duration in milliseconds for the swipe. Default is `1000` ms. The lower the value, the faster the swipe.
- * @param {Element=}        options.scrollableElement Element that is used to scroll within. If no element is provided it will use the following selector for iOS `-ios predicate string:type == "XCUIElementTypeApplication"` and the following for Android `//android.widget.ScrollView'`. If more elements match the default selector, then by default it will pick the first matching element. <br /> <strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {number=}         options.duration          The duration in milliseconds for the swipe. Default is `1500` ms. The lower the value, the faster the swipe.
+ * @param {Element=}        options.scrollableElement Element that is used to swipe within. If no element is provided it will use the following selector for iOS `-ios predicate string:type == "XCUIElementTypeApplication"` and the following for Android `//android.widget.ScrollView'`. If more elements match the default selector, then by default it will pick the first matching element. <br /> <strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @param {number=}         options.percent           The percentage of the (default) scrollable element to swipe. This is a value between 0 and 1. Default is `0.95`.<br /><strong>NEVER</strong> swipe from the exact top|bottom|left|right of the screen, you might trigger for example the notification bar or other OS/App features which can lead to unexpected results.<br />This has no effect if `from` and `to` are provided.
  * @rowInfo The below values <strong>ONLY</strong> have an effect if the `scrollableElement` is <strong>NOT</strong> provided, otherwise they are ignored.
  * @param {object=}         options.from              The x and y coordinates of the start of the swipe. If a `scrollableElement` is provided, then these coordinates have no effect.
@@ -60,7 +65,7 @@ const log = logger('webdriverio')
  */
 export async function swipe (
     this: WebdriverIO.Browser,
-    options: SwipeOptions
+    options?: SwipeOptions
 ): Promise<void|unknown> {
     const browser = this
 
@@ -68,7 +73,7 @@ export async function swipe (
         throw new Error('The swipe command is only available for mobile platforms in the NATIVE context.')
     }
 
-    let { scrollableElement, from, to } = options
+    let { scrollableElement, from, to } = options || {}
 
     if (scrollableElement && (from || to)) {
         log.warn('`scrollableElement` is provided, so `from` and `to` will be ignored.')
@@ -77,13 +82,13 @@ export async function swipe (
         scrollableElement = scrollableElement || await getScrollableElement(browser);
         ({ from, to } = await calculateFromTo({
             browser,
-            direction: options.direction || MobileScrollDirection.Down,
-            percentage: options.percent,
+            direction: options?.direction || MobileScrollDirection.Down,
+            percentage: options?.percent,
             scrollableElement,
         }))
     }
 
-    return w3cSwipe({ browser, duration: options.duration || 1000, from, to })
+    return w3cSwipe({ browser, duration: options?.duration || SWIPE_DEFAULTS.DURATION, from, to })
 }
 
 async function calculateFromTo({
@@ -98,15 +103,17 @@ async function calculateFromTo({
     scrollableElement: WebdriverIO.Element
     }): Promise<{ from: XY, to: XY }> {
     // 1. Determine the percentage of the scrollable container to be scrolled
-    // The scroll percentage is the percentage of the scrollable container that should be scrolled
-    // Never scroll from the exact top|bottom|left|right of the screen, you might trigger the notification bar or other OS/App features
-    const scrollPercentage = 0.95
+    // The swipe percentage is the percentage of the scrollable container that should be scrolled
+    // Never swipe from the exact top|bottom|left|right of the screen, you might trigger the notification bar or other OS/App features
+    let swipePercentage = SWIPE_DEFAULTS.PERCENT
 
     if (percentage !== undefined) {
         if (isNaN(percentage)) {
-            log.warn('The swipe percentage to swipe  should be a number.')
+            log.warn('The percentage to swipe should be a number.')
         } else if (percentage < 0 || percentage > 1) {
-            log.warn('The swipe percentage to scroll should be a number between 0 and 1.')
+            log.warn('The percentage to swipe should be a number between 0 and 1.')
+        } else {
+            swipePercentage = percentage
         }
     }
     // 2. Determine the swipe coordinates
@@ -125,17 +132,17 @@ async function calculateFromTo({
     // It's always advisable to swipe from the center of the element.
     const scrollRectangles = {
         // The x is the center of the element,
-        // The y is the y of the element + the height of the element * the scroll percentage
-        top: { x: Math.round(x + width / 2), y: Math.round(y + height * scrollPercentage) },
-        // The x is the x of the element + the width of the element, minus the width of the element * the scroll percentage
+        // The y is the y of the element + the height of the element * the swipe percentage
+        top: { x: Math.round(x + width / 2), y: Math.round(y + height * swipePercentage) },
+        // The x is the x of the element + the width of the element, minus the width of the element * the swipe percentage
         // The y is the center of the element,
-        right: { x: Math.round(x + width - width * scrollPercentage), y: Math.round(y + height / 2) },
+        right: { x: Math.round(x + width - width * swipePercentage), y: Math.round(y + height / 2) },
         // The x is the center of the element,
-        // The y is the y of the element, plus the height, minus the height of the element * the scroll percentage
-        bottom: { x: Math.round(x + width / 2), y: Math.round(y + height - height * scrollPercentage) },
-        // The x is the x of the element, plus the width of the element * the scroll percentage
+        // The y is the y of the element, plus the height, minus the height of the element * the swipe percentage
+        bottom: { x: Math.round(x + width / 2), y: Math.round(y + height - height * swipePercentage) },
+        // The x is the x of the element, plus the width of the element * the swipe percentage
         // The y is the center of the element,
-        left: { x: Math.round(x + width * scrollPercentage), y: Math.round(y + height / 2) },
+        left: { x: Math.round(x + width * swipePercentage), y: Math.round(y + height / 2) },
     }
 
     // 3. Swipe in the given direction
