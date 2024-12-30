@@ -46,15 +46,16 @@ export default class SauceLauncher implements Services.ServiceInstance {
              */
             `SC-tunnel-${Math.random().toString().slice(2)}`)
 
+        const noSslBumpDomains = new Set(['127.0.0.1', 'localhost', getLocalIpAddress()])
+        if (this._options.sauceConnectOpts?.noSslBumpDomains) {
+            this._options.sauceConnectOpts.noSslBumpDomains.split(',').forEach((domain) => noSslBumpDomains.add(domain))
+        }
+
         const sauceConnectOpts: SauceConnectOptions = {
             noAutodetect: true,
             tunnelIdentifier: sauceConnectTunnelIdentifier,
             ...this._options.sauceConnectOpts,
-            noSslBumpDomains: `127.0.0.1,localhost,${getLocalIpAddress()}` + (
-                this._options.sauceConnectOpts?.noSslBumpDomains
-                    ? `,${this._options.sauceConnectOpts.noSslBumpDomains}`
-                    : ''
-            ),
+            noSslBumpDomains: Array.from(noSslBumpDomains).join(','),
             logger: this._options.sauceConnectOpts?.logger || ((output) => log.debug(`Sauce Connect Log: ${output}`)),
             ...(!this._options.sauceConnectOpts?.logfile && this._config.outputDir
                 ? { logfile: path.join(this._config.outputDir, 'wdio-sauce-connect-tunnel.log') }

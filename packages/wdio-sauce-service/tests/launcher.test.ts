@@ -1,3 +1,4 @@
+import os from 'node:os'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import SauceLabs from 'saucelabs'
@@ -55,6 +56,26 @@ test('onPrepare w/ SauceConnect w/ tunnelIdentifier w/ JWP', async () => {
     // @ts-ignore mock feature
     expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledTimes(1)
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
+})
+
+test('onPrepare only sets unique noSslBumpDomains values', async () => {
+    const options: SauceServiceConfig = {
+        sauceConnect: true,
+        sauceConnectOpts: {
+            noSslBumpDomains: 'foo,bar,127.0.0.1,bar'
+        }
+    }
+    const caps = [{}] as WebdriverIO.Capabilities[]
+    const config = {} as Options.Testrunner
+    const service = new SauceServiceLauncher(options, caps as never, config)
+    const startTunnelMock = vi.fn()
+    service.startTunnel = startTunnelMock
+    await service.onPrepare(config, caps)
+    if (os.type() === 'Windows_NT') {
+        expect(startTunnelMock.mock.calls[0][0].noSslBumpDomains).toBe('127.0.0.1,localhost,::1,foo,bar')
+    } else {
+        expect(startTunnelMock.mock.calls[0][0].noSslBumpDomains).toBe('127.0.0.1,localhost,foo,bar')
+    }
 })
 
 test('onPrepare w/ SauceConnect w/o tunnelIdentifier w/ JWP', async () => {
