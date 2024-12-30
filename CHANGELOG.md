@@ -23,6 +23,32 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.5.0 (2024-12-30)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#14014](https://github.com/webdriverio/webdriverio/pull/14014) feat: add native mobile swipe ([@wswebcreation](https://github.com/wswebcreation))
+  * [#14012](https://github.com/webdriverio/webdriverio/pull/14012) Add mobile tap command ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14018](https://github.com/webdriverio/webdriverio/pull/14018) fix(webdriverio): support resolve references from internalId ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`
+  * [#14013](https://github.com/webdriverio/webdriverio/pull/14013) fix(@wdio/sauce-service): set unique values for noSslBumpDomains ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-jasmine-framework`, `wdio-types`
+  * [#14001](https://github.com/webdriverio/webdriverio/pull/14001) fix(@wdio/cli): adjust default value for specFileRetriesDeferred ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#14000](https://github.com/webdriverio/webdriverio/pull/14000) fix(@wdio/utils): detect Appium if 'appium:options' is used ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`, `wdio-utils`, `webdriverio`
+  * [#14010](https://github.com/webdriverio/webdriverio/pull/14010) Update Appium detection ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.4.5 (2024-12-19)
 
 #### :nail_care: Polish
