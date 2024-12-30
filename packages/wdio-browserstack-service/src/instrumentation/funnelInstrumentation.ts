@@ -128,7 +128,7 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
         eventProperties.isPercyAutoEnabled = config.isPercyAutoEnabled
         eventProperties.percyBuildId = config.percyBuildId
         if (process.env[BSTACK_A11Y_POLLING_TIMEOUT]) {
-            eventProperties.allyPollingTimeout = process.env[BSTACK_A11Y_POLLING_TIMEOUT]
+            eventProperties.pollingTimeout = process.env[BSTACK_A11Y_POLLING_TIMEOUT]
         }
         if (config.killSignal) {
             eventProperties.finishedMetadata = {
