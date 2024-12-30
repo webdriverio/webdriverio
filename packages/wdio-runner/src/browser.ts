@@ -444,7 +444,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         const logs = typeof browser.getLogs === 'function'
             ? (await browser.getLogs('browser').catch(() => []))
             : []
-        const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE') as LogMessage[]
+        const severeLogs = logs
+            .filter((log: LogMessage) => log.level === 'SEVERE')
+            .filter((log: LogMessage) => log.source !== 'deprecation') as LogMessage[]
         if (severeLogs.length) {
             if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
                 log.info('Retry test run due to outdated optimize dep')
@@ -461,11 +463,27 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                  * "http://localhost:40167/node_modules/.vite/deps/expect.js?v=bca8e2f3 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
                  */
                 errors: severeLogs.map((log) => {
-                    const [filename, message] = log.message!.split(' - ')
-                    return {
-                        filename: filename.startsWith('http') ? filename : undefined,
-                        message
+                    let [filename, message] = log.message!.split(' - ')
+
+                    /**
+                     * if message is undefined we may deal with a Chrome deprecation
+                     * error, e.g.:
+                     * ```
+                     * {
+                     *   level: 'SEVERE',
+                     *   message: "http://localhost:62926/node_modules/.vite/deps/chunk-LJR7SBTM.js?v=e55c8c2d 24113 Listener added for a 'DOMCharacterDataModified' mutation event. Support for this event type has been removed, and this event will no longer be fired. See https://chromestatus.com/feature/5083947249172480 for more information.",
+                     *   source: 'deprecation',
+                     *   timestamp: 1735579907909
+                     * }
+                     * ``
+                     */
+                    if (!message) {
+                        message = filename.split(' ').slice(1).join(' ')
+                        filename = filename.split(' ')[0]
                     }
+                    return filename.startsWith('http')
+                        ? { filename, message }
+                        : { filename: '', message: log.message }
                 })
             })
         }
