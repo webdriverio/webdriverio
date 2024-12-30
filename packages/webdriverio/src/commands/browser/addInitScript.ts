@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import type { local, remote } from 'webdriver'
 
-import { deserializeValue } from '../../utils/bidi/index.js'
+import { deserialize } from '../../utils/bidi/index.js'
 
 export interface InitScript<Payload = undefined> {
     remove: () => Promise<void>
@@ -163,7 +163,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     const emitter = new EventEmitter()
     const messageHandler = (msg: local.ScriptMessageParameters) => {
         if (msg.channel === channel) {
-            emitter.emit('data', deserializeValue(msg.data as remote.ScriptLocalValue))
+            emitter.emit('data', deserialize(msg.data as remote.ScriptLocalValue))
         }
     }
     this.on('script.message', messageHandler)
