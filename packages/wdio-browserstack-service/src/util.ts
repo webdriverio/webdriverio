@@ -602,7 +602,7 @@ export const getAppA11yResults = async (isAppAutomate: boolean, browser: Webdriv
         BStackLogger.debug('Performing scan before getting results summary')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
         const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
-        let upperTimeLimit = Date.now() + 360000 // 30 seconds
+        let upperTimeLimit = Date.now() + 300000 // 5 minutes
         if (process.env[BSTACK_A11Y_POLLING_TIMEOUT]) {
             upperTimeLimit = Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT])
         }

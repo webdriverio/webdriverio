@@ -172,7 +172,7 @@ class _AccessibilityHandler {
                 this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
 
                 if (shouldScanTest) {
-                    BStackLogger.info('AppAutomate test case execution has started.')
+                    BStackLogger.info('Automate test case execution has started.')
                 }
                 return
             }
@@ -255,7 +255,7 @@ class _AccessibilityHandler {
                 }
                 Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanScenario)
                 if (shouldScanScenario) {
-                    BStackLogger.info('AppAutomate test case execution has started.')
+                    BStackLogger.info('Automate test case execution has started.')
                 }
                 return
             }
