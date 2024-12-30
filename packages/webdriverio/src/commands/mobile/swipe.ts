@@ -5,7 +5,7 @@ import { MobileScrollDirection } from '../../types.js'
 
 const log = logger('webdriverio')
 const SWIPE_DEFAULTS = {
-    DIRECTION: MobileScrollDirection.Down,
+    DIRECTION: MobileScrollDirection.Up,
     DURATION: 1500,
     PERCENT: 0.95,
 }
@@ -33,6 +33,7 @@ const SWIPE_DEFAULTS = {
  * <example>
     :swipe.js
     it('should execute a default swipe', async () => {
+        // Default will be a swipe from the bottom to the top, meaning it will swipe UP
         await browser.swipe();
     });
  * </example>
@@ -51,7 +52,7 @@ const SWIPE_DEFAULTS = {
  *
  * @alias element.scrollIntoView
  * @param {object|boolean=} options                   options for `Element.scrollIntoView()`. Default for desktop/mobile web: <br/> `{ block: 'start', inline: 'nearest' }` <br /> Default for Mobile Native App <br /> `{ maxScrolls: 10, scrollDirection: 'down' }`
- * @param {string=}         options.direction         Can be one of `down`, `up`, `left` or `right`, default is `down`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {string=}         options.direction         Can be one of `down`, `up`, `left` or `right`, default is `up`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @rowInfo Down    ::<strong>Starting Point:</strong><br/>You place your finger towards the top of the screen.<br/><strong>Movement:</strong><br/>You slide your finger downwards towards the bottom of the screen.<br/><strong>Action:</strong><br/>This also varies by context:<br />- On the home screen or in applications, it typically scrolls the content upwards.<br />- From the top edge, it often opens the notifications panel or quick settings.<br />- In browsers or reading apps, it can be used to scroll through content.
  * @rowInfo Left    ::<strong>Starting Point:</strong><br/>You place your finger on the right side of the screen.<br/><strong>Movement:</strong><br/>You slide your finger horizontally to the left.><br/><strong>Action:</strong><br/>The response to this gesture depends on the application:<br />- It can move to the next item in a carousel or a set of images.<br />- In a navigation context, it might go back to the previous page or close the current view.<br />- On the home screen, it usually switches to the next virtual desktop or screen.
  * @rowInfo Right   ::<strong>Starting Point:</strong><br/>You place your finger on the left side of the screen.<br/><strong>Movement:</strong><br/>You slide your finger horizontally to the right.<br/><strong>Action:</strong><br/>Similar to swiping left, but in the opposite direction:<br />-- It often moves to the previous item in a carousel or gallery.<br />- Can be used to open side menus or navigation drawers in apps.<br />- On the home screen, it typically switches to the previous virtual desktop.
@@ -89,7 +90,7 @@ export async function swipe (
         scrollableElement = scrollableElement || await getScrollableElement(browser);
         ({ from, to } = await calculateFromTo({
             browser,
-            direction: options?.direction || MobileScrollDirection.Down,
+            direction: options?.direction || SWIPE_DEFAULTS.DIRECTION,
             percentage: options?.percent,
             scrollableElement,
         }))
@@ -138,18 +139,10 @@ async function calculateFromTo({
     const { x, y, width, height } = await browser.getElementRect(scrollableElement?.elementId)
     // It's always advisable to swipe from the center of the element.
     const scrollRectangles = {
-        // The x is the center of the element,
-        // The y is the y of the element + the height of the element * the swipe percentage
-        top: { x: Math.round(x + width / 2), y: Math.round(y + height * swipePercentage) },
-        // The x is the x of the element + the width of the element, minus the width of the element * the swipe percentage
-        // The y is the center of the element,
-        right: { x: Math.round(x + width - width * swipePercentage), y: Math.round(y + height / 2) },
-        // The x is the center of the element,
-        // The y is the y of the element, plus the height, minus the height of the element * the swipe percentage
-        bottom: { x: Math.round(x + width / 2), y: Math.round(y + height - height * swipePercentage) },
-        // The x is the x of the element, plus the width of the element * the swipe percentage
-        // The y is the center of the element,
-        left: { x: Math.round(x + width * swipePercentage), y: Math.round(y + height / 2) },
+        top: { x: Math.round(x + width / 2), y: Math.round(y + height - height * swipePercentage) },
+        right: { x: Math.round(x + width * swipePercentage), y: Math.round(y + height / 2) },
+        bottom: { x: Math.round(x + width / 2), y: Math.round(y + height * swipePercentage) },
+        left: { x: Math.round(x + width - width * swipePercentage), y: Math.round(y + height / 2) },
     }
 
     // 3. Swipe in the given direction

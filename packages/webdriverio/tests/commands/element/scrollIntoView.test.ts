@@ -191,7 +191,7 @@ describe('scrollIntoView test', () => {
             // call the mobileScrollUntilVisible
             expect(isDisplayedSpy).toBeCalledTimes(2)
             expect(swipeSpy).toBeCalledTimes(1)
-            expect(swipeSpy).toBeCalledWith({ direction: 'down' })
+            expect(swipeSpy).toBeCalledWith({ direction: 'up' })
 
             swipeSpy.mockRestore()
             isDisplayedSpy.mockRestore()

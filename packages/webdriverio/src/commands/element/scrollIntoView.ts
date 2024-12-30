@@ -50,7 +50,7 @@ const log = logger('webdriverio')
  * @param {string=}         options.block             See [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView). <br /><strong>WEB-ONLY</strong> (Desktop/Mobile)
  * @param {string=}         options.inline            See [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView). <br /><strong>WEB-ONLY</strong> (Desktop/Mobile)
  * @rowInfo Mobile Native App Only
- * @param {string=}         options.direction         Can be one of `down`, `up`, `left` or `right`, default is `down`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {string=}         options.direction         Can be one of `down`, `up`, `left` or `right`, default is `up`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @param {number=}         options.maxScrolls        The max amount of scrolls until it will stop searching for the element, default is `10`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @param {number=}         options.duration          The duration in milliseconds for the swipe. Default is `1500` ms. The lower the value, the faster the swipe.<br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @param {Element=}        options.scrollableElement Element that is used to scroll within. If no element is provided it will use the following selector for iOS `-ios predicate string:type == "XCUIElementTypeApplication"` and the following for Android `//android.widget.ScrollView'`. If more elements match the default selector, then by default it will pick the first matching element. <br /> <strong>MOBILE-NATIVE-APP-ONLY</strong>
@@ -198,7 +198,7 @@ async function nativeMobileScrollIntoView({
     }) {
     const defaultOptions = {
         maxScrolls: 10,
-        direction: MobileScrollDirection.Down,
+        direction: MobileScrollDirection.Up,
     }
     const mobileOptions = {
         ...defaultOptions,
