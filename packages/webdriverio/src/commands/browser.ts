@@ -45,4 +45,5 @@ export * from './browser/waitUntil.js'
 /**
  * Add it to the Browser scope, but not to the docs by providing a different folder
  */
+export * from './mobile/swipe.js'
 export * from './mobile/tap.js'

@@ -63,7 +63,12 @@ await clock.<%= it.command %>(<%= it.paramString %>)
 <% it.paramTags.forEach((paramTag) => { %>
 <% if (paramTag.type === "rowInfo") { %>
     <tr>
-      <td colspan="3"><strong><%= paramTag.string %></strong></td>
+      <% if (paramTag.string.includes('::')) { %>
+        <% const parts = paramTag.string.split('::').map(part => part.trim()); %>
+        <td colspan="3"><strong><%= parts[0] %></strong><br /><%= parts[1] %></td>
+        <% } else { %>
+        <td colspan="3"><strong><%= paramTag.string %></strong></td>
+        <% } %>
     </tr>
 <% } else { %>
     <tr>
