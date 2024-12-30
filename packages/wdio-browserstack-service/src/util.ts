@@ -432,7 +432,7 @@ export const validateCapsWithAppA11y = (platformMeta?: { [key: string]: any; }) 
     BStackLogger.debug(`platformMeta ${JSON.stringify(platformMeta)}`)
     try {
         if (platformMeta?.platform_name && String(platformMeta?.platform_name).toLowerCase() === 'android') {
-            if (parseInt(platformMeta?.platform_version?.toString()) < 11) {
+            if (platformMeta?.platform_version && parseInt(platformMeta?.platform_version?.toString()) < 11) {
                 BStackLogger.warn('App Accessibility Automation tests are supported on OS version 11 and above for Android devices.')
                 return false
             }
@@ -602,10 +602,7 @@ export const getAppA11yResults = async (isAppAutomate: boolean, browser: Webdriv
         BStackLogger.debug('Performing scan before getting results summary')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
         const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
-        let upperTimeLimit = Date.now() + 300000 // 5 minutes
-        if (process.env[BSTACK_A11Y_POLLING_TIMEOUT]) {
-            upperTimeLimit = Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT])
-        }
+        const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) : Date.now() + 300000
         const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
         const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
         const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
