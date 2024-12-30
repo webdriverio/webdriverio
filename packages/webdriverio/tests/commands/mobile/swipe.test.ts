@@ -12,7 +12,6 @@ let browser: WebdriverIO.Browser
 let elem: WebdriverIO.Element
 let rectSpy
 let logSpy
-const defaultIOSSelector = '-ios predicate string:type == "XCUIElementTypeApplication"'
 const defaultAndroidSelector = '//android.widget.ScrollView'
 
 describe('swipe test', () => {
