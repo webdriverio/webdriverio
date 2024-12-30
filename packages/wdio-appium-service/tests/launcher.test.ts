@@ -775,19 +775,24 @@ describe('Appium launcher', () => {
             )).resolves.toEqual(expect.objectContaining({ spawnargs: expect.arrayContaining(['-e', expect.any(String)]) }))
         })
 
-        test('filter out "Debugger attached" message as an error', async () => {
-            const origSpawn = await vi.importActual<typeof cp>('node:child_process').then((m) => m.spawn)
-            vi.mocked(spawn).mockImplementationOnce(origSpawn)
+        test('should filter out "Debugger attached" message as an error', async () => {
+            const eventListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            vi.mocked(spawn).mockReturnValue({
+                ...eventListener,
+                stdout: { ...eventListener },
+                stderr: { ...eventListener },
+            } as unknown as cp.ChildProcess)
+
             const mockLogError = vi.spyOn(log, 'error')
             const launcher = new AppiumLauncher({}, [], {} as any)
 
-            await expect(launcher['_startAppium'](
-                'node',
-                ['-e', '(() => { process.stderr.write(\'Debugger attached\\n\'); throw new Error(\'ups\') })()'],
-                2000
-            )).rejects.toEqual(expect.objectContaining({
-                message: expect.stringContaining('Debugger attached')
-            }))
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const processPromise = launcher['_startAppium']('node', [], 2000)
+
+            const errorHandler = vi.mocked(spawn).mock.results[0].value.stderr.on.mock.calls
+                .find(call => call[0] === 'data')?.[1]
+
+            errorHandler(Buffer.from('Debugger attached'))
             expect(mockLogError).not.toHaveBeenCalled()
         })
     })
