@@ -602,7 +602,7 @@ export const getAppA11yResults = async (isAppAutomate: boolean, browser: Webdriv
         BStackLogger.debug('Performing scan before getting results summary')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
         const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
-        const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) : Date.now() + 300000
+        const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) : Date.now() + 30000
         const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
         const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
         const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)

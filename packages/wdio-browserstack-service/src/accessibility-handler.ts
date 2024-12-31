@@ -164,23 +164,10 @@ class _AccessibilityHandler {
 
             /* This is to be used when test events are sent */
             Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanTest)
-            if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
-                this._testMetadata[testIdentifier] = {
-                    scanTestForAccessibility : shouldScanTest,
-                    accessibilityScanStarted : true
-                }
-                this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
-
-                if (shouldScanTest) {
-                    BStackLogger.info('Automate test case execution has started.')
-                }
-                return
+            this._testMetadata[testIdentifier] = {
+                scanTestForAccessibility : shouldScanTest,
+                accessibilityScanStarted : true
             }
-            const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
-            if (!isPageOpened) {
-                return
-            }
-
             this._testMetadata[testIdentifier].accessibilityScanStarted = shouldScanTest
 
             if (shouldScanTest) {
@@ -243,26 +230,11 @@ class _AccessibilityHandler {
 
         try {
             const shouldScanScenario = shouldScanTestForAccessibility(featureData?.name, pickleData.name, this._accessibilityOptions, world, true)
-            if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
-                this._testMetadata[uniqueId] = {
-                    scanTestForAccessibility : shouldScanScenario,
-                    accessibilityScanStarted : true
-                }
-                this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
-                if (this._sessionId) {
-                    /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
-                    AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanScenario
-                }
-                Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanScenario)
-                if (shouldScanScenario) {
-                    BStackLogger.info('Automate test case execution has started.')
-                }
-                return
+            this._testMetadata[uniqueId] = {
+                scanTestForAccessibility : shouldScanScenario,
+                accessibilityScanStarted : true
             }
-            const isPageOpened = await this.checkIfPageOpened(this._browser, uniqueId, shouldScanScenario)
-            if (!isPageOpened) {
-                return
-            }
+            this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
             if (this._sessionId) {
                 /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
                 AccessibilityHandler._a11yScanSessionMap[this._sessionId] = shouldScanScenario
@@ -270,8 +242,6 @@ class _AccessibilityHandler {
 
             /* This is to be used when test events are sent */
             Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanScenario)
-
-            this._testMetadata[uniqueId].accessibilityScanStarted = shouldScanScenario
 
             if (shouldScanScenario) {
                 BStackLogger.info('Automate test case execution has started.')
