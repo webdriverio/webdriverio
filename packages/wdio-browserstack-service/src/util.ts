@@ -325,8 +325,8 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
         }
         if (scannerVersion) {
             process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion
+            BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
         }
-        BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
         if (accessibilityToken) {
             process.env.BSTACK_A11Y_JWT = accessibilityToken
             process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
@@ -1492,7 +1492,7 @@ function pollApi(
     startTime = Date.now()
 ): Promise<PollingResult> {
     return new Promise((resolve, reject) => {
-        params.timestamp = Date.now() / 1000
+        params.timestamp = Math.round(Date.now() / 1000)
         BStackLogger.debug(`current timestamp ${params.timestamp}`)
 
         axios
