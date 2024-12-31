@@ -602,7 +602,7 @@ export const getAppA11yResults = async (isAppAutomate: boolean, browser: Webdriv
         BStackLogger.debug('Performing scan before getting results summary')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
         const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
-        const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) : Date.now() + 30000
+        const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) * 1000 : Date.now() + 30000
         const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
         const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
         const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
@@ -630,7 +630,7 @@ export const getAppA11yResultsSummary = async (isAppAutomate: boolean, browser: 
         BStackLogger.debug('Performing scan before getting results summary')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
         const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_SUMMARY_ENDPOINT}`
-        const upperTimeLimit = Date.now() + 360000 // 30 seconds
+        const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) * 1000 : Date.now() + 30000
         const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
         const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
         const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
@@ -1484,61 +1484,72 @@ type PollingResult = {
     message?: string; // Optional message for timeout cases
   };
 
-async function pollApi(
+function pollApi(
     url: string,
     params: Record<string, any>,
     headers: Record<string, string>,
     upperLimit: number,
     startTime = Date.now()
 ): Promise<PollingResult> {
-    try {
+    return new Promise((resolve, reject) => {
         params.timestamp = Date.now() / 1000
         BStackLogger.debug(`current timestamp ${params.timestamp}`)
-        const response = await axios.get(url, { params, headers })
 
-        // If the request succeeds (non-404), return the result
-        return {
-            data: response.data,
-            headers: response.headers,
-            message: 'Polling succeeded.',
-        }
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
-            const nextPollTime = parseInt(error.response.headers.next_poll_time, 10) * 1000
-            BStackLogger.debug(`timeInMillis ${nextPollTime}`)
-            if (isNaN(nextPollTime)) {
-                BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
-                return {
-                    data: null,
-                    headers: error.response.headers,
-                    message: 'Invalid timeInMillis header value. Polling stopped.',
+        axios
+            .get(url, { params, headers })
+            .then(response => {
+                // If the request succeeds (non-404), resolve the result
+                resolve({
+                    data: response.data,
+                    headers: response.headers,
+                    message: 'Polling succeeded.',
+                })
+            })
+            .catch(error => {
+                if (axios.isAxiosError(error) && error.response?.status === 404) {
+                    const nextPollTime = parseInt(error.response.headers.next_poll_time, 10) * 1000
+                    BStackLogger.debug(`timeInMillis ${nextPollTime}`)
+                    if (isNaN(nextPollTime)) {
+                        BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
+                        resolve({
+                            data: {},
+                            headers: error.response.headers,
+                            message: 'Invalid nextPollTime header value. Polling stopped.',
+                        })
+                        return
+                    }
+
+                    const elapsedTime = nextPollTime - Date.now()
+                    BStackLogger.debug(
+                        `elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`
+                    )
+
+                    // Stop polling if the upper time limit is reached
+                    if (nextPollTime > upperLimit) {
+                        BStackLogger.warn('Polling stopped due to upper time limit.')
+                        resolve({
+                            data: {},
+                            headers: error.response.headers,
+                            message: 'Polling stopped due to upper time limit.',
+                        })
+                        return
+                    }
+
+                    BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
+
+                    // Wait for the specified time and poll again
+                    setTimeout(() => {
+                        pollApi(url, params, headers, upperLimit, startTime)
+                            .then(resolve)
+                            .catch(reject)
+                    }, elapsedTime)
+                } else if (axios.isAxiosError(error)) {
+                    reject({ data: {}, headers: {}, message: error?.response?.data.message })
+                } else {
+                    BStackLogger.error('Unexpected error occurred:')
+                    resolve({ data: {}, headers: {}, message: 'Unexpected error occurred.' })
                 }
-            }
-
-            const elapsedTime = nextPollTime - Date.now()
-            BStackLogger.debug(`elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`)
-            // Stop polling if the upper time limit is reached
-            if (nextPollTime > upperLimit) {
-                BStackLogger.warn('Polling stopped due to upper time limit.')
-                return {
-                    data: null,
-                    headers: error.response.headers,
-                    message: 'Polling stopped due to upper time limit.',
-                }
-            }
-
-            BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
-
-            // Wait for the specified time and poll again
-            await new Promise(resolve => setTimeout(resolve, elapsedTime))
-
-            // Recursive call
-            return pollApi(url, params, headers, upperLimit, startTime)
-        } else if (axios.isAxiosError(error)) {
-            return { data: {}, headers: {}, message: error?.response?.data.message }
-        }
-        BStackLogger.error('Unexpected error occurred:')
-        return { data: {}, headers: {}, message: 'Unexpected error occurred.' }
-
-    }
+            })
+    })
 }
+
