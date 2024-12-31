@@ -11,8 +11,11 @@ import { Readable, type Writable } from 'node:stream'
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'
 import type { Capabilities } from '@wdio/types'
+import logger from '@wdio/logger'
 
 import AppiumLauncher from '../src/launcher.js'
+
+const log = logger('@wdio/appium-service')
 
 vi.mock('node:fs', () => ({
     default: {
@@ -770,6 +773,27 @@ describe('Appium launcher', () => {
                 ['-e', '(() => { setTimeout(() => { console.log(JSON.stringify({message: \'Appium REST http interface listener started\'})); }, 3000); })()'],
                 10000
             )).resolves.toEqual(expect.objectContaining({ spawnargs: expect.arrayContaining(['-e', expect.any(String)]) }))
+        })
+
+        test('should filter out "Debugger attached" message as an error', async () => {
+            const eventListener = { on: vi.fn(), off: vi.fn(), once: vi.fn() }
+            vi.mocked(spawn).mockReturnValue({
+                ...eventListener,
+                stdout: { ...eventListener },
+                stderr: { ...eventListener },
+            } as unknown as cp.ChildProcess)
+
+            const mockLogError = vi.spyOn(log, 'error')
+            const launcher = new AppiumLauncher({}, [], {} as any)
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const processPromise = launcher['_startAppium']('node', [], 2000)
+
+            const errorHandler = vi.mocked(spawn).mock.results[0].value.stderr.on.mock.calls
+                .find(call => call[0] === 'data')?.[1]
+
+            errorHandler(Buffer.from('Debugger attached'))
+            expect(mockLogError).not.toHaveBeenCalled()
         })
     })
 

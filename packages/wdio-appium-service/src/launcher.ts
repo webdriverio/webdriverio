@@ -247,8 +247,13 @@ export default class AppiumLauncher implements Services.ServiceInstance {
              * only capture first error to print it in case Appium failed to start.
              */
             const onErrorMessage = (data: Buffer) => {
+                /**
+                 * filter 'Debugger attached' message as it is not an error
+                 */
                 error = data.toString() || 'Appium exited without unknown error message'
-                log.error(error)
+                if (!data.toString().includes('Debugger attached')) {
+                    log.error(error)
+                }
                 rejectOnce(new Error(error))
             }
 
