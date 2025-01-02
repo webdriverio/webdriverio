@@ -326,8 +326,9 @@ export function setupDirectConnect(client: Client) {
 }
 
 /**
- * get human readable message from response error
+ * get human-readable message from response error
  * @param {Error} err response error
+ * @param params
  */
 export const getSessionError = (err: JSONWPCommandError, params: Partial<Options.WebDriver> = {}) => {
     // browser driver / service is not started
@@ -385,9 +386,15 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 /**
  * Enhance the monad with WebDriver Bidi primitives if a connection can be established successfully
  * @param socketUrl url to bidi interface
+ * @param strictSSL
+ * @param userHeaders
  * @returns prototype with interface for bidi primitives
  */
-export function initiateBidi (socketUrl: string, strictSSL: boolean = true): PropertyDescriptorMap {
+export function initiateBidi (
+    socketUrl: string,
+    strictSSL: boolean = true,
+    userHeaders?: Record<string, string>
+): PropertyDescriptorMap {
     /**
      * don't connect and stale unit tests when the websocket url is set to a dummy value
      */
@@ -406,7 +413,10 @@ export function initiateBidi (socketUrl: string, strictSSL: boolean = true): Pro
     }
 
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
-    const bidiReqOpts = strictSSL ? {} : { rejectUnauthorized: false }
+    const bidiReqOpts: { rejectUnauthorized?: boolean, headers?: Record<string, string> } = strictSSL ? {} : { rejectUnauthorized: false }
+    if (userHeaders) {
+        bidiReqOpts.headers = userHeaders
+    }
     const handler = new BidiHandler(socketUrl, bidiReqOpts)
     handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 

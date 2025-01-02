@@ -27,7 +27,7 @@ export class BidiCore {
     constructor (webSocketUrl: string, opts?: ClientOptions) {
         this.#webSocketUrl = webSocketUrl
         log.info(`Connect to webSocketUrl ${this.#webSocketUrl}`)
-        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
+        this.#ws = new environment.value.Socket(this.#webSocketUrl, { ...opts }) as unknown as WebSocket
         this.#ws.on('message', this.#handleResponse.bind(this))
     }
 
@@ -81,7 +81,7 @@ export class BidiCore {
         log.info(`Reconnect to new Bidi session at ${webSocketUrl}`)
         this.close()
         this.#webSocketUrl = webSocketUrl
-        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
+        this.#ws = new environment.value.Socket(this.#webSocketUrl, { ...opts }) as unknown as WebSocket
         this.#ws.on('message', this.#handleResponse.bind(this))
         return this.connect()
     }
