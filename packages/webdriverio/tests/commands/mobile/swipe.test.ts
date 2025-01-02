@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { Mock } from 'vitest'
+import type { Mock, VitestUtils } from 'vitest'
 import { beforeEach, expect, describe, it, afterEach, vi, beforeAll } from 'vitest'
 import logger from '@wdio/logger'
 import { MobileScrollDirection, remote } from '../../../src/index.js'
@@ -10,8 +10,8 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 let browser: WebdriverIO.Browser
 let elem: WebdriverIO.Element
-let rectSpy
-let logSpy
+let rectSpy: any
+let logSpy: any
 const defaultAndroidSelector = '//android.widget.ScrollView'
 
 describe('swipe test', () => {

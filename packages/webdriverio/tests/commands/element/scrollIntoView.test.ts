@@ -207,7 +207,6 @@ describe('scrollIntoView test', () => {
             const swipeSpy = vi.spyOn(browser, 'swipe').mockResolvedValue(undefined)
 
             await elem.scrollIntoView({
-                // @ts-expect-error
                 direction: 'left',
                 duration: 3000,
                 percent: 0.5,
