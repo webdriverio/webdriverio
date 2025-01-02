@@ -54,9 +54,9 @@ vi.mock('tree-kill', () => ({
     default: vi.fn()
 }))
 
-class MockProcess {
-    removeListener() {}
-    kill() {}
+class MockProcess implements Partial<ChildProcessByStdio<null, Readable, Readable>> {
+    removeListener = vi.fn()
+    kill = vi.fn()
     stdout = {
         pipe: vi.fn(),
         on: vi.fn((event: string, callback: Function) => {
@@ -64,12 +64,13 @@ class MockProcess {
             callback('[Appium] Appium REST http interface listener started on 127.0.0.1:4723')
         }),
         off: vi.fn(),
-    }
+    } as unknown as Readable
     stderr = {
-        pipe: vi.fn(), once: vi.fn(),
+        pipe: vi.fn(),
+        once: vi.fn(),
         on: vi.fn(),
         off: vi.fn()
-    }
+    } as unknown as Readable
 }
 
 class MockFailingProcess extends MockProcess {
@@ -79,16 +80,16 @@ class MockFailingProcess extends MockProcess {
         this.exitCode = exitCode
     }
 
-    once(event: string, callback: Function) {
+    once = vi.fn((event: string, callback: Function) => {
         if (event === 'exit') {
             callback(this.exitCode)
         }
-    }
+    })
     stdout = {
         pipe: vi.fn(),
         on: vi.fn(),
         off: vi.fn()
-    }
+    } as unknown as Readable
 }
 
 // MockProcess2 class. Mocks the entire _process object so we can set specific values on it, such as pid
@@ -137,7 +138,7 @@ class MockCustomFailingProcess extends MockFailingProcess {
         once: vi.fn().mockImplementation((event, cb) => cb(new Error('Uups'))),
         on: vi.fn(),
         off: vi.fn()
-    }
+    } as unknown as Readable
 }
 
 vi.mock('../src/utils', async () => {
@@ -671,24 +672,62 @@ describe('Appium launcher', () => {
     })
 
     describe('onComplete', () => {
-        test('should call treeKill', async () => {
+        test('should call treeKill with SIGTERM first', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
 
-            // Mock the _process property using MockProcess2 class
             launcher['_process'] = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
-
-            // Call onComplete
-            launcher.onComplete()
-
-            // Verify treeKill is called with correct parameters
+            vi.mocked(treeKill).mockImplementationOnce((pid, signal, cb) => {
+                if (cb) { cb() }
+            })
+            await launcher.onComplete()
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
         })
 
-        test('should not call process.kill', () => {
+        test('should try SIGKILL if SIGTERM fails', async () => {
+            const launcher = new AppiumLauncher({}, [], {} as any)
+            await launcher.onPrepare()
+            launcher['_process'] = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
+            // Make SIGTERM fail
+            vi.mocked(treeKill)
+                .mockImplementationOnce((pid, signal, cb) => {
+                    if (cb) { cb(new Error('SIGTERM failed')) }
+                })
+                // But make SIGKILL succeed
+                .mockImplementationOnce((pid, signal, cb) => {
+                    if (cb) { cb() }
+                })
+            await launcher.onComplete()
+            expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
+            expect(treeKill).toHaveBeenCalledWith(1234, 'SIGKILL', expect.any(Function))
+        })
+
+        test('should try direct process kill if both SIGTERM and SIGKILL fail', async () => {
+            const launcher = new AppiumLauncher({}, [], {} as any)
+            await launcher.onPrepare()
+
+            const mockProcess = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
+            launcher['_process'] = mockProcess
+
+            // Make both SIGTERM and SIGKILL fail
+            vi.mocked(treeKill)
+                .mockImplementationOnce((pid, signal, cb) => {
+                    if (cb) { cb(new Error('SIGTERM failed')) }
+                })
+                .mockImplementationOnce((pid, signal, cb) => {
+                    if (cb) { cb(new Error('SIGKILL failed')) }
+                })
+
+            await launcher.onComplete()
+            expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
+            expect(treeKill).toHaveBeenCalledWith(1234, 'SIGKILL', expect.any(Function))
+            expect(mockProcess.kill).toHaveBeenCalledWith('SIGKILL')
+        })
+
+        test('should not call process.kill when process is undefined', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             expect(launcher['_process']).toBe(undefined)
-            launcher.onComplete()
+            await launcher.onComplete()
             expect(launcher['_process']).toBe(undefined)
         })
     })
@@ -706,8 +745,11 @@ describe('Appium launcher', () => {
             await launcher.onPrepare()
 
             expect(vi.mocked(fs.createWriteStream).mock.calls[0][0]).toBe('/some/file/path')
-            expect(launcher['_process']!.stdout.pipe).toBeCalled()
-            expect(launcher['_process']!.stderr.pipe).toBeCalled()
+            // Since we're awaiting onPrepare, _process should be defined at this point
+            const process = launcher['_process']
+            expect(process).toBeDefined()
+            expect(process?.stdout.pipe).toBeCalled()
+            expect(process?.stderr.pipe).toBeCalled()
         })
 
         test('throws if process is not set', async () => {
@@ -723,11 +765,11 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({}, [{ 'appium:deviceName': 'baz' }], {} as any)
             const mockProcess = new MockProcess()
             launcher['_startAppium'] = vi.fn().mockResolvedValue(mockProcess)
-            expect(mockProcess.stdout.on).not.toHaveBeenCalledOnce()
-            expect(mockProcess.stderr.on).not.toHaveBeenCalledOnce()
+            expect(mockProcess.stdout.on).not.toBeCalled()
+            expect(mockProcess.stderr.on).not.toBeCalled()
             await launcher.onPrepare()
-            expect(mockProcess.stdout.on).toHaveBeenCalledOnce()
-            expect(mockProcess.stderr.on).toHaveBeenCalledOnce()
+            expect(mockProcess.stdout.on).toBeCalled()
+            expect(mockProcess.stderr.on).toBeCalled()
         })
     })
 

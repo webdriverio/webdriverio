@@ -182,7 +182,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         log.warn(data.toString())
     }
 
-    onComplete() {
+    async onComplete() {
         this._isShuttingDown = true
 
         /**
@@ -199,13 +199,40 @@ export default class AppiumLauncher implements Services.ServiceInstance {
              * Ensure all child processes are also killed
              */
             log.info('Killing entire Appium tree')
-            treeKill(this._process.pid, 'SIGTERM', (err) => {
-                if (err) {
-                    return log.warn('Failed to kill process:', err)
-                }
-
+            try {
+                // First attempt with SIGTERM
+                await new Promise<void>((resolve, reject) => {
+                    treeKill(this._process!.pid!, 'SIGTERM', (err) => {
+                        if (err) {
+                            reject(err)
+                            return
+                        }
+                        resolve()
+                    })
+                }).catch(async (err) => {
+                    log.warn('SIGTERM failed, attempting SIGKILL:', err)
+                    // If SIGTERM fails, try SIGKILL
+                    await new Promise<void>((resolve, reject) => {
+                        treeKill(this._process!.pid!, 'SIGKILL', (err) => {
+                            if (err) {
+                                reject(err)
+                                return
+                            }
+                            resolve()
+                        })
+                    })
+                })
                 log.info('Process and its children successfully terminated')
-            })
+            } catch (err) {
+                log.error('Failed to kill Appium process tree:', err)
+                // Attempt direct process kill as last resort
+                try {
+                    this._process.kill('SIGKILL')
+                    log.info('Killed main process directly')
+                } catch (e) {
+                    log.error('Failed to kill process directly:', e)
+                }
+            }
         }
     }
     private _startAppium(command: string, args: Array<string>, timeout = APPIUM_START_TIMEOUT) {
