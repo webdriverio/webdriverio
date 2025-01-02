@@ -3,7 +3,6 @@ import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
-import treeKill from 'tree-kill'
 import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
 
@@ -15,7 +14,7 @@ import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
 import { isAppiumCapability } from '@wdio/utils'
 
-import { getFilePath, formatCliArgs } from './utils.js'
+import { getFilePath, formatCliArgs, promisifiedTreeKill } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
 
 const log = logger('@wdio/appium-service')
@@ -185,47 +184,22 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     async onComplete() {
         this._isShuttingDown = true
 
-        /**
-         * Kill appium and all process' spawned from it
-         */
         if (this._process && this._process.pid) {
-            /**
-             * remove stdio event listener
-             */
             this._process.stdout.off('data', this.#logStdout)
             this._process.stderr.off('data', this.#logStderr)
 
-            /**
-             * Ensure all child processes are also killed
-             */
             log.info('Killing entire Appium tree')
             try {
                 // First attempt with SIGTERM
-                await new Promise<void>((resolve, reject) => {
-                    treeKill(this._process!.pid!, 'SIGTERM', (err) => {
-                        if (err) {
-                            reject(err)
-                            return
-                        }
-                        resolve()
+                await promisifiedTreeKill(this._process.pid, 'SIGTERM')
+                    .catch(async (err) => {
+                        log.warn('SIGTERM failed, attempting SIGKILL:', err)
+                        // If SIGTERM fails, try SIGKILL
+                        await promisifiedTreeKill(this._process!.pid!, 'SIGKILL')
                     })
-                }).catch(async (err) => {
-                    log.warn('SIGTERM failed, attempting SIGKILL:', err)
-                    // If SIGTERM fails, try SIGKILL
-                    await new Promise<void>((resolve, reject) => {
-                        treeKill(this._process!.pid!, 'SIGKILL', (err) => {
-                            if (err) {
-                                reject(err)
-                                return
-                            }
-                            resolve()
-                        })
-                    })
-                })
                 log.info('Process and its children successfully terminated')
             } catch (err) {
                 log.error('Failed to kill Appium process tree:', err)
-                // Attempt direct process kill as last resort
                 try {
                     this._process.kill('SIGKILL')
                     log.info('Killed main process directly')

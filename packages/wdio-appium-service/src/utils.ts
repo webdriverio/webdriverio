@@ -1,5 +1,6 @@
 import { basename, join, resolve } from 'node:path'
 import { kebabCase } from 'change-case'
+import treeKill from 'tree-kill'
 
 import type { ArgValue, KeyValueArgs } from './types.js'
 
@@ -57,4 +58,16 @@ export function sanitizeCliOptionValue (value: ArgValue) {
 
 export function isWindows(): boolean {
     return process.platform === 'win32'
+}
+
+export async function promisifiedTreeKill(pid: number, signal: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        treeKill(pid, signal, (err) => {
+            if (err) {
+                reject(err)
+                return
+            }
+            resolve()
+        })
+    })
 }
