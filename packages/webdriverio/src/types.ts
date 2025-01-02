@@ -121,6 +121,11 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
      * get the `WebdriverIO.Element[]` list
      */
     getElements(): Promise<WebdriverIO.ElementArray>
+
+    /**
+     * Returns an async iterator of key/value pairs for every index in the array.
+     */
+    entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>
 }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
