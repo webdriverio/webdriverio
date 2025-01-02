@@ -676,59 +676,89 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
 
-            launcher['_process'] = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
-            vi.mocked(treeKill).mockImplementationOnce((pid, signal, cb) => {
-                if (cb) { cb() }
+            vi.mocked(treeKill).mockClear()
+            const mockProcess = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
+            launcher['_process'] = mockProcess
+            vi.mocked(treeKill).mockImplementation((pid, signal, cb) => {
+                expect(pid).toBe(1234)
+                expect(signal).toBe('SIGTERM')
+                if (cb) { cb() } return undefined
             })
             await launcher.onComplete()
+            expect(treeKill).toHaveBeenCalledTimes(1)
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
+            expect(log.info).toHaveBeenCalledWith('Process and its children successfully terminated')
         })
 
         test('should try SIGKILL if SIGTERM fails', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
-            launcher['_process'] = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
-            // Make SIGTERM fail
+            const mockProcess = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
+            launcher['_process'] = mockProcess
             vi.mocked(treeKill)
                 .mockImplementationOnce((pid, signal, cb) => {
                     if (cb) { cb(new Error('SIGTERM failed')) }
+                    return undefined
                 })
-                // But make SIGKILL succeed
                 .mockImplementationOnce((pid, signal, cb) => {
                     if (cb) { cb() }
+                    return undefined
                 })
             await launcher.onComplete()
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGKILL', expect.any(Function))
+            expect(log.warn).toHaveBeenCalledWith('SIGTERM failed, attempting SIGKILL:', expect.any(Error))
+            expect(log.info).toHaveBeenCalledWith('Process and its children successfully terminated')
         })
 
         test('should try direct process kill if both SIGTERM and SIGKILL fail', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
-
             const mockProcess = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
             launcher['_process'] = mockProcess
-
-            // Make both SIGTERM and SIGKILL fail
             vi.mocked(treeKill)
                 .mockImplementationOnce((pid, signal, cb) => {
                     if (cb) { cb(new Error('SIGTERM failed')) }
+                    return undefined
                 })
                 .mockImplementationOnce((pid, signal, cb) => {
                     if (cb) { cb(new Error('SIGKILL failed')) }
+                    return undefined
                 })
-
             await launcher.onComplete()
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGTERM', expect.any(Function))
             expect(treeKill).toHaveBeenCalledWith(1234, 'SIGKILL', expect.any(Function))
+            expect(log.error).toHaveBeenCalledWith('Failed to kill Appium process tree:', expect.any(Error))
             expect(mockProcess.kill).toHaveBeenCalledWith('SIGKILL')
+            expect(log.info).toHaveBeenCalledWith('Killed main process directly')
         })
 
-        test('should not call process.kill when process is undefined', async () => {
+        test('should handle direct kill failure', async () => {
+            const launcher = new AppiumLauncher({}, [], {} as any)
+            await launcher.onPrepare()
+            const mockProcess = new MockProcess2(1234) as unknown as ChildProcessByStdio<null, Readable, Readable>
+            vi.spyOn(mockProcess, 'kill').mockImplementation(() => {
+                throw new Error('Kill failed')
+            })
+            launcher['_process'] = mockProcess
+            vi.mocked(treeKill)
+                .mockImplementationOnce((pid, signal, cb) => {
+                    if (cb) { cb(new Error('SIGTERM failed')) }
+                    return undefined
+                })
+                .mockImplementationOnce((pid, signal, cb) => {
+                    if (cb) { cb(new Error('SIGKILL failed')) }
+                    return undefined
+                })
+            await launcher.onComplete()
+            expect(log.error).toHaveBeenCalledWith('Failed to kill process directly:', expect.any(Error))
+        })
+
+        test('should do nothing when process is undefined', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             expect(launcher['_process']).toBe(undefined)
             await launcher.onComplete()
-            expect(launcher['_process']).toBe(undefined)
+            expect(launcher['_isShuttingDown']).toBe(true)
         })
     })
 

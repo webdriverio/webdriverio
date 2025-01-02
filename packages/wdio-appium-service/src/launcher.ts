@@ -5,6 +5,7 @@ import url from 'node:url'
 import path from 'node:path'
 import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
+import { promisify } from 'node:util'
 
 import logger from '@wdio/logger'
 import getPort from 'get-port'
@@ -14,8 +15,9 @@ import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
 import { isAppiumCapability } from '@wdio/utils'
 
-import { getFilePath, formatCliArgs, promisifiedTreeKill } from './utils.js'
+import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
+import treeKill from 'tree-kill'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_APPIUM_PORT = 4723
@@ -181,6 +183,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         log.warn(data.toString())
     }
 
+    private promisifiedTreeKill = promisify<number, string>(treeKill)
     async onComplete() {
         this._isShuttingDown = true
 
@@ -191,11 +194,11 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             log.info('Killing entire Appium tree')
             try {
                 // First attempt with SIGTERM
-                await promisifiedTreeKill(this._process.pid, 'SIGTERM')
+                await this.promisifiedTreeKill(this._process.pid, 'SIGTERM')
                     .catch(async (err) => {
                         log.warn('SIGTERM failed, attempting SIGKILL:', err)
                         // If SIGTERM fails, try SIGKILL
-                        await promisifiedTreeKill(this._process!.pid!, 'SIGKILL')
+                        await this.promisifiedTreeKill(this._process!.pid!, 'SIGKILL')
                     })
                 log.info('Process and its children successfully terminated')
             } catch (err) {
