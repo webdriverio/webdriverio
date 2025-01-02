@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import { ELEMENT_KEY } from 'webdriver'
 
 import { getBrowserObject } from '@wdio/utils'
-import type { CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
+import type { ChainablePromiseElement, CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
 import { MobileScrollDirection } from '../../types.js'
 
 const log = logger('webdriverio')
@@ -145,8 +145,8 @@ type MobileScrollUntilVisibleOptions = {
     browser: WebdriverIO.Browser;
     element: WebdriverIO.Element;
     maxScrolls: number;
-    direction: MobileScrollDirection;
-    scrollableElement?: WebdriverIO.Element | null;
+    direction: `${MobileScrollDirection}`;
+    scrollableElement?: WebdriverIO.Element | ChainablePromiseElement | null;
     duration?: number;
     percent?: number;
 };

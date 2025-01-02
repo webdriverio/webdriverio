@@ -348,7 +348,6 @@ describe('generic error test', () => {
         })
         const elem = await browser.$('#foo')
 
-        // @ts-expect-error invalid param
         await expect(elem.tap({ x: 50, y: 100, direction: 'down' })).rejects.toThrowErrorMatchingSnapshot()
     })
 

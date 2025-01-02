@@ -537,11 +537,11 @@ export type XY = {
 }
 
 export type SwipeOptions = {
-    direction?: MobileScrollDirection;
+    direction?: `${MobileScrollDirection}`;
     duration?: number;
     from?: XY;
     percent?: number;
-    scrollableElement?: WebdriverIO.Element ;
+    scrollableElement?: WebdriverIO.Element | ChainablePromiseElement ;
     to?: XY;
 }
 
