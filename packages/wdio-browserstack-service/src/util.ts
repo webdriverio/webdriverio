@@ -1484,7 +1484,7 @@ type PollingResult = {
     message?: string; // Optional message for timeout cases
   };
 
-function pollApi(
+export function pollApi(
     url: string,
     params: Record<string, any>,
     headers: Record<string, string>,
