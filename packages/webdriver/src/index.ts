@@ -129,7 +129,11 @@ export default class WebDriver {
         if (isBidi(options.capabilities || {})) {
             const webSocketUrl = options.capabilities?.webSocketUrl as unknown as string
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string, options.strictSSL))
+            Object.assign(bidiPrototype, initiateBidi(
+                webSocketUrl as string,
+                options.strictSSL,
+                options.headers
+            ))
         }
 
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
