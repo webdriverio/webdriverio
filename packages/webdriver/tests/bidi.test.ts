@@ -1,14 +1,27 @@
 import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
+import { WebSocket as ws } from 'ws'
 
 import '../src/node.js'
 import { BidiCore } from '../src/bidi/core.js'
 
 vi.mock('ws')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('ws', () => {
+    const WS = vi.fn().mockImplementation((url: string) => ({
+        wsUrl: url,
+        on: vi.fn(),
+        send: vi.fn()
+    }))
+    return {
+        __esModule: true,
+        default: WS,
+        WebSocket: WS
+    }
+})
 
 describe('BidiCore', () => {
-    it('iniates with a WebSocket', () => {
+    it('initiates with a WebSocket', () => {
         const handler = new BidiCore('ws://foo/bar')
         // @ts-expect-error "wsUrl" is a mock property
         expect(handler.socket.wsUrl).toBe('ws://foo/bar')
@@ -79,9 +92,17 @@ describe('BidiCore', () => {
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:70:'))
+            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:83:'))
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
+        })
+
+        it('should pass custom headers to Bidi Core', async () => {
+            const handler = new BidiCore('ws://foo/bar', { headers: { 'cf-access-token': 'MY_TOKEN', 'X-Custom': 'xyz' } })
+            expect(vi.mocked(ws)).toHaveBeenCalledWith(
+                'ws://foo/bar',
+                expect.objectContaining({ headers: { 'cf-access-token': 'MY_TOKEN', 'X-Custom': 'xyz' } })
+            )
         })
 
         afterAll(() => {
