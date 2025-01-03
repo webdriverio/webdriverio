@@ -186,11 +186,18 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     private promisifiedTreeKill = promisify<number, string>(treeKill)
     async onComplete() {
         this._isShuttingDown = true
-
+        /**
+         * Kill appium and all process' spawned from it
+         */
         if (this._process && this._process.pid) {
+            /**
+             * remove stdio event listener
+             */
             this._process.stdout.off('data', this.#logStdout)
             this._process.stderr.off('data', this.#logStderr)
-
+            /**
+             * Ensure all child processes are also killed
+            */
             log.info('Killing entire Appium tree')
             try {
                 // First attempt with SIGTERM
