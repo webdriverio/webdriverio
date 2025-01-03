@@ -45,7 +45,7 @@ export async function switchWindow (
         throw new Error('Unsupported parameter for switchWindow, required is "string" or a RegExp')
     }
 
-    const currentWindow = await this.getWindowHandle()
+    const currentWindow = await this.getWindowHandle().catch(() => null)
 
     // is the matcher a window handle, and are we in the right window already?
     if (typeof matcher === 'string' && currentWindow === matcher) {
@@ -67,6 +67,13 @@ export async function switchWindow (
             return target.includes(matcher)
         }
         return !!target.match(matcher)
+    }
+
+    // In WebDriver Classic, after closing a window, we need to switch to a valid window first
+    if (!this.isBidi && (!currentWindow || !tabs.includes(currentWindow))) {
+        // Switch to the first available window before proceeding
+        await this.switchToWindow(tabs[0])
+        contextManager.setCurrentContext(tabs[0])
     }
 
     for (const tab of tabs) {
@@ -100,6 +107,8 @@ export async function switchWindow (
         }
     }
 
-    await this.switchToWindow(currentWindow)
+    if (currentWindow) {
+        await this.switchToWindow(currentWindow)
+    }
     throw new Error(`No window found with title, url, name or window handle matching "${matcher}"`)
 }
