@@ -23,6 +23,27 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.5.1 (2025-01-03)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14023](https://github.com/webdriverio/webdriverio/pull/14023) fix: direction and scrollableElement error ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-appium-service`
+  * [#13913](https://github.com/webdriverio/webdriverio/pull/13913) chore(appium-service): filter out `Debugger attached` as errorMessage ([@Delta456](https://github.com/Delta456))
+
+#### :nail_care: Polish
+* `wdio-appium-service`
+  * [#14022](https://github.com/webdriverio/webdriverio/pull/14022) fix: Close appium server onComplete completly ([@saikrishna321](https://github.com/saikrishna321))
+* `webdriver`
+  * [#14020](https://github.com/webdriverio/webdriverio/pull/14020) fix(webdriver): allow BiDiCore to send declared headers ([@navin772](https://github.com/navin772))
+
+#### Committers: 4
+- Navin Chandra ([@navin772](https://github.com/navin772))
+- Sai Krishna ([@saikrishna321](https://github.com/saikrishna321))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.5.0 (2024-12-30)
 
 #### :rocket: New Feature
