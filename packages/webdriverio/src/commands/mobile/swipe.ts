@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import type { SwipeOptions, XY } from '../../types.js'
+import type { ChainablePromiseElement, SwipeOptions, XY } from '../../types.js'
 import { MobileScrollDirection } from '../../types.js'
 
 const log = logger('webdriverio')
@@ -106,9 +106,9 @@ async function calculateFromTo({
     scrollableElement
 }: {
     browser: WebdriverIO.Browser,
-    direction: MobileScrollDirection,
+    direction: `${MobileScrollDirection}`,
     percentage?: number,
-    scrollableElement: WebdriverIO.Element
+    scrollableElement: WebdriverIO.Element | ChainablePromiseElement
     }): Promise<{ from: XY, to: XY }> {
     // 1. Determine the percentage of the scrollable container to be scrolled
     // The swipe percentage is the percentage of the scrollable container that should be scrolled
@@ -136,7 +136,7 @@ async function calculateFromTo({
     //    - bottom
     //    - left
     //    of the element. These positions will contain the x and y coordinates on where to put the finger
-    const { x, y, width, height } = await browser.getElementRect(scrollableElement?.elementId)
+    const { x, y, width, height } = await browser.getElementRect(await scrollableElement?.elementId)
     // It's always advisable to swipe from the center of the element.
     const scrollRectangles = {
         top: { x: Math.round(x + width / 2), y: Math.round(y + height - height * swipePercentage) },
