@@ -181,4 +181,27 @@ describe('App Automate Accessibility Handler', () => {
             expect(logErrorMock.mock.calls[0][0]).toContain('Accessibility results could not be processed')
         })
     })
+
+    describe('performA11yScan for App Automate', () => {
+        const performA11yScanSpy = vi.spyOn(utils, 'performA11yScan')
+        const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession')
+        const isAppAccessibilityAutomationSessionSpy = vi.spyOn(utils, 'isAppAccessibilityAutomationSession')
+
+        beforeEach(() => {
+            performA11yScanSpy.mockClear()
+            isBrowserstackSessionSpy.mockReturnValue(true)
+            isAppAccessibilityAutomationSessionSpy.mockReturnValue(true)
+            browser.execute = vi.fn().mockResolvedValue({ results: 'scan complete' })
+        })
+
+        it('should handle scan results correctly', async () => {
+            const mockResults = { results: 'scan complete' }
+            browser.execute = vi.fn().mockResolvedValue(mockResults)
+
+            await accessibilityHandler.before('app123')
+            const results = await (browser as any).performScan()
+
+            expect(results).toEqual(mockResults)
+        })
+    })
 })
