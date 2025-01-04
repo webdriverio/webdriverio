@@ -99,15 +99,16 @@ class _AccessibilityHandler {
         this._sessionId = sessionId
         this._accessibility = isTrue(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
 
-        if (isBrowserstackSession(this._browser) && isAccessibilityAutomationSession(this._accessibility) && !this.isAppAutomate) {
-            const deviceName = this._getCapabilityValue(this._caps, 'deviceName', 'device')
-            const chromeOptions = this._getCapabilityValue(this._caps, 'goog:chromeOptions', '')
-
-            this._accessibility = validateCapsWithA11y(deviceName, this._platformA11yMeta, chromeOptions)
-        }
-
-        if (isBrowserstackSession(this._browser) && isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
-            this._accessibility = validateCapsWithAppA11y(this._platformA11yMeta)
+        if (isBrowserstackSession(this._browser)) {
+            if(isAccessibilityAutomationSession(this._accessibility) && !this.isAppAutomate) {
+                const deviceName = this._getCapabilityValue(this._caps, 'deviceName', 'device')
+                const chromeOptions = this._getCapabilityValue(this._caps, 'goog:chromeOptions', '')
+    
+                this._accessibility = validateCapsWithA11y(deviceName, this._platformA11yMeta, chromeOptions)
+            }
+            if(isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
+                this._accessibility = validateCapsWithAppA11y(this._platformA11yMeta)
+            }
         }
 
         (this._browser as WebdriverIO.Browser).getAccessibilityResultsSummary = async () => {
