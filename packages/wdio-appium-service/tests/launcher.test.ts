@@ -42,8 +42,9 @@ vi.mock('child_process', () => ({
     spawn: vi.fn(),
     exec: vi.fn()
 }))
-vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue(
-    url.pathToFileURL(path.resolve(process.cwd(), '/', 'foo', 'bar', 'appium')))
+vi.mock('import-meta-resolve', () => ({
+    resolve: vi.fn().mockResolvedValue(
+        url.pathToFileURL(path.resolve(process.cwd(), '/', 'foo', 'bar', 'appium')))
 }))
 
 vi.mock('get-port', () => ({
@@ -161,7 +162,7 @@ describe('Appium launcher', () => {
         test('mac: should set correct config properties', async () => {
             const options = {
                 logPath: './',
-                command:'path/to/my_custom_appium',
+                command: 'path/to/my_custom_appium',
                 args: { address: 'bar', defaultCapabilities: { 'foo': 'bar' } },
             }
             const capabilities = [{ port: 1234, 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
@@ -195,7 +196,7 @@ describe('Appium launcher', () => {
             vi.mocked(os.platform).mockReturnValueOnce('win32')
             const options = {
                 logPath: './',
-                command:'path/to/my_custom_appium',
+                command: 'path/to/my_custom_appium',
                 args: { address: 'bar', defaultCapabilities: { 'foo': 'bar' } },
             }
             const capabilities = [{ port: 1234, 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
@@ -306,9 +307,9 @@ describe('Appium launcher', () => {
 
         test('should not override cloud config using multiremote', async () => {
             const options = {
-                logPath : './',
-                args : { address: 'foo' },
-                installArgs : { bar : 'bar' },
+                logPath: './',
+                args: { address: 'foo' },
+                installArgs: { bar: 'bar' },
             }
             const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
                 browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
@@ -331,7 +332,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { address:'bar', port: 1234 }
+                args: { address: 'bar', port: 1234 }
             }
             const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -363,7 +364,7 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { address:'bar', port: 1234 }
+                args: { address: 'bar', port: 1234 }
             }
             const capabilities = [{ 'appium:deviceName': 'baz' }] as WebdriverIO.Capabilities[]
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
@@ -669,6 +670,43 @@ describe('Appium launcher', () => {
             expect(capabilities[1].browserD.port).toBe(4723)
             expect(capabilities[1].browserD.path).toBe('/')
         })
+
+        test('should set host and port capabilities for normal multiremote capabilities', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { address: 'bar' }
+            }
+            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+                chromiumDriver: {
+                    capabilities: {
+                        browserName: 'chrome',
+                        browserVersion: '133.0.6929.0',  // Have to specify version, otherwise its failing with 404 chrome version not found.
+                        'goog:chromeOptions': {
+                            args: ['--headless'],
+                        },
+                    },
+                },
+                mobileDriver: {
+                    capabilities: {
+                        platformName: 'iOS',
+                        'appium:deviceName': 'iPhone 15',
+                        'appium:platformVersion': '17.5',
+                        'appium:orientation': 'PORTRAIT',
+                        'appium:automationName': 'XCUITest',
+                        'appium:app': 'APP_FILE_PATH',
+                        'appium:newCommandTimeout': 240,
+                        'appium:webviewConnectTimeout': 5000,
+                        'appium:autoLaunch': true,
+                        'appium:autoAcceptAlerts': false,
+                    },
+                }
+            }
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            launcher['_startAppium'] = vi.fn().mockResolvedValue(new MockProcess())
+            await launcher.onPrepare()
+            expect(launcher['_startAppium']).toHaveBeenCalledTimes(1)
+        })
     })
 
     describe('onComplete', () => {
@@ -858,11 +896,10 @@ describe('Appium launcher', () => {
             const mockLogError = vi.spyOn(log, 'error')
             const launcher = new AppiumLauncher({}, [], {} as any)
 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const processPromise = launcher['_startAppium']('node', [], 2000)
 
             const errorHandler = vi.mocked(spawn).mock.results[0].value.stderr.on.mock.calls
-                .find(call => call[0] === 'data')?.[1]
+                .find((call: string[]) => call[0] === 'data')?.[1]
 
             errorHandler(Buffer.from('Debugger attached'))
             expect(mockLogError).not.toHaveBeenCalled()

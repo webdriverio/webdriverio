@@ -93,7 +93,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
                     )
                 }
             }
-            return
+            return capabilityWasUpdated
         }
 
         this._capabilities.forEach((cap) => {
