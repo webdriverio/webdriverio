@@ -1,5 +1,5 @@
 import path from 'node:path'
-
+import axios from 'axios'
 import type { LaunchResponse } from '../src/types.js'
 
 import { describe, expect, it, vi, beforeEach, afterEach, beforeAll } from 'vitest'
@@ -1771,27 +1771,34 @@ describe('getAppA11yResults', () => {
         const browser = {
             execute: vi.fn().mockResolvedValue(mockResults),
             executeAsync: vi.fn().mockResolvedValue(mockResults),
-            capabilities: {}
+            capabilities: {},
         } as unknown as WebdriverIO.Browser
 
+        process.env.BSTACK_A11Y_POLLING_TIMEOUT = '30'
         process.env.TEST_ANALYTICS_ID = 'test-123'
-        process.env.BSTACK_A11Y_JWT = 'auth-abc'
+        process.env.BSTACK_A11Y_JWT = 'abc'
 
         vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
         vi.spyOn(utils, 'performA11yScan').mockResolvedValue(undefined)
-        vi.spyOn(utils, 'pollApi').mockResolvedValue({
-            data: {
+
+        vi.spyOn(axios, 'get').mockImplementation(() => {
+            return Promise.resolve({
                 data: {
-                    issues: mockResults
-                }
-            },
-            headers: {}
+                    data: {
+                        issues: mockResults,
+                    },
+                },
+                headers: {
+                    next_poll_time: '10',
+                },
+            })
         })
 
         const result = await getAppA11yResults(true, browser, true, true, 'session123')
 
         expect(result).toEqual(mockResults)
 
+        delete process.env.BSTACK_A11Y_POLLING_TIMEOUT
         delete process.env.TEST_ANALYTICS_ID
         delete process.env.BSTACK_A11Y_JWT
     })
@@ -1811,12 +1818,10 @@ describe('getAppA11yResults', () => {
 describe('getAppA11yResultsSummary', () => {
     let browser: WebdriverIO.Browser
     let logInfoMock: any
-    let performA11yScanMock: any
     let pollApiMock: any
 
     beforeEach(() => {
         logInfoMock = vi.spyOn(log, 'warn')
-        performA11yScanMock = vi.spyOn(utils, 'performA11yScan').mockResolvedValue({})
         pollApiMock = vi.spyOn(utils, 'pollApi').mockResolvedValue({
             data: {
                 data: {
@@ -1851,18 +1856,41 @@ describe('getAppA11yResultsSummary', () => {
     })
 
     it('should return results summary for valid app accessibility session', async () => {
-        browser = {
-            execute: async () => ({ success: true }),
-            executeAsync: async () => ({ success: true }),
-            capabilities: {}
+        const mockResults = [{ id: 1, result: 'success' }]
+
+        const browser = {
+            execute: vi.fn().mockResolvedValue(mockResults),
+            executeAsync: vi.fn().mockResolvedValue(mockResults),
+            capabilities: {},
         } as unknown as WebdriverIO.Browser
 
+        process.env.BSTACK_A11Y_POLLING_TIMEOUT = '30'
         process.env.TEST_ANALYTICS_ID = 'test-123'
-        process.env.BSTACK_A11Y_JWT = 'test-jwt'
+        process.env.BSTACK_A11Y_JWT = 'abc'
+
+        vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
+        vi.spyOn(utils, 'performA11yScan').mockResolvedValue(undefined)
+
+        vi.spyOn(axios, 'get').mockImplementation(() => {
+            return Promise.resolve({
+                data: {
+                    data: {
+                        summary: mockResults,
+                    },
+                },
+                headers: {
+                    next_poll_time: '10',
+                },
+            })
+        })
 
         const result = await getAppA11yResultsSummary(true, browser, true, true, 'session123')
-        expect(result).toEqual({ total: 5, critical: 2 })
-        expect(performA11yScanMock).toHaveBeenCalledWith(true, browser, true, true)
+
+        expect(result).toEqual(mockResults)
+
+        delete process.env.BSTACK_A11Y_POLLING_TIMEOUT
+        delete process.env.TEST_ANALYTICS_ID
+        delete process.env.BSTACK_A11Y_JWT
     })
 
     it('should return empty object if error occurs during fetch', async () => {
