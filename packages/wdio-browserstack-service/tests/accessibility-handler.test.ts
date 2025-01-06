@@ -251,17 +251,17 @@ describe('beforeScenario', () => {
 
     it('should throw error in before scenario if exception occurs', async () => {
         const logErrorMock = vi.spyOn(bstackLogger.BStackLogger, 'error')
-        
+
         vi.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test-id')
         vi.spyOn(utils, 'shouldScanTestForAccessibility').mockImplementation(() => {
             throw new Error('Test Error')
         })
-    
+
         accessibilityHandler['_accessibility'] = true
         accessibilityHandler['_sessionId'] = 'session123'
-    
+
         await accessibilityHandler.beforeScenario({
             pickle: {
                 name: 'pickle-name',
@@ -275,7 +275,7 @@ describe('beforeScenario', () => {
                 }
             }
         } as any)
-    
+
         expect(logErrorMock).toHaveBeenCalled()
         expect(logErrorMock.mock.calls[0][0])
             .toContain('Exception in starting accessibility automation scan for this test case')

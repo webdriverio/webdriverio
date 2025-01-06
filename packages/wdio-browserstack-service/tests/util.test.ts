@@ -56,7 +56,7 @@ import {
     getAppA11yResultsSummary,
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY, APP_ALLY_ENDPOINT, APP_ALLY_ISSUES_ENDPOINT } from '../src/constants.js'
+import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
 import * as testHubUtils from '../src/testHub/utils.js'
 
 const log = logger('test')
@@ -956,13 +956,13 @@ describe('validateCapsWithAppA11y', () => {
     beforeEach(() => {
         logInfoMock = vi.spyOn(log, 'warn')
     })
-    
+
     it('returns false if platform version is lesser than 11', async () => {
         const platformMeta = {
             platform_name: 'android',
             platform_version: '10.0'
         }
-        
+
         expect(validateCapsWithAppA11y(platformMeta)).toEqual(false)
         expect(logInfoMock.mock.calls[0][0])
             .toContain('App Accessibility Automation tests are supported on OS version 11 and above for Android devices.')
@@ -1128,7 +1128,7 @@ describe('getA11yResults', () => {
 
     it('return results object if bstack as well as accessibility session', async () => {
         process.env.BSTACK_A11Y_JWT = 'abc'
-        
+
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResults(false, browser as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
@@ -1177,12 +1177,12 @@ describe('getA11yResultsSummary', () => {
 
     it('return results object if bstack as well as accessibility session', async () => {
         process.env.BSTACK_A11Y_JWT = 'abc'
-        
+
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         browser.executeAsync = vi.fn()
             .mockResolvedValueOnce({ total: 5, critical: 2 })  // First call result
             .mockResolvedValueOnce({ summary: { total: 5, critical: 2 } })  // Second call result
-        
+
         await utils.getA11yResultsSummary(false, browser as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
         expect(browser.executeAsync).toBeCalledTimes(2)
@@ -1516,42 +1516,42 @@ describe('formatString', () => {
     it('should replace %s placeholders with provided values in order', () => {
         const template = 'Hello %s, your score is %s'
         const values = ['John', '100']
-        
+
         expect(formatString(template, ...values)).toBe('Hello John, your score is 100')
     })
 
     it('should handle null values in array', () => {
         const template = 'Name: %s, Score: %s'
         const values = ['John', null]
-        
+
         expect(formatString(template, ...values)).toBe('Name: John, Score: ')
     })
 
     it('should handle null template', () => {
         const template = null
         const values = ['John', '100']
-        
+
         expect(formatString(template, ...values)).toBe('')
     })
 
     it('should handle undefined values', () => {
         const template = 'Value: %s'
         const values = [undefined]
-        
+
         expect(formatString(template, ...values)).toBe('Value: ')
     })
 
     it('should handle template without placeholders', () => {
         const template = 'Hello World'
         const values = ['John', null]
-        
+
         expect(formatString(template, ...values)).toBe('Hello World')
     })
 
     it('should handle empty template string', () => {
         const template = ''
         const values = ['John', null]
-        
+
         expect(formatString(template, ...values)).toBe('')
     })
 })
@@ -1574,7 +1574,7 @@ describe('_getParamsForAppAccessibility', () => {
 
     it('should return params object with command name when provided', () => {
         const result = _getParamsForAppAccessibility('clickElement')
-        
+
         expect(result).toEqual({
             thTestRunUuid: 'test-123',
             thBuildUuid: 'build-456',
@@ -1587,7 +1587,7 @@ describe('_getParamsForAppAccessibility', () => {
 
     it('should return params object with undefined method when no command name provided', () => {
         const result = _getParamsForAppAccessibility()
-        
+
         expect(result).toEqual({
             thTestRunUuid: 'test-123',
             thBuildUuid: 'build-456',
@@ -1600,9 +1600,9 @@ describe('_getParamsForAppAccessibility', () => {
 
     it('should handle missing environment variables', () => {
         process.env = {}
-        
+
         const result = _getParamsForAppAccessibility('test')
-        
+
         expect(result).toEqual({
             thTestRunUuid: undefined,
             thBuildUuid: undefined,
@@ -1618,9 +1618,9 @@ describe('_getParamsForAppAccessibility', () => {
             TEST_ANALYTICS_ID: 'test-123',
             BROWSERSTACK_TESTHUB_UUID: 'build-456'
         }
-        
+
         const result = _getParamsForAppAccessibility('test')
-        
+
         expect(result).toEqual({
             thTestRunUuid: 'test-123',
             thBuildUuid: 'build-456',
@@ -1666,32 +1666,32 @@ describe('performA11yScan', () => {
 
     it('should perform app accessibility scan when isAppAutomate is true', async () => {
         const mockResults = { success: true }
-        
+
         const mockScanScript = 'scan script with param: %s'
         vi.spyOn(AccessibilityScripts, 'performScan', 'get').mockReturnValue(mockScanScript)
-        
+
         const browser = {
             execute: vi.fn().mockResolvedValue(mockResults),
             executeAsync: vi.fn().mockResolvedValue(mockResults),
             capabilities: {}
         } as unknown as WebdriverIO.Browser
-    
+
         process.env.TEST_ANALYTICS_ID = 'test-123'
         process.env.BROWSERSTACK_TESTHUB_UUID = 'build-456'
         process.env.BROWSERSTACK_TESTHUB_JWT = 'jwt-789'
         process.env.BSTACK_A11Y_JWT = 'auth-abc'
-    
+
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
-    
+
         const result = await performA11yScan(true, browser, true, true, 'clickElement')
-        
+
         expect(result).toEqual(mockResults)
         expect(browser.execute).toHaveBeenCalledWith(
             expect.stringContaining('scan script with param:'),
             {}
         )
-    
+
         delete process.env.TEST_ANALYTICS_ID
         delete process.env.BROWSERSTACK_TESTHUB_UUID
         delete process.env.BROWSERSTACK_TESTHUB_JWT
@@ -1700,32 +1700,32 @@ describe('performA11yScan', () => {
 
     it('should perform web accessibility scan when isAppAutomate is false', async () => {
         const mockResults = { success: true }
-        
+
         const mockScanScript = 'scan script for web: %s'
         vi.spyOn(AccessibilityScripts, 'performScan', 'get').mockReturnValue(mockScanScript)
-        
+
         const browser = {
             execute: vi.fn().mockResolvedValue(mockResults),
             executeAsync: vi.fn().mockResolvedValue(mockResults),
             capabilities: {}
         } as unknown as WebdriverIO.Browser
-    
+
         process.env.TEST_ANALYTICS_ID = 'test-123'
         process.env.BROWSERSTACK_TESTHUB_UUID = 'build-456'
         process.env.BROWSERSTACK_TESTHUB_JWT = 'jwt-789'
         process.env.BSTACK_A11Y_JWT = 'auth-abc'
-    
+
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(false) // Set to false for this test
-    
+
         const result = await performA11yScan(false, browser, true, true, 'clickElement')
-        
+
         expect(result).toEqual(mockResults)
         expect(browser.executeAsync).toHaveBeenCalledWith(
             expect.stringContaining('scan script for web:'),
             { method: 'clickElement' }
         )
-    
+
         delete process.env.TEST_ANALYTICS_ID
         delete process.env.BROWSERSTACK_TESTHUB_UUID
         delete process.env.BROWSERSTACK_TESTHUB_JWT
@@ -1766,19 +1766,19 @@ describe('getAppA11yResults', () => {
     })
 
     it('should return results for valid app accessibility session', async () => {
-        const mockResults = [{ id: 1, result: 'success' }];
-        
+        const mockResults = [{ id: 1, result: 'success' }]
+
         const browser = {
             execute: vi.fn().mockResolvedValue(mockResults),
             executeAsync: vi.fn().mockResolvedValue(mockResults),
             capabilities: {}
-        } as unknown as WebdriverIO.Browser;
-    
-        process.env.TEST_ANALYTICS_ID = 'test-123';
-        process.env.BSTACK_A11Y_JWT = 'auth-abc';
-    
-        vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true);
-        vi.spyOn(utils, 'performA11yScan').mockResolvedValue(undefined);
+        } as unknown as WebdriverIO.Browser
+
+        process.env.TEST_ANALYTICS_ID = 'test-123'
+        process.env.BSTACK_A11Y_JWT = 'auth-abc'
+
+        vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
+        vi.spyOn(utils, 'performA11yScan').mockResolvedValue(undefined)
         vi.spyOn(utils, 'pollApi').mockResolvedValue({
             data: {
                 data: {
@@ -1786,15 +1786,15 @@ describe('getAppA11yResults', () => {
                 }
             },
             headers: {}
-        });
-    
-        const result = await getAppA11yResults(true, browser, true, true, 'session123');
-        
-        expect(result).toEqual(mockResults);
-    
-        delete process.env.TEST_ANALYTICS_ID;
-        delete process.env.BSTACK_A11Y_JWT;
-    });
+        })
+
+        const result = await getAppA11yResults(true, browser, true, true, 'session123')
+
+        expect(result).toEqual(mockResults)
+
+        delete process.env.TEST_ANALYTICS_ID
+        delete process.env.BSTACK_A11Y_JWT
+    })
 
     it('should return empty array if error occurs during fetch', async () => {
         browser = {
@@ -1859,7 +1859,7 @@ describe('getAppA11yResultsSummary', () => {
 
         process.env.TEST_ANALYTICS_ID = 'test-123'
         process.env.BSTACK_A11Y_JWT = 'test-jwt'
-        
+
         const result = await getAppA11yResultsSummary(true, browser, true, true, 'session123')
         expect(result).toEqual({ total: 5, critical: 2 })
         expect(performA11yScanMock).toHaveBeenCalledWith(true, browser, true, true)

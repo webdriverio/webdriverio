@@ -101,7 +101,7 @@ describe('App Automate Accessibility Handler', () => {
         it('should set up accessibility methods', async () => {
             isBrowserstackSessionSpy.mockReturnValue(true)
             isAppAccessibilityAutomationSessionSpy.mockReturnValue(true)
-            
+
             await accessibilityHandler.before('app123')
 
             expect(typeof (browser as any).getAccessibilityResultsSummary).toBe('function')
@@ -113,18 +113,18 @@ describe('App Automate Accessibility Handler', () => {
     describe('beforeTest hook', () => {
         it('should handle app specific test metadata', async () => {
             vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
-            
+
             accessibilityHandler['getIdentifier'] = vi.fn().mockReturnValue('parent test app accessibility')
-            
+
             accessibilityHandler['_framework'] = 'mocha'
             accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockReturnValue(true)
             accessibilityHandler['_sessionId'] = 'session123'
-            
+
             await accessibilityHandler.beforeTest('App Test Suite', {
                 title: 'test app accessibility',
                 parent: 'parent'
             } as any)
-    
+
             const testId = 'parent test app accessibility'
             expect(accessibilityHandler['_testMetadata'][testId]).toBeDefined()
             expect(accessibilityHandler['_testMetadata'][testId].scanTestForAccessibility).toBe(true)
@@ -133,19 +133,19 @@ describe('App Automate Accessibility Handler', () => {
 
         it('should handle errors in beforeTest', async () => {
             const logErrorMock = vi.spyOn(bstackLogger.BStackLogger, 'error')
-            
+
             accessibilityHandler['_framework'] = 'mocha'
             accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockReturnValue(true)
-            
+
             vi.spyOn(utils, 'shouldScanTestForAccessibility').mockImplementation(() => {
                 throw new Error('Test Error')
             })
-        
+
             await accessibilityHandler.beforeTest('App Test Suite', {
                 title: 'test app accessibility',
                 parent: 'parent'
             } as any)
-        
+
             expect(logErrorMock).toHaveBeenCalled()
             expect(logErrorMock.mock.calls[0][0]).toContain('Exception in starting accessibility automation scan')
         })
@@ -162,48 +162,48 @@ describe('App Automate Accessibility Handler', () => {
 
         it('should handle app specific test completion', async () => {
             const logInfoMock = vi.spyOn(bstackLogger.BStackLogger, 'info')
-            
+
             accessibilityHandler['_framework'] = 'mocha'
             accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockReturnValue(true)
             accessibilityHandler['getIdentifier'] = vi.fn().mockReturnValue('test-id')
             accessibilityHandler['sendTestStopEvent'] = vi.fn().mockResolvedValue(undefined)
-        
+
             accessibilityHandler['_testMetadata']['test-id'] = {
                 accessibilityScanStarted: true,
                 scanTestForAccessibility: true
             }
-        
+
             await accessibilityHandler.afterTest('App Test Suite', {
                 title: 'test app accessibility',
                 parent: 'parent'
             } as any)
-        
+
             expect(logInfoMock).toHaveBeenCalledWith('Accessibility testing for this test case has ended.')
         })
 
         it('should handle errors in afterTest', async () => {
             const logErrorMock = vi.spyOn(bstackLogger.BStackLogger, 'error')
-            
+
             accessibilityHandler['_framework'] = 'mocha'
             accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockReturnValue(true)
             accessibilityHandler['getIdentifier'] = vi.fn().mockReturnValue('test-id')
-            
+
             accessibilityHandler['_testMetadata']['test-id'] = {
                 accessibilityScanStarted: true,
                 scanTestForAccessibility: true
             }
-        
+
             accessibilityHandler['sendTestStopEvent'] = vi.fn().mockImplementation(() => {
                 throw new Error('Test Error')
             })
-        
+
             const testData = {
                 title: 'test app accessibility',
                 parent: 'parent'
             } as any
-        
+
             await accessibilityHandler.afterTest('App Test Suite', testData)
-        
+
             expect(logErrorMock).toHaveBeenCalled()
             expect(logErrorMock.mock.calls[0][0]).toContain('Accessibility results could not be processed')
         })
