@@ -11,12 +11,12 @@
  * </example>
  *
  * @alias element.getProperty
- * @param {string} property  name of the element property
- * @return {Object|String|Boolean|Number|null} the value of the property of the selected element
+ * @param property  name of the element property
+ * @return the value of the property of the selected element
  */
 export function getProperty (
     this: WebdriverIO.Element,
     property: string
-) {
+): object | string | boolean | number | null {
     return this.getElementProperty(this.elementId, property)
 }
