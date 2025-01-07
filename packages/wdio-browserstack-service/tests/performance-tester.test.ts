@@ -10,7 +10,6 @@ vi.mock('csv-writer', () => ({
     })),
 }))
 
-
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
 
@@ -20,8 +19,6 @@ class TestClass {
         return 'method result' // A simple method to test
     }
 }
-
-
 
 describe('PerformanceTester', function () {
     afterEach(() => {
@@ -88,64 +85,63 @@ describe('PerformanceTester', function () {
 
     describe('Measure Decorator', () => {
         beforeEach(() => {
-            vi.spyOn(PerformanceTester, 'measure');
-        });
-    
+            vi.spyOn(PerformanceTester, 'measure')
+        })
+
         afterEach(() => {
-            vi.restoreAllMocks();
-        });
-    
+            vi.restoreAllMocks()
+        })
+
         it('should call PerformanceTester.measure with correct arguments', () => {
             // Arrange
-            const testInstance = new TestClass();
-            const expectedLabel = 'TestMethod';
-            const expectedMethodName = 'method';
-            
+            const testInstance = new TestClass()
+            const expectedLabel = 'TestMethod'
+
             // Act
-            const result = testInstance.method();
-    
+            const result = testInstance.method()
+
             // Assert
-            expect(PerformanceTester.measure).toHaveBeenCalledTimes(1);
+            expect(PerformanceTester.measure).toHaveBeenCalledTimes(1)
             expect(PerformanceTester.measure).toHaveBeenCalledWith(
                 expectedLabel,
                 expect.any(Function),  // The original method
                 expect.objectContaining({ methodName: 'method' }),
                 expect.anything(),     // Arguments
                 expect.anything()      // Context (this)
-            );
-            expect(result).toBe('method result');
-        });
-    
+            )
+            expect(result).toBe('method result')
+        })
+
         it('should retain the original method\'s functionality', () => {
             // Arrange
-            const testInstance = new TestClass();
-    
+            const testInstance = new TestClass()
+
             // Act
-            const result = testInstance.method();
-    
+            const result = testInstance.method()
+
             // Assert
-            expect(result).toBe('method result');
-        });
-    });
+            expect(result).toBe('method result')
+        })
+    })
 
     describe('measureWrapper', () => {
         beforeEach(() => {
-            vi.spyOn(PerformanceTester, 'getProcessId').mockReturnValue('mockedProcessId');
+            vi.spyOn(PerformanceTester, 'getProcessId').mockReturnValue('mockedProcessId')
             PerformanceTester.browser = { sessionId: 'mockedSessionId' }
             PerformanceTester.scenarioThatRan = ['mockedScenario']
-            vi.spyOn(PerformanceTester, 'measure');
-        });
+            vi.spyOn(PerformanceTester, 'measure')
+        })
 
         afterEach(() => {
-            vi.restoreAllMocks();
+            vi.restoreAllMocks()
         })
-    
+
         it('should call measure with correct arguments', () => {
-            const mockFunction = vi.fn();
-            const wrapper = PerformanceTester.measureWrapper('TestName', mockFunction, { command: 'testDetail' });
-    
-            wrapper('arg1', 'arg2');
-    
+            const mockFunction = vi.fn()
+            const wrapper = PerformanceTester.measureWrapper('TestName', mockFunction, { command: 'testDetail' })
+
+            wrapper('arg1', 'arg2')
+
             expect(PerformanceTester.measure).toHaveBeenCalledWith(
                 'TestName', // name
                 mockFunction, // fn
@@ -156,25 +152,25 @@ describe('PerformanceTester', function () {
                     command: 'testDetail',
                 }, // details
                 expect.any(Array) // args
-            );
-        });
-    
+            )
+        })
+
         it('should call the original function with correct arguments', () => {
-            const mockFunction = vi.fn().mockReturnValue('result');
-            const wrapper = PerformanceTester.measureWrapper('TestName', mockFunction);
-    
-            const result = wrapper('arg1', 'arg2');
-    
-            expect(mockFunction).toHaveBeenCalledWith('arg1', 'arg2');
-            expect(result).toBe('result');
-        });
-    
+            const mockFunction = vi.fn().mockReturnValue('result')
+            const wrapper = PerformanceTester.measureWrapper('TestName', mockFunction)
+
+            const result = wrapper('arg1', 'arg2')
+
+            expect(mockFunction).toHaveBeenCalledWith('arg1', 'arg2')
+            expect(result).toBe('result')
+        })
+
         it('should handle empty details object', () => {
-            const mockFunction = vi.fn();
-            const wrapper = PerformanceTester.measureWrapper('TestName', mockFunction);
-    
-            wrapper();
-    
+            const mockFunction = vi.fn()
+            const wrapper = PerformanceTester.measureWrapper('TestName', mockFunction)
+
+            wrapper()
+
             expect(PerformanceTester.measure).toHaveBeenCalledWith(
                 'TestName',
                 mockFunction,
@@ -184,7 +180,7 @@ describe('PerformanceTester', function () {
                     platform: 'mockedSessionId',
                 },
                 expect.any(Array)
-            );
-        });
-    });
+            )
+        })
+    })
 })
