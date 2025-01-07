@@ -1,6 +1,7 @@
 import fs from 'node:fs'
-import { describe, expect, it, vi, afterEach } from 'vitest'
+import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import * as bstackLogger from '../src/bstackLogger.js'
+
 import PerformanceTester from '../src/instrumentation/performance/performance-tester.js'
 
 vi.mock('csv-writer', () => ({
@@ -9,8 +10,18 @@ vi.mock('csv-writer', () => ({
     })),
 }))
 
+
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
+
+class TestClass {
+    @PerformanceTester.Measure('TestMethod') // Applying the Measure decorator to this method
+    method() {
+        return 'method result' // A simple method to test
+    }
+}
+
+
 
 describe('PerformanceTester', function () {
     afterEach(() => {
@@ -74,4 +85,106 @@ describe('PerformanceTester', function () {
             expect(PerformanceTester._csvWriter.writeRecords).toBeCalledTimes(1)
         })
     })
+
+    describe('Measure Decorator', () => {
+        beforeEach(() => {
+            vi.spyOn(PerformanceTester, 'measure');
+        });
+    
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+    
+        it('should call PerformanceTester.measure with correct arguments', () => {
+            // Arrange
+            const testInstance = new TestClass();
+            const expectedLabel = 'TestMethod';
+            const expectedMethodName = 'method';
+            
+            // Act
+            const result = testInstance.method();
+    
+            // Assert
+            expect(PerformanceTester.measure).toHaveBeenCalledTimes(1);
+            expect(PerformanceTester.measure).toHaveBeenCalledWith(
+                expectedLabel,
+                expect.any(Function),  // The original method
+                expect.objectContaining({ methodName: 'method' }),
+                expect.anything(),     // Arguments
+                expect.anything()      // Context (this)
+            );
+            expect(result).toBe('method result');
+        });
+    
+        it('should retain the original method\'s functionality', () => {
+            // Arrange
+            const testInstance = new TestClass();
+    
+            // Act
+            const result = testInstance.method();
+    
+            // Assert
+            expect(result).toBe('method result');
+        });
+    });
+
+    describe('measureWrapper', () => {
+        beforeEach(() => {
+            vi.spyOn(PerformanceTester, 'getProcessId').mockReturnValue('mockedProcessId');
+            PerformanceTester.browser = { sessionId: 'mockedSessionId' }
+            PerformanceTester.scenarioThatRan = ['mockedScenario']
+            vi.spyOn(PerformanceTester, 'measure');
+        });
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+        })
+    
+        it('should call measure with correct arguments', () => {
+            const mockFunction = vi.fn();
+            const wrapper = PerformanceTester.measureWrapper('TestName', mockFunction, { command: 'testDetail' });
+    
+            wrapper('arg1', 'arg2');
+    
+            expect(PerformanceTester.measure).toHaveBeenCalledWith(
+                'TestName', // name
+                mockFunction, // fn
+                {
+                    worker: 'mockedProcessId',
+                    testName: 'mockedScenario',
+                    platform: 'mockedSessionId',
+                    command: 'testDetail',
+                }, // details
+                expect.any(Array) // args
+            );
+        });
+    
+        it('should call the original function with correct arguments', () => {
+            const mockFunction = vi.fn().mockReturnValue('result');
+            const wrapper = PerformanceTester.measureWrapper('TestName', mockFunction);
+    
+            const result = wrapper('arg1', 'arg2');
+    
+            expect(mockFunction).toHaveBeenCalledWith('arg1', 'arg2');
+            expect(result).toBe('result');
+        });
+    
+        it('should handle empty details object', () => {
+            const mockFunction = vi.fn();
+            const wrapper = PerformanceTester.measureWrapper('TestName', mockFunction);
+    
+            wrapper();
+    
+            expect(PerformanceTester.measure).toHaveBeenCalledWith(
+                'TestName',
+                mockFunction,
+                {
+                    worker: 'mockedProcessId',
+                    testName: 'mockedScenario',
+                    platform: 'mockedSessionId',
+                },
+                expect.any(Array)
+            );
+        });
+    });
 })
