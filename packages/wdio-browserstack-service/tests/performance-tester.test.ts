@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { describe, expect, it, vi, afterEach } from 'vitest'
-import PerformanceTester from '../src/performance-tester.js'
 import * as bstackLogger from '../src/bstackLogger.js'
+import PerformanceTester from '../src/instrumentation/performance/performance-tester.js'
 
 vi.mock('csv-writer', () => ({
     createObjectCsvWriter: vi.fn(() => ({
