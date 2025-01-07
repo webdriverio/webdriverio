@@ -12,8 +12,6 @@ import { SevereServiceError } from 'webdriverio'
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 
 import type { Capabilities, Services, Options } from '@wdio/types'
-import PerformanceTester from './instrumentation/performance/performance-tester.js'
-import performanceSdkEvents from './instrumentation/performance/constants.js'
 
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
 
@@ -52,6 +50,8 @@ import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
 import AiHandler from './ai-handler.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import performanceSdkEvents from './instrumentation/performance/constants.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -198,7 +198,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    @PerformanceTester.Measure(performanceSdkEvents.EVENTS.SDK_SETUP)
+    @PerformanceTester.Measure(performanceSdkEvents.EVENTS.SDK_PRE_TEST)
     async onPrepare (config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities) {
         // // Send Funnel start request
         await sendStart(this.browserStackConfig)

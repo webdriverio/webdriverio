@@ -1,11 +1,16 @@
 import { createObjectCsvWriter } from 'csv-writer'
 import fs from 'node:fs'
+import fsPromise from 'node:fs/promises'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 import util from 'node:util'
-const worker = require('node:worker_threads')
+import worker from 'node:worker_threads'
+import path from 'node:path'
+import { arch, hostname, platform, type, version } from 'node:os'
 
-import { sleep } from '../../util.js'
+import got from 'got'
+
 import { BStackLogger } from '../../bstackLogger.js'
+import { EDS_URL } from '../../constants.js'
 
 type PerformanceDetails = {
     success?: true,
@@ -21,13 +26,22 @@ export default class PerformanceTester {
     static _observer: PerformanceObserver
     static _csvWriter: any
     private static _events: PerformanceEntry[] = []
+    private static _measuredEvents: PerformanceEntry[] = []
     static started = false
     static details: {[key: string]: PerformanceDetails} = {}
     static eventsMap: {[key: string]: number} = {}
     static browser?: WebdriverIO.Browser
     static scenarioThatRan: string[]
+    static jsonReportDirName = 'performance-report'
+    // Need to handle codecept path since while running codecept session, it considers test(src) dir as root dir
+    static jsonReportDirPath = path.join(process.cwd(), 'logs', this.jsonReportDirName)
+    static jsonReportFileName = `${this.jsonReportDirPath}/performance-report-${PerformanceTester.getProcessId()}.json`
 
     static startMonitoring(csvName: string = 'performance-report.csv') {
+        // Create performance-report dir if not exists already
+        if (!fs.existsSync(this.jsonReportDirPath)) {
+            fs.mkdirSync(this.jsonReportDirPath)
+        }
         this._observer = new PerformanceObserver(list => {
             list.getEntries().forEach(entry => {
                 let finalEntry = entry
@@ -38,11 +52,13 @@ export default class PerformanceTester {
                     }
 
                     delete this.details[entry.name]
+                    this._measuredEvents.push(finalEntry)
+                } else {
+                    this._events.push(finalEntry)
                 }
-                this._events.push(finalEntry)
             })
         })
-        this._observer.observe({ buffered: true, entryTypes: ['function'] })
+        this._observer.observe({ buffered: true, entryTypes: ['function', 'measure'] })
         this.started = true
         this._csvWriter = createObjectCsvWriter({
             path: csvName,
@@ -75,7 +91,12 @@ export default class PerformanceTester {
     static async stopAndGenerate(filename: string = 'performance-own.html') {
         if (!this.started) {return}
 
-        await sleep(2000) // Wait to 2s just to finish any running callbacks for timerify
+        await PerformanceTester.sleep(2000) // Wait to 2s just to finish any running callbacks for timerify
+        const eventsJson = JSON.stringify(this._measuredEvents)
+        // remove enclosing array and add a trailing comma so that we
+        // dont need to both read and then write the file, we can use append instead
+        const finalJSONStr = eventsJson.slice(1, -1) + ','
+        fs.appendFileSync(this.jsonReportFileName, finalJSONStr)
         this._observer.disconnect()
         this.started = false
 
@@ -128,13 +149,16 @@ export default class PerformanceTester {
     }
 
     static Measure(label: string, details: PerformanceDetails = {}) {
+        const self = this
         return (
             target: Object,
             key: string | symbol,
             descriptor: TypedPropertyDescriptor<any>) => {
-            const originalMethod = descriptor.get
-            descriptor.get = function() {
-                return PerformanceTester.measure.apply(this, [label, originalMethod as Function, { methodName: key.toString(), ...details }, arguments])
+            const originalMethod: Function = descriptor.value
+            if (descriptor.value) {
+                descriptor.value = function() {
+                    return PerformanceTester.measure.apply(self, [label, originalMethod as Function, { methodName: key.toString(), ...details }, arguments, this])
+                }
             }
         }
     }
@@ -146,10 +170,10 @@ export default class PerformanceTester {
         details.testName = PerformanceTester.scenarioThatRan?.pop()
         details.platform = PerformanceTester.browser?.sessionId
 
-        return function () {
-            const args = [name, fn, details, arguments]
+        return function (...args: any[]) {
+            const methodArgs = [name, fn, details, args]
 
-            return self.measure.apply(self, args as [string, Function, {}, IArguments?])
+            return self.measure.apply(self, methodArgs as [string, Function, {}, IArguments?])
         }
 
     }
@@ -158,14 +182,14 @@ export default class PerformanceTester {
         return !(process.env.BROWSERSTACK_SDK_INSTRUMENTATION === 'false')
     }
 
-    static measure(label: string, fn: Function, details = {}, args?: IArguments) {
+    static measure(label: string, fn: Function, details = {}, args?: IArguments, thisArg: any = null) {
         try {
             if (this.started && this.isEnabled()) {
                 PerformanceTester.start(label)
                 this.details && (this.details[label] = details)
 
                 try {
-                    const returnVal = fn.apply(null, args)
+                    const returnVal = fn.apply(thisArg, args)
                     if (returnVal instanceof Promise) {
                         return new Promise((resolve, reject) => {
                             returnVal
@@ -188,9 +212,9 @@ export default class PerformanceTester {
                 }
             }
 
-            return fn.apply(null, args)
+            return fn.apply(thisArg, args)
         } catch (err) {
-            return fn.apply(null, args)
+            return fn.apply(thisArg, args)
         }
     }
 
@@ -213,5 +237,74 @@ export default class PerformanceTester {
 
     static getProcessId() {
         return `${process.pid}-${worker.threadId}`
+    }
+
+    static sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+
+    static async uploadEventsData() {
+        if (!fs.existsSync(this.jsonReportDirPath)) {
+
+            return this._measuredEvents
+        }
+
+        const files = (await fsPromise.readdir(this.jsonReportDirPath)).map(file => path.resolve(this.jsonReportDirPath, file))
+
+        let measures = (await Promise.all(files.map((file) => fsPromise.readFile(file, 'utf-8')))).map(el => `[${el.slice(0, -1)}]`).map(el => JSON.parse(el)).flat()
+
+        if (this._measuredEvents.length > 0) {
+            measures = measures.concat(this._measuredEvents)
+        }
+
+        const date = new Date()
+        // yyyy-MM-dd'T'HH:mm:ss.SSSSSS Z
+        const options: Intl.DateTimeFormatOptions = {
+            timeZone: 'UTC',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            fractionalSecondDigits: 3, // To include microseconds
+            hour12: false
+        }
+
+        // Format the date and replace the default separator for time zone
+        const formattedDate = new Intl.DateTimeFormat('en-GB', options)
+            .formatToParts(date)
+            .map(({ type, value }) => type === 'timeZoneName' ? 'Z' : value)
+            .join('')
+            .replace(',', 'T')
+
+        const payload = {
+            event_type: 'sdk_events',
+            data: {
+                testhub_uuid: process.env.PERF_TESTHUB_UUID || process.env.PERF_SDK_RUN_ID,
+                created_day: formattedDate,
+                event_name: 'SDKFeaturePerformance',
+                user_data: process.env.PERF_USER_NAME,
+                host_info: JSON.stringify({
+                    hostname: hostname(),
+                    platform: platform(),
+                    type: type(),
+                    version: version(),
+                    arch: arch()
+                }),
+                event_json: { measures: measures }
+            }
+        }
+        await got.post(`${EDS_URL}/send_sdk_events`, {
+            headers: {
+                'content-type': 'application/json'
+            }, json: payload
+        })
+
+        if (fs.existsSync(this.jsonReportDirPath)) {
+            const files = fs.readdirSync(this.jsonReportDirPath)
+
+            for (const file of files) {
+                fs.unlinkSync(path.join(this.jsonReportDirPath, file))
+            }
+        }
     }
 }
