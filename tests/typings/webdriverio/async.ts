@@ -235,6 +235,9 @@ async function bar() {
     expectType<number>(width)
     expectType<number>(height)
 
+    // getProperty return type
+    expectType<unknown>($('#foo').getProperty('bar'))
+
     // protocol command return unmapped object
     const { foo, bar } = await browser.takeHeapSnapshot()
     expectType<any>(foo)

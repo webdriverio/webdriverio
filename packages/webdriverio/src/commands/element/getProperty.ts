@@ -1,5 +1,6 @@
 /**
- * The Get Element Property command will return the result of getting a property of an element.
+ * The Get Element Property command will return the result of getting a property of an
+ * element.
  *
  * <example>
     :getProperty.js
@@ -12,11 +13,11 @@
  *
  * @alias element.getProperty
  * @param {string} property  name of the element property
- * @return {Object|String|Boolean|Number|null} the value of the property of the selected element
+ * @return {unknown} the value of the property of the selected element
  */
 export function getProperty (
     this: WebdriverIO.Element,
     property: string
-) {
+): Promise<unknown> {
     return this.getElementProperty(this.elementId, property)
 }
