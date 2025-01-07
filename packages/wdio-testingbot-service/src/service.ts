@@ -71,8 +71,25 @@ export default class TestingBotService implements Services.ServiceInstance {
              */
             `${test.parent} - ${test.title}`
         )
+        return this.setAnnotation(`tb:test-context=${context}`)
+    }
 
-        this._browser.execute('tb:test-context=' + context)
+    /**
+     * Update the running test on TestingBot with an annotation
+     */
+    async setAnnotation (annotation: string) {
+        if (!this._browser) {
+            return
+        }
+
+        if (this._browser.isMultiremote) {
+            return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
+                const multiRemoteBrowser = (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)
+                return multiRemoteBrowser.executeScript(annotation, [])
+            }))
+        }
+
+        return (this._browser as WebdriverIO.Browser).executeScript(annotation, [])
     }
 
     afterSuite (suite: Frameworks.Suite) {
@@ -106,7 +123,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         }
 
         this._suiteTitle = feature.name
-        this._browser.execute('tb:test-context=Feature: ' + this._suiteTitle)
+        return this.setAnnotation(`tb:test-context=Feature: ${this._suiteTitle}`)
     }
 
     /**
@@ -120,7 +137,7 @@ export default class TestingBotService implements Services.ServiceInstance {
             return
         }
         const scenarioName = world.pickle.name
-        this._browser.execute('tb:test-context=Scenario: ' + scenarioName)
+        return this.setAnnotation(`tb:test-context=Scenario: ${scenarioName}`)
     }
 
     /**
