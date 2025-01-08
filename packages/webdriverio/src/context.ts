@@ -36,6 +36,21 @@ export class ContextManager {
             isNativeContext: this.#isNativeContext
         })
 
+        /**
+         * Listens for the 'closeWindow' browser command to handle context changes.
+         * (classic + bidi)
+         */
+        this.#browser.on('result', (event) => {
+            /**
+             * the `closeWindow` command returns:
+             *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
+             */
+            if (event.command === 'closeWindow') {
+                this.#currentContext = (event.result as { value: string[] }).value[0]
+                return this.#browser.switchToWindow(this.#currentContext)
+            }
+        })
+
         if (!this.#isEnabled()) {
             return
         }
@@ -77,14 +92,6 @@ export class ContextManager {
          * Listens for the 'closeWindow' browser command to handle context changes.
          */
         this.#browser.on('result', (event) => {
-            /**
-             * the `closeWindow` command returns:
-             *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
-             */
-            if (event.command === 'closeWindow') {
-                this.#currentContext = (event.result as { value: string[] }).value[0]
-                return this.#browser.switchToWindow(this.#currentContext)
-            }
 
             if (this.#browser.isMobile) {
                 if (event.command === 'getContext') {
