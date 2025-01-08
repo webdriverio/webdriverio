@@ -40,7 +40,7 @@ export default class PerformanceTester {
     static startMonitoring(csvName: string = 'performance-report.csv') {
         // Create performance-report dir if not exists already
         if (!fs.existsSync(this.jsonReportDirPath)) {
-            fs.mkdirSync(this.jsonReportDirPath)
+            fs.mkdirSync(this.jsonReportDirPath, { recursive: true })
         }
         this._observer = new PerformanceObserver(list => {
             list.getEntries().forEach(entry => {
