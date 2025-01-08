@@ -159,9 +159,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this.browserStackConfig.buildIdentifier = this._buildIdentifier
         this.browserStackConfig.buildName = this._buildName
 
-        if (process.env[PERF_MEASUREMENT_ENV]) {
-            PerformanceTester.startMonitoring('performance-report-launcher.csv')
-        }
+        PerformanceTester.startMonitoring('performance-report-launcher.csv')
 
         this._accessibilityAutomation ||= isTrue(this._options.accessibility)
         this._options.accessibility = this._accessibilityAutomation

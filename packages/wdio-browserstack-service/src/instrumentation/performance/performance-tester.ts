@@ -1,6 +1,7 @@
 import { createObjectCsvWriter } from 'csv-writer'
 import fs from 'node:fs'
 import fsPromise from 'node:fs/promises'
+import type { EntryType } from 'node:perf_hooks'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 import util from 'node:util'
 import worker from 'node:worker_threads'
@@ -52,20 +53,26 @@ export default class PerformanceTester {
 
                     delete this.details[entry.name]
                     this._measuredEvents.push(finalEntry)
-                } else {
+                } else if (process.env[PERF_MEASUREMENT_ENV]) {
                     this._events.push(finalEntry)
                 }
             })
         })
-        this._observer.observe({ buffered: true, entryTypes: ['function', 'measure'] })
+        const entryTypes: EntryType[] = ['measure']
+        if (process.env[PERF_MEASUREMENT_ENV]) {
+            entryTypes.push('function')
+        }
+        this._observer.observe({ buffered: true, entryTypes: entryTypes })
         this.started = true
-        this._csvWriter = createObjectCsvWriter({
-            path: csvName,
-            header: [
-                { id: 'name', title: 'Function Name' },
-                { id: 'time', title: 'Execution Time (ms)' }
-            ]
-        })
+        if (process.env[PERF_MEASUREMENT_ENV]) {
+            this._csvWriter = createObjectCsvWriter({
+                path: csvName,
+                header: [
+                    { id: 'name', title: 'Function Name' },
+                    { id: 'time', title: 'Execution Time (ms)' }
+                ]
+            })
+        }
     }
 
     static getPerformance() {
@@ -99,10 +106,10 @@ export default class PerformanceTester {
         } catch (er) {
             BStackLogger.debug(`Failed to write events of the worker to ${this.jsonReportFileName}: ${util.format(er)}`)
         }
+        this._observer.disconnect()
 
         if (!process.env[PERF_MEASUREMENT_ENV]) {return}
 
-        this._observer.disconnect()
         this.started = false
 
         this.generateCSV(this._events)

@@ -64,11 +64,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
+        PerformanceTester.startMonitoring('performance-report-service.csv')
         if (shouldProcessEventForTesthub('')) {
             this._config.reporters?.push(TestReporter)
-            if (process.env[PERF_MEASUREMENT_ENV]) {
-                PerformanceTester.startMonitoring('performance-report-service.csv')
-            }
         }
 
         if (process.env.BROWSERSTACK_TURBOSCALE) {
