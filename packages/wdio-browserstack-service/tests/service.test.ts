@@ -18,6 +18,13 @@ vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('uuid', () => ({ v4: () => '123456789' }))
+vi.mock('../src/instrumentation/performance/performance-tester.js', async (importOriginal) => {
+    const actual: any = await importOriginal()
+    actual.default.stopAndGenerate = vi.fn().mockResolvedValue({})
+    return {
+        ...actual
+    }
+})
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})

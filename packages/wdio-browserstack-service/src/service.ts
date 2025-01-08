@@ -141,7 +141,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         this._scenariosThatRan = []
-        PerformanceTester.scenarioThatRan = this._scenariosThatRan
+        PerformanceTester.scenarioThatRan = [...(this._scenariosThatRan ?? [])]
 
         if (this._browser) {
             try {
