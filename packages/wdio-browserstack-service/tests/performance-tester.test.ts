@@ -1,8 +1,10 @@
 import fs from 'node:fs'
+import fsPromises from 'node:fs/promises'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import * as bstackLogger from '../src/bstackLogger.js'
 
 import PerformanceTester from '../src/instrumentation/performance/performance-tester.js'
+import { PERF_MEASUREMENT_ENV } from '../src/constants.js'
 
 vi.mock('csv-writer', () => ({
     createObjectCsvWriter: vi.fn(() => ({
@@ -27,6 +29,9 @@ describe('PerformanceTester', function () {
     })
 
     describe('startMonitoring', function () {
+        beforeEach(() => {
+            process.env[PERF_MEASUREMENT_ENV] = 'true'
+        })
         it('should start monitoring', () => {
             expect(PerformanceTester.started).toBe(false)
             PerformanceTester.startMonitoring('temp.csv')
@@ -60,19 +65,20 @@ describe('PerformanceTester', function () {
     })
 
     describe('stopAndGenerate', function () {
-        vi.spyOn(fs, 'writeFile').mockImplementation(() => {})
+        vi.spyOn(fsPromises, 'writeFile').mockImplementation(() => Promise.resolve())
 
         it('should return if not started', async function () {
             await PerformanceTester.stopAndGenerate('sdf')
-            expect(fs.writeFile).toBeCalledTimes(0)
+            expect(fsPromises.writeFile).toBeCalledTimes(0)
         })
 
         it('should stop and write generate HTML', async () => {
+            process.env[PERF_MEASUREMENT_ENV] = 'true'
             PerformanceTester.startMonitoring('temp.csv')
             await PerformanceTester.stopAndGenerate('temp.html')
             expect(PerformanceTester.started).toBe(false)
-            expect(fs.writeFile).toBeCalledTimes(1)
-            expect(fs.writeFile).toBeCalledWith(expect.stringContaining('temp.html'), expect.anything(), expect.anything())
+            expect(fsPromises.writeFile).toBeCalledTimes(1)
+            expect(fsPromises.writeFile).toBeCalledWith(expect.stringContaining('temp.html'), expect.anything())
         })
 
         it('should stop and write generate CSV', async () => {
