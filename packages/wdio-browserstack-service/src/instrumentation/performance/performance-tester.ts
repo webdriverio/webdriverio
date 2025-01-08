@@ -83,7 +83,7 @@ export default class PerformanceTester {
         const timeTaken = methods.reduce((a, c) => {
             return times[c] + (a || 0)
         }, 0)
-        BStackLogger.info(`Time for ${methods} is ${timeTaken}`)
+        BStackLogger.debug(`Time for ${methods} is ${timeTaken}`)
         return timeTaken
     }
 
