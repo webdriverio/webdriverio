@@ -1,4 +1,3 @@
-import fs from 'node:fs'
 import fsPromises from 'node:fs/promises'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import * as bstackLogger from '../src/bstackLogger.js'
