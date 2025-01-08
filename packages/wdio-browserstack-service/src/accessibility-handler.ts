@@ -311,14 +311,17 @@ class _AccessibilityHandler {
                 )
         ) {
             BStackLogger.debug(`Performing scan for ${command.class} ${command.name}`)
-            await performA11yScan(this._browser, true, true, command.name)
+            await performA11yScan(this.isAppAutomate, this._browser, true, true, command.name)
         }
         return origFunction(...args)
     }
 
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: unknown) {
         BStackLogger.debug('Performing scan before saving results')
-        await performA11yScan(browser, true, true)
+        await performA11yScan(this.isAppAutomate, browser, true, true)
+        if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
+            return
+        }
         const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(accessibilityScripts.saveTestResults as string, dataForExtension)
         BStackLogger.debug(util.format(results as string))
     }
