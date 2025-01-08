@@ -88,6 +88,7 @@ export default class PerformanceTester {
     }
 
     static async stopAndGenerate(filename: string = 'performance-own.html') {
+        if (!this.started) {return}
         await PerformanceTester.sleep(2000) // Wait to 2s just to finish any running callbacks for timerify
         try {
             const eventsJson = JSON.stringify(this._measuredEvents)
