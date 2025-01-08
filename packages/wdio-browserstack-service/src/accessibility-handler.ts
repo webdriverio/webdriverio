@@ -160,7 +160,6 @@ class _AccessibilityHandler {
             // @ts-expect-error fix type
             const shouldScanTest = shouldScanTestForAccessibility(suiteTitle, test.title, this._accessibilityOptions)
             const testIdentifier = this.getIdentifier(test)
-            const isPageOpened = await this.checkIfPageOpened(this._browser, testIdentifier, shouldScanTest)
 
             if (this._sessionId) {
                 /* For case with multiple tests under one browser, before hook of 2nd test should change this map value */
@@ -170,8 +169,9 @@ class _AccessibilityHandler {
             /* This is to be used when test events are sent */
             Listener.setTestRunAccessibilityVar(this._accessibility && shouldScanTest)
 
-            if (!isPageOpened) {
-                return
+            this._testMetadata[testIdentifier] = {
+                scanTestForAccessibility : shouldScanTest,
+                accessibilityScanStarted : true
             }
 
             // @ts-expect-error fix type
