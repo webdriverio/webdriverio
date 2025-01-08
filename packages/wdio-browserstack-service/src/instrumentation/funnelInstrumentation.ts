@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import UsageStats, { type UsageStat } from '../testOps/usageStats.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
-import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
+import { BSTACK_A11Y_POLLING_TIMEOUT, BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
 import { getDataFromWorkers } from '../data-store.js'
 import { getProductMap } from '../testHub/utils.js'
 import fetchWrap from '../fetchWrapper.js'
@@ -125,6 +125,9 @@ function buildEventData(eventType: string, config: BrowserStackConfig) {
         const workerData = getDataFromWorkers()
         // @ts-expect-error
         eventProperties.productUsage = getProductUsage(workerData)
+        if (process.env[BSTACK_A11Y_POLLING_TIMEOUT]) {
+            eventProperties.pollingTimeout = process.env[BSTACK_A11Y_POLLING_TIMEOUT]
+        }
     }
 
     return {
