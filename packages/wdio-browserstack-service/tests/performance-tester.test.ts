@@ -1,4 +1,5 @@
 import fsPromises from 'node:fs/promises'
+import fs from 'node:fs'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import * as bstackLogger from '../src/bstackLogger.js'
 
@@ -9,6 +10,28 @@ vi.mock('csv-writer', () => ({
     createObjectCsvWriter: vi.fn(() => ({
         writeRecords: vi.fn().mockResolvedValue(null),
     })),
+}))
+
+vi.mock('node:fs/promises', () => ({
+    default: {
+        createReadStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+        createWriteStream: vi.fn().mockReturnValue(
+            {
+                pipe: vi.fn(),
+                write: vi.fn()
+            }),
+        stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+        writeFile: vi.fn().mockReturnValue(Promise.resolve())
+    }
+}))
+
+vi.mock('node:fs', () => ({
+    default: {
+        readFileSync: vi.fn().mockReturnValue('1234\nsomepath'),
+        existsSync: vi.fn(),
+        truncateSync: vi.fn(),
+        mkdirSync: vi.fn()
+    }
 }))
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
@@ -35,6 +58,7 @@ describe('PerformanceTester', function () {
             expect(PerformanceTester.started).toBe(false)
             PerformanceTester.startMonitoring('temp.csv')
             expect(PerformanceTester.started).toBe(true)
+            expect(fs.mkdirSync).toBeCalledTimes(1)
         })
 
         it('should push to events for sync functions', async () => {
