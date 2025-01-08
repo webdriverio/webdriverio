@@ -51,7 +51,7 @@ import { setupExitHandlers } from './exitHandler.js'
 import AiHandler from './ai-handler.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
-import performanceSdkEvents from './instrumentation/performance/constants.js'
+import PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -184,7 +184,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    @PerformanceTester.Measure(performanceSdkEvents.EVENTS.SDK_SETUP)
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_SETUP)
     async onWorkerStart (cid: any, caps: any) {
         try {
             if (this._options.percy && this._percyBestPlatformCaps) {
@@ -198,7 +198,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    @PerformanceTester.Measure(performanceSdkEvents.EVENTS.SDK_PRE_TEST)
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_PRE_TEST)
     async onPrepare (config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities) {
         // // Send Funnel start request
         await sendStart(this.browserStackConfig)
@@ -350,7 +350,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         let timer: NodeJS.Timeout
         performance.mark('tbTunnelStart')
-        PerformanceTester.start(performanceSdkEvents.AUTOMATE_EVENTS.LOCAL_START)
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_START)
         return Promise.race([
             promisify(this.browserstackLocal.start.bind(this.browserstackLocal))(opts),
             new Promise((resolve, reject) => {
@@ -361,18 +361,18 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })]
         ).then(function (result) {
             clearTimeout(timer)
-            PerformanceTester.end(performanceSdkEvents.AUTOMATE_EVENTS.LOCAL_START)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_START)
             performance.mark('tbTunnelEnd')
             performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
             return Promise.resolve(result)
         }, function (err) {
-            PerformanceTester.end(performanceSdkEvents.AUTOMATE_EVENTS.LOCAL_START, false, err)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_START, false, err)
             clearTimeout(timer)
             return Promise.reject(err)
         })
     }
 
-    @PerformanceTester.Measure(performanceSdkEvents.EVENTS.SDK_CLEANUP)
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
     async onComplete () {
         BStackLogger.debug('Inside OnComplete hook..')
 
@@ -383,8 +383,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
         this.browserStackConfig.testObservability.buildStopped = true
 
+        await PerformanceTester.stopAndGenerate('performance-launcher.html')
         if (process.env[PERF_MEASUREMENT_ENV]) {
-            await PerformanceTester.stopAndGenerate('performance-launcher.html')
             PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
 
             if (!process.env.START_TIME) {
@@ -417,7 +417,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         let timer: NodeJS.Timeout
-        PerformanceTester.start(performanceSdkEvents.AUTOMATE_EVENTS.LOCAL_STOP)
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_STOP)
         return Promise.race([
             new Promise<void>((resolve, reject) => {
                 this.browserstackLocal?.stop((err: Error) => {
@@ -436,10 +436,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })]
         ).then(function (result) {
             clearTimeout(timer)
-            PerformanceTester.end(performanceSdkEvents.AUTOMATE_EVENTS.LOCAL_STOP)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_STOP)
             return Promise.resolve(result)
         }, function (err) {
-            PerformanceTester.end(performanceSdkEvents.AUTOMATE_EVENTS.LOCAL_STOP, false, err)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_STOP, false, err)
             clearTimeout(timer)
             return Promise.reject(err)
         })
@@ -483,7 +483,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    @PerformanceTester.Measure(performanceSdkEvents.APP_AUOTMATE_EVENTS.APP_UPLOAD)
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.APP_AUOTMATE_EVENTS.APP_UPLOAD)
     async _uploadApp(app:App): Promise<AppUploadResponse> {
         BStackLogger.info(`uploading app ${app.app} ${app.customId? `and custom_id: ${app.customId}` : ''} to browserstack`)
 

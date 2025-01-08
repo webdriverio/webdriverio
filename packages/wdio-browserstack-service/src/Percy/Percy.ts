@@ -13,7 +13,7 @@ import type { BrowserstackConfig, UserConfig } from '../types.js'
 import type { Options } from '@wdio/types'
 import { BROWSERSTACK_TESTHUB_UUID } from '../constants.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
-import performanceSdkEvents from '../instrumentation/performance/constants.js'
+import PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 
 const logDir = 'logs'
 
@@ -63,7 +63,7 @@ class Percy {
         }
     }
 
-    @PerformanceTester.Measure(performanceSdkEvents.PERCY_EVENTS.START)
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.START)
     async start() {
         const binaryPath: string = await this.#getBinaryPath()
         const logStream = fs.createWriteStream(this.#logfile, { flags: 'a' })
@@ -107,7 +107,7 @@ class Percy {
         return false
     }
 
-    @PerformanceTester.Measure(performanceSdkEvents.PERCY_EVENTS.STOP)
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.STOP)
     async stop() {
         const binaryPath = await this.#getBinaryPath()
         return new Promise( (resolve) => {

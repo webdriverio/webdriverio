@@ -10,7 +10,7 @@ import { arch, hostname, platform, type, version } from 'node:os'
 import got from 'got'
 
 import { BStackLogger } from '../../bstackLogger.js'
-import { EDS_URL } from '../../constants.js'
+import { EDS_URL, PERF_MEASUREMENT_ENV } from '../../constants.js'
 
 type PerformanceDetails = {
     success?: true,
@@ -33,7 +33,6 @@ export default class PerformanceTester {
     static browser?: WebdriverIO.Browser
     static scenarioThatRan: string[]
     static jsonReportDirName = 'performance-report'
-    // Need to handle codecept path since while running codecept session, it considers test(src) dir as root dir
     static jsonReportDirPath = path.join(process.cwd(), 'logs', this.jsonReportDirName)
     static jsonReportFileName = `${this.jsonReportDirPath}/performance-report-${PerformanceTester.getProcessId()}.json`
 
@@ -89,14 +88,19 @@ export default class PerformanceTester {
     }
 
     static async stopAndGenerate(filename: string = 'performance-own.html') {
-        if (!this.started) {return}
-
         await PerformanceTester.sleep(2000) // Wait to 2s just to finish any running callbacks for timerify
-        const eventsJson = JSON.stringify(this._measuredEvents)
-        // remove enclosing array and add a trailing comma so that we
-        // dont need to both read and then write the file, we can use append instead
-        const finalJSONStr = eventsJson.slice(1, -1) + ','
-        fs.appendFileSync(this.jsonReportFileName, finalJSONStr)
+        try {
+            const eventsJson = JSON.stringify(this._measuredEvents)
+            // remove enclosing array and add a trailing comma so that we
+            // dont need to both read and then write the file, we can use append instead
+            const finalJSONStr = eventsJson.slice(1, -1) + ','
+            await fsPromise.appendFile(this.jsonReportFileName, finalJSONStr)
+        } catch (er) {
+            BStackLogger.debug(`Failed to write events of the worker to ${this.jsonReportFileName}: ${util.format(er)}`)
+        }
+
+        if (!process.env[PERF_MEASUREMENT_ENV]) {return}
+
         this._observer.disconnect()
         this.started = false
 
@@ -242,69 +246,75 @@ export default class PerformanceTester {
     static sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
     static async uploadEventsData() {
-        if (!fs.existsSync(this.jsonReportDirPath)) {
-
-            return this._measuredEvents
-        }
-
-        const files = (await fsPromise.readdir(this.jsonReportDirPath)).map(file => path.resolve(this.jsonReportDirPath, file))
-
-        let measures = (await Promise.all(files.map((file) => fsPromise.readFile(file, 'utf-8')))).map(el => `[${el.slice(0, -1)}]`).map(el => JSON.parse(el)).flat()
-
-        if (this._measuredEvents.length > 0) {
-            measures = measures.concat(this._measuredEvents)
-        }
-
-        const date = new Date()
-        // yyyy-MM-dd'T'HH:mm:ss.SSSSSS Z
-        const options: Intl.DateTimeFormatOptions = {
-            timeZone: 'UTC',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            fractionalSecondDigits: 3, // To include microseconds
-            hour12: false
-        }
-
-        // Format the date and replace the default separator for time zone
-        const formattedDate = new Intl.DateTimeFormat('en-GB', options)
-            .formatToParts(date)
-            .map(({ type, value }) => type === 'timeZoneName' ? 'Z' : value)
-            .join('')
-            .replace(',', 'T')
-
-        const payload = {
-            event_type: 'sdk_events',
-            data: {
-                testhub_uuid: process.env.PERF_TESTHUB_UUID || process.env.PERF_SDK_RUN_ID,
-                created_day: formattedDate,
-                event_name: 'SDKFeaturePerformance',
-                user_data: process.env.PERF_USER_NAME,
-                host_info: JSON.stringify({
-                    hostname: hostname(),
-                    platform: platform(),
-                    type: type(),
-                    version: version(),
-                    arch: arch()
-                }),
-                event_json: { measures: measures }
+        try {
+            let measures = []
+            if (fs.existsSync(this.jsonReportDirPath)) {
+                const files = (await fsPromise.readdir(this.jsonReportDirPath)).map(file => path.resolve(this.jsonReportDirPath, file))
+                measures = (await Promise.all(files.map((file) => fsPromise.readFile(file, 'utf-8')))).map(el => `[${el.slice(0, -1)}]`).map(el => JSON.parse(el)).flat()
             }
-        }
-        await got.post(`${EDS_URL}/send_sdk_events`, {
-            headers: {
-                'content-type': 'application/json'
-            }, json: payload
-        })
 
-        if (fs.existsSync(this.jsonReportDirPath)) {
-            const files = fs.readdirSync(this.jsonReportDirPath)
-
-            for (const file of files) {
-                fs.unlinkSync(path.join(this.jsonReportDirPath, file))
+            if (this._measuredEvents.length > 0) {
+                measures = measures.concat(this._measuredEvents)
             }
+
+            const date = new Date()
+            // yyyy-MM-dd'T'HH:mm:ss.SSSSSS Z
+            const options: Intl.DateTimeFormatOptions = {
+                timeZone: 'UTC',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                fractionalSecondDigits: 3, // To include microseconds
+                hour12: false
+            }
+
+            // Format the date and replace the default separator for time zone
+            const formattedDate = new Intl.DateTimeFormat('en-GB', options)
+                .formatToParts(date)
+                .map(({ type, value }) => type === 'timeZoneName' ? 'Z' : value)
+                .join('')
+                .replace(',', 'T')
+
+            const payload = {
+                event_type: 'sdk_events',
+                data: {
+                    testhub_uuid: process.env.PERF_TESTHUB_UUID || process.env.PERF_SDK_RUN_ID,
+                    created_day: formattedDate,
+                    event_name: 'SDKFeaturePerformance',
+                    user_data: process.env.PERF_USER_NAME,
+                    host_info: JSON.stringify({
+                        hostname: hostname(),
+                        platform: platform(),
+                        type: type(),
+                        version: version(),
+                        arch: arch()
+                    }),
+                    event_json: { measures: measures }
+                }
+            }
+            await got.post(`${EDS_URL}/send_sdk_events`, {
+                headers: {
+                    'content-type': 'application/json'
+                }, json: payload
+            })
+        } catch (er) {
+            BStackLogger.debug(`Failed to upload performance events ${util.format(er)}`)
         }
+
+        try {
+            if (fs.existsSync(this.jsonReportDirPath)) {
+                const files = await fsPromise.readdir(this.jsonReportDirPath)
+
+                for (const file of files) {
+                    await fsPromise.unlink(path.join(this.jsonReportDirPath, file))
+                }
+            }
+        } catch (er) {
+            BStackLogger.debug(`Failed to delete performance related files ${util.format(er)}`)
+        }
+
     }
 }

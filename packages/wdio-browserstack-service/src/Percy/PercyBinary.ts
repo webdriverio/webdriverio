@@ -11,7 +11,7 @@ import { PercyLogger } from './PercyLogger.js'
 import type { Options } from '@wdio/types'
 
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
-import performanceSdkEvents from '../instrumentation/performance/constants.js'
+import PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 
 class PercyBinary {
     #hostOS = process.platform
@@ -97,7 +97,7 @@ class PercyBinary {
         })
     }
 
-    @PerformanceTester.Measure(performanceSdkEvents.PERCY_EVENTS.DOWNLOAD)
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.DOWNLOAD)
     async download(conf: any, destParentDir: any): Promise<string> {
         if (!await this.#checkPath(destParentDir)){
             await fsp.mkdir(destParentDir)
