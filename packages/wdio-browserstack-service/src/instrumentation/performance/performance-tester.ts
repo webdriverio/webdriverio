@@ -109,13 +109,12 @@ export default class PerformanceTester {
 
         const content = this.generateReport(this._events)
         const path = process.cwd() + '/' + filename
-        fs.writeFile(path, content, err => {
-            if (err) {
-                BStackLogger.error(`Error in writing html ${err}`)
-                return
-            }
+        try {
+            await fsPromise.writeFile(path, content)
             BStackLogger.info(`Performance report is at ${path}`)
-        })
+        } catch (err) {
+            BStackLogger.error(`Error in writing html ${util.format(err)}`)
+        }
     }
 
     static generateReport(entries: PerformanceEntry[]) {
