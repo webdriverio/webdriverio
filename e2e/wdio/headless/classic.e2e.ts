@@ -19,6 +19,7 @@ describe('handle windows in webdriver classic', () => {
         await browser.switchWindow('https://elementalselenium.com/')
         await $('#__docusaurus_skipToContent_fallback').waitForDisplayed()
         await browser.closeWindow()
+        await $('#__docusaurus_skipToContent_fallback').waitForDisplayed({ reverse: true })
         await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 1)
         await browser.switchWindow('https://the-internet.herokuapp.com/iframe')
 

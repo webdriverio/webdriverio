@@ -15,7 +15,8 @@ vi.mock('webdriver', () => {
         addCommand: vi.fn(),
         overwriteCommand: vi.fn(),
         strategies: new Map(),
-        isWebDriver: true
+        isWebDriver: true,
+        on: vi.fn()
     }
     const newSessionMock = vi.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
