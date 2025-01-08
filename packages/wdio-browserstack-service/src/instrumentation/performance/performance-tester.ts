@@ -302,11 +302,13 @@ export default class PerformanceTester {
                     event_json: { measures: measures }
                 }
             }
-            await got.post(`${EDS_URL}/send_sdk_events`, {
+            const result = await got.post(`${EDS_URL}/send_sdk_events`, {
                 headers: {
                     'content-type': 'application/json'
                 }, json: payload
             })
+
+            BStackLogger.debug(`Successfully uploaded performance events ${util.format(result.body)}`)
         } catch (er) {
             BStackLogger.debug(`Failed to upload performance events ${util.format(er)}`)
         }
