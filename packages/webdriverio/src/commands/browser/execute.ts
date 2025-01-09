@@ -4,9 +4,9 @@ import type { remote } from 'webdriver'
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
-import { getContextManager } from '../../context.js'
+import { getContextManager } from '../../session/context.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
-import { NAME_POLYFILL } from '../../polyfill.js'
+import { NAME_POLYFILL } from '../../session/polyfill.js'
 
 /**
  *

@@ -1,18 +1,13 @@
 import logger from '@wdio/logger'
-import { getMobileContext, getNativeContext } from './utils/mobile.js'
 
-const contextManager = new Map<WebdriverIO.Browser, ContextManager>()
+import { SessionManager } from './session.js'
+import { getMobileContext, getNativeContext } from '../utils/mobile.js'
+
 const log = logger('webdriverio:context')
+const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
 
 export function getContextManager(browser: WebdriverIO.Browser) {
-    const existingContextManager = contextManager.get(browser)
-    if (existingContextManager) {
-        return existingContextManager
-    }
-
-    const newContext = new ContextManager(browser)
-    contextManager.set(browser, newContext)
-    return newContext
+    return SessionManager.getSessionManager(browser, ContextManager)
 }
 
 /**
@@ -20,13 +15,14 @@ export function getContextManager(browser: WebdriverIO.Browser) {
  * require to be executed in a specific context. This class is responsible for keeping track
  * of the current context and providing the current context the user is in.
  */
-export class ContextManager {
+export class ContextManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #currentContext?: string
     #mobileContext?: string
     #isNativeContext: boolean
 
     constructor(browser: WebdriverIO.Browser) {
+        super(browser, ContextManager.name)
         this.#browser = browser
         const capabilities = this.#browser.capabilities
         this.#isNativeContext = getNativeContext({ capabilities, isMobile: this.#browser.isMobile })
@@ -40,18 +36,9 @@ export class ContextManager {
          * Listens for the 'closeWindow' browser command to handle context changes.
          * (classic + bidi)
          */
-        this.#browser.on('result', (event) => {
-            /**
-             * the `closeWindow` command returns:
-             *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
-             */
-            if (event.command === 'closeWindow') {
-                this.#currentContext = (event.result as { value: string[] }).value[0]
-                return this.#browser.switchToWindow(this.#currentContext)
-            }
-        })
+        this.#browser.on('result', this.#onCommandResultBidiAndClassic.bind(this))
 
-        if (!this.#isEnabled()) {
+        if (!this.isEnabled()) {
             return
         }
 
@@ -59,67 +46,84 @@ export class ContextManager {
          * Listens for the 'switchToWindow' browser command to handle context changes.
          * Updates the browsingContext with the context passed in 'switchToWindow'.
          */
-        this.#browser.on('command', (event) => {
-            /**
-             * update frame context if user switches using 'switchToWindow'
-             * which is WebDriver Classic only
-             */
-            if (event.command === 'switchToWindow') {
-                this.setCurrentContext((event.body as { handle: string }).handle)
-            }
-
-            /**
-             * reset current context if:
-             *   - user uses 'switchToParentFrame' which only impacts WebDriver Classic commands
-             *   - user uses 'refresh' which resets the context in Classic and so should in Bidi
-             */
-            if (
-                event.command === 'switchToParentFrame' ||
-                event.command === 'refresh'
-            ) {
-                this.#currentContext = undefined
-            }
-
-            /**
-             * Keep track of the context to which we switch
-             */
-            if (this.#browser.isMobile && event.command === 'switchContext') {
-                this.#mobileContext = (event.body as { name: string }).name
-            }
-        })
+        this.#browser.on('command', this.#onCommand.bind(this))
 
         /**
          * Listens for the 'closeWindow' browser command to handle context changes.
          */
-        this.#browser.on('result', (event) => {
-
-            if (this.#browser.isMobile) {
-                if (event.command === 'getContext') {
-                    this.setCurrentContext((event.result as { value: string }).value)
-                }
-                if (
-                    event.command === 'switchContext' &&
-                    (event.result as { value: string | null }).value === null &&
-                    this.#mobileContext
-                ) {
-                    this.setCurrentContext(this.#mobileContext)
-                }
-            }
-        })
+        if (this.#browser.isMobile) {
+            this.#browser.on('result', this.#onCommandResultMobile.bind(this))
+        }
     }
 
-    /**
-     * Only run this session helper if BiDi is enabled and we're not in unit tests.
-     */
-    #isEnabled () {
-        return !process.env.WDIO_UNIT_TESTS && (this.#browser.isBidi || this.#browser.isMobile)
+    removeListeners(): void {
+        super.removeListeners()
+        this.#browser.off('result', this.#onCommandResultBidiAndClassic.bind(this))
+        this.#browser.off('command', this.#onCommand.bind(this))
+        if (this.#browser.isMobile) {
+            this.#browser.off('result', this.#onCommandResultMobile.bind(this))
+        }
+    }
+
+    #onCommandResultBidiAndClassic(event: { command: string, result: unknown }) {
+        /**
+         * the `closeWindow` command returns:
+         *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
+         */
+        if (event.command === 'closeWindow') {
+            this.#currentContext = (event.result as { value: string[] }).value[0]
+            return this.#browser.switchToWindow(this.#currentContext)
+        }
+    }
+
+    #onCommand(event: { command: string, body: unknown }) {
+        /**
+         * update frame context if user switches using 'switchToWindow'
+         * which is WebDriver Classic only
+         */
+        if (event.command === 'switchToWindow') {
+            this.setCurrentContext((event.body as { handle: string }).handle)
+        }
+
+        /**
+         * reset current context if:
+         *   - user uses 'switchToParentFrame' which only impacts WebDriver Classic commands
+         *   - user uses 'refresh' which resets the context in Classic and so should in Bidi
+         *   - user uses 'reload' to reload the session
+         */
+        if (COMMANDS_REQUIRING_RESET.includes(event.command)) {
+            this.#currentContext = undefined
+        }
+
+        /**
+         * Keep track of the context to which we switch
+         */
+        if (this.#browser.isMobile && event.command === 'switchContext') {
+            this.#mobileContext = (event.body as { name: string }).name
+        }
+    }
+
+    #onCommandResultMobile(event: { command: string, result: unknown }) {
+        if (event.command === 'getContext') {
+            this.setCurrentContext((event.result as { value: string }).value)
+        }
+        if (
+            event.command === 'switchContext' &&
+            (event.result as { value: string | null }).value === null &&
+            this.#mobileContext
+        ) {
+            this.setCurrentContext(this.#mobileContext)
+        }
     }
 
     /**
      * set context at the start of the session
      */
     async initialize () {
-        if (!this.#isEnabled()) {
+        /**
+         * don't run this in unit tests
+         */
+        if (process.env.WDIO_UNIT_TESTS) {
             return ''
         }
 

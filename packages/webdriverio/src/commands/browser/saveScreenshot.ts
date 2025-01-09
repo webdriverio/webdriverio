@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { getBrowserObject } from '@wdio/utils'
 
-import { getContextManager } from '../../context.js'
+import { getContextManager } from '../../session/context.js'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
 
 /**

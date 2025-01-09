@@ -1,21 +1,15 @@
 import { type local } from 'webdriver'
 import logger from '@wdio/logger'
 
-import customElementWrapper from './scripts/customElement.js'
 import type { remote } from 'webdriver'
 
-const shadowRootManager = new Map<WebdriverIO.Browser, ShadowRootManager>()
+import { SessionManager } from './session.js'
+import customElementWrapper from '../scripts/customElement.js'
+
 const log = logger('webdriverio:ShadowRootManager')
 
 export function getShadowRootManager(browser: WebdriverIO.Browser) {
-    const existingShadowRootManager = shadowRootManager.get(browser)
-    if (existingShadowRootManager) {
-        return existingShadowRootManager
-    }
-
-    const newContext = new ShadowRootManager(browser)
-    shadowRootManager.set(browser, newContext)
-    return newContext
+    return SessionManager.getSessionManager(browser, ShadowRootManager)
 }
 
 /**
@@ -23,7 +17,7 @@ export function getShadowRootManager(browser: WebdriverIO.Browser) {
  * It allows to do deep element lookups and pierce into shadow DOMs across
  * all components of a page.
  */
-export class ShadowRootManager {
+export class ShadowRootManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #shadowRoots = new Map<string, ShadowRootTree>()
@@ -31,12 +25,13 @@ export class ShadowRootManager {
     #frameDepth = 0
 
     constructor(browser: WebdriverIO.Browser) {
+        super(browser, ShadowRootManager.name)
         this.#browser = browser
 
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
+        if (!this.isEnabled()) {
             this.#initialize = Promise.resolve(true)
             return
         }
@@ -50,9 +45,16 @@ export class ShadowRootManager {
         this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
         this.#browser.on('result', this.#commandResultHandler.bind(this))
         this.#browser.on('bidiCommand', this.#handleBidiCommand.bind(this))
-        browser.scriptAddPreloadScript({
+        this.#browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
+    }
+
+    removeListeners(): void {
+        super.removeListeners()
+        this.#browser.off('log.entryAdded', this.handleLogEntry.bind(this))
+        this.#browser.off('result', this.#commandResultHandler.bind(this))
+        this.#browser.off('bidiCommand', this.#handleBidiCommand.bind(this))
     }
 
     async initialize () {

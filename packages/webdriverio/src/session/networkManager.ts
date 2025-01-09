@@ -1,16 +1,8 @@
 import { type local } from 'webdriver'
-
-export const networkManager = new Map<WebdriverIO.Browser, NetworkManager>()
+import { SessionManager } from './session.js'
 
 export function getNetworkManager(browser: WebdriverIO.Browser) {
-    const existingNetworkManager = networkManager.get(browser)
-    if (existingNetworkManager) {
-        return existingNetworkManager
-    }
-
-    const newContext = new NetworkManager(browser)
-    networkManager.set(browser, newContext)
-    return newContext
+    return SessionManager.getSessionManager(browser, NetworkManager)
 }
 
 type Context = string
@@ -22,19 +14,20 @@ const SUPPORTED_NAVIGATION_PROTOCOLS = ['http', 'https', 'data', 'file']
  * It allows to do deep element lookups and pierce into shadow DOMs across
  * all components of a page.
  */
-export class NetworkManager {
+export class NetworkManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #requests = new Map<Context, WebdriverIO.Request>()
     #lastNetworkId?: string
 
     constructor(browser: WebdriverIO.Browser) {
+        super(browser, NetworkManager.name)
         this.#browser = browser
 
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
+        if (!this.isEnabled()) {
             this.#initialize = Promise.resolve(true)
             return
         }
@@ -54,6 +47,14 @@ export class NetworkManager {
         this.#browser.on('network.responseCompleted', this.#responseCompleted.bind(this))
         this.#browser.on('network.beforeRequestSent', this.#beforeRequestSent.bind(this))
         this.#browser.on('network.fetchError', this.#fetchError.bind(this))
+    }
+
+    removeListeners(): void {
+        super.removeListeners()
+        this.#browser.off('browsingContext.navigationStarted', this.#navigationStarted.bind(this))
+        this.#browser.off('network.responseCompleted', this.#responseCompleted.bind(this))
+        this.#browser.off('network.beforeRequestSent', this.#beforeRequestSent.bind(this))
+        this.#browser.off('network.fetchError', this.#fetchError.bind(this))
     }
 
     async initialize () {

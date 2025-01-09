@@ -165,7 +165,9 @@ describe('utils', () => {
                 findElements: vi.fn(),
                 findElement: vi.fn(),
                 execute: vi.fn(),
-                executeScript: vi.fn()
+                executeScript: vi.fn(),
+                on: vi.fn(),
+                removeAllListeners: vi.fn()
             } as unknown as WebdriverIO.Element
         })
 

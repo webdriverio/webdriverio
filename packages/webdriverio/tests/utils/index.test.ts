@@ -11,6 +11,7 @@ describe('findElement', () => {
     it('should find element using JS function', async () => {
         const elemRes = { [ELEMENT_KEY]: 'element-0' }
         const browser: any = {
+            on: vi.fn(),
             elementId: 'source-elem',
             executeScript: vi.fn().mockReturnValue(elemRes)
         }
@@ -21,6 +22,7 @@ describe('findElement', () => {
     it('should find element using JS function with referenceId', async () => {
         const elemRes = { [ELEMENT_KEY]: 'element-0' }
         const browser: any = {
+            on: vi.fn(),
             elementId: 'source-elem',
             executeScript: vi.fn().mockResolvedValue(elemRes)
         }
@@ -39,6 +41,7 @@ describe('findElement', () => {
 
     it('should not find element using JS function with referenceId', async () => {
         const browser: any = {
+            on: vi.fn(),
             elementId: 'source-elem',
             executeScript: vi.fn().mockRejectedValue(new Error('stale element reference: element is not attached to the page document'))
         }
