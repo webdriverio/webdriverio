@@ -120,10 +120,6 @@ export class ContextManager extends SessionManager {
      * set context at the start of the session
      */
     async initialize () {
-        if (!this.isEnabled()) {
-            return ''
-        }
-
         /**
          * If we're in a mobile context, we need to get the current context if it's not already set.
          */
