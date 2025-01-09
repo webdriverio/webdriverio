@@ -302,7 +302,7 @@ export async function switchFrame (
 
     throw new Error(
         `Invalid type for context parameter: ${typeof context}, expected one of number, string or null. ` +
-        'Check out our docs: https://webdriver.io/docs/api/browser/switchToFrame.html'
+        'Check out our docs: https://webdriver.io/docs/api/browser/switchFrame.html'
     )
 }
 
