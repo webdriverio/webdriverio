@@ -48,8 +48,7 @@
     "uuid": "^10.0.0",
     "webdriverio": "workspace:*",
     "winston-transport": "^4.5.0",
-    "yauzl": "^3.0.0",
-    "axios": "^1.7.4"
+    "yauzl": "^3.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0"
