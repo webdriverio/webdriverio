@@ -4,6 +4,7 @@ import zlib from 'node:zlib'
 import { format, promisify } from 'node:util'
 import path from 'node:path'
 import util from 'node:util'
+import got, { HTTPError } from 'got'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'

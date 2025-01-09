@@ -56,7 +56,8 @@
   "devDependencies": {
     "@types/node": "^20.1.0",
     "@types/yauzl": "^2.10.3",
-    "@wdio/globals": "workspace:*"
+    "@wdio/globals": "workspace:*",
+    "got": "^12.6.0"
   },
   "publishConfig": {
     "access": "public"
