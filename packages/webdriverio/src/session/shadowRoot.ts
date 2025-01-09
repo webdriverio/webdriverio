@@ -31,7 +31,7 @@ export class ShadowRootManager extends SessionManager {
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
+        if (!this.isEnabled()) {
             this.#initialize = Promise.resolve(true)
             return
         }
@@ -48,6 +48,12 @@ export class ShadowRootManager extends SessionManager {
         browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
+    }
+
+    removeListeners(): void {
+        super.removeListeners()
+        this.#browser.removeAllListeners('log.entryAdded')
+        this.#browser.removeAllListeners('bidiCommand')
     }
 
     async initialize () {

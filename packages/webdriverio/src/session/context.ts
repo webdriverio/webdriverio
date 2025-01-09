@@ -4,6 +4,7 @@ import { SessionManager } from './session.js'
 import { getMobileContext, getNativeContext } from '../utils/mobile.js'
 
 const log = logger('webdriverio:context')
+const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
 
 export function getContextManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, ContextManager)
@@ -46,7 +47,7 @@ export class ContextManager extends SessionManager {
             }
         })
 
-        if (!this.#isEnabled()) {
+        if (!this.isEnabled()) {
             return
         }
 
@@ -67,11 +68,9 @@ export class ContextManager extends SessionManager {
              * reset current context if:
              *   - user uses 'switchToParentFrame' which only impacts WebDriver Classic commands
              *   - user uses 'refresh' which resets the context in Classic and so should in Bidi
+             *   - user uses 'reload' to reload the session
              */
-            if (
-                event.command === 'switchToParentFrame' ||
-                event.command === 'refresh'
-            ) {
+            if (COMMANDS_REQUIRING_RESET.includes(event.command)) {
                 this.#currentContext = undefined
             }
 
@@ -87,7 +86,6 @@ export class ContextManager extends SessionManager {
          * Listens for the 'closeWindow' browser command to handle context changes.
          */
         this.#browser.on('result', (event) => {
-
             if (this.#browser.isMobile) {
                 if (event.command === 'getContext') {
                     this.setCurrentContext((event.result as { value: string }).value)
@@ -104,17 +102,10 @@ export class ContextManager extends SessionManager {
     }
 
     /**
-     * Only run this session helper if BiDi is enabled and we're not in unit tests.
-     */
-    #isEnabled () {
-        return !process.env.WDIO_UNIT_TESTS && (this.#browser.isBidi || this.#browser.isMobile)
-    }
-
-    /**
      * set context at the start of the session
      */
     async initialize () {
-        if (!this.#isEnabled()) {
+        if (!this.isEnabled()) {
             return ''
         }
 

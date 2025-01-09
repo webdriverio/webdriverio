@@ -27,7 +27,7 @@ export class PolyfillManager extends SessionManager {
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
+        if (!this.isEnabled()) {
             this.#initialize = Promise.resolve(true)
             return
         }

@@ -22,7 +22,7 @@ export class DialogManager extends SessionManager {
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
+        if (!this.isEnabled()) {
             this.#initialize = Promise.resolve(true)
             return
         }
@@ -38,6 +38,13 @@ export class DialogManager extends SessionManager {
         // @ts-ignore this is a private event
         this.#browser.on('_dialogListenerRemoved', () => this.#switchListenerFlag(true))
         this.#browser.on('browsingContext.userPromptOpened', this.#handleUserPrompt.bind(this))
+    }
+
+    removeListeners(): void {
+        super.removeListeners()
+        this.#browser.removeAllListeners('browsingContext.userPromptOpened')
+        this.#browser.removeAllListeners('_dialogListenerRegistered')
+        this.#browser.removeAllListeners('_dialogListenerRemoved')
     }
 
     async initialize () {

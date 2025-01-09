@@ -27,7 +27,7 @@ export class NetworkManager extends SessionManager {
         /**
          * don't run setup when Bidi is not supported or running unit tests
          */
-        if (!browser.isBidi || process.env.WDIO_UNIT_TESTS || browser.options?.automationProtocol !== 'webdriver') {
+        if (!this.isEnabled()) {
             this.#initialize = Promise.resolve(true)
             return
         }
@@ -47,6 +47,14 @@ export class NetworkManager extends SessionManager {
         this.#browser.on('network.responseCompleted', this.#responseCompleted.bind(this))
         this.#browser.on('network.beforeRequestSent', this.#beforeRequestSent.bind(this))
         this.#browser.on('network.fetchError', this.#fetchError.bind(this))
+    }
+
+    removeListeners(): void {
+        super.removeListeners()
+        this.#browser.removeAllListeners('browsingContext.navigationStarted')
+        this.#browser.removeAllListeners('network.responseCompleted')
+        this.#browser.removeAllListeners('network.beforeRequestSent')
+        this.#browser.removeAllListeners('network.fetchError')
     }
 
     async initialize () {
@@ -162,7 +170,6 @@ export class NetworkManager extends SessionManager {
 
     #responseCompleted (log: local.NetworkResponseCompletedParameters) {
         const response = this.#findRootRequest(log.navigation)
-        console.log('-----> response', log.navigation, response)
         if (!response) {
             return
         }
