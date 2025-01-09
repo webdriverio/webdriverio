@@ -121,6 +121,13 @@ export class ContextManager extends SessionManager {
      */
     async initialize () {
         /**
+         * don't run this in unit tests
+         */
+        if (process.env.WDIO_UNIT_TESTS) {
+            return ''
+        }
+
+        /**
          * If we're in a mobile context, we need to get the current context if it's not already set.
          */
         if (
