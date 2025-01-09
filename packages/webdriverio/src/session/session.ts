@@ -2,6 +2,7 @@ const sessionManager = new Map<string, Map<WebdriverIO.Browser, SessionManager>>
 
 export class SessionManager {
     #browser: WebdriverIO.Browser
+    #scope: string
 
     /**
      * SessionManager constructor
@@ -12,21 +13,23 @@ export class SessionManager {
      */
     constructor(browser: WebdriverIO.Browser, scope: string) {
         this.#browser = browser
-        browser.on('command', (ev) => {
-            if (ev.command === 'deleteSession') {
-                const sessionManagerInstances = sessionManager.get(scope)
-                const sessionManagerInstance = sessionManagerInstances?.get(browser)
-                if (sessionManagerInstance && sessionManagerInstances) {
-                    sessionManagerInstance.removeListeners()
-                    sessionManagerInstances.delete(browser)
-                }
+        this.#browser.on('command', this.#onCommand.bind(this))
+        this.#scope = scope
+    }
+
+    #onCommand(ev: { command: string }) {
+        if (ev.command === 'deleteSession') {
+            const sessionManagerInstances = sessionManager.get(this.#scope)
+            const sessionManagerInstance = sessionManagerInstances?.get(this.#browser)
+            if (sessionManagerInstance && sessionManagerInstances) {
+                sessionManagerInstance.removeListeners()
+                sessionManagerInstances.delete(this.#browser)
             }
-        })
+        }
     }
 
     removeListeners() {
-        this.#browser.removeAllListeners('result')
-        this.#browser.removeAllListeners('command')
+        this.#browser.off('result', this.#onCommand.bind(this))
     }
 
     initialize(): unknown {

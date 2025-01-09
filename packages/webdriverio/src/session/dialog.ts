@@ -42,7 +42,7 @@ export class DialogManager extends SessionManager {
 
     removeListeners(): void {
         super.removeListeners()
-        this.#browser.removeAllListeners('browsingContext.userPromptOpened')
+        this.#browser.off('browsingContext.userPromptOpened', this.#handleUserPrompt.bind(this))
         this.#browser.removeAllListeners('_dialogListenerRegistered')
         this.#browser.removeAllListeners('_dialogListenerRemoved')
     }

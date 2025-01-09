@@ -1,13 +1,13 @@
 import path from 'node:path'
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 import { remote } from '../../../src/index.js'
-import { getContextManager } from '../../../src/context.js'
+import { getContextManager } from '../../../src/session/context.js'
 import { ELEMENT_KEY } from 'webdriver'
 
 let browser: WebdriverIO.Browser
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('../../../src/context.ts', () => {
+vi.mock('../../../src/session/context.ts', () => {
     const manager = {
         getCurrentContext: vi.fn().mockResolvedValue('5D4662C2B4465334DFD34239BA1E9E66'),
         setCurrentContext: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock('../../../src/context.ts', () => {
     return { getContextManager: () => manager }
 })
 
-const contextManager = getContextManager({} as any)
+const contextManager = getContextManager({ on: vi.fn() } as any)
 
 describe('switchFrame command', () => {
     describe('non bidi', () => {
@@ -130,7 +130,7 @@ describe('switchFrame command', () => {
             elemExecute.mockResolvedValue({
                 context: '5D4662C2B4465334DFD34239BA1E9E66'
             })
-            vi.spyOn(elem, 'waitForExist').mockResolvedValue({})
+            vi.spyOn(elem, 'waitForExist').mockResolvedValue(true)
 
             await browser.switchFrame(elem)
             expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')

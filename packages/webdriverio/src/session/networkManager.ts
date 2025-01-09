@@ -51,10 +51,10 @@ export class NetworkManager extends SessionManager {
 
     removeListeners(): void {
         super.removeListeners()
-        this.#browser.removeAllListeners('browsingContext.navigationStarted')
-        this.#browser.removeAllListeners('network.responseCompleted')
-        this.#browser.removeAllListeners('network.beforeRequestSent')
-        this.#browser.removeAllListeners('network.fetchError')
+        this.#browser.off('browsingContext.navigationStarted', this.#navigationStarted.bind(this))
+        this.#browser.off('network.responseCompleted', this.#responseCompleted.bind(this))
+        this.#browser.off('network.beforeRequestSent', this.#beforeRequestSent.bind(this))
+        this.#browser.off('network.fetchError', this.#fetchError.bind(this))
     }
 
     async initialize () {

@@ -1,6 +1,6 @@
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 
-import { getShadowRootManager, ShadowRootTree } from '../src/shadowRoot.js'
+import { getShadowRootManager, ShadowRootTree } from '../src/session/shadowRoot.js'
 
 const defaultBrowser = {
     sessionSubscribe: vi.fn().mockResolvedValue({}),
@@ -31,7 +31,7 @@ describe('ShadowRootManager', () => {
         process.env.WDIO_UNIT_TESTS = wid
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
-        expect(browser.on).toBeCalledTimes(3)
+        expect(browser.on).toBeCalledTimes(4)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
     })
 
@@ -40,7 +40,7 @@ describe('ShadowRootManager', () => {
         const manager = getShadowRootManager(browser)
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(0)
-        expect(browser.on).toBeCalledTimes(0)
+        expect(browser.on).toBeCalledTimes(1)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(0)
     })
 
@@ -49,7 +49,7 @@ describe('ShadowRootManager', () => {
         const manager = getShadowRootManager(browser)
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(0)
-        expect(browser.on).toBeCalledTimes(0)
+        expect(browser.on).toBeCalledTimes(1)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(0)
     })
 

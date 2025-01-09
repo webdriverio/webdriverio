@@ -45,15 +45,16 @@ export class ShadowRootManager extends SessionManager {
         this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
         this.#browser.on('result', this.#commandResultHandler.bind(this))
         this.#browser.on('bidiCommand', this.#handleBidiCommand.bind(this))
-        browser.scriptAddPreloadScript({
+        this.#browser.scriptAddPreloadScript({
             functionDeclaration: customElementWrapper.toString()
         })
     }
 
     removeListeners(): void {
         super.removeListeners()
-        this.#browser.removeAllListeners('log.entryAdded')
-        this.#browser.removeAllListeners('bidiCommand')
+        this.#browser.off('log.entryAdded', this.handleLogEntry.bind(this))
+        this.#browser.off('result', this.#commandResultHandler.bind(this))
+        this.#browser.off('bidiCommand', this.#handleBidiCommand.bind(this))
     }
 
     async initialize () {
