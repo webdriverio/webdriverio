@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.5.3 (2025-01-09)
+
+#### :bug: Bug Fix
+* `webdriver`, `webdriverio`
+  * [#13906](https://github.com/webdriverio/webdriverio/pull/13906) fix(webdriverio): consolidate session manager ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v9.5.2 (2025-01-09)
 
 #### :bug: Bug Fix
