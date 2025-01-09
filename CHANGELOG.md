@@ -23,6 +23,29 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.5.2 (2025-01-09)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14025](https://github.com/webdriverio/webdriverio/pull/14025) fix(webdriverio): better handle window switching in webdriver classic ([@navin772](https://github.com/navin772))
+  * [#14037](https://github.com/webdriverio/webdriverio/pull/14037) fix(webdriverio): define getProperty return type as 'unknown' ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-testingbot-service`
+  * [#14033](https://github.com/webdriverio/webdriverio/pull/14033) Add setAnnotation to TestingBot service ([@jochen-testingbot](https://github.com/jochen-testingbot))
+* `wdio-appium-service`
+  * [#14032](https://github.com/webdriverio/webdriverio/pull/14032) fix(@wdio/appium-service): start Appium server with multiremote capabilities ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#14040](https://github.com/webdriverio/webdriverio/pull/14040) docs: document how to retrive browser logs ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* [#14026](https://github.com/webdriverio/webdriverio/pull/14026) update pnpm-lock.yaml ([@navin772](https://github.com/navin772))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jochen ([@jochen-testingbot](https://github.com/jochen-testingbot))
+- Navin Chandra ([@navin772](https://github.com/navin772))
+
+
 ## v9.5.1 (2025-01-03)
 
 #### :bug: Bug Fix
