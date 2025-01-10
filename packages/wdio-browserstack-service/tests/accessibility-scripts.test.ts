@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 
-import { describe, expect, it, vi, afterAll, beforeAll } from 'vitest'
+import { describe, expect, it, vi, afterAll, beforeAll, beforeEach } from 'vitest'
 
 import AccessibilityScripts from '../src/scripts/accessibility-scripts.js'
 
@@ -9,7 +9,8 @@ vi.mock('node:fs', () => ({
         readFileSync: vi.fn().mockReturnValue('{"scripts": {"scan": "scan", "getResults": "getResults", "getResultsSummary": "getResultsSummary", "saveResults": "saveResults"}, "commands": [{"command": "command1"}, {"command": "command2"}]}'),
         writeFileSync: vi.fn(),
         existsSync: vi.fn().mockReturnValue(true),
-        mkdirSync: vi.fn()
+        mkdirSync: vi.fn(),
+        accessSync: vi.fn()
     }
 }))
 
@@ -78,5 +79,27 @@ describe('AccessibilityScripts', () => {
                 }
             })
         )
+    })
+})
+
+describe('getWritableDir', () => {
+    let accessibilityScripts: typeof AccessibilityScripts
+    let existsSyncStub: any
+    let accessSyncStub: any
+    let writableDir: string
+    beforeAll(() => {
+        accessibilityScripts = AccessibilityScripts
+        existsSyncStub = vi.spyOn(fs, 'existsSync')
+        accessSyncStub = vi.spyOn(fs, 'accessSync')
+    })
+
+    beforeEach(() => {
+        writableDir = accessibilityScripts.getWritableDir()
+    })
+
+    it('should return a path when directory is present', () => {
+        expect(existsSyncStub).toHaveBeenCalled()
+        expect(accessSyncStub).toHaveBeenCalled()
+        expect(writableDir).toBeTruthy()
     })
 })
