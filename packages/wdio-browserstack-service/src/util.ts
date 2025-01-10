@@ -429,19 +429,14 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
 export const validateCapsWithAppA11y = (platformMeta?: { [key: string]: any; }) => {
     /* Check if the current driver platform is eligible for AppAccessibility scan */
     BStackLogger.debug(`platformMeta ${JSON.stringify(platformMeta)}`)
-    try {
-        if (
-            (platformMeta?.platform_name && String(platformMeta?.platform_name).toLowerCase() === 'android') &&
-            (platformMeta?.platform_version && parseInt(platformMeta?.platform_version?.toString()) < 11)
-        ) {
-            BStackLogger.warn('App Accessibility Automation tests are supported on OS version 11 and above for Android devices.')
-            return false
-        }
-        return true
-    } catch (error) {
-        BStackLogger.debug(`Exception in checking capabilities compatibility with AppAccessibility. Error: ${error}`)
+    if (
+        (platformMeta?.platform_name && String(platformMeta?.platform_name).toLowerCase() === 'android') &&
+        (platformMeta?.platform_version && parseInt(platformMeta?.platform_version?.toString()) < 11)
+    ) {
+        BStackLogger.warn('App Accessibility Automation tests are supported on OS version 11 and above for Android devices.')
+        return false
     }
-    return false
+    return true
 }
 
 export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
@@ -509,13 +504,8 @@ export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | s
 }
 
 export const isAppAccessibilityAutomationSession = (accessibilityFlag?: boolean | string, isAppAutomate?: boolean) => {
-    try {
-        const accessibilityAutomation = isAccessibilityAutomationSession(accessibilityFlag)
-        return accessibilityAutomation && isAppAutomate
-    } catch (error) {
-        BStackLogger.debug(`Exception in verifying the Accessibility session with error : ${error}`)
-    }
-    return false
+    const accessibilityAutomation = isAccessibilityAutomationSession(accessibilityFlag)
+    return accessibilityAutomation && isAppAutomate
 }
 
 export const formatString = (template: (string | null), ...values: (string | null)[]): string => {
@@ -1485,79 +1475,71 @@ type PollingResult = {
     message?: string; // Optional message for timeout cases
   };
 
-export function pollApi(
+export async function pollApi(
     url: string,
     params: Record<string, any>,
     headers: Record<string, string>,
     upperLimit: number,
     startTime = Date.now()
 ): Promise<PollingResult> {
-    return new Promise((resolve, reject) => {
-        params.timestamp = Math.round(Date.now() / 1000)
-        BStackLogger.debug(`current timestamp ${params.timestamp}`)
+    params.timestamp = Math.round(Date.now() / 1000)
+    BStackLogger.debug(`current timestamp ${params.timestamp}`)
 
-        got(url, {
+    try {
+        const response = await got(url, {
             searchParams: params,
-            headers
+            headers,
         })
-            .then(response => {
-                const responseData = JSON.parse(response.body)
-                resolve({
-                    data: responseData,
-                    headers: response.headers,
-                    message: 'Polling succeeded.',
-                })
-            })
-            .catch(error => {
-                if (error.response && error.response.statusCode === 404) {
-                    const nextPollTime = parseInt(error.response.headers.next_poll_time as string, 10) * 1000
-                    BStackLogger.debug(`timeInMillis ${nextPollTime}`)
 
-                    if (isNaN(nextPollTime)) {
-                        BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
-                        resolve({
-                            data: {},
-                            headers: error.response.headers,
-                            message: 'Invalid nextPollTime header value. Polling stopped.',
-                        })
-                        return
-                    }
+        const responseData = JSON.parse(response.body)
+        return {
+            data: responseData,
+            headers: response.headers,
+            message: 'Polling succeeded.',
+        }
+    } catch (error: any) {
+        if (error.response && error.response.statusCode === 404) {
+            const nextPollTime = parseInt(error.response.headers.next_poll_time as string, 10) * 1000
+            BStackLogger.debug(`timeInMillis ${nextPollTime}`)
 
-                    const elapsedTime = nextPollTime - Date.now()
-                    BStackLogger.debug(
-                        `elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`
-                    )
-
-                    // Stop polling if the upper time limit is reached
-                    if (nextPollTime > upperLimit) {
-                        BStackLogger.warn('Polling stopped due to upper time limit.')
-                        resolve({
-                            data: {},
-                            headers: error.response.headers,
-                            message: 'Polling stopped due to upper time limit.',
-                        })
-                        return
-                    }
-
-                    BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
-
-                    // Wait for the specified time and poll again
-                    setTimeout(() => {
-                        pollApi(url, params, headers, upperLimit, startTime)
-                            .then(resolve)
-                            .catch(reject)
-                    }, elapsedTime)
-                } else if (error.response) {
-                    reject({
-                        data: {},
-                        headers: {},
-                        message: error.response.body ? JSON.parse(error.response.body).message : 'Unknown error'
-                    })
-                } else {
-                    BStackLogger.error(`Unexpected error occurred: ${error}`)
-                    resolve({ data: {}, headers: {}, message: 'Unexpected error occurred.' })
+            if (isNaN(nextPollTime)) {
+                BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
+                return {
+                    data: {},
+                    headers: error.response.headers,
+                    message: 'Invalid nextPollTime header value. Polling stopped.',
                 }
-            })
-    })
-}
+            }
 
+            const elapsedTime = nextPollTime - Date.now()
+            BStackLogger.debug(
+                `elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`
+            )
+
+            // Stop polling if the upper time limit is reached
+            if (nextPollTime > upperLimit) {
+                BStackLogger.warn('Polling stopped due to upper time limit.')
+                return {
+                    data: {},
+                    headers: error.response.headers,
+                    message: 'Polling stopped due to upper time limit.',
+                }
+            }
+
+            BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
+
+            // Wait for the specified time and poll again
+            await new Promise((resolve) => setTimeout(resolve, elapsedTime))
+            return pollApi(url, params, headers, upperLimit, startTime)
+        } else if (error.response) {
+            throw {
+                data: {},
+                headers: {},
+                message: error.response.body ? JSON.parse(error.response.body).message : 'Unknown error',
+            }
+        } else {
+            BStackLogger.error(`Unexpected error occurred: ${error}`)
+            return { data: {}, headers: {}, message: 'Unexpected error occurred.' }
+        }
+    }
+}
