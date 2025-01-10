@@ -65,13 +65,19 @@ export class ContextManager extends SessionManager {
         }
     }
 
-    #onCommandResultBidiAndClassic(event: { command: string, result: unknown }) {
+    async #onCommandResultBidiAndClassic(event: { command: string, result: unknown }) {
         /**
          * the `closeWindow` command returns:
          *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
          */
         if (event.command === 'closeWindow') {
-            this.#currentContext = (event.result as { value: string[] }).value[0]
+            const windowHandles = (event.result as { value: string[] }).value
+            if (windowHandles.length === 0) {
+                const newWindowHandle = await this.#browser.createWindow('tab')
+                this.#currentContext = newWindowHandle.handle
+                return this.#browser.switchToWindow(this.#currentContext)
+            }
+            this.#currentContext = windowHandles[0]
             return this.#browser.switchToWindow(this.#currentContext)
         }
     }
