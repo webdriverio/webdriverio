@@ -41,8 +41,14 @@ export const config = {
      */
     capabilities: [
         isMac
-            ? { browserName: 'safari' }
-            : { browserName: 'chrome', browserVersion: 'canary' }
+            ? {
+                browserName: 'safari'
+            }
+            : {
+                browserName: 'chrome',
+                browserVersion: 'canary',
+                ...(process.env.CI ? { 'goog:chromeOptions': { args: ['--headless'] } } : {})
+            }
     ],
 
     /**
