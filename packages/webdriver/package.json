@@ -44,7 +44,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
-    "undici": "^6.20.1",
+    "undici": "^7.2.1",
     "ws": "^8.8.0"
   }
 }
