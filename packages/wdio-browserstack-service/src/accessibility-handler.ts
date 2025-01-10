@@ -144,8 +144,7 @@ class _AccessibilityHandler {
                 try {
                     // @ts-expect-error fix type
                     browser.overwriteCommand(command.name, this.commandWrapper.bind(this, command), command.class === 'Element')
-                }
-                catch(error) {
+                } catch (error) {
                     BStackLogger.debug(`Exception in overwrite command ${command.name} - ${error}`)
                 }
             })

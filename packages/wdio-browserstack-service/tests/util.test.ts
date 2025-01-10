@@ -1,5 +1,4 @@
 import path from 'node:path'
-import axios from 'axios'
 import type { LaunchResponse } from '../src/types.js'
 
 import { describe, expect, it, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
@@ -1748,15 +1747,14 @@ describe('getAppA11yResults', () => {
                         }),
                     },
                 })
-            );
-        });
+            )
+        })
         const result = {
             data: {
                 issues: [{ 'issueName': 'Readable Text Spacing' }],
             },
-        };
-        
-        logInfoMock = vi.spyOn(log, 'warn');
+        }
+        logInfoMock = vi.spyOn(log, 'warn')
         vi.mocked(fetch).mockResolvedValue({
             json: () => Promise.resolve(result),
             headers: {
@@ -1764,8 +1762,7 @@ describe('getAppA11yResults', () => {
                     next_poll_time: '10',
                 }),
             },
-        });
-        
+        })
     })
 
     it('should return empty array if not a BrowserStack session', async () => {
@@ -1867,9 +1864,8 @@ describe('getAppA11yResultsSummary', () => {
                         }),
                     },
                 })
-            );
-        });
-        
+            )
+        })
         const result = {
             data: {
                 summary: {
@@ -1882,9 +1878,8 @@ describe('getAppA11yResultsSummary', () => {
                     },
                 },
             },
-        };
-        
-        logInfoMock = vi.spyOn(log, 'warn');
+        }
+        logInfoMock = vi.spyOn(log, 'warn')
         vi.mocked(fetch).mockResolvedValue({
             json: () => Promise.resolve(result),
             headers: {
@@ -1892,7 +1887,7 @@ describe('getAppA11yResultsSummary', () => {
                     next_poll_time: '10',
                 }),
             },
-        });        
+        })
     })
 
     it('should return empty object if not a BrowserStack session', async () => {

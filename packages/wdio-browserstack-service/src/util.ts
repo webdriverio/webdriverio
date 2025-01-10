@@ -1483,7 +1483,7 @@ type PollingResult = {
     message?: string; // Optional message for timeout cases
   };
 
-  export async function pollApi(
+export async function pollApi(
     url: string,
     params: Record<string, any>,
     headers: Record<string, string>,
@@ -1495,10 +1495,10 @@ type PollingResult = {
 
     try {
         // Manually append the parameters to the URL
-        const urlWithParams = new URL(url);
+        const urlWithParams = new URL(url)
         for (const key in params) {
-            if (params.hasOwnProperty(key)) {
-                urlWithParams.searchParams.append(key, params[key].toString());
+            if (Object.prototype.hasOwnProperty.call(params, key)) {
+                urlWithParams.searchParams.append(key, params[key].toString())
             }
         }
 
@@ -1559,4 +1559,3 @@ type PollingResult = {
         }
     }
 }
-  
