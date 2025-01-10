@@ -26,7 +26,7 @@ export default class Watcher {
     }
 
     async watch () {
-        await this._launcher.configParser.initialize()
+        await this._launcher.initialize()
         const specs = this._launcher.configParser.getSpecs()
         const capSpecs = this._launcher.isMultiremote
             ? []
