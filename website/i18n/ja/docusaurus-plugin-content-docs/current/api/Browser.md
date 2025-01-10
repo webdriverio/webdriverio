@@ -184,6 +184,33 @@ In case of a command error, the event payload will be:
 - `message`: details about the error
 - `stacktrace`: a stack trace
 
+#### `request.start`
+This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.
+
+```ts
+browser.on('request.start', (ev: RequestInit) => {
+    // ...
+})
+```
+
+#### `request.end`
+This event is fired once the request to the driver received a response. The event object either contains the response body as result or an error if the WebDriver command failed.
+
+```ts
+browser.on('request.end', (ev: { result: unknown, error?: Error }) => {
+    // ...
+})
+```
+
+#### `request.retry`
+The retry event can notify you when WebdriverIO attempts to retry running the command, e.g. due to a network issue. It contains information about the error that caused the retry and the amount of retries already done.
+
+```ts
+browser.on('request.retry', (ev: { error: Error, retryCount: number }) => {
+    // ...
+})
+```
+
 #### `request.performance`
 WebDriverレベルの動作を計測するイベントです。 WebdriverIO が WebDriver バックエンドにリクエストを送信するたびに、イベントがいくつかの下記のような有用な情報とともに発行されます。
 
