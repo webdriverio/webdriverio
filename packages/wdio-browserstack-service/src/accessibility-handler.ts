@@ -146,7 +146,7 @@ class _AccessibilityHandler {
                     browser.overwriteCommand(command.name, this.commandWrapper.bind(this, command), command.class === 'Element')
                 }
                 catch(error) {
-                    BStackLogger.error(`Exception in overwrite command ${command.name} - ${error}`)
+                    BStackLogger.debug(`Exception in overwrite command ${command.name} - ${error}`)
                 }
             })
     }

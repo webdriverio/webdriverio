@@ -1735,6 +1735,37 @@ describe('getAppA11yResults', () => {
 
     beforeEach(() => {
         logInfoMock = vi.spyOn(log, 'warn')
+        vi.mock('node-fetch', () => {
+            return vi.fn(() =>
+                Promise.resolve({
+                    json: () =>
+                        Promise.resolve({
+                            issues: [{ 'issueName': 'Readable Text Spacing' }],
+                        }),
+                    headers: {
+                        raw: () => ({
+                            next_poll_time: '10',
+                        }),
+                    },
+                })
+            );
+        });
+        const result = {
+            data: {
+                issues: [{ 'issueName': 'Readable Text Spacing' }],
+            },
+        };
+        
+        logInfoMock = vi.spyOn(log, 'warn');
+        vi.mocked(fetch).mockResolvedValue({
+            json: () => Promise.resolve(result),
+            headers: {
+                raw: () => ({
+                    next_poll_time: '10',
+                }),
+            },
+        });
+        
     })
 
     it('should return empty array if not a BrowserStack session', async () => {
@@ -1762,7 +1793,7 @@ describe('getAppA11yResults', () => {
     })
 
     it('should return results for valid app accessibility session', async () => {
-        const mockResults = [{ id: 1, result: 'success' }]
+        const mockResults = [{ 'issueName': 'Readable Text Spacing' }]
 
         const browser = {
             execute: vi.fn().mockResolvedValue(mockResults),
@@ -1776,19 +1807,6 @@ describe('getAppA11yResults', () => {
 
         vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
         vi.spyOn(utils, 'performA11yScan').mockResolvedValue(undefined)
-
-        vi.spyOn(axios, 'get').mockImplementation(() => {
-            return Promise.resolve({
-                data: {
-                    data: {
-                        issues: mockResults,
-                    },
-                },
-                headers: {
-                    next_poll_time: '10',
-                },
-            })
-        })
 
         const result = await getAppA11yResults(true, browser, true, true, 'session123')
 
@@ -1825,6 +1843,56 @@ describe('getAppA11yResultsSummary', () => {
                 }
             }
         } as any)
+
+        vi.mock('node-fetch', () => {
+            return vi.fn(() =>
+                Promise.resolve({
+                    json: () =>
+                        Promise.resolve({
+                            data: {
+                                summary: {
+                                    'totalIssueCount': 64,
+                                    'totalBySeverity': {
+                                        'minor': 0,
+                                        'serious': 0,
+                                        'critical': 6,
+                                        'moderate': 58,
+                                    },
+                                },
+                            },
+                        }),
+                    headers: {
+                        raw: () => ({
+                            next_poll_time: '10',
+                        }),
+                    },
+                })
+            );
+        });
+        
+        const result = {
+            data: {
+                summary: {
+                    'totalIssueCount': 64,
+                    'totalBySeverity': {
+                        'minor': 0,
+                        'serious': 0,
+                        'critical': 6,
+                        'moderate': 58,
+                    },
+                },
+            },
+        };
+        
+        logInfoMock = vi.spyOn(log, 'warn');
+        vi.mocked(fetch).mockResolvedValue({
+            json: () => Promise.resolve(result),
+            headers: {
+                raw: () => ({
+                    next_poll_time: '10',
+                }),
+            },
+        });        
     })
 
     it('should return empty object if not a BrowserStack session', async () => {
@@ -1852,7 +1920,7 @@ describe('getAppA11yResultsSummary', () => {
     })
 
     it('should return results summary for valid app accessibility session', async () => {
-        const mockResults = [{ id: 1, result: 'success' }]
+        const mockResults = { 'totalIssueCount' : 64, 'totalBySeverity': { 'minor':0, 'serious':0, 'critical': 6, 'moderate': 58 } }
 
         const browser = {
             execute: vi.fn().mockResolvedValue(mockResults),
@@ -1866,19 +1934,6 @@ describe('getAppA11yResultsSummary', () => {
 
         vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
         vi.spyOn(utils, 'performA11yScan').mockResolvedValue(undefined)
-
-        vi.spyOn(axios, 'get').mockImplementation(() => {
-            return Promise.resolve({
-                data: {
-                    data: {
-                        summary: mockResults,
-                    },
-                },
-                headers: {
-                    next_poll_time: '10',
-                },
-            })
-        })
 
         const result = await getAppA11yResultsSummary(true, browser, true, true, 'session123')
 

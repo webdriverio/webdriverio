@@ -4,7 +4,6 @@ import zlib from 'node:zlib'
 import { format, promisify } from 'node:util'
 import path from 'node:path'
 import util from 'node:util'
-// import got from 'got'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -524,13 +523,8 @@ export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | s
 }
 
 export const isAppAccessibilityAutomationSession = (accessibilityFlag?: boolean | string, isAppAutomate?: boolean) => {
-    try {
-        const accessibilityAutomation = isAccessibilityAutomationSession(accessibilityFlag)
-        return accessibilityAutomation && isAppAutomate
-    } catch (error) {
-        BStackLogger.debug(`Exception in verifying the Accessibility session with error : ${error}`)
-    }
-    return false
+    const accessibilityAutomation = isAccessibilityAutomationSession(accessibilityFlag)
+    return accessibilityAutomation && isAppAutomate
 }
 
 export const formatString = (template: (string | null), ...values: (string | null)[]): string => {
@@ -655,14 +649,9 @@ const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, 
     const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) * 1000 : Date.now() + 30000
     const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
     const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
-    // const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
-    // BStackLogger.debug(`Polling Result: ${JSON.stringify(apiRespone)}`)
-    // return apiRespone
-    return {
-        data: {},
-        headers: {},
-        message: 'Invalid nextPollTime header value. Polling stopped.'
-    }
+    const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
+    BStackLogger.debug(`Polling Result: ${JSON.stringify(apiRespone)}`)
+    return apiRespone
 }
 
 export const getA11yResultsSummary = async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
@@ -1494,78 +1483,80 @@ type PollingResult = {
     message?: string; // Optional message for timeout cases
   };
 
-// export function pollApi(
-//     url: string,
-//     params: Record<string, any>,
-//     headers: Record<string, string>,
-//     upperLimit: number,
-//     startTime = Date.now()
-// ): Promise<PollingResult> {
-//     return new Promise((resolve, reject) => {
-//         params.timestamp = Math.round(Date.now() / 1000)
-//         BStackLogger.debug(`current timestamp ${params.timestamp}`)
+  export async function pollApi(
+    url: string,
+    params: Record<string, any>,
+    headers: Record<string, string>,
+    upperLimit: number,
+    startTime = Date.now()
+): Promise<PollingResult> {
+    params.timestamp = Math.round(Date.now() / 1000)
+    BStackLogger.debug(`current timestamp ${params.timestamp}`)
 
-//         got(url, {
-//             searchParams: params,
-//             headers
-//         })
-//             .then(response => {
-//                 const responseData = JSON.parse(response.body)
-//                 resolve({
-//                     data: responseData,
-//                     headers: response.headers,
-//                     message: 'Polling succeeded.',
-//                 })
-//             })
-//             .catch(error => {
-//                 if (error.response && error.response.statusCode === 404) {
-//                     const nextPollTime = parseInt(error.response.headers.next_poll_time as string, 10) * 1000
-//                     BStackLogger.debug(`timeInMillis ${nextPollTime}`)
+    try {
+        // Manually append the parameters to the URL
+        const urlWithParams = new URL(url);
+        for (const key in params) {
+            if (params.hasOwnProperty(key)) {
+                urlWithParams.searchParams.append(key, params[key].toString());
+            }
+        }
 
-//                     if (isNaN(nextPollTime)) {
-//                         BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
-//                         resolve({
-//                             data: {},
-//                             headers: error.response.headers,
-//                             message: 'Invalid nextPollTime header value. Polling stopped.',
-//                         })
-//                         return
-//                     }
+        const response = await fetch(urlWithParams.toString(), {
+            method: 'GET',
+            headers: headers,
+        })
 
-//                     const elapsedTime = nextPollTime - Date.now()
-//                     BStackLogger.debug(
-//                         `elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`
-//                     )
+        const responseData = await response.json()
+        return {
+            data: responseData,
+            headers: response.headers,
+            message: 'Polling succeeded.',
+        }
+    } catch (error: any) {
+        if (error.response && error.response.status === 404) {
+            const nextPollTime = parseInt(error.response.headers.get('next_poll_time') as string, 10) * 1000
+            BStackLogger.debug(`timeInMillis ${nextPollTime}`)
 
-//                     // Stop polling if the upper time limit is reached
-//                     if (nextPollTime > upperLimit) {
-//                         BStackLogger.warn('Polling stopped due to upper time limit.')
-//                         resolve({
-//                             data: {},
-//                             headers: error.response.headers,
-//                             message: 'Polling stopped due to upper time limit.',
-//                         })
-//                         return
-//                     }
+            if (isNaN(nextPollTime)) {
+                BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
+                return {
+                    data: {},
+                    headers: error.response.headers,
+                    message: 'Invalid nextPollTime header value. Polling stopped.',
+                }
+            }
 
-//                     BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
+            const elapsedTime = nextPollTime - Date.now()
+            BStackLogger.debug(
+                `elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`
+            )
 
-//                     // Wait for the specified time and poll again
-//                     setTimeout(() => {
-//                         pollApi(url, params, headers, upperLimit, startTime)
-//                             .then(resolve)
-//                             .catch(reject)
-//                     }, elapsedTime)
-//                 } else if (error.response) {
-//                     reject({
-//                         data: {},
-//                         headers: {},
-//                         message: error.response.body ? JSON.parse(error.response.body).message : 'Unknown error'
-//                     })
-//                 } else {
-//                     BStackLogger.error(`Unexpected error occurred: ${error}`)
-//                     resolve({ data: {}, headers: {}, message: 'Unexpected error occurred.' })
-//                 }
-//             })
-//     })
-// }
+            // Stop polling if the upper time limit is reached
+            if (nextPollTime > upperLimit) {
+                BStackLogger.warn('Polling stopped due to upper time limit.')
+                return {
+                    data: {},
+                    headers: error.response.headers,
+                    message: 'Polling stopped due to upper time limit.',
+                }
+            }
+
+            BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
+
+            // Wait for the specified time and poll again
+            await new Promise((resolve) => setTimeout(resolve, elapsedTime))
+            return pollApi(url, params, headers, upperLimit, startTime)
+        } else if (error.response) {
+            throw {
+                data: {},
+                headers: {},
+                message: error.response.body ? JSON.parse(error.response.body).message : 'Unknown error',
+            }
+        } else {
+            BStackLogger.error(`Unexpected error occurred: ${error}`)
+            return { data: {}, headers: {}, message: 'Unexpected error occurred.' }
+        }
+    }
+}
+  
