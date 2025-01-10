@@ -38,6 +38,8 @@ export interface EndMessage {
 const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 
 class Launcher {
+    #isInitialized: boolean = false
+
     public configParser: ConfigParser
     public isMultiremote = false
     public isParallelMultiremote = false
@@ -67,30 +69,7 @@ class Launcher {
      * @return  {Promise}  that only gets resolved with either an exitCode or an error
      */
     async run(): Promise<undefined | number> {
-        /**
-         * add tsx to process NODE_OPTIONS so it will be passed along the worker process
-         */
-        const tsxPath = resolve('tsx', import.meta.url)
-        if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
-            /**
-             * The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
-             * This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
-             * see https://nodejs.org/api/module.html#customization-hooks and https://tsx.is/dev-api/node-cli#module-mode-only
-             */
-            const moduleLoaderFlag = nodeVersion('major') >= 21 ||
-                (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
-                (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
-            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} ${moduleLoaderFlag} ${tsxPath}`
-        }
-
-        /**
-         * load tsx in the main process if config file is a .ts file to allow config parser to load it
-         */
-        if (TS_FILE_EXTENSIONS.some((ext) => this._configFilePath.endsWith(ext))) {
-            await import(tsxPath)
-        }
-
-        await this.configParser.initialize(this._args)
+        await this.initialize()
         const config = this.configParser.getConfig()
 
         const capabilities = this.configParser.getCapabilities()
@@ -184,6 +163,48 @@ class Launcher {
         }
 
         return exitCode
+    }
+
+    /**
+     * initialize launcher by loading `tsx` if needed
+     */
+    async initialize () {
+        /**
+         * only initialize once
+         */
+        if (this.#isInitialized) {
+            return
+        }
+
+        /**
+         * add tsx to process NODE_OPTIONS so it will be passed along the worker process
+         */
+        const tsxPath = resolve('tsx', import.meta.url)
+        if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
+            /**
+             * The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
+             * This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
+             * see https://nodejs.org/api/module.html#customization-hooks and https://tsx.is/dev-api/node-cli#module-mode-only
+             */
+            const moduleLoaderFlag = nodeVersion('major') >= 21 ||
+                (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
+                (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
+            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} ${moduleLoaderFlag} ${tsxPath}`
+        }
+
+        /**
+         * load tsx in the main process if config file is a .ts file to allow config parser to load it
+         */
+        if (TS_FILE_EXTENSIONS.some((ext) => this._configFilePath.endsWith(ext))) {
+            await import(tsxPath)
+        }
+
+        this.#isInitialized = true
+
+        /**
+         * initialize config parser
+         */
+        await this.configParser.initialize(this._args)
     }
 
     /**
