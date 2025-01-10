@@ -18,8 +18,8 @@ import type { ChainablePromiseElement, DragAndDropCoordinate, DragAndDropOptions
  * <example>
     :example.test.js
     it('should demonstrate the dragAndDrop command', async () => {
-        const elem = await $('#someElem')
-        const target = await $('#someTarget')
+        const elem = $('#someElem')
+        const target = $('#someTarget')
 
         // drag and drop to other element
         await elem.dragAndDrop(target)
