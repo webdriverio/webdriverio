@@ -1,13 +1,10 @@
-import path from 'node:path'
-import { EventEmitter } from 'node:events'
-
 import logger from '@wdio/logger'
 import { transformCommandLogResult, sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
 import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
-import type { WebDriverResponse, RequestLibResponse, RequestOptions } from './types.js'
+import type { WebDriverResponse, RequestLibResponse, RequestOptions, RequestEventHandler } from './types.js'
 
 import { isSuccessfulResponse } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
@@ -27,7 +24,7 @@ const DEFAULT_HEADERS = {
 
 const log = logger('webdriver')
 
-export abstract class WebDriverRequest extends EventEmitter {
+export abstract class WebDriverRequest {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
     body?: Record<string, unknown>
@@ -35,19 +32,20 @@ export abstract class WebDriverRequest extends EventEmitter {
     endpoint: string
     isHubCommand: boolean
     requiresSessionId: boolean
+    eventHandler: RequestEventHandler
 
-    constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false) {
-        super()
+    constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false, eventHandler: RequestEventHandler = {}) {
         this.body = body
         this.method = method
         this.endpoint = endpoint
         this.isHubCommand = isHubCommand
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
+        this.eventHandler = eventHandler
     }
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
         const { url, requestOptions } = await this.createOptions(options, sessionId)
-        this.emit('request', requestOptions)
+        this.eventHandler.onRequest?.(requestOptions)
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
@@ -87,7 +85,7 @@ export abstract class WebDriverRequest extends EventEmitter {
             endpoint = endpoint.replace(':sessionId', sessionId)
         }
 
-        const url = new URL(`${options.protocol}://${options.hostname}:${options.port}${this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint)}`)
+        const url = new URL(`${options.protocol}://${options.hostname}:${options.port}${this.isHubCommand ? this.endpoint : `${options.path || ''}/${endpoint}`.replace(/(\/){2,}/g, '/')}`)
 
         if (searchParams) {
             url.search = new URLSearchParams(searchParams).toString()
@@ -170,8 +168,8 @@ export abstract class WebDriverRequest extends EventEmitter {
              */
             if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
                 log.error(error.message)
-                this.emit('response', { error })
-                this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+                this.eventHandler.onResponse?.({ error })
+                this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
                 throw error
             }
 
@@ -184,8 +182,8 @@ export abstract class WebDriverRequest extends EventEmitter {
 
             ++retryCount
 
-            this.emit('retry', { error, retryCount })
-            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+            this.eventHandler.onRetry?.({ error, retryCount })
+            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             log.warn(error.message)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
             return this._request(url, fullRequestOptions, transformResponse, totalRetryCount, retryCount)
@@ -210,7 +208,7 @@ export abstract class WebDriverRequest extends EventEmitter {
             /**
              * throw if request error is unknown
              */
-            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error: response, retryCount })
+            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error: response, retryCount })
             throw response
         }
 
@@ -222,8 +220,8 @@ export abstract class WebDriverRequest extends EventEmitter {
          * Resolve only if successful response
          */
         if (isSuccessfulResponse(response.statusCode, response.body)) {
-            this.emit('response', { result: response.body })
-            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: true, retryCount })
+            this.eventHandler.onResponse?.({ result: response.body })
+            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: true, retryCount })
             return response.body as WebDriverResponse<unknown>
         }
 
@@ -239,7 +237,7 @@ export abstract class WebDriverRequest extends EventEmitter {
              * directly without using a hub, therefore throw
              */
             if (typeof response.body === 'string' && response.body.startsWith('<!DOCTYPE html>')) {
-                this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+                this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
                 return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
             }
 
@@ -252,8 +250,8 @@ export abstract class WebDriverRequest extends EventEmitter {
          */
         if (error.name === 'stale element reference') {
             log.warn('Request encountered a stale element - terminating request')
-            this.emit('response', { error })
-            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+            this.eventHandler.onResponse?.({ error })
+            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             throw error
         }
 

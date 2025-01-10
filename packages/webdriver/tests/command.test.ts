@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { EventEmitter } from 'node:events'
+import { EventEmitter, on } from 'node:events'
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
@@ -47,6 +47,13 @@ const commandEndpoint: CommandEndpoint = {
         description: 'a random not required param',
         required: false
     }]
+}
+
+const requestHandler = {
+    onPerformance: expect.any(Function),
+    onRequest: expect.any(Function),
+    onResponse: expect.any(Function),
+    onRetry: expect.any(Function)
 }
 
 vi.mock('../src/request/request', () => {
@@ -144,7 +151,8 @@ describe('command wrapper', () => {
                 using: 'css selector',
                 value: '#body'
             },
-            false
+            false,
+            requestHandler
         )
         vi.mocked(RequestMock).mockClear()
     })
@@ -160,7 +168,8 @@ describe('command wrapper', () => {
                 value: '#body',
                 customParam: 123
             },
-            false
+            false,
+            requestHandler
         )
         vi.mocked(RequestMock).mockClear()
     })
@@ -173,7 +182,8 @@ describe('command wrapper', () => {
             'POST',
             '/session/:sessionId/element/%2Fpath/element',
             expect.anything(),
-            false
+            false,
+            requestHandler
         )
         vi.mocked(RequestMock).mockClear()
     })
@@ -186,7 +196,8 @@ describe('command wrapper', () => {
             'POST',
             '/session/:sessionId/element/%252Fpath/element',
             expect.anything(),
-            false
+            false,
+            requestHandler
         )
         vi.mocked(RequestMock).mockClear()
         expect(log.warn).toHaveBeenCalledTimes(0)
@@ -225,7 +236,7 @@ describe('command wrapper result log', () => {
         const commandFn = commandWrapper(method, path, endpoint)
         await commandFn.call(scope)
         expect(RequestMock).toHaveBeenCalledTimes(1)
-        expect(RequestMock).toHaveBeenCalledWith(method, path, expect.any(Object), false)
+        expect(RequestMock).toHaveBeenCalledWith(method, path, expect.any(Object), false, requestHandler)
 
         const callback = thenMock.mock.calls[0][0]
 
