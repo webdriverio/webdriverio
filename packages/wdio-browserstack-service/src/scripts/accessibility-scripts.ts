@@ -2,8 +2,6 @@ import path from 'node:path'
 import fs from 'node:fs'
 import os from 'node:os'
 
-import { BStackLogger } from '.././bstackLogger.js'
-
 interface Scripts {
     scan: string
     getResults: string
@@ -42,6 +40,7 @@ class AccessibilityScripts {
         return AccessibilityScripts.instance
     }
 
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     public getWritableDir(): string {
         const orderedPaths = [
             path.join(os.homedir(), '.browserstack'),
@@ -59,7 +58,7 @@ class AccessibilityScripts {
                 return orderedPath
 
             } catch (error) {
-                BStackLogger.debug(`Unable to create file, Error ${error}`)
+                /* no-empty */
             }
         }
         return ''
