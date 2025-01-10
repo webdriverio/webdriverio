@@ -41,7 +41,6 @@ describe('webdriver request', () => {
                 sessionId
             }
         }))
-        req.emit = vi.fn()
         req['_request'] = vi.fn()
 
         await req.makeRequest({ connectionRetryCount: 43, logLevel: 'warn' }, 'some_id')
@@ -220,17 +219,19 @@ describe('webdriver request', () => {
     describe('_request', () => {
         it('should make a request', async () => {
             const expectedResponse = { value: { 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' } }
-            const req = new FetchRequest('POST', webdriverPath, {})
-            req.emit = vi.fn()
+            const onResponse = vi.fn()
+            const onPerformance = vi.fn()
+            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+                onResponse, onPerformance
+            })
 
             const url = new URL('/session/foobar-123/element', baseUrl)
             const opts = {}
             const res = await req['_request'](url, opts)
 
             expect(res).toEqual(expectedResponse)
-            expect(vi.mocked(req.emit).mock.calls).toHaveLength(2)
-            expect(req.emit).toHaveBeenNthCalledWith(1, 'response', { result: expectedResponse })
-            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({
+            expect(onResponse).toHaveBeenNthCalledWith(1, { result: expectedResponse })
+            expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({
                 request: opts,
                 durationMillisecond: expect.any(Number),
                 retryCount: 0,
@@ -239,8 +240,11 @@ describe('webdriver request', () => {
         })
 
         it('should short circuit if request throws a stale element exception', async () => {
-            const req = new FetchRequest('POST', 'session/:sessionId/element', {})
-            req.emit = vi.fn()
+            const onResponse = vi.fn()
+            const onPerformance = vi.fn()
+            const req = new FetchRequest('POST', 'session/:sessionId/element', {}, false, {
+                onResponse, onPerformance
+            })
 
             const url = new URL('/session/foobar-123/element/some-sub-sub-elem-231/click', baseUrl)
             const opts = Object.assign({
@@ -249,65 +253,72 @@ describe('webdriver request', () => {
 
             const error = await req['_request'](url, opts).catch(err => err)
             expect(error.message).toContain('element is not attached to the page document')
-            expect(vi.mocked(req.emit).mock.calls).toHaveLength(2)
-            expect(req.emit).toHaveBeenNthCalledWith(1, 'response', expect.anything())
-            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
+            expect(onResponse).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({ success: false }))
             expect(vi.mocked(warn).mock.calls).toHaveLength(1)
             expect(vi.mocked(warn).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
         })
 
         it('should not fail code due to an empty server response', async () => {
-            const req = new FetchRequest('POST', webdriverPath, {})
-            req.emit = vi.fn()
+            const onResponse = vi.fn()
+            const onPerformance = vi.fn()
+            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+                onResponse, onPerformance
+            })
 
             const url = new URL('/empty', baseUrl)
             const opts = {}
             await expect(req['_request'](url, opts)).rejects.toEqual(expect.objectContaining({
                 message: expect.stringContaining('Response has empty body')
             }))
-            expect(vi.mocked(req.emit).mock.calls).toHaveLength(2)
-            expect(req.emit).toHaveBeenNthCalledWith(1, 'response', expect.anything())
-            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
+            expect(onResponse).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({ success: false }))
             expect(vi.mocked(warn).mock.calls).toHaveLength(0)
             expect(vi.mocked(error).mock.calls).toHaveLength(1)
         })
 
         it('should retry requests but still fail', async () => {
-            const req = new FetchRequest('POST', webdriverPath, {})
-            req.emit = vi.fn()
+            const onRetry = vi.fn()
+            const onResponse = vi.fn()
+            const onPerformance = vi.fn()
+            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+                onResponse, onPerformance, onRetry
+            })
 
             const url = new URL('/failing', baseUrl)
             const opts = {}
             await expect(req['_request'](url, opts, undefined, 2)).rejects.toEqual(expect.objectContaining({
                 message: expect.stringContaining('unknown error')
             }))
-            expect(vi.mocked(req.emit).mock.calls).toHaveLength(6)
-            expect(req.emit).toHaveBeenNthCalledWith(1, 'retry', expect.anything())
-            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
-            expect(req.emit).toHaveBeenNthCalledWith(3, 'retry', expect.anything())
-            expect(req.emit).toHaveBeenNthCalledWith(4, 'performance', expect.objectContaining({ success: false }))
-            expect(req.emit).toHaveBeenNthCalledWith(5, 'response', expect.anything())
-            expect(req.emit).toHaveBeenNthCalledWith(6, 'performance', expect.objectContaining({ success: false }))
+            expect(onRetry).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({ success: false }))
+            expect(onRetry).toHaveBeenNthCalledWith(2, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(2, expect.objectContaining({ success: false }))
+            expect(onResponse).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(3, expect.objectContaining({ success: false }))
             expect(vi.mocked(warn).mock.calls).toHaveLength(2)
             expect(vi.mocked(error).mock.calls).toHaveLength(1)
         })
 
         it('should retry and eventually respond', async () => {
-            const req = new FetchRequest('POST', webdriverPath, {})
-            req.emit = vi.fn()
+            const onRetry = vi.fn()
+            const onResponse = vi.fn()
+            const onPerformance = vi.fn()
+            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+                onResponse, onPerformance, onRetry
+            })
 
             const url = new URL('/failing', baseUrl)
             const opts = Object.assign({ body: { foo: 'bar' } })
             expect(await req['_request'](url, opts, undefined, 3)).toEqual({ value: 'caught' })
-            expect(vi.mocked(req.emit).mock.calls).toHaveLength(8)
-            expect(req.emit).toHaveBeenNthCalledWith(1, 'retry', expect.anything())
-            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
-            expect(req.emit).toHaveBeenNthCalledWith(3, 'retry', expect.anything())
-            expect(req.emit).toHaveBeenNthCalledWith(4, 'performance', expect.objectContaining({ success: false }))
-            expect(req.emit).toHaveBeenNthCalledWith(5, 'retry', expect.anything())
-            expect(req.emit).toHaveBeenNthCalledWith(6, 'performance', expect.objectContaining({ success: false }))
-            expect(req.emit).toHaveBeenNthCalledWith(7, 'response', expect.anything())
-            expect(req.emit).toHaveBeenNthCalledWith(8, 'performance', expect.objectContaining({ success: true }))
+            expect(onRetry).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({ success: false }))
+            expect(onRetry).toHaveBeenNthCalledWith(2, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(2, expect.objectContaining({ success: false }))
+            expect(onRetry).toHaveBeenNthCalledWith(3, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(3, expect.objectContaining({ success: false }))
+            expect(onResponse).toHaveBeenNthCalledWith(1, expect.anything())
+            expect(onPerformance).toHaveBeenNthCalledWith(4, expect.objectContaining({ success: true }))
             expect(vi.mocked(warn).mock.calls).toHaveLength(3)
             expect(vi.mocked(error).mock.calls).toHaveLength(0)
         })
@@ -341,9 +352,8 @@ describe('webdriver request', () => {
         describe('"ETIMEDOUT" error', () => {
             it('should throw if timeout happens too often', async () => {
                 const retryCnt = 3
-                const req = new FetchRequest('POST', '/timeout', {}, true)
-                const reqRetryCnt = vi.fn()
-                req.on('retry', reqRetryCnt)
+                const onRetry = vi.fn()
+                const req = new FetchRequest('POST', '/timeout', {}, true, { onRetry })
                 const result = await req.makeRequest({
                     protocol: 'https',
                     hostname: 'localhost',
@@ -356,12 +366,15 @@ describe('webdriver request', () => {
                     (e) => e
                 )
                 expect(result.code).toBe('ETIMEDOUT')
-                expect(reqRetryCnt).toBeCalledTimes(retryCnt)
+                expect(onRetry).toBeCalledTimes(retryCnt)
             })
 
             it('should use error from "getRequestError" helper', async () => {
-                const req = new FetchRequest('GET', '/timeout', {}, true)
-                req.emit = vi.fn()
+                const onRetry = vi.fn()
+                const onRequest = vi.fn()
+                const onResponse = vi.fn()
+                const onPerformance = vi.fn()
+                const req = new FetchRequest('GET', '/timeout', {}, true, { onRetry, onRequest, onResponse, onPerformance })
                 const reqOpts = {
                     protocol: 'https',
                     hostname: 'localhost',
@@ -372,18 +385,17 @@ describe('webdriver request', () => {
                     // ignore error
                     .catch((e) => e)
 
-                expect(vi.mocked(req.emit).mock.calls).toHaveLength(3)
-                expect(req.emit).toHaveBeenNthCalledWith(1, 'request', expect.anything())
-                expect(req.emit).toHaveBeenNthCalledWith(2, 'response', { error: expect.objectContaining({ code: 'ETIMEDOUT' }) })
-                expect(req.emit).toHaveBeenNthCalledWith(3, 'performance', expect.objectContaining({ success: false }))
+                expect(vi.mocked(onRetry).mock.calls).toHaveLength(0)
+                expect(onRequest).toHaveBeenNthCalledWith(1, expect.anything())
+                expect(onResponse).toHaveBeenNthCalledWith(1, { error: expect.objectContaining({ code: 'ETIMEDOUT' }) })
+                expect(onPerformance).toHaveBeenNthCalledWith(1, expect.objectContaining({ success: false }))
             })
         })
 
         it('should return proper response if retry passes', async () => {
             const retryCnt = 7
-            const req = new FetchRequest('POST', '/timeout', {}, true)
-            const reqRetryCnt = vi.fn()
-            req.on('retry', reqRetryCnt)
+            const onRetry = vi.fn()
+            const req = new FetchRequest('POST', '/timeout', {}, true, { onRetry })
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -396,14 +408,13 @@ describe('webdriver request', () => {
                 (e) => e
             )
             expect(result).toEqual({ value: {} })
-            expect(reqRetryCnt).toBeCalledTimes(5)
+            expect(onRetry).toBeCalledTimes(5)
         }, 20_000)
 
         it('should retry on connection refused error', async () => {
             const retryCnt = 7
-            const req = new FetchRequest('POST', '/connectionRefused', {}, false)
-            const reqRetryCnt = vi.fn()
-            req.on('retry', reqRetryCnt)
+            const onRetry = vi.fn()
+            const req = new FetchRequest('POST', '/connectionRefused', {}, false, { onRetry })
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -415,7 +426,7 @@ describe('webdriver request', () => {
                 (e) => e
             )
             expect(result).toEqual({ value: { foo: 'bar' } })
-            expect(reqRetryCnt).toBeCalledTimes(5)
+            expect(onRetry).toBeCalledTimes(5)
         }, 20_000)
 
         it('should throw if request error is unknown', async () => {
