@@ -120,8 +120,12 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = new environment.value.Request(method, endpoint, body, isHubCommand)
-        request.on('performance', (...args) => this.emit('request.performance', ...args))
+        const request = new environment.value.Request(method, endpoint, body, isHubCommand, {
+            onPerformance: (data) => this.emit('request.performance', data),
+            onRequest: (data) => this.emit('request.start', data),
+            onResponse: (data) => this.emit('request.end', data),
+            onRetry: (data) => this.emit('request.retry', data)
+        })
         this.emit('command', { command, method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         /**
