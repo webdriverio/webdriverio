@@ -85,7 +85,7 @@ export abstract class WebDriverRequest {
             endpoint = endpoint.replace(':sessionId', sessionId)
         }
 
-        const url = new URL(`${options.protocol}://${options.hostname}:${options.port}${this.isHubCommand ? this.endpoint : `${options.path || ''}/${endpoint}`}`)
+        const url = new URL(`${options.protocol}://${options.hostname}:${options.port}${this.isHubCommand ? this.endpoint : `${options.path || ''}/${endpoint}`.replace(/(\/){2,}/g, '/')}`)
 
         if (searchParams) {
             url.search = new URLSearchParams(searchParams).toString()
