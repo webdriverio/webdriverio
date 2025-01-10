@@ -47,7 +47,6 @@ export const config = {
             : {
                 browserName: 'chrome',
                 browserVersion: 'canary',
-                ...(process.env.CI ? { 'goog:chromeOptions': { args: ['--headless'] } } : {})
             }
     ],
 
