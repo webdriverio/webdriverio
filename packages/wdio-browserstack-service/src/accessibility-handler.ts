@@ -141,8 +141,13 @@ class _AccessibilityHandler {
             .filter((command) => command.name && command.class)
             .forEach((command) => {
                 const browser = this._browser as WebdriverIO.Browser
-                // @ts-expect-error fix type
-                browser.overwriteCommand(command.name, this.commandWrapper.bind(this, command), command.class === 'Element')
+                try {
+                    // @ts-expect-error fix type
+                    browser.overwriteCommand(command.name, this.commandWrapper.bind(this, command), command.class === 'Element')
+                }
+                catch(error) {
+                    BStackLogger.error(`Exception in overwrite command ${command.name} - ${error}`)
+                }
             })
     }
 

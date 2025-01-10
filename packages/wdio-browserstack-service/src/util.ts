@@ -4,7 +4,7 @@ import zlib from 'node:zlib'
 import { format, promisify } from 'node:util'
 import path from 'node:path'
 import util from 'node:util'
-import got from 'got'
+// import got from 'got'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -655,9 +655,14 @@ const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, 
     const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) * 1000 : Date.now() + 30000
     const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
     const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
-    const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
-    BStackLogger.debug(`Polling Result: ${JSON.stringify(apiRespone)}`)
-    return apiRespone
+    // const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
+    // BStackLogger.debug(`Polling Result: ${JSON.stringify(apiRespone)}`)
+    // return apiRespone
+    return {
+        data: {},
+        headers: {},
+        message: 'Invalid nextPollTime header value. Polling stopped.'
+    }
 }
 
 export const getA11yResultsSummary = async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
@@ -1489,78 +1494,78 @@ type PollingResult = {
     message?: string; // Optional message for timeout cases
   };
 
-export function pollApi(
-    url: string,
-    params: Record<string, any>,
-    headers: Record<string, string>,
-    upperLimit: number,
-    startTime = Date.now()
-): Promise<PollingResult> {
-    return new Promise((resolve, reject) => {
-        params.timestamp = Math.round(Date.now() / 1000)
-        BStackLogger.debug(`current timestamp ${params.timestamp}`)
+// export function pollApi(
+//     url: string,
+//     params: Record<string, any>,
+//     headers: Record<string, string>,
+//     upperLimit: number,
+//     startTime = Date.now()
+// ): Promise<PollingResult> {
+//     return new Promise((resolve, reject) => {
+//         params.timestamp = Math.round(Date.now() / 1000)
+//         BStackLogger.debug(`current timestamp ${params.timestamp}`)
 
-        got(url, {
-            searchParams: params,
-            headers
-        })
-            .then(response => {
-                const responseData = JSON.parse(response.body)
-                resolve({
-                    data: responseData,
-                    headers: response.headers,
-                    message: 'Polling succeeded.',
-                })
-            })
-            .catch(error => {
-                if (error.response && error.response.statusCode === 404) {
-                    const nextPollTime = parseInt(error.response.headers.next_poll_time as string, 10) * 1000
-                    BStackLogger.debug(`timeInMillis ${nextPollTime}`)
+//         got(url, {
+//             searchParams: params,
+//             headers
+//         })
+//             .then(response => {
+//                 const responseData = JSON.parse(response.body)
+//                 resolve({
+//                     data: responseData,
+//                     headers: response.headers,
+//                     message: 'Polling succeeded.',
+//                 })
+//             })
+//             .catch(error => {
+//                 if (error.response && error.response.statusCode === 404) {
+//                     const nextPollTime = parseInt(error.response.headers.next_poll_time as string, 10) * 1000
+//                     BStackLogger.debug(`timeInMillis ${nextPollTime}`)
 
-                    if (isNaN(nextPollTime)) {
-                        BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
-                        resolve({
-                            data: {},
-                            headers: error.response.headers,
-                            message: 'Invalid nextPollTime header value. Polling stopped.',
-                        })
-                        return
-                    }
+//                     if (isNaN(nextPollTime)) {
+//                         BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
+//                         resolve({
+//                             data: {},
+//                             headers: error.response.headers,
+//                             message: 'Invalid nextPollTime header value. Polling stopped.',
+//                         })
+//                         return
+//                     }
 
-                    const elapsedTime = nextPollTime - Date.now()
-                    BStackLogger.debug(
-                        `elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`
-                    )
+//                     const elapsedTime = nextPollTime - Date.now()
+//                     BStackLogger.debug(
+//                         `elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`
+//                     )
 
-                    // Stop polling if the upper time limit is reached
-                    if (nextPollTime > upperLimit) {
-                        BStackLogger.warn('Polling stopped due to upper time limit.')
-                        resolve({
-                            data: {},
-                            headers: error.response.headers,
-                            message: 'Polling stopped due to upper time limit.',
-                        })
-                        return
-                    }
+//                     // Stop polling if the upper time limit is reached
+//                     if (nextPollTime > upperLimit) {
+//                         BStackLogger.warn('Polling stopped due to upper time limit.')
+//                         resolve({
+//                             data: {},
+//                             headers: error.response.headers,
+//                             message: 'Polling stopped due to upper time limit.',
+//                         })
+//                         return
+//                     }
 
-                    BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
+//                     BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
 
-                    // Wait for the specified time and poll again
-                    setTimeout(() => {
-                        pollApi(url, params, headers, upperLimit, startTime)
-                            .then(resolve)
-                            .catch(reject)
-                    }, elapsedTime)
-                } else if (error.response) {
-                    reject({
-                        data: {},
-                        headers: {},
-                        message: error.response.body ? JSON.parse(error.response.body).message : 'Unknown error'
-                    })
-                } else {
-                    BStackLogger.error(`Unexpected error occurred: ${error}`)
-                    resolve({ data: {}, headers: {}, message: 'Unexpected error occurred.' })
-                }
-            })
-    })
-}
+//                     // Wait for the specified time and poll again
+//                     setTimeout(() => {
+//                         pollApi(url, params, headers, upperLimit, startTime)
+//                             .then(resolve)
+//                             .catch(reject)
+//                     }, elapsedTime)
+//                 } else if (error.response) {
+//                     reject({
+//                         data: {},
+//                         headers: {},
+//                         message: error.response.body ? JSON.parse(error.response.body).message : 'Unknown error'
+//                     })
+//                 } else {
+//                     BStackLogger.error(`Unexpected error occurred: ${error}`)
+//                     resolve({ data: {}, headers: {}, message: 'Unexpected error occurred.' })
+//                 }
+//             })
+//     })
+// }
