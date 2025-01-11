@@ -552,6 +552,19 @@ export type MobileScrollIntoViewOptions = SwipeOptions & {
 export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions, MobileScrollIntoViewOptions {
 }
 
+export const CONTEXT_REF = {
+    NATIVE_APP: 'NATIVE_APP',
+    WEBVIEW: 'WEBVIEW',
+} as const
+
+export type ContextType = typeof CONTEXT_REF[keyof typeof CONTEXT_REF];
+
+export type SwitchContextOptions = {
+    context: ContextType,
+    title?: string,
+    url?: string
+}
+
 export type WaitUntilOptions = {
     timeout?: number,
     timeoutMsg?: string,

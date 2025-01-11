@@ -51,7 +51,7 @@ export async function isClickable (this: WebdriverIO.Element) {
      * some Appium platforms don't support the `getContext` method, in that case
      * we can't determine if we are in a native context or not, so we return undefined
      */
-    if (this.isMobile && await this.getContext().catch(() => undefined) === 'NATIVE_APP') {
+    if (this.isMobile && this.isNativeContext) {
         throw new Error('Method not supported in mobile native environment. It is unlikely that you need to use this command.')
     }
 
