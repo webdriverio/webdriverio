@@ -1,26 +1,61 @@
 import type { AndroidDetailedContexts, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContexts } from '../../types.js'
 
 /**
+ * The WebdriverIO `getContexts` method is an improved version of the default Appium `contexts`
+ * (and "old" WebdriverIO `getContexts`) command. It provides more detailed and actionable information
+ * about the available contexts in a mobile app session, addressing the limitations of the default Appium methods.
  *
- * Get all the contexts available in the current session.
+ * ### How Webviews Work and Why This Method Helps
+ * Hybrid apps use **webviews** to render web content within a native application. For Android this is based on
+ * Chrome/System Webview and for iOS it's powered by Safari (WebKit). A webview is essentially a
+ * browser-like component embedded in the app, and interacting with these webviews can be challenging:
  *
- * :::info iOS WebViews
+ * #### Android Challenges
+ * - A single webview (e.g., `WEBVIEW_{packageName}`) can contain multiple pages (similar to browser tabs). The
+ *   default Appium methods do not provide details about these pages, such as their titles, URLs, or visibility.
+ *   Without this metadata, it's hard to identify the relevant page, leading to test flakiness.
  *
- * There are several cases that iOS can't find the Webview. Appium provides different extra capabilities for the `appium-xcuitest-driver` to find the Webview, see the list below.
+ * #### iOS Challenges
+ * - The default Appium method returns webview IDs (e.g., `WEBVIEW_{id}`) without any additional information. This
+ *   makes it guesswork to determine which webview corresponds to the target app screen.
+ *
+ * The enhanced `getContexts` method solves these problems by returning detailed context objects, including:
+ * - **For Android:** Metadata such as `title`, `url`, `packageName`, `webviewPageId`, and layout details (`screenX`,
+ *   `screenY`, `width`, and `height`).
+ * - **For iOS:** Metadata such as `bundleId`, `title`, and `url` for each webview.
+ *
+ * These additional details make it easier to debug and reliably interact with webviews in hybrid apps.
+ *
+ * ### Why Use This Method?
+ * The default Appium `contexts` method returns only an array of strings representing the available contexts, e.g.:
+ * - <strong>For Android:</strong> `['NATIVE_APP', 'WEBVIEW_com.wdiodemoapp', ...]`
+ * - <strong>For iOS:</strong> `[ 'NATIVE_APP', 'WEBVIEW_84392.1', ... ]`
+ *
+ * While sufficient for simple scenarios, it introduces significant challenges in hybrid app testing:
+ *
+ * - **For Android:** Multiple pages in a single webview make it difficult to pinpoint the correct page for automation.
+ * - **For iOS:** Lack of detail in the webview ID makes it challenging to identify the correct webview for interaction.
+ *
+ * This method addresses these limitations, providing developers with detailed metadata and additional options to
+ * filter and customize the returned contexts.
+ *
+ * :::info Notes and Limitations
+ *
+ * - The enhanced `getContexts` method is available for both Android and iOS platforms. However, the data returned may vary based on the platform and the app under test.
+ * - The method is backward compatible with the default Appium `contexts` and "old" WebdriverIO `getContexts` method. If you do not specify the `returnDetailedContexts` option, the method returns the default context array.
+ * - If you want to use the "default" Appium `contexts` method, you can use the `browser.getAppiumContexts` method, see also the [Appium Contexts](/docs/api/appium#getappiumcontexts) command.
+ *
+ * #### Android Webviews:
+ * - Metadata such as `androidWebviewData` is available only when `returnAndroidDescriptionData` is `true`.
+ * - Using the `getContext` on a Chrome browser may sometimes return incomplete data due to different browser/Webview/ChromeDriver versions. As a result you may get back the default values if the data is not available including an incorrect `webviewPageId` (it will be `0`)
+ *
+ * #### iOS Webviews:
+ * There are several cases that iOS can't find the Webview. Appium provides different extra capabilities for the `appium-xcuitest-driver` to find the Webview.
  * If you believe that the Webview is not found, you can try to set one of the following capabilities:
  *
  * - `appium:includeSafariInWebviews`: Add Safari web contexts to the list of contexts available during a native/webview app test. This is useful if the test opens Safari and needs to be able to interact with it. Defaults to `false`.
  * - `appium:webviewConnectRetries`: The maximum number of retries before giving up on web view pages detection. The delay between each retry is 500ms, default is `10` retries.
  * - `appium:webviewConnectTimeout`: The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms.
- * :::
- *
- * :::info Android WebViews
- *
- * // This will be added later, here are just some notes
- * - When using the getContexts command with the Chrome browser the data is not that reliable.
- *      - The description data is not always returned, so the defaults are returned.
- *      - The `webviewPageId` is not always returning the correct value, and then it will be 0
- *      - Sometimes not all Chrome tabs are returned, this differs per Chrome/ChromeDriver version
  *
  * :::
  *
@@ -128,7 +163,7 @@ import type { AndroidDetailedContexts, AppiumDetailedCrossPlatformContexts, GetC
  * @param {boolean=}            options.filterByCurrentAndroidApp           By default, we return all webviews. If you want to filter the webviews by the current Android app that is opened, you can set this to `true`. Default is `false` (optional). <br /><strong>NOTE:</strong> Be aware that you can also NOT find any Webview based on this "restriction". <br /><strong>ANDROID-ONLY</strong>
  * @param {boolean=}            options.isAndroidWebviewVisible             By default, we only return the webviews that are attached and visible. If you want to get all webviews, you can set this to `false` (optional). Default is `true`. <br /><strong>ANDROID-ONLY</strong>
  * @param {boolean=}            options.returnAndroidDescriptionData        By default, no Android Webview (Chrome) description description data. If you want to get all data, you can set this to `true`. Default is `false` (optional). <br />By enabling this option you will get extra data in the response, see the `description.data.test.js` for more information. <br /><strong>ANDROID-ONLY</strong>
- *
+ * @skipUsage
  * @TODO: Also change the context manager because it needs to keep track of the context to which we switch, so we also need to add the renamed Appium commands to the context manager.
  */
 export async function getContexts(
@@ -152,22 +187,8 @@ export async function getContexts(
         isAndroidWebviewVisible: true,
         returnAndroidDescriptionData: false,
     }
-    const {
-        androidWebviewConnectionRetryTime,
-        androidWebviewConnectTimeout,
-        filterByCurrentAndroidApp,
-        isAndroidWebviewVisible,
-        returnAndroidDescriptionData,
-    } = { ...defaultOptions, ...options }
 
-    return getCurrentContexts({
-        browser,
-        androidWebviewConnectionRetryTime,
-        androidWebviewConnectTimeout,
-        filterByCurrentAndroidApp,
-        isAndroidWebviewVisible,
-        returnAndroidDescriptionData,
-    })
+    return getCurrentContexts({ browser, ...{ ...defaultOptions, ...options } })
 }
 
 const CHROME_PACKAGE_NAME = 'com.android.chrome'
