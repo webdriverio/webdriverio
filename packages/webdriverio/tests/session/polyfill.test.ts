@@ -37,9 +37,10 @@ describe('PolyfillManager', () => {
     beforeEach(() => {
         browser = {
             on: vi.fn(),
+            browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [{ context: '123' }, { context: '456', parent: '789' }] }),
             sessionSubscribe: vi.fn(),
-            addInitScript: vi.fn(),
-            execute: vi.fn(),
+            scriptAddPreloadScript: vi.fn(),
+            scriptCallFunction: vi.fn().mockResolvedValue({}),
             isEnabled: vi.fn().mockReturnValue(true),
             options: { automationProtocol: 'webdriver' }
         } as unknown as WebdriverIO.Browser & { on: Mock }
@@ -51,7 +52,7 @@ describe('PolyfillManager', () => {
         const manager = new PolyfillManager(browser)
         expect(browser.on).toBeCalledTimes(0)
         expect(browser.sessionSubscribe).toBeCalledTimes(0)
-        expect(browser.addInitScript).toBeCalledTimes(0)
+        expect(browser.browsingContextGetTree).toBeCalledTimes(0)
         expect(instances[0].name).toBe('PolyfillManager')
         expect(await manager.initialize()).toBe(true)
     })
@@ -60,17 +61,24 @@ describe('PolyfillManager', () => {
         const manager = new PolyfillManager(browser)
         expect(browser.on).toBeCalledTimes(1)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
-        expect(browser.addInitScript).toBeCalledTimes(1)
-        expect(browser.execute).toBeCalledTimes(1)
+        expect(browser.browsingContextGetTree).toBeCalledTimes(1)
         expect(await manager.initialize()).toBe(true)
+        expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
+        expect(browser.scriptCallFunction).toBeCalledTimes(2)
     })
 
     it('should register scripts when context is created', async () => {
         const manager = new PolyfillManager(browser)
         expect(browser.on.mock.calls[0][0]).toBe('browsingContext.contextCreated')
-        browser.on.mock.calls[0][1]()
-        expect(browser.addInitScript).toBeCalledTimes(2)
-        expect(browser.execute).toBeCalledTimes(2)
+        browser.on.mock.calls[0][1]({ context: 'foobar' })
+        expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
+        expect(browser.scriptCallFunction).toBeCalledTimes(1)
+        browser.on.mock.calls[0][1]({ context: 'barfoo' })
+        expect(browser.scriptAddPreloadScript).toBeCalledTimes(2)
+        expect(browser.scriptCallFunction).toBeCalledTimes(2)
+        browser.on.mock.calls[0][1]({ context: 'foobar' })
+        expect(browser.scriptAddPreloadScript).toBeCalledTimes(2)
+        expect(browser.scriptCallFunction).toBeCalledTimes(2)
         expect(await manager.initialize()).toBe(true)
     })
 })
