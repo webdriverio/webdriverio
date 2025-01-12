@@ -1,4 +1,4 @@
-import type { SwitchContextOptions } from 'src/types.js'
+import type { SwitchContextOptions } from '../../types.js'
 
 /**
  *

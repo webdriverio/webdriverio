@@ -1,4 +1,4 @@
-import type { AndroidDetailedContexts, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContexts } from 'src/types.js'
+import type { AndroidDetailedContexts, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContexts } from '../../types.js'
 
 /**
  *
