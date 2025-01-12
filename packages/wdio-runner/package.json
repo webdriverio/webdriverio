@@ -1,6 +1,6 @@
 {
   "name": "@wdio/runner",
-  "version": "9.5.6",
+  "version": "9.5.7",
   "description": "A WebdriverIO service that runs tests in arbitrary environments",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-runner",
@@ -33,14 +33,14 @@
   "dependencies": {
     "@types/node": "^20.11.28",
     "@wdio/config": "workspace:9.5.0",
-    "@wdio/globals": "workspace:9.5.6",
+    "@wdio/globals": "workspace:9.5.7",
     "@wdio/logger": "workspace:9.4.4",
     "@wdio/types": "workspace:9.5.0",
     "@wdio/utils": "workspace:9.5.0",
     "deepmerge-ts": "^7.0.3",
     "expect-webdriverio": "^5.0.1",
     "webdriver": "workspace:9.5.4",
-    "webdriverio": "workspace:9.5.6"
+    "webdriverio": "workspace:9.5.7"
   },
   "publishConfig": {
     "access": "public"
