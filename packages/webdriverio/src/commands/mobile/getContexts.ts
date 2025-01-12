@@ -173,7 +173,7 @@ export async function getContexts(
     const browser = this
 
     if (!browser.isMobile) {
-        throw new Error('The `switchContext` command is only available for mobile platforms.')
+        throw new Error('The `getContexts` command is only available for mobile platforms.')
     }
 
     if (!options || !options.returnDetailedContexts) {
