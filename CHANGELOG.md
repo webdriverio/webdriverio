@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.5.6 (2025-01-12)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14061](https://github.com/webdriverio/webdriverio/pull/14061) fix(webdriverio): register polyfill on all windows ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v9.5.5 (2025-01-10)
 
 #### :bug: Bug Fix
