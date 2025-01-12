@@ -565,6 +565,45 @@ export type SwitchContextOptions = {
     url?: string
 }
 
+type AppiumDetailedContextInterface = {
+    id: string;
+    title?: string;
+    url?: string;
+}
+
+type IosContextBundleId  = {
+    bundleId?: string;
+}
+
+export type IosDetailedContexts = (AppiumDetailedContextInterface & IosContextBundleId)[];
+
+type AndroidDetailedContext =  {
+    androidWebviewData?: {
+        attached: boolean;
+        empty: boolean;
+        height: number;
+        neverAttached: boolean;
+        screenX: number;
+        screenY: number;
+        visible: boolean;
+        width: number;
+    };
+    packageName?: string;
+    webviewPageId?: string;
+}
+
+export type AndroidDetailedContexts = (AppiumDetailedContextInterface & AndroidDetailedContext)[];
+
+export type AppiumDetailedCrossPlatformContexts = IosDetailedContexts | AndroidDetailedContexts;
+
+export type GetContextsOptions = {
+    androidWebviewConnectionRetryTime?: number;
+    androidWebviewConnectTimeout?: number;
+    isAndroidWebviewVisible?: boolean;
+    returnAndroidDescriptionData?: boolean;
+    returnDetailedContexts?: boolean;
+}
+
 export type WaitUntilOptions = {
     timeout?: number,
     timeoutMsg?: string,

@@ -1,7 +1,28 @@
+import type { AndroidDetailedContexts, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContexts } from 'src/types.js'
+
 /**
  *
  * Get all the contexts available in the current session.
  *
+ * :::info iOS WebViews
+ *
+ * There are several cases that iOS can't find the Webview. Appium provides different extra capabilities for the `appium-xcuitest-driver` to find the Webview, see the list below.
+ * If you believe that the Webview is not found, you can try to set one of the following capabilities:
+ *
+ * - `appium:includeSafariInWebviews`: Add Safari web contexts to the list of contexts available during a native/webview app test. This is useful if the test opens Safari and needs to be able to interact with it. Defaults to `false`.
+ * - `appium:webviewConnectRetries`: The maximum number of retries before giving up on web view pages detection. The delay between each retry is 500ms, default is `10` retries.
+ * - `appium:webviewConnectTimeout`: The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms.
+ * :::
+ *
+ * :::info Android WebViews
+ *
+ * // This will be added later, here are just some notes
+ * - When using the getContexts command with the Chrome browser the data is not that reliable.
+ *      - The description data is not always returned, so the defaults are returned.
+ *      - The `webviewPageId` is not always returning the correct value, and then it will be 0
+ *      - Sometimes not all Chrome tabs are returned, this differs per Chrome/ChromeDriver version
+ *
+ * :::
  *
  * <example>
     :example.test.js
@@ -12,17 +33,94 @@
         //
         // For iOS, the context will be 'WEBVIEW_{number}'
         await driver.getContexts()
-        // Returns ['NATIVE_APP', 'WEBVIEW_94703.19', ...]
+        // Returns [ 'NATIVE_APP', 'WEBVIEW_84392.1', ... ]
     })
  * </example>
  *
- * @param {boolean=}    getDetailed  If true, return detailed information about the contexts. Default: `false`
+ * <example>
+    :detailed.test.js
+    it('should return all contexts in the current session with detailed info.', async () => {
+        // For Android
+        await driver.getContexts({returnDetailedContexts: true})
+        // Returns [
+        //   { id: 'NATIVE_APP' },
+        //   {
+        //       id: 'WEBVIEW_com.wdiodemoapp',
+        //       title: 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO',
+        //       url: 'https://webdriver.io/',
+        //       packageName: 'com.wdiodemoapp',
+        //       webviewPageId: '58B0AA2DBBBBBE9008C35AE42385BB0D'
+        //   },
+        //   {
+        //       id: 'WEBVIEW_chrome',
+        //       title: 'Android | Get more done with Google on Android-phones and devices',
+        //       url: 'https://www.android.com/',
+        //       packageName: 'com.android.chrome',
+        //       webviewPageId: '0'
+        //   }
+        // ]
+        //
+        // For iOS, the context will be 'WEBVIEW_{number}'
+        await driver.getContexts({returnDetailedContexts: true})
+        // Returns: [
+        //   { id: 'NATIVE_APP' },
+        //   {
+        //       id: 'WEBVIEW_86150.1',
+        //       title: 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO',
+        //       url: 'https://webdriver.io/',
+        //       bundleId: 'org.reactjs.native.example.wdiodemoapp'
+        //   },
+        //   {
+        //       id: 'WEBVIEW_86152.1',
+        //       title: 'Apple',
+        //       url: 'https://www.apple.com/',
+        //       bundleId: 'com.apple.mobilesafari'
+        //   }
+        // ]
+    })
+ * </example>
+ *
+ * <example>
+    :description.data.test.js
+    it('should return Android description data for the webview', async () => {
+        // For Android
+        await driver.getContexts({returnDetailedContexts: true})
+        // Returns [
+        //   { id: 'NATIVE_APP' },
+        //   {
+        //       androidWebviewData: {
+        //          attached: true,
+        //          empty: false,
+        //          height: 2589,
+        //          neverAttached: false,
+        //          screenX: 0,
+        //          screenY: 151,
+        //          visible: true,
+        //          width: 1344
+        //       },
+        //       id: 'WEBVIEW_com.wdiodemoapp',
+        //       title: 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO',
+        //       url: 'https://webdriver.io/',
+        //       packageName: 'com.wdiodemoapp',
+        //       webviewPageId: '58B0AA2DBBBBBE9008C35AE42385BB0D'
+        //   }
+        // ]
+    })
+ * </example>
+ *
+ * @param {GetContextsOptions=} options                                     The `getContext` options (optional)
+ * @param {boolean=}            options.returnDetailedContexts              By default, we only return the context names based on the default Appium `contexts` API. If you want to get all data, you can set this to `true`. Default is `false` (optional).
+ * @param {number=}             options.androidWebviewConnectionRetryTime   The time in milliseconds to wait between each retry to connect to the webview. Default is `500` ms (optional). <br /><strong>ANDROID-ONLY</strong>
+ * @param {number=}             options.androidWebviewConnectTimeout        The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms (optional). <br /><strong>ANDROID-ONLY</strong>
+ * @param {boolean=}            options.filterByCurrentAndroidApp           By default, we return all webviews. If you want to filter the webviews by the current Android app that is opened, you can set this to `true`. Default is `false` (optional). <br /><strong>NOTE:</strong> Be aware that you can also NOT find any Webview based on this "restriction". <br /><strong>ANDROID-ONLY</strong>
+ * @param {boolean=}            options.isAndroidWebviewVisible             By default, we only return the webviews that are attached and visible. If you want to get all webviews, you can set this to `false` (optional). Default is `true`. <br /><strong>ANDROID-ONLY</strong>
+ * @param {boolean=}            options.returnAndroidDescriptionData        By default, no Android Webview (Chrome) description description data. If you want to get all data, you can set this to `true`. Default is `false` (optional). <br /><strong>ANDROID-ONLY</strong>
  *
  * @TODO: Also change the context manager because it needs to keep track of the context to which we switch, so we also need to add the renamed Appium commands to the context manager.
  */
 export async function getContexts(
     this: WebdriverIO.Browser,
-    options?: boolean
+    options?: GetContextsOptions
 ) {
     const browser = this
 
@@ -30,8 +128,280 @@ export async function getContexts(
         throw new Error('The `switchContext` command is only available for mobile platforms.')
     }
 
-    if (!options) {
+    if (!options || !options.returnDetailedContexts) {
         return browser.getAppiumContexts()
     }
 
+    const defaultOptions = {
+        androidWebviewConnectionRetryTime: 500,
+        androidWebviewConnectTimeout: 5000,
+        filterByCurrentAndroidApp: false,
+        isAndroidWebviewVisible: true,
+        returnAndroidDescriptionData: false,
+    }
+    const {
+        androidWebviewConnectionRetryTime,
+        androidWebviewConnectTimeout,
+        filterByCurrentAndroidApp,
+        isAndroidWebviewVisible,
+        returnAndroidDescriptionData,
+    } = { ...defaultOptions, ...options }
+
+    return getCurrentContexts({
+        browser,
+        androidWebviewConnectionRetryTime,
+        androidWebviewConnectTimeout,
+        filterByCurrentAndroidApp,
+        isAndroidWebviewVisible,
+        returnAndroidDescriptionData,
+    })
+}
+
+const CHROME_PACKAGE_NAME = 'com.android.chrome'
+
+type AndroidChromeInternalContexts = Array<{
+    proc: string;
+    webview: string;
+    info: {
+        'Android-Package': string;
+        Browser: string;
+        'Protocol-Version': string;
+        'User-Agent': string;
+        'V8-Version': string;
+        'WebKit-Version': string;
+        webSocketDebuggerUrl: string;
+    };
+    pages?: [{
+        description: string;
+        devtoolsFrontendUrl: string;
+        faviconUrl: string;
+        id: string;
+        title: string;
+        type: string;
+        url: string;
+        webSocketDebuggerUrl: string;
+    }];
+    webviewName: string;
+}>
+
+type GetCurrentContexts = {
+    browser: WebdriverIO.Browser;
+    androidWebviewConnectionRetryTime: number;
+    androidWebviewConnectTimeout: number;
+    filterByCurrentAndroidApp: boolean;
+    isAndroidWebviewVisible: boolean;
+    returnAndroidDescriptionData: boolean;
+}
+
+type ParsedAndroidContexts = {
+    contexts: AndroidChromeInternalContexts;
+    filterByCurrentAndroidApp: boolean;
+    isAttachedAndVisible: boolean;
+    packageName: string;
+}
+
+/**
+ * Parse the Android array and return the same object as iOS
+ *
+ * Android will return something like this
+ * [
+ *   {
+ *     "proc": "@webview_devtools_remote_29051",
+ *     "webview": "WEBVIEW_29051",
+ *     "info": {
+ *       "Android-Package": "com.wdiodemoapp",
+ *       "Browser": "Chrome/113.0.5672.136",
+ *       "Protocol-Version": "1.3",
+ *       "User-Agent": "Mozilla/5.0 (Linux; Android 14; sdk_gphone64_arm64 Build/UE1A.230829.036; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/113.0.5672.136 Mobile Safari/537.36",
+ *       "V8-Version": "11.3.244.11",
+ *       "WebKit-Version": "537.36 (@2d54072eb2f350d37f3f304c4ba0fafcddbd7e82)",
+ *       "webSocketDebuggerUrl": "ws://127.0.0.1:10900/devtools/browser"
+ *     },
+ *     "pages": [
+ *       {
+ *         "description": "{\"attached\":true,\"empty\":false,\"height\":2682,\"never_attached\":false,\"screenX\":0,\"screenY\":144,\"visible\":true,\"width\":1440}",
+ *         "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_internal_file/@2d54072eb2f350d37f3f304c4ba0fafcddbd7e82/inspector.html?ws=127.0.0.1:10900/devtools/page/6751C1E052A63B0CA27F839216AEF4B8",
+ *         "faviconUrl": "https://webdriver.io/img/favicon.png",
+ *         "id": "6751C1E052A63B0CA27F839216AEF4B8",
+ *         "title": "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO",
+ *         "type": "page",
+ *         "url": "https://webdriver.io/",
+ *         "webSocketDebuggerUrl": "ws://127.0.0.1:10900/devtools/page/6751C1E052A63B0CA27F839216AEF4B8"
+ *       },
+ *       {
+ *         "description": "",
+ *         "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_internal_file/@2d54072eb2f350d37f3f304c4ba0fafcddbd7e82/worker_app.html?ws=127.0.0.1:10900/devtools/page/BB0EE977F0C88F5DF6E50F902A855CDC",
+ *         "id": "BB0EE977F0C88F5DF6E50F902A855CDC",
+ *         "title": "Service Worker https://webdriver.io/sw.js?params=%7B%22offlineMode%22%3Afalse%2C%22debug%22%3Afalse%7D",
+ *         "type": "service_worker",
+ *         "url": "https://webdriver.io/sw.js?params=%7B%22offlineMode%22%3Afalse%2C%22debug%22%3Afalse%7D",
+ *         "webSocketDebuggerUrl": "ws://127.0.0.1:10900/devtools/page/BB0EE977F0C88F5DF6E50F902A855CDC"
+ *       }
+ *     ],
+ *     "webviewName": "WEBVIEW_com.wdiodemoapp"
+ *   }
+ * ]
+ *
+ * This is what the description data means
+ * - `attached`:
+ *   This indicates whether the web page is currently attached to a web view. A value of true means the page is
+ *   attached and likely active, whereas false indicates it is not.
+ * - `empty`:
+ *   This property shows whether the web page is empty or not. An empty page typically means that there is no
+ *   significant content loaded in it. true indicates the page is empty, and false indicates it has content.
+ * - `never_attached`:
+ *   This signifies whether the page has never been attached to a web view. If true, the page has never been
+ *   attached, which could indicate a new or unused page. If false, the page has been attached at some point.
+ * - `screenX and screenY`:
+ *   These properties give the X and Y coordinates of the web page on the screen, respectively. They indicate
+ *   the position of the top-left corner of the web page relative to the screen.
+ * - `visible`:
+ *   This denotes whether the web page is visible on the screen. true means the page is visible to the user,
+ *   and false means it is not.
+ * - `width and height`:
+ *   These properties specify the dimensions of the web page in pixels. width is the width of the page, and
+ *   height is its height.
+ * - `faviconUrl` (if present):
+ *   This is the URL of the favicon (the small icon associated with the page, often displayed in browser tabs).
+ */
+async function parsedAndroidContexts({
+    contexts,
+    filterByCurrentAndroidApp,
+    isAttachedAndVisible,
+    packageName,
+}: ParsedAndroidContexts): Promise<AndroidDetailedContexts> {
+    const currentWebviewName = `WEBVIEW_${packageName}`
+    let parsedContexts = contexts
+    if (filterByCurrentAndroidApp) {
+        parsedContexts = contexts.filter((context) => context.webviewName === currentWebviewName)
+    }
+
+    const result = [{ id: 'NATIVE_APP' }]
+
+    if (!parsedContexts || parsedContexts.length < 1) {
+        return result
+    }
+
+    parsedContexts.forEach((context) =>
+        context.pages
+            ?.filter((page) => {
+                // Chrome Webview data doesn't always contain description data
+                if (packageName === CHROME_PACKAGE_NAME) {
+                    return true
+                }
+                if (page.type === 'page' && page.description) {
+                    let descriptionObj
+                    try {
+                        descriptionObj = JSON.parse(page.description)
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    } catch (e) {
+                        return false
+                    }
+
+                    return isAttachedAndVisible ? descriptionObj.attached === true && descriptionObj.visible === true : true
+                }
+
+                return !isAttachedAndVisible
+            })
+            // Reconstruct the data so it will be "equal" to iOS WebView object.
+            .forEach((page) => {
+                const {
+                    attached = false,
+                    empty = false,
+                    height = 0,
+                    never_attached: neverAttached = false,
+                    screenX = 0,
+                    screenY = 0,
+                    visible = false,
+                    width = 0,
+                } = JSON.parse(page.description || '{}')
+
+                const pageData = {
+                    androidWebviewData: {
+                        attached,
+                        empty,
+                        height,
+                        neverAttached,
+                        screenX,
+                        screenY,
+                        visible,
+                        width,
+                    },
+                    id: context.webviewName,
+                    title: page.title,
+                    url: page.url,
+                    packageName: context.info['Android-Package'],
+                    webviewPageId: page.id,
+                }
+                result.push(pageData)
+            })
+    )
+
+    return result
+}
+
+/**
+ * Get the current contexts.
+ * Instead of using the method `browser.getContexts` we are going to use our own implementation to get back more data
+ */
+async function getCurrentContexts({
+    browser,
+    androidWebviewConnectionRetryTime,
+    androidWebviewConnectTimeout,
+    filterByCurrentAndroidApp,
+    isAndroidWebviewVisible,
+    returnAndroidDescriptionData,
+}: GetCurrentContexts): Promise<AppiumDetailedCrossPlatformContexts> {
+    const contexts = await browser.execute('mobile: getContexts') as IosDetailedContexts | AndroidChromeInternalContexts
+
+    // The logic for iOS is clear, we can just return the contexts which will be an array of objects with more data (see the type) instead of only strings
+    if (browser.isIOS) {
+        return contexts as IosDetailedContexts
+    }
+
+    // For Android we need to wait for the webview to contain pages, so we need to do a few checks
+    // 1. Get the package name of the app we are testing
+    const packageName = await browser.getCurrentPackage()
+    const startTime = Date.now()
+    const retryInterval = androidWebviewConnectionRetryTime
+
+    while (Date.now() - startTime < androidWebviewConnectTimeout) {
+        // 2. Parse the Android context data in a more readable format
+        const parsedContexts = await parsedAndroidContexts({
+            contexts: contexts as AndroidChromeInternalContexts,
+            filterByCurrentAndroidApp,
+            isAttachedAndVisible: isAndroidWebviewVisible,
+            packageName,
+        })
+        // 3. Check if there is a webview that belongs to the app we are testing
+        const androidContext = parsedContexts.find((context) => context.packageName === packageName)
+        // 4. There are cases that no packageName is returned, so we need to check for that
+        const isPackageNameMissing = !androidContext?.packageName
+        // 5. There are also cases that the androidWebviewData is not returned, so we need to check for that
+        const isAndroidWebviewDataMissing = androidContext && !('androidWebviewData' in androidContext)
+        // 6. There are also cases that the androidWebviewData is returned, but the empty property is not returned, so we need to check for that
+        const isAndroidWebviewDataEmpty = androidContext && androidContext.androidWebviewData?.empty
+
+        // If the current app is Chrome we can't wait for the webview to contain pages by checking the androidWebviewData because it will always be empty
+        if (packageName === CHROME_PACKAGE_NAME) {
+            return parsedContexts
+        }
+        if (!isPackageNameMissing && !isAndroidWebviewDataMissing && !isAndroidWebviewDataEmpty) {
+            // If returnAndroidDescriptionData is false, filter out androidWebviewData
+            if (!returnAndroidDescriptionData) {
+                parsedContexts.forEach(context => {
+                    if ('androidWebviewData' in context) {
+                        delete context.androidWebviewData
+                    }
+                })
+            }
+
+            return parsedContexts
+        }
+
+        // 7. We will check for X seconds, with a custom interval, if the webview contains the correct data
+        await new Promise((resolve) => setTimeout(resolve, retryInterval))
+    }
+
+    throw new Error(`The packageName '${packageName}' matches, but no webview with pages was loaded in this response: '${JSON.stringify(contexts)}'`)
 }

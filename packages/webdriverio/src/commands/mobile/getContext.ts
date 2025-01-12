@@ -1,6 +1,6 @@
 /**
  *
- * Get the current of the current session.
+ * Get the context of the current session.
  *
  *
  * <example>
@@ -24,7 +24,7 @@ export async function getContext(
     const browser = this
 
     if (!browser.isMobile) {
-        throw new Error('The `switchContext` command is only available for mobile platforms.')
+        throw new Error('The `getContext` command is only available for mobile platforms.')
     }
 
     return browser.getAppiumContext()
