@@ -89,13 +89,26 @@ import type { AndroidDetailedContexts, AppiumDetailedCrossPlatformContexts, GetC
         //   { id: 'NATIVE_APP' },
         //   {
         //       androidWebviewData: {
+        //          // Indicates whether the web page is currently attached to a web view.
+        //          // `true` means the page is attached and likely active, `false` indicates it is not.
         //          attached: true,
+        //          // Indicates whether the web page is empty or not. An empty page typically means that
+        //          // there is no significant content loaded in it. `true` indicates the page is empty,
+        //          // `false` indicates it has content.
         //          empty: false,
-        //          height: 2589,
+        //          // Indicates whether the page has never been attached to a web view. If `true`, the
+        //          // page has never been attached, which could indicate a new or unused page. If `false`,
+        //          // the page has been attached at some point.
         //          neverAttached: false,
+        //          // Indicates whether the web page is visible on the screen. `true` means the page is
+        //          // visible to the user, `false` means it is not.
+        //          visible: true,
+        //          // This data can be super useful to determine where on the screen the webview is located
+        //          // and can come in handy when you want to interact with elements on the screen based on
+        //          // coordinates based on the top-left corner of the screen
         //          screenX: 0,
         //          screenY: 151,
-        //          visible: true,
+        //          height: 2589,
         //          width: 1344
         //       },
         //       id: 'WEBVIEW_com.wdiodemoapp',
@@ -114,7 +127,7 @@ import type { AndroidDetailedContexts, AppiumDetailedCrossPlatformContexts, GetC
  * @param {number=}             options.androidWebviewConnectTimeout        The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms (optional). <br /><strong>ANDROID-ONLY</strong>
  * @param {boolean=}            options.filterByCurrentAndroidApp           By default, we return all webviews. If you want to filter the webviews by the current Android app that is opened, you can set this to `true`. Default is `false` (optional). <br /><strong>NOTE:</strong> Be aware that you can also NOT find any Webview based on this "restriction". <br /><strong>ANDROID-ONLY</strong>
  * @param {boolean=}            options.isAndroidWebviewVisible             By default, we only return the webviews that are attached and visible. If you want to get all webviews, you can set this to `false` (optional). Default is `true`. <br /><strong>ANDROID-ONLY</strong>
- * @param {boolean=}            options.returnAndroidDescriptionData        By default, no Android Webview (Chrome) description description data. If you want to get all data, you can set this to `true`. Default is `false` (optional). <br /><strong>ANDROID-ONLY</strong>
+ * @param {boolean=}            options.returnAndroidDescriptionData        By default, no Android Webview (Chrome) description description data. If you want to get all data, you can set this to `true`. Default is `false` (optional). <br />By enabling this option you will get extra data in the response, see the `description.data.test.js` for more information. <br /><strong>ANDROID-ONLY</strong>
  *
  * @TODO: Also change the context manager because it needs to keep track of the context to which we switch, so we also need to add the renamed Appium commands to the context manager.
  */
