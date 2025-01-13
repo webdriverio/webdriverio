@@ -73,9 +73,7 @@ export class ContextManager extends SessionManager {
         if (event.command === 'closeWindow') {
             const windowHandles = (event.result as { value: string[] }).value
             if (windowHandles.length === 0) {
-                const newWindowHandle = await this.#browser.createWindow('tab')
-                this.#currentContext = newWindowHandle.handle
-                return this.#browser.switchToWindow(this.#currentContext)
+                throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
             }
             this.#currentContext = windowHandles[0]
             return this.#browser.switchToWindow(this.#currentContext)
