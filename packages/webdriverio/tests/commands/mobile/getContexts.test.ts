@@ -1,13 +1,18 @@
+import path from 'node:path'
 import { expect, describe, it, vi, beforeEach } from 'vitest'
-import type { AndroidDetailedContexts, IosDetailedContexts } from '../../../src/index.js'
+import logger from '@wdio/logger'
+import type { IosDetailedContexts } from '../../../src/index.js'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
+const log = logger('test')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('getContexts test', () => {
     let browser: WebdriverIO.Browser
     let androidChromeInternalContexts = [] as any
     let iOSContexts = [] as IosDetailedContexts
+    let logSpy
 
     beforeEach(async () => {
         androidChromeInternalContexts = [
@@ -169,6 +174,7 @@ describe('getContexts test', () => {
     })
 
     it('should call the default Appium endpoint if no options are provided', async () => {
+        logSpy = vi.spyOn(log, 'info')
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -185,9 +191,12 @@ describe('getContexts test', () => {
 
         expect(sessionCallUrl.pathname).toEqual('/session')
         expect(callUrl.pathname).toEqual('/session/foobar-123/contexts')
+        expect(logSpy).toHaveBeenCalledWith('The standard Appium `contexts` method is used. If you want to get more detailed data, you can set `returnDetailedContexts` to `true`.')
+        logSpy.mockRestore()
     })
 
     it('should call the default Appium endpoint if returnDetailedContexts is not provided', async () => {
+        logSpy = vi.spyOn(log, 'info')
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -204,6 +213,8 @@ describe('getContexts test', () => {
 
         expect(sessionCallUrl.pathname).toEqual('/session')
         expect(callUrl.pathname).toEqual('/session/foobar-123/contexts')
+        expect(logSpy).toHaveBeenCalledWith('The standard Appium `contexts` method is used. If you want to get more detailed data, you can set `returnDetailedContexts` to `true`.')
+        logSpy.mockRestore()
     })
 
     it('should call the default Appium endpoint if returnDetailedContexts is set to false', async () => {

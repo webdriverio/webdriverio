@@ -1,4 +1,8 @@
+import logger from '@wdio/logger'
+
 import type { AndroidDetailedContexts, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContexts } from '../../types.js'
+
+const log = logger('webdriver')
 
 /**
  * The WebdriverIO `getContexts` method is an improved version of the default Appium `contexts`
@@ -177,6 +181,8 @@ export async function getContexts(
     }
 
     if (!options || !options.returnDetailedContexts) {
+        log.info('The standard Appium `contexts` method is used. If you want to get more detailed data, you can set `returnDetailedContexts` to `true`.')
+
         return browser.getAppiumContexts()
     }
 
