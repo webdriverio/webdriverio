@@ -18,7 +18,7 @@ describe('getContexts test', () => {
                 browserName: 'foobar',
             } as any
         })
-        await expect(browser.getContexts()).rejects.toThrow('The `switchContext` command is only available for mobile platforms.')
+        await expect(browser.getContexts()).rejects.toThrow('The `getContexts` command is only available for mobile platforms.')
     })
 
     it('should call the default Appium endpoint if no options are provided', async () => {
