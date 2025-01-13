@@ -83,23 +83,60 @@ describe('AccessibilityScripts', () => {
 })
 
 describe('getWritableDir', () => {
-    let accessibilityScripts: typeof AccessibilityScripts
-    let existsSyncStub: any
-    let accessSyncStub: any
+    let accessibilityScripts: typeof AccessibilityScripts = AccessibilityScripts
+    let existsSyncStub: any = vi.spyOn(fs, 'existsSync')
+    let accessSyncStub: any = vi.spyOn(fs, 'accessSync')
+    let mkdirSyncStub: any = vi.spyOn(fs, 'mkdirSync')
     let writableDir: string
-    beforeAll(() => {
-        accessibilityScripts = AccessibilityScripts
-        existsSyncStub = vi.spyOn(fs, 'existsSync')
-        accessSyncStub = vi.spyOn(fs, 'accessSync')
-    })
 
     beforeEach(() => {
-        writableDir = accessibilityScripts.getWritableDir()
+        existsSyncStub.mockReset()
+        accessSyncStub.mockReset()
+        mkdirSyncStub.mockReset()
     })
 
     it('should return a path when directory is present', () => {
+        existsSyncStub.mockReturnValue(true)
+        writableDir = accessibilityScripts.getWritableDir()
         expect(existsSyncStub).toHaveBeenCalled()
         expect(accessSyncStub).toHaveBeenCalled()
         expect(writableDir).toBeTruthy()
+    })
+
+    it('should create the directory and return the path when it is not present', () => {
+        existsSyncStub.mockReturnValue(false)
+        writableDir = accessibilityScripts.getWritableDir()
+        expect(existsSyncStub).toHaveBeenCalled()
+        expect(mkdirSyncStub).toHaveBeenCalledWith(expect.any(String), { recursive: true })
+        expect(writableDir).toBeTruthy()
+    })
+
+    it('should return an empty string when mkdirSync throws an exception', () => {
+        existsSyncStub.mockReturnValue(false)
+        mkdirSyncStub.mockImplementation(() => {
+            throw new Error('Failed to create directory')
+        })
+
+        writableDir = accessibilityScripts.getWritableDir()
+        expect(existsSyncStub).toHaveBeenCalled()
+        expect(mkdirSyncStub).toHaveBeenCalled()
+        expect(writableDir).toBe('') // Expect empty string as fallback
+    })
+
+    it('should skip the first path if mkdirSync throws and succeed for the second path', () => {
+        let callCount = 0
+
+        existsSyncStub.mockImplementation(() => false)
+        mkdirSyncStub.mockImplementation(() => {
+            if (callCount === 0) {
+                callCount++
+                throw new Error('Failed to create first directory')
+            }
+        })
+
+        writableDir = accessibilityScripts.getWritableDir()
+        expect(existsSyncStub).toHaveBeenCalledTimes(2)
+        expect(mkdirSyncStub).toHaveBeenCalledTimes(2) // Called for first adn second paths
+        expect(writableDir).toBe(process.cwd()) // Should return the second path
     })
 })
