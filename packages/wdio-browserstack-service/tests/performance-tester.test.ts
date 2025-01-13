@@ -1,6 +1,7 @@
 import fsPromises from 'node:fs/promises'
 import fs from 'node:fs'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
+import { performance } from 'node:perf_hooks'
 import * as bstackLogger from '../src/bstackLogger.js'
 
 import PerformanceTester from '../src/instrumentation/performance/performance-tester.js'
@@ -65,7 +66,7 @@ describe('PerformanceTester', function () {
             const func = (a: number, b: number) => {
                 return a + b
             }
-            const timerifyFunc = PerformanceTester.getPerformance().timerify(func)
+            const timerifyFunc = performance.timerify(func)
             timerifyFunc(1, 2)
             await new Promise(resolve => setTimeout(resolve, 100))
             expect(PerformanceTester['_events']).toEqual([expect.objectContaining({ name: 'func', entryType: 'function', duration: expect.any(Number) })])

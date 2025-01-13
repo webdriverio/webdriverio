@@ -11,7 +11,7 @@ import { PercyLogger } from './PercyLogger.js'
 import type { Options } from '@wdio/types'
 
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
-import PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
+import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 
 class PercyBinary {
     #hostOS = process.platform

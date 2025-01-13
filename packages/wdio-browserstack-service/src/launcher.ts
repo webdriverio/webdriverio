@@ -51,7 +51,7 @@ import { setupExitHandlers } from './exitHandler.js'
 import AiHandler from './ai-handler.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
-import PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -481,7 +481,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.APP_AUOTMATE_EVENTS.APP_UPLOAD)
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.APP_AUTOMATE_EVENTS.APP_UPLOAD)
     async _uploadApp(app:App): Promise<AppUploadResponse> {
         BStackLogger.info(`uploading app ${app.app} ${app.customId? `and custom_id: ${app.customId}` : ''} to browserstack`)
 

@@ -17,9 +17,10 @@ import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ColorName } from 'chalk'
 import { FormData } from 'formdata-node'
+import { performance } from 'node:perf_hooks'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
-import PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { getProductMap, logBuildError, handleErrorForObservability, handleErrorForAccessibility } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
 
@@ -171,7 +172,7 @@ export function o11yErrorHandler(fn: Function) {
         try {
             let functionToHandle = fn
             if (process.env[PERF_MEASUREMENT_ENV]) {
-                functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
+                functionToHandle = performance.timerify(functionToHandle as any)
             }
             const result = functionToHandle(...args)
             if (result instanceof Promise) {
@@ -255,7 +256,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                 writable: true,
                 value: function(...args: any) {
                     try {
-                        const result = (process.env[PERF_MEASUREMENT_ENV] ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
+                        const result = (process.env[PERF_MEASUREMENT_ENV] ? performance.timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
                             return result.catch(error => processError(error, method, args))
                         }

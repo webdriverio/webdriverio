@@ -12,7 +12,7 @@ import { PercyLogger } from './PercyLogger.js'
 
 import { PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS, CAPTURE_MODES } from '../constants.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
-import PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
+import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 
 class _PercyHandler {
     private _testMetadata: { [key: string]: any } = {}

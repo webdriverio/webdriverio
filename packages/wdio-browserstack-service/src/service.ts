@@ -27,7 +27,7 @@ import UsageStats from './testOps/usageStats.js'
 import { shouldProcessEventForTesthub } from './testHub/utils.js'
 import AiHandler from './ai-handler.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
-import PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'

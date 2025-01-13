@@ -43,20 +43,22 @@ export default class PerformanceTester {
             fs.mkdirSync(this.jsonReportDirPath, { recursive: true })
         }
         this._observer = new PerformanceObserver(list => {
-            list.getEntries().forEach(entry => {
-                let finalEntry = entry
-                if (entry.entryType === 'measure') {
+            list.getEntries()
+                .filter((entry) => entry.entryType === 'measure')
+                .forEach(entry => {
+                    let finalEntry = entry
                     finalEntry = entry.toJSON()
                     if (this.details[entry.name]) {
                         finalEntry = Object.assign(finalEntry, this.details[entry.name])
                     }
-
                     delete this.details[entry.name]
                     this._measuredEvents.push(finalEntry)
-                } else if (process.env[PERF_MEASUREMENT_ENV]) {
-                    this._events.push(finalEntry)
                 }
-            })
+                )
+
+            if (process.env[PERF_MEASUREMENT_ENV]) {
+                list.getEntries().forEach((entry) => this._events.push(entry))
+            }
         })
         const entryTypes: EntryType[] = ['measure']
         if (process.env[PERF_MEASUREMENT_ENV]) {
@@ -75,10 +77,6 @@ export default class PerformanceTester {
         }
     }
 
-    static getPerformance() {
-        return performance
-    }
-
     static calculateTimes(methods: string[]) : number {
         const times: { [key: string]: number } = {}
         this._events.map((entry) => {
@@ -95,8 +93,10 @@ export default class PerformanceTester {
     }
 
     static async stopAndGenerate(filename: string = 'performance-own.html') {
-        if (!this.started) {return}
-        await PerformanceTester.sleep(2000) // Wait to 2s just to finish any running callbacks for timerify
+        if (!this.started) {
+            return
+        }
+
         try {
             const eventsJson = JSON.stringify(this._measuredEvents)
             // remove enclosing array and add a trailing comma so that we
@@ -108,16 +108,20 @@ export default class PerformanceTester {
         }
         this._observer.disconnect()
 
-        if (!process.env[PERF_MEASUREMENT_ENV]) {return}
+        if (!process.env[PERF_MEASUREMENT_ENV]) {
+            return
+        }
+
+        await PerformanceTester.sleep(2000) // Wait to 2s just to finish any running callbacks for timerify
 
         this.started = false
 
         this.generateCSV(this._events)
 
         const content = this.generateReport(this._events)
-        const path = process.cwd() + '/' + filename
+        const dir = path.join(process.cwd(), filename)
         try {
-            await fsPromise.writeFile(path, content)
+            await fsPromise.writeFile(dir, content)
             BStackLogger.info(`Performance report is at ${path}`)
         } catch (err) {
             BStackLogger.error(`Error in writing html ${util.format(err)}`)
@@ -194,38 +198,31 @@ export default class PerformanceTester {
     }
 
     static measure(label: string, fn: Function, details = {}, args?: IArguments, thisArg: any = null) {
+        if (!this.started || !this.isEnabled()) {
+            return fn.apply(thisArg, args)
+        }
+
+        PerformanceTester.start(label)
+        this.details && (this.details[label] = details)
         try {
-            if (this.started && this.isEnabled()) {
-                PerformanceTester.start(label)
-                this.details && (this.details[label] = details)
-
-                try {
-                    const returnVal = fn.apply(thisArg, args)
-                    if (returnVal instanceof Promise) {
-                        return new Promise((resolve, reject) => {
-                            returnVal
-                                .then(v => {
-                                    PerformanceTester.end(label)
-                                    resolve(v)
-                                }).catch(e => {
-                                    PerformanceTester.end(label, false, util.format(e))
-                                    reject(e)
-                                })
+            const returnVal = fn.apply(thisArg, args)
+            if (returnVal instanceof Promise) {
+                return new Promise((resolve, reject) => {
+                    returnVal
+                        .then(v => {
+                            PerformanceTester.end(label)
+                            resolve(v)
+                        }).catch(e => {
+                            PerformanceTester.end(label, false, util.format(e))
+                            reject(e)
                         })
-                    }
-
-                    PerformanceTester.end(label)
-
-                    return returnVal
-                } catch (er) {
-                    PerformanceTester.end(label, false, util.format(er))
-                    throw er
-                }
+                })
             }
-
-            return fn.apply(thisArg, args)
-        } catch (err) {
-            return fn.apply(thisArg, args)
+            PerformanceTester.end(label)
+            return returnVal
+        } catch (er) {
+            PerformanceTester.end(label, false, util.format(er))
+            throw er
         }
     }
 
@@ -255,7 +252,7 @@ export default class PerformanceTester {
     static async uploadEventsData() {
         try {
             let measures = []
-            if (fs.existsSync(this.jsonReportDirPath)) {
+            if (await fsPromise.access(this.jsonReportDirPath).then(() => true).catch(() => false)) {
                 const files = (await fsPromise.readdir(this.jsonReportDirPath)).map(file => path.resolve(this.jsonReportDirPath, file))
                 measures = (await Promise.all(files.map((file) => fsPromise.readFile(file, 'utf-8')))).map(el => `[${el.slice(0, -1)}]`).map(el => JSON.parse(el)).flat()
             }

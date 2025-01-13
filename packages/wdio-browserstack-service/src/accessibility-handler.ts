@@ -21,7 +21,7 @@ import {
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
-import PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 import { BStackLogger } from './bstackLogger.js'
 
