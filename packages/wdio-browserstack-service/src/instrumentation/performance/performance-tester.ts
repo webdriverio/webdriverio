@@ -311,7 +311,7 @@ export default class PerformanceTester {
         }
 
         try {
-            if (fs.existsSync(this.jsonReportDirPath)) {
+            if (await fsPromise.access(this.jsonReportDirPath).then(() => true, () => false)) {
                 const files = await fsPromise.readdir(this.jsonReportDirPath)
 
                 for (const file of files) {
