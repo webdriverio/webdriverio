@@ -1532,7 +1532,7 @@ export async function pollApi(
         } else if (error.response) {
             let errorMessage = error.response.statusText
             try {
-                const parsedError = JSON.parse(error.response.body)
+                const parsedError = JSON.parse(error.response.json())
                 errorMessage = parsedError.message
             } catch {
                 BStackLogger.debug(`Error parsing pollApi request body ${error.response.body}`)
