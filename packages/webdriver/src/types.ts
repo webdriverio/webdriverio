@@ -7,6 +7,8 @@ import type { EventData } from './bidi/localTypes.js'
 import type { CommandData } from './bidi/remoteTypes.js'
 import type { CommandResponse } from './bidi/localTypes.js'
 
+import type { RequestStartEvent, RequestEndEvent, RequestPerformanceEvent, RequestRetryEvent } from './request/types.js'
+
 export interface JSONWPCommandError extends Error {
     code?: string
     statusCode?: string
@@ -41,7 +43,10 @@ type WebDriverClassicEvents = {
     result: { command: string, method: string, endpoint: string, body: unknown, result: unknown }
     bidiCommand: Omit<CommandData, 'id'>,
     bidiResult: CommandResponse,
-    'request.performance': { durationMillisecond: number, error: string, request: unknown, retryCount: number, success: boolean }
+    'request.performance': RequestPerformanceEvent
+    'request.retry': RequestRetryEvent
+    'request.start': RequestStartEvent
+    'request.end': RequestEndEvent
 }
 export type BidiEventMap = {
     [Event in keyof Omit<WebDriverBidiCommands, 'sendCommand' | 'sendAsyncCommand'>]: BidiInterface[WebDriverBidiCommands[Event]['socket']['command']]

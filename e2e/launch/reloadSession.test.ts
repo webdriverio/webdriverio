@@ -26,6 +26,6 @@ test('can reconnect to WebDriver Bidi session', async () => {
     await browser.url('http://guinea-pig.webdriver.io')
     expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
     const h1 = await browser.$('h1')
-    expect(await h1.getText()).toBe('Test CSS Attributes')
+    expect(await h1.getText()).toBe('WebdriverJS Testpage')
     await browser.deleteSession()
 })

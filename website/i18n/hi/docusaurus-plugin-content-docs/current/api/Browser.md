@@ -111,6 +111,33 @@ describe('my test', () => {
 
 यहाँ घटनाओं की एक सूची है। ध्यान रखें कि यह अभी उपलब्ध घटनाओं की पूरी सूची नहीं है। यहां अधिक घटनाओं के विवरण जोड़कर दस्तावेज़ को अद्यतन करने में योगदान करने के लिए स्वतंत्र महसूस करें।
 
+#### `request.start`
+This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.
+
+```ts
+browser.on('request.start', (ev: RequestInit) => {
+    // ...
+})
+```
+
+#### `request.end`
+This event is fired once the request to the driver received a response. The event object either contains the response body as result or an error if the WebDriver command failed.
+
+```ts
+browser.on('request.end', (ev: { result: unknown, error?: Error }) => {
+    // ...
+})
+```
+
+#### `request.retry`
+The retry event can notify you when WebdriverIO attempts to retry running the command, e.g. due to a network issue. It contains information about the error that caused the retry and the amount of retries already done.
+
+```ts
+browser.on('request.retry', (ev: { error: Error, retryCount: number }) => {
+    // ...
+})
+```
+
 #### `request.performance`
 यह वेबड्राइवर स्तर के संचालन को मापने के लिए एक घटना है। जब भी WebdriverIO WebDriver बैकएंड को एक अनुरोध भेजता है, तो यह घटना कुछ उपयोगी जानकारी के साथ उत्सर्जित होगी:
 
