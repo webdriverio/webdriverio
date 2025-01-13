@@ -551,6 +551,7 @@ describe('main suite 1', () => {
         })
 
         it('switches to parent (not top-level)', async () => {
+            await browser.url('http://guinea-pig.webdriver.io/iframe.html')
             await expect($('h1')).toHaveText('Frame Demo')
             await expect($('h2')).not.toExist()
             await expect($('h3')).not.toExist()
