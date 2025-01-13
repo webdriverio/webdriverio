@@ -112,8 +112,6 @@ export const TESTOPS_BUILD_COMPLETED_ENV = 'BS_TESTOPS_BUILD_COMPLETED'
 // Whether percy has started successfully or not
 export const BROWSERSTACK_PERCY = 'BROWSERSTACK_PERCY'
 
-export const BSTACK_A11Y_POLLING_TIMEOUT = 'BSTACK_A11Y_POLLING_TIMEOUT'
-
 // Whether session is a accessibility session
 export const BROWSERSTACK_ACCESSIBILITY = 'BROWSERSTACK_ACCESSIBILITY'
 

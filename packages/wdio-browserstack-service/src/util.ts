@@ -27,7 +27,6 @@ import {
     UPLOAD_LOGS_ADDRESS,
     UPLOAD_LOGS_ENDPOINT,
     consoleHolder,
-    BSTACK_A11Y_POLLING_TIMEOUT,
     TESTOPS_BUILD_COMPLETED_ENV,
     BROWSERSTACK_TESTHUB_JWT,
     BROWSERSTACK_OBSERVABILITY,
@@ -338,7 +337,7 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
             process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
         }
         if (pollingTimeout) {
-            process.env.BSTACK_A11Y_POLLING_TIMEOUT = pollingTimeout
+            process.env.BSTACK_A11Y_POLLING_TIMEOUT = pollingTimeout as string
         }
         if (scriptsJson) {
             // @ts-expect-error fix type
@@ -440,6 +439,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
     }
 })
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const validateCapsWithAppA11y = (platformMeta?: { [key: string]: any; }) => {
     /* Check if the current driver platform is eligible for AppAccessibility scan */
     BStackLogger.debug(`platformMeta ${JSON.stringify(platformMeta)}`)
@@ -458,6 +458,7 @@ export const validateCapsWithAppA11y = (platformMeta?: { [key: string]: any; }) 
     return false
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
     /* Check if the current driver platform is eligible for Accessibility scan */
     try {
@@ -538,7 +539,8 @@ export const formatString = (template: (string | null), ...values: (string | nul
     })
 }
 
-export const _getParamsForAppAccessibility = ( commandName?: string ): { thTestRunUuid: any, thBuildUuid: any, thJwtToken: any, authHeader: any, scanTimestamp: Number, method: string | undefined  } => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const _getParamsForAppAccessibility = ( commandName?: string ): { thTestRunUuid: any, thBuildUuid: any, thJwtToken: any, authHeader: any, scanTimestamp: number, method: string | undefined  } => {
     return {
         'thTestRunUuid': process.env.TEST_ANALYTICS_ID,
         'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
@@ -549,6 +551,7 @@ export const _getParamsForAppAccessibility = ( commandName?: string ): { thTestR
     }
 }
 
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export const performA11yScan = async (isAppAutomate: boolean, browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
     if (!isBrowserStackSession) {
         BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
@@ -646,7 +649,7 @@ export const getAppA11yResultsSummary = async (isAppAutomate: boolean, browser: 
 const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<PollingResult> => {
     BStackLogger.debug('Performing scan before getting results summary')
     await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
-    const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) * 1000 : Date.now() + 30000
+    const upperTimeLimit = process.env.BSTACK_A11Y_POLLING_TIMEOUT ? Date.now() + parseInt(process.env.BSTACK_A11Y_POLLING_TIMEOUT) * 1000 : Date.now() + 30000
     const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
     const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
     const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
@@ -1561,7 +1564,6 @@ async function makeGetRequest(url: string, params: Record<string, any>, headers:
         method: 'GET',
         headers,
     })
-
     if (!response.ok) {
         const error: any = new Error('Request failed')
         error.response = response

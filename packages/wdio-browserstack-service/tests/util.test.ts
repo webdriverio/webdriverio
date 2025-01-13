@@ -1734,35 +1734,19 @@ describe('getAppA11yResults', () => {
 
     beforeEach(() => {
         logInfoMock = vi.spyOn(log, 'warn')
-        vi.mock('node-fetch', () => {
-            return vi.fn(() =>
-                Promise.resolve({
-                    json: () =>
-                        Promise.resolve({
-                            issues: [{ 'issueName': 'Readable Text Spacing' }],
-                        }),
-                    headers: {
-                        raw: () => ({
-                            next_poll_time: '10',
-                        }),
-                    },
-                })
-            )
-        })
         const result = {
             data: {
                 issues: [{ 'issueName': 'Readable Text Spacing' }],
             },
         }
-        logInfoMock = vi.spyOn(log, 'warn')
+        vi.mocked(fetch).mockClear()
         vi.mocked(fetch).mockResolvedValue({
-            json: () => Promise.resolve(result),
-            headers: {
-                raw: () => ({
-                    next_poll_time: '10',
-                }),
-            },
-        })
+            json: async () => (result),
+            headers: new Headers(),
+            ok: true,
+            status: 200,
+        } as Response)
+        logInfoMock = vi.spyOn(log, 'warn')
     })
 
     it('should return empty array if not a BrowserStack session', async () => {
@@ -1833,39 +1817,7 @@ describe('getAppA11yResultsSummary', () => {
 
     beforeEach(() => {
         logInfoMock = vi.spyOn(log, 'warn')
-        pollApiMock = vi.spyOn(utils, 'pollApi').mockResolvedValue({
-            data: {
-                data: {
-                    summary: {}
-                }
-            }
-        } as any)
 
-        vi.mock('node-fetch', () => {
-            return vi.fn(() =>
-                Promise.resolve({
-                    json: () =>
-                        Promise.resolve({
-                            data: {
-                                summary: {
-                                    'totalIssueCount': 64,
-                                    'totalBySeverity': {
-                                        'minor': 0,
-                                        'serious': 0,
-                                        'critical': 6,
-                                        'moderate': 58,
-                                    },
-                                },
-                            },
-                        }),
-                    headers: {
-                        raw: () => ({
-                            next_poll_time: '10',
-                        }),
-                    },
-                })
-            )
-        })
         const result = {
             data: {
                 summary: {
@@ -1879,15 +1831,21 @@ describe('getAppA11yResultsSummary', () => {
                 },
             },
         }
-        logInfoMock = vi.spyOn(log, 'warn')
+        vi.mocked(fetch).mockClear()
         vi.mocked(fetch).mockResolvedValue({
-            json: () => Promise.resolve(result),
-            headers: {
-                raw: () => ({
-                    next_poll_time: '10',
-                }),
-            },
-        })
+            json: async () => (result),
+            headers: new Headers(),
+            ok: true,
+            status: 200,
+        } as Response)
+        logInfoMock = vi.spyOn(log, 'warn')
+        pollApiMock = vi.spyOn(utils, 'pollApi').mockResolvedValue({
+            data: {
+                data: {
+                    summary: {}
+                }
+            }
+        } as any)
     })
 
     it('should return empty object if not a BrowserStack session', async () => {
