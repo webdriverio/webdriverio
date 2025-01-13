@@ -83,10 +83,10 @@ describe('AccessibilityScripts', () => {
 })
 
 describe('getWritableDir', () => {
-    let accessibilityScripts: typeof AccessibilityScripts = AccessibilityScripts
-    let existsSyncStub: any = vi.spyOn(fs, 'existsSync')
-    let accessSyncStub: any = vi.spyOn(fs, 'accessSync')
-    let mkdirSyncStub: any = vi.spyOn(fs, 'mkdirSync')
+    const accessibilityScripts: typeof AccessibilityScripts = AccessibilityScripts
+    const existsSyncStub: any = vi.spyOn(fs, 'existsSync')
+    const accessSyncStub: any = vi.spyOn(fs, 'accessSync')
+    const mkdirSyncStub: any = vi.spyOn(fs, 'mkdirSync')
     let writableDir: string
 
     beforeEach(() => {
