@@ -552,17 +552,14 @@ export type MobileScrollIntoViewOptions = SwipeOptions & {
 export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions, MobileScrollIntoViewOptions {
 }
 
-export const CONTEXT_REF = {
-    NATIVE_APP: 'NATIVE_APP',
-    WEBVIEW: 'WEBVIEW',
-} as const
-
-export type ContextType = typeof CONTEXT_REF[keyof typeof CONTEXT_REF];
-
 export type SwitchContextOptions = {
-    context: ContextType,
-    title?: string,
-    url?: string
+    appIdentifier?: string;
+    title?: string | RegExp;
+    url?: string | RegExp;
+
+    // Extra for the getContexts command for Android
+    androidWebviewConnectionRetryTime: number;
+    androidWebviewConnectTimeout: number;
 }
 
 type AppiumDetailedContextInterface = {
@@ -575,9 +572,9 @@ type IosContextBundleId  = {
     bundleId?: string;
 }
 
-export type IosDetailedContexts = (AppiumDetailedContextInterface & IosContextBundleId)[];
+export type IosDetailedContext = AppiumDetailedContextInterface & IosContextBundleId;
 
-type AndroidDetailedContext =  {
+export type AndroidDetailedContext = AppiumDetailedContextInterface & {
     androidWebviewData?: {
         attached: boolean;
         empty: boolean;
@@ -590,11 +587,9 @@ type AndroidDetailedContext =  {
     };
     packageName?: string;
     webviewPageId?: string;
-}
+};
 
-export type AndroidDetailedContexts = (AppiumDetailedContextInterface & AndroidDetailedContext)[];
-
-export type AppiumDetailedCrossPlatformContexts = IosDetailedContexts | AndroidDetailedContexts;
+export type AppiumDetailedCrossPlatformContexts = (IosDetailedContext | AndroidDetailedContext)[];
 
 export type GetContextsOptions = {
     androidWebviewConnectionRetryTime?: number;

@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import type { AndroidDetailedContexts, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContexts } from '../../types.js'
+import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContext } from '../../types.js'
 
 const log = logger('webdriver')
 
@@ -309,7 +309,7 @@ async function parsedAndroidContexts({
     filterByCurrentAndroidApp,
     isAttachedAndVisible,
     packageName,
-}: ParsedAndroidContexts): Promise<AndroidDetailedContexts> {
+}: ParsedAndroidContexts): Promise<AndroidDetailedContext[]> {
     const currentWebviewName = `WEBVIEW_${packageName}`
     let parsedContexts = contexts
     if (filterByCurrentAndroidApp) {
@@ -392,11 +392,11 @@ async function getCurrentContexts({
     isAndroidWebviewVisible,
     returnAndroidDescriptionData,
 }: GetCurrentContexts): Promise<AppiumDetailedCrossPlatformContexts> {
-    const contexts = await browser.execute('mobile: getContexts') as IosDetailedContexts | AndroidChromeInternalContexts
+    const contexts = await browser.execute('mobile: getContexts') as IosDetailedContext[] | AndroidChromeInternalContexts
 
     // The logic for iOS is clear, we can just return the contexts which will be an array of objects with more data (see the type) instead of only strings
     if (browser.isIOS) {
-        return contexts as IosDetailedContexts
+        return contexts as IosDetailedContext[]
     }
 
     // For Android we need to wait for the webview to contain pages, so we need to do a few checks
