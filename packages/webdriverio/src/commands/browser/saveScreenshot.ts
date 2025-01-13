@@ -49,7 +49,18 @@ export async function saveScreenshot (
         const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
-        const { data } = await this.browsingContextCaptureScreenshot({ context })
+        const tree = await this.browsingContextGetTree({})
+
+        /**
+         * WebDriver Bidi doesn't allow to take a screenshot of an iframe, it fails with:
+         * "unsupported operation - Non-top-level 'context'". Therefor we need to check if
+         * we are within an iframe and if so, take a screenshot of the document element
+         * insead.
+         */
+        const { data } = contextManager.findParentContext(context, tree.contexts)
+            ? await browser.$('html').getElement().then(
+                (el) => this.takeElementScreenshot(el.elementId).then((data) => ({ data })))
+            : await this.browsingContextCaptureScreenshot({ context })
         screenBuffer = data
     } else {
         screenBuffer = await this.takeScreenshot()
