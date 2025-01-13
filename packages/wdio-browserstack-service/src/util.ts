@@ -442,20 +442,14 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const validateCapsWithAppA11y = (platformMeta?: { [key: string]: any; }) => {
     /* Check if the current driver platform is eligible for AppAccessibility scan */
-    BStackLogger.debug(`platformMeta ${JSON.stringify(platformMeta)}`)
-    try {
-        if (
-            (platformMeta?.platform_name && String(platformMeta?.platform_name).toLowerCase() === 'android') &&
-            (platformMeta?.platform_version && parseInt(platformMeta?.platform_version?.toString()) < 11)
-        ) {
-            BStackLogger.warn('App Accessibility Automation tests are supported on OS version 11 and above for Android devices.')
-            return false
-        }
-        return true
-    } catch (error) {
-        BStackLogger.debug(`Exception in checking capabilities compatibility with AppAccessibility. Error: ${error}`)
+    if (
+        (platformMeta?.platform_name && String(platformMeta?.platform_name).toLowerCase() === 'android') &&
+        (platformMeta?.platform_version && parseInt(platformMeta?.platform_version?.toString()) < 11)
+    ) {
+        BStackLogger.warn('App Accessibility Automation tests are supported on OS version 11 and above for Android devices.')
+        return false
     }
-    return false
+    return true
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
