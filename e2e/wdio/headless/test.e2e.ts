@@ -549,6 +549,27 @@ describe('main suite 1', () => {
             await browser.switchFrame($('iframe'))
             await expect($('#tinymce')).toBePresent()
         })
+
+        it('switches to parent (not top-level)', async () => {
+            await expect($('h1')).toHaveText('Frame Demo')
+            await expect($('h2')).not.toExist()
+            await expect($('h3')).not.toExist()
+
+            await browser.switchFrame($('#A'))
+            await expect($('h1')).not.toExist()
+            await expect($('h2')).toHaveText('IFrame A')
+            await expect($('h3')).not.toExist()
+
+            await browser.switchFrame($('#A2'))
+            await expect($('h1')).not.toExist()
+            await expect($('h2')).not.toExist()
+            await expect($('h3')).toHaveText('IFrame A2')
+
+            await browser.switchToParentFrame()
+            await expect($('h1')).not.toExist()
+            await expect($('h2')).toHaveText('IFrame A')
+            await expect($('h3')).not.toExist()
+        })
     })
 
     describe('open resources with different protocols', () => {
