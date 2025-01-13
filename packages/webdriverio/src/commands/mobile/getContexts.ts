@@ -398,6 +398,7 @@ async function getCurrentContexts({
     const packageName = await browser.getCurrentPackage()
     const startTime = Date.now()
     const retryInterval = androidWebviewConnectionRetryTime
+    let isPackageNameMissing = false
 
     while (Date.now() - startTime < androidWebviewConnectTimeout) {
         // 2. Parse the Android context data in a more readable format
@@ -410,7 +411,7 @@ async function getCurrentContexts({
         // 3. Check if there is a webview that belongs to the app we are testing
         const androidContext = parsedContexts.find((context) => context.packageName === packageName)
         // 4. There are cases that no packageName is returned, so we need to check for that
-        const isPackageNameMissing = !androidContext?.packageName
+        isPackageNameMissing = !androidContext?.packageName
         // 5. There are also cases that the androidWebviewData is not returned, so we need to check for that
         const isAndroidWebviewDataMissing = androidContext && !('androidWebviewData' in androidContext)
         // 6. There are also cases that the androidWebviewData is returned, but the empty property is not returned, so we need to check for that
@@ -437,5 +438,8 @@ async function getCurrentContexts({
         await new Promise((resolve) => setTimeout(resolve, retryInterval))
     }
 
-    throw new Error(`The packageName '${packageName}' matches, but no webview with pages was loaded in this response: '${JSON.stringify(contexts)}'`)
+    throw new Error(`The packageName '${packageName}' ${isPackageNameMissing ?
+        'could not be found!' :
+        'matches, but no webview with pages was loaded in this response: ' + JSON.stringify(contexts) + '\''}`
+    )
 }

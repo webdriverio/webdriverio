@@ -599,6 +599,7 @@ export type AppiumDetailedCrossPlatformContexts = IosDetailedContexts | AndroidD
 export type GetContextsOptions = {
     androidWebviewConnectionRetryTime?: number;
     androidWebviewConnectTimeout?: number;
+    filterByCurrentAndroidApp?: boolean;
     isAndroidWebviewVisible?: boolean;
     returnAndroidDescriptionData?: boolean;
     returnDetailedContexts?: boolean;
