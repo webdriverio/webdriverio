@@ -65,7 +65,7 @@ export class ContextManager extends SessionManager {
         }
     }
 
-    async #onCommandResultBidiAndClassic(event: { command: string, result: unknown }) {
+    #onCommandResultBidiAndClassic(event: { command: string, result: unknown }) {
         /**
          * the `closeWindow` command returns:
          *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
