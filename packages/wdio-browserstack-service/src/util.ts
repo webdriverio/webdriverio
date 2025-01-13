@@ -1494,19 +1494,7 @@ export async function pollApi(
     BStackLogger.debug(`current timestamp ${params.timestamp}`)
 
     try {
-        // Manually append the parameters to the URL
-        const urlWithParams = new URL(url)
-        for (const key in params) {
-            if (Object.prototype.hasOwnProperty.call(params, key)) {
-                urlWithParams.searchParams.append(key, params[key].toString())
-            }
-        }
-
-        const response = await fetch(urlWithParams.toString(), {
-            method: 'GET',
-            headers: headers,
-        })
-
+        const response = await makeGetRequest(url, params, headers)
         const responseData = await response.json()
         return {
             data: responseData,
@@ -1515,7 +1503,7 @@ export async function pollApi(
         }
     } catch (error: any) {
         if (error.response && error.response.status === 404) {
-            const nextPollTime = parseInt(error.response.headers.get('next_poll_time') as string, 10) * 1000
+            const nextPollTime = parseInt(error.response.headers.get('next_poll_time'), 10) * 1000
             BStackLogger.debug(`timeInMillis ${nextPollTime}`)
 
             if (isNaN(nextPollTime)) {
@@ -1532,7 +1520,6 @@ export async function pollApi(
                 `elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`
             )
 
-            // Stop polling if the upper time limit is reached
             if (nextPollTime > upperLimit) {
                 BStackLogger.warn('Polling stopped due to upper time limit.')
                 return {
@@ -1543,19 +1530,43 @@ export async function pollApi(
             }
 
             BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
-
-            // Wait for the specified time and poll again
             await new Promise((resolve) => setTimeout(resolve, elapsedTime))
             return pollApi(url, params, headers, upperLimit, startTime)
         } else if (error.response) {
+            let errorMessage = error.response.statusText
+            try {
+                const parsedError = JSON.parse(error.response.body)
+                errorMessage = parsedError.message
+            } catch {
+                BStackLogger.debug(`Error parsing pollApi request body ${error.response.body}`)
+                errorMessage = 'Unknown error'
+            }
             throw {
                 data: {},
                 headers: {},
-                message: error.response.body ? JSON.parse(error.response.body).message : 'Unknown error',
+                message: errorMessage,
             }
         } else {
             BStackLogger.error(`Unexpected error occurred: ${error}`)
             return { data: {}, headers: {}, message: 'Unexpected error occurred.' }
         }
     }
+}
+
+async function makeGetRequest(url: string, params: Record<string, any>, headers: Record<string, string>): Promise<Response> {
+    const urlObj = new URL(url)
+    Object.keys(params).forEach((key) => urlObj.searchParams.append(key, params[key]))
+
+    const response = await fetch(urlObj.toString(), {
+        method: 'GET',
+        headers,
+    })
+
+    if (!response.ok) {
+        const error: any = new Error('Request failed')
+        error.response = response
+        throw error
+    }
+
+    return response
 }
