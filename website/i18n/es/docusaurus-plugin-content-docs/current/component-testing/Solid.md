@@ -71,8 +71,8 @@ import App from './components/Component.jsx'
 
 describe('Solid Component Testing', () => {
     /**
-     * ensure we render the component for every test in a
-     * new root container
+     * asegurese que renderizamos el componente para cada prueba en un
+     * nuevo contenedor raiz
      */
     let root: Element
     beforeEach(() => {
