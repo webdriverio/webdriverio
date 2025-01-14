@@ -11,4 +11,4 @@ These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are
 
 ## Contribute
 
-If you feel like you have a good example for a command, don't hesitate to open a PR and submit it. Just click on the orange link on the bottom left with the label _“Edit this page”_. Certifique-se de entender a forma como escrevemos esses documentos consultando a seção [Contribuindo](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md).
+If you feel like you have a good example for a command, don't hesitate to open a PR and submit it. Just click on the orange link on the bottom left with the label _“Edit this page”_. Certifique-se de entender a maneira como escrevemos esses documentos consultando a secção [Contribuindo](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md).
