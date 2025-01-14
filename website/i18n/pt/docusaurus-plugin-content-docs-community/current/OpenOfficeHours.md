@@ -11,7 +11,7 @@ Neste momento, oferecemos 4 faixas horárias por semana de: todas as quartas-fei
 
 Before you book an appointment, make sure you can meet the following basic requirements needed to contribute to WebdriverIO:
 
-- você encontrou um problema que você gosta de contribuir no [issue tracker](https://github.com/webdriverio/webdriverio/issues) (sem issue, seu agendamento será cancelado imediatamente)
+- você encontrou um problema que gostaria de contribuir no [issue tracker](https://github.com/webdriverio/webdriverio/issues) (sem issue, seu agendamento será cancelado imediatamente)
 - you have been working on a Node.js project before (these sessions can't be used to learn Node.js fundamentals)
 - you've read the [Contribution Guidelines](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#set-up-project) and have the project set-up locally or in an ephemeral workspace
 - you can run the projects unit tests, and they are passing
