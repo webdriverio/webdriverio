@@ -5,13 +5,45 @@ import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, IosDe
 const log = logger('webdriver')
 
 /**
+ * Switch into the context with the given Webview `name` or based on `title` or `url`.
  *
- * Switch into the context with the given name
+ * This method improves upon the default Appium `context` method by providing more flexibility and precision
+ * in switching between native and webview contexts in hybrid mobile applications. It eliminates the need for
+ * a separate `getContexts` call when the `title` or `url` of the target context is known and ensures the best
+ * matching webview is selected automatically.
+ *
+ * ### How Contexts Work
+ * Hybrid apps use **webviews** to render web content within a native application. For Android this is based on
+ * Chrome/System Webview and for iOS it's powered by Safari (WebKit). A webview is essentially a browser-like component
+ * embedded in the app. Interacting with webviews can be challenging due to platform-specific nuances:
+ *
+ * #### For Android:
+ * - Webviews can contain multiple pages (like browser tabs), and identifying the correct page requires additional metadata
+ *   such as `title` or `url`.
+ * - The default Appium methods only provide basic context names (e.g., `WEBVIEW_{packageName}`) without detailed information
+ *   about the pages inside the webview.
+ *
+ * #### For iOS:
+ * - Each webview is identified by a generic `WEBVIEW_{id}` string, which doesn’t indicate its contents or the app screen
+ *   it belongs to.
+ * - Determining the correct webview for interaction often involves trial and error with default methods.
+ *
+ * The `switchContext` method retrieves detailed context metadata, including `title`, `url`, and visibility,
+ * to ensure reliable and accurate context switching.
+ *
+ * ### Why Use This Method?
+ * - **Simplified Context Switching**: When you know the `title` or `url` of the desired webview, this method eliminates the
+ *   need for a separate `getContexts` or even a combination of `switchContext({id})` and `getTitle()` calls.
+ * - **Automatic Context Matching**: The method finds the best matching context based on:
+ *   - Platform-specific identifiers (`bundleId` for iOS, `packageName` for Android which are automatically determined).
+ *   - Exact or partial matches for `title` and `url` (supports both strings and regular expressions).
+ *   - Additional checks for Android webviews to ensure they are attached and visible.
+ * - **Fine-Grained Control**: Custom retry intervals and timeouts (Android-only) handle delays in webview initialization.
  *
  *
  * <example>
     :example.test.js
-    it('should switch to a webview with the default Appium `context`-method', async () => {
+    it('should switch to a webview by name and uses the default Appium `context`-method', async () => {
         // For Android, the context will be '`WEBVIEW_{packageName}`'
         await driver.switchContext('WEBVIEW_com.wdiodemoapp')
         // For iOS, the context will be 'WEBVIEW_{number}'
@@ -19,12 +51,57 @@ const log = logger('webdriver')
     })
  * </example>
  *
+ * <example>
+    :exact.title.test.js
+    it('should switch to a webview and match a webview based on an EXACT match of the `title` of the webview', async () => {
+        await driver.switchContext({
+            // In this case the title needs to be an exact match
+            title: 'Webview Title',
+        })
+    })
+ * </example>
+ *
+ * <example>
+    :exact.url.test.js
+    it('should switch to a webview and match a webview based on an EXACT match of the `title` of the webview', async () => {
+        await driver.switchContext({
+            // In this case the url needs to be an exact match
+            url: 'https://webdriver.io',
+        })
+    })
+ * </example>
+ *
+ * <example>
+    :regex.title.url.test.js
+    it('should switch to a webview and match a webview based on regex match of the `title` and `url` of the webview', async () => {
+        await driver.switchContext({
+            // The title should NOT end with 'foo'
+            title: /^(?!.*foo$)/,
+            // Matches any string that contains the substring `docs/api/mobile/switchContext`
+            url: /.*docs\/api\/mobile\/switchContext/,
+        })
+    })
+ * </example>
+ *
+ * <example>
+    :android.context.waits.test.js
+    it('should switch to a webview for Android but wait longer to connect and find a webview based on provided options', async () => {
+        await driver.switchContext({
+            // In this case the title need to be an exact match
+            title: 'Webview Title',
+            // For Android we might need to wait a bit longer to connect to the webview, so we can provide some additional options
+            androidWebviewConnectionRetryTime: 1 * 000, // Retry every 1 second
+            androidWebviewConnectTimeout: 10 * 1000,    // Timeout after 10 seconds
+        })
+    })
+ * </example>
+ *
  * @param {string|SwitchContextOptions} context                                     The name of the context to switch to. An object with more context options can be provided.
  * @param {SwitchContextOptions}        options                                     switchContext command options
- * @param {string|RegExp=}              options.title                               The title of the page to switch to. This will be the content of the title-tag of a webviewpage. You can use a string that needs to fully match or or a regular expression.
- * @param {string|RegExp=}              options.url                                 The url of the page to switch to. This will be the `url` of a webviewpage. You can use a string that needs to fully match or or a regular expression.
- * @param {number=}                     options.androidWebviewConnectionRetryTime   The time in milliseconds to wait between each retry to connect to the webview. Default is `500` ms (optional). <br /><strong>ANDROID-ONLY</strong>
- * @param {number=}                     options.androidWebviewConnectTimeout        The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms (optional). <br /><strong>ANDROID-ONLY</strong>
+ * @param {string|RegExp=}              options.title                               The title of the page to switch to. This will be the content of the title-tag of a webviewpage. You can use a string that needs to fully match or or a regular expression.<br /><strong>IMPORTANT:</strong> When you use options then or the `title` or the `url` property is required.
+ * @param {string|RegExp=}              options.url                                 The url of the page to switch to. This will be the `url` of a webviewpage. You can use a string that needs to fully match or or a regular expression.<br /><strong>IMPORTANT:</strong> When you use options then or the `title` or the `url` property is required.
+ * @param {number=}                     options.androidWebviewConnectionRetryTime   The time in milliseconds to wait between each retry to connect to the webview. Default is `500` ms (optional). <br /><strong>ANDROID-ONLY</strong> and will only be used when a `title` or `url` is provided.
+ * @param {number=}                     options.androidWebviewConnectTimeout        The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms (optional). <br /><strong>ANDROID-ONLY</strong> and will only be used when a `title` or `url` is provided.
  * @skipUsage
  * @TODO: Also change the context manager because it needs to keep track of the context to which we switch, so we also need to add the renamed Appium commands to the context manager.
  */
@@ -83,6 +160,7 @@ async function switchToContext(
         ...(options?.androidWebviewConnectTimeout && { androidWebviewConnectTimeout: options.androidWebviewConnectTimeout }),
     }
     const contexts = await browser.getContexts(getContextsOptions) as AppiumDetailedCrossPlatformContexts
+
     // 2. Find the matching context
     // @ts-expect-error
     const identifier = browser.isIOS ? (await browser.execute('mobile: activeAppInfo'))?.bundleId : await browser.getCurrentPackage()
@@ -92,11 +170,13 @@ async function switchToContext(
         throw new Error(generateNonMatchingErrorMessage({ identifier, title: options?.title, url: options?.url }))
     }
 
+    log.info('WebdriverIO found a matching context:', JSON.stringify(matchingContext, null, 2))
+
     // 3. Android works differently, it has a Webview that can hold multiple pages, also comparable with tabs in a browser
     if (browser.isAndroid) {
         // So first switch to the Webview
         const webviewName = `WEBVIEW_${identifier}`
-        await driver.switchAppiumContext(webviewName)
+        await browser.switchAppiumContext(webviewName)
     }
 
     // 4. Switch to the correct context/page
@@ -111,22 +191,27 @@ async function switchToContext(
 
 }
 
-function generateNonMatchingErrorMessage({ identifier, title, url }: GenerateNonMatchingErrorMessageOptions): string {
-    let errorMessage = `The ${identifier} matches, but the provided `
+function generateNonMatchingErrorMessage({
+    identifier,
+    title,
+    url,
+}: GenerateNonMatchingErrorMessageOptions): string {
     const titleString = title instanceof RegExp ? title.toString() : title
     const urlString = url instanceof RegExp ? url.toString() : url
 
     if (titleString && urlString) {
-        errorMessage += `title (${titleString}) or URL (${urlString}) do not match any context.`
-    } else if (titleString) {
-        errorMessage += `title (${titleString}) does not match any context.`
-    } else if (urlString) {
-        errorMessage += `URL (${urlString}) does not match any context.`
-    } else {
-        errorMessage = `The identifier (${identifier}) matches, but no matching context is found.`
+        return `The ${identifier} matches, but the provided title (${titleString}) or URL (${urlString}) do not match any context.`
     }
 
-    return errorMessage
+    if (titleString) {
+        return `The ${identifier} matches, but the provided title (${titleString}) does not match any context.`
+    }
+
+    if (urlString) {
+        return `The ${identifier} matches, but the provided URL (${urlString}) does not match any context.`
+    }
+
+    return `The identifier (${identifier}) matches, but no matching context is found.`
 }
 
 function findMatchingContext({ browser:{ isIOS }, contexts, identifier, title, url }: FindMatchingContextOptions) {
