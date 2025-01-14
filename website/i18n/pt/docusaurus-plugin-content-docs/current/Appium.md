@@ -9,7 +9,7 @@ With WebdriverIO you can test not only web application in the browser but also o
 - 🖥️ desktop applications on macOS or Windows
 - 📺 as well as TV apps for Roku, tvOS, Android TV and Samsung
 
-We recommend to use [Appium](https://appium.io/) to help you facilitate these types of tests. You can get an overview on Appium on their [offical documentation page](https://appium.io/docs/en/2.0/intro/).
+Recomendamos o uso do [Appium](https://appium.io/) para ajudá-lo a facilitar esses tipos de testes. Pode obter uma visão geral do Appium na [página oficial de documentação](https://appium.io/docs/en/2.0/intro/) deles.
 
 Setting up the right environment is not straight forward. Luckily the Appium ecosystem has great tooling around this to help you. To set-up one of the above environments, just run:
 
@@ -17,4 +17,4 @@ Setting up the right environment is not straight forward. Luckily the Appium eco
 $ npx appium-installer
 ```
 
-This will initiate the [appium-installer](https://github.com/AppiumTestDistribution/appium-installer) toolkit that guides you through the setup process.
+Isto irá iniciar o conjunto de ferramentas do [appium-installer](https://github.com/AppiumTestDistribution/appium-installer) que o guiará através do processo de configuração.
