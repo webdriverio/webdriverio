@@ -20,7 +20,7 @@
     "description": "The label for category Guides in sidebar docs"
   },
   "sidebar.docs.category.Testrunner": {
-    "message": "Testrunner",
+    "message": "Executador de Teste",
     "description": "The label for category Testrunner in sidebar docs"
   },
   "sidebar.docs.category.Component Testing": {
@@ -40,7 +40,7 @@
     "description": "The label for category Integration in sidebar docs"
   },
   "sidebar.docs.category.Reporter": {
-    "message": "Reporter",
+    "message": "Gerador de Relatórios",
     "description": "The label for category Reporter in sidebar docs"
   },
   "sidebar.docs.category.Services": {
