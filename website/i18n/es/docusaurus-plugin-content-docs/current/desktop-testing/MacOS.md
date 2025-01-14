@@ -3,7 +3,7 @@ id: macos
 title: MacOS
 ---
 
-WebdriverIO can automate arbitrary MacOS application using [Appium](https://appium.io/docs/en/2.0/). All you need is [XCode](https://developer.apple.com/xcode/) installed on your system, Appium and the [Mac2 Driver](https://github.com/appium/appium-mac2-driver) installed as dependency and the correct capabilities set.
+WebdriverIO can automate arbitrary MacOS application using [Appium](https://appium.io/docs/en/2.0/). Todo lo que se necesita es [XCode](https://developer.apple.com/xcode/) instalado en su sistema, Appium y el [Mac2 Driver](https://github.com/appium/appium-mac2-driver) instalados como dependencias y el conjunto de capacidades correcto.
 
 ## Getting Started
 
