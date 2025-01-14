@@ -1,5 +1,5 @@
 ---
-id: clock
+id: reloj
 title: The Clock Object
 ---
 
@@ -11,11 +11,11 @@ You can modify the browser system clock using the [`emulate`](/docs/emulation) c
 - `clearInterval`
 - `Date Objects`
 
-The clock starts at the unix epoch (timestamp of 0). This means that when you instantiate new Date in your application, it will have a time of January 1st, 1970 if you don't pass any other options to the `emulate` command.
+The clock starts at the unix epoch (timestamp of 0). Esto significa que cuando instancie 'new Date' en su aplicación, la misma tendrá un valor de '1 de enero, 1970' a menos que le pase alguna otra opción al comando 'emulate'.
 
-## Example
+## Ejemplo
 
-When calling `browser.emulate('clock', { ... })` it will immediately overwrite the global functions for the current page as well as all following pages, e.g.:
+Al llamar a `browser.emulate('clock', { ... })` it will immediately overwrite the global functions for the current page as well as all following pages, e.g.:
 
 ```ts
 const clock = await browser.emulate('clock', { now: new Date(1989, 7, 4) })
