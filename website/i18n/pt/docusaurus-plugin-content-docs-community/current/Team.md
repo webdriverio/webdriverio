@@ -54,7 +54,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars3.githubusercontent.com/u/1300981?s=460"
     github="WillBrock"
 >
-    Automation Engineering Manager at <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
+    Gerente de Engenharia de Automatização na <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
 </Card>
 
 <Card
