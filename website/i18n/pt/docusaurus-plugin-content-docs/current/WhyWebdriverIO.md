@@ -18,7 +18,7 @@ You can use WebdriverIO to automate:
 - 💻 <span>&nbsp;</span> __native desktop applications__ (e.g. written with Electron.js)
 - 📦 <span>&nbsp;</span> __unit or component testing__ of web components in the browser
 
-## Based on Web Standards
+## Baseado em Padrões Web
 
 WebdriverIO leverages the power of the [WebDriver](https://w3c.github.io/webdriver/) and [WebDriver-BiDi](https://github.com/w3c/webdriver-bidi) protocol that is developed and supported by all browser vendors and guarantees a true cross-browser testing experience. While other automation tools require you to download modified browser engines that aren't used by actual users or emulate user behavior by injecting JavaScript, WebdriverIO relies on a common agreed standard for automation that is [properly tested](https://wpt.fyi/results/webdriver/tests?label=experimental&label=master&aligned) and ensures compatibility for decades to come.
 
