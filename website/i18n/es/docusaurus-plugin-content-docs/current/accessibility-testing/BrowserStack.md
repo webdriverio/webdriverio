@@ -5,7 +5,7 @@ title: BrowserStack Accessibility Testing
 
 # BrowserStack Accessibility Testing
 
-You can easily integrate accessibility tests in your WebdriverIO test suites using the [Automated tests feature of BrowserStack Accessibility Testing](https://www.browserstack.com/docs/accessibility/automated-tests?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
+Puede fácilmente integrar las pruebas de accesibilidad de sus suites de pruebas de WebdriverIO utilizando la función de [Pruebas automatizadas de Testeos de Accesibilidad de BrowserStack](https://www.browserstack.com/docs/accessibility/automated-tests?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
 
 ## Advantages of Automated Tests in BrowserStack Accessibility Testing
 
@@ -37,22 +37,22 @@ exports.config = {
     key: '<browserstack_access_key>' || process.env.BROWSERSTACK_ACCESS_KEY,
     commonCapabilities: {
       'bstack:options': {
-        projectName: "Your static project name goes here",
-        buildName: "Your static build/job name goes here"
+        projectName: "Ingrese el nombre de su proyecto estático aqui",
+        buildName: "Ingrese el nombre de su build/job aqui"
       }
     },
     services: [
       ['browserstack', {
         accessibility: true,
-        // Optional configuration options
+        // Opciones de configuración opcionales
         accessibilityOptions: {
           'wcagVersion': 'wcag21a',
           'includeIssueType': {
             'bestPractice': false,
             'needsReview': true
           },
-          'includeTagsInTestingScope': ['Specify tags of test cases to be included'],
-          'excludeTagsInTestingScope': ['Specify tags of test cases to be excluded']
+          'includeTagsInTestingScope': ['Especifique las etiquetas de los casos de test a ser incluídos'],
+          'excludeTagsInTestingScope': ['Especifique las etiquetas de los casos de test a ser excluídos']
         },
       }]
     ],
