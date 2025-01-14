@@ -25,7 +25,7 @@ Visual Studio Code usually has type support automatically integrated and there i
 
 ![Autocompletion](/img/autocompletion/14.png)
 
-If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
+Se você usa o JavaScript vanilla e quer ter suporte adequado de tipos, você precisa criar um `jsconfig.json` na raiz do seu projeto e referenciar os pacotes usados do wdio, por exemplo:
 
 ```json title="jsconfig.json"
 {
