@@ -320,7 +320,6 @@ function switchToFrameHelper (browser: WebdriverIO.Browser, context: string) {
 }
 
 async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element: WebdriverIO.Element) {
-    // await switchToFrame(browser, element)
     const frame = await browser.execute(
         (iframe: unknown) => (iframe as HTMLIFrameElement).contentWindow,
         element
@@ -341,16 +340,7 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
  */
 function switchToFrame (browser: WebdriverIO.Browser, frame: ElementReference | number | null) {
     process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = 'true'
-    return browser.switchToFrame(frame).finally(async () => {
-        const sessionContext = getContextManager(browser)
-        const [frameTree, documentUrl] = await Promise.all([
-            sessionContext.getFlatContextTree(),
-            browser.execute(() => document.URL)
-        ])
-        const frame = Object.values(frameTree).find((ctx) => ctx.url === documentUrl)
-        if (frame) {
-            switchToFrameHelper(browser, frame.context)
-        }
+    return browser.switchToFrame(frame).finally(() => {
         delete process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS
     })
 }
