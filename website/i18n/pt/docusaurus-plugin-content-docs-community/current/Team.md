@@ -38,7 +38,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="klamping"
     twitter="klamping"
 >
-    Senior Front End Engineer.
+    Engenheiro de Front End Sénior.
 </Card>
 
 <Card
