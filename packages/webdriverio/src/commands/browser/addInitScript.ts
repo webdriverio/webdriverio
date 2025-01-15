@@ -2,35 +2,6 @@ import type { local, remote } from 'webdriver'
 
 import { deserialize } from '../../utils/bidi/index.js'
 
-export interface InitScript<Payload = undefined> {
-    remove: () => Promise<void>
-    on: (event: 'data', listener: (data: Payload) => void) => void
-}
-
-/**
- * Callback to emit data from the browser back to the Node.js environment. In order to receive the
- * data returned by the callback function you have to listen to the `data` event, e.g.
- *
- * ```js
- * const script = await browser.addInitScript((emit) => {
- *    emit('hello')
- * })
- * script.on('data', (data) => {
- *   console.log(data) // prints: hello
- * })
- * ```
- *
- * @param {any} data  The data to emit.
- */
-type InitScriptCallback<Payload> = (data: Payload) => void
-
-type InitScriptFunction<Payload> = ((emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg1<Payload, Arg1> = ((arg1: Arg1, emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg2<Payload, Arg1, Arg2> = ((arg1: Arg1, arg2: Arg2, emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, emit: InitScriptCallback<Payload>) => void | Promise<void>)
-type InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, emit: InitScriptCallback<Payload>) => void | Promise<void>)
-
 /**
  * Adds a script which would be evaluated in one of the following scenarios:
  *
@@ -186,3 +157,32 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
 }
 
 type EventHandlerFunction<Payload> = (data: Payload) => void
+
+/**
+ * Callback to emit data from the browser back to the Node.js environment. In order to receive the
+ * data returned by the callback function you have to listen to the `data` event, e.g.
+ *
+ * ```js
+ * const script = await browser.addInitScript((emit) => {
+ *    emit('hello')
+ * })
+ * script.on('data', (data) => {
+ *   console.log(data) // prints: hello
+ * })
+ * ```
+ *
+ * @param {any} data  The data to emit.
+ */
+type InitScriptCallback<Payload> = (data: Payload) => void
+
+type InitScriptFunction<Payload> = ((emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg1<Payload, Arg1> = ((arg1: Arg1, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg2<Payload, Arg1, Arg2> = ((arg1: Arg1, arg2: Arg2, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+type InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> = ((arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4, arg5: Arg5, emit: InitScriptCallback<Payload>) => void | Promise<void>)
+
+export interface InitScript<Payload = undefined> {
+    remove: () => Promise<void>
+    on: (event: 'data', listener: (data: Payload) => void) => void
+}

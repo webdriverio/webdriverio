@@ -11,6 +11,7 @@ import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
+import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
@@ -785,4 +786,10 @@ export const containsHeaderObject = (
     }
 
     return true
+}
+
+export function createFunctionDeclarationFromString (userScript: Function | string) {
+    return new Function(`
+        return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
+    `).toString()
 }
