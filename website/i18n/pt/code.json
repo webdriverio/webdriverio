@@ -542,7 +542,7 @@
     "message": "Next-gen browser and mobile automation test framework for Node.js"
   },
   "homepage.componentTesting.para1": {
-    "message": "WebdriverIO is an {allInOne} framework for your web app development. It enables you to run small and lightweight component tests as well as running e2e test scenarios in the browser or on a mobile device. This guarantees that you to do the testing in an environment {usedBy}."
+    "message": "WebdriverIO é um framework {allInOne} para desenvolvimento de aplicativos web. Ele possibilita executar testes de componentes pequenos e leves, assim como executar cenários de teste e2e no navegador ou em um dispositivo móvel. Isso garante que os testes sejam realizados em um ambiente {usedBy}."
   },
   "features.realEnvironments": {
     "message": "Test in Real Environments"
