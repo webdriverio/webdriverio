@@ -558,8 +558,8 @@ export type SwitchContextOptions = {
     url?: string | RegExp;
 
     // Extra for the getContexts command for Android
-    androidWebviewConnectionRetryTime: number;
-    androidWebviewConnectTimeout: number;
+    androidWebviewConnectionRetryTime?: number;
+    androidWebviewConnectTimeout?: number;
 }
 
 type AppiumDetailedContextInterface = {

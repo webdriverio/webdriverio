@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { expect, describe, it, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
-import type { IosDetailedContexts } from '../../../src/index.js'
+import type { IosDetailedContext } from '../../../src/index.js'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
@@ -11,7 +11,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 describe('getContexts test', () => {
     let browser: WebdriverIO.Browser
     let androidChromeInternalContexts = [] as any
-    let iOSContexts = [] as IosDetailedContexts
+    let iOSContexts = [] as IosDetailedContext[]
     let logSpy
 
     beforeEach(async () => {

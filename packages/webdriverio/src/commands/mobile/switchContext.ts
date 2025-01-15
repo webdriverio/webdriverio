@@ -90,8 +90,8 @@ const log = logger('webdriver')
             // In this case the title need to be an exact match
             title: 'Webview Title',
             // For Android we might need to wait a bit longer to connect to the webview, so we can provide some additional options
-            androidWebviewConnectionRetryTime: 1 * 000, // Retry every 1 second
-            androidWebviewConnectTimeout: 10 * 1000,    // Timeout after 10 seconds
+            androidWebviewConnectionRetryTime: 1*1000,  // Retry every 1 second
+            androidWebviewConnectTimeout: 10*1000,      // Timeout after 10 seconds
         })
     })
  * </example>
@@ -130,13 +130,6 @@ export async function switchContext(
     }
 
     return switchToContext({ browser, options })
-
-}
-
-type GenerateNonMatchingErrorMessageOptions = {
-    identifier: string;
-    title?: string | RegExp;
-    url?: string | RegExp;
 }
 
 type FindMatchingContextOptions = {
@@ -146,6 +139,8 @@ type FindMatchingContextOptions = {
     title?: string | RegExp;
     url?: string | RegExp;
 }
+
+type FindMatchingContextOutput =  { matchingContext: AndroidDetailedContext | IosDetailedContext | undefined; reasons: string[] }
 
 async function switchToContext(
     { browser, options }:{ browser: WebdriverIO.Browser, options: SwitchContextOptions }
@@ -164,16 +159,16 @@ async function switchToContext(
     // 2. Find the matching context
     // @ts-expect-error
     const identifier = browser.isIOS ? (await browser.execute('mobile: activeAppInfo'))?.bundleId : await browser.getCurrentPackage()
-    const matchingContext = findMatchingContext({ browser, contexts, identifier, ...(options?.title && { title: options.title }), ...(options?.url && { url: options.url }) })
+    const { matchingContext, reasons } = findMatchingContext({ browser, contexts, identifier, ...(options?.title && { title: options.title }), ...(options?.url && { url: options.url }) })
 
     if (!matchingContext) {
-        throw new Error(generateNonMatchingErrorMessage({ identifier, title: options?.title, url: options?.url }))
+        throw new Error(reasons.join('\n'))
     }
 
     log.info('WebdriverIO found a matching context:', JSON.stringify(matchingContext, null, 2))
 
     // 3. Android works differently, it has a Webview that can hold multiple pages, also comparable with tabs in a browser
-    if (browser.isAndroid) {
+    if (!browser.isIOS) {
         // So first switch to the Webview
         const webviewName = `WEBVIEW_${identifier}`
         await browser.switchAppiumContext(webviewName)
@@ -191,32 +186,21 @@ async function switchToContext(
 
 }
 
-function generateNonMatchingErrorMessage({
+function findMatchingContext({
+    browser: { isIOS },
+    contexts,
     identifier,
     title,
     url,
-}: GenerateNonMatchingErrorMessageOptions): string {
-    const titleString = title instanceof RegExp ? title.toString() : title
-    const urlString = url instanceof RegExp ? url.toString() : url
+}: FindMatchingContextOptions):FindMatchingContextOutput {
+    const reasons: string[] = []
+    reasons.push(`We parsed a total of ${contexts.length} Webviews but did not find a matching context. The reasons are:`)
 
-    if (titleString && urlString) {
-        return `The ${identifier} matches, but the provided title (${titleString}) or URL (${urlString}) do not match any context.`
-    }
+    const matchingContext = contexts.find((context, index) => {
+        reasons.push(`- Webview ${index + 1}: '${context.id}'`)
 
-    if (titleString) {
-        return `The ${identifier} matches, but the provided title (${titleString}) does not match any context.`
-    }
-
-    if (urlString) {
-        return `The ${identifier} matches, but the provided URL (${urlString}) does not match any context.`
-    }
-
-    return `The identifier (${identifier}) matches, but no matching context is found.`
-}
-
-function findMatchingContext({ browser:{ isIOS }, contexts, identifier, title, url }: FindMatchingContextOptions) {
-    return contexts.find(context => {
         if (context.id === 'NATIVE_APP') {
+            reasons.push('  - Skipped context because it is NATIVE_APP')
             return false
         }
 
@@ -241,6 +225,14 @@ function findMatchingContext({ browser:{ isIOS }, contexts, identifier, title, u
             : (context as AndroidDetailedContext).androidWebviewData?.attached &&
               (context as AndroidDetailedContext).androidWebviewData?.visible
 
+        if (!idMatch) {reasons.push(`  - App ${isIOS ? 'bundleId' : 'packageName'} '${identifier}' did not match: '${context.id}'`)}
+        if (!titleMatches) {reasons.push(`  - Title '${title}' did not match: '${context.title}'`)}
+        if (!urlMatches) {reasons.push(`  - URL '${url}' did not match: '${context.url}'`)}
+        if (!additionalAndroidChecks) {reasons.push('  - Additional Android checks failed')}
+
         return idMatch && titleMatches && urlMatches && additionalAndroidChecks
     })
+
+    return { matchingContext, reasons }
 }
+
