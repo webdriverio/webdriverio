@@ -11,6 +11,8 @@ import * as PercySDK from './PercySDK.js'
 import { PercyLogger } from './PercyLogger.js'
 
 import { PERCY_DOM_CHANGING_COMMANDS_ENDPOINTS, CAPTURE_MODES } from '../constants.js'
+import PerformanceTester from '../instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 
 class _PercyHandler {
     private _testMetadata: { [key: string]: any } = {}
@@ -48,6 +50,7 @@ class _PercyHandler {
     }
 
     async percyAutoCapture(eventName: string | null, sessionName: string | null) {
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.AUTO_CAPTURE)
         try {
             if (eventName) {
                 if (!sessionName) {
@@ -62,8 +65,10 @@ class _PercyHandler {
         } catch (err: any) {
             this._percyScreenshotCounter -= 1
             this._percyCaptureMap?.decrement(sessionName ? sessionName : (this._sessionName as string), eventName as string)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.AUTO_CAPTURE, false, err, { eventName, sessionName })
             PercyLogger.error(`Error while trying to auto capture Percy screenshot ${err}`)
         }
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.AUTO_CAPTURE, true, null, { eventName, sessionName })
     }
 
     async before () {
