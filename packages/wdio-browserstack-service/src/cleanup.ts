@@ -32,7 +32,7 @@ export default class BStackCleanup {
 
         try {
             if (process.argv.includes('--performanceData')) {
-                PerformanceTester.uploadEventsData()
+                await PerformanceTester.uploadEventsData()
             }
         } catch (er) {
             BStackLogger.debug(`Error in sending events data ${util.format(er)}`)
