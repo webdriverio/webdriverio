@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContext } from '../../types.js'
+import type { Context } from '@wdio/protocols'
 
 const log = logger('webdriver')
 
@@ -160,7 +161,7 @@ const log = logger('webdriver')
     })
  * </example>
  *
- * @param {GetContextsOptions=} options                                     The `getContext` options (optional)
+ * @param {GetContextsOptions=} options                                     The `getContexts` options (optional)
  * @param {boolean=}            options.returnDetailedContexts              By default, we only return the context names based on the default Appium `contexts` API. If you want to get all data, you can set this to `true`. Default is `false` (optional).
  * @param {number=}             options.androidWebviewConnectionRetryTime   The time in milliseconds to wait between each retry to connect to the webview. Default is `500` ms (optional). <br /><strong>ANDROID-ONLY</strong>
  * @param {number=}             options.androidWebviewConnectTimeout        The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms (optional). <br /><strong>ANDROID-ONLY</strong>
@@ -173,7 +174,7 @@ const log = logger('webdriver')
 export async function getContexts(
     this: WebdriverIO.Browser,
     options?: GetContextsOptions
-) {
+): Promise<Context[] | AppiumDetailedCrossPlatformContexts> {
     const browser = this
 
     if (!browser.isMobile) {
