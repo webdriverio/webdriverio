@@ -551,7 +551,7 @@ describe('main suite 1', () => {
         })
     })
 
-    describe.only('open resources with different protocols', () => {
+    describe('open resources with different protocols', () => {
         it('http', async () => {
             browser.url('http://guinea-pig.webdriver.io/')
             await expect(browser).toHaveUrl('http://guinea-pig.webdriver.io/')
@@ -571,6 +571,11 @@ describe('main suite 1', () => {
             const resource = path.resolve(__dirname, '__fixtures__', 'test.html')
             await browser.url(url.pathToFileURL(resource).href)
             await expect($('h1')).toHaveText('Hello World')
+        })
+
+        it('chrome', async () => {
+            await browser.url('chrome://version/')
+            await expect(browser).toHaveTitle('About Version')
         })
     })
 })
