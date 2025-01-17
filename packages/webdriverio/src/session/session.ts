@@ -29,7 +29,7 @@ export class SessionManager {
     }
 
     removeListeners() {
-        this.#browser.off('result', this.#onCommand.bind(this))
+        this.#browser.off('command', this.#onCommand.bind(this))
     }
 
     initialize(): unknown {
