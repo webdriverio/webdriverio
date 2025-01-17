@@ -11,6 +11,7 @@ vi.mock('../../../src/session/context.ts', () => {
     const manager = {
         getCurrentContext: vi.fn().mockResolvedValue('5D4662C2B4465334DFD34239BA1E9E66'),
         setCurrentContext: vi.fn(),
+        getFlatContextTree: vi.fn().mockResolvedValue([]),
         initialize: vi.fn()
     }
     return { getContextManager: () => manager }

@@ -117,3 +117,4 @@ examples/wdio/mocha/*.json
 e2e/screenshot.png
 website/community/events
 website/events.json
+e2e/wdio/headless/*.png
