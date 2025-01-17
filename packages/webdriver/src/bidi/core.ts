@@ -8,6 +8,9 @@ import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
 import type { Client } from '../types.js'
 
+const SCRIPT_PREFIX = '/* __wdio script__ */'
+const SCRIPT_SUFFIX = '/* __wdio script end__ */'
+
 const log = logger('webdriver')
 const RESPONSE_TIMEOUT = 1000 * 60
 
@@ -177,7 +180,7 @@ export class BidiCore {
     }
 }
 
-function parseBidiCommand (params:  Omit<CommandData, 'id'>) {
+export function parseBidiCommand (params:  Omit<CommandData, 'id'>) {
     const commandName = params.method
     if (commandName === 'script.addPreloadScript') {
         const param = params.params as remote.ScriptAddPreloadScriptParameters
@@ -185,9 +188,33 @@ function parseBidiCommand (params:  Omit<CommandData, 'id'>) {
         return [commandName, logString]
     } else if (commandName === 'script.callFunction') {
         const param = params.params as remote.ScriptCallFunctionParameters
+        const fn = param.functionDeclaration
+        let fnName = ''
+
+        /**
+         * extract function name from script when it's a function call from the 'webdriverio' package
+         */
+        if (fn.includes(SCRIPT_PREFIX)) {
+            const internalFn = fn.slice(
+                fn.indexOf(SCRIPT_PREFIX) + SCRIPT_PREFIX.length,
+                fn.indexOf(SCRIPT_SUFFIX)
+            )
+            const functionPrefix = 'function '
+
+            /**
+             * we can only extract function name if it's a named function
+             */
+            if (internalFn.startsWith(functionPrefix)) {
+                fnName = internalFn.slice(
+                    internalFn.indexOf(functionPrefix) + functionPrefix.length,
+                    internalFn.indexOf('(')
+                )
+            }
+        }
+
         const logString = JSON.stringify({
             ...param,
-            functionDeclaration: `<Function[${new TextEncoder().encode(param.functionDeclaration).length} bytes]>`
+            functionDeclaration: `<Function[${new TextEncoder().encode(param.functionDeclaration).length} bytes] ${fnName || 'anonymous'}>`
         })
         return [commandName, logString]
     }

@@ -292,6 +292,8 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
             result = true
         } else if (body.script.includes('document.URL')) {
             result = 'https://webdriver.io/?foo=bar'
+        } else if (body.script.includes('function checkVisibility')) {
+            result = true
         } else {
             result = script.apply(this, args)
         }
