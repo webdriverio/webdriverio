@@ -21,7 +21,7 @@ export interface EnvironmentDependencies {
     uploadFile: typeof uploadFile,
     saveScreenshot: typeof saveScreenshot,
     saveElementScreenshot: typeof saveElementScreenshot
-    osType: string
+    osType: () => string
 }
 
 /**
@@ -53,6 +53,8 @@ export const environment: {
         get saveElementScreenshot(): EnvironmentDependencies['saveElementScreenshot'] {
             throw new Error('The `saveScreenshot` command for WebdriverIO.Element is not available in this environment')
         },
-        osType: 'browser'
+        get osType() {
+            return () => 'browser'
+        }
     }
 }

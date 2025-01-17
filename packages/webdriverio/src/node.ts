@@ -13,7 +13,7 @@ export * from './index.js'
 import { environment } from './environment.js'
 
 environment.value = {
-    osType: os.type(),
+    osType: () => os.type(),
     readFileSync: fs.readFileSync,
     downloadFile,
     savePDF,
@@ -22,4 +22,3 @@ environment.value = {
     saveScreenshot,
     saveElementScreenshot,
 }
-

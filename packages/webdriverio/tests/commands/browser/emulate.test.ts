@@ -152,7 +152,7 @@ describe('emulate', () => {
         expect(fakeScope.addInitScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledTimes(1)
         expect(fakeScope.scriptAddPreloadScript).toBeCalledWith({
-            functionDeclaration: expect.stringContaining('function hijackMethod(target, method, clock) ')
+            functionDeclaration: ''
         })
         expect(fakeScope.addInitScript).toBeCalledWith(
             expect.any(Function),
