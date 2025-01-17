@@ -7,6 +7,8 @@ import { vi } from 'vitest'
  * the process or enter code sections that are hard to mock out.
  */
 process.env.WDIO_UNIT_TESTS = '1'
+globalThis.WDIO_RESQ_SCRIPT = ''
+globalThis.WDIO_FAKER_SCRIPT = ''
 
 const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
