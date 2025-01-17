@@ -1,4 +1,8 @@
-import { environment } from '../../environment.js'
+import fs from 'node:fs'
+import { getBrowserObject } from '@wdio/utils'
+
+import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
+import { getContextManager } from '../session/context.js'
 
 /**
  *
@@ -31,7 +35,27 @@ export async function saveScreenshot (
     filepath: string
 ) {
     /**
-     * run command implementation based on given environment
+     * type check
      */
-    return environment.value.saveScreenshot.call(this, filepath)
+    if (typeof filepath !== 'string' || !filepath.endsWith('.png')) {
+        throw new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
+    }
+
+    const absoluteFilepath = getAbsoluteFilepath(filepath)
+    await assertDirectoryExists(absoluteFilepath)
+
+    let screenBuffer: string
+    if (this.isBidi) {
+        const browser = getBrowserObject(this)
+        const contextManager = getContextManager(browser)
+        const context = await contextManager.getCurrentContext()
+        const { data } = await this.browsingContextCaptureScreenshot({ context })
+        screenBuffer = data
+    } else {
+        screenBuffer = await this.takeScreenshot()
+    }
+    const screenshot = Buffer.from(screenBuffer, 'base64')
+    fs.writeFileSync(absoluteFilepath, screenshot)
+
+    return screenshot
 }

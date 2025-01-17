@@ -1,7 +1,7 @@
-import fs from 'node:fs'
 import type { ARIARoleDefinitionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 import { roleElements } from 'aria-query'
 
+import { environment } from '../environment.js'
 import { DEEP_SELECTOR, ARIA_SELECTOR } from '../constants.js'
 
 const DEFAULT_STRATEGY = 'css selector'
@@ -300,7 +300,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     }
     case '-image': {
         using = '-image'
-        value = fs.readFileSync(stringSelector, { encoding: 'base64' })
+        value = environment.value.readFileSync(stringSelector, { encoding: 'base64' })
         break
     }
     case 'role': {

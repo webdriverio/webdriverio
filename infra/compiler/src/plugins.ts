@@ -75,7 +75,7 @@ export function clear(config: BuildOptions): Plugin {
  */
 function generateTypes(cwd: string, pkg: PackageJson, retry = MAX_RETRIES): Promise<void> {
     const child = exec(`node ${tscPath} --emitDeclarationOnly`, { cwd })
-    return child.then(() => {}, (err) => {
+    return child.then(() => { }, (err) => {
         if (retry > 0) {
             console.log(`${l.name(pkg.name)} ↻ Retrying (${MAX_RETRIES - (retry - 1)}/${MAX_RETRIES}) building types for ${pkg.name}`)
             return generateTypes(cwd, pkg, retry - 1)
@@ -112,7 +112,7 @@ export function generateDts(absWorkingDir: string, pkg: PackageJson): Plugin {
  * Plugin to copy EJS templates from the `@wdio/cli` package to build directory
  * @returns {Plugin} an Esbuild plugin
  */
-export function copyEJSTemplates () {
+export function copyEJSTemplates() {
     const cliPackage = path.resolve(__dirname, '..', '..', '..', 'packages', 'wdio-cli')
     return copy({
         resolveFrom: cliPackage,
@@ -148,7 +148,7 @@ export function runBuildScript(absWorkingDir: string, pkg: PackageJson): Plugin 
         name: `build-${pkg.name || 'unknown'}`,
         setup(build) {
             build.onEnd(async () => {
-                const child =cp.spawn('pnpm',
+                const child = cp.spawn('pnpm',
                     ['run', 'build'],
                     { cwd: absWorkingDir, stdio: 'inherit' }
                 )
