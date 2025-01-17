@@ -88,11 +88,12 @@ export class ContextManager extends SessionManager {
          * update frame context if user switches using 'switchToParentFrame'
          */
         if (event.command === 'switchToParentFrame') {
+            if (!this.#currentContext) {
+                return
+            }
+
             return this.#browser.browsingContextGetTree({}).then(({ contexts }) => {
-                if (!this.#currentContext) {
-                    return
-                }
-                const parentContext = this.findParentContext(this.#currentContext, contexts)
+                const parentContext = this.findParentContext(this.#currentContext!, contexts)
                 if (!parentContext) {
                     return
                 }
@@ -234,7 +235,7 @@ export class ContextManager extends SessionManager {
      */
     findParentContext (contextId: string, contexts: local.BrowsingContextInfoList): local.BrowsingContextInfo | undefined {
         for (const context of contexts) {
-            if (context.children?.find((child) => child.context === contextId)) {
+            if (context.children?.some((child) => child.context === contextId)) {
                 return context
             }
 
