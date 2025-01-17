@@ -5,7 +5,7 @@ title: Test Output
 
 :::info
 
-[This WebdriverIO](http://guinea-pig.webdriver.io/image-compare.html) demo site has been used for the example image output.
+[This WebdriverIO](https://guinea-pig.webdriver.io/image-compare.html) demo site has been used for the example image output.
 
 :::
 
@@ -36,7 +36,7 @@ The image output for the [Service Options](./service-options#enablelayouttesting
 
 ### Image Output
 
-\<Tabs
+<Tabs
 defaultValue="saveelement"
 values={[
 {label: 'saveElement | checkElement', value: 'saveelement'},
@@ -117,7 +117,7 @@ console.log(saveResults)
 
 ### Image Output
 
-\<Tabs
+<Tabs
 defaultValue="saveelement"
 values={[
 {label: 'saveElement', value: 'saveelement'},
@@ -133,7 +133,7 @@ values={[
 await browser.saveElement(".hero__title-logo", "example-element-tag")
 ```
 
-\<Tabs
+<Tabs
 defaultValue="desktop"
 values={[
 {label: 'Desktop', value: 'desktop'},
@@ -161,7 +161,7 @@ values={[
 await browser.saveScreen("example-page-tag")
 ```
 
-\<Tabs
+<Tabs
 defaultValue="desktop"
 values={[
 {label: 'Desktop', value: 'desktop'},
@@ -195,7 +195,7 @@ iOS `saveScreen` executions are by default not with the device bezel corners. To
 await browser.saveFullPageScreen("full-page-tag")
 ```
 
-\<Tabs
+<Tabs
 defaultValue="desktop"
 values={[
 {label: 'Desktop', value: 'desktop'},
@@ -253,7 +253,7 @@ console.log(checkResult)
 The images below will only show differences as a result of running the check commands. Only the diff in a browser is shown, but the output for Android and iOS is the same.
 :::
 
-\<Tabs
+<Tabs
 defaultValue="checkelement"
 values={[
 {label: 'checkElement', value: 'checkelement'},
@@ -309,7 +309,7 @@ The button text has been changed from `Get Started` to `Getting Started!` and de
 
 Here you will find an example output for block-outs in Android NativeWebScreenshot and iOS where the status+address and toolbar are blocked out.
 
-\<Tabs
+<Tabs
 defaultValue="nativeWebScreenshot"
 values={[
 {label: 'Android nativeWebScreenshot', value: 'nativeWebScreenshot'},
