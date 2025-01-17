@@ -102,10 +102,10 @@ export async function executeAsync<ReturnValue, InnerArguments extends unknown[]
      * a function parameter, therefore we need to check if it starts with "function () {"
      */
     if (typeof script === 'function') {
-        script = createFunctionDeclarationFromString(`
-            ${polyfillFn}
+        script = `
+            ${createFunctionDeclarationFromString(polyfillFn)}
             return (${script}).apply(null, arguments)
-        `)
+        `
     }
 
     return this.executeAsyncScript(script, verifyArgsAndStripIfElement(args) as (string | number | boolean)[])

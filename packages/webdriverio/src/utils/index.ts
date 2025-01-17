@@ -789,7 +789,8 @@ export const containsHeaderObject = (
 }
 
 export function createFunctionDeclarationFromString (userScript: Function | string) {
-    return new Function(`
-        return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
-    `).toString()
+    if (typeof userScript === 'string') {
+        return `(${SCRIPT_PREFIX}function () {\n${userScript.toString()}\n}${SCRIPT_SUFFIX}).apply(this, arguments);`
+    }
+    return new Function(`return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);`).toString()
 }
