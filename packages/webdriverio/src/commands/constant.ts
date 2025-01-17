@@ -9,6 +9,12 @@ const ACCEPTED_OPTIONS = ['x', 'y', 'element']
 export const SCRIPT_PREFIX = '/* __wdio script__ */'
 export const SCRIPT_SUFFIX = '/* __wdio script end__ */'
 
+/**
+ * These scripts are loaded by Esbuild at build time and injected into the bundle
+ */
+declare const WDIO_RESQ_SCRIPT: string
+export const resqScript = WDIO_RESQ_SCRIPT
+
 interface FormattedTouchAction extends Omit<TouchAction, 'element'> {
     element?: string
 }

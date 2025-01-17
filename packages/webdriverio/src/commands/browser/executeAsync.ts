@@ -1,11 +1,11 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
 
-import { verifyArgsAndStripIfElement } from '../../utils/index.js'
+import { verifyArgsAndStripIfElement, createFunctionDeclarationFromString } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../session/context.js'
-import { NAME_POLYFILL } from '../../session/polyfill.js'
+import { polyfillFn } from '../../session/polyfill.js'
 
 /**
  * :::warning
@@ -103,7 +103,7 @@ export async function executeAsync<ReturnValue, InnerArguments extends unknown[]
      */
     if (typeof script === 'function') {
         script = `
-            ${NAME_POLYFILL}
+            ${createFunctionDeclarationFromString(polyfillFn)}
             return (${script}).apply(null, arguments)
         `
     }

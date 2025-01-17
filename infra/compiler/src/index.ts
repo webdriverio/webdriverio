@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import fss from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
 import { parseArgs } from 'node:util'
@@ -35,7 +35,7 @@ const { values } = parseArgs({ args, options })
 const projects = (await fs.readdir(
     path.resolve(rootDir, 'packages')
     // ignore potential stale/empty package directories left over when switching between branches
-)).filter((dir) => dir !== 'node_modules' && existsSync(path.resolve(rootDir, 'packages', dir, 'package.json')))
+)).filter((dir) => dir !== 'node_modules' && fss.existsSync(path.resolve(rootDir, 'packages', dir, 'package.json')))
 
 const packages = (
     await Promise.all(
@@ -72,6 +72,9 @@ const cjsPlugins: Record<string, Plugin[]> = {}
  */
 const browserPlugins: Record<string, Plugin[]> = {}
 
+const WDIO_RESQ_SCRIPT = JSON.stringify(await fs.readFile(path.resolve(rootDir, 'packages', 'webdriverio', 'node_modules', 'resq', 'dist', 'index.js'), 'utf-8'))
+const WDIO_FAKER_SCRIPT = JSON.stringify(await fs.readFile(path.resolve(rootDir, 'packages', 'webdriverio', 'third_party', 'fake-timers.js'), 'utf-8'))
+
 /**
  * compose Esbuild configs
  */
@@ -104,7 +107,11 @@ const configs = packages.map(([packageDir, pkg]) => {
             external: getExternal(pkg),
             target: 'node18',
             bundle: true,
-            absWorkingDir
+            absWorkingDir,
+            define: {
+                WDIO_RESQ_SCRIPT,
+                WDIO_FAKER_SCRIPT
+            }
         }
 
         if (typeof exp.import === 'string') {

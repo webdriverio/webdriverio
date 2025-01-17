@@ -38,7 +38,7 @@ test('allow to attach to an existing session', async () => {
         }
     })
 
-    await browser.url('http://guinea-pig.webdriver.io/')
+    await browser.url('https://guinea-pig.webdriver.io/')
 
     const title = await browser.getTitle()
     expect(title).toBe('WebdriverJS Testpage')
