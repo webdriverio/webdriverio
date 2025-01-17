@@ -48,7 +48,7 @@ const log = logger('webdriver')
  *
  * - The enhanced `getContexts` method is available for both Android and iOS platforms. However, the data returned may vary based on the platform and the app under test.
  * - The method is backward compatible with the default Appium `contexts` and "old" WebdriverIO `getContexts` method. If you do not specify the `returnDetailedContexts` option, the method returns the default context array.
- * - If you want to use the "default" Appium `contexts` method, you can use the `browser.getAppiumContexts` method, see also the [Appium Contexts](/docs/api/appium#getappiumcontexts) command.
+ * - If you want to use the "default" Appium `contexts` method, you can use the `driver.getAppiumContexts()` method, see also the [Appium Contexts](/docs/api/appium#getappiumcontexts) command.
  *
  * #### Android Webviews:
  * - Metadata such as `androidWebviewData` is available only when `returnAndroidDescriptionData` is `true`.
@@ -169,7 +169,6 @@ const log = logger('webdriver')
  * @param {boolean=}            options.isAndroidWebviewVisible             By default, we only return the webviews that are attached and visible. If you want to get all webviews, you can set this to `false` (optional). Default is `true`. <br /><strong>ANDROID-ONLY</strong>
  * @param {boolean=}            options.returnAndroidDescriptionData        By default, no Android Webview (Chrome) description description data. If you want to get all data, you can set this to `true`. Default is `false` (optional). <br />By enabling this option you will get extra data in the response, see the `description.data.test.js` for more information. <br /><strong>ANDROID-ONLY</strong>
  * @skipUsage
- * @TODO: Also change the context manager because it needs to keep track of the context to which we switch, so we also need to add the renamed Appium commands to the context manager.
  */
 export async function getContexts(
     this: WebdriverIO.Browser,

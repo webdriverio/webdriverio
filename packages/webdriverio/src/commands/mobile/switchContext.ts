@@ -8,9 +8,7 @@ const log = logger('webdriver')
  * Switch into the context with the given Webview `name` or based on `title` or `url`.
  *
  * This method improves upon the default Appium `context` method by providing more flexibility and precision
- * in switching between native and webview contexts in hybrid mobile applications. It eliminates the need for
- * a separate `getContexts` call when the `title` or `url` of the target context is known and ensures the best
- * matching webview is selected automatically.
+ * in switching between native and webview contexts in hybrid mobile applications.
  *
  * ### How Contexts Work
  * Hybrid apps use **webviews** to render web content within a native application. For Android this is based on
@@ -22,11 +20,15 @@ const log = logger('webdriver')
  *   such as `title` or `url`.
  * - The default Appium methods only provide basic context names (e.g., `WEBVIEW_{packageName}`) without detailed information
  *   about the pages inside the webview.
+ * - Switching to the Webview context for Android consists of two steps which are handled automatically by this method:
+ *  1. Switch to the Webview context using the `WEBVIEW_{packageName}` context name.
+ *  2. Switch to the correct page inside the Webview using the `switchToWindow` method.
  *
  * #### For iOS:
  * - Each webview is identified by a generic `WEBVIEW_{id}` string, which doesn’t indicate its contents or the app screen
  *   it belongs to.
- * - Determining the correct webview for interaction often involves trial and error with default methods.
+ *
+ * Determining the correct webview for interaction often involves trial and error with extra methods.
  *
  * The `switchContext` method retrieves detailed context metadata, including `title`, `url`, and visibility,
  * to ensure reliable and accurate context switching.
@@ -39,7 +41,24 @@ const log = logger('webdriver')
  *   - Exact or partial matches for `title` and `url` (supports both strings and regular expressions).
  *   - Additional checks for Android webviews to ensure they are attached and visible.
  * - **Fine-Grained Control**: Custom retry intervals and timeouts (Android-only) handle delays in webview initialization.
+ * - If you want to use the "default" Appium `switchContext` method, you can use the `driver.switchAppiumContext()` method, see
+ * also the [Appium Contexts](/docs/api/appium#switchappiumcontext) command.
+ * - **Android:** Android-specific options (`androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout`) have no effect on iOS.
+ * - **iOS:** There are several cases that iOS can't find the Webview. Appium provides different extra capabilities for the `appium-xcuitest-driver`
+ * to find the Webview. If you believe that the Webview is not found, you can try to set one of the following capabilities:
+ *   - `appium:includeSafariInWebviews`: Add Safari web contexts to the list of contexts available during a native/webview app test. This is useful if the test opens Safari and needs to be able to interact with it. Defaults to `false`.
+ *   - `appium:webviewConnectRetries`: The maximum number of retries before giving up on web view pages detection. The delay between each retry is 500ms, default is `10` retries.
+ *   - `appium:webviewConnectTimeout`: The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms.
  *
+ * :::info Notes and Limitations
+ *
+ * - If you already know the title or url of the webview you want to switch to, you can provide an object with the `title` or `url`
+ * property and remove the need for additional calls to `getContexts`. This method will automatically find the best matching context.
+ * - Logs reasons for failing to match contexts for debugging purposes.
+ * - Android-specific options such as `androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout` are not applicable to iOS.
+ * - Requires at least one of `title` or `url` when providing an object as input.
+ *
+ * :::
  *
  * <example>
     :example.test.js
@@ -103,7 +122,6 @@ const log = logger('webdriver')
  * @param {number=}                     options.androidWebviewConnectionRetryTime   The time in milliseconds to wait between each retry to connect to the webview. Default is `500` ms (optional). <br /><strong>ANDROID-ONLY</strong> and will only be used when a `title` or `url` is provided.
  * @param {number=}                     options.androidWebviewConnectTimeout        The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms (optional). <br /><strong>ANDROID-ONLY</strong> and will only be used when a `title` or `url` is provided.
  * @skipUsage
- * @TODO: Also change the context manager because it needs to keep track of the context to which we switch, so we also need to add the renamed Appium commands to the context manager.
  */
 export async function switchContext(
     this: WebdriverIO.Browser,
