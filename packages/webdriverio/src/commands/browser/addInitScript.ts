@@ -1,4 +1,3 @@
-import { EventEmitter } from 'node:events'
 import type { local, remote } from 'webdriver'
 
 import { deserialize } from '../../utils/bidi/index.js'
@@ -160,21 +159,30 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     await this.sessionSubscribe({
         events: ['script.message']
     })
-    const emitter = new EventEmitter()
+    const eventHandler: Map<string, EventHandlerFunction<Payload>[]> = new Map()
     const messageHandler = (msg: local.ScriptMessageParameters) => {
         if (msg.channel === channel) {
-            emitter.emit('data', deserialize(msg.data as remote.ScriptLocalValue))
+            const handler = eventHandler.get('data') || []
+            return handler.forEach((fn) => fn(deserialize(msg.data as remote.ScriptLocalValue)))
         }
     }
     this.on('script.message', messageHandler)
     const resetFn = (() => {
+        eventHandler.clear()
         this.off('script.message', messageHandler)
         return this.scriptRemovePreloadScript({ script: result.script })
     }) as unknown as () => Promise<void>
 
     const returnVal: InitScript<Payload> = {
         remove: resetFn,
-        on: emitter.on.bind(emitter)
+        on: (event: 'data', listener: (data: Payload) => void) => {
+            if (!eventHandler.has(event)) {
+                eventHandler.set(event, [])
+            }
+            eventHandler.get(event)?.push(listener)
+        }
     }
     return returnVal
 }
+
+type EventHandlerFunction<Payload> = (data: Payload) => void
