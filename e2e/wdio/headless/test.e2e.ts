@@ -5,6 +5,8 @@ import url from 'node:url'
 import path from 'node:path'
 import { browser, $, expect } from '@wdio/globals'
 
+import { imageSize } from 'image-size'
+
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 describe('main suite 1', () => {
@@ -550,26 +552,46 @@ describe('main suite 1', () => {
             await expect($('#tinymce')).toBePresent()
         })
 
-        it('switches to parent (not top-level)', async () => {
-            await browser.url('http://guinea-pig.webdriver.io/iframe.html')
-            await expect($('h1')).toHaveText('Frame Demo')
-            await expect($('h2')).not.toExist()
-            await expect($('h3')).not.toExist()
+        describe('switchToParentFrame', () => {
+            it('switches to parent (not top-level)', async () => {
+                await browser.url('http://guinea-pig.webdriver.io/iframe.html')
+                await expect($('h1')).toHaveText('Frame Demo')
+                await expect($('h2')).not.toExist()
+                await expect($('h3')).not.toExist()
 
-            await browser.switchFrame($('#A'))
-            await expect($('h1')).not.toExist()
-            await expect($('h2')).toHaveText('IFrame A')
-            await expect($('h3')).not.toExist()
+                await browser.switchFrame($('#A'))
+                await expect($('h1')).not.toExist()
+                await expect($('h2')).toHaveText('IFrame A')
+                await expect($('h3')).not.toExist()
 
-            await browser.switchFrame($('#A2'))
-            await expect($('h1')).not.toExist()
-            await expect($('h2')).not.toExist()
-            await expect($('h3')).toHaveText('IFrame A2')
+                await browser.switchFrame($('#A2'))
+                await expect($('h1')).not.toExist()
+                await expect($('h2')).not.toExist()
+                await expect($('h3')).toHaveText('IFrame A2')
 
-            await browser.switchToParentFrame()
-            await expect($('h1')).not.toExist()
-            await expect($('h2')).toHaveText('IFrame A')
-            await expect($('h3')).not.toExist()
+                await browser.switchToParentFrame()
+                await expect($('h1')).not.toExist()
+                await expect($('h2')).toHaveText('IFrame A')
+                await expect($('h3')).not.toExist()
+            })
+
+            after(() => browser.switchFrame(null))
+        })
+
+        describe('taking screenshots', () => {
+            it('should take a screenshot of the iframe', async () => {
+                await browser.url('http://guinea-pig.webdriver.io/iframe.html')
+                await browser.switchFrame($('#A'))
+                await browser.switchFrame($('#A2'))
+
+                const screenshotPath = path.resolve(__dirname, 'iframe.png')
+                await browser.saveScreenshot(screenshotPath)
+                const dimensions = imageSize(screenshotPath)
+                expect(dimensions.width).toBe(187)
+                expect(dimensions.height).toBe(85)
+            })
+
+            after(() => browser.switchFrame(null))
         })
     })
 
