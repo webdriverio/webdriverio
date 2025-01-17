@@ -186,7 +186,7 @@ Both methods use the same options as the [`saveFullPageScreen`](https://github.c
 
 #### Example
 
-This is an example of how the tabbing works on our [guinea pig website](http://guinea-pig.webdriver.io/image-compare.html):
+This is an example of how the tabbing works on our [guinea pig website](https://guinea-pig.webdriver.io/image-compare.html):
 
 ![WDIO tabbing example](/img/visual/tabbable-chrome-latest-1366x768.png)
 
@@ -243,7 +243,7 @@ By default, binaries for macOS, Linux and Windows will be downloaded during your
 
 For detailed installation information, see the [node-canvas wiki](https://github.com/Automattic/node-canvas/wiki/_pages). Below are one-line installation instructions for common operating systems. Note that `libgif/giflib`, `librsvg`, and `libjpeg` are optional and only needed for GIF, SVG, and JPEG support, respectively. Cairo v1.10.0 or later is required.
 
-\<Tabs
+<Tabs
 defaultValue="osx"
 values={[
 {label: 'OS', value: 'osx'},
