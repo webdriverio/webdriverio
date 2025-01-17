@@ -186,7 +186,7 @@ Both methods use the same options as the [`saveFullPageScreen`](https://github.c
 
 #### Пример
 
-This is an example of how the tabbing works on our [guinea pig website](http://guinea-pig.webdriver.io/image-compare.html):
+This is an example of how the tabbing works on our [guinea pig website](https://guinea-pig.webdriver.io/image-compare.html):
 
 ![WDIO tabbing example](/img/visual/tabbable-chrome-latest-1366x768.png)
 
