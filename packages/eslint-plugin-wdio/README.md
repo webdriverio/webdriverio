@@ -42,7 +42,7 @@ If you are using the latest version of Eslint with the [flat configuration](http
 
 ```js
 // eslint.config.mjs
-import { config as wdioConfig } from "eslint-plugin-wdio";
+import { configs as wdioConfig } from "eslint-plugin-wdio";
 
 export default [
     {
