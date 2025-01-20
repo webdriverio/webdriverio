@@ -54,8 +54,6 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
          */
         : { alwaysMatch: params.capabilities, firstMatch: [{}] }
 
-    console.log(capabilities)
-
     /**
      * automatically opt-into WebDriver Bidi (@ref https://w3c.github.io/webdriver-bidi/)
      */
