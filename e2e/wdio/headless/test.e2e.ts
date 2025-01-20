@@ -606,8 +606,10 @@ describe('main suite 1', () => {
                 const dimensions = imageSize(screenshotPath) as { width: number, height: number }
                 console.log(`Screenshot dimensions: ${JSON.stringify(dimensions)}`)
 
-                expect(dimensions.width > 170 && dimensions.width < 185).toBe(true)
-                expect(dimensions.height > 80 && dimensions.height < 90).toBe(true)
+                expect(dimensions.width).toBeGreaterThan(170)
+                expect(dimensions.width).toBeLowerThan(185)
+                expect(dimensions.height).toBeGreaterThan(80)
+                expect(dimensions.height).toBeLowerThan(90)
             })
 
             after(() => browser.switchFrame(null))
