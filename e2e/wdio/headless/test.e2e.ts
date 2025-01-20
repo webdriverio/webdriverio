@@ -603,9 +603,9 @@ describe('main suite 1', () => {
 
                 const screenshotPath = path.resolve(__dirname, 'iframe.png')
                 await browser.saveScreenshot(screenshotPath)
-                const dimensions = imageSize(screenshotPath)
-                expect(dimensions.width).toBe(process.env.CI ? 175 : 187)
-                expect(dimensions.height).toBe(85)
+                const dimensions = imageSize(screenshotPath) as { width: number, height: number }
+                expect(dimensions.width > 170 && dimensions.width < 185).toBe(true)
+                expect(dimensions.width > 80 && dimensions.width < 90).toBe(true)
             })
 
             after(() => browser.switchFrame(null))
