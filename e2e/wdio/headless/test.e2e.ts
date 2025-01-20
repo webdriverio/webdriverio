@@ -607,7 +607,7 @@ describe('main suite 1', () => {
                 console.log(`Screenshot dimensions: ${JSON.stringify(dimensions)}`)
 
                 expect(dimensions.width > 170 && dimensions.width < 185).toBe(true)
-                expect(dimensions.width > 80 && dimensions.width < 90).toBe(true)
+                expect(dimensions.height > 80 && dimensions.height < 90).toBe(true)
             })
 
             after(() => browser.switchFrame(null))
