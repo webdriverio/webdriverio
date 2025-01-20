@@ -43,25 +43,35 @@ describe('main suite 1', () => {
     })
 
     describe('async/iterators', () => {
+        let viewport: { width: number, height: number } | undefined
+
         /**
          * this test requires the website to be rendered in mobile view
          */
         before(async () => {
+            viewport = await browser.getWindowSize()
             await browser.setViewport({ width: 900, height: 600 })
         })
 
         it('should be able to use async-iterators', async () => {
             await browser.url('https://webdriver.io')
             await browser.$('aria/Toggle navigation bar').click()
-            const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find<WebdriverIO.Element>(
-                async (link) => await link.getText() === 'Contribute')
-            expect(contributeLink).toBeDefined()
+            const contributeLink = await browser.waitUntil(async () => {
+                const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find<WebdriverIO.Element>(
+                    async (link) => await link.getText() === 'Contribute')
+                expect(contributeLink).toBeDefined()
+                return contributeLink
+            })
             await contributeLink.click()
             await expect(browser).toHaveTitle('Contribute | WebdriverIO')
         })
 
         after(async () => {
-            await browser.setViewport({ width: 1200, height: 900 })
+            if (!viewport) {
+                return
+            }
+
+            await browser.setViewport(viewport)
         })
     })
 
@@ -255,6 +265,11 @@ describe('main suite 1', () => {
     ]
 
     describe('wdio scrollIntoView behaves like native scrollIntoView', () => {
+        let viewport: { width: number, height: number } | undefined
+        before(async () => {
+            viewport = await browser.getWindowSize()
+        })
+
         beforeEach(async () => {
             await browser.url('https://guinea-pig.webdriver.io')
             await browser.setWindowSize(500, 500)
@@ -284,31 +299,36 @@ describe('main suite 1', () => {
                 expect(Math.floor(wdioX)).toEqual(Math.floor(nativeX))
             })
         })
-    })
 
-    it('should be able to handle successive scrollIntoView', async () => {
-        await browser.url('https://guinea-pig.webdriver.io')
-        await browser.setWindowSize(500, 500)
-        const searchInput = await $('.searchinput')
+        it('should be able to handle successive scrollIntoView', async () => {
+            const searchInput = await $('.searchinput')
 
-        const scrollAndCheck = async (params?: ScrollIntoViewOptions | boolean) => {
-            await searchInput.scrollIntoView(params)
-            const [wdioX, wdioY] = await browser.execute(() => [
-                window.scrollX, window.scrollY
-            ])
+            const scrollAndCheck = async (params?: ScrollIntoViewOptions | boolean) => {
+                await searchInput.scrollIntoView(params)
+                const [wdioX, wdioY] = await browser.execute(() => [
+                    window.scrollX, window.scrollY
+                ])
 
-            await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, params)
-            const [windowX, windowY] = await browser.execute(() => [
-                window.scrollX, window.scrollY
-            ])
+                await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, params)
+                const [windowX, windowY] = await browser.execute(() => [
+                    window.scrollX, window.scrollY
+                ])
 
-            expect(Math.abs(wdioX - windowX)).toEqual(0)
-            expect(Math.abs(wdioY - windowY)).toEqual(0)
-        }
+                expect(Math.abs(wdioX - windowX)).toEqual(0)
+                expect(Math.abs(wdioY - windowY)).toEqual(0)
+            }
 
-        for (const input of inputs) {
-            await scrollAndCheck(input)
-        }
+            for (const input of inputs) {
+                await scrollAndCheck(input)
+            }
+        })
+
+        after(async () => {
+            if (!viewport) {
+                return
+            }
+            return browser.setViewport(viewport)
+        })
     })
 
     describe('url command', () => {
