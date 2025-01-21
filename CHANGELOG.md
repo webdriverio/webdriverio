@@ -23,6 +23,39 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.6.0 (2025-01-21)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#14069](https://github.com/webdriverio/webdriverio/pull/14069) Accessibility Support for Browserstack app automate sessions ([@nishath-bs](https://github.com/nishath-bs))
+* `webdriver`, `webdriverio`
+  * [#14075](https://github.com/webdriverio/webdriverio/pull/14075) feat(webdriverio): use checkVisibility for display checks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14070](https://github.com/webdriverio/webdriverio/pull/14070) fix(webdriverio): properly switch context using switchToParentFrame() ([@christian-bromann](https://github.com/christian-bromann))
+  * [#14079](https://github.com/webdriverio/webdriverio/pull/14079) fix(webdriverio): allow it to visit chrome pages ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#14085](https://github.com/webdriverio/webdriverio/pull/14085) fix(webdriverio): don't initialize session manager for stub ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#14080](https://github.com/webdriverio/webdriverio/pull/14080) fix(webdriverio): make WebdriverIO load-able in browser environments ([@christian-bromann](https://github.com/christian-bromann))
+  * [#14050](https://github.com/webdriverio/webdriverio/pull/14050) fix(webdriverio): handle `closeWindow` for WDIO classic when no window is open ([@navin772](https://github.com/navin772))
+
+#### :memo: Documentation
+* Other
+  * [#14092](https://github.com/webdriverio/webdriverio/pull/14092) docs(website): fix multiremote link ([@alcpereira](https://github.com/alcpereira))
+* `eslint-plugin-wdio`
+  * [#14087](https://github.com/webdriverio/webdriverio/pull/14087) docs(eslint-plugin-wdio): fix typo in readme ([@alcpereira](https://github.com/alcpereira))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mohamed Nishath N ([@nishath-bs](https://github.com/nishath-bs))
+- Navin Chandra ([@navin772](https://github.com/navin772))
+- [@alcpereira](https://github.com/alcpereira)
+
+
 ## v9.5.7 (2025-01-12)
 
 #### :bug: Bug Fix
