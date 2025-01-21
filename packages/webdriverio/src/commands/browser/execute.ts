@@ -78,7 +78,8 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
      */
     if (typeof script === 'function') {
         script = `
-            ${createFunctionDeclarationFromString(polyfillFn)}
+            ${polyfillFn}
+            webdriverioPolyfill()
             return (${script}).apply(null, arguments)
         `
     }

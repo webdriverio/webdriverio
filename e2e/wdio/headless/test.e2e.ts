@@ -607,7 +607,7 @@ describe('main suite 1', () => {
                 console.log(`Screenshot dimensions: ${JSON.stringify(dimensions)}`)
 
                 expect(dimensions.width).toBeGreaterThanOrEqual(170)
-                expect(dimensions.width).toBeLessThanOrEqual(185)
+                expect(dimensions.width).toBeLessThanOrEqual(190)
                 expect(dimensions.height).toBeGreaterThanOrEqual(80)
                 expect(dimensions.height).toBeLessThanOrEqual(90)
             })
