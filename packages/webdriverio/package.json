@@ -67,12 +67,12 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
-    "@sinonjs/fake-timers": "^13.0.1",
+    "@sinonjs/fake-timers": "^14.0.0",
     "@types/archiver": "^6.0.2",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
-    "puppeteer-core": "^23.0.2",
+    "puppeteer-core": "^24.1.0",
     "safe-stable-stringify": "^2.4.3"
   },
   "dependencies": {
@@ -96,11 +96,11 @@
     "jszip": "^3.10.1",
     "lodash.clonedeep": "^4.5.0",
     "lodash.zip": "^4.2.0",
-    "minimatch": "^9.0.3",
+    "minimatch": "^10.0.1",
     "query-selector-shadow-dom": "^1.0.1",
     "resq": "^1.11.0",
     "rgb2hex": "0.2.5",
-    "serialize-error": "^11.0.3",
+    "serialize-error": "^12.0.0",
     "urlpattern-polyfill": "^10.0.0",
     "webdriver": "workspace:*"
   },
