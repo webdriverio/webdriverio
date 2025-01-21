@@ -136,8 +136,8 @@ class Launcher {
              * pre-configure necessary driver for worker threads
              */
             await Promise.all([
-                setupDriver(config, caps),
-                setupBrowser(config, caps)
+                setupDriver({}, []),
+                setupBrowser({}, [])
             ])
 
             exitCode = await this._runMode(config, caps)
@@ -337,12 +337,10 @@ class Launcher {
             caps = capabilities as WebdriverIO.Capabilities
         }
         const specs = (
-            // @ts-expect-error deprecated
             caps.specs ||
             caps['wdio:specs']
         )
         const excludes = (
-            // @ts-expect-error deprecated
             caps.exclude ||
             caps['wdio:exclude']
         )
