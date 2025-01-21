@@ -40,7 +40,7 @@
     "@types/ws": "^8.5.3",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
-    "@wdio/protocols": "workspace:*",
+    "@testplane/protocols": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",

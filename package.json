@@ -20,7 +20,7 @@
     "clean:cddl": "rimraf --glob scripts/bidi/cddl",
     "compile": "pnpm -r --filter=@wdio/compiler run build",
     "compile:all": "run-s compile:all:*",
-    "compile:all:core": "pnpm -r --filter=@wdio/compiler run build -p @wdio/logger -p @wdio/types -p @wdio/globals -p @wdio/protocols -p @wdio/repl",
+    "compile:all:core": "pnpm -r --filter=@wdio/compiler run build -p @wdio/logger -p @wdio/types -p @wdio/globals -p @testplane/protocols -p @wdio/repl",
     "compile:all:main": "pnpm -r --filter=@wdio/compiler run build -p @wdio/utils -p @wdio/reporter -p @wdio/config -p webdriver -p webdriverio",
     "compile:all:all": "pnpm -r --filter=@wdio/compiler run build",
     "generate": "run-s generate:*",

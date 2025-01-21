@@ -1,4 +1,4 @@
-import type { ElementReference } from '@wdio/protocols'
+import type { ElementReference } from '@testplane/protocols'
 
 import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
 import { getElements, getElement } from '../../utils/getElementObject.js'

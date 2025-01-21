@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from 'webdriver'
 import { UNICODE_CHARACTERS, asyncIterators, getBrowserObject } from '@wdio/utils'
-import type { ElementReference } from '@wdio/protocols'
+import type { ElementReference } from '@testplane/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'

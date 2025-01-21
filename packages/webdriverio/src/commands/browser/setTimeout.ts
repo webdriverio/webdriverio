@@ -1,4 +1,4 @@
-import type { Timeouts } from '@wdio/protocols'
+import type { Timeouts } from '@testplane/protocols'
 
 /**
  *

@@ -1,4 +1,4 @@
-import type { ElementReference } from '@wdio/protocols'
+import type { ElementReference } from '@testplane/protocols'
 
 import { resqScript } from '../constant.js'
 import { enhanceElementsArray } from '../../utils/index.js'

@@ -59,7 +59,7 @@ const packages = (
  * plugins for the ESM build
  */
 const esmPlugins: Record<string, Plugin[]> = {
-    '@wdio/protocols': [generateTypes()],
+    '@testplane/protocols': [generateTypes()],
     '@wdio/cli': [copyEJSTemplates()],
     'webdriverio': [externalScripts()]
 }

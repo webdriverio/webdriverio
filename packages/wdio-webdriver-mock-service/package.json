@@ -28,7 +28,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/uuid": "^10.0.0",
-    "@wdio/protocols": "workspace:*",
+    "@testplane/protocols": "workspace:*",
     "@wdio/types": "workspace:*",
     "nock": "14.0.1",
     "uuid": "^10.0.0",

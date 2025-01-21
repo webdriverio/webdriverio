@@ -285,7 +285,7 @@ await elem.click({ force: true })
 
 ## Fügen Sie weitere WebDriver-Befehle hinzu
 
-Wenn Sie das WebDriver-Protokoll verwenden und Tests auf einer Plattform ausführen, die zusätzliche Befehle unterstützt, die nicht durch eine der Protokolldefinitionen in [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) definiert sind, können Sie diese manuell über die Schnittstelle `addCommand` hinzufügen. Das Paket `webdriver` bietet einen Befehlswrapper, der es ermöglicht, diese neuen Endpunkte auf die gleiche Weise wie andere Befehle zu registrieren und dieselben Parameterprüfungen und Fehlerbehandlungen bereitzustellen. Um diesen neuen Endpunkt zu registrieren, importieren Sie den Befehlswrapper und registrieren Sie wie folgt einen neuen Befehl damit:
+Wenn Sie das WebDriver-Protokoll verwenden und Tests auf einer Plattform ausführen, die zusätzliche Befehle unterstützt, die nicht durch eine der Protokolldefinitionen in [`@testplane/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) definiert sind, können Sie diese manuell über die Schnittstelle `addCommand` hinzufügen. Das Paket `webdriver` bietet einen Befehlswrapper, der es ermöglicht, diese neuen Endpunkte auf die gleiche Weise wie andere Befehle zu registrieren und dieselben Parameterprüfungen und Fehlerbehandlungen bereitzustellen. Um diesen neuen Endpunkt zu registrieren, importieren Sie den Befehlswrapper und registrieren Sie wie folgt einen neuen Befehl damit:
 
 ```js
 import { command } from 'webdriver'
@@ -334,4 +334,4 @@ await browser.myNewCommand()
 Der URL-Parameter `:sessionId` wird automatisch durch die Sitzungs-ID der WebDriver-Sitzung ersetzt. Andere URL-Parameter können angewendet werden, müssen aber innerhalb von `variables` definiert werden.
 :::
 
-Sehen Sie sich Beispiele an, wie Protokollbefehle im [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) definiert werden können.
+Sehen Sie sich Beispiele an, wie Protokollbefehle im [`@testplane/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) definiert werden können.

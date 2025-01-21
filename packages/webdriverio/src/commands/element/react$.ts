@@ -1,5 +1,5 @@
-import { getBrowserObject } from '@wdio/utils'
-import type { ElementReference } from '@wdio/protocols'
+import { getBrowserObject } from '@testplane/utils'
+import type { ElementReference } from '@testplane/protocols'
 
 import { resqScript } from '../constant.js'
 import { getElement } from '../../utils/getElementObject.js'

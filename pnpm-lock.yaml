@@ -546,6 +546,9 @@ importers:
       '@originjs/vite-plugin-commonjs':
         specifier: ^1.0.3
         version: 1.0.3
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@vitest/spy':
         specifier: ^2.0.4
         version: 2.1.8
@@ -561,9 +564,6 @@ importers:
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../wdio-mocha-framework
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../wdio-protocols
       '@wdio/runner':
         specifier: workspace:*
         version: link:../wdio-runner
@@ -732,6 +732,9 @@ importers:
 
   packages/wdio-cli:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@types/node':
         specifier: ^20.1.1
         version: 20.17.17
@@ -747,9 +750,6 @@ importers:
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../wdio-protocols
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -1408,12 +1408,12 @@ importers:
 
   packages/wdio-webdriver-mock-service:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../wdio-protocols
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -1433,6 +1433,9 @@ importers:
 
   packages/webdriver:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@types/node':
         specifier: ^20.1.0
         version: 20.17.17
@@ -1445,9 +1448,6 @@ importers:
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../wdio-protocols
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -1466,6 +1466,9 @@ importers:
 
   packages/webdriverio:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@types/node':
         specifier: ^20.11.30
         version: 20.17.17
@@ -1478,9 +1481,6 @@ importers:
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../wdio-protocols
       '@wdio/repl':
         specifier: workspace:*
         version: link:../wdio-repl
@@ -1566,6 +1566,9 @@ importers:
 
   tests:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../packages/wdio-protocols
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-allure-reporter
@@ -1617,9 +1620,6 @@ importers:
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../packages/wdio-mocha-framework
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../packages/wdio-protocols
       '@wdio/repl':
         specifier: workspace:*
         version: link:../packages/wdio-repl
@@ -1706,6 +1706,9 @@ importers:
 
   tests/typings/cucumber:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-allure-reporter
@@ -1736,9 +1739,6 @@ importers:
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../../../packages/wdio-mocha-framework
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@wdio/reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-reporter
@@ -1772,6 +1772,9 @@ importers:
 
   tests/typings/jasmine:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@types/jasmine':
         specifier: ^5.1.4
         version: 5.1.5
@@ -1805,9 +1808,6 @@ importers:
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../../../packages/wdio-mocha-framework
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@wdio/reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-reporter
@@ -1844,6 +1844,9 @@ importers:
 
   tests/typings/mocha:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-allure-reporter
@@ -1874,9 +1877,6 @@ importers:
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../../../packages/wdio-mocha-framework
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@wdio/reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-reporter
@@ -1910,6 +1910,9 @@ importers:
 
   tests/typings/webdriver:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-allure-reporter
@@ -1940,9 +1943,6 @@ importers:
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../../../packages/wdio-mocha-framework
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@wdio/reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-reporter
@@ -1976,6 +1976,9 @@ importers:
 
   tests/typings/webdriverio:
     dependencies:
+      '@testplane/protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-allure-reporter
@@ -2006,9 +2009,6 @@ importers:
       '@wdio/mocha-framework':
         specifier: workspace:*
         version: link:../../../packages/wdio-mocha-framework
-      '@wdio/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@wdio/reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-reporter

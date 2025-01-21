@@ -44,7 +44,7 @@
     "@wdio/config": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
-    "@wdio/protocols": "workspace:*",
+    "@testplane/protocols": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "async-exit-hook": "^2.0.1",

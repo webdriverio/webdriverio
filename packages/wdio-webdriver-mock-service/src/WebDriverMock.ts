@@ -1,10 +1,10 @@
 import nock from 'nock'
-import type { CommandEndpoint, Protocol } from '@wdio/protocols'
+import type { CommandEndpoint, Protocol } from '@testplane/protocols'
 
 import {
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
-} from '@wdio/protocols'
+} from '@testplane/protocols'
 
 const REGEXP_SESSION_ID = /\/[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/
 const SESSION_ID = 'XXX'

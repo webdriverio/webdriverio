@@ -285,7 +285,7 @@ await elem.click({ force: true })
 
 ## Agregar más comandos WebDriver
 
-Si está utilizando el protocolo WebDriver y ejecuta pruebas en una plataforma que soporta comandos adicionales no definidos por cualquiera de las definiciones de protocolo en [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) puede añadirlos manualmente a través de la interfaz `addCommand`. El paquete `webdriver` ofrece un contenedor de comandos que permite registrar estos nuevos endpoints de la misma manera que otros comandos, proporcionando la misma comprobación de parámetros y manejo de errores. Para registrar este nuevo endpoint importar el comando envoltorio y registrar un nuevo comando con él de la siguiente manera:
+Si está utilizando el protocolo WebDriver y ejecuta pruebas en una plataforma que soporta comandos adicionales no definidos por cualquiera de las definiciones de protocolo en [`@testplane/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) puede añadirlos manualmente a través de la interfaz `addCommand`. El paquete `webdriver` ofrece un contenedor de comandos que permite registrar estos nuevos endpoints de la misma manera que otros comandos, proporcionando la misma comprobación de parámetros y manejo de errores. Para registrar este nuevo endpoint importar el comando envoltorio y registrar un nuevo comando con él de la siguiente manera:
 
 ```js
 import { command } from 'webdriver'
@@ -334,4 +334,4 @@ Llamando el comando correctamente, p. ej., `browser.myNewCommand('foo', 'bar')`,
 El parámetro de url `:sessionId` será sustituido automáticamente por el id de sesión de la sesión WebDriver sesión. Se puede aplicar otro parámetro de url, pero debe definirse dentro de `variables`.
 :::
 
-Vea ejemplos de cómo se pueden definir comandos de protocolo en el paquete [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols).
+Vea ejemplos de cómo se pueden definir comandos de protocolo en el paquete [`@testplane/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols).

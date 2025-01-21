@@ -79,7 +79,7 @@
     "@types/sinonjs__fake-timers": "^8.1.5",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
-    "@wdio/protocols": "workspace:*",
+    "@testplane/protocols": "workspace:*",
     "@wdio/repl": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",

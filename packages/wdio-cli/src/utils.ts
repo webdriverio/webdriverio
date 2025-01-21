@@ -16,7 +16,7 @@ import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config/node'
-import { CAPABILITY_KEYS } from '@wdio/protocols'
+import { CAPABILITY_KEYS } from '@testplane/protocols'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
 import { installPackages, getInstallCommand } from './install.js'

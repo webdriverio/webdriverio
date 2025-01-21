@@ -3,7 +3,7 @@ import { expectType } from 'tsd'
 import allure from '@wdio/allure-reporter'
 import { remote, multiremote, SevereServiceError, Key } from 'webdriverio'
 import type { ClickOptions, TouchAction, Selector, Action } from 'webdriverio'
-import type { DetailedContext } from '@wdio/protocols'
+import type { DetailedContext } from '@testplane/protocols'
 
 declare global {
     namespace WebdriverIO {
