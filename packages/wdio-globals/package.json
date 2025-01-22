@@ -41,6 +41,6 @@
   },
   "optionalDependencies": {
     "expect-webdriverio": "^5.1.0",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   }
 }

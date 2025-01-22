@@ -6,8 +6,8 @@ import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from 
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
-import { attach } from 'webdriverio'
-import type { Selector } from 'webdriverio'
+import { attach } from '@testplane/webdriverio'
+import type { Selector } from '@testplane/webdriverio'
 import type { Options, Capabilities } from '@testplane/types'
 
 import BrowserFramework from './browser.js'

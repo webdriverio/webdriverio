@@ -29,6 +29,6 @@
     "@wdio/spec-reporter": "workspace:*",
     "@testplane/types": "workspace:*",
     "@testplane/webdriver": "workspace:*",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   }
 }

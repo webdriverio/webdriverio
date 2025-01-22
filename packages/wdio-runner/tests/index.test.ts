@@ -4,7 +4,7 @@ import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@testplane/utils'
 import { ConfigParser } from '@wdio/config/node'
-import { attach } from 'webdriverio'
+import { attach } from '@testplane/webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setOptions, SnapshotService } from 'expect-webdriverio'
 

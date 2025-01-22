@@ -7,7 +7,7 @@ import { test, expect } from 'vitest'
  *   $ npm install webdriverio
  *
  */
-import { remote, attach } from 'webdriverio'
+import { remote, attach } from '@testplane/webdriverio'
 
 test('allow to attach to an existing session', async () => {
     /**

@@ -6,7 +6,7 @@ import { test, expect } from 'vitest'
  *   $ npm install webdriverio
  *
  */
-import { remote } from 'webdriverio'
+import { remote } from '@testplane/webdriverio'
 
 test('can reconnect to WebDriver Bidi session', async () => {
     const browser = await remote({

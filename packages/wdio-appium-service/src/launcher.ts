@@ -11,7 +11,7 @@ import logger from '@wdio/logger'
 import getPort from 'get-port'
 import { resolve } from 'import-meta-resolve'
 import { isCloudCapability } from '@wdio/config'
-import { SevereServiceError } from 'webdriverio'
+import { SevereServiceError } from '@testplane/webdriverio'
 import type { Services, Capabilities, Options } from '@testplane/types'
 import { isAppiumCapability } from '@testplane/utils'
 

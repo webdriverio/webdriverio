@@ -18,7 +18,7 @@ const outDirs = [
 const packages = {
     'devtools': 'packages/devtools',
     '@testplane/webdriver': 'packages/webdriver',
-    'webdriverio': 'packages/webdriverio',
+    '@testplane/webdriverio': 'packages/webdriverio',
     '@wdio/globals': 'packages/wdio-globals',
     '@testplane/utils': 'packages/wdio-utils',
     '@wdio/browser-runner': 'packages/wdio-browser-runner',

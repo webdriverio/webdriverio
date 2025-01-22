@@ -52,7 +52,7 @@
     "istanbul-reports": "^3.1.4",
     "lighthouse": "8.6.0",
     "puppeteer-core": "23.11.1",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

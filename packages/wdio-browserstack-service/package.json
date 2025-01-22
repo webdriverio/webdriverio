@@ -50,7 +50,7 @@
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
     "uuid": "^10.0.0",
-    "webdriverio": "workspace:*",
+    "@testplane/webdriverio": "workspace:*",
     "winston-transport": "^4.5.0",
     "yauzl": "^3.0.0"
   },

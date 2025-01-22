@@ -1,7 +1,7 @@
 import path from 'node:path'
 // @ts-expect-error - mock
 import { logMock } from '@wdio/logger'
-import { attach, remote, multiremote } from 'webdriverio'
+import { attach, remote, multiremote } from '@testplane/webdriverio'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 
 import type { ConfigWithSessionId

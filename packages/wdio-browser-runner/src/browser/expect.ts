@@ -1,7 +1,7 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
 import { MESSAGE_TYPES, type Workers } from '@testplane/types'
 import { $ } from '@wdio/globals'
-import type { ChainablePromiseElement } from 'webdriverio'
+import type { ChainablePromiseElement } from '@testplane/webdriverio'
 
 import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'

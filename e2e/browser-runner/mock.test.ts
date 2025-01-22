@@ -1,5 +1,5 @@
 import { expect, browser, $ } from '@wdio/globals'
-import type { RespondWithOptions } from 'webdriverio'
+import type { RespondWithOptions } from '@testplane/webdriverio'
 import { html, render } from 'lit'
 
 const CORS_PARAMS: RespondWithOptions = {

@@ -100,7 +100,7 @@
     "vite-plugin-istanbul": "^6.0.0",
     "vite-plugin-top-level-await": "^1.4.1",
     "@testplane/webdriver": "workspace:*",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   },
   "devDependencies": {
     "@types/istanbul-lib-coverage": "^2.0.6",

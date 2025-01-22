@@ -8,7 +8,7 @@ import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
 import { readPackageUp } from 'read-pkg-up'
-import { SevereServiceError } from 'webdriverio'
+import { SevereServiceError } from '@testplane/webdriverio'
 import { ConfigParser } from '@wdio/config/node'
 
 import {

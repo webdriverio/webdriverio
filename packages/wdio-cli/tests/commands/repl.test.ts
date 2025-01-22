@@ -2,7 +2,7 @@ import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
-import { remote } from 'webdriverio'
+import { remote } from '@testplane/webdriverio'
 
 import { handler, builder } from '../../src/commands/repl.js'
 

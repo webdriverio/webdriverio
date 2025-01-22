@@ -3,7 +3,7 @@
 import { automationProtocolPath } from 'virtual:wdio'
 
 import { expect } from 'expect-webdriverio'
-import { remote } from 'webdriverio'
+import { remote } from '@testplane/webdriverio'
 import { _setGlobal } from '@wdio/globals'
 
 import './frameworks/mocha.js'

@@ -6,7 +6,7 @@
   "type": "module",
   "dependencies": {
     "@testplane/webdriver": "workspace:*",
-    "webdriverio": "workspace:*",
+    "@testplane/webdriverio": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@testplane/types": "workspace:*",
     "@testplane/utils": "workspace:*",

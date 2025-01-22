@@ -10,7 +10,7 @@
  */
 
 import { Given, When, Then } from '@wdio/cucumber-framework'
-import { Key } from 'webdriverio'
+import { Key } from '@testplane/webdriverio'
 
 Given(/^I go on the website "([^"]*)"$/, async (url) => {
     await browser.url(url)

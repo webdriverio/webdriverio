@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest'
-import { remote } from 'webdriverio'
+import { remote } from '@testplane/webdriverio'
 import AWS from '@aws-sdk/client-device-farm'
 
 let browser: WebdriverIO.Browser | undefined

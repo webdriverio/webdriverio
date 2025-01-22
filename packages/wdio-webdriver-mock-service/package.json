@@ -37,7 +37,7 @@
     "nock": "14.0.0-beta.19",
 >>>>>>> 0a34b0bca (chore: rename @wdio/types to @testplane/types)
     "uuid": "^10.0.0",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   },
   "devDependencies": {
     "@wdio/globals": "workspace:*"

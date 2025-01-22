@@ -61,7 +61,7 @@
     "read-pkg-up": "^10.0.0",
     "recursive-readdir": "^2.2.3",
     "tsx": "^4.7.2",
-    "webdriverio": "workspace:*",
+    "@testplane/webdriverio": "workspace:*",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

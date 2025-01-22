@@ -40,7 +40,7 @@
     "@wdio/logger": "workspace:*",
     "@testplane/types": "workspace:*",
     "polka": "^0.5.2",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   },
   "devDependencies": {
     "@wdio/globals": "workspace:*"

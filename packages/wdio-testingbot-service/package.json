@@ -35,7 +35,7 @@
     "@wdio/logger": "workspace:*",
     "@testplane/types": "workspace:*",
     "testingbot-tunnel-launcher": "^1.1.7",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.1.0",

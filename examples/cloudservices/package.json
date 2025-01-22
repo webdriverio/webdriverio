@@ -11,6 +11,6 @@
     "test:kobiton": "node kobiton.js"
   },
   "dependencies": {
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   }
 }
