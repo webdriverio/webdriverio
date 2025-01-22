@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { SHADOW_ELEMENT_KEY } from 'webdriver'
+import { SHADOW_ELEMENT_KEY } from '@testplane/webdriver'
 
 import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 import { getElement } from '../../utils/getElementObject.js'

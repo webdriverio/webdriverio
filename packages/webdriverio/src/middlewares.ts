@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import { getBrowserObject } from '@testplane/utils'
 
 import refetchElement from './utils/refetchElement.js'

@@ -1,4 +1,4 @@
-import { type local } from 'webdriver'
+import { type local } from '@testplane/webdriver'
 import { SessionManager } from './session.js'
 
 export function getDialogManager(browser: WebdriverIO.Browser) {

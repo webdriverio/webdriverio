@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import type { ElementReference } from '@testplane/protocols'
 import { getBrowserObject } from '@testplane/utils'
 import type { ChainablePromiseElement, DragAndDropCoordinate, DragAndDropOptions } from '../../types.js'

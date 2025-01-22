@@ -1,7 +1,7 @@
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach, type AttachOptions } from 'webdriverio'
-import { DEFAULTS } from 'webdriver'
+import { DEFAULTS } from '@testplane/webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { AsymmetricMatchers } from 'expect-webdriverio'
 import type { Options, Capabilities } from '@testplane/types'

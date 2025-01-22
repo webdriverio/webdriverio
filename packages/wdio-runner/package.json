@@ -40,7 +40,7 @@
     "@testplane/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "expect-webdriverio": "^5.1.0",
-    "webdriver": "workspace:*",
+    "@testplane/webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   },
   "publishConfig": {

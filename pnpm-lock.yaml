@@ -236,7 +236,17 @@ importers:
         version: 14.6.0(@testing-library/dom@10.4.0)
       '@testing-library/vue':
         specifier: ^8.0.1
+<<<<<<< HEAD
         version: 8.1.0(@vue/compiler-sfc@3.5.13)(vue@3.5.13(typescript@5.7.3))
+=======
+        version: 8.1.0(vue@3.5.13)
+      '@testplane/types':
+        specifier: workspace:*
+        version: link:../packages/wdio-types
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../packages/webdriver
+>>>>>>> 9a3eb7366 (chore: rename webdriver to @testplane/webdriver)
       '@types/mocha':
         specifier: ^10.0.6
         version: 10.0.10
@@ -371,6 +381,9 @@ importers:
       '@testplane/types':
         specifier: workspace:*
         version: link:../../packages/wdio-types
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../../packages/webdriver
       '@wdio/browser-runner':
         specifier: workspace:*
         version: link:../../packages/wdio-browser-runner
@@ -410,9 +423,6 @@ importers:
       '@wdio/spec-reporter':
         specifier: workspace:*
         version: link:../../packages/wdio-spec-reporter
-      webdriver:
-        specifier: workspace:*
-        version: link:../../packages/webdriver
       webdriverio:
         specifier: workspace:*
         version: link:../../packages/webdriverio
@@ -612,6 +622,9 @@ importers:
       '@testplane/utils':
         specifier: workspace:*
         version: link:../wdio-utils
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../webdriver
       '@vitest/spy':
         specifier: ^2.0.4
         version: 2.1.8
@@ -1238,6 +1251,9 @@ importers:
       '@testplane/utils':
         specifier: workspace:9.5.0
         version: link:../wdio-utils
+      '@testplane/webdriver':
+        specifier: workspace:9.5.4
+        version: link:../webdriver
       '@types/node':
         specifier: ^20.11.28
         version: 20.17.17
@@ -1538,6 +1554,9 @@ importers:
       '@testplane/utils':
         specifier: workspace:*
         version: link:../wdio-utils
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../webdriver
       '@types/node':
         specifier: ^20.11.30
         version: 20.17.17
@@ -1604,9 +1623,6 @@ importers:
       urlpattern-polyfill:
         specifier: ^10.0.0
         version: 10.0.0
-      webdriver:
-        specifier: workspace:*
-        version: link:../webdriver
     devDependencies:
       '@sinonjs/fake-timers':
         specifier: ^13.0.1
@@ -1638,6 +1654,9 @@ importers:
       '@testplane/utils':
         specifier: workspace:*
         version: link:../packages/wdio-utils
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../packages/webdriver
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-allure-reporter
@@ -1729,17 +1748,25 @@ importers:
         specifier: workspace:*
         version: link:../packages/devtools
       expect-webdriverio:
+<<<<<<< HEAD
         specifier: ^5.1.0
         version: 5.1.0(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
         version: link:../packages/webdriver
+=======
+        specifier: ^5.0.1
+        version: 5.0.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
+>>>>>>> 9a3eb7366 (chore: rename webdriver to @testplane/webdriver)
       webdriverio:
         specifier: workspace:*
         version: link:../packages/webdriverio
 
   tests/interop:
     dependencies:
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../../packages/webdriver
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../../packages/wdio-allure-reporter
@@ -1764,9 +1791,6 @@ importers:
       npm-run-all2:
         specifier: ^6.2.3
         version: 6.2.6
-      webdriver:
-        specifier: workspace:*
-        version: link:../../packages/webdriver
       webdriverio:
         specifier: workspace:*
         version: link:../../packages/webdriverio
@@ -1784,6 +1808,9 @@ importers:
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-allure-reporter
@@ -1832,9 +1859,6 @@ importers:
       '@wdio/testingbot-service':
         specifier: workspace:*
         version: link:../../../packages/wdio-testingbot-service
-      webdriver:
-        specifier: workspace:*
-        version: link:../../../packages/webdriver
       webdriverio:
         specifier: workspace:*
         version: link:../../../packages/webdriverio
@@ -1850,6 +1874,9 @@ importers:
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
       '@types/jasmine':
         specifier: ^5.1.4
         version: 5.1.5
@@ -1902,11 +1929,16 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/wdio-testingbot-service
       expect-webdriverio:
+<<<<<<< HEAD
         specifier: ^5.1.0
         version: 5.1.0(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.4.4)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
         version: link:../../../packages/webdriver
+=======
+        specifier: ^5.0.1
+        version: 5.0.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
+>>>>>>> 9a3eb7366 (chore: rename webdriver to @testplane/webdriver)
       webdriverio:
         specifier: workspace:*
         version: link:../../../packages/webdriverio
@@ -1922,6 +1954,9 @@ importers:
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-allure-reporter
@@ -1970,9 +2005,6 @@ importers:
       '@wdio/testingbot-service':
         specifier: workspace:*
         version: link:../../../packages/wdio-testingbot-service
-      webdriver:
-        specifier: workspace:*
-        version: link:../../../packages/webdriver
       webdriverio:
         specifier: workspace:*
         version: link:../../../packages/webdriverio
@@ -1988,6 +2020,9 @@ importers:
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-allure-reporter
@@ -2036,9 +2071,6 @@ importers:
       '@wdio/testingbot-service':
         specifier: workspace:*
         version: link:../../../packages/wdio-testingbot-service
-      webdriver:
-        specifier: workspace:*
-        version: link:../../../packages/webdriver
       webdriverio:
         specifier: workspace:*
         version: link:../../../packages/webdriverio
@@ -2054,6 +2086,9 @@ importers:
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/webdriver':
+        specifier: workspace:*
+        version: link:../../../packages/webdriver
       '@wdio/allure-reporter':
         specifier: workspace:*
         version: link:../../../packages/wdio-allure-reporter
@@ -2102,9 +2137,6 @@ importers:
       '@wdio/testingbot-service':
         specifier: workspace:*
         version: link:../../../packages/wdio-testingbot-service
-      webdriver:
-        specifier: workspace:*
-        version: link:../../../packages/webdriver
       webdriverio:
         specifier: workspace:*
         version: link:../../../packages/webdriverio

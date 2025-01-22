@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@testplane/utils'
 import { matchers } from 'expect-webdriverio'
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import { type Workers, type Options, type Services, MESSAGE_TYPES } from '@testplane/types'
 
 import { transformExpectArgs } from './utils.js'

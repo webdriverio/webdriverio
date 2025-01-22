@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import type { ElementReference } from '@testplane/protocols'

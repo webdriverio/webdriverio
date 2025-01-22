@@ -1,4 +1,4 @@
-import type { local } from 'webdriver'
+import type { local } from '@testplane/webdriver'
 import type { Cookie } from '@testplane/protocols'
 
 export type MockFilterOptions = {

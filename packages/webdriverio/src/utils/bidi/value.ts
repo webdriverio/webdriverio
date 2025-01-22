@@ -1,4 +1,4 @@
-import { ELEMENT_KEY, type remote } from 'webdriver'
+import { ELEMENT_KEY, type remote } from '@testplane/webdriver'
 import type { ElementReference } from '@testplane/protocols'
 
 import { PrimitiveType, NonPrimitiveType } from './constants.js'

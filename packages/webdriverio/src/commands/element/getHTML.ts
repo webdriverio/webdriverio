@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import type { CheerioAPI } from 'cheerio'
 import { prettify as prettifyFn } from 'htmlfy'
 

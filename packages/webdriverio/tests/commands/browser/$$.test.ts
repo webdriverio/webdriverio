@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import { describe, it, afterEach, expect, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 

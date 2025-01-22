@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest'
 import path from 'node:path'
-import WebDriver from 'webdriver'
+import WebDriver from '@testplane/webdriver'
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 

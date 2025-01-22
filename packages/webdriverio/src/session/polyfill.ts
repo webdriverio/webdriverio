@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { local } from 'webdriver'
+import type { local } from '@testplane/webdriver'
 
 import { SessionManager } from './session.js'
 import { createFunctionDeclarationFromString } from '../utils/index.js'

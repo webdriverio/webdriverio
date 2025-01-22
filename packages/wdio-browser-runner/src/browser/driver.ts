@@ -2,7 +2,7 @@
 /// <reference types="@wdio/globals/types" />
 import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@testplane/utils'
-import { getEnvironmentVars, initiateBidi, parseBidiMessage } from 'webdriver'
+import { getEnvironmentVars, initiateBidi, parseBidiMessage } from '@testplane/webdriver'
 import { MESSAGE_TYPES, type Workers } from '@testplane/types'
 import safeStringify from 'safe-stringify'
 
