@@ -236,9 +236,6 @@ importers:
         version: 14.6.0(@testing-library/dom@10.4.0)
       '@testing-library/vue':
         specifier: ^8.0.1
-<<<<<<< HEAD
-        version: 8.1.0(@vue/compiler-sfc@3.5.13)(vue@3.5.13(typescript@5.7.3))
-=======
         version: 8.1.0(vue@3.5.13)
       '@testplane/types':
         specifier: workspace:*
@@ -246,13 +243,9 @@ importers:
       '@testplane/webdriver':
         specifier: workspace:*
         version: link:../packages/webdriver
-<<<<<<< HEAD
->>>>>>> 9a3eb7366 (chore: rename webdriver to @testplane/webdriver)
-=======
       '@testplane/webdriverio':
         specifier: workspace:*
         version: link:../packages/webdriverio
->>>>>>> cd96ababa (chore: rename webdriverio to @testplane/webdriverio)
       '@types/mocha':
         specifier: ^10.0.6
         version: 10.0.10
@@ -659,13 +652,8 @@ importers:
         specifier: 30.0.0-alpha.7
         version: 30.0.0-alpha.7
       expect-webdriverio:
-<<<<<<< HEAD
         specifier: ^5.1.0
         version: 5.1.0(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
-=======
-        specifier: ^5.0.1
-        version: 5.0.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.6.0)
->>>>>>> cd96ababa (chore: rename webdriverio to @testplane/webdriverio)
       get-port:
         specifier: ^7.1.0
         version: 7.1.0
@@ -1091,17 +1079,7 @@ importers:
     dependencies:
       '@babel/core':
         specifier: ^7.18.0
-<<<<<<< HEAD
         version: 7.26.8
-=======
-        version: 7.26.0
-      '@testplane/types':
-        specifier: workspace:*
-        version: link:../wdio-types
-      '@testplane/webdriverio':
-        specifier: workspace:*
-        version: link:../webdriverio
->>>>>>> cd96ababa (chore: rename webdriverio to @testplane/webdriverio)
       '@tracerbench/trace-event':
         specifier: ^8.0.0
         version: 8.0.0
@@ -1330,16 +1308,11 @@ importers:
         specifier: workspace:*
         version: link:../wdio-logger
       saucelabs:
-<<<<<<< HEAD
         specifier: ^9.0.1
         version: 9.0.2
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
-=======
-        specifier: 8.0.0
-        version: 8.0.0
->>>>>>> cd96ababa (chore: rename webdriverio to @testplane/webdriverio)
     devDependencies:
       '@types/ip':
         specifier: ^1.1.0
@@ -1572,8 +1545,8 @@ importers:
         specifier: ^7.0.3
         version: 7.1.4
       undici:
-        specifier: ^6.20.1
-        version: 6.21.1
+        specifier: ^6.12.0
+        version: 6.12.0
       ws:
         specifier: ^8.8.0
         version: 8.18.0
@@ -1786,24 +1759,14 @@ importers:
         specifier: workspace:*
         version: link:../packages/devtools
       expect-webdriverio:
-<<<<<<< HEAD
         specifier: ^5.1.0
         version: 5.1.0(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
         version: link:../packages/webdriver
-=======
-        specifier: ^5.0.1
-<<<<<<< HEAD
-        version: 5.0.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
->>>>>>> 9a3eb7366 (chore: rename webdriver to @testplane/webdriver)
       webdriverio:
         specifier: workspace:*
         version: link:../packages/webdriverio
-=======
-        version: 5.0.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.6.0)
->>>>>>> cd96ababa (chore: rename webdriverio to @testplane/webdriverio)
-
   tests/interop:
     dependencies:
       '@testplane/webdriver':
@@ -1974,23 +1937,14 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/wdio-testingbot-service
       expect-webdriverio:
-<<<<<<< HEAD
         specifier: ^5.1.0
         version: 5.1.0(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.4.4)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
         version: link:../../../packages/webdriver
-=======
-        specifier: ^5.0.1
-<<<<<<< HEAD
-        version: 5.0.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
->>>>>>> 9a3eb7366 (chore: rename webdriver to @testplane/webdriver)
       webdriverio:
         specifier: workspace:*
         version: link:../../../packages/webdriverio
-=======
-        version: 5.0.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.6.0)
->>>>>>> cd96ababa (chore: rename webdriverio to @testplane/webdriverio)
 
   tests/typings/mocha:
     dependencies:
@@ -34380,6 +34334,11 @@ snapshots:
 
   /undici-types@6.20.0:
     resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
+
+  /undici@6.12.0:
+    resolution: {integrity: sha512-d87yk8lqSFUYtR5fTFe2frpkMIrUEz+lgoJmhcL+J3StVl+8fj8ytE4lLnJOTPCE12YbumNGzf4LYsQyusdV5g==}
+    engines: {node: '>=18.0'}
+    dev: false
 
   /undici@6.21.1:
     resolution: {integrity: sha512-q/1rj5D0/zayJB2FraXdaWxbhWiNKDvu8naDT2dl1yTlvJp4BLtOcp2a5BvgGNQpYYJzau7tf1WgKv3b+7mqpQ==}

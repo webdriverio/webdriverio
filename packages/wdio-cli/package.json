@@ -9,7 +9,7 @@
     "wdio": "./bin/wdio.js"
   },
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
