@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, test, expect, vi, afterAll } from 'vitest'
-import { wrapGlobalTestMethod } from '@wdio/utils'
+import { wrapGlobalTestMethod } from '@testplane/utils'
 
 import { loadModule, formatMessage, setupEnv, requireExternalModules } from '../src/common.js'
 declare global {
@@ -9,7 +9,7 @@ declare global {
 }
 
 vi.mock('randomModule', () => import(path.join(process.cwd(), '__mocks__', 'randomModule')))
-vi.mock('@wdio/utils')
+vi.mock('@testplane/utils')
 
 describe('formatMessage', () => {
     test('should do nothing if no error or params are given', () => {

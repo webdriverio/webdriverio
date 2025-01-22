@@ -1,4 +1,4 @@
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/utils'
 import type { PinchAndZoomOptions } from '../../types.js'
 import { calculateAndroidPinchAndZoomSpeed, validatePinchAndZoomOptions } from '../../utils/mobile.js'
 

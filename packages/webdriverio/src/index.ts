@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
-import { enableFileLogging, wrapCommand, isBidi } from '@wdio/utils'
+import { enableFileLogging, wrapCommand, isBidi } from '@testplane/utils'
 import type { Options, Capabilities } from '@testplane/types'
 import type * as WebDriverTypes from 'webdriver'
 

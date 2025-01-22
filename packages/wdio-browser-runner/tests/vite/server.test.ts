@@ -18,7 +18,7 @@ vi.mock('../../src/vite/constants.js', () => ({
     DEFAULT_VITE_CONFIG: { someDefault: 'config' },
     PRESET_DEPENDENCIES: { lit: ['foobar', 'default', { bar: 'foo' }] }
 }))
-vi.mock('@wdio/utils', () => ({
+vi.mock('@testplane/utils', () => ({
     executeHooksWithArgs: vi.fn().mockResolvedValue('hook result')
 }))
 vi.mock('../../src/vite/mock.js', () => ({

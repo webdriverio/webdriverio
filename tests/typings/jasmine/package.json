@@ -7,7 +7,7 @@
   "dependencies": {
     "@types/jasmine": "^5.1.4",
     "@wdio/globals": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@testplane/utils": "workspace:*",
     "@testplane/types": "workspace:*",
     "@wdio/browser-runner": "workspace:*",
     "@wdio/reporter": "workspace:*",

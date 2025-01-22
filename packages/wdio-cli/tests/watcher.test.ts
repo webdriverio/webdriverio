@@ -13,7 +13,7 @@ import Watcher from '../src/watcher.js'
 vi.mock('chokidar')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
-vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+vi.mock('@testplane/utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/utils')))
 vi.mock('../src/launcher', async () => {
     const { ConfigParser } = await import('@wdio/config/node')
 

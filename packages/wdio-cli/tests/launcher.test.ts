@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
-import { sleep, enableFileLogging } from '@wdio/utils'
+import { sleep, enableFileLogging } from '@testplane/utils'
 import Launcher from '../src/launcher.js'
 
 const caps: WebdriverIO.Capabilities = {
@@ -15,7 +15,7 @@ vi.mock('node:fs/promises', () => ({
         mkdir: vi.fn()
     }
 }))
-vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+vi.mock('@testplane/utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/utils')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 vi.mock('@wdio/config/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config/node')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

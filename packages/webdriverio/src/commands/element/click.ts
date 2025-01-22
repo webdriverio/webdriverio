@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/utils'
 import { buttonValue } from '../../utils/actions/index.js'
 import type { ClickOptions } from '../../types.js'
 

@@ -1,4 +1,4 @@
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/utils'
 
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER

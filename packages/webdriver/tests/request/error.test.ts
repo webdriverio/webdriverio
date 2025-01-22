@@ -1,7 +1,7 @@
 /* eslint-disable quotes */
 import { URL } from 'node:url'
 import type { MockedFunction } from 'vitest'
-import { transformCommandLogResult } from '@wdio/utils'
+import { transformCommandLogResult } from '@testplane/utils'
 import { describe, it, expect, vi } from 'vitest'
 
 import '../../src/browser.js'
@@ -10,7 +10,7 @@ import { WebDriverResponseError, WebDriverRequestError } from '../../src/request
 const cmdURL = new URL('http://localhost:1234/session/abc123/url')
 const init = { method: 'POST' }
 
-vi.mock('@wdio/utils')
+vi.mock('@testplane/utils')
 
 describe('WebDriverResponseError', () => {
     it('captures errors without body', () => {

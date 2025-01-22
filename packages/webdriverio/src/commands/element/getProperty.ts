@@ -1,4 +1,4 @@
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/utils'
 import getPropertyScript from '../../scripts/getProperty.js'
 
 /**

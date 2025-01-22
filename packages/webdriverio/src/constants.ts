@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 
-import { UNICODE_CHARACTERS, HOOK_DEFINITION } from '@wdio/utils'
+import { UNICODE_CHARACTERS, HOOK_DEFINITION } from '@testplane/utils'
 import type { Options, Capabilities } from '@testplane/types'
 
 import type { RestoreMap } from './types.js'

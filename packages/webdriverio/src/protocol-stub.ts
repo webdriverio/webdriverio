@@ -1,4 +1,4 @@
-import { capabilitiesEnvironmentDetector } from '@wdio/utils'
+import { capabilitiesEnvironmentDetector } from '@testplane/utils'
 import type { Capabilities } from '@testplane/types'
 
 const NOOP = () => {}

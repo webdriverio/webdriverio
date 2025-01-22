@@ -42,7 +42,7 @@
     "@wdio/logger": "workspace:*",
     "@testplane/protocols": "workspace:*",
     "@testplane/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@testplane/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "undici": "^6.20.1",
     "ws": "^8.8.0"

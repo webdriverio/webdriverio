@@ -456,7 +456,7 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 * `wdio-cli`, `wdio-jasmine-framework`, `wdio-types`
   * [#14001](https://github.com/webdriverio/webdriverio/pull/14001) fix(@wdio/cli): adjust default value for specFileRetriesDeferred ([@christian-bromann](https://github.com/christian-bromann))
 * `wdio-utils`
-  * [#14000](https://github.com/webdriverio/webdriverio/pull/14000) fix(@wdio/utils): detect Appium if 'appium:options' is used ([@christian-bromann](https://github.com/christian-bromann))
+  * [#14000](https://github.com/webdriverio/webdriverio/pull/14000) fix(@testplane/utils): detect Appium if 'appium:options' is used ([@christian-bromann](https://github.com/christian-bromann))
 
 #### :nail_care: Polish
 * `wdio-types`, `wdio-utils`, `webdriverio`
@@ -504,7 +504,7 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 #### :nail_care: Polish
 * `wdio-utils`
-  * [#13983](https://github.com/webdriverio/webdriverio/pull/13983) fix(@wdio/utils): Unset geckodriver when stable is set as browserVersion ([@nextlevelbeard](https://github.com/nextlevelbeard))
+  * [#13983](https://github.com/webdriverio/webdriverio/pull/13983) fix(@testplane/utils): Unset geckodriver when stable is set as browserVersion ([@nextlevelbeard](https://github.com/nextlevelbeard))
 
 #### Committers: 4
 - Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
@@ -523,7 +523,7 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 * `wdio-utils`, `webdriverio`
   * [#13960](https://github.com/webdriverio/webdriverio/pull/13960) fix(webdriverio): support opening file urls ([@christian-bromann](https://github.com/christian-bromann))
 * `wdio-utils`
-  * [#13949](https://github.com/webdriverio/webdriverio/pull/13949) fix(@wdio/utils): properly detect Appium browser sessions ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13949](https://github.com/webdriverio/webdriverio/pull/13949) fix(@testplane/utils): properly detect Appium browser sessions ([@christian-bromann](https://github.com/christian-bromann))
 * `wdio-runner`
   * [#13958](https://github.com/webdriverio/webdriverio/pull/13958) fix(@wdio/runner): Continue emitting event on the runner even when a reporter throws an error ([@dprevost-LMI](https://github.com/dprevost-LMI))
 * `webdriverio`
@@ -971,7 +971,7 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 #### :nail_care: Polish
 * `wdio-utils`, `webdriver`
-  * [#13648](https://github.com/webdriverio/webdriverio/pull/13648) fix(@wdio/utils): disable Bidi for Appium sessions ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13648](https://github.com/webdriverio/webdriverio/pull/13648) fix(@testplane/utils): disable Bidi for Appium sessions ([@christian-bromann](https://github.com/christian-bromann))
 * `wdio-appium-service`, `wdio-sauce-service`, `wdio-testingbot-service`, `wdio-utils`, `webdriver`, `webdriverio`
   * [#13622](https://github.com/webdriverio/webdriverio/pull/13622) fix(webdriverio): don't send `desiredCapabilities` anymore when initializing a session ([@christian-bromann](https://github.com/christian-bromann))
 * `wdio-spec-reporter`, `wdio-types`, `webdriverio`

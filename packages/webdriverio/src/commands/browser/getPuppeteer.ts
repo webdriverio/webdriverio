@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { userImport } from '@wdio/utils'
+import { userImport } from '@testplane/utils'
 import type { Capabilities } from '@testplane/types'
 import type { Puppeteer, Browser as PuppeteerBrowser } from 'puppeteer-core'
 

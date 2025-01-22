@@ -1,6 +1,6 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@testplane/protocols'
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/utils'
 import type { ChainablePromiseElement, DragAndDropCoordinate, DragAndDropOptions } from '../../types.js'
 
 const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))

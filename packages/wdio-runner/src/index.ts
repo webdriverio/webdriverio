@@ -2,7 +2,7 @@
 import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
-import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
+import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@testplane/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions, SnapshotService } from 'expect-webdriverio'

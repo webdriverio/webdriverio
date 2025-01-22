@@ -4,8 +4,8 @@ import { resolve } from 'import-meta-resolve'
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
-import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
-import { setupDriver, setupBrowser } from '@wdio/utils/node'
+import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@testplane/utils'
+import { setupDriver, setupBrowser } from '@testplane/utils/node'
 import type { Options, Capabilities, Services } from '@testplane/types'
 
 import CLInterface from './interface.js'
@@ -337,11 +337,13 @@ class Launcher {
             caps = capabilities as WebdriverIO.Capabilities
         }
         const specs = (
-            caps.specs ||
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (caps as any).specs ||
             caps['wdio:specs']
         )
         const excludes = (
-            caps.exclude ||
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (caps as any).exclude ||
             caps['wdio:exclude']
         )
         const files = this.configParser.getSpecs(specs, excludes)

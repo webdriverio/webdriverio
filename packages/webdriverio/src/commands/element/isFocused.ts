@@ -1,6 +1,6 @@
 import { ELEMENT_KEY } from 'webdriver'
 
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/utils'
 import isFocusedScript from '../../scripts/isFocused.js'
 
 /**

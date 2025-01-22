@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/utils'
 
 const log = logger('webdriverio')
 

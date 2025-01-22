@@ -9,7 +9,7 @@
     "webdriverio": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@testplane/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@testplane/utils": "workspace:*",
     "@wdio/browser-runner": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/allure-reporter": "workspace:*",

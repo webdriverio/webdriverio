@@ -105,8 +105,8 @@ describe('filterStackTrace', () => {
             {
                 fullStack : `
                     at Context.<anonymous> (/foo/bar/baz/example.e2e.js:27:9)
-                    at Context.executeAsync (/foo/bar/baz/node_modules/@wdio/utils/build/shim.js:331:27)
-                    at Context.testFrameworkFnWrapper (/foo/bar/baz/node_modules/@wdio/utils/build/test-framework/testFnWrapper.js:50:32)
+                    at Context.executeAsync (/foo/bar/baz/node_modules/@testplane/utils/build/shim.js:331:27)
+                    at Context.testFrameworkFnWrapper (/foo/bar/baz/node_modules/@testplane/utils/build/test-framework/testFnWrapper.js:50:32)
                     at processTicksAndRejections (internal/process/task_queues.js:95:5)
                 `,
                 filteredStack : `
@@ -117,7 +117,7 @@ describe('filterStackTrace', () => {
                 fullStack : `
                     at implicitWait (/foo/bar/node_modules/webdriverio/build/utils/implicitWait.js:34:19)
                     at async Element.elementErrorHandlerCallbackFn (/foo/bar/node_modules/webdriverio/build/middlewares.js:20:29)
-                    at async Element.wrapCommandFn (/foo/bar/node_modules/@wdio/utils/build/shim.js:137:29)
+                    at async Element.wrapCommandFn (/foo/bar/node_modules/@testplane/utils/build/shim.js:137:29)
                     at async Element.wrapCommandFn (/foo/bar/node_modules/some/fake/lib/bar.js:137:29)
                     at async Context.<anonymous> (/foo/bar/test/specs/example.e2e.ts:8:9)
                     at processTicksAndRejections (internal/process/task_queues.js:95:5)

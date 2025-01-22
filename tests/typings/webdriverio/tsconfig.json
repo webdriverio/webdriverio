@@ -10,7 +10,7 @@
       "node",
       "webdriverio",
       "devtools",
-      "@wdio/utils",
+      "@testplane/utils",
       "@testplane/types",
       "@wdio/globals/types",
       "@wdio/allure-reporter",

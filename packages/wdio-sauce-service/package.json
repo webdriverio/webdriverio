@@ -34,7 +34,7 @@
   "dependencies": {
     "@wdio/logger": "workspace:*",
     "@testplane/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@testplane/utils": "workspace:*",
     "saucelabs": "^9.0.1",
     "webdriverio": "workspace:*"
   },

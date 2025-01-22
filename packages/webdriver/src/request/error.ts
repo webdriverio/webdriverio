@@ -1,4 +1,4 @@
-import { transformCommandLogResult } from '@wdio/utils'
+import { transformCommandLogResult } from '@testplane/utils'
 
 import { REG_EXPS } from './constants.js'
 

@@ -3,7 +3,7 @@ import { describe, it, expect, afterEach, vi, test } from 'vitest'
 import type path from 'node:path'
 import which from 'which'
 import { launch } from 'chrome-launcher'
-import { canAccess } from '@wdio/utils/node'
+import { canAccess } from '@testplane/utils/node'
 
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
@@ -17,13 +17,13 @@ vi.mock('@wdio/logger', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
     return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/logger'))
 })
-vi.mock('@wdio/utils', async () => {
+vi.mock('@testplane/utils', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
-    return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/utils'))
+    return import(pathModule.join(process.cwd(), '__mocks__', '@testplane/utils'))
 })
-vi.mock('@wdio/utils/node', async () => {
+vi.mock('@testplane/utils/node', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
-    return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/utils', 'node'))
+    return import(pathModule.join(process.cwd(), '__mocks__', '@testplane/utils', 'node'))
 })
 vi.mock('pptrDebug', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path

@@ -4,7 +4,7 @@ import type { Frameworks, Services, Options } from '@testplane/types'
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
 
-const log = logger('@wdio/utils:shim')
+const log = logger('@testplane/utils:shim')
 
 let inCommandHook = false
 

@@ -1,5 +1,5 @@
 import { ELEMENT_KEY } from 'webdriver'
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/utils'
 
 import { getElements } from '../../utils/getElementObject.js'
 import { enhanceElementsArray } from '../../utils/index.js'

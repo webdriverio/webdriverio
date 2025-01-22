@@ -5,7 +5,7 @@ import { remote } from '../../../src/index.js'
 vi.mock('fetch')
 vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('@wdio/utils', async (origMod) => {
+vi.mock('@testplane/utils', async (origMod) => {
     const orig: any = await origMod()
     return {
         ...orig,

@@ -46,7 +46,7 @@
     "@wdio/logger": "workspace:*",
     "@testplane/protocols": "workspace:*",
     "@testplane/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@testplane/utils": "workspace:*",
     "async-exit-hook": "^2.0.1",
     "chalk": "^5.2.0",
     "chokidar": "^4.0.0",

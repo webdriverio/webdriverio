@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { transformCommandLogResult, sleep } from '@wdio/utils'
+import { transformCommandLogResult, sleep } from '@testplane/utils'
 import type { Options } from '@testplane/types'
 
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'

@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
 
-import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
+import { executeHooksWithArgs, testFnWrapper } from '@testplane/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import type * as Messages from '@cucumber/messages'
 
@@ -15,8 +15,8 @@ vi.mock('fs/promises', async (orig) => ({
     readdir: vi.fn().mockResolvedValue(['file1.ndjson', 'file2.ndjson']),
     readFile: vi.fn().mockResolvedValueOnce('{"message": "Test 1"}').mockResolvedValueOnce('{"message": "Test 2"}')
 }))
-vi.mock('@wdio/utils')
-vi.mock('@wdio/utils/node')
+vi.mock('@testplane/utils')
+vi.mock('@testplane/utils/node')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber', async (orig) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

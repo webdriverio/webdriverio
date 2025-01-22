@@ -40,7 +40,7 @@
     "@types/node": "^20.11.28",
     "@wdio/logger": "workspace:*",
     "@testplane/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@testplane/utils": "workspace:*",
     "mocha": "^10.3.0"
   },
   "publishConfig": {

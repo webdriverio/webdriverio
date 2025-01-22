@@ -11,7 +11,7 @@ vi.mock('puppeteer-core')
  * it and dynamically import it. Instead, we mock the "userImport" helper and make
  * it resolve to the mocked Puppeteer.
  */
-vi.mock('@wdio/utils', async (origMod) => {
+vi.mock('@testplane/utils', async (origMod) => {
     const orig = await origMod() as any
     // resolve the mocked puppeteer-core
     const puppeteer = await import('puppeteer-core')
