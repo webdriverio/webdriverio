@@ -175,6 +175,12 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
         throw new Error('Button type not supported.')
     }
 
+    if (!element.isW3C) {
+        const { width, height } = await element.getElementSize(element.elementId) as {width: number, height: number}
+        await element.moveToElement(element.elementId, x + (width / 2), y + (height / 2))
+        return element.positionClick(button as number)
+    }
+
     const browser = getBrowserObject(element) as WebdriverIO.Browser
     if (x || y) {
         const { width, height } = await browser.getElementRect(element.elementId)

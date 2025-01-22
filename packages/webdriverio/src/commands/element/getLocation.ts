@@ -40,9 +40,13 @@ export async function getLocation (
 ): Promise<Location | number> {
     let location: Partial<RectReturn> = {}
 
-    location = await getElementRect(this)
-    delete location.width
-    delete location.height
+    if (this.isW3C) {
+        location = await getElementRect(this)
+        delete location.width
+        delete location.height
+    } else {
+        location = await this.getElementLocation(this.elementId)
+    }
 
     if (prop === 'x' || prop === 'y') {
         return location[prop] as number

@@ -24,7 +24,7 @@ npm install @testplane/protocols
 You can get data by importing the package as follows:
 
 ```js
-import { WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol } from '@testplane/protocols'
+import { WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol } from '@testplane/protocols'
 
 /**
  * get description of session command

@@ -3,6 +3,8 @@ import type { ElementReference } from '@testplane/protocols'
 import { getBrowserObject } from '@wdio/utils'
 import type { ChainablePromiseElement, DragAndDropCoordinate, DragAndDropOptions } from '../../types.js'
 
+const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))
+
 /**
  *
  * Drag an item to a destination element or position.
@@ -76,6 +78,19 @@ export async function dragAndDrop (
      * allow to specify an element or an x/y vector
      */
     const isMovingToElement = moveToElement.constructor.name === 'Element'
+
+    if (!this.isW3C) {
+        await this.moveTo()
+        await this.buttonDown(ACTION_BUTTON)
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        isMovingToElement
+            ? await moveToElement.moveTo()
+            : await this.moveToElement(null, moveToCoordinates.x, moveToCoordinates.y)
+
+        await sleep(duration)
+        return this.buttonUp(ACTION_BUTTON)
+    }
 
     const sourceRef: ElementReference = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
     const targetRef: ElementReference = { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] }

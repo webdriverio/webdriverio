@@ -8,7 +8,7 @@ import { deepmerge } from 'deepmerge-ts'
 
 import type { Plugin } from 'vite'
 import {
-    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     type Protocol
 } from '@testplane/protocols'
@@ -21,7 +21,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const commands = deepmerge<any>(
-    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
 ) as Protocol
 const protocolCommandList = Object.values(commands).map(

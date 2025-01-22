@@ -34,4 +34,22 @@ describe('doubleClick', () => {
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).actions[0].actions[0].y).toBe(0)
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).actions[0].actions).toMatchSnapshot()
     })
+    it('should do a doubleClick (no w3c)', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        const elem = await browser.$('#elem')
+        await elem.doubleClick()
+
+        // move to
+        expect((vi.mocked(fetch) as any).mock.calls[2][0]!.pathname).toContain('/foobar-123/moveto')
+        expect((vi.mocked(fetch) as any).mock.calls[2][1]!.json).toEqual({ element: 'some-elem-123' })
+
+        // double click
+        expect((vi.mocked(fetch) as any).mock.calls[3][0]!.pathname).toContain('/foobar-123/doubleclick')
+    })
 })
