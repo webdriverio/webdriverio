@@ -7,6 +7,8 @@ import path from 'node:path'
 import os from 'node:os'
 import { spawn } from 'node:child_process'
 import { PercyLogger } from './PercyLogger.js'
+import PerformanceTester from '../instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 
 class PercyBinary {
     #hostOS = process.platform
@@ -92,6 +94,7 @@ class PercyBinary {
         })
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.DOWNLOAD)
     async download(destParentDir: string): Promise<string> {
         if (!await this.#checkPath(destParentDir)){
             await fsp.mkdir(destParentDir)

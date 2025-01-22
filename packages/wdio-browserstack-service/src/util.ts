@@ -13,8 +13,10 @@ import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ColorName } from 'chalk'
 import { FormData } from 'formdata-node'
+import { performance } from 'node:perf_hooks'
 import logPatcher from './logPatcher.js'
-import PerformanceTester from './performance-tester.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { getProductMap, logBuildError, handleErrorForObservability, handleErrorForAccessibility } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
 import type { Errors } from './testHub/utils.js'
@@ -165,7 +167,7 @@ export function o11yErrorHandler(fn: Function) {
             let functionToHandle = fn
             if (process.env[PERF_MEASUREMENT_ENV]) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                functionToHandle = PerformanceTester.getPerformance().timerify(functionToHandle as any)
+                functionToHandle = performance.timerify(functionToHandle as any)
             }
             const result = functionToHandle(...args)
             if (result instanceof Promise) {
@@ -261,7 +263,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                 writable: true,
                 value: function(...args: unknown[]) {
                     try {
-                        const result = (process.env[PERF_MEASUREMENT_ENV] ? PerformanceTester.getPerformance().timerify(method) : method).call(this, ...args)
+                        const result = (process.env[PERF_MEASUREMENT_ENV] ? performance.timerify(method) : method).call(this, ...args)
                         if (result instanceof Promise) {
                             return result.catch(error => processError(error, method, args))
                         }
@@ -350,7 +352,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     }
 }
 
-export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -431,7 +433,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             return
         }
     }
-})
+}))
 
 export const validateCapsWithA11y = (deviceName?: string, platformMeta?: { [key: string]: string; }, chromeOptions?: Capabilities.ChromeOptions) => {
     /* Check if the current driver platform is eligible for Accessibility scan */
@@ -498,27 +500,29 @@ export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | s
 }
 
 export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: unknown; } | undefined> => {
-    if (!isBrowserStackSession) {
-        BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
-        return // since we are running only on Automate as of now
-    }
-
-    if (!isAccessibilityAutomationSession(isAccessibility)) {
-        BStackLogger.warn('Not an Accessibility Automation session, cannot perform Accessibility scan.')
-        return
-    }
-
-    try {
-        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
-        BStackLogger.debug(util.format(results as string))
-        return ( results as { [key: string]: unknown; } | undefined )
-    } catch (err) {
-        BStackLogger.error('Accessibility Scan could not be performed : ' + err)
-        return
-    }
+    return PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN, async () => {
+        if (!isBrowserStackSession) {
+            BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
+            return // since we are running only on Automate as of now
+        }
+    
+        if (!isAccessibilityAutomationSession(isAccessibility)) {
+            BStackLogger.warn('Not an Accessibility Automation session, cannot perform Accessibility scan.')
+            return
+        }
+    
+        try {
+            const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
+            BStackLogger.debug(util.format(results as string))
+            return ( results as { [key: string]: unknown; } | undefined )
+        } catch (err) {
+            BStackLogger.error('Accessibility Scan could not be performed : ' + err)
+            return
+        }
+    }, { command: commandName })()
 }
 
-export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: unknown; }>> => {
+export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: unknown; }>> => {
     if (!isBrowserStackSession) {
         BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
         return [] // since we are running only on Automate as of now
@@ -538,9 +542,9 @@ export const getA11yResults = async (browser: WebdriverIO.Browser, isBrowserStac
         BStackLogger.error('No accessibility results were found.')
         return []
     }
-}
+})
 
-export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: unknown; }> => {
+export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: unknown; }> => {
     if (!isBrowserStackSession) {
         return {} // since we are running only on Automate as of now
     }
@@ -559,9 +563,9 @@ export const getA11yResultsSummary = async (browser: WebdriverIO.Browser, isBrow
         BStackLogger.error('No accessibility summary was found.')
         return {}
     }
-}
+})
 
-export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
+export const stopBuildUpstream = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.STOP, o11yErrorHandler(async function stopBuildUpstream() {
     const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
     stopBuildUsage.triggered()
     if (!process.env[TESTOPS_BUILD_COMPLETED_ENV]) {
@@ -608,7 +612,7 @@ export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstre
             message: (error as Error).message
         }
     }
-})
+}))
 
 export function getCiInfo () {
     const env = process.env

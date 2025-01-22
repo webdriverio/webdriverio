@@ -20,6 +20,8 @@ import {
     isTrue
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 import { BStackLogger } from './bstackLogger.js'
 
@@ -304,9 +306,14 @@ class _AccessibilityHandler {
 
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: unknown) {
         BStackLogger.debug('Performing scan before saving results')
-        await performA11yScan(browser, true, true)
-        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(accessibilityScripts.saveTestResults as string, dataForExtension)
-        BStackLogger.debug(util.format(results as string))
+        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN, async () => {
+            await performA11yScan(browser, true, true)
+        }, { command: 'afterTest' })()
+        
+        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.SAVE_RESULTS, async () => {
+            const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(accessibilityScripts.saveTestResults as string, dataForExtension)
+            BStackLogger.debug(util.format(results as string))
+        })()
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {
