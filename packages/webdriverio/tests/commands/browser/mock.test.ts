@@ -4,6 +4,8 @@ import { expect, describe, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 
+vi.mock('fetch')
+vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('mock', () => {

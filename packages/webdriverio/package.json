@@ -36,6 +36,7 @@
     "mocha",
     "nodeUnit",
     "buster",
+    "devtools",
     "puppeteer",
     "vows",
     "jasmine",
@@ -102,9 +103,13 @@
     "webdriver": "workspace:*"
   },
   "peerDependencies": {
+    "devtools": "^8.14.0",
     "puppeteer-core": "^22.3.0"
   },
   "peerDependenciesMeta": {
+    "devtools": {
+      "optional": true
+    },
     "puppeteer-core": {
       "optional": true
     }

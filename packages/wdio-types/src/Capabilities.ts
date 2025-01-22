@@ -278,7 +278,7 @@ export interface WithRequestedMultiremoteCapabilities {
     capabilities: RequestedMultiremoteCapabilities | RequestedMultiremoteCapabilities[]
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIOCapabilities,
+export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIOCapabilities,
     WebdriverIO.WDIOVSCodeServiceOptions, AppiumXCUITestCapabilities, AppiumAndroidCapabilities {
 
     // Appium Options

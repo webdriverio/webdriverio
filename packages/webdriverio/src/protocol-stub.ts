@@ -23,7 +23,8 @@ export default class ProtocolStub {
             off: NOOP,
             addCommand: NOOP,
             overwriteCommand: NOOP,
-            ...capabilitiesEnvironmentDetector(capabilities)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ...capabilitiesEnvironmentDetector(capabilities, (options as any)._automationProtocol || 'webdriver')
         }
 
         browser.addCommand = (...args: unknown[]) => browser.customCommands.push(args)
@@ -32,10 +33,11 @@ export default class ProtocolStub {
     }
 
     /**
-     * added just in case user wants to somehow reload webdriver before it was started.
+     * added just in case user wants to somehow reload webdriver or devtools session
+     * before it was started.
      */
     static reloadSession () {
-        throw new Error('Protocol Stub: Make sure to start the session before reloading it.')
+        throw new Error('Protocol Stub: Make sure to start webdriver or devtools session before reloading it.')
     }
 
     static attachToSession (options: never, modifier?: Function) {

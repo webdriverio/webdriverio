@@ -351,6 +351,7 @@ async function bar() {
     expectType<boolean>(browser.isMobile)
     expectType<boolean>(browser.isAndroid)
     expectType<boolean>(browser.isIOS)
+    expectType<boolean>(browser.isDevTools)
     expectType<boolean>(browser.isMobile)
 
     // shadow$ shadow$$

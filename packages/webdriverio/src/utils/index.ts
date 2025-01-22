@@ -185,7 +185,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
  * @param  {string} value  text
  * @return {Array}         set of characters or unicode symbols
  */
-export function checkUnicode (value: string) {
+export function checkUnicode (value: string, isDevTools = false) {
     /**
      * "Ctrl" key is specially handled based on OS in action class
      */
@@ -198,6 +198,10 @@ export function checkUnicode (value: string) {
      */
     if (!Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)) {
         return new GraphemeSplitter().splitGraphemes(value)
+    }
+
+    if (isDevTools) {
+        return [value]
     }
 
     return [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
@@ -452,7 +456,7 @@ export async function findElement(
     /**
      * check if shadow DOM integration is used
      */
-    if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+    if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
         let elem: ElementReference | ElementReference[] = await browserObject.execute(
             querySelectorAllDeep,
@@ -538,7 +542,7 @@ export async function findElements(
     /**
      * check if shadow DOM integration is used
      */
-    if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+    if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const elems: ElementReference | ElementReference[] = await browserObject.execute(
             querySelectorAllDeep,
             true,

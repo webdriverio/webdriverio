@@ -14,5 +14,6 @@ describe('WDIO_DEFAULTS', () => {
 
         WDIO_DEFAULTS.automationProtocol!.validate!('somethingelse')
         WDIO_DEFAULTS.automationProtocol!.validate!('webdriver')
+        WDIO_DEFAULTS.automationProtocol!.validate!('devtools')
     })
 })

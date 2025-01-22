@@ -9,6 +9,7 @@
     "types": [
       "node",
       "webdriverio",
+      "devtools",
       "@wdio/utils",
       "@wdio/types",
       "@wdio/globals/types",

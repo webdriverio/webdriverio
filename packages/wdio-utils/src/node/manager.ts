@@ -32,11 +32,16 @@ function mapCapabilities (
                 const multiremoteInstanceNames = Object.keys(multiremoteCaps)
 
                 if (typeof multiremoteCaps[multiremoteInstanceNames[0]] === 'object' && 'capabilities' in multiremoteCaps[multiremoteInstanceNames[0]]) {
-                    return Object.values(multiremoteCaps).map((c: Capabilities.WithRequestedCapabilities) => (
-                        'alwaysMatch' in c.capabilities
+                    return Object.values(multiremoteCaps).map((c: Capabilities.WithRequestedCapabilities) => {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        if ((c as any).automationProtocol === 'devtools') {
+                            return
+                        }
+
+                        return 'alwaysMatch' in c.capabilities
                             ? c.capabilities.alwaysMatch
                             : c.capabilities
-                    ))
+                    })
                 }
 
                 if (w3cCaps.alwaysMatch) {
@@ -46,6 +51,9 @@ function mapCapabilities (
             }).flat()
             : Object.values(caps as Capabilities.WithRequestedMultiremoteCapabilities['capabilities']).map((mrOpts) => {
                 const w3cCaps = mrOpts.capabilities as Capabilities.W3CCapabilities
+                if (mrOpts.automationProtocol === 'devtools') {
+                    return
+                }
                 if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch
                 }
@@ -55,7 +63,7 @@ function mapCapabilities (
         /**
          * only set up driver if
          */
-        // - capabilities are defined and not empty
+        // - capabilities are defined and not empty because automationProtocol is set to `devtools`
         cap &&
         // - browserName is defined so we know it is a browser session
         cap.browserName &&
@@ -63,10 +71,10 @@ function mapCapabilities (
         !definesRemoteDriver(options) &&
         // - we are not running Safari (driver already installed on macOS)
         !isSafari(cap.browserName) &&
-        // - driver options don't define a binary path
-        !getDriverOptions(cap).binary &&
         // - environment does not define a binary path
-        !(process.env.CHROMEDRIVER_PATH && isChrome(cap.browserName))
+        !getDriverOptions(cap).binary &&
+        // - user is not defining "devtools" as automation protocol
+        options.automationProtocol !== 'devtools'
     )) as WebdriverIO.Capabilities[]
 
     /**

@@ -4,6 +4,7 @@ import { expect, describe, it, beforeEach, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
+vi.mock('devtools')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 vi.mock('../../../src/scripts/isElementDisplayed', () => ({

@@ -47,6 +47,7 @@ vi.mock('node:child_process', () => ({
 }))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('devtools', () => ({ default: 'devtools package' }))
 vi.mock('webdriver', () => ({ default: 'webdriver package' }))
 vi.mock('safaridriver', () => ({
     start: vi.fn().mockReturnValue({

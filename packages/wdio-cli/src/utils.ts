@@ -638,7 +638,7 @@ export function specifyVersionIfNeeded(packagesToInstall: string[], version: str
     return packagesToInstall.map((p) => {
         if (
             (p.startsWith('@wdio') && p !== '@wdio/visual-service') ||
-            ['webdriver', 'webdriverio'].includes(p)
+            ['devtools', 'webdriver', 'webdriverio'].includes(p)
         ) {
             const tag = major && npmTag === 'latest'
                 ? `^${major}.${minor}.${patch}-${tagName}.${build}`

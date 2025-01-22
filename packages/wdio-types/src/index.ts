@@ -81,6 +81,7 @@ declare global {
         interface RemoteConfig extends Options.WebdriverIO, Capabilities.WithRequestedCapabilities {}
         interface MultiremoteConfig extends Options.Testrunner, Capabilities.WithRequestedMultiremoteCapabilities {}
         interface HookFunctionExtension {}
+        interface WDIODevtoolsOptions {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}
         interface ChromedriverOptions extends DriverOptions {}
