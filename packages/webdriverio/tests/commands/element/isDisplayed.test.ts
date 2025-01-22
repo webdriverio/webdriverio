@@ -173,4 +173,111 @@ describe('isDisplayed test', () => {
         expect(await elem.isDisplayed()).toBe(false)
         expect(fetch).toBeCalledTimes(2)
     })
+
+    describe('isElementDisplayed script', () => {
+        it('should be used if safari and w3c', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'safari',
+                    // @ts-ignore mock feature
+                    keepBrowserName: true
+                } as any
+            })
+            elem = await browser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(fetch).toBeCalledTimes(1)
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+                .toBe('/session/foobar-123/execute/sync')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.json.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
+        it('should be used if stp and w3c', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'safari technology preview',
+                    // @ts-ignore mock feature
+                    keepBrowserName: true
+                } as any
+            })
+            elem = await browser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(fetch).toBeCalledTimes(1)
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+                .toBe('/session/foobar-123/execute/sync')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.json.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
+        it('should be used if edge and wc3', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'MicrosoftEdge',
+                    // @ts-ignore mock feature
+                    keepBrowserName: true
+                } as any
+            })
+            elem = await browser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(fetch).toBeCalledTimes(1)
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+                .toBe('/session/foobar-123/execute/sync')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.json.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
+        it('should be used if chrome and wc3', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'chrome',
+                    // @ts-ignore mock feature
+                    keepBrowserName: true
+                } as any
+            })
+            elem = await browser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(fetch).toBeCalledTimes(1)
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+                .toBe('/session/foobar-123/execute/sync')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.json.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
+        it('should be used if devtools', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'firefox',
+                }
+            })
+            elem = await browser.$('#foo')
+            vi.mocked(fetch).mockClear()
+            browser.isDevTools = true
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(fetch).toBeCalledTimes(1)
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+                .toBe('/session/foobar-123/execute/sync')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.json.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
+    })
 })
