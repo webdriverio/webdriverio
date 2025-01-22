@@ -1,6 +1,6 @@
 import nock from 'nock'
 import { v4 as uuidv4 } from 'uuid'
-import type { Services, Options } from '@wdio/types'
+import type { Services, Options } from '@testplane/types'
 
 import WebDriverMock from './WebDriverMock.js'
 

@@ -1,5 +1,5 @@
 /// <reference types="@wdio/globals/types" />
-import type { JsonPrimitive, JsonCompatible, JsonArray } from '@wdio/types'
+import type { JsonPrimitive, JsonCompatible, JsonArray } from '@testplane/types'
 
 import SharedStoreLauncher from './launcher.js'
 import SharedStoreService from './service.js'

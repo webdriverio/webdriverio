@@ -1,7 +1,7 @@
 import type { ITestCaseHookParameter, World } from '@cucumber/cucumber'
 import type { Pickle, PickleStep, TestStep, Feature } from '@cucumber/messages'
 
-import type { Frameworks } from '@wdio/types'
+import type { Frameworks } from '@testplane/types'
 
 export interface CucumberOptions {
     /**

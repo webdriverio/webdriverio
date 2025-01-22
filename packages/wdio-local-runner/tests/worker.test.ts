@@ -4,7 +4,7 @@ import { WritableStreamBuffer } from 'stream-buffers'
 import { describe, expect, it, vi } from 'vitest'
 
 import logger from '@wdio/logger'
-import type { Workers } from '@wdio/types'
+import type { Workers } from '@testplane/types'
 
 import Worker from '../src/worker.js'
 

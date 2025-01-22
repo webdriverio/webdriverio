@@ -1,4 +1,4 @@
-import type { Services } from '@wdio/types'
+import type { Services } from '@testplane/types'
 
 import { safeImport, isAbsolute } from './utils.js'
 

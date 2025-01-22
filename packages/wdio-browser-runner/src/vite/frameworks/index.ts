@@ -1,4 +1,4 @@
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 import type { InlineConfig } from 'vite'
 
 import { isNuxtFramework, optimizeForNuxt } from './nuxt.js'

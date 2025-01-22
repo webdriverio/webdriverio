@@ -1,4 +1,4 @@
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 
 export interface StateCount {
     passed: number

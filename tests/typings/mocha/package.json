@@ -8,7 +8,7 @@
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*",
     "@wdio/globals": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "@wdio/browser-runner": "workspace:*",
     "@wdio/reporter": "workspace:*",

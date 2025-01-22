@@ -11,7 +11,7 @@ import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartiallyMockedDeep } from '@vitest/spy'
 import type { InlineConfig } from 'vite'
 

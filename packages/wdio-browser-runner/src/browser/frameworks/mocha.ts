@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import safeStringify from 'safe-stringify'
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { MESSAGE_TYPES, type Workers } from '@testplane/types'
 
 import { getCID, filterTestArgument } from '../utils.js'
 import { EVENTS, WDIO_EVENT_NAME } from '../../constants.js'

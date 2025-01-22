@@ -7,7 +7,7 @@ import logger from '@wdio/logger'
 
 import AccessibilityHandler from '../src/accessibility-handler.js'
 import * as utils from '../src/util.js'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import * as bstackLogger from '../src/bstackLogger.js'
 
 const log = logger('test')

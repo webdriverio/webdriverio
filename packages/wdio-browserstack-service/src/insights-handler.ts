@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import type { Frameworks } from '@wdio/types'
+import type { Frameworks } from '@testplane/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
@@ -34,7 +34,7 @@ import type {
     IntegrationObject
 } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import Listener from './testOps/listener.js'
 import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 
@@ -888,4 +888,3 @@ const InsightsHandler: typeof _InsightsHandler = o11yClassErrorHandler(_Insights
 type InsightsHandler = _InsightsHandler
 
 export default InsightsHandler
-

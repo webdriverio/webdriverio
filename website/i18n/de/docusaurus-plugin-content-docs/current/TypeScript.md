@@ -108,10 +108,10 @@ Das Hinzufügen von Diensten und Reportern zu Ihrer TypeScript-Konfiguration st�
 
 ## Typdefinitionen
 
-Beim Ausführen von WebdriverIO-Befehlen werden normalerweise alle Eigenschaften typisiert, sodass Sie sich nicht mit dem Import zusätzlicher Typen befassen müssen. Es gibt jedoch Fälle, in denen Sie Variablen im Voraus definieren möchten. Um sicherzustellen, dass diese typsicher sind, können Sie alle im Paket [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) definierten Typen verwenden. Wenn Sie beispielsweise die Remote-Option für `webdriverio` definieren möchten, können Sie Folgendes tun:
+Beim Ausführen von WebdriverIO-Befehlen werden normalerweise alle Eigenschaften typisiert, sodass Sie sich nicht mit dem Import zusätzlicher Typen befassen müssen. Es gibt jedoch Fälle, in denen Sie Variablen im Voraus definieren möchten. Um sicherzustellen, dass diese typsicher sind, können Sie alle im Paket [`@testplane/types`](https://www.npmjs.com/package/@testplane/types) definierten Typen verwenden. Wenn Sie beispielsweise die Remote-Option für `webdriverio` definieren möchten, können Sie Folgendes tun:
 
 ```ts
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 
 const config: Options.WebdriverIO = {
     hostname: 'http://localhost',

@@ -83,7 +83,7 @@ export const launcher = CustomLauncherService
 If you are using TypeScript and want to make sure that hook methods parameter are type safe, you can define your service class as follows:
 
 ```ts
-import type { Capabilities, Options, Services } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@testplane/types'
 
 export default class CustomWorkerService implements Services.ServiceInstance {
     constructor (

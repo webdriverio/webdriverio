@@ -1,5 +1,5 @@
 import type { SauceConnectOptions } from 'saucelabs'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@testplane/types'
 
 export interface SauceServiceConfig {
     /**

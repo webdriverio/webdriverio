@@ -33,7 +33,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "saucelabs": "^9.0.1",
     "webdriverio": "workspace:*"

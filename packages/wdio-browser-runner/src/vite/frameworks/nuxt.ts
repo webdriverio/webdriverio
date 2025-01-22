@@ -2,7 +2,7 @@ import url from 'node:url'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 import type { InlineConfig } from 'vite'
 
 import { hasFileByExtensions, hasDir } from '../utils.js'

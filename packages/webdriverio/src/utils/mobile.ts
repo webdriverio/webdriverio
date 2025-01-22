@@ -1,4 +1,4 @@
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import type { PinchAndZoomOptions } from '../types.js'
 
 const appiumKeys = ['app', 'bundleId', 'appPackage', 'appActivity', 'appWaitActivity', 'appWaitPackage'] as const

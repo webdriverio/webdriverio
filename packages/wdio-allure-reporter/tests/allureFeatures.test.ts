@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest'
-import type { HookStats } from '@wdio/types'
+import type { HookStats } from '@testplane/types'
 import type { Parameter, Label, Link } from 'allure-js-commons'
 import { Stage, Status, LabelName, LinkType, ContentType } from 'allure-js-commons'
 import AllureReporter from '../src/reporter.js'

@@ -1,5 +1,5 @@
 import type { Plugin, WebSocketClient } from 'vite'
-import type { Workers } from '@wdio/types'
+import type { Workers } from '@testplane/types'
 
 import { WDIO_EVENT_NAME } from '../../constants.js'
 

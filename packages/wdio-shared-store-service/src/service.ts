@@ -1,4 +1,4 @@
-import type { JsonCompatible, JsonPrimitive, Services, JsonArray, Capabilities } from '@wdio/types'
+import type { JsonCompatible, JsonPrimitive, Services, JsonArray, Capabilities } from '@testplane/types'
 
 import { getValue, setValue, setPort, setResourcePool, getValueFromPool, addValueToPool } from './client.js'
 import { CUSTOM_CAP } from './constants.js'

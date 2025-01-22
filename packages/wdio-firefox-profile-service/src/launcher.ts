@@ -1,6 +1,6 @@
 import Profile from 'firefox-profile'
 import { promisify } from 'node:util'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 
 import type { FirefoxProfileOptions } from './types.js'
 

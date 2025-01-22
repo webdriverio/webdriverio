@@ -1,5 +1,5 @@
 import type { AppConfig, BrowserstackConfig } from './types.js'
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 import { v4 as uuidv4 } from 'uuid'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 import { isUndefined } from './util.js'

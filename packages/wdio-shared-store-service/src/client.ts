@@ -1,4 +1,4 @@
-import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
+import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@testplane/types'
 import type { GetValueOptions } from './types.js'
 
 let baseUrlResolve: (value: string) => void

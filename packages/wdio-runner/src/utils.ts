@@ -4,7 +4,7 @@ import { remote, multiremote, attach, type AttachOptions } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { AsymmetricMatchers } from 'expect-webdriverio'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities } from '@testplane/types'
 import { enableFileLogging } from '@wdio/utils'
 
 const log = logger('@wdio/runner')

@@ -5,7 +5,7 @@ import type { PuppeteerLaunchOptions, ConnectOptions } from 'puppeteer-core'
 import puppeteer, { KnownDevices, Puppeteer } from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer/index.js'
 
 import browserFinder from './finder/index.js'

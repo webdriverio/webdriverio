@@ -4,7 +4,7 @@ import type {
     AfterCommandArgs, Argument
 } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@testplane/types'
 import type { Label, MetadataMessage } from 'allure-js-commons'
 import {
     AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName,

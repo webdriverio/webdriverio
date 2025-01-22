@@ -4,7 +4,7 @@ import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-li
 import logger from '@wdio/logger'
 import type { WebSocketClient } from 'vite'
 import type { WorkerInstance } from '@wdio/local-runner'
-import { MESSAGE_TYPES, type Options, type Workers } from '@wdio/types'
+import { MESSAGE_TYPES, type Options, type Workers } from '@testplane/types'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
 
 import { SESSIONS } from './constants.js'

@@ -1,5 +1,5 @@
 // mimic types from @cucumber/@cucumber such that users don't install that dependency when not needed
-import type { Frameworks } from '@wdio/types'
+import type { Frameworks } from '@testplane/types'
 
 export interface ITestCaseHookParameter {
     gherkinDocument: GherkinDocument;

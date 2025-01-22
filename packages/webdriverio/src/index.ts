@@ -4,7 +4,7 @@ import logger from '@wdio/logger'
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
 import { enableFileLogging, wrapCommand, isBidi } from '@wdio/utils'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities } from '@testplane/types'
 import type * as WebDriverTypes from 'webdriver'
 
 import MultiRemote from './multiremote.js'
@@ -207,4 +207,3 @@ export const multiremote = async function (
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
     return driver
 }
-

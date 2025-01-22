@@ -1,9 +1,9 @@
 // ======= Percy helper methods start =======
 
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import type { BrowserstackConfig, UserConfig } from '../types.js'
 
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 
 import { PercyLogger } from './PercyLogger.js'
 import Percy from './Percy.js'

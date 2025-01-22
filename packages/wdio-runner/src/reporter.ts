@@ -2,7 +2,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import DotReporter from '@wdio/dot-reporter'
 import { initializePlugin } from '@wdio/utils'
-import type { Options, Capabilities, Reporters } from '@wdio/types'
+import type { Options, Capabilities, Reporters } from '@testplane/types'
 
 const log = logger('@wdio/runner')
 const mochaAllHooks = ['"before all" hook', '"after all" hook']

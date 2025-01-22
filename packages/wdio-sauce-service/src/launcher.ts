@@ -7,7 +7,7 @@ import {
     type SauceConnectInstance
 } from 'saucelabs'
 import logger from '@wdio/logger'
-import type { Services, Capabilities, Options } from '@wdio/types'
+import type { Services, Capabilities, Options } from '@testplane/types'
 
 import { makeCapabilityFactory } from './utils.js'
 import type { SauceServiceConfig } from './types.js'

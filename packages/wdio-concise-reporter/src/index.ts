@@ -2,7 +2,7 @@ import type { SuiteStats, RunnerStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
-import type { Reporters } from '@wdio/types'
+import type { Reporters } from '@testplane/types'
 
 export default class ConciseReporter extends WDIOReporter {
     // keep track of the order that suites were called

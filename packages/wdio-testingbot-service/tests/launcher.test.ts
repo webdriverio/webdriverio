@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 
 import TestingBotLauncher from '../src/launcher.js'
 import type { TestingbotOptions } from '../src/types.js'

@@ -2,7 +2,7 @@ import util from 'node:util'
 
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@testplane/types'
 import type { CoverageSummary } from 'istanbul-lib-coverage'
 
 import { COVERAGE_FACTORS, GLOBAL_TRESHOLD_REPORTING, FILE_TRESHOLD_REPORTING } from './constants.js'

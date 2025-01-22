@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { expect, test, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 
 import SauceService from '../src/index.js'
 import { isRDC } from '../src/utils.js'

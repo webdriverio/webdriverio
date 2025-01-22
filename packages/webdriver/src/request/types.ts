@@ -1,4 +1,4 @@
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 
 export interface WebDriverResponse<T = unknown> {
     value: T

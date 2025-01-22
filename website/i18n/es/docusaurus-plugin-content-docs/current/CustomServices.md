@@ -83,7 +83,7 @@ export const launcher = CustomLauncherService
 Si está utilizando TypeScript y quiere asegurarse de que el parámetro de métodos ganok son seguros, puede definir su clase de servicio de la siguiente manera:
 
 ```ts
-import type { Capabilities, Options, Services } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@testplane/types'
 
 export default class CustomWorkerService implements Services.ServiceInstance {
     constructor (

@@ -7,8 +7,8 @@ import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
 
 import logger from '@wdio/logger'
-import { FileSystemPathService } from '@wdio/config/node'
-import type { Capabilities, Workers } from '@wdio/types'
+import { FileSystemPathService } from '@testplane/config/node'
+import type { Capabilities, Workers } from '@testplane/types'
 
 import Launcher from './launcher.js'
 import type { RunCommandArguments, ValueKeyIteratee } from './types.js'

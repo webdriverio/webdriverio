@@ -1,4 +1,4 @@
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@testplane/types'
 
 import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT, BROWSERSTACK_TESTHUB_UUID } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'

@@ -10,7 +10,7 @@ import { Readable, type Writable } from 'node:stream'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import logger from '@wdio/logger'
 
 import AppiumLauncher from '../src/launcher.js'

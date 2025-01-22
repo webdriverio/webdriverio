@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import type { Options, Workers } from '@wdio/types'
+import type { Options, Workers } from '@testplane/types'
 
 import WorkerInstance from './worker.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'

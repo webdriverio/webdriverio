@@ -6,7 +6,7 @@ import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Options, Capabilities, Services } from '@testplane/types'
 
 import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'

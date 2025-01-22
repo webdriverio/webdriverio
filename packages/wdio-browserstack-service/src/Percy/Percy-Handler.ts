@@ -1,4 +1,4 @@
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import {
@@ -188,4 +188,3 @@ const PercyHandler: typeof _PercyHandler = o11yClassErrorHandler(_PercyHandler)
 type PercyHandler = _PercyHandler
 
 export default PercyHandler
-

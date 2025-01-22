@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { Frameworks, Services, Options } from '@wdio/types'
+import type { Frameworks, Services, Options } from '@testplane/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'

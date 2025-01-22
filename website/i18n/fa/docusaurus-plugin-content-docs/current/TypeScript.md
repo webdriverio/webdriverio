@@ -108,10 +108,10 @@ TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio
 
 ## تعریف انواع
 
-هنگام اجرای دستورات WebdriverIO معمولاً همه ویژگی ها نوع مشخصی دارند، بنابراین نیازی به درگیری برای اضافه کردن انواع اضافی را ندارید. با این حال ممکن است مواردی باشد که می خواهید متغیرها را از قبل تعریف کنید. برای اطمینان از ایمن بودن نوع این موارد می توانید از همه انواع تعریف شده در بسته [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) استفاده کنید. به عنوان مثال اگر دوست دارید گزینه remote را برای `webdriverio` تعریف کنید، می توانید این کار را اینطور انجام دهید:
+هنگام اجرای دستورات WebdriverIO معمولاً همه ویژگی ها نوع مشخصی دارند، بنابراین نیازی به درگیری برای اضافه کردن انواع اضافی را ندارید. با این حال ممکن است مواردی باشد که می خواهید متغیرها را از قبل تعریف کنید. برای اطمینان از ایمن بودن نوع این موارد می توانید از همه انواع تعریف شده در بسته [`@testplane/types`](https://www.npmjs.com/package/@testplane/types) استفاده کنید. به عنوان مثال اگر دوست دارید گزینه remote را برای `webdriverio` تعریف کنید، می توانید این کار را اینطور انجام دهید:
 
 ```ts
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 
 const config: Options.WebdriverIO = {
     hostname: 'http://localhost',

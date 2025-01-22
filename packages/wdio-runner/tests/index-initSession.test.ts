@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import WDIORunner from '../src/index.js'
 import type BaseReporter from '../src/reporter.js'
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 
 vi.mock('../src/utils', () => ({
     __esModule: true,

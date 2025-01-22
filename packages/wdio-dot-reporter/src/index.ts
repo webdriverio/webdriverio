@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import WDIOReporter from '@wdio/reporter'
-import type { Reporters } from '@wdio/types'
+import type { Reporters } from '@testplane/types'
 
 /**
  * Initialize a new `Dot` matrix test reporter.

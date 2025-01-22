@@ -8,7 +8,7 @@ import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Selector } from 'webdriverio'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities } from '@testplane/types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'

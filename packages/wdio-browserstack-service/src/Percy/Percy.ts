@@ -11,7 +11,7 @@ import { PercyLogger } from './PercyLogger.js'
 import PercyBinary from './PercyBinary.js'
 
 import type { BrowserstackConfig, UserConfig } from '../types.js'
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 import { BROWSERSTACK_TESTHUB_UUID } from '../constants.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'

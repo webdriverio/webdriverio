@@ -2,7 +2,7 @@ import exitHook from 'async-exit-hook'
 
 import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
-import type { Workers } from '@wdio/types'
+import type { Workers } from '@testplane/types'
 
 import { SHUTDOWN_TIMEOUT } from './constants.js'
 

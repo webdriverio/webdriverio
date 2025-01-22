@@ -1,4 +1,4 @@
-import type { Capabilities, Options, Frameworks } from '@wdio/types'
+import type { Capabilities, Options, Frameworks } from '@testplane/types'
 import type { Options as BSOptions } from 'browserstack-local'
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>;

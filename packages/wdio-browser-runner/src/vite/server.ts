@@ -7,7 +7,7 @@ import istanbulPlugin from 'vite-plugin-istanbul'
 import { deepmerge } from 'deepmerge-ts'
 import { createServer } from 'vite'
 import type { ViteDevServer, InlineConfig, ConfigEnv } from 'vite'
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 
 import { testrunner } from './plugins/testrunner.js'
 import { mockHoisting } from './plugins/mockHoisting.js'

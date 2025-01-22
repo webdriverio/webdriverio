@@ -967,7 +967,7 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
   * [#13568](https://github.com/webdriverio/webdriverio/pull/13568) fix(@wdio/cli): package manager detection improvements ([@alcpereira](https://github.com/alcpereira))
   * [#13557](https://github.com/webdriverio/webdriverio/pull/13557) fix(#11999): regression with Jasmine types ([@Badisi](https://github.com/Badisi))
 * `wdio-types`
-  * [#13567](https://github.com/webdriverio/webdriverio/pull/13567) fix(@wdio/types): make 'moz:debuggerAddress' a string or boolean ([@christian-bromann](https://github.com/christian-bromann))
+  * [#13567](https://github.com/webdriverio/webdriverio/pull/13567) fix(@testplane/types): make 'moz:debuggerAddress' a string or boolean ([@christian-bromann](https://github.com/christian-bromann))
 
 #### :nail_care: Polish
 * `wdio-utils`, `webdriver`

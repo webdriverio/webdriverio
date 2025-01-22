@@ -80,7 +80,7 @@
     "@wdio/mocha-framework": "workspace:*",
     "@testplane/protocols": "workspace:*",
     "@wdio/runner": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "expect": "30.0.0-alpha.7",

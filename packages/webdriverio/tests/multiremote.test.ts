@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { test, expect, vi, afterEach } from 'vitest'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 
 import { multiremote } from '../src/index.js'
 

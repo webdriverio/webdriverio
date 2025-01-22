@@ -7,7 +7,7 @@ import aiSDK from '@browserstack/ai-sdk-node'
 import AiHandler from '../src/ai-handler.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import * as funnelInstrumentation from '../src/instrumentation/funnelInstrumentation.js'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import { TCG_URL } from '../src/constants.js'
 
 // Mock only the external dependency

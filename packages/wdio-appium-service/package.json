@@ -37,7 +37,7 @@
   "dependencies": {
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "change-case": "^5.4.3",
     "get-port": "^7.0.0",

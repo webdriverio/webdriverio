@@ -1,5 +1,5 @@
 import WDIOReporter, { type RunnerStats } from '@wdio/reporter'
-import type { Reporters } from '@wdio/types'
+import type { Reporters } from '@testplane/types'
 
 import type { ResultSet, TestSuite } from './types.js'
 

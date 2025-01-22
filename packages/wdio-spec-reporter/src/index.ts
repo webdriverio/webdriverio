@@ -2,7 +2,7 @@ import path from 'node:path'
 import { format } from 'node:util'
 
 import prettyMs from 'pretty-ms'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import { Chalk, type ChalkInstance } from 'chalk'
 import WDIOReporter, { TestStats } from '@wdio/reporter'
 import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'

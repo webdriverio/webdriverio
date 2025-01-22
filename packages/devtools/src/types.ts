@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { EventEmitter } from 'node:events'
 
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities } from '@testplane/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 import type { LaunchOptions, BrowserLaunchArgumentOptions, BrowserConnectOptions, ConnectOptions } from 'puppeteer-core'
 import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'

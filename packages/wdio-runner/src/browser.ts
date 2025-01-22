@@ -6,7 +6,7 @@ import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
-import { type Workers, type Options, type Services, MESSAGE_TYPES } from '@wdio/types'
+import { type Workers, type Options, type Services, MESSAGE_TYPES } from '@testplane/types'
 
 import { transformExpectArgs } from './utils.js'
 import type BaseReporter from './reporter.js'

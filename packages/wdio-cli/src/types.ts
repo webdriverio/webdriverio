@@ -1,4 +1,4 @@
-import type { Options, Reporters } from '@wdio/types'
+import type { Options, Reporters } from '@testplane/types'
 import type { NormalizedPackageJson } from 'read-pkg-up'
 import type { BackendChoice, RegionOptions, ElectronBuildToolChoice, PMs } from './constants.js'
 

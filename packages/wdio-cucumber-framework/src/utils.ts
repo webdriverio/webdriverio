@@ -13,7 +13,7 @@ import type {
     TestStepResultStatus,
     FeatureChild
 } from '@cucumber/messages'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/types'
 import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')

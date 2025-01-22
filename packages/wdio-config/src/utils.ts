@@ -1,4 +1,4 @@
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 
 export const validObjectOrArray = (object: object): object is object | Array<unknown> => (Array.isArray(object) && object.length > 0) ||
     (typeof object === 'object' && Object.keys(object).length > 0)

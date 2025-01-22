@@ -108,10 +108,10 @@ Adding services and reporters to your TypeScript config also strengthen the type
 
 ## Type Definitions
 
-When running WebdriverIO commands all properties are usually typed so that you don't have to deal with importing additional types. However there are cases where you want to define variables upfront. To ensure that these are type safe you can use all types defined in the [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) package. For example if you like to define the remote option for `webdriverio` you can do:
+When running WebdriverIO commands all properties are usually typed so that you don't have to deal with importing additional types. However there are cases where you want to define variables upfront. To ensure that these are type safe you can use all types defined in the [`@testplane/types`](https://www.npmjs.com/package/@testplane/types) package. For example if you like to define the remote option for `webdriverio` you can do:
 
 ```ts
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 
 const config: Options.WebdriverIO = {
     hostname: 'http://localhost',

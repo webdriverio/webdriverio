@@ -11,7 +11,7 @@
       "webdriverio",
       "devtools",
       "@wdio/utils",
-      "@wdio/types",
+      "@testplane/types",
       "@wdio/globals/types",
       "@wdio/allure-reporter",
       "@wdio/appium-service",

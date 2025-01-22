@@ -1,4 +1,4 @@
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 
 import { environment } from './environment.js'
 import type { RemoteConfig } from './types.js'

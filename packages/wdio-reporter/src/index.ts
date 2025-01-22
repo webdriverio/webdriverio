@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
-import type { Reporters, Options } from '@wdio/types'
+import type { Reporters, Options } from '@testplane/types'
 
 import { getErrorsFromEvent, transformCommandScript } from './utils.js'
 import type { Suite } from './stats/suite.js'

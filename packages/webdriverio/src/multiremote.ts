@@ -1,7 +1,7 @@
 import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
 import { webdriverMonad, wrapCommand } from '@wdio/utils'
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/types'
 import type { ProtocolCommands } from '@testplane/protocols'
 
 import { multiremoteHandler } from './middlewares.js'

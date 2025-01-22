@@ -33,7 +33,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/types": "workspace:*",
     "testingbot-tunnel-launcher": "^1.1.7",
     "webdriverio": "workspace:*"
   },
