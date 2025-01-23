@@ -9,10 +9,10 @@ import { getContextManager } from './context.js'
  */
 export function registerSessionManager(instance: WebdriverIO.Browser) {
     /**
-     * only register session manager for WebDriver protocol instances
-     * and don't run them for the protocol stub.
+     * only register session manager for sessions that appear to support
+     * WebDriver Bidi
      */
-    if (instance.options.automationProtocol !== 'webdriver') {
+    if (typeof instance.capabilities.webSocketUrl !== 'string') {
         return
     }
 

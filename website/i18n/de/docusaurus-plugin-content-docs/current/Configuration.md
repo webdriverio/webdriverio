@@ -169,9 +169,7 @@ Die folgenden Optionen (einschließlich der oben aufgeführten) können mit Webd
 
 ### automationProtocol
 
-Definieren Sie das Protokoll, das Sie für Ihre Browserautomatisierung verwenden möchten. Derzeit werden nur [`webdriver`](https://www.npmjs.com/package/webdriver) und [`devtools`](https://www.npmjs.com/package/devtools) unterstützt, da dies die wichtigsten verfügbaren Browser-Automatisierungstechnologien sind.
-
-Wenn Sie den Browser mit `devtools`automatisieren möchten, stellen Sie sicher, dass Sie das notwendige NPM-Paket installiert haben (`$ npm install --save-dev devtools`).
+Definieren Sie das Protokoll, das Sie für Ihre Browserautomatisierung verwenden möchten. Derzeit werden nur [`webdriver`](https://www.npmjs.com/package/webdriver) unterstützt, da dies eines the meist benutzten Automatisierungsstandards ist, welches derzeit genutzt wird.
 
 Type: `String`<br /> Default: `webdriver`
 

@@ -44,9 +44,7 @@ export class SessionManager {
             // we are in a Bidi session
             this.#browser.isBidi &&
             // we are not running unit tests
-            !process.env.WDIO_UNIT_TESTS &&
-            // we are running a WebDriver session
-            this.#browser.options?.automationProtocol === 'webdriver'
+            !process.env.WDIO_UNIT_TESTS
         )
     }
 
