@@ -567,7 +567,9 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
 
     // @ts-expect-error
     const answers = await inquirer.prompt(projectRootQuestions)
-    if (answers.createPackageJSON) { answers.projectRoot = process.cwd() }
+    if (answers.createPackageJSON) {
+        answers.projectRoot = process.cwd()
+    }
 
     // @ts-expect-error
     return inquirer.prompt(QUESTIONNAIRE, answers)
