@@ -1,3 +1,7 @@
+import fs from 'node:fs/promises'
+import url from 'node:url'
+
+import { resolve } from 'import-meta-resolve'
 import type { ElementReference } from '@testplane/protocols'
 
 import { resqScript } from '../constant.js'
