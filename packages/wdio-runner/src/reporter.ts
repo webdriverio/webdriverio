@@ -25,8 +25,9 @@ export default class BaseReporter {
         /**
          * make sure there is at least on default reporter set up (dot reporter is default)
          */
-        if (this._config.reporters!.length === 0) {
-            this._config.reporters!.push([DotReporter, {}])
+        this._config.reporters = this._config.reporters || []
+        if (this._config.reporters.length === 0) {
+            this._config.reporters.push([DotReporter, {}])
         }
     }
 
