@@ -45,7 +45,6 @@
   ],
   "main": "./build/index.cjs",
   "type": "module",
-  "module": "./build/index.js",
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
