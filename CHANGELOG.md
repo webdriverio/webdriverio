@@ -23,6 +23,25 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.6.2 (2025-01-23)
+
+#### :bug: Bug Fix
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#14103](https://github.com/webdriverio/webdriverio/pull/14103) fix(webdriverio): double check elements that have a display: contents ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-types`, `webdriverio`
+  * [#14101](https://github.com/webdriverio/webdriverio/pull/14101) fix(webdriverio): enable arbitrary automation protocol packages ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-mocha-framework`, `wdio-runner`
+  * [#14102](https://github.com/webdriverio/webdriverio/pull/14102) fix(@wdio/runner): make sure there is at least one reporter initiated ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriver`
+  * [#14100](https://github.com/webdriverio/webdriverio/pull/14100) fix: typos on readme ([@shiv-jirwankar](https://github.com/shiv-jirwankar))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Shiv Jirwankar ([@shiv-jirwankar](https://github.com/shiv-jirwankar))
+
+
 ## v9.6.1 (2025-01-23)
 
 #### :bug: Bug Fix
