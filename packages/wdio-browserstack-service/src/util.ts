@@ -559,11 +559,11 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
 
     try {
         if (isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
-            const results: unknown = await (browser as WebdriverIO.Browser).execute(formatString(AccessibilityScripts.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string, {})
+            const results: unknown = await (browser as WebdriverIO.Browser).executeAsyncScript(AccessibilityScripts.performScan as string, [{ 'method': commandName || '' } as string | number | boolean | object | null | undefined])
             BStackLogger.debug(util.format(results as string))
             return ( results as { [key: string]: any; } | undefined )
         }
-        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
+        const results: unknown = await (browser as WebdriverIO.Browser).executeAsyncScript(AccessibilityScripts.performScan as string, [{ 'method': commandName || '' } as string | number | boolean | object | null | undefined])
         BStackLogger.debug(util.format(results as string))
         return ( results as { [key: string]: unknown; } | undefined )
     } catch (err) {
@@ -586,7 +586,7 @@ export const getA11yResults = async (isAppAutomate: boolean, browser: WebdriverI
     try {
         BStackLogger.debug('Performing scan before getting results')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
-        const results: Array<{ [key: string]: unknown }> = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResults as string)
+        const results: Array<{ [key: string]: unknown }> = await (browser as WebdriverIO.Browser).executeAsyncScript(AccessibilityScripts.getResults as string, [])
         return results
     } catch (error: any) {
         BStackLogger.error('No accessibility results were found.')
@@ -664,7 +664,7 @@ export const getA11yResultsSummary = async (isAppAutomate: boolean, browser: Web
     try {
         BStackLogger.debug('Performing scan before getting results summary')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
-        const summaryResults: { [key: string]: unknown; } = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResultsSummary as string)
+        const summaryResults: { [key: string]: unknown; } = await (browser as WebdriverIO.Browser).executeAsyncScript(AccessibilityScripts.getResultsSummary as string, [])
         return summaryResults
     } catch {
         BStackLogger.error('No accessibility summary was found.')

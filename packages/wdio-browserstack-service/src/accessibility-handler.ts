@@ -327,7 +327,7 @@ class _AccessibilityHandler {
         if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
             return
         }
-        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(accessibilityScripts.saveTestResults as string, dataForExtension)
+        const results: unknown = await (browser as WebdriverIO.Browser).executeAsyncScript(accessibilityScripts.saveTestResults as string, [dataForExtension as string | number | boolean | object | null | undefined])
         BStackLogger.debug(util.format(results as string))
     }
 
