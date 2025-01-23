@@ -10,7 +10,7 @@ import { arch, hostname, platform, type, version } from 'node:os'
 
 import { BStackLogger } from '../../bstackLogger.js'
 import { EDS_URL, PERF_MEASUREMENT_ENV } from '../../constants.js'
-import fetchWrap from 'src/fetchWrapper.js'
+import fetchWrap from '../../fetchWrapper.js'
 
 type PerformanceDetails = {
     success?: true,
