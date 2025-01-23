@@ -23,6 +23,17 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.6.1 (2025-01-23)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14097](https://github.com/webdriverio/webdriverio/pull/14097) fix(webdriverio): remove obsolete export ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kirill Gavrilov ([@gavvvr](https://github.com/gavvvr))
+
+
 ## v9.6.0 (2025-01-21)
 
 #### :rocket: New Feature
