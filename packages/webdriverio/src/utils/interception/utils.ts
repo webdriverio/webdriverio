@@ -25,7 +25,7 @@ export function parseOverwrite<
              */
             {
                 type: 'string',
-                value: JSON.stringify(bodyOverwrite).replaceAll('"', '')
+                value: JSON.stringify(bodyOverwrite).slice(1, -1)
             }
             :
             /**
