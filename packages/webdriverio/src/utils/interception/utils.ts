@@ -25,7 +25,7 @@ export function parseOverwrite<
              */
             {
                 type: 'string',
-                value: bodyOverwrite
+                value: Buffer.from(bodyOverwrite).toString('base64')
             }
             :
             /**

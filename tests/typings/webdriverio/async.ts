@@ -427,6 +427,7 @@ async function bar() {
     mock.abortOnce()
     mock.clear()
     mock.respond('/other/resource.jpg')
+    mock.respond('Hello 🌍!')
     mock.respond('/other/resource.jpg', {
         statusCode: 100,
         headers: { foo: 'bar' }
