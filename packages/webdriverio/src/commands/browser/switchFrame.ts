@@ -341,15 +341,6 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
 function switchToFrame (browser: WebdriverIO.Browser, frame: ElementReference | number | null) {
     process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = 'true'
     return browser.switchToFrame(frame).finally(async () => {
-        const sessionContext = getContextManager(browser)
-        const [frameTree, documentUrl] = await Promise.all([
-            sessionContext.getFlatContextTree(),
-            browser.execute(() => document.URL)
-        ])
-        const frame = Object.values(frameTree).find((ctx) => ctx.url === documentUrl)
-        if (frame) {
-            switchToFrameHelper(browser, frame.context)
-        }
         delete process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS
     })
 }

@@ -1,7 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
 
-import { verifyArgsAndStripIfElement, createFunctionDeclarationFromString } from '../../utils/index.js'
+import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../session/context.js'
@@ -103,7 +103,8 @@ export async function executeAsync<ReturnValue, InnerArguments extends unknown[]
      */
     if (typeof script === 'function') {
         script = `
-            ${createFunctionDeclarationFromString(polyfillFn)}
+            ${polyfillFn}
+            webdriverioPolyfill()
             return (${script}).apply(null, arguments)
         `
     }

@@ -90,8 +90,8 @@ export const getPrototype = (scope: 'browser' | 'element') => {
  */
 export const getElementFromResponse = (res?: ElementReference) => {
     /**
-    * a function selector can return null
-    */
+     * a function selector can return null
+     */
     if (!res) {
         return null
     }
