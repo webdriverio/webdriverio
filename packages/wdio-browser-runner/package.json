@@ -62,11 +62,10 @@
   },
   "scripts": {
     "build": "run-s build:*",
-    "build:mkdir": "mkdir -p ./build/browser",
+    "build:mkdir": "mkdir -p ./build/third_party",
     "build:copy": "run-p build:copy:*",
     "build:copy:css": "cp ./node_modules/mocha/mocha.css ./build/third_party/mocha.css",
-    "build:copy:js": "cp ./node_modules/mocha/mocha.js ./build/third_party/mocha.js",
-    "build:copy:map": "cp ./node_modules/mocha/mocha.js.map ./build/third_party/mocha.js.map"
+    "build:copy:js": "sed '$d' ./node_modules/mocha/mocha.js > ./build/third_party/mocha.js"
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
