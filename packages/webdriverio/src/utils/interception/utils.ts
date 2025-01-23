@@ -25,7 +25,7 @@ export function parseOverwrite<
              */
             {
                 type: 'string',
-                value: JSON.stringify(bodyOverwrite).slice(1, -1)
+                value: base64Decode(base64Encode(bodyOverwrite))
             }
             :
             /**
@@ -100,4 +100,21 @@ export function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.Net
     }
 
     return pattern[key].replaceAll('*', '\\*')
+}
+
+function base64Encode(str: string) {
+    // Convert to UTF-8 first
+    const utf8Bytes = new TextEncoder().encode(str);
+
+    // Convert UTF-8 bytes to base64
+    return btoa(String.fromCharCode.apply(null, utf8Bytes as unknown as number[]))
+}
+
+function base64Decode(base64: string) {
+    const binaryString = atob(base64)
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+    }
+    return new TextDecoder().decode(bytes)
 }
