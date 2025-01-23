@@ -359,7 +359,9 @@ export function hasBabelConfig(rootDir: string) {
  */
 export async function detectCompiler(answers: Questionnair) {
     // obviously there is no compiler, if there is no package.json
-    if (answers.createPackageJSON) { return false }
+    if (answers.createPackageJSON) {
+        return false
+    }
 
     const root = await getProjectRoot(answers)
     const rootTSConfigExist = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
