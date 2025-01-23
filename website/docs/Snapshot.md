@@ -20,7 +20,7 @@ To snapshot a value, you can use the `toMatchSnapshot()` from [`expect()`](/docs
 import { browser, expect } from '@wdio/globals'
 
 it('can take a DOM snapshot', () => {
-    await browser.url('http://guinea-pig.webdriver.io/')
+    await browser.url('https://guinea-pig.webdriver.io/')
     await expect($('.findme')).toMatchSnapshot()
 })
 ```

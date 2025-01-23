@@ -6,6 +6,8 @@ import JSZip from 'jszip'
 import { remote } from '../../../src/index.js'
 import logger from '@wdio/logger'
 
+import '../../../src/node.js'
+
 vi.mock('node:fs', () => ({
     default: {
         mkdirSync: vi.fn(),

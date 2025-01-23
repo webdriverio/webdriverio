@@ -1,7 +1,3 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { URL } from 'node:url'
-
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
@@ -15,6 +11,7 @@ import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
+import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
@@ -93,8 +90,8 @@ export const getPrototype = (scope: 'browser' | 'element') => {
  */
 export const getElementFromResponse = (res?: ElementReference) => {
     /**
-    * a function selector can return null
-    */
+     * a function selector can return null
+     */
     if (!res) {
         return null
     }
@@ -653,22 +650,6 @@ export async function getElementRect(scope: WebdriverIO.Element) {
     return rect
 }
 
-export function getAbsoluteFilepath(filepath: string) {
-    return filepath.startsWith('/') || filepath.startsWith('\\') || filepath.match(/^[a-zA-Z]:\\/)
-        ? filepath
-        : path.join(process.cwd(), filepath)
-}
-
-/**
- * check if directory exists
- */
-export async function assertDirectoryExists(filepath: string) {
-    const exist = await fs.access(path.dirname(filepath)).then(() => true, () => false)
-    if (!exist) {
-        throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
-    }
-}
-
 /**
  * check if urls are valid and fix them if necessary
  * @param  {string}  url                url to navigate to
@@ -805,4 +786,11 @@ export const containsHeaderObject = (
     }
 
     return true
+}
+
+export function createFunctionDeclarationFromString (userScript: Function | string) {
+    if (typeof userScript === 'string') {
+        return `(${SCRIPT_PREFIX}function () {\n${userScript.toString()}\n}${SCRIPT_SUFFIX}).apply(this, arguments);`
+    }
+    return new Function(`return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);`).toString()
 }

@@ -1,5 +1,3 @@
-import EventEmitter from 'node:events'
-
 import logger from '@wdio/logger'
 import type { JsonCompatible } from '@wdio/types'
 import { type local } from 'webdriver'
@@ -34,7 +32,7 @@ export default class WebDriverInterception {
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
 
-    #emitter = new EventEmitter()
+    #eventHandler: Map<string, Function[]> = new Map()
     #restored = false
     #requestOverwrites: Overwrite[] = []
     #respondOverwrites: Overwrite[] = []
@@ -93,6 +91,26 @@ export default class WebDriverInterception {
         return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser)
     }
 
+    #emit (event: string, args: unknown) {
+        if (!this.#eventHandler.has(event)) {
+            return
+        }
+
+        const handlers = this.#eventHandler.get(event) || []
+        for (const handler of handlers) {
+            handler(args)
+        }
+    }
+
+    #addEventHandler (event: string, handler: Function) {
+        if (!this.#eventHandler.has(event)) {
+            this.#eventHandler.set(event, [])
+        }
+
+        const handlers = this.#eventHandler.get(event)
+        handlers?.push(handler)
+    }
+
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
         /**
          * don't do anything if:
@@ -112,7 +130,7 @@ export default class WebDriverInterception {
             })
         }
 
-        this.#emitter.emit('request', request)
+        this.#emit('request', request)
         const hasRequestOverwrites = this.#requestOverwrites.length > 0
         if (hasRequestOverwrites) {
             const { overwrite, abort } = this.#requestOverwrites[0].once
@@ -120,18 +138,18 @@ export default class WebDriverInterception {
                 : this.#requestOverwrites[0]
 
             if (abort) {
-                this.#emitter.emit('fail', request.request.request)
+                this.#emit('fail', request.request.request)
                 return this.#browser.networkFailRequest({ request: request.request.request })
             }
 
-            this.#emitter.emit('overwrite', request)
+            this.#emit('overwrite', request)
             return this.#browser.networkContinueRequest({
                 request: request.request.request,
                 ...(overwrite ? parseOverwrite(overwrite, request) : {})
             })
         }
 
-        this.#emitter.emit('continue', request.request.request)
+        this.#emit('continue', request.request.request)
         return this.#browser.networkContinueRequest({
             request: request.request.request
         })
@@ -151,7 +169,7 @@ export default class WebDriverInterception {
          * continue mock if not matching filter
          */
         if (!this.#matchesFilterOptions(request)) {
-            this.#emitter.emit('continue', request.request.request)
+            this.#emit('continue', request.request.request)
             return this.#browser.networkProvideResponse({
                 request: request.request.request
             }).catch(this.#handleNetworkProvideResponseError)
@@ -169,7 +187,7 @@ export default class WebDriverInterception {
             this.#respondOverwrites.length === 0 ||
             !this.#respondOverwrites[0].overwrite
         ) {
-            this.#emitter.emit('continue', request.request.request)
+            this.#emit('continue', request.request.request)
             return this.#browser.networkProvideResponse({
                 request: request.request.request
             }).catch(this.#handleNetworkProvideResponseError)
@@ -183,7 +201,7 @@ export default class WebDriverInterception {
          * continue request (possibly with overwrites)
          */
         if (overwrite) {
-            this.#emitter.emit('overwrite', request)
+            this.#emit('overwrite', request)
             return this.#browser.networkProvideResponse({
                 request: request.request.request,
                 ...parseOverwrite(overwrite, request)
@@ -193,7 +211,7 @@ export default class WebDriverInterception {
         /**
          * continue request as is
          */
-        this.#emitter.emit('continue', request.request.request)
+        this.#emit('continue', request.request.request)
         return this.#browser.networkProvideResponse({
             request: request.request.request
         }).catch(this.#handleNetworkProvideResponseError)
@@ -415,7 +433,7 @@ export default class WebDriverInterception {
     on(event: 'overwrite', callback: (response: local.NetworkResponseCompletedParameters) => void): WebDriverInterception
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     on(event: string, callback: (...args: any[]) => void): WebDriverInterception {
-        this.#emitter.on(event, callback)
+        this.#addEventHandler(event, callback)
         return this
     }
 

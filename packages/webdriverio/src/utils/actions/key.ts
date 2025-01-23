@@ -1,7 +1,6 @@
-import os from 'node:os'
-
 import type { BaseActionParams } from './base.js'
 import BaseAction from './base.js'
+import { environment } from '../../environment.js'
 import { Key } from '../../constants.js'
 
 export default class KeyAction extends BaseAction {
@@ -19,7 +18,7 @@ export default class KeyAction extends BaseAction {
             // check capabilities first
             platformName && platformName.match(/mac(\s)*os/i) ||
             // if not set, expect we run locally
-            (this.instance.options.hostname?.match(/0\.0\.0\.0|127\.0\.0\.1|local/i) && os.type().match(/darwin/i))
+            (this.instance.options.hostname?.match(/0\.0\.0\.0|127\.0\.0\.1|local/i) && environment.value.osType().match(/darwin/i))
         )
 
         if (value === Key.Ctrl) {

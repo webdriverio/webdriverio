@@ -125,6 +125,9 @@ function buildEventData(eventType: string, config: BrowserStackConfig) {
         const workerData = getDataFromWorkers()
         // @ts-expect-error
         eventProperties.productUsage = getProductUsage(workerData)
+        if (process.env.BSTACK_A11Y_POLLING_TIMEOUT) {
+            eventProperties.pollingTimeout = process.env.BSTACK_A11Y_POLLING_TIMEOUT as string
+        }
     }
 
     return {

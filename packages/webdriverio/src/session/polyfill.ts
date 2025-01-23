@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 import type { local } from 'webdriver'
 
 import { SessionManager } from './session.js'
+import { createFunctionDeclarationFromString } from '../utils/index.js'
 
 export function getPolyfillManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, PolyfillManager)
@@ -17,12 +18,15 @@ const log = logger('webdriverio:PolyfillManager')
  *
  * @see https://github.com/evanw/esbuild/issues/2605
  */
-export const NAME_POLYFILL = (
-    'var __defProp = Object.defineProperty;' +
-    'var __name = function (target, value) { return __defProp(target, \'name\', { value: value, configurable: true }); };' +
-    'var __globalThis = (typeof globalThis === \'object\' && globalThis) || (typeof window === \'object\' && window);' +
-    '__globalThis.__name = __name;'
-)
+export const polyfillFn = function webdriverioPolyfill () {
+    const __defProp = Object.defineProperty
+    const __name = function (target: unknown, value: unknown) {
+        return __defProp(target, 'name', { value: value, configurable: true })
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const __globalThis = (typeof globalThis === 'object' && globalThis) || (typeof window === 'object' && window) as any
+    __globalThis.__name = __name
+}
 
 /**
  * This class is responsible for setting polyfill scripts in the browser.
@@ -69,7 +73,7 @@ export class PolyfillManager extends SessionManager {
             return
         }
 
-        const functionDeclaration = `(() => {${NAME_POLYFILL}})()`
+        const functionDeclaration = createFunctionDeclarationFromString(polyfillFn)
         log.info(`Adding polyfill script to context with id ${context.context}`)
         this.#scriptsRegisteredInContexts.add(context.context)
         return Promise.all([

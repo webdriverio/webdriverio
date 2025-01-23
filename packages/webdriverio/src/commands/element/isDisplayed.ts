@@ -1,17 +1,19 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { hasElementId } from '../../utils/index.js'
-import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
+import isElementDisplayedLegacyScript from '../../scripts/isElementDisplayed.js'
 import isElementInViewportScript from '../../scripts/isElementInViewport.js'
-
-interface IsDisplayedParams {
-    withinViewport?: boolean
-}
 
 /**
  *
- * Return true if the selected DOM-element is displayed (even when the element is outside the viewport).
- * If you want to verify that the element is also within the viewport, provide the `withinViewport` flag to the command.
+ * Return true if the selected DOM-element is displayed (even when the element is outside the viewport). It is using
+ * the [`checkVisibility`](https://developer.mozilla.org/en-US/docs/Web/API/Element/checkVisibility#visibilityproperty)
+ * method provided by the browser to determine if an element is being displayed or not. Since WebdriverIO acts as a
+ * real user, the default values for the `contentVisibilityAuto`, `opacityProperty`, and `visibilityProperty` flags
+ * are set to `true` to default to a more strict behavior. This means that the command will check if the element is
+ * visible due to the value of its `content-visibility`, `opacity`, and `visibility` properties.
+ *
+ * If you want to also verify that the element is also within the viewport, provide the `withinViewport` flag to the command.
  *
  * :::info
  *
@@ -93,7 +95,7 @@ interface IsDisplayedParams {
  */
 export async function isDisplayed (
     this: WebdriverIO.Element,
-    commandParams: IsDisplayedParams = { withinViewport: false }
+    commandParams: IsDisplayedParams = DEFAULT_PARAMS
 ) {
     const browser = getBrowserObject(this)
 
@@ -122,11 +124,51 @@ export async function isDisplayed (
         return await this.isElementDisplayed(this.elementId)
     }
 
-    const isDisplayed = await browser.execute(isElementDisplayedScript, this as unknown as HTMLElement)
+    const isDisplayed = await browser.execute(function checkVisibility (elem, params) {
+        return elem.checkVisibility(params)
+    }, this as unknown as HTMLElement, commandParams).catch((err) => {
+        /**
+         * Fallback to legacy script if checkVisibility is not available
+         */
+        if (err.message.includes('checkVisibility is not a function')) {
+            return browser.execute(isElementDisplayedLegacyScript, this as unknown as HTMLElement)
+        }
+        throw err
+    })
 
     if (isDisplayed && commandParams?.withinViewport) {
         return browser.execute(isElementInViewportScript, this as unknown as HTMLElement)
     }
 
     return isDisplayed
+}
+
+const DEFAULT_PARAMS: IsDisplayedParams = {
+    withinViewport: false,
+    contentVisibilityAuto: true,
+    opacityProperty: true,
+    visibilityProperty: true
+}
+
+interface IsDisplayedParams {
+    /**
+     * `true` to check if the element is within the viewport. false by default.
+     */
+    withinViewport?: boolean
+    /**
+     * `true` to check if the element content-visibility property has (or inherits) the value auto,
+     * and it is currently skipping its rendering. `true` by default.
+     * @default true
+     */
+    contentVisibilityAuto?: boolean
+    /**
+     * `true` to check if the element opacity property has (or inherits) a value of 0. `true` by default.
+     * @default true
+     */
+    opacityProperty?: boolean
+    /**
+     * `true` to check if the element is invisible due to the value of its visibility property. `true` by default.
+     * @default true
+     */
+    visibilityProperty?: boolean
 }

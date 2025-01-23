@@ -367,6 +367,7 @@ export interface EventProperties {
     hostname: string
     productMap: { [key: string]: boolean }
     product: string[]
+    pollingTimeout?: string,
     productUsage?: {
         testObservability: {
             events: {

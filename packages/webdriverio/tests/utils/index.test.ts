@@ -1,7 +1,13 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY, type local } from 'webdriver'
 
-import { findElement, isStaleElementError, elementPromiseHandler, transformClassicToBidiSelector } from '../../src/utils/index.js'
+import {
+    findElement,
+    isStaleElementError,
+    elementPromiseHandler,
+    transformClassicToBidiSelector,
+    createFunctionDeclarationFromString
+} from '../../src/utils/index.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -158,5 +164,32 @@ describe('transformClassicToBidiSelector', () => {
         expect(bidiSelector.type).toBe('innerText')
         expect(bidiSelector.value).toBe('new')
         expect((bidiSelector as local.BrowsingContextInnerTextLocator).matchType).toBe('partial')
+    })
+})
+
+describe('createFunctionDeclarationFromString', () => {
+    it('should return a wrapped function string', () => {
+        expect(createFunctionDeclarationFromString((a: string, b: string, c: string) => console.log('foobar' + a + b + c))).toMatchInlineSnapshot(`
+          "function anonymous(
+          ) {
+          return (/* __wdio script__ */(a, b, c) => console.log("foobar" + a + b + c)/* __wdio script end__ */).apply(this, arguments);
+          }"
+        `)
+        function namedFunction (a: string, b: string, c: string) {
+            console.log('foobar' + a + b + c)
+        }
+        expect(createFunctionDeclarationFromString(namedFunction)).toMatchInlineSnapshot(`
+          "function anonymous(
+          ) {
+          return (/* __wdio script__ */function namedFunction(a, b, c) {
+                console.log("foobar" + a + b + c);
+              }/* __wdio script end__ */).apply(this, arguments);
+          }"
+        `)
+        expect(createFunctionDeclarationFromString('console.log("foobar")')).toMatchInlineSnapshot(`
+          "(/* __wdio script__ */function () {
+          console.log("foobar")
+          }/* __wdio script end__ */).apply(this, arguments);"
+        `)
     })
 })
