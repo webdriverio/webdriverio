@@ -1,5 +1,6 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
+import DotReporter from '@wdio/dot-reporter'
 import { initializePlugin } from '@wdio/utils'
 import type { Options, Capabilities, Reporters } from '@wdio/types'
 
@@ -19,7 +20,16 @@ export default class BaseReporter {
         private _config: Options.Testrunner,
         private _cid: string,
         public caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
-    ) {}
+    ) {
+
+        /**
+         * make sure there is at least on default reporter set up (dot reporter is default)
+         */
+        this._config.reporters = this._config.reporters || []
+        if (this._config.reporters.length === 0) {
+            this._config.reporters.push([DotReporter, {}])
+        }
+    }
 
     async initReporters () {
         this._reporters = await Promise.all(
