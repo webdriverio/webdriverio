@@ -999,7 +999,9 @@ export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
  * @returns project root path
  */
 export async function getProjectRoot (parsedAnswers?: Questionnair) {
-    if (parsedAnswers?.createPackageJSON && parsedAnswers.projectRoot) { return parsedAnswers.projectRoot }
+    if (parsedAnswers?.createPackageJSON && parsedAnswers.projectRoot) {
+        return parsedAnswers.projectRoot
+    }
 
     const root = (await getProjectProps())?.path
     if (!root) {
