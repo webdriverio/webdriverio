@@ -1116,13 +1116,13 @@ importers:
         specifier: ^20.11.28
         version: 20.17.10
       '@wdio/logger':
-        specifier: workspace:9.4.4
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: workspace:9.5.0
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: workspace:9.5.0
+        specifier: workspace:*
         version: link:../wdio-utils
       mocha:
         specifier: ^10.3.0
@@ -1176,19 +1176,22 @@ importers:
         specifier: ^20.11.28
         version: 20.17.10
       '@wdio/config':
-        specifier: workspace:9.5.0
+        specifier: workspace:*
         version: link:../wdio-config
+      '@wdio/dot-reporter':
+        specifier: workspace:*
+        version: link:../wdio-dot-reporter
       '@wdio/globals':
-        specifier: workspace:9.6.1
+        specifier: workspace:*
         version: link:../wdio-globals
       '@wdio/logger':
-        specifier: workspace:9.4.4
+        specifier: workspace:*
         version: link:../wdio-logger
       '@wdio/types':
-        specifier: workspace:9.5.0
+        specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
-        specifier: workspace:9.5.0
+        specifier: workspace:*
         version: link:../wdio-utils
       deepmerge-ts:
         specifier: ^7.0.3
@@ -1197,10 +1200,10 @@ importers:
         specifier: ^5.0.1
         version: 5.0.5(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       webdriver:
-        specifier: workspace:9.6.0
+        specifier: workspace:*
         version: link:../webdriver
       webdriverio:
-        specifier: workspace:9.6.1
+        specifier: workspace:*
         version: link:../webdriverio
 
   packages/wdio-sauce-service:
