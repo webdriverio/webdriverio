@@ -595,7 +595,7 @@ export const getA11yResults = async (isAppAutomate: boolean, browser: WebdriverI
         BStackLogger.debug(`getA11yResults Failed. Error: ${error}`)
         return []
     }
-})
+}
 
 export const getAppA11yResults = async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
@@ -672,7 +672,7 @@ export const getA11yResultsSummary = async (isAppAutomate: boolean, browser: Web
         BStackLogger.error('No accessibility summary was found.')
         return {}
     }
-})
+}
 
 export const stopBuildUpstream = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.STOP, o11yErrorHandler(async function stopBuildUpstream() {
     const stopBuildUsage = UsageStats.getInstance().stopBuildUsage
