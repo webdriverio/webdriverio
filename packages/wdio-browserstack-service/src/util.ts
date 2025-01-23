@@ -559,7 +559,7 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
 
     try {
         if (isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
-            const results: unknown = await (browser as WebdriverIO.Browser).executeAsyncScript(AccessibilityScripts.performScan as string, [{ 'method': commandName || '' } as string | number | boolean | object | null | undefined])
+            const results: unknown = await (browser as WebdriverIO.Browser).executeScript(formatString(AccessibilityScripts.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string, [{}])
             BStackLogger.debug(util.format(results as string))
             return ( results as { [key: string]: any; } | undefined )
         }
