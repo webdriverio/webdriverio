@@ -538,10 +538,16 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async _uploadServiceLogs() {
-        const clientBuildUuid = this._getClientBuildUuid()
-
-        const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
-        BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
+        try {
+            const clientBuildUuid = this._getClientBuildUuid()
+            const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
+            if (response) {
+                BStackLogger.info(`Upload response: ${JSON.stringify(response, null, 2)}`)
+                BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
+            }
+        } catch (error) {
+            BStackLogger.info(`Failed to upload service logs: ${error}`)
+        }
     }
 
     _updateObjectTypeCaps(capabilities?: Capabilities.TestrunnerCapabilities, capType?: string, value?: { [key: string]: unknown }) {
