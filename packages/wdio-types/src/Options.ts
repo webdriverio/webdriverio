@@ -2,8 +2,6 @@ import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SupportedProtocols = 'webdriver' | './protocol-stub.js'
-
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
 
 export interface RequestLibResponse<Body = unknown> {
@@ -147,9 +145,10 @@ export type SauceRegions = 'us' | 'eu' | 'us-west-1' | 'us-east-4' | 'eu-central
 
 export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**
-     * @private
+     * Define the underlying driver package that executes the WebDriver commands.
+     * @default 'webdriver'
      */
-    automationProtocol?: SupportedProtocols
+    automationProtocol?: string
     /**
      * If running on Sauce Labs, you can choose to run tests between different data centers:
      * US or EU. To change your region to EU, add region: 'eu' to your config.

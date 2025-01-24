@@ -17,10 +17,10 @@ const log = logger('webdriverio:mockClearAll')
             headers: { 'Content-Type': 'application/javascript' }
         })
 
-        await browser.url('http://guinea-pig.webdriver.io/')
+        await browser.url('https://guinea-pig.webdriver.io/')
         console.log(docMock.calls.length, jsMock.calls.length) // returns "1 4"
 
-        await browser.url('http://guinea-pig.webdriver.io/')
+        await browser.url('https://guinea-pig.webdriver.io/')
         console.log(docMock.calls.length, jsMock.calls.length) // returns "2 4" (JavaScript comes from cache)
 
         await browser.mockClearAll()

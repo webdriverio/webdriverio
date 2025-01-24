@@ -130,7 +130,7 @@ class WorkerMock extends EventEmitter implements Workers.Worker {
     jasmineOpts?: WebdriverIO.JasmineOpts | undefined
     cucumberOpts?: WebdriverIO.CucumberOpts | undefined
     tsConfigPath?: string | undefined
-    automationProtocol?: Options.SupportedProtocols | undefined
+    automationProtocol?: string | undefined
     region?: Options.SauceRegions | undefined
     baseUrl?: string | undefined
     waitforTimeout?: number | undefined
