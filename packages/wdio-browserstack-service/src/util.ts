@@ -443,11 +443,7 @@ export const validateCapsWithAppA11y = (platformMeta?: { [key: string]: any; }) 
     return true
 }
 
-export const validateCapsWithA11y = (
-    deviceName?: any,
-    platformMeta?: { [key: string]: any },
-    chromeOptions?: any
-) => {
+export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
     /* Check if the current driver platform is eligible for Accessibility scan */
     try {
         if (deviceName) {
