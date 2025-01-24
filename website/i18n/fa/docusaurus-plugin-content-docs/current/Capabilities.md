@@ -194,6 +194,12 @@ Comma-separated allowlist of request origins which are allowed to connect to Edg
 Type: `string[]`<br />
 Default: `['*']`
 
+##### spawnOpts
+Options to be passed into the driver process.
+
+Type: `SpawnOptionsWithoutStdio | SpawnOptionsWithStdioTuple<StdioOption, StdioOption, StdioOption>`<br />
+Default: `undefined`
+
 </TabItem>
 <TabItem value="firefox">
 
