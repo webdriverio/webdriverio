@@ -82,7 +82,7 @@ class AiHandler {
             if (!result.error) {
                 const script = await aiSDK.BrowserstackHealing.logData(locatorType, locatorValue, undefined, undefined, this.authResult.groupId, sessionId, undefined, tcgDetails)
                 if (script) {
-                    await browser.executeScript(script, [])
+                    await browser.execute(script)
                 }
                 return result
             }
@@ -90,7 +90,7 @@ class AiHandler {
                 BStackLogger.info('findElement failed, trying to heal')
                 const script = await aiSDK.BrowserstackHealing.healFailure(locatorType, locatorValue, undefined, undefined, this.authResult.userId, this.authResult.groupId, sessionId, undefined, undefined, this.authResult.isGroupAIEnabled, tcgDetails)
                 if (script) {
-                    await browser.executeScript(script, [])
+                    await browser.execute(script)
                     const tcgData = await aiSDK.BrowserstackHealing.pollResult(TCG_URL, sessionId, this.authResult.sessionToken)
                     if (tcgData && tcgData.selector && tcgData.value){
                         const healedResult = await orginalFunc(tcgData.selector, tcgData.value)
