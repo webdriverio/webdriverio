@@ -330,7 +330,7 @@ class _AccessibilityHandler {
         const fnBody = accessibilityScripts.saveTestResults || ''
         const arg = dataForExtension
         const results: unknown = await browser.execute(
-            `return (await function (...bstackSdkArgs) {
+            `return (function (...bstackSdkArgs) {
                 return new Promise((resolve, reject) => {
                     const data = bstackSdkArgs[0]; // This is how you access the argument
                     bstackSdkArgs.push(resolve);
