@@ -141,7 +141,10 @@ export async function isDisplayed (
             }
             throw err
         }),
-        this.getCSSProperty('display')
+        /**
+         * don't fail if element is not existing
+         */
+        this.getCSSProperty('display').catch(() => ({ value: '' }))
     ])
 
     /**

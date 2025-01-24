@@ -159,7 +159,7 @@ describe('isDisplayed test', () => {
         elem.selector = '#nonexisting'
         // @ts-ignore mock feature
         vi.mocked(fetch).setMockResponse([
-            { value: 'block' },
+            { error: 'no such element', statusCode: 404 },
             { error: 'no such element', statusCode: 404 }
         ])
 
