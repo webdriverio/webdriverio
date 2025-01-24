@@ -7,60 +7,49 @@ const log = logger('webdriver')
 
 /**
  * The WebdriverIO `getContexts` method is an improved version of the default Appium `contexts`
- * (and "old" WebdriverIO `getContexts`) command. It provides more detailed and actionable information
- * about the available contexts in a mobile app session, addressing the limitations of the default Appium methods.
+ * (and the previous WebdriverIO `getContexts`) command. It provides detailed and actionable information
+ * about available contexts in a mobile app session, addressing the limitations of the default Appium methods.
  *
  * ### How Webviews Work and Why This Method Helps
- * Hybrid apps use **webviews** to render web content within a native application. For Android this is based on
- * Chrome/System Webview and for iOS it's powered by Safari (WebKit). A webview is essentially a
- * browser-like component embedded in the app, and interacting with these webviews can be challenging:
+ * For more details, refer to the [Hybrid Apps documentation](/docs/api/mobile#hybrid-apps). Below is a summary of the challenges addressed by the `getContexts` command:
  *
  * #### Android Challenges
- * - A single webview (e.g., `WEBVIEW_{packageName}`) can contain multiple pages (similar to browser tabs). The
- *   default Appium methods do not provide details about these pages, such as their titles, URLs, or visibility.
- *   Without this metadata, it's hard to identify the relevant page, leading to test flakiness.
+ * - A single webview (e.g., `WEBVIEW_{packageName}`) may contain multiple pages (similar to browser tabs).
+ * - The default Appium methods do not include details about these pages, such as their `title`, `url`, or visibility,
+ *   making it hard to identify the correct page and leading to potential flakiness.
  *
  * #### iOS Challenges
- * - The default Appium method returns webview IDs (e.g., `WEBVIEW_{id}`) without any additional information. This
- *   makes it guesswork to determine which webview corresponds to the target app screen.
+ * - The default Appium method only returns generic webview IDs (e.g., `WEBVIEW_{id}`) without any additional metadata.
+ * - This makes it difficult to determine which webview corresponds to the target app screen.
  *
- * The enhanced `getContexts` method solves these problems by returning detailed context objects, including:
- * - **For Android:** Metadata such as `title`, `url`, `packageName`, `webviewPageId`, and layout details (`screenX`,
- *   `screenY`, `width`, and `height`).
- * - **For iOS:** Metadata such as `bundleId`, `title`, and `url` for each webview.
+ * The enhanced `getContexts` method solves these issues by returning detailed context objects, which include:
+ * - **For Android:** `title`, `url`, `packageName`, `webviewPageId`, and layout details (`screenX`, `screenY`, `width`, and `height`).
+ * - **For iOS:** `bundleId`, `title`, and `url`.
  *
- * These additional details make it easier to debug and reliably interact with webviews in hybrid apps.
+ * These enhancements make debugging and interacting with hybrid apps more reliable.
  *
  * ### Why Use This Method?
- * The default Appium `contexts` method returns only an array of strings representing the available contexts, e.g.:
- * - <strong>For Android:</strong> `['NATIVE_APP', 'WEBVIEW_com.wdiodemoapp', ...]`
- * - <strong>For iOS:</strong> `[ 'NATIVE_APP', 'WEBVIEW_84392.1', ... ]`
+ * By default, the Appium `contexts` method returns only an array of strings representing available contexts:
+ * - **For Android:** `['NATIVE_APP', 'WEBVIEW_com.wdiodemoapp', ...]`
+ * - **For iOS:** `['NATIVE_APP', 'WEBVIEW_84392.1', ...]`
  *
- * While sufficient for simple scenarios, it introduces significant challenges in hybrid app testing:
+ * While sufficient for simple scenarios, these default responses lack critical metadata for hybrid app testing:
+ * - **For Android:** The lack of page-specific metadata makes it challenging to interact with the correct webview.
+ * - **For iOS:** Generic webview IDs provide no insight into the content or app screen they represent.
  *
- * - **For Android:** Multiple pages in a single webview make it difficult to pinpoint the correct page for automation.
- * - **For iOS:** Lack of detail in the webview ID makes it challenging to identify the correct webview for interaction.
- *
- * This method addresses these limitations, providing developers with detailed metadata and additional options to
- * filter and customize the returned contexts.
+ * The enhanced `getContexts` method provides:
+ * - Detailed metadata for both Android and iOS.
+ * - Options to filter and customize the returned contexts for better targeting and interaction.
  *
  * :::info Notes and Limitations
  *
- * - The enhanced `getContexts` method is available for both Android and iOS platforms. However, the data returned may vary based on the platform and the app under test.
- * - The method is backward compatible with the default Appium `contexts` and "old" WebdriverIO `getContexts` method. If you do not specify the `returnDetailedContexts` option, the method returns the default context array.
- * - If you want to use the "default" Appium `contexts` method, you can use the `driver.getAppiumContexts()` method, see also the [Appium Contexts](/docs/api/appium#getappiumcontexts) command.
+ * - The enhanced `getContexts` method works on both Android and iOS platforms. However, the returned data may vary depending on the platform and app under test.
+ * - If you do not specify the `returnDetailedContexts` option, the method behaves like the default Appium `contexts` method, returning a simple context array.
+ * - To use the "default" Appium `contexts` method, use `driver.getAppiumContexts()`. For more information, see the [Appium Contexts documentation](/docs/api/appium#getappiumcontexts).
  *
  * #### Android Webviews:
  * - Metadata such as `androidWebviewData` is available only when `returnAndroidDescriptionData` is `true`.
- * - Using the `getContext` on a Chrome browser may sometimes return incomplete data due to different browser/Webview/ChromeDriver versions. As a result you may get back the default values if the data is not available including an incorrect `webviewPageId` (it will be `0`)
- *
- * #### iOS Webviews:
- * There are several cases that iOS can't find the Webview. Appium provides different extra capabilities for the `appium-xcuitest-driver` to find the Webview.
- * If you believe that the Webview is not found, you can try to set one of the following capabilities:
- *
- * - `appium:includeSafariInWebviews`: Add Safari web contexts to the list of contexts available during a native/webview app test. This is useful if the test opens Safari and needs to be able to interact with it. Defaults to `false`.
- * - `appium:webviewConnectRetries`: The maximum number of retries before giving up on web view pages detection. The delay between each retry is 500ms, default is `10` retries.
- * - `appium:webviewConnectTimeout`: The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms.
+ * - Using the `getContexts` method on a Chrome browser may occasionally return incomplete data due to mismatched browser/Webview/ChromeDriver versions. In such cases, default values or an incorrect `webviewPageId` (e.g., `0`) may be returned.
  *
  * :::
  *

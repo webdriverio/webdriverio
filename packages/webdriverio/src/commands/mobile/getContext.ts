@@ -12,9 +12,7 @@ const log = logger('webdriver')
  * return detailed context information, making it easier to work with hybrid apps that use webviews.
  *
  * ### How Contexts Work
- * Hybrid apps use **webviews** to render web content within a native application. For Android this is based on
- * Chrome/System Webview and for iOS it's powered by Safari (WebKit). A webview is essentially a browser-like component
- * embedded in the app. Interacting with webviews can be challenging due to platform-specific nuances:
+ * Refer to [Hybrid Apps documentation](/docs/api/mobile#hybrid-apps) for more information. Below is an explanation of the challenges associated with the `getContext` command:
  *
  * #### For Android:
  * - Webviews can contain multiple pages (like browser tabs), and identifying the correct page requires additional metadata
@@ -42,11 +40,6 @@ const log = logger('webdriver')
  * - If you want to use the "default" Appium `context` method, you can use the `driver.getAppiumContext()` method, see
  * also the [Appium Contexts](/docs/api/appium#getappiumcontext) command.
  * - **Android:** Android-specific options (`androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout`) have no effect on iOS.
- * - **iOS:** There are several cases that iOS can't find the Webview. Appium provides different extra capabilities for the `appium-xcuitest-driver`
- * to find the Webview. If you believe that the Webview is not found, you can try to set one of the following capabilities:
- *   - `appium:includeSafariInWebviews`: Add Safari web contexts to the list of contexts available during a native/webview app test. This is useful if the test opens Safari and needs to be able to interact with it. Defaults to `false`.
- *   - `appium:webviewConnectRetries`: The maximum number of retries before giving up on web view pages detection. The delay between each retry is 500ms, default is `10` retries.
- *   - `appium:webviewConnectTimeout`: The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms.
  * - Logs warnings if multiple or no detailed contexts are found:
  *   - `We found more than 1 detailed context for the current context '{context}'. We will return the first context.`
  *   - `We did not get back any detailed context for the current context '{context}'. We will return the current context as a string.`

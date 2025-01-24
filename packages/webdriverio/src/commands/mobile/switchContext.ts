@@ -5,58 +5,48 @@ import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, IosDe
 const log = logger('webdriver')
 
 /**
- * Switch into the context with the given Webview `name` or based on `title` or `url`.
+ * Switch to a specific context using a given Webview `name`, `title`, or `url`.
  *
- * This method improves upon the default Appium `context` method by providing more flexibility and precision
- * in switching between native and webview contexts in hybrid mobile applications.
+ * This method enhances the default Appium `context` command by offering more flexibility and precision
+ * for switching between native and webview contexts in hybrid mobile applications.
  *
  * ### How Contexts Work
- * Hybrid apps use **webviews** to render web content within a native application. For Android this is based on
- * Chrome/System Webview and for iOS it's powered by Safari (WebKit). A webview is essentially a browser-like component
- * embedded in the app. Interacting with webviews can be challenging due to platform-specific nuances:
+ * For an overview of Hybrid Apps and webviews, refer to the [Hybrid Apps documentation](/docs/api/mobile#hybrid-apps).
+ * Below is a summary of how the `switchContext` command addresses common challenges:
  *
- * #### For Android:
- * - Webviews can contain multiple pages (like browser tabs), and identifying the correct page requires additional metadata
- *   such as `title` or `url`.
- * - The default Appium methods only provide basic context names (e.g., `WEBVIEW_{packageName}`) without detailed information
- *   about the pages inside the webview.
- * - Switching to the Webview context for Android consists of two steps which are handled automatically by this method:
- *  1. Switch to the Webview context using the `WEBVIEW_{packageName}` context name.
- *  2. Switch to the correct page inside the Webview using the `switchToWindow` method.
+ * #### Android Challenges
+ * - Webviews often contain multiple pages (similar to browser tabs). Identifying the correct page requires additional
+ *   metadata such as `title` or `url`, which is not provided by default Appium methods.
+ * - Default Appium methods return only basic context names (e.g., `WEBVIEW_{packageName}`) without details about
+ *   the content or pages within the webview.
+ * - Switching contexts on Android involves two steps, which are handled automatically by this method:
+ *   1. Switch to the Webview context using `WEBVIEW_{packageName}`.
+ *   2. Select the appropriate page within the Webview using the `switchToWindow` method.
  *
- * #### For iOS:
- * - Each webview is identified by a generic `WEBVIEW_{id}` string, which doesn’t indicate its contents or the app screen
- *   it belongs to.
+ * #### iOS Challenges
+ * - Webviews are identified by generic IDs (e.g., `WEBVIEW_{id}`), which do not provide information about the content
+ *   or the app screen they correspond to.
+ * - Determining the correct webview for interaction often requires trial and error.
  *
- * Determining the correct webview for interaction often involves trial and error with extra methods.
- *
- * The `switchContext` method retrieves detailed context metadata, including `title`, `url`, and visibility,
- * to ensure reliable and accurate context switching.
+ * The `switchContext` method simplifies this process by retrieving detailed metadata (e.g., `title`, `url`, and visibility)
+ * to ensure accurate and reliable context switching.
  *
  * ### Why Use This Method?
- * - **Simplified Context Switching**: When you know the `title` or `url` of the desired webview, this method eliminates the
- *   need for a separate `getContexts` or even a combination of `switchContext({id})` and `getTitle()` calls.
- * - **Automatic Context Matching**: The method finds the best matching context based on:
- *   - Platform-specific identifiers (`bundleId` for iOS, `packageName` for Android which are automatically determined).
- *   - Exact or partial matches for `title` and `url` (supports both strings and regular expressions).
- *   - Additional checks for Android webviews to ensure they are attached and visible.
- * - **Fine-Grained Control**: Custom retry intervals and timeouts (Android-only) handle delays in webview initialization.
- * - If you want to use the "default" Appium `switchContext` method, you can use the `driver.switchAppiumContext()` method, see
- * also the [Appium Contexts](/docs/api/appium#switchappiumcontext) command.
- * - **Android:** Android-specific options (`androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout`) have no effect on iOS.
- * - **iOS:** There are several cases that iOS can't find the Webview. Appium provides different extra capabilities for the `appium-xcuitest-driver`
- * to find the Webview. If you believe that the Webview is not found, you can try to set one of the following capabilities:
- *   - `appium:includeSafariInWebviews`: Add Safari web contexts to the list of contexts available during a native/webview app test. This is useful if the test opens Safari and needs to be able to interact with it. Defaults to `false`.
- *   - `appium:webviewConnectRetries`: The maximum number of retries before giving up on web view pages detection. The delay between each retry is 500ms, default is `10` retries.
- *   - `appium:webviewConnectTimeout`: The maximum amount of time in milliseconds to wait for a web view page to be detected. Default is `5000` ms.
+ * - **Simplified Switching**: If you know the `title` or `url` of the desired webview, this method eliminates the need for
+ *   additional calls to `getContexts` or combining multiple methods like `switchContext({id})` and `getTitle()`.
+ * - **Automatic Context Matching**: Finds the best match for a context based on:
+ *   - Platform-specific identifiers (`bundleId` for iOS, `packageName` for Android).
+ *   - Exact or partial matches for `title` or `url` (supports both strings and regular expressions).
+ *   - Android-specific checks to ensure webviews are attached and visible.
+ * - **Fine-Grained Control**: Custom retry intervals and timeouts (Android-only) allow you to handle delays in webview initialization.
+ * - **Default Appium Method Access**: If needed, you can use the default Appium `switchContext` command via `driver.switchAppiumContext()`.
  *
  * :::info Notes and Limitations
  *
- * - If you already know the title or url of the webview you want to switch to, you can provide an object with the `title` or `url`
- * property and remove the need for additional calls to `getContexts`. This method will automatically find the best matching context.
- * - Logs reasons for failing to match contexts for debugging purposes.
- * - Android-specific options such as `androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout` are not applicable to iOS.
- * - Requires at least one of `title` or `url` when providing an object as input.
+ * - If the `title` or `url` of the desired webview is known, this method can automatically locate and switch to the matching context without additional `getContexts` calls.
+ * - Android-specific options like `androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout` are not applicable to iOS.
+ * - Logs reasons for context-matching failures to assist with debugging.
+ * - When using an object as input, either `title` or `url` is required.
  *
  * :::
  *
