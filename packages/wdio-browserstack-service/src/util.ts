@@ -431,14 +431,14 @@ export const validateCapsWithAppA11y = (platformMeta?: { [key: string]: any; }) 
     BStackLogger.debug(`platformMeta ${JSON.stringify(platformMeta)}`)
     if (
         platformMeta?.platform_name &&
-        String(platformMeta?.platform_name).toLowerCase() === "android" &&
+        String(platformMeta?.platform_name).toLowerCase() === 'android' &&
         platformMeta?.platform_version &&
         parseInt(platformMeta?.platform_version?.toString()) < 11
     ) {
         BStackLogger.warn(
-            "App Accessibility Automation tests are supported on OS version 11 and above for Android devices."
-        );
-        return false;
+            'App Accessibility Automation tests are supported on OS version 11 and above for Android devices.'
+        )
+        return false
     }
     return true
 }
