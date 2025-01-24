@@ -19,7 +19,11 @@ import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir } fr
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
-export type ChromedriverParameters = Partial<InstallOptions> & Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'>
+export type ChromedriverParameters = (
+    Partial<InstallOptions> &
+    Omit<EdgedriverParameters, 'port' | 'edgeDriverVersion' | 'customEdgeDriverPath'> &
+    Pick<GeckodriverParameters, 'spawnOpts'>
+)
 declare global {
     namespace WebdriverIO {
         interface ChromedriverOptions extends ChromedriverParameters {}
@@ -90,7 +94,8 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
          * Set NODE_OPTIONS empty to avoid passing it to the chromedriver process so that Electron doesn't crash
          */
         driverProcess = cp.spawn(chromedriverExcecuteablePath, driverParams, {
-            env: { ...process.env, NODE_OPTIONS: '' }
+            env: { ...process.env, NODE_OPTIONS: '' },
+            ...(chromedriverOptions.spawnOpts || {})
         })
         driver = `Chromedriver v${browserVersion} with params ${driverParams.join(' ')}`
     } else if (isSafari(caps.browserName)) {
