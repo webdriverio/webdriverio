@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`switchContext test > should throw an error when no matching context is found for Android based on the title and url regex 1`] = `
+[Error: We parsed a total of 5 Webviews but did not find a matching context. The reasons are:
+- Webview 1: 'NATIVE_APP'
+  - Skipped context because it is NATIVE_APP
+- Webview 2: 'WEBVIEW_com.wdiodemoapp'
+  - App packageName 'com.foo' did not match: 'WEBVIEW_com.wdiodemoapp'
+  - Title '/No matching Title/' did not match: 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO'
+- Webview 3: 'WEBVIEW_com.otherApp'
+  - App packageName 'com.foo' did not match: 'WEBVIEW_com.otherApp'
+  - Title '/No matching Title/' did not match: 'Other Apps · I am just another app'
+- Webview 4: 'WEBVIEW_com.otherNonVisibleApp'
+  - App packageName 'com.foo' did not match: 'WEBVIEW_com.otherNonVisibleApp'
+  - Title '/No matching Title/' did not match: 'Other Apps · I am just another app which is not visible'
+  - Additional Android checks failed
+- Webview 5: 'WEBVIEW_chrome'
+  - App packageName 'com.foo' did not match: 'WEBVIEW_chrome'
+  - Title '/No matching Title/' did not match: 'Android | Get more done with Google on Android-phones and devices'
+  - URL '/.*io/' did not match: 'https://www.android.com/'
+  - Additional Android checks failed]
+`;
+
+exports[`switchContext test > should throw an error when no matching context is found for Android based on the url 1`] = `
+[Error: We parsed a total of 5 Webviews but did not find a matching context. The reasons are:
+- Webview 1: 'NATIVE_APP'
+  - Skipped context because it is NATIVE_APP
+- Webview 2: 'WEBVIEW_com.wdiodemoapp'
+  - App packageName 'com.foo' did not match: 'WEBVIEW_com.wdiodemoapp'
+  - URL 'https://no-matching-url.io' did not match: 'https://webdriver.io/'
+- Webview 3: 'WEBVIEW_com.otherApp'
+  - App packageName 'com.foo' did not match: 'WEBVIEW_com.otherApp'
+  - URL 'https://no-matching-url.io' did not match: 'https://otherapp.io/'
+- Webview 4: 'WEBVIEW_com.otherNonVisibleApp'
+  - App packageName 'com.foo' did not match: 'WEBVIEW_com.otherNonVisibleApp'
+  - URL 'https://no-matching-url.io' did not match: 'https://othernotvisibleapp.io/'
+  - Additional Android checks failed
+- Webview 5: 'WEBVIEW_chrome'
+  - App packageName 'com.foo' did not match: 'WEBVIEW_chrome'
+  - URL 'https://no-matching-url.io' did not match: 'https://www.android.com/'
+  - Additional Android checks failed]
+`;
+
+exports[`switchContext test > should throw an error when no matching context is found for iOS based on the title 1`] = `
+[Error: We parsed a total of 3 Webviews but did not find a matching context. The reasons are:
+- Webview 1: 'NATIVE_APP'
+  - Skipped context because it is NATIVE_APP
+- Webview 2: 'WEBVIEW_86150.1'
+  - App bundleId 'com.foo' did not match: 'WEBVIEW_86150.1'
+  - Title 'No matching Title' did not match: 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO'
+- Webview 3: 'WEBVIEW_86152.1'
+  - App bundleId 'com.foo' did not match: 'WEBVIEW_86152.1'
+  - Title 'No matching Title' did not match: 'Apple']
+`;

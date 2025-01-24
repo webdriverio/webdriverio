@@ -41,7 +41,10 @@ export class ContextManager extends SessionManager {
          */
         this.#browser.on('result', this.#onCommandResultBidiAndClassic.bind(this))
 
-        if (!this.isEnabled()) {
+        // only listen to command events if we are in a bidi session or a mobile session
+        // Adding the check for mobile in the `this.isEnabled()` method breaking the method and throws
+        // `Test execution failed: TypeError: __privateGet(...).sessionSubscribe is not a function`
+        if (!this.isEnabled() && !this.#browser.isMobile) {
             return
         }
 
@@ -122,17 +125,17 @@ export class ContextManager extends SessionManager {
         /**
          * Keep track of the context to which we switch
          */
-        if (this.#browser.isMobile && event.command === 'switchContext') {
+        if (this.#browser.isMobile && event.command === 'switchAppiumContext') {
             this.#mobileContext = (event.body as { name: string }).name
         }
     }
 
     #onCommandResultMobile(event: { command: string, result: unknown }) {
-        if (event.command === 'getContext') {
+        if (event.command === 'getAppiumContext') {
             this.setCurrentContext((event.result as { value: string }).value)
         }
         if (
-            event.command === 'switchContext' &&
+            event.command === 'switchAppiumContext' &&
             (event.result as { value: string | null }).value === null &&
             this.#mobileContext
         ) {

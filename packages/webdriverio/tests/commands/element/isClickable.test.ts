@@ -44,7 +44,7 @@ describe('isClickable test', () => {
             execute: vi.fn(),
             options: {},
             isMobile: true,
-            getContext: vi.fn().mockResolvedValue('NATIVE_APP')
+            isNativeContext: true
         }
         await expect(() => elem.isClickable.call(scope)).rejects.toThrow()
     })
