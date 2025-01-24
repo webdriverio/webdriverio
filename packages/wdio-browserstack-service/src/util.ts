@@ -563,8 +563,16 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
             BStackLogger.debug(util.format(results as string))
             return ( results as { [key: string]: any; } | undefined )
         }
-        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
-        BStackLogger.debug(util.format(results as string))
+        const fnBody = AccessibilityScripts.performScan || ''
+        const arg = { method: commandName || '' }
+        const results = await browser.execute(
+            `return (await function (...bstackSdkArgs) {
+                return new Promise((resolve, reject) => {
+                    bstackSdkArgs.push(resolve);
+                    ${fnBody.replace(/arguments/g, 'bstackSdkArgs')}
+                });
+            })(${JSON.stringify(arg)})`
+        )
         return ( results as { [key: string]: unknown; } | undefined )
     } catch (err) {
         BStackLogger.error('Accessibility Scan could not be performed : ' + err)
@@ -586,7 +594,15 @@ export const getA11yResults = async (isAppAutomate: boolean, browser: WebdriverI
     try {
         BStackLogger.debug('Performing scan before getting results')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
-        const results: Array<{ [key: string]: unknown }> = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResults as string)
+        const fnBody = AccessibilityScripts.getResults || ''
+        const results: Array<{ [key: string]: unknown }> = await browser.execute(
+            `return (await function (...bstackSdkArgs) {
+                return new Promise((resolve, reject) => {
+                    bstackSdkArgs.push(resolve);
+                    ${fnBody.replace(/arguments/g, 'bstackSdkArgs')}
+                });
+            })()`
+        )
         return results
     } catch (error: any) {
         BStackLogger.error('No accessibility results were found.')
@@ -664,7 +680,15 @@ export const getA11yResultsSummary = async (isAppAutomate: boolean, browser: Web
     try {
         BStackLogger.debug('Performing scan before getting results summary')
         await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
-        const summaryResults: { [key: string]: unknown; } = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResultsSummary as string)
+        const fnBody = AccessibilityScripts.getResultsSummary || ''
+        const summaryResults: { [key: string]: unknown; } = await browser.execute(
+            `return (await function (...bstackSdkArgs) {
+                return new Promise((resolve, reject) => {
+                    bstackSdkArgs.push(resolve);
+                    ${fnBody.replace(/arguments/g, 'bstackSdkArgs')}
+                });
+            })()`
+        )
         return summaryResults
     } catch {
         BStackLogger.error('No accessibility summary was found.')

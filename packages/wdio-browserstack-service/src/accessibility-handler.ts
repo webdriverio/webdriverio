@@ -327,7 +327,17 @@ class _AccessibilityHandler {
         if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
             return
         }
-        const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(accessibilityScripts.saveTestResults as string, dataForExtension)
+        const fnBody = accessibilityScripts.saveTestResults || ''
+        const arg = dataForExtension
+        const results: unknown = await browser.execute(
+            `return (await function (...bstackSdkArgs) {
+                return new Promise((resolve, reject) => {
+                    const data = bstackSdkArgs[0]; // This is how you access the argument
+                    bstackSdkArgs.push(resolve);
+                    ${fnBody.replace(/arguments/g, 'bstackSdkArgs')}
+                });
+            })(${JSON.stringify(arg)})`
+        )
         BStackLogger.debug(util.format(results as string))
     }
 
