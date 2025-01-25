@@ -47,13 +47,13 @@ export abstract class WebDriverRequest {
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
         const { url, requestOptions } = await this.createOptions(options, sessionId)
-        this.eventHandler.onRequest?.(requestOptions.maskedBody ? { ...requestOptions, body: requestOptions.maskedBody } : requestOptions)
+        this.eventHandler.onRequest?.(requestOptions.maskedBody ? { ...requestOptions, body: requestOptions.maskedBody as unknown as BodyInit } : requestOptions)
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit & {maskedBody?: any};}> {
+    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit & {maskedBody?: Record<string, unknown>};}> {
         const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
-        const requestOptions: RequestInit & {maskedBody?: any} = {
+        const requestOptions: RequestInit & {maskedBody?: Record<string, unknown>} = {
             method: this.method,
             signal: AbortSignal.timeout(timeout)
         }
@@ -142,7 +142,7 @@ export abstract class WebDriverRequest {
 
     protected async _request (
         url: URL,
-        fullRequestOptions: RequestInit & {maskedBody?: any},
+        fullRequestOptions: RequestInit & {maskedBody?: Record<string, unknown>},
         transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse,
         totalRetryCount = 0,
         retryCount = 0
@@ -150,7 +150,7 @@ export abstract class WebDriverRequest {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult((fullRequestOptions.maskedBody || fullRequestOptions.body) as any))
+            log.info('DATA', transformCommandLogResult((fullRequestOptions.maskedBody || fullRequestOptions.body) as Record<string, unknown>))
         }
 
         const startTime = performance.now()
@@ -158,7 +158,7 @@ export abstract class WebDriverRequest {
             .catch((err: WebDriverRequestError) => err)
         const durationMillisecond = performance.now() - startTime
 
-        const maskedFullRequestsOptions =  fullRequestOptions.maskedBody ? { ...fullRequestOptions, body: fullRequestOptions.maskedBody } : fullRequestOptions
+        const maskedFullRequestsOptions =  fullRequestOptions.maskedBody ? { ...fullRequestOptions, body: fullRequestOptions.maskedBody as unknown as BodyInit } : fullRequestOptions
 
         /**
          * handle retries for requests
