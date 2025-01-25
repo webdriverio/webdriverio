@@ -26,8 +26,9 @@
  */
 export async function setValue (
     this: WebdriverIO.Element,
-    value: string | number
+    value: string | number,
+    mask?: boolean
 ) {
     await this.clearValue()
-    return this.addValue(value)
+    return this.addValue(value, mask)
 }
