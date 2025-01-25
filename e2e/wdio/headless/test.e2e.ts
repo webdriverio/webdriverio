@@ -16,6 +16,16 @@ describe('main suite 1', () => {
         await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
 
+    it('should support input value with sensitive information', async () => {
+        await browser.url('https://guinea-pig.webdriver.io/')
+
+        const firstInput = await $('input')
+        await firstInput.setValue('Hello World', true)
+
+        const inputValue = await firstInput.getValue()
+        expect(inputValue).toBe('Hello World')
+    })
+
     it('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
         // eslint-disable-next-line wdio/no-pause
