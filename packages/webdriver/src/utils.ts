@@ -1,8 +1,8 @@
 import type { EventEmitter } from 'node:events'
 import { deepmergeCustom } from 'deepmerge-ts'
 
-import logger from '@wdio/logger'
-import type { Protocol } from '@wdio/protocols'
+import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
+import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
@@ -454,4 +454,32 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
     } catch (err) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
     }
+}
+
+export function mask(commandInfo: CommandEndpoint, body: Record<string, unknown>, args: unknown[]) {
+    const commandMaskParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'mask')
+
+    // Continue process if the command has the mask parameter
+    if (commandMaskParamIndex !== -1) {
+        const textValueParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'text')
+        const maskValueIndexInArgs = (commandInfo.variables?.length ?? 0) + commandMaskParamIndex
+
+        if (textValueParamIndex !== -1 && args[maskValueIndexInArgs] === true ) {
+            const textValueIndexInArgs = (commandInfo.variables?.length ?? 0) + textValueParamIndex
+            const text = args[textValueIndexInArgs]
+            if (text && typeof text === 'string') {
+                const maskedBody = {
+                    ...body,
+                    text: SENSITIVE_DATA_REPLACER
+                }
+                const textValueArgsIndex = textValueParamIndex + (commandInfo.variables?.length ?? 0)
+                const maskedArgs = args.slice(0, textValueArgsIndex).concat(maskedBody).concat(args.slice(textValueArgsIndex + 1))
+                return {
+                    maskedBody: maskedBody,
+                    maskedArgs: maskedArgs
+                }
+            }
+        }
+    }
+    return { maskedBody: undefined, maskedArgs: undefined }
 }
