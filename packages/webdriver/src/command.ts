@@ -9,12 +9,14 @@ import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
+const sensitiveReplacer = '*SECURE*'
 
 export default function (
     method: string,
     endpointUri: string,
     commandInfo: CommandEndpoint,
-    doubleEncodeVariables = false
+    doubleEncodeVariables = false,
+    maskingPatterns: RegExp[] = []
 ) {
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
@@ -99,9 +101,9 @@ export default function (
                     : getArgumentType(arg)
                 throw new Error(
                     `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
-                    `Expected: ${commandParam.type}\n` +
-                    `Actual: ${actual}` +
-                    moreInfo
+                        `Expected: ${commandParam.type}\n` +
+                        `Actual: ${actual}` +
+                        moreInfo
                 )
             }
 
@@ -120,6 +122,33 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
+        /**
+        * Masking text value when matching regEx
+        */
+        let maskedBody: Record<string, any> | undefined
+        let maskedArgs: string[] | undefined
+        if (maskingPatterns.length > 0 && commandInfo.parameters.some((param) => param.name === 'text')) {
+
+            const hasSensitiveTextData = Object.entries(body).some(([commandParam, paramValue]) => commandParam === 'text' && maskingPatterns.some((pattern) => pattern.test(paramValue)))
+            if (hasSensitiveTextData) {
+                maskedBody = {
+                    ...body,
+                    text: sensitiveReplacer
+                }
+                maskedArgs = args.map((arg) => maskingPatterns.some((pattern) => pattern.test(arg)) ? sensitiveReplacer : arg)
+            }
+        }
+
+        const request = new environment.value.Request(
+            method,
+            endpoint,
+            body,
+            maskedBody,
+            isHubCommand
+        )
+        request.on('performance', (...args) => this.emit('request.performance', ...args))
+        this.emit('command', { command, method, endpoint, body: maskedBody || body })
+        log.info('COMMAND', commandCallStructure(command, maskedArgs || args))
         const request = new environment.value.Request(method, endpoint, body, isHubCommand, {
             onPerformance: (data) => this.emit('request.performance', data),
             onRequest: (data) => this.emit('request.start', data),
@@ -144,7 +173,7 @@ export default function (
                 log.info('RESULT', resultLog)
             }
 
-            this.emit('result', { command, method, endpoint, body, result })
+            this.emit('result', { command, method, endpoint, body: maskedBody || body, result })
 
             if (command === 'deleteSession') {
                 /**
@@ -191,7 +220,7 @@ export default function (
 
             return result.value as WebDriverResponse | BidiResponses
         }).catch((error) => {
-            this.emit('result', { command, method, endpoint, body, result: { error } })
+            this.emit('result', { command, method, endpoint, body: maskedBody || body, result: { error } })
             throw error
         })
     }
