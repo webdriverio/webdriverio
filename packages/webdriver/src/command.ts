@@ -125,38 +125,28 @@ export default function (
         /**
         * Masking text value when matching regEx
         */
-        let maskedBody: Record<string, any> | undefined
+        let maskedBody: Record<string, unknown> | undefined
         let maskedArgs: string[] | undefined
         if (maskingPatterns.length > 0 && commandInfo.parameters.some((param) => param.name === 'text')) {
 
-            const hasSensitiveTextData = Object.entries(body).some(([commandParam, paramValue]) => commandParam === 'text' && maskingPatterns.some((pattern) => pattern.test(paramValue)))
+            const hasSensitiveTextData = Object.entries(body).some(([commandParam, paramValue]) => commandParam === 'text' && maskingPatterns.some((pattern) => pattern.test(paramValue as string)))
             if (hasSensitiveTextData) {
                 maskedBody = {
                     ...body,
                     text: sensitiveReplacer
                 }
-                maskedArgs = args.map((arg) => maskingPatterns.some((pattern) => pattern.test(arg)) ? sensitiveReplacer : arg)
+                maskedArgs = args.map((arg) => maskingPatterns.some((pattern) => pattern.test(arg as string)) ? sensitiveReplacer : arg) as string[]
             }
         }
 
-        const request = new environment.value.Request(
-            method,
-            endpoint,
-            body,
-            maskedBody,
-            isHubCommand
-        )
-        request.on('performance', (...args) => this.emit('request.performance', ...args))
-        this.emit('command', { command, method, endpoint, body: maskedBody || body })
-        log.info('COMMAND', commandCallStructure(command, maskedArgs || args))
-        const request = new environment.value.Request(method, endpoint, body, isHubCommand, {
+        const request = new environment.value.Request(method, endpoint, body, maskedBody, isHubCommand, {
             onPerformance: (data) => this.emit('request.performance', data),
             onRequest: (data) => this.emit('request.start', data),
             onResponse: (data) => this.emit('request.end', data),
             onRetry: (data) => this.emit('request.retry', data)
         })
-        this.emit('command', { command, method, endpoint, body })
-        log.info('COMMAND', commandCallStructure(command, args))
+        this.emit('command', { command, method, endpoint, body: maskedBody || body })
+        log.info('COMMAND', commandCallStructure(command, maskedArgs || args))
         /**
          * use then here so we can better unit test what happens before and after the request
          */
