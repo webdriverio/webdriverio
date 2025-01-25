@@ -29,7 +29,8 @@ const VALID_TYPES = ['string', 'number']
  */
 export function addValue (
     this: WebdriverIO.Element,
-    value: string | number
+    value: string | number,
+    mask?: boolean
 ) {
     /**
      * The JSONWireProtocol allowed array values and use of special characters when adding a value to an input.
@@ -43,5 +44,5 @@ export function addValue (
         )
     }
 
-    return this.elementSendKeys(this.elementId, value.toString())
+    return this.elementSendKeys(this.elementId, value.toString(), mask)
 }

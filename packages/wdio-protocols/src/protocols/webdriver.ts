@@ -1007,6 +1007,12 @@ export default {
                     description: 'string to send as keystrokes to the element',
                     required: true,
                 },
+                {
+                    name: 'mask',
+                    type: 'boolean',
+                    description: 'ensure the value is masked outside of the request made to appium server',
+                    required: false,
+                },
             ],
             alternativeCommands: ['element/addValue', 'element/setValue'],
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L413-L416']

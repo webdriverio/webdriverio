@@ -1,11 +1,12 @@
 import logger from '@wdio/logger'
-import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
+import { commandCallStructure, isValidParameter, getArgumentType, transformCommandLogResult } from '@wdio/utils'
 import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
 import { environment } from './environment.js'
 import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent } from './types.js'
+import { mask } from './utils.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
@@ -136,14 +137,24 @@ export default function (
             throw new Error(`Trying to run command "${commandCallStructure(command, args)}" after session has been deleted, aborting request without executing it`)
         }
 
+        /**
+        * Masking text value when having the parameter mask set to true
+        */
+        const { maskedBody, maskedArgs } = mask(commandInfo, body, args)
+
         const request = new environment.value.Request(method, endpoint, body, abortSignal, isHubCommand, {
-            onPerformance: (data) => this.emit('request.performance', data),
-            onRequest: (data) => this.emit('request.start', data),
+            onPerformance: (data) => this.emit('request.performance', { ...data, request: {
+                ...data.request,
+                body: maskedBody || data.request.body
+            } }),
+            onRequest: (data) => this.emit('request.start', { ...data, body: maskedBody || data.body }),
             onResponse: (data) => this.emit('request.end', data),
-            onRetry: (data) => this.emit('request.retry', data)
+            onRetry: (data) => this.emit('request.retry', data),
+            onLogData: (data) => log.info('DATA', transformCommandLogResult((maskedBody || data) as Record<string, unknown>))
         })
-        this.emit('command', { command, method, endpoint, body })
-        log.info('COMMAND', commandCallStructure(command, args))
+        this.emit('command', { command, method, endpoint, body: maskedBody || body })
+        log.info('COMMAND', commandCallStructure(command, maskedArgs || args))
+
         /**
          * use then here so we can better unit test what happens before and after the request
          */
@@ -160,7 +171,7 @@ export default function (
                 log.info('RESULT', resultLog)
             }
 
-            this.emit('result', { command, method, endpoint, body, result })
+            this.emit('result', { command, method, endpoint, body: maskedBody || body, result })
 
             if (command === 'deleteSession') {
                 /**
@@ -207,7 +218,7 @@ export default function (
 
             return result.value as WebDriverResponse | BidiResponses
         }).catch((error) => {
-            this.emit('result', { command, method, endpoint, body, result: { error } })
+            this.emit('result', { command, method, endpoint, body: maskedBody || body, result: { error } })
             throw error
         }).finally(() => {
             cleanup()
