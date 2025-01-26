@@ -92,6 +92,7 @@ interface AsyncIterators<T> {
     filter: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<WebdriverIO.Element[]>;
     filterSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<WebdriverIO.Element[]>;
     reduce: <T, U>(callback: (accumulator: U, currentValue: WebdriverIO.Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
+    entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>;
 }
 
 export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {

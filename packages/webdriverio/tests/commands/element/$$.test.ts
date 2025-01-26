@@ -68,6 +68,52 @@ describe('element', () => {
         expect(elems[2].isMobile).toBe(true)
     })
 
+    it('should be able to use entries', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const elem = await browser.$('#foo')
+        const elems = await elem.$$('.foo')
+        const entries = []
+        for await (const entry of elems.entries()) {
+            const [index, element] = entry
+            entries.push([
+                index,
+                {
+                    elementId: element.elementId,
+                    [ELEMENT_KEY]: element[ELEMENT_KEY],
+                    selector: element.selector,
+                    index: element.index
+                }
+            ])
+        }
+
+        expect(entries).toStrictEqual([
+            [0, {
+                [ELEMENT_KEY]: 'some-sub-elem-321',
+                selector: '.foo',
+                index: 0,
+                elementId: 'some-sub-elem-321'
+            }],
+            [1, {
+                [ELEMENT_KEY]: 'some-elem-456',
+                selector: '.foo',
+                index: 1,
+                elementId: 'some-elem-456'
+            }],
+            [2, {
+                [ELEMENT_KEY]: 'some-elem-789',
+                selector: '.foo',
+                index: 2,
+                elementId: 'some-elem-789'
+            }]
+        ])
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })
