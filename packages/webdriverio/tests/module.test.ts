@@ -12,10 +12,13 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('webdriver', () => {
     const client = {
         sessionId: 'foobar-123',
+        options: {},
         addCommand: vi.fn(),
         overwriteCommand: vi.fn(),
         strategies: new Map(),
-        isWebDriver: true
+        isWebDriver: true,
+        capabilities: { webSocketUrl: 'ws://' },
+        on: vi.fn()
     }
     const newSessionMock = vi.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))

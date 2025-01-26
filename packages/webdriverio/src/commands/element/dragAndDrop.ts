@@ -18,8 +18,8 @@ import type { ChainablePromiseElement, DragAndDropCoordinate, DragAndDropOptions
  * <example>
     :example.test.js
     it('should demonstrate the dragAndDrop command', async () => {
-        const elem = await $('#someElem')
-        const target = await $('#someTarget')
+        const elem = $('#someElem')
+        const target = $('#someTarget')
 
         // drag and drop to other element
         await elem.dragAndDrop(target)
@@ -40,7 +40,7 @@ export async function dragAndDrop (
     options: DragAndDropOptions = {}
 ) {
     const moveToCoordinates = target as DragAndDropCoordinate
-    const moveToElement = target as WebdriverIO.Element
+    const moveToElement = await target as WebdriverIO.Element
 
     /**
      * fail if
@@ -49,12 +49,12 @@ export async function dragAndDrop (
         /**
          * no target was specified
          */
-        !target ||
+        !moveToElement ||
         (
             /**
              * target is not from type element
              */
-            target.constructor.name !== 'Element' &&
+            moveToElement.constructor.name !== 'Element' &&
             /**
              * and is also not an object with x and y number parameters
              */
@@ -75,7 +75,7 @@ export async function dragAndDrop (
     /**
      * allow to specify an element or an x/y vector
      */
-    const isMovingToElement = target.constructor.name === 'Element'
+    const isMovingToElement = moveToElement.constructor.name === 'Element'
 
     const sourceRef: ElementReference = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
     const targetRef: ElementReference = { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] }

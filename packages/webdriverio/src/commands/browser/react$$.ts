@@ -1,15 +1,10 @@
-import fs from 'node:fs/promises'
-import url from 'node:url'
-
-import { resolve } from 'import-meta-resolve'
 import type { ElementReference } from '@wdio/protocols'
 
+import { resqScript } from '../constant.js'
 import { enhanceElementsArray } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
 import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq.js'
 import type { ReactSelectorOptions } from '../../types.js'
-
-let resqScript: string
 
 /**
  *
@@ -49,11 +44,6 @@ export async function react$$ (
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
-    if (!resqScript) {
-        const resqScriptPath = url.fileURLToPath(await resolve('resq', import.meta.url))
-        resqScript = (await fs.readFile(resqScriptPath)).toString()
-    }
-
     await this.executeScript(resqScript, [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(

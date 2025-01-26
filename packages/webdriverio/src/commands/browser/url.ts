@@ -1,6 +1,6 @@
 import { validateUrl } from '../../utils/index.js'
-import { getNetworkManager } from '../../networkManager.js'
-import { getContextManager } from '../../context.js'
+import { getNetworkManager } from '../../session/networkManager.js'
+import { getContextManager } from '../../session/context.js'
 import type { InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
@@ -121,7 +121,7 @@ export async function url (
         path = (new URL(path, this.options.baseUrl)).href
     }
 
-    if (this.isBidi) {
+    if (this.isBidi && path.startsWith('http')) {
         let resetPreloadScript: InitScript | undefined
         const contextManager = getContextManager(this)
         const context = await contextManager.getCurrentContext()
@@ -207,6 +207,7 @@ export async function url (
              */
             {
                 interval: 1,
+                timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
             }
         )
         return request

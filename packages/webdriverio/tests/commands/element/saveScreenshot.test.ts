@@ -3,10 +3,12 @@ import path from 'node:path'
 import type { MockInstance } from 'vitest'
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
+import '../../../src/node.js'
+
 vi.mocked(fs.access).mockResolvedValue()
 
 import { remote } from '../../../src/index.js'
-import * as utils from '../../../src/utils/index.js'
+import * as utils from '../../../src/node/utils.js'
 
 vi.mock('fetch')
 vi.mock('fs/promises')

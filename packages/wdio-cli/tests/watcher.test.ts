@@ -27,6 +27,8 @@ vi.mock('../src/launcher', async () => {
         runner: any
         interface: any
 
+        initialize = vi.fn()
+
         constructor (configFile: string, args: LauncherMockRunCommandArguments) {
             this.configParser = new ConfigParser(configFile)
             this.configParser.addConfigFile(configFile)
@@ -72,6 +74,85 @@ class WorkerMock extends EventEmitter implements Workers.Worker {
         this.isBusy = isBusy
         this.on = vi.fn()
     }
+    logsAggregator: string[]
+    execArgv?: string[] | undefined
+    onWorkerStart?(cid: string, capabilities: WebdriverIO.Capabilities, specs: string[], args: Options.Testrunner, execArgv: string[]): unknown | Promise<unknown> {
+        throw new Error('Method not implemented.')
+    }
+    onWorkerEnd?(cid: string, exitCode: number, specs: string[], retries: number): unknown | Promise<unknown> {
+        throw new Error('Method not implemented.')
+    }
+    afterSession?(config: Options.Testrunner, capabilities: WebdriverIO.Capabilities, specs: string[]): unknown | Promise<unknown> {
+        throw new Error('Method not implemented.')
+    }
+    onReload?(oldSessionId: string, newSessionId: string): unknown | Promise<unknown> {
+        throw new Error('Method not implemented.')
+    }
+    beforeHook?(test: any, context: any, hookName: string): unknown | Promise<unknown> {
+        throw new Error('Method not implemented.')
+    }
+    beforeCommand?(commandName: string, args: any[]): unknown | Promise<unknown> {
+        throw new Error('Method not implemented.')
+    }
+    afterCommand?(commandName: string, args: any[], result: any, error?: Error): unknown | Promise<unknown> {
+        throw new Error('Method not implemented.')
+    }
+    beforeAssertion?(params: AssertionHookParams): unknown | Promise<unknown> {
+        throw new Error('Method not implemented.')
+    }
+    afterAssertion?(params: AfterAssertionHookParams): unknown | Promise<unknown> {
+        throw new Error('Method not implemented.')
+    }
+    runner?: 'local' | 'browser' | ['browser', WebdriverIO.BrowserRunnerOptions] | ['local', never] | undefined
+    exclude?: string[] | undefined
+    suites?: Record<string, (string | string[])[] | string[][]> | undefined
+    maxInstances?: number | undefined
+    maxInstancesPerCapability?: number | undefined
+    injectGlobals?: boolean | undefined
+    bail?: number | undefined
+    updateSnapshots?: 'all' | 'new' | 'none' | undefined
+    resolveSnapshotPath?: ((testPath: string, snapExtension: string) => string) | undefined
+    specFileRetries?: number | undefined
+    specFileRetriesDelay?: number | undefined
+    specFileRetriesDeferred?: boolean | undefined
+    groupLogsByTestSpec?: boolean | undefined
+    services?
+    framework?: string | undefined
+    reporters?
+    reporterSyncInterval?: number | undefined
+    reporterSyncTimeout?: number | undefined
+    runnerEnv?: Record<string, string> | undefined
+    filesToWatch?: string[] | undefined
+    cucumberFeaturesWithLineNumbers?: string[] | undefined
+    watch?: boolean | undefined
+    shard?: Options.ShardOptions | undefined
+    mochaOpts?: WebdriverIO.MochaOpts | undefined
+    jasmineOpts?: WebdriverIO.JasmineOpts | undefined
+    cucumberOpts?: WebdriverIO.CucumberOpts | undefined
+    tsConfigPath?: string | undefined
+    automationProtocol?: string | undefined
+    region?: Options.SauceRegions | undefined
+    baseUrl?: string | undefined
+    waitforTimeout?: number | undefined
+    waitforInterval?: number | undefined
+    logLevel?: Options.WebDriverLogTypes | undefined
+    logLevels?: Record<string, Options.WebDriverLogTypes> | undefined
+    connectionRetryTimeout?: number | undefined
+    connectionRetryCount?: number | undefined
+    headers?: { [name: string]: string } | undefined
+    transformRequest?: ((requestOptions: RequestInit) => RequestInit) | undefined
+    transformResponse?: ((response: Options.RequestLibResponse, requestOptions: RequestInit) => Options.RequestLibResponse) | undefined
+    enableDirectConnect?: boolean | undefined
+    strictSSL?: boolean | undefined
+    outputDir?: string | undefined
+    cacheDir?: string | undefined
+    protocol?: string | undefined
+    hostname?: string | undefined
+    port?: number | undefined
+    path?: string | undefined
+    queryParams?: { [name: string]: string } | undefined
+    user?: string | undefined
+    key?: string | undefined
 }
 
 describe('watcher', () => {
@@ -91,6 +172,7 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
             run: vi.fn(),
+            initialize: vi.fn(),
             interface: {
                 finalise: vi.fn()
             },
@@ -123,6 +205,7 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
             run: vi.fn(),
+            initialize: vi.fn(),
             interface: {
                 finalise: vi.fn()
             },
@@ -152,6 +235,7 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
             run: vi.fn(),
+            initialize: vi.fn(),
             interface: {
                 finalise: vi.fn()
             },
@@ -194,6 +278,7 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
             run: vi.fn(),
+            initialize: vi.fn(),
             interface: {
                 finalise: vi.fn()
             },
@@ -345,6 +430,7 @@ describe('watcher', () => {
         watcher['_launcher'] = {
             __args: { spec },
             run: vi.fn(),
+            initialize: vi.fn(),
             interface: {
                 emit: vi.fn(),
                 finalise: vi.fn()
@@ -406,6 +492,7 @@ describe('watcher', () => {
         watcher['_launcher'] = {
             __args: { spec },
             run: vi.fn(),
+            initialize: vi.fn(),
             interface: {
                 emit: vi.fn(),
                 finalise: vi.fn()

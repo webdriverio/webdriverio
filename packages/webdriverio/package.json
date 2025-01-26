@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "9.5.1",
+  "version": "9.7.1",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -45,11 +45,12 @@
   ],
   "main": "./build/index.cjs",
   "type": "module",
-  "module": "./build/index.js",
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
-      "import": "./build/index.js",
+      "browser": "./build/index.js",
+      "importSource": "./src/node.ts",
+      "import": "./build/node.js",
       "requireSource": "./src/index.cts",
       "require": "./build/index.cjs"
     },

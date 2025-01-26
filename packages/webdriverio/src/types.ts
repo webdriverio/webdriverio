@@ -5,7 +5,7 @@ import type { Capabilities, Options, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
-import type { Dialog as DialogImport } from './dialog.js'
+import type { Dialog as DialogImport } from './session/dialog.js'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
@@ -556,6 +556,54 @@ export type MobileScrollIntoViewOptions = SwipeOptions & {
 }
 
 export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions, MobileScrollIntoViewOptions {
+}
+
+export type SwitchContextOptions = {
+    appIdentifier?: string;
+    title?: string | RegExp;
+    url?: string | RegExp;
+
+    // Extra for the getContexts command for Android
+    androidWebviewConnectionRetryTime?: number;
+    androidWebviewConnectTimeout?: number;
+}
+
+type AppiumDetailedContextInterface = {
+    id: string;
+    title?: string;
+    url?: string;
+}
+
+type IosContextBundleId  = {
+    bundleId?: string;
+}
+
+export type IosDetailedContext = AppiumDetailedContextInterface & IosContextBundleId;
+
+export type AndroidDetailedContext = AppiumDetailedContextInterface & {
+    androidWebviewData?: {
+        attached: boolean;
+        empty: boolean;
+        height: number;
+        neverAttached: boolean;
+        screenX: number;
+        screenY: number;
+        visible: boolean;
+        width: number;
+    };
+    packageName?: string;
+    webviewPageId?: string;
+};
+
+export type AppiumDetailedCrossPlatformContexts = (IosDetailedContext | AndroidDetailedContext)[];
+
+export type GetContextsOptions = {
+    androidWebviewConnectionRetryTime?: number;
+    androidWebviewConnectTimeout?: number;
+    filterByCurrentAndroidApp?: boolean;
+    isAndroidWebviewVisible?: boolean;
+    returnAndroidDescriptionData?: boolean;
+    returnDetailedContexts?: boolean;
 }
 
 export type WaitUntilOptions = {

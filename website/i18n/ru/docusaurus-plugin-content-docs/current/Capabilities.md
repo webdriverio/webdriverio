@@ -239,7 +239,7 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 ```ts
 {
     browserName: 'chrome',// or 'chromium'
-    browserVersion: '116' // or '116.0.5845.96', 'stable', 'dev', 'canary', 'beta'
+    browserVersion: '116' // or '116.0.5845.96', 'stable', 'dev', 'canary', 'beta' or 'latest' (same as 'canary')
 }
 ```
 

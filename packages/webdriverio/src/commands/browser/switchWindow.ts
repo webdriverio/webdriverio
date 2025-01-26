@@ -1,4 +1,4 @@
-import { getContextManager } from '../../context.js'
+import { getContextManager } from '../../session/context.js'
 
 /**
  *
@@ -101,5 +101,6 @@ export async function switchWindow (
     }
 
     await this.switchToWindow(currentWindow)
+
     throw new Error(`No window found with title, url, name or window handle matching "${matcher}"`)
 }

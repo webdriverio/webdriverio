@@ -319,4 +319,7 @@ export interface DetailedContext {
     title?: string
     url?: string
     bundleId?: string
+    // This is based on the new WebdriverIO getContexts command
+    packageName?: string
+    webviewPageId?: string
 }

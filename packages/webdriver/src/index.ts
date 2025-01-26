@@ -209,6 +209,7 @@ export default class WebDriver {
         if (isBidi(instance.capabilities || {})) {
             const bidiReqOpts = instance.options.strictSSL ? {} : { rejectUnauthorized: false }
             await instance._bidiHandler?.reconnect(newSessionCapabilities.webSocketUrl as unknown as string, bidiReqOpts)
+            instance._bidiHandler?.socket.on('message', parseBidiMessage.bind(instance))
         }
 
         return sessionId

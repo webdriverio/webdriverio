@@ -5,7 +5,7 @@ title: Test Output
 
 :::info
 
-[This WebdriverIO](http://guinea-pig.webdriver.io/image-compare.html) demo site has been used for the example image output.
+[This WebdriverIO](https://guinea-pig.webdriver.io/image-compare.html) demo site has been used for the example image output.
 
 :::
 
