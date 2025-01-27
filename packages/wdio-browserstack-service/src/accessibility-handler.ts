@@ -328,7 +328,7 @@ class _AccessibilityHandler {
         await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN, async () => {
             await performA11yScan(this.isAppAutomate, browser, true, true)
         }, { command: 'afterTest' })()
-        
+
         if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
             return
         }

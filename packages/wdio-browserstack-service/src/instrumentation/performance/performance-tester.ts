@@ -24,7 +24,7 @@ type PerformanceDetails = {
 
 export default class PerformanceTester {
     static _observer: PerformanceObserver
-    static _csvWriter: any
+    static _csvWriter: unknown
     private static _events: PerformanceEntry[] = []
     private static _measuredEvents: PerformanceEntry[] = []
     static started = false
@@ -159,19 +159,19 @@ export default class PerformanceTester {
         })
         this._csvWriter.writeRecords(dat)
             .then(() => BStackLogger.info('Performance CSV report generated successfully'))
-            .catch((error: any) => console.error(error))
+            .catch((error: Error) => console.error(error))
     }
 
     static Measure(label: string, details: PerformanceDetails = {}) {
         const self = this
         return (
-            target: Object,
+            target: object,
             key: string | symbol,
-            descriptor: TypedPropertyDescriptor<any>) => {
-            const originalMethod: Function = descriptor.value
+            descriptor: TypedPropertyDescriptor<Function>) => {
+            const originalMethod: Function|undefined = descriptor.value
             if (descriptor.value) {
-                descriptor.value = function() {
-                    return PerformanceTester.measure.apply(self, [label, originalMethod as Function, { methodName: key.toString(), ...details }, arguments, this])
+                descriptor.value = function(...args: object[]) {
+                    return PerformanceTester.measure.apply(self, [label, originalMethod as Function, { methodName: key.toString(), ...details }, args, this])
                 }
             }
         }
@@ -184,10 +184,9 @@ export default class PerformanceTester {
         details.testName = PerformanceTester.scenarioThatRan && PerformanceTester.scenarioThatRan[PerformanceTester.scenarioThatRan.length - 1]
         details.platform = PerformanceTester.browser?.sessionId
 
-        return function (...args: any[]) {
-            const methodArgs = [name, fn, details, args]
+        return function (...args: object[]) {
 
-            return self.measure.apply(self, methodArgs as [string, Function, {}, IArguments?])
+            return self.measure(name, fn, details, args)
         }
 
     }
@@ -196,13 +195,15 @@ export default class PerformanceTester {
         return !(process.env.BROWSERSTACK_SDK_INSTRUMENTATION === 'false')
     }
 
-    static measure(label: string, fn: Function, details = {}, args?: IArguments, thisArg: any = null) {
+    static measure(label: string, fn: Function, details = {}, args?: object[], thisArg: object|null = null) {
         if (!this.started || !this.isEnabled()) {
             return fn.apply(thisArg, args)
         }
 
         PerformanceTester.start(label)
-        this.details && (this.details[label] = details)
+        if (this.details) {
+            (this.details[label] = details)
+        }
         try {
             const returnVal = fn.apply(thisArg, args)
             if (returnVal instanceof Promise) {
