@@ -6,7 +6,9 @@ import '../src/browser.js'
 
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
-    startWebDriverSession, setupDirectConnect, validateCapabilities
+    startWebDriverSession, setupDirectConnect, validateCapabilities,
+    toRegularExpression,
+    toRegularExpressions
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
@@ -387,6 +389,72 @@ describe('utils', () => {
                     browserName: 'chrome'
                 })
             }).not.toThrow()
+        })
+    })
+
+    describe(toRegularExpression, () => {
+        describe('given valid regular expression', () => {
+            it('should create a RegExp object when having a regular expression with slashes and flags', () => {
+                const regex = /@mask@.*/i
+
+                expect(toRegularExpression(regex.toString())).toEqual(regex)
+            })
+
+            it('should create a RegExp object when having a regular expression with slashes but without flags', () => {
+                const regex = /@mask@.*/
+
+                expect(toRegularExpression(regex.toString())).toEqual(regex)
+            })
+
+            it('should create a RegExp object when having a regular expression without slashes', () => {
+                const regex = '@mask@.*'
+
+                expect(toRegularExpression(regex)).toEqual(/@mask@.*/)
+            })
+        })
+        describe('given invalid regular expression', () => {
+            it('should still return a Regex with some random literal string', () => {
+                const regex = 'some string'
+
+                expect(toRegularExpression(regex)).toEqual(/some string/)
+            })
+
+            it('should do best effort when missing beginning slash', () => {
+                const regex = '.*password/'
+
+                expect(toRegularExpression(regex)).toEqual(/.*password\//)
+            })
+
+            it('should do best effort when missing end slash', () => {
+                const regex = '/.*password'
+
+                expect(toRegularExpression(regex)).toEqual(/\/.*password/)
+            })
+
+            it('should even work with empty string, interesting!', () => {
+                const regex = ''
+
+                expect(toRegularExpression(regex)).toEqual(/(?:)/)
+            })
+
+            it('should throw when passing undefined', () => {
+                const regex = undefined as unknown as string
+
+                expect(() => toRegularExpression(regex)).toThrow()
+            })
+        })
+    })
+
+    describe(toRegularExpressions, () => {
+        it('should convert multiple string to RegExp objects', () => {
+            const regex1 = /@mask@.*/i
+            const regex2 = /.*password.*/
+
+            expect(toRegularExpressions([regex1.toString(), regex2.toString()])).toEqual([regex1, regex2])
+        })
+
+        it('should support undefined', () => {
+            expect(toRegularExpressions(undefined)).toEqual(undefined)
         })
     })
 })
