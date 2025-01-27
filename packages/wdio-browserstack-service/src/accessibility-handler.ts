@@ -21,7 +21,8 @@ import {
     validateCapsWithA11y,
     isTrue,
     validateCapsWithAppA11y,
-    getAppA11yResults
+    getAppA11yResults,
+    executeAccessibilityScript
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 
@@ -327,18 +328,12 @@ class _AccessibilityHandler {
         if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
             return
         }
-        const fnBody = accessibilityScripts.saveTestResults || ''
-        const arg = dataForExtension
-        const results: unknown = await browser.execute(
-            `return (function (...bstackSdkArgs) {
-                return new Promise((resolve, reject) => {
-                    const data = bstackSdkArgs[0]; // This is how you access the argument
-                    bstackSdkArgs.push(resolve);
-                    ${fnBody.replace(/arguments/g, 'bstackSdkArgs')}
-                });
-            })(${JSON.stringify(arg)})`
-        )
-        BStackLogger.debug(util.format(results as string))
+        if (accessibilityScripts.saveTestResults) {
+            const results: unknown = await executeAccessibilityScript(browser, accessibilityScripts.saveTestResults, dataForExtension)
+            BStackLogger.debug(util.format(results as string))
+        } else {
+            BStackLogger.error('saveTestResults script is null or undefined')
+        }
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {
