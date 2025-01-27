@@ -11,6 +11,9 @@ import { arch, hostname, platform, type, version } from 'node:os'
 import { BStackLogger } from '../../bstackLogger.js'
 import { EDS_URL, PERF_MEASUREMENT_ENV } from '../../constants.js'
 import fetchWrap from '../../fetchWrapper.js'
+import type { CsvWriter } from 'csv-writer/src/lib/csv-writer.js'
+import type { ObjectMap } from 'csv-writer/src/lib/lang/object.js'
+import type { Browser } from 'webdriverio'
 
 type PerformanceDetails = {
     success?: true,
@@ -24,13 +27,13 @@ type PerformanceDetails = {
 
 export default class PerformanceTester {
     static _observer: PerformanceObserver
-    static _csvWriter: unknown
+    static _csvWriter: CsvWriter<ObjectMap<{}>>
     private static _events: PerformanceEntry[] = []
     private static _measuredEvents: PerformanceEntry[] = []
     static started = false
     static details: {[key: string]: PerformanceDetails} = {}
     static eventsMap: {[key: string]: number} = {}
-    static browser?: WebdriverIO.Browser
+    static browser?: Browser
     static scenarioThatRan: string[]
     static jsonReportDirName = 'performance-report'
     static jsonReportDirPath = path.join(process.cwd(), 'logs', this.jsonReportDirName)
