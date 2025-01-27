@@ -446,7 +446,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
         try {
             this._percy = await startPercy(options, config, bsConfig)
-            if (!this._percy) {
+            if (!this._percy || (typeof this._percy === 'object' && Object.keys(this._percy).length === 0)) {
                 throw new Error('Could not start percy, check percy logs for info.')
             }
             PercyLogger.info('Percy started successfully')
