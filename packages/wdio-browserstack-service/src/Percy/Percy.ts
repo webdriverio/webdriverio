@@ -143,6 +143,11 @@ class Percy {
                 },
             }
             const response = await nodeRequest('GET', query, requestInit, 'https://api.browserstack.com')
+            if (!this.#options.percy && response.success) {
+                this.percyAutoEnabled = response.success
+            }
+            this.percyCaptureMode = response.percy_capture_mode
+            this.percy = response.success
             if (response.token) {
                 PercyLogger.debug('Percy fetch token success: ' + response.token)
                 return response.token
