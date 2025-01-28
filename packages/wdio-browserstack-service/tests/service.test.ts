@@ -42,6 +42,7 @@ beforeEach(() => {
 
     browser = {
         execute: vi.fn(),
+        executeScript: vi.fn(),
         on: vi.fn(),
         sessionId: sessionId,
         config: {},

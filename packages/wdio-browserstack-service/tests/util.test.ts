@@ -1201,7 +1201,7 @@ describe('getA11yResultsSummary', () => {
         const result = await utils.getA11yResultsSummary(false, {} as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
         expect(result).toEqual({ })
-    });
+    })
 })
 
 describe('isTrue', () => {
