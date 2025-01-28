@@ -23,6 +23,75 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.7.1 (2025-01-25)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14113](https://github.com/webdriverio/webdriverio/pull/14113) fix(webdriverio): fix isDisplayed call if element is non existant ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#14111](https://github.com/webdriverio/webdriverio/pull/14111) updating constants and services lists with wdio-roku-service refs ([@jonyet](https://github.com/jonyet))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- jonathan terry ([@jonyet](https://github.com/jonyet))
+
+
+## v9.7.0 (2025-01-24)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14110](https://github.com/webdriverio/webdriverio/pull/14110) fix(webdriverio): have the cjs export use the Node environment ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-protocols`, `webdriverio`
+  * [#14060](https://github.com/webdriverio/webdriverio/pull/14060) feat: enrich Appium context methods ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v9.6.4 (2025-01-24)
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#14106](https://github.com/webdriverio/webdriverio/pull/14106) chore(@wdio/utils): allow to set spawnOpts for Chromedriver as well ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v9.6.3 (2025-01-23)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#14104](https://github.com/webdriverio/webdriverio/pull/14104) fix(@wdio/browser-runner): export mocha source map ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v9.6.2 (2025-01-23)
+
+#### :bug: Bug Fix
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#14103](https://github.com/webdriverio/webdriverio/pull/14103) fix(webdriverio): double check elements that have a display: contents ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-types`, `webdriverio`
+  * [#14101](https://github.com/webdriverio/webdriverio/pull/14101) fix(webdriverio): enable arbitrary automation protocol packages ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-mocha-framework`, `wdio-runner`
+  * [#14102](https://github.com/webdriverio/webdriverio/pull/14102) fix(@wdio/runner): make sure there is at least one reporter initiated ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriver`
+  * [#14100](https://github.com/webdriverio/webdriverio/pull/14100) fix: typos on readme ([@shiv-jirwankar](https://github.com/shiv-jirwankar))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Shiv Jirwankar ([@shiv-jirwankar](https://github.com/shiv-jirwankar))
+
+
 ## v9.6.1 (2025-01-23)
 
 #### :bug: Bug Fix

@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browser-runner",
-  "version": "9.6.1",
+  "version": "9.7.1",
   "description": "A WebdriverIO runner to run unit tests tests in the browser.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
@@ -61,7 +61,11 @@
     }
   },
   "scripts": {
-    "build": "mkdir -p ./build/third_party && cp ./node_modules/mocha/mocha.css ./build/third_party/mocha.css && cp ./node_modules/mocha/mocha.js ./build/third_party/mocha.js"
+    "build": "run-s build:*",
+    "build:mkdir": "mkdir -p ./build/third_party",
+    "build:copy": "run-p build:copy:*",
+    "build:copy:css": "cp ./node_modules/mocha/mocha.css ./build/third_party/mocha.css",
+    "build:copy:js": "sed '$d' ./node_modules/mocha/mocha.js > ./build/third_party/mocha.js"
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {

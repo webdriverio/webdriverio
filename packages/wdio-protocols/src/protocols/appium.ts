@@ -1,7 +1,7 @@
 export default {
     '/session/:sessionId/context': {
         GET: {
-            command: 'getContext',
+            command: 'getAppiumContext',
             ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
             parameters: [],
             returns: {
@@ -12,7 +12,7 @@ export default {
             },
         },
         POST: {
-            command: 'switchContext',
+            command: 'switchAppiumContext',
             ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
             parameters: [
                 {
@@ -26,7 +26,7 @@ export default {
     },
     '/session/:sessionId/contexts': {
         GET: {
-            command: 'getContexts',
+            command: 'getAppiumContexts',
             ref: 'https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts',
             parameters: [],
             returns: {

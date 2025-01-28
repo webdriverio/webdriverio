@@ -155,7 +155,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                     /**
                      * handle symbols, e.g. async iterators
                      */
-                    if (typeof prop === 'symbol') {
+                    if (typeof prop === 'symbol'|| prop === 'entries') {
                         return () => ({
                             i: 0,
                             target,
@@ -166,6 +166,10 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                                 }
 
                                 if (this.i < elems.length) {
+                                    // For entries(), return [index, element] pair
+                                    if (prop === 'entries') {
+                                        return { value: [this.i, elems[this.i++]], done: false }
+                                    }
                                     return { value: elems[this.i++], done: false }
                                 }
 
