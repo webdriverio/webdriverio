@@ -6,6 +6,7 @@ const defaultBrowser = {
     sessionSubscribe: vi.fn().mockResolvedValue({}),
     on: vi.fn(),
     scriptAddPreloadScript: vi.fn(),
+    capabilities: {}
 }
 
 describe('ShadowRootManager', () => {
@@ -26,7 +27,7 @@ describe('ShadowRootManager', () => {
     it('registers correct event listeners', async () => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
-        const browser = { ...defaultBrowser, isBidi: true, options: { automationProtocol: 'webdriver' } } as any
+        const browser = { ...defaultBrowser, isBidi: true, options: { capabilities: { webSocketUrl: './' } } } as any
         const manager = getShadowRootManager(browser)
         process.env.WDIO_UNIT_TESTS = wid
         expect(await manager.initialize()).toBe(true)

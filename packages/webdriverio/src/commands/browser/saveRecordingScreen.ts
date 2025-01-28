@@ -1,5 +1,4 @@
-import fs from 'node:fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
+import { environment } from '../../environment.js'
 
 /**
  *
@@ -31,18 +30,7 @@ export async function saveRecordingScreen (
     filepath: string
 ) {
     /**
-     * type check
+     * run command implementation based on given environment
      */
-    if (typeof filepath !== 'string') {
-        throw new Error('saveRecordingScreen expects a filepath')
-    }
-
-    const absoluteFilepath = getAbsoluteFilepath(filepath)
-    await assertDirectoryExists(absoluteFilepath)
-
-    const videoBuffer = await this.stopRecordingScreen()
-    const video = Buffer.from(videoBuffer, 'base64')
-    fs.writeFileSync(absoluteFilepath, video)
-
-    return video
+    return environment.value.saveRecordingScreen.call(this, filepath)
 }

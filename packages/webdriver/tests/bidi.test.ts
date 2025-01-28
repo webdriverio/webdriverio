@@ -3,7 +3,7 @@ import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 import { WebSocket as ws } from 'ws'
 
 import '../src/node.js'
-import { BidiCore } from '../src/bidi/core.js'
+import { BidiCore, parseBidiCommand } from '../src/bidi/core.js'
 
 vi.mock('ws')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -19,6 +19,25 @@ vi.mock('ws', () => {
         WebSocket: WS
     }
 })
+
+const namedFn = `function anonymous(
+) {
+
+        return (/* __wdio script__ */function checkVisibility(elem, params) {
+    return elem.checkVisibility(params);
+  }/* __wdio script end__ */).apply(this, arguments);
+
+}`
+
+const anonymousFn = `function anonymous(
+) {
+
+        return (/* __wdio script__ */(elem, params) => {
+    return elem.checkVisibility(params);
+  }/* __wdio script end__ */).apply(this, arguments);
+
+}`
+const otherFn = '(() => { ... }))()'
 
 describe('BidiCore', () => {
     it('initiates with a WebSocket', () => {
@@ -92,7 +111,7 @@ describe('BidiCore', () => {
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:83:'))
+            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:102:'))
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
         })
@@ -134,6 +153,23 @@ describe('BidiCore', () => {
 
         afterAll(() => {
             process.env.WDIO_UNIT_TESTS = '1'
+        })
+    })
+
+    describe('parseBidiCommand', () => {
+        it('exposes the function name if available', () => {
+            expect(parseBidiCommand({
+                method: 'script.callFunction',
+                params: { functionDeclaration: namedFn }
+            })[1]).toContain('<Function[200 bytes] checkVisibility>')
+            expect(parseBidiCommand({
+                method: 'script.callFunction',
+                params: { functionDeclaration: anonymousFn }
+            })[1]).toContain('<Function[179 bytes] anonymous>')
+            expect(parseBidiCommand({
+                method: 'script.callFunction',
+                params: { functionDeclaration: otherFn }
+            })[1]).toContain('<Function[18 bytes] anonymous>')
         })
     })
 })

@@ -1,3 +1,4 @@
+import type { local } from 'webdriver'
 import logger from '@wdio/logger'
 
 import { SessionManager } from './session.js'
@@ -9,6 +10,8 @@ const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFra
 export function getContextManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, ContextManager)
 }
+
+export type FlatContextTree = Omit<local.BrowsingContextInfo, 'children'> & { children: string[] }
 
 /**
  * This class is responsible for managing context in a WebDriver session. Many BiDi commands
@@ -38,7 +41,10 @@ export class ContextManager extends SessionManager {
          */
         this.#browser.on('result', this.#onCommandResultBidiAndClassic.bind(this))
 
-        if (!this.isEnabled()) {
+        // only listen to command events if we are in a bidi session or a mobile session
+        // Adding the check for mobile in the `this.isEnabled()` method breaking the method and throws
+        // `Test execution failed: TypeError: __privateGet(...).sessionSubscribe is not a function`
+        if (!this.isEnabled() && !this.#browser.isMobile) {
             return
         }
 
@@ -71,12 +77,33 @@ export class ContextManager extends SessionManager {
          *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
          */
         if (event.command === 'closeWindow') {
-            this.#currentContext = (event.result as { value: string[] }).value[0]
+            const windowHandles = (event.result as { value: string[] }).value
+            if (windowHandles.length === 0) {
+                throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
+            }
+            this.#currentContext = windowHandles[0]
             return this.#browser.switchToWindow(this.#currentContext)
         }
     }
 
     #onCommand(event: { command: string, body: unknown }) {
+        /**
+         * update frame context if user switches using 'switchToParentFrame'
+         */
+        if (event.command === 'switchToParentFrame') {
+            if (!this.#currentContext) {
+                return
+            }
+
+            return this.#browser.browsingContextGetTree({}).then(({ contexts }) => {
+                const parentContext = this.findParentContext(this.#currentContext!, contexts)
+                if (!parentContext) {
+                    return
+                }
+                this.setCurrentContext(parentContext.context)
+            })
+        }
+
         /**
          * update frame context if user switches using 'switchToWindow'
          * which is WebDriver Classic only
@@ -98,17 +125,17 @@ export class ContextManager extends SessionManager {
         /**
          * Keep track of the context to which we switch
          */
-        if (this.#browser.isMobile && event.command === 'switchContext') {
+        if (this.#browser.isMobile && event.command === 'switchAppiumContext') {
             this.#mobileContext = (event.body as { name: string }).name
         }
     }
 
     #onCommandResultMobile(event: { command: string, result: unknown }) {
-        if (event.command === 'getContext') {
+        if (event.command === 'getAppiumContext') {
             this.setCurrentContext((event.result as { value: string }).value)
         }
         if (
-            event.command === 'switchContext' &&
+            event.command === 'switchAppiumContext' &&
             (event.result as { value: string | null }).value === null &&
             this.#mobileContext
         ) {
@@ -177,4 +204,97 @@ export class ContextManager extends SessionManager {
     get mobileContext() {
         return this.#mobileContext
     }
+
+    /**
+     * Get the flat context tree for the current session
+     * @returns a flat list of all contexts in the current session
+     */
+    async getFlatContextTree (): Promise<Record<string, FlatContextTree>> {
+        const tree = await this.#browser.browsingContextGetTree({})
+
+        const mapContext = (context: local.BrowsingContextInfo): string[] => [
+            context.context,
+            ...(context.children || []).map(mapContext).flat(Infinity) as string[]
+        ]
+
+        /**
+         * transform context tree into a flat list of context objects with references
+         * to children
+         */
+        const allContexts: Record<string, FlatContextTree> = tree.contexts.map(mapContext).flat(Infinity)
+            .reduce((acc, ctx: string) => {
+                const context = this.findContext(ctx, tree.contexts, 'byContextId')
+                acc[ctx] = context as unknown as FlatContextTree
+                return acc
+            }, {} as Record<string, FlatContextTree>)
+        return allContexts
+    }
+
+    /**
+     * Find the parent context of a given context id
+     * @param contextId the context id you want to find the parent of
+     * @param contexts  the list of contexts to search through returned from `browsingContextGetTree`
+     * @returns         the parent context of the context with the given id
+     */
+    findParentContext (contextId: string, contexts: local.BrowsingContextInfoList): local.BrowsingContextInfo | undefined {
+        for (const context of contexts) {
+            if (context.children?.some((child) => child.context === contextId)) {
+                return context
+            }
+
+            if (Array.isArray(context.children) && context.children.length > 0) {
+                const result = this.findParentContext(contextId, context.children)
+                if (result) {
+                    return result
+                }
+            }
+        }
+
+        return undefined
+    }
+
+    /**
+     * Find a context by URL or ID
+     * @param urlOrId     The URL or ID of the context to find
+     * @param contexts    The list of contexts to search through returned from `browsingContextGetTree`
+     * @param matcherType The type of matcher to use to find the context
+     * @returns           The context with the given URL or ID
+     */
+    findContext (
+        urlOrId: string,
+        contexts: local.BrowsingContextInfoList | null,
+        matcherType: 'byUrl' | 'byUrlContaining' | 'byContextId'
+    ): local.BrowsingContextInfo | undefined {
+        const matcher = {
+            byUrl,
+            byUrlContaining,
+            byContextId
+        }[matcherType]
+        for (const context of contexts || []) {
+            if (matcher(context, urlOrId)) {
+                return context
+            }
+
+            if (Array.isArray(context.children) && context.children.length > 0) {
+                const result = this.findContext(urlOrId, context.children, matcherType)
+                if (result) {
+                    return result
+                }
+            }
+        }
+
+        return undefined
+    }
+}
+
+function byUrl (context: local.BrowsingContextInfo, url: string) {
+    return context.url === url
+}
+
+function byUrlContaining (context: local.BrowsingContextInfo, url: string) {
+    return context.url.includes(url)
+}
+
+function byContextId (context: local.BrowsingContextInfo, contextId: string) {
+    return context.context === contextId
 }

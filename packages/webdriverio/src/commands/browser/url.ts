@@ -121,7 +121,7 @@ export async function url (
         path = (new URL(path, this.options.baseUrl)).href
     }
 
-    if (this.isBidi) {
+    if (this.isBidi && path.startsWith('http')) {
         let resetPreloadScript: InitScript | undefined
         const contextManager = getContextManager(this)
         const context = await contextManager.getCurrentContext()

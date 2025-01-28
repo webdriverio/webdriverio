@@ -12,7 +12,7 @@ import { remote, attach } from 'webdriverio'
 test('allow to attach to an existing session', async () => {
     /**
      * fails in windows due to timeout:
-     * > Command browsingContext.navigate with id 1 (with the following parameter: {"context":"BD746B5679530BC3403539C2FEC5A45A","url":"http://guinea-pig.webdriver.io","wait":"interactive"}) timed out
+     * > Command browsingContext.navigate with id 1 (with the following parameter: {"context":"BD746B5679530BC3403539C2FEC5A45A","url":"https://guinea-pig.webdriver.io","wait":"interactive"}) timed out
      */
     if (os.platform() === 'win32') {
         return
@@ -27,7 +27,7 @@ test('allow to attach to an existing session', async () => {
         }
     })
 
-    await browser.url('http://guinea-pig.webdriver.io')
+    await browser.url('https://guinea-pig.webdriver.io')
     expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
     const origContextTree = await browser.browsingContextGetTree({ maxDepth: 1 })
     expect(origContextTree.contexts).toHaveLength(1)

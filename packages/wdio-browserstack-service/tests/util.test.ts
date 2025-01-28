@@ -1,5 +1,4 @@
 import path from 'node:path'
-
 import type { LaunchResponse } from '../src/types.js'
 
 import { describe, expect, it, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
@@ -8,6 +7,7 @@ import CrashReporter from '../src/crash-reporter.js'
 import logger from '@wdio/logger'
 import * as utils from '../src/util.js'
 import logPatcher from '../src/logPatcher.js'
+import AccessibilityScripts from '../src/scripts/accessibility-scripts.js'
 import {
     getBrowserDescription,
     getBrowserCapabilities,
@@ -34,9 +34,11 @@ import {
     o11yErrorHandler,
     frameworkSupportsHook,
     getFailureObject,
+    validateCapsWithAppA11y,
     validateCapsWithA11y,
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
+    isAppAccessibilityAutomationSession,
     isTrue,
     uploadLogs,
     getObservabilityProduct,
@@ -44,7 +46,12 @@ import {
     processTestObservabilityResponse,
     processAccessibilityResponse,
     processLaunchBuildResponse,
-    jsonifyAccessibilityArray
+    jsonifyAccessibilityArray,
+    formatString,
+    _getParamsForAppAccessibility,
+    performA11yScan,
+    getAppA11yResults,
+    getAppA11yResultsSummary,
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
@@ -943,6 +950,33 @@ describe('o11yErrorHandler', () => {
     })
 })
 
+describe('validateCapsWithAppA11y', () => {
+    let logInfoMock: any
+    beforeEach(() => {
+        logInfoMock = vi.spyOn(log, 'warn')
+    })
+
+    it('returns false if platform version is lesser than 11', async () => {
+        const platformMeta = {
+            platform_name: 'android',
+            platform_version: '10.0'
+        }
+
+        expect(validateCapsWithAppA11y(platformMeta)).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('App Accessibility Automation tests are supported on OS version 11 and above for Android devices.')
+    })
+
+    it('returns true if validation done', async () => {
+        const platformMeta = {
+            'platform_name': 'android',
+            'platform_version': '13.0'
+        }
+
+        expect(validateCapsWithAppA11y(undefined, platformMeta)).toEqual(true)
+    })
+})
+
 describe('validateCapsWithA11y', () => {
     let logInfoMock: any
     beforeEach(() => {
@@ -1040,6 +1074,18 @@ describe('isAccessibilityAutomationSession', () => {
     })
 })
 
+describe('isAppAccessibilityAutomationSession', () => {
+    it('returns true if accessibility and app automate are true and app ally token is present', async () => {
+        process.env.BSTACK_A11Y_JWT = 'someToken'
+        expect(isAppAccessibilityAutomationSession(true, true)).toEqual(true)
+    })
+
+    it('returns true if accessibility and app automate are true and app ally token is present', async () => {
+        process.env.BSTACK_A11Y_JWT = ''
+        expect(isAppAccessibilityAutomationSession(true, true)).toEqual(false)
+    })
+})
+
 describe('getA11yResults', () => {
     const browser = {
         sessionId: 'session123',
@@ -1082,7 +1128,7 @@ describe('getA11yResults', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         process.env.BSTACK_A11Y_JWT = 'abc'
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
-        await utils.getA11yResults((browser as WebdriverIO.Browser), true, true)
+        await utils.getA11yResults(false, browser as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
         expect(browser.executeAsync).toBeCalledTimes(2)
     })
@@ -1130,7 +1176,11 @@ describe('getA11yResultsSummary', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         process.env.BSTACK_A11Y_JWT = 'abc'
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
-        await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), true, true)
+        browser.executeAsync = vi.fn()
+            .mockResolvedValueOnce({ total: 5, critical: 2 })  // First call result
+            .mockResolvedValueOnce({ summary: { total: 5, critical: 2 } })  // Second call result
+
+        await utils.getA11yResultsSummary(false, browser as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
         expect(browser.executeAsync).toBeCalledTimes(2)
     })
@@ -1454,5 +1504,415 @@ describe('logPatcher', () => {
         BSTestOpsPatcher.debug('abc')
         BSTestOpsPatcher.log('abc')
         expect(emitSpy).toBeCalled()
+    })
+})
+
+describe('formatString', () => {
+    it('should replace %s placeholders with provided values in order', () => {
+        const template = 'Hello %s, your score is %s'
+        const values = ['John', '100']
+
+        expect(formatString(template, ...values)).toBe('Hello John, your score is 100')
+    })
+
+    it('should handle null values in array', () => {
+        const template = 'Name: %s, Score: %s'
+        const values = ['John', null]
+
+        expect(formatString(template, ...values)).toBe('Name: John, Score: ')
+    })
+
+    it('should handle null template', () => {
+        const template = null
+        const values = ['John', '100']
+
+        expect(formatString(template, ...values)).toBe('')
+    })
+
+    it('should handle undefined values', () => {
+        const template = 'Value: %s'
+        const values = [undefined]
+
+        expect(formatString(template, ...values)).toBe('Value: ')
+    })
+
+    it('should handle template without placeholders', () => {
+        const template = 'Hello World'
+        const values = ['John', null]
+
+        expect(formatString(template, ...values)).toBe('Hello World')
+    })
+
+    it('should handle empty template string', () => {
+        const template = ''
+        const values = ['John', null]
+
+        expect(formatString(template, ...values)).toBe('')
+    })
+})
+
+describe('_getParamsForAppAccessibility', () => {
+    const originalEnv = process.env
+
+    beforeEach(() => {
+        process.env = {
+            TEST_ANALYTICS_ID: 'test-123',
+            BROWSERSTACK_TESTHUB_UUID: 'build-456',
+            BROWSERSTACK_TESTHUB_JWT: 'jwt-789',
+            BSTACK_A11Y_JWT: 'auth-abc'
+        }
+    })
+
+    afterEach(() => {
+        process.env = originalEnv
+    })
+
+    it('should return params object with command name when provided', () => {
+        const result = _getParamsForAppAccessibility('clickElement')
+
+        expect(result).toEqual({
+            thTestRunUuid: 'test-123',
+            thBuildUuid: 'build-456',
+            thJwtToken: 'jwt-789',
+            authHeader: 'auth-abc',
+            scanTimestamp: Date.now(),
+            method: 'clickElement'
+        })
+    })
+
+    it('should return params object with undefined method when no command name provided', () => {
+        const result = _getParamsForAppAccessibility()
+
+        expect(result).toEqual({
+            thTestRunUuid: 'test-123',
+            thBuildUuid: 'build-456',
+            thJwtToken: 'jwt-789',
+            authHeader: 'auth-abc',
+            scanTimestamp: Date.now(),
+            method: undefined
+        })
+    })
+
+    it('should handle missing environment variables', () => {
+        process.env = {}
+
+        const result = _getParamsForAppAccessibility('test')
+
+        expect(result).toEqual({
+            thTestRunUuid: undefined,
+            thBuildUuid: undefined,
+            thJwtToken: undefined,
+            authHeader: undefined,
+            scanTimestamp: Date.now(),
+            method: 'test'
+        })
+    })
+
+    it('should handle partial environment variables', () => {
+        process.env = {
+            TEST_ANALYTICS_ID: 'test-123',
+            BROWSERSTACK_TESTHUB_UUID: 'build-456'
+        }
+
+        const result = _getParamsForAppAccessibility('test')
+
+        expect(result).toEqual({
+            thTestRunUuid: 'test-123',
+            thBuildUuid: 'build-456',
+            thJwtToken: undefined,
+            authHeader: undefined,
+            scanTimestamp: Date.now(),
+            method: 'test'
+        })
+    })
+})
+
+describe('performA11yScan', () => {
+    let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    let logInfoMock: any
+
+    beforeEach(() => {
+        logInfoMock = vi.spyOn(log, 'warn')
+    })
+
+    it('should return early if not a BrowserStack session', async () => {
+        browser = {
+            execute: async () => ({ success: true }),
+            executeAsync: async () => ({ success: true }),
+        } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+
+        const result = await performA11yScan(false, browser, false, true)
+        expect(result).toBeUndefined()
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
+    })
+
+    it('should return early if not an Accessibility Automation session', async () => {
+        browser = {
+            execute: async () => ({ success: true }),
+            executeAsync: async () => ({ success: true }),
+        } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+
+        const result = await performA11yScan(false, browser, true, false)
+        expect(result).toBeUndefined()
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Not an Accessibility Automation session, cannot perform Accessibility scan.')
+    })
+
+    it('should perform app accessibility scan when isAppAutomate is true', async () => {
+        const mockResults = { success: true }
+
+        const mockScanScript = 'scan script with param: %s'
+        vi.spyOn(AccessibilityScripts, 'performScan', 'get').mockReturnValue(mockScanScript)
+
+        const browser = {
+            execute: vi.fn().mockResolvedValue(mockResults),
+            executeAsync: vi.fn().mockResolvedValue(mockResults),
+            capabilities: {}
+        } as unknown as WebdriverIO.Browser
+
+        process.env.TEST_ANALYTICS_ID = 'test-123'
+        process.env.BROWSERSTACK_TESTHUB_UUID = 'build-456'
+        process.env.BROWSERSTACK_TESTHUB_JWT = 'jwt-789'
+        process.env.BSTACK_A11Y_JWT = 'auth-abc'
+
+        vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
+        vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
+
+        const result = await performA11yScan(true, browser, true, true, 'clickElement')
+
+        expect(result).toEqual(mockResults)
+        expect(browser.execute).toHaveBeenCalledWith(
+            expect.stringContaining('scan script with param:'),
+            {}
+        )
+
+        delete process.env.TEST_ANALYTICS_ID
+        delete process.env.BROWSERSTACK_TESTHUB_UUID
+        delete process.env.BROWSERSTACK_TESTHUB_JWT
+        delete process.env.BSTACK_A11Y_JWT
+    })
+
+    it('should perform web accessibility scan when isAppAutomate is false', async () => {
+        const mockResults = { success: true }
+
+        const mockScanScript = 'scan script for web: %s'
+        vi.spyOn(AccessibilityScripts, 'performScan', 'get').mockReturnValue(mockScanScript)
+
+        const browser = {
+            execute: vi.fn().mockResolvedValue(mockResults),
+            executeAsync: vi.fn().mockResolvedValue(mockResults),
+            capabilities: {}
+        } as unknown as WebdriverIO.Browser
+
+        process.env.TEST_ANALYTICS_ID = 'test-123'
+        process.env.BROWSERSTACK_TESTHUB_UUID = 'build-456'
+        process.env.BROWSERSTACK_TESTHUB_JWT = 'jwt-789'
+        process.env.BSTACK_A11Y_JWT = 'auth-abc'
+
+        vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
+        vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(false) // Set to false for this test
+
+        const result = await performA11yScan(false, browser, true, true, 'clickElement')
+
+        expect(result).toEqual(mockResults)
+        expect(browser.executeAsync).toHaveBeenCalledWith(
+            expect.stringContaining('scan script for web:'),
+            { method: 'clickElement' }
+        )
+
+        delete process.env.TEST_ANALYTICS_ID
+        delete process.env.BROWSERSTACK_TESTHUB_UUID
+        delete process.env.BROWSERSTACK_TESTHUB_JWT
+        delete process.env.BSTACK_A11Y_JWT
+    })
+})
+
+describe('getAppA11yResults', () => {
+    let browser: WebdriverIO.Browser
+    let logInfoMock: any
+
+    beforeEach(() => {
+        logInfoMock = vi.spyOn(log, 'warn')
+        const result = {
+            data: {
+                issues: [{ 'issueName': 'Readable Text Spacing' }],
+            },
+        }
+        vi.mocked(fetch).mockClear()
+        vi.mocked(fetch).mockResolvedValue({
+            json: async () => (result),
+            headers: new Headers(),
+            ok: true,
+            status: 200,
+        } as Response)
+        logInfoMock = vi.spyOn(log, 'warn')
+    })
+
+    it('should return empty array if not a BrowserStack session', async () => {
+        browser = {
+            execute: async () => ({ success: true }),
+            executeAsync: async () => ({ success: true }),
+            capabilities: {}
+        } as unknown as WebdriverIO.Browser
+
+        const result = await getAppA11yResults(true, browser, false, true)
+        expect(result).toEqual([])
+    })
+
+    it('should return empty array if not an App Accessibility Automation session', async () => {
+        browser = {
+            execute: async () => ({ success: true }),
+            executeAsync: async () => ({ success: true }),
+            capabilities: {}
+        } as unknown as WebdriverIO.Browser
+
+        const result = await getAppA11yResults(true, browser, true, false)
+        expect(result).toEqual([])
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
+    })
+
+    it('should return results for valid app accessibility session', async () => {
+        const mockResults = [{ 'issueName': 'Readable Text Spacing' }]
+
+        const browser = {
+            execute: vi.fn().mockResolvedValue(mockResults),
+            executeAsync: vi.fn().mockResolvedValue(mockResults),
+            capabilities: {},
+        } as unknown as WebdriverIO.Browser
+
+        process.env.BSTACK_A11Y_POLLING_TIMEOUT = '30'
+        process.env.TEST_ANALYTICS_ID = 'test-123'
+        process.env.BSTACK_A11Y_JWT = 'abc'
+
+        vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
+        vi.spyOn(utils, 'performA11yScan').mockResolvedValue(undefined)
+
+        const result = await getAppA11yResults(true, browser, true, true, 'session123')
+
+        expect(result).toEqual(mockResults)
+
+        delete process.env.BSTACK_A11Y_POLLING_TIMEOUT
+        delete process.env.TEST_ANALYTICS_ID
+        delete process.env.BSTACK_A11Y_JWT
+    })
+
+    it('should return empty array if error occurs during fetch', async () => {
+        browser = {
+            execute: async () => { throw new Error('Test error') },
+            executeAsync: async () => ({ success: true }),
+            capabilities: {}
+        } as unknown as WebdriverIO.Browser
+
+        const result = await getAppA11yResults(true, browser, true, true, 'session123')
+        expect(result).toEqual([])
+    })
+})
+
+describe('getAppA11yResultsSummary', () => {
+    let browser: WebdriverIO.Browser
+    let logInfoMock: any
+    let pollApiMock: any
+
+    beforeEach(() => {
+        logInfoMock = vi.spyOn(log, 'warn')
+
+        const result = {
+            data: {
+                summary: {
+                    'totalIssueCount': 64,
+                    'totalBySeverity': {
+                        'minor': 0,
+                        'serious': 0,
+                        'critical': 6,
+                        'moderate': 58,
+                    },
+                },
+            },
+        }
+        vi.mocked(fetch).mockClear()
+        vi.mocked(fetch).mockResolvedValue({
+            json: async () => (result),
+            headers: new Headers(),
+            ok: true,
+            status: 200,
+        } as Response)
+        logInfoMock = vi.spyOn(log, 'warn')
+        pollApiMock = vi.spyOn(utils, 'pollApi').mockResolvedValue({
+            data: {
+                data: {
+                    summary: {}
+                }
+            }
+        } as any)
+    })
+
+    it('should return empty object if not a BrowserStack session', async () => {
+        browser = {
+            execute: async () => ({ success: true }),
+            executeAsync: async () => ({ success: true }),
+            capabilities: {}
+        } as unknown as WebdriverIO.Browser
+
+        const result = await getAppA11yResultsSummary(true, browser, false, true)
+        expect(result).toEqual({})
+    })
+
+    it('should return empty object if not an App Accessibility Automation session', async () => {
+        browser = {
+            execute: async () => ({ success: true }),
+            executeAsync: async () => ({ success: true }),
+            capabilities: {}
+        } as unknown as WebdriverIO.Browser
+
+        const result = await getAppA11yResultsSummary(true, browser, true, false)
+        expect(result).toEqual({})
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
+    })
+
+    it('should return results summary for valid app accessibility session', async () => {
+        const mockResults = { 'totalIssueCount' : 64, 'totalBySeverity': { 'minor':0, 'serious':0, 'critical': 6, 'moderate': 58 } }
+
+        const browser = {
+            execute: vi.fn().mockResolvedValue(mockResults),
+            executeAsync: vi.fn().mockResolvedValue(mockResults),
+            capabilities: {},
+        } as unknown as WebdriverIO.Browser
+
+        process.env.BSTACK_A11Y_POLLING_TIMEOUT = '30'
+        process.env.TEST_ANALYTICS_ID = 'test-123'
+        process.env.BSTACK_A11Y_JWT = 'abc'
+
+        vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(true)
+        vi.spyOn(utils, 'performA11yScan').mockResolvedValue(undefined)
+
+        const result = await getAppA11yResultsSummary(true, browser, true, true, 'session123')
+
+        expect(result).toEqual(mockResults)
+
+        delete process.env.BSTACK_A11Y_POLLING_TIMEOUT
+        delete process.env.TEST_ANALYTICS_ID
+        delete process.env.BSTACK_A11Y_JWT
+    })
+
+    it('should return empty object if error occurs during fetch', async () => {
+        browser = {
+            execute: async () => { throw new Error('Test error') },
+            executeAsync: async () => ({ success: true }),
+            capabilities: {}
+        } as unknown as WebdriverIO.Browser
+
+        pollApiMock.mockRejectedValueOnce(new Error('API Error'))
+
+        const result = await getAppA11yResultsSummary(true, browser, true, true, 'session123')
+        expect(result).toEqual({})
+    })
+
+    afterEach(() => {
+        delete process.env.TEST_ANALYTICS_ID
+        delete process.env.BSTACK_A11Y_JWT
+        vi.clearAllMocks()
     })
 })

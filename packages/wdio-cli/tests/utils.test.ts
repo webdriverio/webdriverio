@@ -36,7 +36,8 @@ import {
     createWDIOConfig,
     createWDIOScript,
     runAppiumInstaller,
-    detectPackageManager
+    detectPackageManager,
+    detectCompiler
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { installPackages } from '../src/install.js'
@@ -61,15 +62,7 @@ vi.mock('child_process', () => {
     return m
 })
 
-vi.mock('read-pkg-up', () => ({
-    readPackageUp: vi.fn().mockResolvedValue({
-        path: '/foo/package.json',
-        packageJson: {
-            name: 'cool-test-module',
-            type: 'module'
-        }
-    })
-}))
+vi.mock('read-pkg-up')
 
 vi.mock('node:fs/promises', () => ({
     default: {
@@ -97,6 +90,14 @@ vi.mock('../src/install', () => ({
 
 beforeEach(() => {
     global.console.log = vi.fn()
+
+    vi.mocked(readPackageUp).mockReturnValue({
+        path: '/foo/package.json',
+        packageJson: {
+            name: 'cool-test-module',
+            type: 'module'
+        }
+    })
 })
 
 describe('runServiceHook', () => {
@@ -753,6 +754,13 @@ test('getDefaultFiles', async () => {
         .toBe(path.join('/bar', 'foo', 'bar.js'))
 })
 
+test('original implementation of getDefaultFiles handles projectRoot with no package.json', async () => {
+    const files = '/foo/bar'
+    vi.mocked(readPackageUp).mockRestore()
+    expect(await getDefaultFiles({ createPackageJSON: true, projectRoot: '/project-root-with-no-package.json', isUsingTypeScript: false } as any, files))
+        .toBe(path.join('/project-root-with-no-package.json', 'foo', 'bar.js'))
+})
+
 test('specifyVersionIfNeeded', () => {
     expect(specifyVersionIfNeeded(
         ['webdriverio', '@wdio/spec-reporter'],
@@ -782,6 +790,12 @@ test('hasBabelConfig', async () => {
     expect(await hasBabelConfig('/foo')).toBe(false)
 })
 
+test('detectCompiler', async () => {
+    vi.mocked(readPackageUp).mockRestore()
+    const answers = { createPackageJSON: true }
+    expect(await detectCompiler(answers)).toBe(false)
+})
+
 test('getAnswers', async () => {
     let answers = await getAnswers(true)
     delete answers.pages // delete so it doesn't fail in Windows
@@ -792,17 +806,15 @@ test('getAnswers', async () => {
     delete answers.pages // delete so it doesn't fail in Windows
     delete answers.specs // delete so it doesn't fail in Windows
     expect(answers).toBe('some value')
-    expect(inquirer.prompt).toBeCalledTimes(1)
+    expect(inquirer.prompt).toBeCalledTimes(2)
     // @ts-ignore
-    expect(vi.mocked(inquirer.prompt).mock.calls[0][0][0].message)
-        .toContain('A project named "cool-test-module" was detected')
+    expect(vi.mocked(inquirer.prompt).mock.calls[0][0][0].when).toBe(false)
     vi.mocked(readPackageUp).mockResolvedValue(undefined)
     vi.mocked(inquirer.prompt).mockClear()
     expect(await getAnswers(false)).toBe('some value')
-    expect(inquirer.prompt).toBeCalledTimes(1)
+    expect(inquirer.prompt).toBeCalledTimes(2)
     // @ts-ignore
-    expect(vi.mocked(inquirer.prompt).mock.calls[0][0][0].message)
-        .toContain('Couldn\'t find a package.json in')
+    expect(vi.mocked(inquirer.prompt).mock.calls[0][0][0].when).toBe(true)
 })
 
 test('getProjectProps', async () => {

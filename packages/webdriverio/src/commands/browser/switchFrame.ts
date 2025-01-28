@@ -1,14 +1,13 @@
 import logger from '@wdio/logger'
-import { ELEMENT_KEY, type local, type remote } from 'webdriver'
+import { ELEMENT_KEY, type remote } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
-import { getContextManager } from '../../session/context.js'
+import { getContextManager, type FlatContextTree } from '../../session/context.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
 import type { ChainablePromiseElement } from '../../types.js'
 
-type FlatContextTree = Omit<local.BrowsingContextInfo, 'children'> & { children: string[] }
 const log = logger('webdriverio:switchFrame')
 
 /**
@@ -94,6 +93,8 @@ export async function switchFrame (
         return switchToFrame(this, context)
     }
 
+    const sessionContext = getContextManager(this)
+
     /**
      * if context is `null` the user is switching to the top level frame
      * which is always represented by the value of `getWindowHandle`
@@ -115,15 +116,15 @@ export async function switchFrame (
         let newContextId: string | undefined
 
         const urlContext = (
-            findContext(context, tree.contexts, byUrl) ||
+            sessionContext.findContext(context, tree.contexts, 'byUrl') ||
             /**
              * In case the user provides an url without `/` at the end, e.g. `https://example.com`,
              * the `browsingContextGetTree` command may return a context with the url `https://example.com/`.
              */
-            findContext(`${context}/`, tree.contexts, byUrl)
+            sessionContext.findContext(`${context}/`, tree.contexts, 'byUrl')
         )
-        const urlContextContaining = findContext(context, tree.contexts, byUrlContaining)
-        const contextIdContext = findContext(context, tree.contexts, byContextId)
+        const urlContextContaining = sessionContext.findContext(context, tree.contexts, 'byUrlContaining')
+        const contextIdContext = sessionContext.findContext(context, tree.contexts, 'byContextId')
         if (urlContext) {
             log.info(`Found context by url "${urlContext.url}" with context id "${urlContext.context}"`)
             newContextId = urlContext.context
@@ -139,9 +140,8 @@ export async function switchFrame (
             throw new Error(`No frame with url or id "${context}" found!`)
         }
 
-        const sessionContext = getContextManager(this)
         const currentContext = await sessionContext.getCurrentContext()
-        const allContexts = await getFlatContextTree(this)
+        const allContexts = await sessionContext.getFlatContextTree()
 
         /**
          * Fetch all iframes located in any available frame
@@ -252,6 +252,7 @@ export async function switchFrame (
             await switchToFrame(this, contextToSwitch.frameElement)
         }
 
+        sessionContext.setCurrentContext(newContextId)
         return newContextId
     }
 
@@ -273,7 +274,7 @@ export async function switchFrame (
      * the function for each of them.
      */
     if (typeof context === 'function') {
-        const allContexts = await getFlatContextTree(this)
+        const allContexts = await sessionContext.getFlatContextTree()
         const allContextIds = Object.keys(allContexts)
         for (const contextId of allContextIds) {
             const functionDeclaration = new Function(`
@@ -319,7 +320,6 @@ function switchToFrameHelper (browser: WebdriverIO.Browser, context: string) {
 }
 
 async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element: WebdriverIO.Element) {
-    // await switchToFrame(browser, element)
     const frame = await browser.execute(
         (iframe: unknown) => (iframe as HTMLIFrameElement).contentWindow,
         element
@@ -332,60 +332,6 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
     return frame.context
 }
 
-function byUrl (context: local.BrowsingContextInfo, url: string) {
-    return context.url === url
-}
-
-function byUrlContaining (context: local.BrowsingContextInfo, url: string) {
-    return context.url.includes(url)
-}
-
-function byContextId (context: local.BrowsingContextInfo, contextId: string) {
-    return context.context === contextId
-}
-
-function findContext (
-    urlOrId: string,
-    contexts: local.BrowsingContextInfoList | null,
-    matcher: typeof byUrl | typeof byUrlContaining | typeof byContextId
-): local.BrowsingContextInfo | undefined {
-    for (const context of contexts || []) {
-        if (matcher(context, urlOrId)) {
-            return context
-        }
-
-        if (Array.isArray(context.children) && context.children.length > 0) {
-            const result = findContext(urlOrId, context.children, matcher)
-            if (result) {
-                return result
-            }
-        }
-    }
-
-    return undefined
-}
-
-async function getFlatContextTree (browser: WebdriverIO.Browser): Promise<Record<string, FlatContextTree>> {
-    const tree = await browser.browsingContextGetTree({})
-
-    const mapContext = (context: local.BrowsingContextInfo): string[] => [
-        context.context,
-        ...(context.children || []).map(mapContext).flat(Infinity) as string[]
-    ]
-
-    /**
-     * transform context tree into a flat list of context objects with references
-     * to children
-     */
-    const allContexts: Record<string, FlatContextTree> = tree.contexts.map(mapContext).flat(Infinity)
-        .reduce((acc, ctx: string) => {
-            const context = findContext(ctx, tree.contexts, byContextId)
-            acc[ctx] = context as unknown as FlatContextTree
-            return acc
-        }, {} as Record<string, FlatContextTree>)
-    return allContexts
-}
-
 /**
  * While we deprecated the `switchToFrame` command for users, we still
  * have to use it internally to enable support for WebDriver Classic.
@@ -394,7 +340,7 @@ async function getFlatContextTree (browser: WebdriverIO.Browser): Promise<Record
  */
 function switchToFrame (browser: WebdriverIO.Browser, frame: ElementReference | number | null) {
     process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = 'true'
-    return browser.switchToFrame(frame).finally(() => {
+    return browser.switchToFrame(frame).finally(async () => {
         delete process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS
     })
 }

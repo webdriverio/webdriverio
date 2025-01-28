@@ -100,19 +100,19 @@ describe('before', () => {
 
     it('calls isBrowserstackSession', async () => {
         isBrowserstackSessionSpy.mockReturnValue(true)
-        await accessibilityHandler.before()
+        await accessibilityHandler.before('session123')
         expect(isBrowserstackSessionSpy).toBeCalledTimes(1)
     })
 
     it('isBrowserstackSession returns true', async () => {
         isBrowserstackSessionSpy.mockReturnValue(true)
-        await accessibilityHandler.before()
+        await accessibilityHandler.before('session123')
         expect(isBrowserstackSessionSpy).toBeCalledTimes(1)
     })
 
     it('calls isAccessibilityAutomationSession', async () => {
         isBrowserstackSessionSpy.mockReturnValue(true)
-        await accessibilityHandler.before()
+        await accessibilityHandler.before('session123')
         expect(isAccessibilityAutomationSessionSpy).toBeCalledTimes(1)
     })
 
@@ -121,7 +121,7 @@ describe('before', () => {
         const validateCapsWithA11ySpy = vi.spyOn(utils, 'validateCapsWithA11y')
         isBrowserstackSessionSpy.mockReturnValue(true)
         isAccessibilityAutomationSessionSpy.mockReturnValue(true)
-        await accessibilityHandler.before()
+        await accessibilityHandler.before('session123')
         expect(_getCapabilityValueSpy).toBeCalledTimes(3)
         expect(validateCapsWithA11ySpy).toBeCalledTimes(1)
     })
@@ -129,7 +129,7 @@ describe('before', () => {
     it('calls getA11yResultsSummary', async () => {
         isBrowserstackSessionSpy.mockReturnValue(true)
         isAccessibilityAutomationSessionSpy.mockReturnValue(true)
-        await accessibilityHandler.before();
+        await accessibilityHandler.before('session123');
         (browser as WebdriverIO.Browser).getAccessibilityResultsSummary()
         expect(getA11yResultsSummarySpy).toBeCalledTimes(1)
     })
@@ -137,7 +137,7 @@ describe('before', () => {
     it('calls getA11yResults', async () => {
         isBrowserstackSessionSpy.mockReturnValue(true)
         isAccessibilityAutomationSessionSpy.mockReturnValue(true)
-        await accessibilityHandler.before();
+        await accessibilityHandler.before('session123');
         (browser as WebdriverIO.Browser).getAccessibilityResults()
         expect(getA11yResultsSpy).toBeCalledTimes(1)
     })
@@ -243,10 +243,18 @@ describe('beforeScenario', () => {
     })
 
     it('should throw error in before scenario if exception occurs', async () => {
-        const logErrorMock = vi.spyOn(log, 'error')
-        vi.spyOn(utils, 'shouldScanTestForAccessibility').mockReturnValue(true)
-        accessibilityHandler['shouldRunTestHooks'] = vi.fn().mockImplementation(() => { return true })
-        accessibilityHandler['checkIfPageOpened'] = vi.fn().mockImplementation(() => { throw new Error() })
+        const logErrorMock = vi.spyOn(bstackLogger.BStackLogger, 'error')
+
+        vi.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
+        vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
+        vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test-id')
+        vi.spyOn(utils, 'shouldScanTestForAccessibility').mockImplementation(() => {
+            throw new Error('Test Error')
+        })
+
+        accessibilityHandler['_accessibility'] = true
+        accessibilityHandler['_sessionId'] = 'session123'
+
         await accessibilityHandler.beforeScenario({
             pickle: {
                 name: 'pickle-name',
@@ -261,6 +269,7 @@ describe('beforeScenario', () => {
             }
         } as any)
 
+        expect(logErrorMock).toHaveBeenCalled()
         expect(logErrorMock.mock.calls[0][0])
             .toContain('Exception in starting accessibility automation scan for this test case')
     })

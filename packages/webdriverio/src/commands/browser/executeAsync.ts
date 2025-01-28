@@ -5,7 +5,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../session/context.js'
-import { NAME_POLYFILL } from '../../session/polyfill.js'
+import { polyfillFn } from '../../session/polyfill.js'
 
 /**
  * :::warning
@@ -103,7 +103,8 @@ export async function executeAsync<ReturnValue, InnerArguments extends unknown[]
      */
     if (typeof script === 'function') {
         script = `
-            ${NAME_POLYFILL}
+            ${polyfillFn}
+            webdriverioPolyfill()
             return (${script}).apply(null, arguments)
         `
     }

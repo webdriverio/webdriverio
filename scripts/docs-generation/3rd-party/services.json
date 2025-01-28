@@ -76,6 +76,13 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-wiremock-service"
   },
   {
+    "packageName": "wdio-roku-service",
+    "title": "Roku",
+    "branch": "main",
+    "githubUrl": "https://github.com/theREDspace/wdio-roku-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-roku-service"
+  },
+  {
     "packageName": "wdio-slack-service",
     "title": "Slack",
     "branch": "master",

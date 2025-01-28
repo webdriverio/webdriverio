@@ -183,11 +183,60 @@ The following options (including the ones listed above) can be used with Webdriv
 
 ### automationProtocol
 
-Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
+Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) is supported, as it is the main browser automation technology WebdriverIO uses.
 
-If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
+If you want to automate the browser using a different automation technology, make you set this property to a path that resolves to a module that adheres to the following interface:
 
-Type: `String`<br /> Default: `webdriver`
+```ts
+import type { Capabilities } from '@wdio/types';
+import type { Client, AttachOptions } from 'webdriver';
+
+export default class YourAutomationLibrary {
+    /**
+     * Start a automation session and return a WebdriverIO [monad](https://github.com/webdriverio/webdriverio/blob/940cd30939864bdbdacb2e94ee6e8ada9b1cc74c/packages/wdio-utils/src/monad.ts)
+     * with respective automation commands. See the [webdriver](https://www.npmjs.com/package/webdriver) package
+     * as a reference implementation
+     *
+     * @param {Capabilities.RemoteConfig} options WebdriverIO options
+     * @param {Function} hook that allows to modify the client before it gets released from the function
+     * @param {PropertyDescriptorMap} userPrototype allows user to add custom protocol commands
+     * @param {Function} customCommandWrapper allows to modify the command execution
+     * @returns a WebdriverIO compatible client instance
+     */
+    static newSession(
+        options: Capabilities.RemoteConfig,
+        modifier?: (...args: any[]) => any,
+        userPrototype?: PropertyDescriptorMap,
+        customCommandWrapper?: (...args: any[]) => any
+    ): Promise<Client>;
+
+    /**
+     * allows user to attach to existing sessions
+     * @optional
+     */
+    static attachToSession(
+        options?: AttachOptions,
+        modifier?: (...args: any[]) => any, userPrototype?: {},
+        commandWrapper?: (...args: any[]) => any
+    ): Client;
+
+    /**
+     * Changes The instance session id and browser capabilities for the new session
+     * directly into the passed in browser object
+     *
+     * @optional
+     * @param   {object} instance  the object we get from a new browser session.
+     * @returns {string}           the new session id of the browser
+     */
+    static reloadSession(
+        instance: Client,
+        newCapabilities?: WebdriverIO.Capabilitie
+    ): Promise<string>;
+}
+```
+
+Type: `String`<br />
+Default: `webdriver`
 
 ### baseUrl
 

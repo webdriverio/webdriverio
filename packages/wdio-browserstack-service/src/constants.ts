@@ -30,6 +30,9 @@ export const DEFAULT_OPTIONS: Partial<BrowserstackConfig> = {
 export const consoleHolder: typeof console = Object.assign({}, console)
 
 export const DATA_ENDPOINT = 'https://collector-observability.browserstack.com'
+export const APP_ALLY_ENDPOINT = 'https://app-accessibility.browserstack.com/automate'
+export const APP_ALLY_ISSUES_ENDPOINT = 'api/v1/issues'
+export const APP_ALLY_ISSUES_SUMMARY_ENDPOINT = 'api/v1/issues-summary'
 export const DATA_EVENT_ENDPOINT = 'api/v1/event'
 export const DATA_BATCH_ENDPOINT = 'api/v1/batch'
 export const DATA_SCREENSHOT_ENDPOINT = 'api/v1/screenshots'
