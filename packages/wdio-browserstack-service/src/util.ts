@@ -43,7 +43,6 @@ import {
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
-import { FileStream } from './fileStream.js'
 import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 
@@ -1320,27 +1319,40 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
         BStackLogger.debug('Uploading logs failed due to no credentials')
         return
     }
-    const fileStream = fs.createReadStream(BStackLogger.logFilePath)
-    const uploadAddress = UPLOAD_LOGS_ADDRESS
-    const zip = zlib.createGzip({ level: 1 })
-    fileStream.pipe(zip)
 
-    const formData = new FormData()
-    formData.append('data', new FileStream(zip), 'logs.gz')
-    formData.append('clientBuildUuid', clientBuildUuid)
+    try {
+        const fileContent = await fs.promises.readFile(BStackLogger.logFilePath)
+        const uploadAddress = UPLOAD_LOGS_ADDRESS
+        const compressed = await new Promise<Buffer>((resolve, reject) => {
+            zlib.gzip(fileContent, { level: 1 }, (err, result) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(result)
+                }
+            })
+        })
+        const formData = new FormData()
+        formData.append('data', new Blob([compressed]), 'logs.gz')
+        formData.append('clientBuildUuid', clientBuildUuid)
 
-    const requestOptions: RequestInit = {
-        body: formData as BodyInit,
-        headers: {
-            'Authorization': getBasicAuthHeader(user, key)
-        }
+        const requestOptions: RequestInit = {
+            method: 'POST',
+            body: formData as unknown as BodyInit,
+            headers: {
+                'Authorization': getBasicAuthHeader(user, key)
+            }
+        } satisfies RequestInit
+
+        const response = await nodeRequest(
+            'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, uploadAddress
+        )
+
+        return response
+    } catch (error) {
+        BStackLogger.debug(`Error in uploading logs: ${error}`)
+        throw error
     }
-
-    const response = await nodeRequest(
-        'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, uploadAddress
-    )
-
-    return response
 }
 
 export const isObject = (object: unknown) => {
