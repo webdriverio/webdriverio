@@ -321,6 +321,16 @@ If they can't be determined the defaults will be used.
 -   `tag`: The tag that is provided in the methods that is being called
 -   `width`: The width of the screen
 
+:::info
+
+You can not provide custom paths/folders in the `formatImageName`. If you want to change the path then please check changing the following options:
+
+- [`baselineFolder`](/docs/visual-testing/service-options#baselinefolder)
+- [`screenshotPath`](/docs/visual-testing/service-options#screenshotpath)
+- [`folderOptions`](/docs/visual-testing/method-options#folder-options) per method
+
+:::
+
 ### `fullPageScrollTimeout`
 
 -   **Type:** `number`
