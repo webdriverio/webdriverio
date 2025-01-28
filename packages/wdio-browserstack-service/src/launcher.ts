@@ -446,7 +446,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
         try {
             this._percy = await startPercy(options, config, bsConfig)
-            if (!this._percy) {
+            if (!this._percy || (typeof this._percy === 'object' && Object.keys(this._percy).length === 0)) {
                 throw new Error('Could not start percy, check percy logs for info.')
             }
             PercyLogger.info('Percy started successfully')
@@ -539,9 +539,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     async _uploadServiceLogs() {
         const clientBuildUuid = this._getClientBuildUuid()
-
         const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
-        BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
+        if (response) {
+            BStackLogger.info(`Upload response: ${JSON.stringify(response, null, 2)}`)
+            BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
+        }
     }
 
     _updateObjectTypeCaps(capabilities?: Capabilities.TestrunnerCapabilities, capType?: string, value?: { [key: string]: unknown }) {

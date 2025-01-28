@@ -553,7 +553,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return this._executeCommand('annotate', { data, level: 'info' })
     }
 
-    private async _executeCommand<T = unknown>(
+    private async _executeCommand(
         action: string,
         args?: object,
     ) {
@@ -568,11 +568,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const multiRemoteBrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
             return Promise.all(Object.keys(this._caps).map(async (browserName) => {
                 const browser = multiRemoteBrowser.getInstance(browserName)
-                return (await browser.execute<T, []>(script))
+                return (await browser.executeScript(script, []))
             }))
         }
 
-        return (await this._browser.execute<T, []>(script))
+        return (await this._browser.executeScript(script, []))
     }
 
     private saveWorkerData() {
