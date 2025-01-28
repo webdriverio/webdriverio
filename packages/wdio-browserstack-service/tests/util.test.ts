@@ -56,6 +56,8 @@ import {
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
 import * as testHubUtils from '../src/testHub/utils.js'
+import * as fs from 'node:fs/promises'
+import * as os from 'node:os'
 
 const log = logger('test')
 
@@ -76,6 +78,17 @@ vi.mock('fs', () => ({
 }))
 
 vi.mock('./fileStream')
+
+vi.mock('fs', async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+        ...actual,
+        promises: {
+            readFile: vi.fn().mockImplementation((path) =>
+                fs.readFile(path))
+        }
+    }
+})
 
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
@@ -1130,7 +1143,7 @@ describe('getA11yResults', () => {
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
         await utils.getA11yResults(false, browser as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
-        expect(browser.executeAsync).toBeCalledTimes(2)
+        expect(browser.execute).toBeCalledTimes(2)
     })
 })
 
@@ -1176,13 +1189,13 @@ describe('getA11yResultsSummary', () => {
     it('return results object if bstack as well as accessibility session', async () => {
         process.env.BSTACK_A11Y_JWT = 'abc'
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
-        browser.executeAsync = vi.fn()
+        browser.execute = vi.fn()
             .mockResolvedValueOnce({ total: 5, critical: 2 })  // First call result
             .mockResolvedValueOnce({ summary: { total: 5, critical: 2 } })  // Second call result
 
         await utils.getA11yResultsSummary(false, browser as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
-        expect(browser.executeAsync).toBeCalledTimes(2)
+        expect(browser.execute).toBeCalledTimes(2)
     })
 })
 
@@ -1258,7 +1271,11 @@ describe('frameworkSupportsHook', function () {
 })
 
 describe('uploadLogs', function () {
-    beforeAll(() => {
+    let tempLogFile: string
+    beforeAll(async () => {
+        tempLogFile = path.join(os.tmpdir(), 'test-logs.txt')
+        await fs.writeFile(tempLogFile, 'mock log content')
+        bstackLogger.BStackLogger.logFilePath = tempLogFile
         vi.mocked(fetch).mockClear()
         vi.mocked(fetch).mockReturnValueOnce(Promise.resolve(Response.json({ status: 'success', message: 'Logs uploaded Successfully' })))
     })
@@ -1274,8 +1291,10 @@ describe('uploadLogs', function () {
         await uploadLogs('some_user', 'some_key', 'some_uuid')
         expect(fetch).toHaveBeenCalled()
     })
-    afterAll(() => {
+    afterAll(async () => {
+        await fs.unlink(tempLogFile)
         vi.mocked(fetch).mockClear()
+        vi.restoreAllMocks()
     })
 })
 
@@ -1494,16 +1513,22 @@ describe('jsonifyAccessibilityArray', () => {
 })
 
 describe('logPatcher', () => {
-    const BSTestOpsPatcher = new logPatcher({})
-    const emitSpy = vi.spyOn(process, 'emit')
+    let emitSpy: jest.SpyInstance
+    beforeEach(() => {
+        emitSpy = vi.spyOn(process, 'emit') as unknown as vi.SpyInstance
+    })
+    afterEach(() => {
+        emitSpy.mockRestore()
+    })
     it('logPatcher methods should emit data', () => {
+        const BSTestOpsPatcher = new logPatcher({})
         BSTestOpsPatcher.info('abc')
         BSTestOpsPatcher.error('abc')
         BSTestOpsPatcher.warn('abc')
         BSTestOpsPatcher.trace('abc')
         BSTestOpsPatcher.debug('abc')
         BSTestOpsPatcher.log('abc')
-        expect(emitSpy).toBeCalled()
+        expect(emitSpy).toHaveBeenCalled()
     })
 })
 
@@ -1696,9 +1721,6 @@ describe('performA11yScan', () => {
     it('should perform web accessibility scan when isAppAutomate is false', async () => {
         const mockResults = { success: true }
 
-        const mockScanScript = 'scan script for web: %s'
-        vi.spyOn(AccessibilityScripts, 'performScan', 'get').mockReturnValue(mockScanScript)
-
         const browser = {
             execute: vi.fn().mockResolvedValue(mockResults),
             executeAsync: vi.fn().mockResolvedValue(mockResults),
@@ -1711,16 +1733,15 @@ describe('performA11yScan', () => {
         process.env.BSTACK_A11Y_JWT = 'auth-abc'
 
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
-        vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(false) // Set to false for this test
+        vi.spyOn(utils, 'isAppAccessibilityAutomationSession').mockReturnValue(false)
+        vi.spyOn(AccessibilityScripts, 'performScan', 'get').mockReturnValue('scan_script_for_web')
 
         const result = await performA11yScan(false, browser, true, true, 'clickElement')
 
         expect(result).toEqual(mockResults)
-        expect(browser.executeAsync).toHaveBeenCalledWith(
-            expect.stringContaining('scan script for web:'),
-            { method: 'clickElement' }
+        expect(browser.execute).toHaveBeenCalledWith(
+            expect.stringContaining('scan_script_for_web'),
         )
-
         delete process.env.TEST_ANALYTICS_ID
         delete process.env.BROWSERSTACK_TESTHUB_UUID
         delete process.env.BROWSERSTACK_TESTHUB_JWT

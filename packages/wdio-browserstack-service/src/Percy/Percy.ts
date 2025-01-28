@@ -137,19 +137,23 @@ class Percy {
             }
             params.set('percy', String(this.#options.percy))
             const query = `api/app_percy/get_project_token?${params.toString()}`
-            const response = await nodeRequest('GET', query,
-                {
-                    username: getBrowserStackUser(this.#config),
-                    password: getBrowserStackKey(this.#config)
-                } as RequestInit,
-                'https://api.browserstack.com'
-            )
-            PercyLogger.debug('Percy fetch token success : ' + response.token)
+            const requestInit: RequestInit = {
+                headers: {
+                    Authorization: `Basic ${Buffer.from(`${getBrowserStackUser(this.#config)}:${getBrowserStackKey(this.#config)}`).toString('base64')}`,
+                },
+            }
+            const response = await nodeRequest('GET', query, requestInit, 'https://api.browserstack.com')
             if (!this.#options.percy && response.success) {
                 this.percyAutoEnabled = response.success
             }
             this.percyCaptureMode = response.percy_capture_mode
             this.percy = response.success
+            if (response.token) {
+                PercyLogger.debug('Percy fetch token success: ' + response.token)
+                return response.token
+            }
+            PercyLogger.error('Unable to fetch percy project token')
+            return null
         } catch (err) {
             PercyLogger.error(`Percy unable to fetch project token: ${err}`)
             return null

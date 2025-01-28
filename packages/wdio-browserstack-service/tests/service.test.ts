@@ -605,8 +605,12 @@ describe('beforeTest', () => {
 
     describe('sessionNamePrependTopLevelSuiteTitle is true', () => {
         it('should set title for Mocha tests using concatenation of top level suite name, innermost suite name, and test title', async () => {
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
             const service = new BrowserstackService({ sessionNamePrependTopLevelSuiteTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
-            await service.before(service['_config'] as any, [], browser)
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeSuite({ title: 'Project Title' } as any)
             expect(service['_fullTitle']).toBe('Project Title')
             await service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
@@ -636,7 +640,11 @@ describe('beforeTest', () => {
             service = new BrowserstackService({ sessionNameOmitTestTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
         })
         it('should not set title for Mocha tests', async () => {
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeSuite({ title: 'Suite Title' } as any)
             expect(service['_fullTitle']).toBe('Suite Title')
             await service.beforeTest({ title: 'bar', parent: 'Suite Title' } as any)
@@ -660,7 +668,11 @@ describe('beforeTest', () => {
             service = new BrowserstackService({ sessionNameOmitTestTitle: true, sessionNamePrependTopLevelSuiteTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
         })
         it('should set title for Mocha tests using concatenation of top level suite name and innermost suite name', async () => {
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeSuite({ title: 'Project Title' } as any)
             expect(service['_fullTitle']).toBe('Project Title')
             await service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
@@ -703,8 +715,12 @@ describe('beforeTest', () => {
             } as any)
         })
         it('should set title via sessionNameFormat method', async () => {
-            await service.before(service['_config'] as any, [], browser)
-            service['_browser'] = browser
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
+            service['_browser'] = browserWithExecuteScript
             service['_suiteTitle'] = 'Suite Title'
             await service.beforeSuite({ title: 'Suite Title' } as any)
             expect(service['_fullTitle']).toBe('barfoo - foobar - Suite Title')
@@ -732,7 +748,11 @@ describe('beforeTest', () => {
 
     describe('Jasmine only', () => {
         it('should set suite name of first test as title', async () => {
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeSuite({ title: jasmineSuiteTitle } as any)
             await service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
             service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
@@ -748,7 +768,11 @@ describe('beforeTest', () => {
         })
 
         it('should set parent suite name as title', async () => {
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeSuite({ title: jasmineSuiteTitle } as any)
             await service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
             await service.beforeTest({ fullName: 'foo xyz', description: 'xyz' } as any)
@@ -1020,8 +1044,11 @@ describe('after', () => {
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
-
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
             await service.afterScenario({ pickle: { name: 'Can do something but pending 1' },  result: { status: 'PENDING' } as any })
@@ -1045,8 +1072,11 @@ describe('after', () => {
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
-
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
             await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 'PASSED' } as any })
@@ -1067,8 +1097,11 @@ describe('after', () => {
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
-
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
             await service.afterScenario({ pickle: { name: 'Can do something 1' },  result: { status: 'PASSED' } as any })
@@ -1087,8 +1120,11 @@ describe('after', () => {
 
         it('should call _update with status "passed" when all tests are skipped', async () => {
             const updateSpy = vi.spyOn(service, '_update')
-
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
             await service.afterScenario({ pickle: { name: 'Can do something skipped 1' },  result: { status: 'SKIPPED' } as any })
@@ -1109,9 +1145,12 @@ describe('after', () => {
 
             const updateSpy = vi.spyOn(service, '_update')
             const afterSpy = vi.spyOn(service, 'after')
-
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
             await service.beforeSession(service['_config'] as any)
-            await service.before(service['_config'] as any, [], browser)
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
             expect(updateSpy).toHaveBeenCalledWith(service['_browser']?.sessionId, {
@@ -1139,9 +1178,12 @@ describe('after', () => {
 
         it('should call _update with status "failed" when strict mode is "off" and only failed and pending tests ran', async () => {
             const updateSpy = vi.spyOn(service, '_update')
-
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
             await service.beforeSession(service['_config'] as any)
-            await service.before(service['_config'] as any, [], browser)
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
 
             expect(updateSpy).toHaveBeenCalledWith(service['_browser']?.sessionId, {
@@ -1177,7 +1219,11 @@ describe('after', () => {
                     it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`, async () => {
                         service = new BrowserstackService({ testObservability: false, preferScenarioName : true } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
-                        service.before({}, [], browser)
+                        const browserWithExecuteScript = {
+                            ...browser,
+                            executeScript: browser.execute
+                        } as WebdriverIO.Browser
+                        service.before({}, [], browserWithExecuteScript)
 
                         const updateSpy = vi.spyOn(service, '_update')
 
@@ -1192,7 +1238,11 @@ describe('after', () => {
                 it('should call _update /w status passed and name of Scenario when single "passed" Scenario ran', async () => {
                     service = new BrowserstackService({ testObservability: false, preferScenarioName : true } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
-                    service.before({}, [], browser)
+                    const browserWithExecuteScript = {
+                        ...browser,
+                        executeScript: browser.execute
+                    } as WebdriverIO.Browser
+                    service.before({}, [], browserWithExecuteScript)
 
                     const updateSpy = vi.spyOn(service, '_update')
 
@@ -1217,7 +1267,11 @@ describe('after', () => {
                     it(`should call _update /w status failed and name of Feature when single "${status}" Scenario ran`, async () => {
                         service = new BrowserstackService({ testObservability: false, preferScenarioName : false } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
-                        service.before({}, [], browser)
+                        const browserWithExecuteScript = {
+                            ...browser,
+                            executeScript: browser.execute
+                        } as WebdriverIO.Browser
+                        service.before({}, [], browserWithExecuteScript)
 
                         const updateSpy = vi.spyOn(service, '_update')
 
@@ -1238,7 +1292,11 @@ describe('after', () => {
                 it('should call _update /w status passed and name of Feature when single "passed" Scenario ran', async () => {
                     service = new BrowserstackService({ testObservability: false, preferScenarioName : false } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
-                    service.before({}, [], browser)
+                    const browserWithExecuteScript = {
+                        ...browser,
+                        executeScript: browser.execute
+                    } as WebdriverIO.Browser
+                    service.before({}, [], browserWithExecuteScript)
 
                     const updateSpy = vi.spyOn(service, '_update')
 
@@ -1291,7 +1349,12 @@ describe('_updateCaps', () => {
 describe('setAnnotation', () => {
     describe('Cucumber', () => {
         it('should correctly annotate Features, Scenarios, and Steps', async () => {
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            const service = new BrowserstackService({ sessionNamePrependTopLevelSuiteTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeFeature(null, { name: 'Feature1' })
             await service.beforeScenario({ pickle: { name: 'foobar' } })
             const step = {
@@ -1302,29 +1365,37 @@ describe('setAnnotation', () => {
             }
             await service.beforeStep(step)
             expect(browser.execute).toBeCalledTimes(3)
-            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Feature: Feature1","level":"info"}}')
-            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Scenario: foobar","level":"info"}}')
-            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Step: Given I am a step","level":"info"}}')
+            expect(browserWithExecuteScript.executeScript).toHaveBeenNthCalledWith(1, 'browserstack_executor: {"action":"annotate","arguments":{"data":"Feature: Feature1","level":"info"}}', [])
+            expect(browserWithExecuteScript.executeScript).toHaveBeenNthCalledWith(2, 'browserstack_executor: {"action":"annotate","arguments":{"data":"Scenario: foobar","level":"info"}}', [])
+            expect(browserWithExecuteScript.executeScript).toHaveBeenNthCalledWith(3, 'browserstack_executor: {"action":"annotate","arguments":{"data":"Step: Given I am a step","level":"info"}}', [])
         })
     })
 
     describe('Jasmine', () => {
         it('should correctly annotate Tests', async () => {
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeSuite({ title: jasmineSuiteTitle } as any)
             await service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
             expect(browser.execute).toBeCalledTimes(1)
-            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: foo bar baz","level":"info"}}')
+            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: foo bar baz","level":"info"}}', [])
         })
     })
 
     describe('Mocha', () => {
         it('should correctly annotate Tests', async () => {
-            await service.before(service['_config'] as any, [], browser)
+            const browserWithExecuteScript = {
+                ...browser,
+                executeScript: browser.execute
+            } as WebdriverIO.Browser
+            await service.before(service['_config'] as any, [], browserWithExecuteScript)
             await service.beforeSuite({ title: 'My Feature' } as any)
             await service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
             expect(browser.execute).toBeCalledTimes(1)
-            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: Test Title","level":"info"}}')
+            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: Test Title","level":"info"}}', [])
         })
     })
 })

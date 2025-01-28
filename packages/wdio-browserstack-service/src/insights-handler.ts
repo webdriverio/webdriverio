@@ -95,13 +95,13 @@ class _InsightsHandler {
 
     async before () {
         if (isBrowserstackSession(this._browser)) {
-            await (this._browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({
+            await (this._browser as WebdriverIO.Browser).executeScript(`browserstack_executor: ${JSON.stringify({
                 action: 'annotate',
                 arguments: {
                     data: `ObservabilitySync:${Date.now()}`,
                     level: 'debug'
                 }
-            })}`)
+            })}`, [])
         }
 
         const gitMeta = await getGitMetaData()

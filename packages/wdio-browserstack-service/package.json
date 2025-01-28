@@ -28,6 +28,10 @@
     ".": {
       "types": "./build/index.d.ts",
       "import": "./build/index.js"
+    },
+    "./cleanup": {
+      "import": "./build/cleanup.js",
+      "source": "./src/cleanup.ts"
     }
   },
   "typeScriptVersion": "3.8.3",
