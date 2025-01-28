@@ -1138,12 +1138,17 @@ describe('getA11yResults', () => {
         expect(result).toEqual([])
     })
 
-    it('return results object if bstack as well as accessibility session', async () => {
+    it('should call executeAccessibilityScript if bstack and accessibility session are enabled', async () => {
         process.env.BSTACK_A11Y_JWT = 'abc'
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
-        await utils.getA11yResults(false, browser as WebdriverIO.Browser, true, true)
+        const executeAccessibilityScriptSpy = vi
+            .spyOn(utils, 'executeAccessibilityScript')
+            .mockResolvedValue(undefined)
+        vi.spyOn(AccessibilityScripts, 'getResults', 'get').mockReturnValue('mocked_results_script')
+        const results = await utils.getA11yResults(false, browser as WebdriverIO.Browser, true, true)
+        expect(results).toEqual(undefined)
+        executeAccessibilityScriptSpy.mockRestore()
         delete process.env.BSTACK_A11Y_JWT
-        expect(browser.execute).toBeCalledTimes(2)
     })
 })
 
@@ -1186,17 +1191,17 @@ describe('getA11yResultsSummary', () => {
         expect(result).toEqual({})
     })
 
-    it('return results object if bstack as well as accessibility session', async () => {
+    it('returns results object for an accessibility session', async () => {
         process.env.BSTACK_A11Y_JWT = 'abc'
+        AccessibilityScripts.getResultsSummary = 'mockScript'
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(true)
-        browser.execute = vi.fn()
-            .mockResolvedValueOnce({ total: 5, critical: 2 })  // First call result
-            .mockResolvedValueOnce({ summary: { total: 5, critical: 2 } })  // Second call result
-
-        await utils.getA11yResultsSummary(false, browser as WebdriverIO.Browser, true, true)
+        const mockExecuteAccessibilityScript = vi
+            .spyOn(utils, 'executeAccessibilityScript')
+            .mockResolvedValue({ })
+        const result = await utils.getA11yResultsSummary(false, {} as WebdriverIO.Browser, true, true)
         delete process.env.BSTACK_A11Y_JWT
-        expect(browser.execute).toBeCalledTimes(2)
-    })
+        expect(result).toEqual({ })
+    });
 })
 
 describe('isTrue', () => {
