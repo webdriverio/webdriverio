@@ -98,19 +98,23 @@ If no baseline image is found during the comparison the image is automatically c
 
 ### `baselineFolder`
 
-- **Type:** `any`
+- **Type:** `string|()=> string`
 - **Mandatory:** No
 - **Default:** `.path/to/testfile/__snapshots__/`
 - **Supported:** Web, Hybrid App (Webview), Native App
 
-The directory will hold all the baseline images that are used during the comparison. If not set, the default value will be used which will store the files in a `__snapshots__/`-folder next to the spec that executes the visual tests. A function that accepts an option object can also be used to set the `baselineFolder` value:
+The directory that will hold all the baseline images that are used during the comparison. If not set, the default value will be used which will store the files in a `__snapshots__/`-folder next to the spec that executes the visual tests. A function that returns a `string` can also be used to set the `baselineFolder` value:
 
 ```js
 {
-    baselineFolder: (options) => {
-        const testFolder = path.dirname(options.specs[0]);
-        return path.join(testFolder, "snapshots", type);
-    };
+    baselineFolder: path.join(process.cwd(), 'foo', 'bar', 'baseline')
+},
+// OR
+{
+    baselineFolder: () => {
+        // Do some magic here
+        return path.join(process.cwd(), 'foo', 'bar', 'baseline');
+    }
 }
 ```
 
@@ -315,6 +319,16 @@ If they can't be determined the defaults will be used.
 - `tag`: The tag that is provided in the methods that is being called
 - `width`: The width of the screen
 
+:::info
+
+You can not provide custom paths/folders in the `formatImageName`. If you want to change the path then please check changing the following options:
+
+- [`baselineFolder`](/docs/visual-testing/service-options#baselinefolder)
+- [`screenshotPath`](/docs/visual-testing/service-options#screenshotpath)
+- [`folderOptions`](/docs/visual-testing/method-options#folder-options) per method
+
+:::
+
 ### `fullPageScrollTimeout`
 
 - **Type:** `number`
@@ -364,22 +378,24 @@ Save the images per instance in a separate folder so for example all Chrome scre
 
 ### `screenshotPath`
 
-- **Type:** `any`
+- **Type:** `string | () => string`
 - **Default:** `.tmp/`
 - **Mandatory:** no
 - **Supported:** Web, Hybrid App (Webview), Native App
 
 The directory that will hold all the actual/different screenshots. If not set, the default value will be used. A function that
-accepts an option object can also be used to set the screenshotPath value:
+returns a string can also be used to set the screenshotPath value:
 
 ```js
-getFolder = type = (options) => {
-    const testFolder = path.dirname(options.specs[0]);
-
-    return path.join(testFolder, "snapshots", type);
-};
 {
-    screenshotPath: getFolder(options);
+    screenshotPath: path.join(process.cwd(), 'foo', 'bar', 'screenshotPath')
+},
+// OR
+{
+    screenshotPath: () => {
+        // Do some magic here
+        return path.join(process.cwd(), 'foo', 'bar', 'screenshotPath');
+    }
 }
 ```
 
