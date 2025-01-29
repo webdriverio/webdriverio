@@ -105,7 +105,6 @@ describe('onPrepare', () => {
         expect(log.info).toHaveBeenNthCalledWith(1, 'percy auto enabled')
     })
 
-
     it('should add the "app" property to a multiremote capability if no "bstack:options"', async () => {
         const options: BrowserstackConfig = { app: 'bs://<app-id>', percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
