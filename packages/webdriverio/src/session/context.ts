@@ -55,6 +55,35 @@ export class ContextManager extends SessionManager {
         this.#browser.on('command', this.#onCommand.bind(this))
 
         /**
+         * Listen to the 'browsingContext.navigationStarted' event to handle context changes
+         * through navigation within e.g. frames.
+         */
+        this.#browser.sessionSubscribe({
+            events: ['browsingContext.navigationStarted']
+        })
+        this.#browser.on('browsingContext.navigationStarted', async (nav) => {
+            /**
+             * no need to do anything as we navigate within the same context
+             */
+            if (!this.#currentContext || nav.context === this.#currentContext) {
+                return
+            }
+
+            /**
+             * a navigation event may have changed the tree structure, so we need to get the
+             * current tree and see if our context is still there, if not, we need to reset
+             * the context to the first context in the tree.
+             */
+            const { contexts } = await this.#browser.browsingContextGetTree({})
+            const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
+            if (!hasContext) {
+                this.setCurrentContext(contexts[0].context)
+                this.#browser.switchToWindow(this.#currentContext)
+                return
+            }
+        })
+
+        /**
          * Listens for the 'closeWindow' browser command to handle context changes.
          */
         if (this.#browser.isMobile) {
