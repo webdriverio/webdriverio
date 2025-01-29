@@ -101,6 +101,17 @@ describe('onPrepare', () => {
         expect(service.browserstackLocal).toBeUndefined()
     })
 
+    it('should auto enable percy if percy is undefined', async () => {
+        const service = new BrowserstackLauncher({ testObservability: false, percy: true } as any, caps, {
+            user: 'foobaruser',
+            key: '12345',
+            capabilities: []
+        })
+        await service.onPrepare(config, caps)
+
+        expect(log.info).toHaveBeenNthCalledWith(1, 'percy auto enabled')
+    })
+
     it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
@@ -576,7 +587,7 @@ describe('onPrepare', () => {
         await service.onPrepare(config, caps)
         expect(service.browserstackLocal?.start).toHaveBeenCalled()
         await sleep(100)
-        expect(logInfoMock.mock.calls[1][0])
+        expect(logInfoMock.mock.calls[2][0])
             .toContain('Browserstack Local successfully started after')
     })
 
