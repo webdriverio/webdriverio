@@ -23,6 +23,27 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.7.2 (2025-01-29)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#14054](https://github.com/webdriverio/webdriverio/pull/14054) fix: Handle paths for accessibility ([@sauravdas1997](https://github.com/sauravdas1997))
+  * [#14122](https://github.com/webdriverio/webdriverio/pull/14122) fixes in packages/wdio-browserstack-service to support wdio-v9 ([@rounak610](https://github.com/rounak610))
+
+#### :nail_care: Polish
+* `wdio-utils`, `webdriverio`
+  * [#14024](https://github.com/webdriverio/webdriverio/pull/14024) wdio: implement `.entries()` for `ChainablePromiseArray` ([@Delta456](https://github.com/Delta456))
+
+#### :memo: Documentation
+* [#14121](https://github.com/webdriverio/webdriverio/pull/14121) chore: update visual docs ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 4
+- Rounak Bhatia ([@rounak610](https://github.com/rounak610))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v9.7.1 (2025-01-25)
 
 #### :bug: Bug Fix
