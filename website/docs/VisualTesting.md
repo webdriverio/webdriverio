@@ -284,7 +284,10 @@ When running logs info/debug mode you will see the following logs added
 
 ## Typescript support
 
-We now also support typescript types. Add the following to the `types` in your `tsconfig.json`:
+This module includes TypeScript support, allowing you to benefit from auto-completion, type safety, and improved developer experience when using the Visual Testing service.
+
+### Step 1: Add Type Definitions
+To ensure TypeScript recognizes the module types, add the following entry to the types field in your tsconfig.json:
 
 ```json
 {
@@ -292,6 +295,35 @@ We now also support typescript types. Add the following to the `types` in your `
         "types": ["@wdio/visual-service"]
     }
 }
+```
+
+### Step 2: Enable Type Safety for Service Options
+To enforce type checking on the service options, update your WebdriverIO configuration:
+
+```ts
+// wdio.conf.ts
+import { join } from 'node:path';
+// Import the type definition
+import type { VisualServiceOptions } from '@wdio/visual-service';
+
+export const config = {
+    // ...
+    // =====
+    // Setup
+    // =====
+    services: [
+        [
+            "visual",
+            {
+                // Service options
+                baselineFolder: join(process.cwd(), './__snapshots__/'),
+                formatImageName: '{tag}-{logName}-{width}x{height}',
+                screenshotPath: join(process.cwd(), '.tmp/'),
+            } satisfies VisualServiceOptions, // Ensures type safety
+        ],
+    ],
+    // ...
+};
 ```
 
 ## System Requirements
