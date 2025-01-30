@@ -52,6 +52,7 @@ export const config: Options.Testrunner = {
      * test configurations
      */
     logLevel: 'info',
+    maxInstances: 1,
     framework: 'mocha',
     outputDir: __dirname,
     reporters: ['spec'],
