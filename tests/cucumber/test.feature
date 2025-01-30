@@ -45,7 +45,7 @@ Feature: Example feature
         Given this step doesn't exist
 
     Scenario: failAmbiguousDefinitions
-        Given a situation is ambiguous
+        Given this is ambiguous
 
     @retry
     Scenario: failsTheFirstTimeToCheckRetries
