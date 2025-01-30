@@ -25,14 +25,14 @@ export const config: Options.Testrunner = {
         browserName: 'chrome',
         webSocketUrl: true,
         'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu']
+            args: ['headless', 'disable-gpu', `--user-data-dir=/tmp/chrome-user-data-${process.pid}`]
         }
     }, {
         browserName: 'chrome',
         browserVersion: 'canary',
         webSocketUrl: true,
         'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu']
+            args: ['headless', 'disable-gpu', `--user-data-dir=/tmp/chrome-user-data-${process.pid}`]
         }
     }, {
         browserName: 'firefox',
@@ -51,7 +51,6 @@ export const config: Options.Testrunner = {
     /**
      * test configurations
      */
-    maxInstances: 1,
     logLevel: 'info',
     framework: 'mocha',
     outputDir: __dirname,
