@@ -302,7 +302,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             if (shouldSetupPercy) {
                 try {
-                    BStackLogger.info('percy auto enabled')
+                    BStackLogger.debug('percy enabled')
                     const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
                     this._percyBestPlatformCaps = bestPlatformPercyCaps
                     process.env[BROWSERSTACK_PERCY] = 'false'
