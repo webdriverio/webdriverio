@@ -86,7 +86,7 @@ Given(/^a table step$/, async function (table) {
     expect(table.rows()).toEqual(expected)
 })
 
-Given('this is ambiguous', () => {
+Given('a situation is ambiguous', () => {
 })
 
 Given('this is a step with timeout', { timeout: 6000 }, async () => {
