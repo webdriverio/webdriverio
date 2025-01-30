@@ -35,7 +35,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "saucelabs": "8.0.0",
+    "saucelabs": "9.0.0",
     "webdriverio": "workspace:*"
   },
   "devDependencies": {
