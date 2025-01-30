@@ -52,10 +52,16 @@ export default class SauceLauncher implements Services.ServiceInstance {
             this._options.sauceConnectOpts.tlsPassthroughDomains.split(',').forEach((domain) => tlsPassthroughDomains.add(domain))
         }
 
+        let metadata = this._options.sauceConnectOpts?.metadata || ''
+        if (!metadata.includes('runner=')) {
+            metadata += `runner=${DEFAULT_RUNNER_NAME}`
+        }
+
         const sauceConnectOpts: SauceConnectOptions = {
             tunnelName: sauceConnectTunnelName,
             ...this._options.sauceConnectOpts,
             tlsPassthroughDomains: Array.from(tlsPassthroughDomains).join(','),
+            metadata: metadata,
             logger: this._options.sauceConnectOpts?.logger || ((output) => log.debug(`Sauce Connect Log: ${output}`)),
             ...(!this._options.sauceConnectOpts?.logFile && this._config.outputDir
                 ? { logfile: path.join(this._config.outputDir, 'wdio-sauce-connect-tunnel.log') }

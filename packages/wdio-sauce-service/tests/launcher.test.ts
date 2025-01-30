@@ -77,6 +77,20 @@ test('onPrepare only sets unique tlsPassthroughDomains values', async () => {
     }
 })
 
+test('onPrepare sets runner in metadata', async () => {
+    const options: SauceServiceConfig = {
+        sauceConnect: true,
+        sauceConnectOpts: {},
+    }
+    const caps = [{}] as WebdriverIO.Capabilities[]
+    const config = {} as Options.Testrunner
+    const service = new SauceServiceLauncher(options, caps as never, config)
+    const startTunnelMock = vi.fn()
+    service.startTunnel = startTunnelMock
+    await service.onPrepare(config, caps)
+    expect(startTunnelMock.mock.calls[0][0].metadata).toBe('runner=webdriverio')
+})
+
 test('onPrepare w/ SauceConnect w/o tunnelName w/ JWP', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true,
