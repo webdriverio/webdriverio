@@ -23,6 +23,7 @@ export const config: Options.Testrunner = {
     }],
     bail: 1,
     services: ['devtools'],
+    maxInstances: 1,
 
     /**
      * test configurations

@@ -45,6 +45,7 @@ export const config = {
             },
         }
     ],
+    maxInstances: 1,
 
     /**
      * include shared store service for e2e tests
