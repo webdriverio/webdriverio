@@ -3,16 +3,16 @@ id: team
 title: Equipe
 ---
 
-The WebdriverIO development is led by a dedicated team of developers and SDETs from various companies as well contributions from people around the world.
+O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvolvedores e SDETs de várias empresas, assim como contribuições de pessoas de todo o mundo.
 
-## Technical Steering Committee
+## Comité Técnico de Direção
 
 <Card
     name="Adam Bjerstedt"
     avatar="https://avatars2.githubusercontent.com/u/4043890?s=460"
     github="abjerstedt"
 >
-    Senior Software Engineer - Android at <a href="https://www.target.com/">Target</a>.
+    Engenheiro de Software Sénior — Android em <a href="https://www.target.com/">Target</a>.
 </Card>
 
 <Card
@@ -21,7 +21,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="christian-bromann"
     twitter="bromann"
 >
-    Staff Software Engineer at the Open Source Program Office <a href="https://saucelabs.com/">@saucelabs</a>.
+    Engenheiro de Software de Equipe no Open Source Program Office <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
 <Card
@@ -29,7 +29,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars.githubusercontent.com/u/15839059?s=460"
     github="erwinheitzman"
 >
-    Senior Test Automation Engineer at <a href="https://detesters.nl/">deTesters</a>.
+    Engenheiro de Automatização de Teste Sénior em <a href="https://detesters.nl/">deTesters</a>.
 </Card>
 
 <Card
@@ -46,7 +46,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars0.githubusercontent.com/u/25589559?s=460"
     github="mgrybyk"
 >
-    Senior Software Development Engineer in Test.
+    Engenheiro de Desenvolvimento de Software de Teste Sénior.
 </Card>
 
 <Card
@@ -63,10 +63,10 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="wswebcreation"
     twitter="wswebcreation"
 >
-    Senior Solutions Architect <a href="https://saucelabs.com/">@saucelabs</a>.
+    Arquiteto de Soluções Sénior <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
-## Project Collaborators
+## Colaboradores do Projeto
 
 <Card
     name="Baruch Velez"
