@@ -98,6 +98,36 @@ describe('onPrepare', () => {
         expect(service.browserstackLocal).toBeUndefined()
     })
 
+    it('should keep percy enabled if percy is already true', async () => {
+        const service = new BrowserstackLauncher({ percy: true } as any, caps, {
+            user: 'foobaruser',
+            key: '12345',
+            capabilities: []
+        })
+        await service.onPrepare(config, caps)
+        expect(log.debug).toHaveBeenCalledWith('percy enabled')
+    })
+
+    it('should not auto enable percy if explicitly set to false', async () => {
+        const service = new BrowserstackLauncher({ percy: false } as any, caps, {
+            user: 'foobaruser',
+            key: '12345',
+            capabilities: []
+        })
+        await service.onPrepare(config, caps)
+        expect(log.debug).not.toHaveBeenCalledWith('percy enabled')
+    })
+
+    it('should enable percy when percy is undefined, even without an app key', async () => {
+        const service = new BrowserstackLauncher({ testObservability: false } as any, caps, {
+            user: 'foobaruser',
+            key: undefined,
+            capabilities: []
+        })
+        await service.onPrepare(config, caps)
+        expect(log.debug).toHaveBeenCalledWith('percy enabled')
+    })
+
     it('should not call local if browserstackLocal is false', async () => {
         const service = new BrowserstackLauncher({
             browserstackLocal: false,
