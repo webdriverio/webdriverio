@@ -14,6 +14,6 @@ While we do not recommend using this but the WebDriver protocol offers [implicit
 
 :::note
 
-Read more about WebDriver and framework related timeouts in the [timeouts guide](/docs/timeouts)
+Leia mais sobre o WebDriver e o tempo limite relacionado à framework no [guia de timeouts](/docs/timeouts)
 
 :::
