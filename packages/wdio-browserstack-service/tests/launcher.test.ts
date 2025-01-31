@@ -94,6 +94,36 @@ describe('onPrepare', () => {
         expect(service.browserstackLocal).toBeUndefined()
     })
 
+    it('should keep percy enabled if percy is already true', async () => {
+        const service = new BrowserstackLauncher({ percy: true } as any, caps, {
+            user: 'foobaruser',
+            key: '12345',
+            capabilities: []
+        })
+        await service.onPrepare(config, caps)
+        expect(log.debug).toHaveBeenCalledWith('percy enabled')
+    })
+
+    it('should not auto enable percy if explicitly set to false', async () => {
+        const service = new BrowserstackLauncher({ percy: false } as any, caps, {
+            user: 'foobaruser',
+            key: '12345',
+            capabilities: []
+        })
+        await service.onPrepare(config, caps)
+        expect(log.debug).not.toHaveBeenCalledWith('percy enabled')
+    })
+
+    it('should enable percy when percy is undefined, even without an app key', async () => {
+        const service = new BrowserstackLauncher({ testObservability: false } as any, caps, {
+            user: 'foobaruser',
+            key: undefined,
+            capabilities: []
+        })
+        await service.onPrepare(config, caps)
+        expect(log.debug).toHaveBeenCalledWith('percy enabled')
+    })
+
     it('should add the "app" property to a multiremote capability if no "bstack:options"', async () => {
         const options: BrowserstackConfig = { app: 'bs://<app-id>', percy: false }
         const service = new BrowserstackLauncher(options, caps, config)
@@ -542,7 +572,7 @@ describe('onPrepare', () => {
         await service.onPrepare(config, caps)
         expect(service.browserstackLocal?.start).toHaveBeenCalled()
         await sleep(100)
-        expect(logInfoMock.mock.calls[1][0])
+        expect(logInfoMock.mock.calls[2][0])
             .toContain('Browserstack Local successfully started after')
     })
 

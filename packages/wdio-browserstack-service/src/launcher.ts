@@ -309,9 +309,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             })
         }
 
-        const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
+        const shouldSetupPercy = this._options.percy || isUndefined(this._options.percy)
         if (shouldSetupPercy) {
             try {
+                BStackLogger.debug('percy enabled')
                 const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
                 this._percyBestPlatformCaps = bestPlatformPercyCaps
                 await this.setupPercy(this._options, this._config, {
