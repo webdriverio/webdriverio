@@ -273,7 +273,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // remove accessibilityOptions from the capabilities if present
         this._updateObjectTypeCaps(capabilities, 'accessibilityOptions')
 
-        const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
+        const shouldSetupPercy = this._options.percy || isUndefined(this._options.percy)
         if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
             BStackLogger.debug('Sending launch start event')
 
@@ -302,6 +302,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             if (shouldSetupPercy) {
                 try {
+                    BStackLogger.debug('percy enabled')
                     const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
                     this._percyBestPlatformCaps = bestPlatformPercyCaps
                     process.env[BROWSERSTACK_PERCY] = 'false'
