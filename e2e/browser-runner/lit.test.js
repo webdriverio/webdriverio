@@ -104,7 +104,11 @@ describe('Lit Component testing', () => {
     })
 
     it('should match object snapshot', async () => {
-        await expect({ foo: 'bar' }).toMatchSnapshot()
+        await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
+          {
+            "foo": "bar",
+          }
+        `)
     })
 
     it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
