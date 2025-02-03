@@ -87,8 +87,11 @@ describe('Lit Component testing', () => {
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
         )
+
         const elem = $('simple-greeting')
         await expect(elem).toMatchSnapshot()
+        await expect(elem).toMatchInlineSnapshot('"<simple-greeting name="WebdriverIO"></simple-greeting>"')
+        await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
         await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
           {
             "parsed": {
@@ -101,9 +104,7 @@ describe('Lit Component testing', () => {
             "value": "rgba(0,0,0,0)",
           }
         `)
-    })
-
-    it('should match object snapshot', async () => {
+        await expect({ foo: 'bar' }).toMatchSnapshot()
         await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
           {
             "foo": "bar",
@@ -199,15 +200,9 @@ describe('Lit Component testing', () => {
     })
 
     it('should not stale process due to alert or prompt', async () => {
-        spyOn(window, 'alert')
-        spyOn(window, 'prompt').mockReturnValue('test')
-        spyOn(window, 'confirm').mockReturnValue(true)
         alert('test')
         prompt('test')
         confirm('test')
-        expect(alert).toHaveBeenCalledWith('test')
-        expect(prompt).toHaveBeenCalledWith('test')
-        expect(confirm).toHaveBeenCalledWith('test')
         await expect(browser).toHaveTitle('WebdriverIO Browser Test')
     })
 
