@@ -200,9 +200,14 @@ describe('Lit Component testing', () => {
     })
 
     it('should not stale process due to alert or prompt', async () => {
-        alert('test')
-        prompt('test')
-        confirm('test')
+        await browser.execute(() => {
+            alert('test')
+            prompt('test')
+            confirm('test')
+        })
+        await browser.acceptAlert()
+        await browser.sendAlertText('response')
+        await browser.acceptAlert()
         await expect(browser).toHaveTitle('WebdriverIO Browser Test')
     })
 
