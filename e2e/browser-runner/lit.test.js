@@ -82,31 +82,42 @@ describe('Lit Component testing', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
-    it('should support snapshot testing', async () => {
-        render(
-            html`<simple-greeting name="WebdriverIO" />`,
-            document.body
-        )
+    describe('Snapshot testing for simple-greeting', () => {
+        beforeEach(() => {
+            render(
+                html`<simple-greeting name="WebdriverIO" />`,
+                document.body
+            )
+        })
 
-        const elem = $('simple-greeting')
-        await expect(elem).toMatchInlineSnapshot('"<simple-greeting name="WebdriverIO"></simple-greeting>"')
-        await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
-          {
-            "parsed": {
-              "alpha": 0,
-              "hex": "#000000",
-              "rgba": "rgba(0,0,0,0)",
-              "type": "color",
-            },
-            "property": "background-color",
-            "value": "rgba(0,0,0,0)",
-          }
-        `)
-        await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
-          {
-            "foo": "bar",
-          }
-        `)
+        it('should match element snapshot', async () => {
+            const elem = $('simple-greeting')
+            await expect(elem).toMatchInlineSnapshot('"<simple-greeting name="WebdriverIO"></simple-greeting>"')
+        })
+
+        it('should match background-color snapshot', async () => {
+            const elem = $('simple-greeting')
+            await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
+              {
+                "parsed": {
+                  "alpha": 0,
+                  "hex": "#000000",
+                  "rgba": "rgba(0,0,0,0)",
+                  "type": "color",
+                },
+                "property": "background-color",
+                "value": "rgba(0,0,0,0)",
+              }
+            `)
+        })
+
+        it('should match object snapshot', async () => {
+            await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
+              {
+                "foo": "bar",
+              }
+            `)
+        })
     })
 
     it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
