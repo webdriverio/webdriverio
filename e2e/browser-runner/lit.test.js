@@ -82,35 +82,33 @@ describe('Lit Component testing', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
-    describe('Snapshot testing for simple-greeting - should match element snapshot', () => {
-        beforeEach(async () => {
-            await render(html`<simple-greeting name='WebdriverIO' />`, document.body)
-        })
-    
-        it('should match element snapshot', async () => {
-            const elem = await $('simple-greeting')
-            const html = await elem.getHTML()
-            await expect(html).toMatchSnapshot()
-        })
-    })
-    
-    describe('Snapshot testing for simple-greeting - should match background-color snapshot', () => {
-        beforeEach(async () => {
-            await render(html`<simple-greeting name='WebdriverIO' />`, document.body)
-        })
-    
-        it('should match background-color snapshot', async () => {
-            const elem = await $('simple-greeting')
-            const bgColor = await elem.getCSSProperty('background-color')
-            await expect(bgColor.value).toMatchSnapshot()
-        })
-    })
-    
-    describe('Snapshot testing for simple-greeting - should match object snapshot', () => {
-        it('should match object snapshot', async () => {
-            const obj = { foo: 'bar' }
-            await expect(obj).toMatchSnapshot()
-        })
+    it('should support snapshot testing', async () => {
+        render(
+            html`<simple-greeting name="WebdriverIO" />`,
+            document.body
+        )
+
+        const elem = $('simple-greeting')
+
+        // Snapshot for element structure
+        await expect(elem).toMatchSnapshot()
+
+        // Use `toMatchInlineSnapshot` for only one of the properties at a time
+        await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
+          {
+            "parsed": {
+              "alpha": 0,
+              "hex": "#000000",
+              "rgba": "rgba(0,0,0,0)",
+              "type": "color",
+            },
+            "property": "background-color",
+            "value": "rgba(0,0,0,0)",
+          }
+        `)
+
+        // Regular snapshot for object comparison
+        await expect({ foo: 'bar' }).toMatchSnapshot()
     })
 
     it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
