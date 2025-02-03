@@ -17,8 +17,8 @@ Then('I should fail once but pass on the second run', { wrapperOptions: { retry:
     expect(this.wdioRetries).toBe(1)
 })
 
-Then('this is ambiguous', () => {
-})
+// Then('this is ambiguous', () => {
+// })
 
 Then('this test should fail', () => {
     console.log('This step should have never been executed :-(')
