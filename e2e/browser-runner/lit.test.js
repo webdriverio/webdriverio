@@ -87,13 +87,8 @@ describe('Lit Component testing', () => {
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
         )
-
         const elem = $('simple-greeting')
-
-        // Snapshot for element structure
         await expect(elem).toMatchSnapshot()
-
-        // Use `toMatchInlineSnapshot` for only one of the properties at a time
         await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
           {
             "parsed": {
@@ -106,8 +101,9 @@ describe('Lit Component testing', () => {
             "value": "rgba(0,0,0,0)",
           }
         `)
+    })
 
-        // Regular snapshot for object comparison
+    it('should match object snapshot', async () => {
         await expect({ foo: 'bar' }).toMatchSnapshot()
     })
 
