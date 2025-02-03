@@ -82,7 +82,7 @@ describe('Lit Component testing', () => {
         expect(Date.now() - start).toBeLessThan(1000)
     })
 
-    describe('Snapshot testing for simple-greeting', () => {
+    describe('Snapshot testing for simple-greeting-should match element snapshot', () => {
         beforeEach(() => {
             render(
                 html`<simple-greeting name="WebdriverIO" />`,
@@ -92,16 +92,49 @@ describe('Lit Component testing', () => {
 
         it('should match element snapshot', async () => {
             const elem = $('simple-greeting')
-            await expect(elem).toMatchSnapshot()
+            await expect(elem).toMatchInlineSnapshot('"<simple-greeting name="WebdriverIO"></simple-greeting>"')
+        })
+    })
+
+    describe('Snapshot testing for simple-greeting-should match background-color snapshot', () => {
+        beforeEach(() => {
+            render(
+                html`<simple-greeting name="WebdriverIO" />`,
+                document.body
+            )
         })
 
         it('should match background-color snapshot', async () => {
             const elem = $('simple-greeting')
-            await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
+            await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
+              {
+                "parsed": {
+                  "alpha": 0,
+                  "hex": "#000000",
+                  "rgba": "rgba(0,0,0,0)",
+                  "type": "color",
+                },
+                "property": "background-color",
+                "value": "rgba(0,0,0,0)",
+              }
+            `)
+        })
+    })
+
+    describe('Snapshot testing for simple-greeting-should match object snapshot', () => {
+        beforeEach(() => {
+            render(
+                html`<simple-greeting name="WebdriverIO" />`,
+                document.body
+            )
         })
 
         it('should match object snapshot', async () => {
-            await expect({ foo: 'bar' }).toMatchSnapshot()
+            await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
+              {
+                "foo": "bar",
+              }
+            `)
         })
     })
 
