@@ -10,6 +10,7 @@ import '../src/browser.js'
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
 import { initCount } from '../src/bidi/core.js'
+import * as utils from '../src/utils.js'
 import type { Client } from '../src/types.js'
 
 vi.mock('geckodriver', () => ({ start: vi.fn() }))
@@ -170,6 +171,23 @@ describe('WebDriver', () => {
             expect(initCount()).toBe(1)
             process.env.WDIO_UNIT_TESTS = wid
         })
+
+        it('should call "initiateBidi" with correct arguments', async () => {
+            const webSocketUrl = 'ws://foo/bar'
+            const strictSSL = true
+            const headers = { "Authorization": "OAuth 12345" }
+
+            vi.spyOn(utils, 'initiateBidi');
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl } }))
+            await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' },
+                strictSSL,
+                headers
+            })
+
+            expect(utils.initiateBidi).toHaveBeenCalledWith(webSocketUrl, strictSSL, headers)
+        });
     })
 
     describe('attachToSession', () => {
