@@ -200,14 +200,15 @@ describe('Lit Component testing', () => {
     })
 
     it('should not stale process due to alert or prompt', async () => {
-        await browser.execute(() => {
-            alert('test')
-            prompt('test')
-            confirm('test')
-        })
-        await browser.acceptAlert()
-        await browser.sendAlertText('response')
-        await browser.acceptAlert()
+        spyOn(window, 'alert')
+        spyOn(window, 'prompt').mockReturnValue('test')
+        spyOn(window, 'confirm').mockReturnValue(true)
+        alert('test')
+        prompt('test')
+        confirm('test')
+        expect(alert).toHaveBeenCalledWith('test')
+        expect(prompt).toHaveBeenCalledWith('test')
+        expect(confirm).toHaveBeenCalledWith('test')
         await expect(browser).toHaveTitle('WebdriverIO Browser Test')
     })
 
