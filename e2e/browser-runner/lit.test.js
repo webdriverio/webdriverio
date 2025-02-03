@@ -92,31 +92,16 @@ describe('Lit Component testing', () => {
 
         it('should match element snapshot', async () => {
             const elem = $('simple-greeting')
-            await expect(elem).toMatchInlineSnapshot('"<simple-greeting name="WebdriverIO"></simple-greeting>"')
+            await expect(elem).toMatchSnapshot()
         })
 
         it('should match background-color snapshot', async () => {
             const elem = $('simple-greeting')
-            await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
-              {
-                "parsed": {
-                  "alpha": 0,
-                  "hex": "#000000",
-                  "rgba": "rgba(0,0,0,0)",
-                  "type": "color",
-                },
-                "property": "background-color",
-                "value": "rgba(0,0,0,0)",
-              }
-            `)
+            await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
         })
 
         it('should match object snapshot', async () => {
-            await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
-              {
-                "foo": "bar",
-              }
-            `)
+            await expect({ foo: 'bar' }).toMatchSnapshot()
         })
     })
 
