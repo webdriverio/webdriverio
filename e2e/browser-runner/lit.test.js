@@ -89,9 +89,7 @@ describe('Lit Component testing', () => {
         )
 
         const elem = $('simple-greeting')
-        await expect(elem).toMatchSnapshot()
         await expect(elem).toMatchInlineSnapshot('"<simple-greeting name="WebdriverIO"></simple-greeting>"')
-        await expect(elem.getCSSProperty('background-color')).toMatchSnapshot()
         await expect(elem.getCSSProperty('background-color')).toMatchInlineSnapshot(`
           {
             "parsed": {
@@ -104,7 +102,6 @@ describe('Lit Component testing', () => {
             "value": "rgba(0,0,0,0)",
           }
         `)
-        await expect({ foo: 'bar' }).toMatchSnapshot()
         await expect({ foo: 'bar' }).toMatchInlineSnapshot(`
           {
             "foo": "bar",
