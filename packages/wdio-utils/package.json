@@ -13,7 +13,8 @@
     },
     "./node": {
       "source": "./src/node/index.ts",
-      "import": "./build/node.js"
+      "import": "./build/node.js",
+      "types": "./src/node/index.d.ts"
     }
   },
   "types": "./build/index.d.ts",
