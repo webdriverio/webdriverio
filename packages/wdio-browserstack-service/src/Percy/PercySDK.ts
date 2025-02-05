@@ -29,8 +29,7 @@ if (percySnapshot) {
             options ||= {}
             options = {
                 ...options,
-                testCase: name || '',
-                thTestCaseExecutionId: uuid || '',
+                testCase: name || ''
             }
             return percySnapshot(browser, snapshotName, options)
         }
@@ -52,16 +51,14 @@ const screenshotHelper = (type: string, driverOrName: WebdriverIO.Browser | Webd
         if (typeof nameOrOptions === 'object') {
             nameOrOptions = {
                 ...nameOrOptions,
-                testCase: name || '',
-                thTestCaseExecutionId: uuid || '',
+                testCase: name || ''
             }
         }
     } else {
         options ||= {}
         options = {
             ...options,
-            testCase: name || '',
-            thTestCaseExecutionId: uuid || '',
+            testCase: name || ''
         }
     }
     if (type === 'app') {
