@@ -614,6 +614,26 @@ describe('main suite 1', () => {
 
             after(() => browser.switchFrame(null))
         })
+
+        describe('iframe navigations', () => {
+            beforeEach(async () => {
+                await browser.url('https://guinea-pig.webdriver.io/iframeNavigation.html')
+            })
+
+            describe('ability to catch navigation event within iframe', () => {
+                it('should work by using a link with target=_top', async () => {
+                    await browser.switchFrame('iframeNavigationInner.html')
+                    await $('a').click()
+                    await expect($('h1')).toHaveText('Iframe Target')
+                })
+
+                it('should work by setting the location', async () => {
+                    await browser.switchFrame('iframeNavigationInner.html')
+                    await $('button').click()
+                    await expect($('h1')).toHaveText('Iframe Target')
+                })
+            })
+        })
     })
 
     describe('open resources with different protocols', () => {
