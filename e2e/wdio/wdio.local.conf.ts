@@ -4,6 +4,7 @@ import path from 'node:path'
 import type { Options } from '@wdio/types'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+const getUniqueUserDataDir = (browser: string) => `/tmp/chrome-user-data-${browser}-${process.pid}-${Date.now()}`
 
 /**
  * with this config file we verify that the `webdriverio` package can spin
@@ -25,14 +26,14 @@ export const config: Options.Testrunner = {
         browserName: 'chrome',
         webSocketUrl: true,
         'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu']
+            args: ['headless', 'disable-gpu', `--user-data-dir=${getUniqueUserDataDir('chrome')}`, '--no-sandbox',]
         }
     }, {
         browserName: 'chrome',
         browserVersion: 'canary',
         webSocketUrl: true,
         'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu']
+            args: ['headless', 'disable-gpu', `--user-data-dir=${getUniqueUserDataDir('chrome-canary')}`, '--no-sandbox',]
         }
     }, {
         browserName: 'firefox',
@@ -52,6 +53,7 @@ export const config: Options.Testrunner = {
      * test configurations
      */
     logLevel: 'info',
+    maxInstances: 1,
     framework: 'mocha',
     outputDir: __dirname,
     reporters: ['spec'],
@@ -75,7 +77,7 @@ if (os.platform() !== 'win32') {
         browserName: 'chromium',
         webSocketUrl: true,
         'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu']
+            args: ['headless', 'disable-gpu', `--user-data-dir=${getUniqueUserDataDir('chromium')}`, '--no-sandbox',]
         }
     })
 }
@@ -93,3 +95,4 @@ if (os.platform() === 'win32' || os.platform() === 'darwin') {
         }
     })
 }
+
