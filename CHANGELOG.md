@@ -23,6 +23,22 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.7.3 (2025-02-05)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14153](https://github.com/webdriverio/webdriverio/pull/14153) fix(webdriverio): properly run and test switch to frame by function ([@christian-bromann](https://github.com/christian-bromann))
+  * [#14128](https://github.com/webdriverio/webdriverio/pull/14128) fix(webdriverio): reset context on navigation events ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#14132](https://github.com/webdriverio/webdriverio/pull/14132) Copy capability before onWorkerStart is called ([@mato533](https://github.com/mato533))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@mato533](https://github.com/mato533)
+
+
 ## v9.7.2 (2025-01-29)
 
 #### :bug: Bug Fix
