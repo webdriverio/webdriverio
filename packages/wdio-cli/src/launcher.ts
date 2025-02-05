@@ -411,8 +411,8 @@ class Launcher {
         let debugType
         let debugHost = ''
         const debugPort = process.debugPort
-        for (const i in process.execArgv) {
-            const debugArgs = process.execArgv[i].match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
+        for (const arg of process.execArgv) {
+            const debugArgs = arg.match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
             if (debugArgs) {
                 const [, type, host] = debugArgs
                 if (type) {
