@@ -538,10 +538,10 @@ describe('main suite 1', () => {
         })
 
         it('can switch to a frame via url', async () => {
-            await browser.url('https://www.w3schools.com/tags/tryit.asp?filename=tryhtml_iframe')
-            await browser.switchFrame('https://www.w3schools.com')
+            await browser.url('https://guinea-pig.webdriver.io/iframe.html')
+            await browser.switchFrame('https://guinea-pig.webdriver.io/iframeA2.html')
             expect(await browser.execute(() => [document.title, document.URL]))
-                .toEqual(['W3Schools Online Web Tutorials', 'https://www.w3schools.com/'])
+                .toEqual(['IFrame A2', 'https://guinea-pig.webdriver.io/iframeA2.html'])
         })
 
         it('can switch to a frame via element', async () => {

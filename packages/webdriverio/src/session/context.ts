@@ -75,9 +75,16 @@ export class ContextManager extends SessionManager {
              * the context to the first context in the tree.
              */
             const { contexts } = await this.#browser.browsingContextGetTree({})
+            /**
+             * check if the context is still in the tree, if not, switch to...
+             */
             const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
-            if (!hasContext) {
-                this.setCurrentContext(contexts[0].context)
+            /**
+             * ...the context we are navigating to
+             */
+            const newContext = contexts.find((context) => context.context === nav.context)
+            if (!hasContext && newContext) {
+                this.setCurrentContext(newContext.context)
                 this.#browser.switchToWindow(this.#currentContext)
                 return
             }
