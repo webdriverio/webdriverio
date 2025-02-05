@@ -577,12 +577,11 @@ describe('main suite 1', () => {
             await expect($('h1,h2,h3')).toHaveText('IFrame A')
 
             // child, we use this to proof switch frame with a function works
-            await browser.switchFrame(() => window.location.href === 'https://htho.github.io/wdio-repro-iframes/iframeA1.html')
+            await browser.switchFrame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA1.html')
             await expect($('h1,h2,h3')).toHaveText('IFrame A1')
 
             // sibling
-            await browser.switchFrame(() => window.location.href === 'https://htho.github.io/wdio-repro-iframes/iframeA2.html')
-            console.log(await $('body').getHTML()) // as expected: `<h3>IFrame A2</h3><pre>index 1, position 1</pre>`
+            await browser.switchFrame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA2.html')
             await expect($('h1,h2,h3')).toHaveText('IFrame A2') // FAILS "no such element"
         })
 
