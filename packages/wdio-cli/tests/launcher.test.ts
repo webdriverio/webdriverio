@@ -651,6 +651,46 @@ describe('launcher', () => {
             )
         })
 
+        it('should start an instance with different capability worker by worker', async () => {
+            const hostname = '127.0.0.2'
+            const caps = {
+                browserName: 'chrome'
+            }
+            const expectedCaps = Object.assign({}, caps, {
+                'goog:chromeOptions': {
+                    args: `--inspect=${hostname}:50000`,
+                }
+            })
+            const onWorkerStartMock = vi.fn().mockImplementation((_runnerId, caps)=>{
+                caps['goog:chromeOptions'] = {
+                    args: `--inspect=${hostname}:50000`
+                }
+            })
+            launcher.configParser.getConfig = () => ({ onWorkerStart: onWorkerStartMock }) as any
+            launcher['_args'].hostname = hostname
+
+            expect(launcher['_runnerStarted']).toBe(0)
+            await launcher['_startInstance'](
+                ['/foo.test.js'],
+                caps,
+                0,
+                '0-5',
+                0
+            )
+
+            expect(onWorkerStartMock).toHaveBeenCalledWith(
+                '0-5',
+                expectedCaps,
+                ['/foo.test.js'],
+                { hostname: '127.0.0.2' },
+                []
+            )
+
+            expect(caps).toStrictEqual({
+                browserName: 'chrome'
+            })
+        })
+
         it('should wait before starting an instance on retry', async () => {
             const onWorkerStartMock = vi.fn()
             const caps = {
