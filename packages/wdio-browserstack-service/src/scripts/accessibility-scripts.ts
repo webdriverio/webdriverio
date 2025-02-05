@@ -11,11 +11,14 @@ class AccessibilityScripts {
     public saveTestResults: string | null = null
     public commandsToWrap: Array<any> | null = null
 
-    public browserstackFolderPath = path.join(os.homedir(), '.browserstack')
-    public commandsPath = path.join(this.browserstackFolderPath, 'commands.json')
+    public browserstackFolderPath = ''
+    public commandsPath = ''
 
     // don't allow to create instances from it other than through `checkAndGetInstance`
-    private constructor() {}
+    private constructor() {
+        this.browserstackFolderPath = this.getWritableDir()
+        this.commandsPath = path.join(this.browserstackFolderPath, 'commands.json')
+    }
 
     public static checkAndGetInstance() {
         if (!AccessibilityScripts.instance) {
@@ -23,6 +26,29 @@ class AccessibilityScripts {
             AccessibilityScripts.instance.readFromExistingFile()
         }
         return AccessibilityScripts.instance
+    }
+
+    public getWritableDir(): string {
+        const orderedPaths = [
+            path.join(os.homedir(), '.browserstack'),
+            process.cwd(),
+            os.tmpdir()
+        ]
+        for (const orderedPath of orderedPaths) {
+            try {
+                if (fs.existsSync(orderedPath)) {
+                    fs.accessSync(orderedPath)
+                    return orderedPath
+                }
+
+                fs.mkdirSync(orderedPath, { recursive: true })
+                return orderedPath
+
+            } catch (e) {
+                /* no-empty */
+            }
+        }
+        return ''
     }
 
     public readFromExistingFile() {
