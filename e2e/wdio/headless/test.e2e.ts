@@ -538,10 +538,10 @@ describe('main suite 1', () => {
         })
 
         it('can switch to a frame via url', async () => {
-            await browser.url('https://www.w3schools.com/tags/tryit.asp?filename=tryhtml_iframe')
-            await browser.switchFrame('https://www.w3schools.com')
+            await browser.url('https://guinea-pig.webdriver.io/iframe.html')
+            await browser.switchFrame('https://guinea-pig.webdriver.io/iframeA2.html')
             expect(await browser.execute(() => [document.title, document.URL]))
-                .toEqual(['W3Schools Online Web Tutorials', 'https://www.w3schools.com/'])
+                .toEqual(['IFrame A2', 'https://guinea-pig.webdriver.io/iframeA2.html'])
         })
 
         it('can switch to a frame via element', async () => {
@@ -613,6 +613,26 @@ describe('main suite 1', () => {
             })
 
             after(() => browser.switchFrame(null))
+        })
+
+        describe('iframe navigations', () => {
+            beforeEach(async () => {
+                await browser.url('https://guinea-pig.webdriver.io/iframeNavigation.html')
+            })
+
+            describe('ability to catch navigation event within iframe', () => {
+                it('should work by using a link with target=_top', async () => {
+                    await browser.switchFrame('iframeNavigationInner.html')
+                    await $('a').click()
+                    await expect($('h1')).toHaveText('Iframe Target')
+                })
+
+                it('should work by setting the location', async () => {
+                    await browser.switchFrame('iframeNavigationInner.html')
+                    await $('button').click()
+                    await expect($('h1')).toHaveText('Iframe Target')
+                })
+            })
         })
     })
 
