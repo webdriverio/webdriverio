@@ -294,6 +294,11 @@ export async function switchFrame (
                 continue
             }
 
+            /**
+             * reset the context to the top level frame first so we can start the search from the root context
+             */
+            await browser.switchFrame(null)
+
             await this.switchFrame(contextId)
             return contextId
         }

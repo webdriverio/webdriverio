@@ -569,6 +569,22 @@ describe('main suite 1', () => {
             await expect($('#tinymce')).toBePresent()
         })
 
+        it('allows expect after switching to non-children', async () => {
+            await browser.url('https://guinea-pig.webdriver.io/iframe.html')
+            await expect($('h1,h2,h3')).toHaveText('Frame Demo')
+
+            await browser.switchFrame($('#A')) // child
+            await expect($('h1,h2,h3')).toHaveText('IFrame A')
+
+            // child, we use this to proof switch frame with a function works
+            await browser.switchFrame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA1.html')
+            await expect($('h1,h2,h3')).toHaveText('IFrame A1')
+
+            // sibling
+            await browser.switchFrame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA2.html')
+            await expect($('h1,h2,h3')).toHaveText('IFrame A2') // FAILS "no such element"
+        })
+
         describe('switchToParentFrame', () => {
             it('switches to parent (not top-level)', async () => {
                 await browser.url('https://guinea-pig.webdriver.io/iframe.html')
