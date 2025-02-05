@@ -294,6 +294,11 @@ export async function switchFrame (
                 continue
             }
 
+            /**
+             * reset the context to the top level frame first so we can start the search from the root context
+             */
+            await browser.switchFrame(null)
+
             await this.switchFrame(contextId)
             return contextId
         }
@@ -340,7 +345,9 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
  */
 function switchToFrame (browser: WebdriverIO.Browser, frame: ElementReference | number | null) {
     process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = 'true'
+    console.log('--> switch to frame element', frame)
     return browser.switchToFrame(frame).finally(async () => {
+        console.log('--> DONE switch to frame element', frame)
         delete process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS
     })
 }
