@@ -1182,12 +1182,18 @@ export const patchConsoleLogs = o11yErrorHandler(() => {
 
         // Make sure we don't override Constructors
         // Arrow functions are not construable
-        if (typeof console[method] === 'function'
-            && method !== 'Console'
-        ) {
+        if (typeof console[method] === 'function' && method !== 'Console') {
             (console as any)[method] = (...args: unknown[]) => {
-                origMethod(...args);
-                (BSTestOpsPatcher as any)[method](...args)
+                try {
+                    if (!Object.keys(BSTestOpsPatcher).includes(method)) {
+                        origMethod(...args)
+                    } else {
+                        origMethod(...args);
+                        (BSTestOpsPatcher as any)[method](...args)
+                    }
+                } catch (error) {
+                    origMethod(...args)
+                }
             }
         }
     })
