@@ -7,7 +7,7 @@ import UsageStats from '../testOps/usageStats.js'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
 import { BStackLogger } from '../bstackLogger.js'
 import type BrowserStackConfig from '../config.js'
-import { BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
+import { BSTACK_A11Y_POLLING_TIMEOUT, BSTACK_SERVICE_VERSION, FUNNEL_INSTRUMENTATION_URL } from '../constants.js'
 import { getDataFromWorkers, removeWorkersDataDir } from '../data-store.js'
 import { getProductMap } from '../testHub/utils.js'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
@@ -127,6 +127,9 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
         eventProperties.productUsage = getProductUsage(workerData)
         eventProperties.isPercyAutoEnabled = config.isPercyAutoEnabled
         eventProperties.percyBuildId = config.percyBuildId
+        if (process.env[BSTACK_A11Y_POLLING_TIMEOUT]) {
+            eventProperties.pollingTimeout = process.env[BSTACK_A11Y_POLLING_TIMEOUT]
+        }
         if (config.killSignal) {
             eventProperties.finishedMetadata = {
                 reason: 'user_killed',
