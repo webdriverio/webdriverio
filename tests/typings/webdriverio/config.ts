@@ -48,8 +48,7 @@ const config: WebdriverIO.Config = {
             sauceConnectOpts: {
                 directDomains: 'some.domain'
             },
-            scRelay: true,
-            parentTunnel: 123
+            tunnelOwner: 123
         }],
         // @ts-expect-error test wrong parameter
         ['appium', {

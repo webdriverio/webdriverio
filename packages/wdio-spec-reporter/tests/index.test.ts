@@ -259,7 +259,7 @@ describe('SpecReporter', () => {
             it('should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp)', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
-                        tunnelIdentifier: 'foobar',
+                        tunnelName: 'foobar',
                         ...defaultCaps
                     },
                     sessionId: fakeSessionId
