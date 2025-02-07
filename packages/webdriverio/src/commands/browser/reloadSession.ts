@@ -72,7 +72,7 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
          * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)
          * this can be worked around in code but requires a lot of overhead
          */
-        log.warn(`Suppressing error closing the session: ${err.stack}`)
+        log.warn(`Suppressing error closing the session: ${err.message}`)
     }
 
     if (this.puppeteer?.isConnected()) {
