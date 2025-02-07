@@ -36,6 +36,7 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
     'wdio:specs'?: Spec[]
     exclude?: string[]
     'wdio:exclude'?: string[]
+    group?: boolean
 }
 
 export default class ConfigParser {
