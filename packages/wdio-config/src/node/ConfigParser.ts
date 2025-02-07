@@ -235,7 +235,7 @@ export default class ConfigParser {
          * run single spec file only, regardless of multiple-spec specification
          */
         if (addPathToSpecs && spec.length > 0) {
-            this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
+            this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!, object.group)
         }
         /**
          * At this step function allKeywordsContainPath() allows us to make sure
@@ -363,15 +363,15 @@ export default class ConfigParser {
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
-    setFilePathToFilterOptions(cliArgFileList: string[], specs: Spec[]) {
+    setFilePathToFilterOptions(cliArgFileList: string[], specs: Spec[], group?: boolean) {
         const filesToFilter = new Set<string>()
         const fileList = ConfigParser.getFilePaths(specs, this._config.rootDir, this._pathService)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
-            // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
-            // Return value will always be string[]
+            // Send wildcard or single file glob to getFilePaths
+            // Return value will always be string[] or string [][]
             const globMatchedFiles = <string[]>ConfigParser.getFilePaths(
-                this._pathService.glob(filteredFile, path.dirname(this.#configFilePath)),
+                group ? [[filteredFile]] : [filteredFile],
                 this._config.rootDir,
                 this._pathService
             )
