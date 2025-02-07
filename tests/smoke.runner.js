@@ -863,6 +863,94 @@ const cliExcludeParamValidationExcludeMultipleSpecsByPath = async () => {
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
+
+const cliSpecsWithWildCard = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliSpecsWithWildCard',
+        path.resolve(severalPassedConfig),
+        {
+            spec: ['./mocha.test*.js']
+        }
+    )
+    assert.strictEqual(passed, 4)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliSpecsTheSameWithWildCard = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliSpecsTheSameWithWildCard',
+        path.resolve(severalPassedConfig),
+        {
+            spec: [
+                './mocha.test*.js',
+                './mocha.test*.js'
+            ]
+        }
+    )
+    assert.strictEqual(passed, 4)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliSpecsWithWildCardAndGroup = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliSpecsWithWildCardAndGroup',
+        path.resolve(severalPassedConfig),
+        {
+            spec: ['./mocha.test*.js'],
+            group: true
+        }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeOneWithWildCard = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeOneWithWildCard',
+        path.resolve(severalPassedConfig),
+        {
+            spec: ['./mocha.test*.js'],
+            exclude: ['./mocha.test04.js']
+        }
+    )
+    assert.strictEqual(passed, 3)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeTwoCertainWithWildCard = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeTwoCertainWithWildCard',
+        path.resolve(severalPassedConfig),
+        {
+            spec: ['./mocha.test*.js'],
+            exclude: [
+                './mocha.test03.js',
+                './mocha.test04.js'
+            ]
+        }
+    )
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeAllFromConfWithWildCard = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeAllFromConfWithWildCard',
+        path.resolve(allPassedConfig),
+        {
+            exclude: ['./mocha.test*.js'],
+            group: true
+        }
+    )
+    assert.strictEqual(passed, 0)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
 // *** END - tests for CLI --spec ***
 
 // *************************
@@ -988,7 +1076,13 @@ const jasmineAfterHookArgsValidation = async () => {
         cliExcludeParamValidationSomeExcludedByPath,
         cliExcludeParamValidationExcludeNonExistentByKeyword,
         cliExcludeParamValidationExcludeFromConfigByKeyword,
-        cliExcludeParamValidationExcludeMultipleSpecsByPath
+        cliExcludeParamValidationExcludeMultipleSpecsByPath,
+        cliSpecsWithWildCard,
+        cliSpecsTheSameWithWildCard,
+        cliSpecsWithWildCardAndGroup,
+        cliExcludeOneWithWildCard,
+        cliExcludeTwoCertainWithWildCard,
+        cliExcludeAllFromConfWithWildCard,
     ]
 
     console.log('\nRunning smoke tests...\n')
