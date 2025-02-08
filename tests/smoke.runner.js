@@ -13,6 +13,7 @@ const jasmineConfig = path.resolve(__dirname, 'helpers', 'configJasmine.js')
 const allPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-all-passed.conf.js')
 const noArgConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-no-arg.conf.js')
 const severalPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-failed.conf.js')
+const allPassedWildCardConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-all-passed-wildcard.conf.js')
 
 // eslint-disable-next-line no-control-regex
 const ansiColorRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
@@ -872,7 +873,7 @@ const cliSpecsWithWildCard = async () => {
             spec: ['./mocha.test*.js']
         }
     )
-    assert.strictEqual(passed, 4)
+    assert.strictEqual(passed, 5)
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
@@ -888,7 +889,7 @@ const cliSpecsTheSameWithWildCard = async () => {
             ]
         }
     )
-    assert.strictEqual(passed, 4)
+    assert.strictEqual(passed, 5)
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
@@ -916,7 +917,7 @@ const cliExcludeOneWithWildCard = async () => {
             exclude: ['./mocha.test04.js']
         }
     )
-    assert.strictEqual(passed, 3)
+    assert.strictEqual(passed, 4)
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
@@ -933,23 +934,52 @@ const cliExcludeTwoCertainWithWildCard = async () => {
             ]
         }
     )
-    assert.strictEqual(passed, 2)
+    assert.strictEqual(passed, 3)
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
 
-const cliExcludeAllFromConfWithWildCard = async () => {
+const cliExcludeSomeFromConfWithWildCard = async () => {
     const { passed, skippedSpecs, failed } = await launch(
-        'cliExcludeAllFromConfWithWildCard',
-        path.resolve(allPassedConfig),
+        'cliExcludeSomeFromConfWithWildCard',
+        path.resolve(allPassedWildCardConfig),
         {
-            exclude: ['./mocha.test*.js'],
+            exclude: ['./mocha.test01*.js'],
+        }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeSomeFromConfWithWildCardAndGroup = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeSomeFromConfWithWildCardAndGroup',
+        path.resolve(allPassedWildCardConfig),
+        {
+            exclude: ['./mocha.test01*.js'],
             group: true
         }
     )
-    assert.strictEqual(passed, 0)
+    assert.strictEqual(passed, 1)
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
+}
+
+const cliExcludeAllWithWildCard = async () => {
+    try {
+        await launch(
+            'cliExcludeAllWithWildCard',
+            path.resolve(allPassedWildCardConfig),
+            {
+                spec: ['./mocha.test*.js'],
+                exclude: ['./mocha.test*.js'],
+            }
+        )
+        assert.ok(false)
+    } catch {
+        assert.ok(true)
+    }
 }
 // *** END - tests for CLI --spec ***
 
@@ -1082,7 +1112,9 @@ const jasmineAfterHookArgsValidation = async () => {
         cliSpecsWithWildCardAndGroup,
         cliExcludeOneWithWildCard,
         cliExcludeTwoCertainWithWildCard,
-        cliExcludeAllFromConfWithWildCard,
+        cliExcludeSomeFromConfWithWildCard,
+        cliExcludeSomeFromConfWithWildCardAndGroup,
+        cliExcludeAllWithWildCard
     ]
 
     console.log('\nRunning smoke tests...\n')

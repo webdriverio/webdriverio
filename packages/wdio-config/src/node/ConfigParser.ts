@@ -504,7 +504,7 @@ export default class ConfigParser {
     filterSpecs(specs: Spec[], excludeList: string[]) {
         // If 'exclude' is array of paths
         if (allKeywordsContainPath(excludeList)) {
-            return specs.reduce((returnVal: Spec[], currSpec) => {
+            const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
                 if (Array.isArray(currSpec)) {
                     returnVal.push(currSpec.filter(specItem => !excludeList.includes(specItem)))
                 } else if (excludeList.indexOf(currSpec) === -1) {
@@ -512,9 +512,10 @@ export default class ConfigParser {
                 }
                 return returnVal
             }, [])
+            return filterEmptyArrayItems(filteredSpec)
         }
         // If 'exclude' is array of keywords
-        return specs.reduce((returnVal: Spec[], currSpec) => {
+        const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
             if (Array.isArray(currSpec)) {
                 returnVal.push(currSpec.filter(specItem => !excludeList.some(excludeVal => specItem.includes(excludeVal))))
             }
@@ -524,6 +525,7 @@ export default class ConfigParser {
             }
             return returnVal
         }, [])
+        return filterEmptyArrayItems(filteredSpec)
     }
 
     shard(specs: Spec[]) {
@@ -541,4 +543,14 @@ export default class ConfigParser {
 
 function allKeywordsContainPath(excludedSpecList: string[]) {
     return excludedSpecList.every(val => val.includes('/') || val.includes('\\'))
+}
+
+function filterEmptyArrayItems(specList: Spec[]) {
+    return specList.filter(item => {
+        if (Array.isArray(item) && item.length){
+            return item
+        } else if (!Array.isArray(item)){
+            return item
+        }
+    })
 }
