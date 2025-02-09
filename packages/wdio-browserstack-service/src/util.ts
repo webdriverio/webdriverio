@@ -920,6 +920,10 @@ export function patchConsoleLogs() {
     const BSTestOpsPatcher = new logPatcher({})
 
     Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
+        if (!(method in console) || typeof console[method] !== 'function') {
+            log.debug(`Skipping method: ${method}, exists: ${method in console}, type: ${typeof console[method]}`)
+            return
+        }
         const origMethod = (console[method] as any).bind(console)
 
         // Make sure we don't override Constructors
