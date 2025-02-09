@@ -1178,6 +1178,10 @@ export const patchConsoleLogs = o11yErrorHandler(() => {
     const BSTestOpsPatcher = new logPatcher({})
 
     Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
+        if (!(method in console) || typeof console[method] !== 'function') {
+            BStackLogger.debug(`Skipping method: ${method}, exists: ${method in console}, type: ${typeof console[method]}`)
+            return
+        }
         const origMethod = (console[method] as any).bind(console)
 
         // Make sure we don't override Constructors
