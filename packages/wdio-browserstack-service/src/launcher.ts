@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
-
 import fs from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -395,6 +393,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             BStackLogger.info(`Total duration is ${duration / 1000} s`)
         }
 
+        BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
         await sendFinish(this.browserStackConfig)
         try {
             await this._uploadServiceLogs()
@@ -864,7 +863,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (process.env[BROWSERSTACK_TESTHUB_UUID]) {
             return process.env[BROWSERSTACK_TESTHUB_UUID]
         }
-        const uuid = uuidv4()
+        const uuid = this.browserStackConfig?.sdkRunID
         BStackLogger.logToFile(`If facing any issues, please contact BrowserStack support with the Build Run Id - ${uuid}`, 'info')
         return uuid
     }

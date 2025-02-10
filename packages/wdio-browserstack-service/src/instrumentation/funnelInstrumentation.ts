@@ -103,6 +103,7 @@ function getProductList(config: BrowserStackConfig) {
 function buildEventData(eventType: string, config: BrowserStackConfig) {
     const eventProperties: EventProperties = {
         // Framework Details
+        sdkRunId: config?.sdkRunID,
         language_framework: getLanguageFramework(config.framework),
         referrer: getReferrer(config.framework),
         language: 'WebdriverIO',
@@ -118,7 +119,10 @@ function buildEventData(eventType: string, config: BrowserStackConfig) {
 
         // Product Details
         productMap: getProductMap(config),
-        product: getProductList(config)
+        product: getProductList(config),
+
+        // framework details
+        framework: config.framework
     }
 
     if (eventType === 'SDKTestSuccessful') {

@@ -427,6 +427,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         if (jsonResponse.build_hashed_id) {
             process.env[BROWSERSTACK_TESTHUB_UUID] = jsonResponse.build_hashed_id
             TestOpsConfig.getInstance().buildHashedId = jsonResponse.build_hashed_id
+            BStackLogger.info(`Testhub started with id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
         }
         processLaunchBuildResponse(jsonResponse, options)
         launchBuildUsage.success()
