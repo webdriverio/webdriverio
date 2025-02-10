@@ -288,7 +288,7 @@ export default class PerformanceTester {
             const payload = {
                 event_type: 'sdk_events',
                 data: {
-                    testhub_uuid: process.env.PERF_TESTHUB_UUID,
+                    testhub_uuid: process.env.PERF_TESTHUB_UUID || process.env.SDK_RUN_ID,
                     created_day: formattedDate,
                     event_name: 'SDKFeaturePerformance',
                     user_data: process.env.PERF_USER_NAME,
@@ -299,7 +299,7 @@ export default class PerformanceTester {
                         version: version(),
                         arch: arch()
                     }),
-                    event_json: { measures: measures }
+                    event_json: { measures: measures, sdkRunId: process.env.SDK_RUN_ID }
                 }
             }
             const result = await fetchWrap(`${EDS_URL}/send_sdk_events`, {

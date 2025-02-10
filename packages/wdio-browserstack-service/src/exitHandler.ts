@@ -35,6 +35,7 @@ export function shouldCallCleanup(config: BrowserStackConfig): string[] {
     if (PerformanceTester.isEnabled()) {
         process.env.PERF_USER_NAME = config.userName
         process.env.PERF_TESTHUB_UUID = TestOpsConfig.getInstance().buildHashedId
+        process.env.SDK_RUN_ID = config.sdkRunID
         args.push('--performanceData')
     }
 
