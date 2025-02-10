@@ -1,7 +1,6 @@
 import got from 'got'
 import type { OptionsOfJSONResponseBody } from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
-import PerformanceTester from './performance-tester.js'
 
 import {
     getBrowserDescription,
@@ -27,6 +26,8 @@ import { saveWorkerData } from './data-store.js'
 import UsageStats from './testOps/usageStats.js'
 import { shouldProcessEventForTesthub } from './testHub/utils.js'
 import AiHandler from './ai-handler.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -63,11 +64,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
+        PerformanceTester.startMonitoring('performance-report-service.csv')
         if (shouldProcessEventForTesthub('')) {
             this._config.reporters?.push(TestReporter)
-            if (process.env[PERF_MEASUREMENT_ENV]) {
-                PerformanceTester.startMonitoring('performance-report-service.csv')
-            }
         }
 
         if (process.env.BROWSERSTACK_TURBOSCALE) {
@@ -97,6 +96,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return fn(this._caps as WebdriverIO.Capabilities)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeSession' })
     beforeSession (config: Omit<Options.Testrunner, 'capabilities'>) {
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
@@ -113,9 +113,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'before' })
     async before(caps: Capabilities.RemoteCapability, specs: string[], browser: WebdriverIO.Browser) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : globalThis.browser
+        PerformanceTester.browser = this._browser
 
         // Healing Support:
         if (!shouldAddServiceVersion(this._config, this._options.testObservability, caps as any)) {
@@ -139,6 +141,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         this._scenariosThatRan = []
+        PerformanceTester.scenarioThatRan = [...(this._scenariosThatRan ?? [])]
 
         if (this._browser) {
             try {
@@ -232,6 +235,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * Don't do this for Jasmine because `suite.title` is `Jasmine__TopLevel__Suite`
      * and `suite.fullTitle` is `undefined`, so no alternative to use for the job name.
      */
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeSuite' })
     async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
         this._insightsHandler?.setSuiteFile(suite.file)
@@ -242,6 +246,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeHook' })
     async beforeHook (test: Frameworks.Test|CucumberHook, context: any) {
         if (this._config.framework !== 'cucumber') {
             this._currentTest = test as Frameworks.Test // not update currentTest when this is called for cucumber step
@@ -249,10 +254,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._insightsHandler?.beforeHook(test, context)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterHook' })
     async afterHook(test: Frameworks.Test | CucumberHook, context: unknown, result: Frameworks.TestResult) {
         await this._insightsHandler?.afterHook(test, result)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeTest' })
     async beforeTest (test: Frameworks.Test) {
         this._currentTest = test
         let suiteTitle = this._suiteTitle
@@ -274,6 +281,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._insightsHandler?.beforeTest(test)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterTest' })
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         this._specsRan = true
         const { error, passed } = results
@@ -285,6 +293,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._percyHandler?.afterTest()
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'after' })
     async after (result: number) {
         const { preferScenarioName, setSessionName, setSessionStatus } = this._options
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
@@ -293,22 +302,24 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._fullTitle = this._scenariosThatRan.pop()
         }
 
-        if (setSessionStatus) {
-            const hasReasons = this._failReasons.length > 0
-            await this._updateJob({
-                status: result === 0 && this._specsRan ? 'passed' : 'failed',
-                ...(setSessionName ? { name: this._fullTitle } : {}),
-                ...(result === 0 && this._specsRan ?
-                    {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
-            })
-        }
+        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.SESSION_STATUS, async () => {
+            if (setSessionStatus) {
+                const hasReasons = this._failReasons.length > 0
+                await this._updateJob({
+                    status: result === 0 && this._specsRan ? 'passed' : 'failed',
+                    ...(setSessionName ? { name: this._fullTitle } : {}),
+                    ...(result === 0 && this._specsRan ?
+                        {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
+                })
+            }
+        })()
 
         await Listener.getInstance().onWorkerEnd()
         await this._percyHandler?.teardown()
         this.saveWorkerData()
 
+        await PerformanceTester.stopAndGenerate('performance-service.html')
         if (process.env[PERF_MEASUREMENT_ENV]) {
-            await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
                 'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
                 'onTestStart', 'onTestEnd', 'onTestSkip', 'before',
@@ -322,6 +333,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * For CucumberJS
      */
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeFeature' })
     async beforeFeature(uri: string, feature: Feature) {
         this._suiteTitle = feature.name
         await this._setSessionName(feature.name)
@@ -333,6 +345,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * Runs before a Cucumber Scenario.
      * @param world world object containing information on pickle and test step
      */
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeScenario' })
     async beforeScenario (world: ITestCaseHookParameter) {
         this._currentTest = world
         await this._accessibilityHandler?.beforeScenario(world)
@@ -341,6 +354,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._setAnnotation(`Scenario: ${scenarioName}`)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterScenario' })
     async afterScenario (world: ITestCaseHookParameter) {
         this._specsRan = true
         const status = world.result?.status.toLowerCase()
@@ -365,15 +379,18 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._percyHandler?.afterScenario()
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeStep' })
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
         await this._insightsHandler?.beforeStep(step, scenario)
         await this._setAnnotation(`Step: ${step.keyword}${step.text}`)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterStep' })
     async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
         await this._insightsHandler?.afterStep(step, scenario, result)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'onReload' })
     async onReload(oldSessionId: string, newSessionId: string) {
         if (!this._browser) {
             return Promise.resolve()
@@ -465,6 +482,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         })
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.PRINT_BUILDLINK)
     async _printSessionURL() {
         if (!this._browser || !isBrowserstackSession(this._browser)) {
             return Promise.resolve()
