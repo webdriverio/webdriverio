@@ -47,3 +47,6 @@ export * from './browser/waitUntil.js'
  */
 export * from './mobile/swipe.js'
 export * from './mobile/tap.js'
+export * from './mobile/getContext.js'
+export * from './mobile/getContexts.js'
+export * from './mobile/switchContext.js'

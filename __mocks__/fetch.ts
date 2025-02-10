@@ -245,6 +245,9 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     case `${path}/${sessionId}/element/${genericElementId}/property/tagName`:
         value = 'BODY'
         break
+    case `/session/${sessionId}/element/${genericElementId}/css/display`:
+        value = 'contents'
+        break
     case `/session/${sessionId}/execute`:
     case `/session/${sessionId}/execute/sync`: {
         const script = Function(body.script)
@@ -499,6 +502,11 @@ requestMock.setMockResponse = (value: any) => {
     manualMockResponse = value
 }
 requestMock.customResponseFor = (pattern: RegExp, response: any) => {
+    const existingEntry = Array.from(customResponses.values())
+        .find((p) => p.pattern.toString() === pattern.toString())
+    if (existingEntry) {
+        customResponses.delete(existingEntry)
+    }
     customResponses.add({ pattern, response })
 }
 

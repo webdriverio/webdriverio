@@ -26,8 +26,8 @@ vi.mock('../../src/session/context.js', () => ({
 describe('webdriverio session manager', () => {
     it('registers all session manager', async () => {
         const browser = {
-            options: {
-                automationProtocol: 'webdriver'
+            capabilities: {
+                webSocketUrl: 'ws://foobar'
             }
         } as unknown as WebdriverIO.Browser
         registerSessionManager(browser)
@@ -40,9 +40,7 @@ describe('webdriverio session manager', () => {
 
     it('does not register for protocol stub', async () => {
         const browser = {
-            options: {
-                automationProtocol: 'protocol-stub'
-            }
+            capabilities: {}
         } as unknown as WebdriverIO.Browser
         registerSessionManager(browser)
         expect(getPolyfillManager).not.toBeCalledWith(browser)

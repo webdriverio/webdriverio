@@ -539,6 +539,23 @@ async function bar() {
     // @ts-expect-error
     const multiElementError2 = multiElements.getElement()
 
+    // test entries() functionality
+    for await (const [index, element] of await browser.$$('foo').entries()) {
+        expectType<number>(index)
+        expectType<WebdriverIO.Element>(element)
+    }
+
+    // test with elements array
+    const elemArray = await browser.$$('foo').getElements()
+    for await (const [index, element] of elemArray.entries()) {
+        expectType<number>(index)
+        expectType<WebdriverIO.Element>(element)
+    }
+
+    // test return type of entries()
+    const entriesIterator = browser.$$('foo').entries()
+    expectType<AsyncIterableIterator<[number, WebdriverIO.Element]>>(entriesIterator)
+
     // Emulate tests
     let restore = await browser.emulate('geolocation', { latitude: 1, longitude: 2 })
     await restore()

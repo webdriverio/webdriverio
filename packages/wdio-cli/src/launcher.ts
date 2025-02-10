@@ -483,8 +483,8 @@ class Launcher {
         let debugType
         let debugHost = ''
         const debugPort = process.debugPort
-        for (const i in process.execArgv) {
-            const debugArgs = process.execArgv[i].match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
+        for (const arg of process.execArgv) {
+            const debugArgs = arg.match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
             if (debugArgs) {
                 const [, type, host] = debugArgs
                 if (type) {
@@ -513,11 +513,14 @@ class Launcher {
         // bump up worker count
         this._runnerStarted++
 
+        // Prepare to pass different capability objects for each worker
+        const workerCaps = structuredClone(caps)
+
         // run worker hook to allow modify runtime and capabilities of a specific worker
         log.info('Run onWorkerStart hook')
-        await runLauncherHook(config.onWorkerStart, runnerId, caps, specs, this._args, execArgv)
+        await runLauncherHook(config.onWorkerStart, runnerId, workerCaps, specs, this._args, execArgv)
             .catch((error) => this._workerHookError(error))
-        await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, caps, specs, this._args, execArgv)
+        await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, workerCaps, specs, this._args, execArgv)
             .catch((error) => this._workerHookError(error))
 
         // prefer launcher settings in capabilities over general launcher
@@ -534,7 +537,7 @@ class Launcher {
                 user: config.user,
                 key: config.key
             },
-            caps,
+            caps: workerCaps,
             specs,
             execArgv,
             retries

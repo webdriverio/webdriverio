@@ -11,7 +11,7 @@ import MultiRemote from './multiremote.js'
 import SevereServiceErrorImport from './utils/SevereServiceError.js'
 import detectBackend from './utils/detectBackend.js'
 import { getProtocolDriver } from './utils/driver.js'
-import { WDIO_DEFAULTS, SupportedAutomationProtocols, Key as KeyConstant } from './constants.js'
+import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
 import { registerSessionManager } from './session/index.js'
 
@@ -89,7 +89,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
      * copy instances properties into new object
      */
     const params: Capabilities.WebdriverIOConfig & { requestedCapabilities: Capabilities.RequestedStandaloneCapabilities } = {
-        automationProtocol: SupportedAutomationProtocols.webdriver,
+        automationProtocol: 'webdriver',
         ...attachOptions,
         ...detectBackend(attachOptions.options),
         capabilities: attachOptions.capabilities || {},
@@ -156,7 +156,7 @@ export const multiremote = async function (
         logLevel: multibrowser.instances[browserNames[0]].options.logLevel
     }
 
-    const ProtocolDriver = automationProtocol && isStub(automationProtocol)
+    const ProtocolDriver = typeof automationProtocol === 'string'
         ? (await import(/* @vite-ignore */automationProtocol)).default
         : WebDriver
     const driver = ProtocolDriver.attachToSession(

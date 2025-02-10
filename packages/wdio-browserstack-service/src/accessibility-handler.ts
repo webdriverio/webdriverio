@@ -21,7 +21,8 @@ import {
     validateCapsWithA11y,
     isTrue,
     validateCapsWithAppA11y,
-    getAppA11yResults
+    getAppA11yResults,
+    executeAccessibilityScript
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
@@ -334,9 +335,14 @@ class _AccessibilityHandler {
         }
 
         await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.SAVE_RESULTS, async () => {
-            const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(accessibilityScripts.saveTestResults as string, dataForExtension)
-            BStackLogger.debug(util.format(results as string))
+            if (accessibilityScripts.saveTestResults) {
+                const results: unknown = await executeAccessibilityScript(browser, accessibilityScripts.saveTestResults, dataForExtension)
+                BStackLogger.debug(util.format(results as string))
+            } else {
+                BStackLogger.error('saveTestResults script is null or undefined')
+            }
         })()
+
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {

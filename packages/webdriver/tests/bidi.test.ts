@@ -111,7 +111,7 @@ describe('BidiCore', () => {
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:102:'))
+            expect(error.stack).toContain(path.join('packages', 'webdriver', 'tests', 'bidi.test.ts:102:').slice(1))
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
         })

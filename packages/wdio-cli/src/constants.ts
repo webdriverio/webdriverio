@@ -153,7 +153,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'google-Chat', value: 'wdio-google-chat-service$--$google-chat' },
         { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service$--$qmate-service' },
         { name: 'robonut', value: 'wdio-robonut-service$--$robonut' },
-        { name: 'qunit', value: 'wdio-qunit-service$--$qunit' }
+        { name: 'qunit', value: 'wdio-qunit-service$--$qunit' },
+        { name: 'roku', value: 'wdio-roku-service$--$roku' }
     ]
 }
 

@@ -41,7 +41,10 @@ export class ContextManager extends SessionManager {
          */
         this.#browser.on('result', this.#onCommandResultBidiAndClassic.bind(this))
 
-        if (!this.isEnabled()) {
+        // only listen to command events if we are in a bidi session or a mobile session
+        // Adding the check for mobile in the `this.isEnabled()` method breaking the method and throws
+        // `Test execution failed: TypeError: __privateGet(...).sessionSubscribe is not a function`
+        if (!this.isEnabled() && !this.#browser.isMobile) {
             return
         }
 
@@ -56,6 +59,42 @@ export class ContextManager extends SessionManager {
          */
         if (this.#browser.isMobile) {
             this.#browser.on('result', this.#onCommandResultMobile.bind(this))
+        } else {
+            /**
+             * Listen to the 'browsingContext.navigationStarted' event to handle context changes
+             * through navigation within e.g. frames.
+             */
+            this.#browser.sessionSubscribe({
+                events: ['browsingContext.navigationStarted']
+            })
+            this.#browser.on('browsingContext.navigationStarted', async (nav) => {
+                /**
+                 * no need to do anything as we navigate within the same context
+                 */
+                if (!this.#currentContext || nav.context === this.#currentContext) {
+                    return
+                }
+
+                /**
+                 * a navigation event may have changed the tree structure, so we need to get the
+                 * current tree and see if our context is still there, if not, we need to reset
+                 * the context to the first context in the tree.
+                 */
+                const { contexts } = await this.#browser.browsingContextGetTree({})
+                /**
+                 * check if the context is still in the tree, if not, switch to...
+                 */
+                const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
+                /**
+                 * ...the context we are navigating to
+                 */
+                const newContext = contexts.find((context) => context.context === nav.context)
+                if (!hasContext && newContext) {
+                    this.setCurrentContext(newContext.context)
+                    this.#browser.switchToWindow(this.#currentContext)
+                    return
+                }
+            })
         }
     }
 
@@ -122,17 +161,17 @@ export class ContextManager extends SessionManager {
         /**
          * Keep track of the context to which we switch
          */
-        if (this.#browser.isMobile && event.command === 'switchContext') {
+        if (this.#browser.isMobile && event.command === 'switchAppiumContext') {
             this.#mobileContext = (event.body as { name: string }).name
         }
     }
 
     #onCommandResultMobile(event: { command: string, result: unknown }) {
-        if (event.command === 'getContext') {
+        if (event.command === 'getAppiumContext') {
             this.setCurrentContext((event.result as { value: string }).value)
         }
         if (
-            event.command === 'switchContext' &&
+            event.command === 'switchAppiumContext' &&
             (event.result as { value: string | null }).value === null &&
             this.#mobileContext
         ) {

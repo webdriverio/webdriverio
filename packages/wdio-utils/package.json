@@ -1,6 +1,6 @@
 {
   "name": "@wdio/utils",
-  "version": "9.5.0",
+  "version": "9.7.3",
   "description": "A WDIO helper utility to provide several utility functions used across the project.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-utils",
@@ -13,7 +13,8 @@
     },
     "./node": {
       "source": "./src/node/index.ts",
-      "import": "./build/node.js"
+      "import": "./build/node.js",
+      "types": "./src/node/index.d.ts"
     }
   },
   "types": "./build/index.d.ts",

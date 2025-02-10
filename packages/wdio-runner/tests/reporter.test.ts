@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, expect, it, vi, test, afterEach } from 'vitest'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options } from '@wdio/types'
 
 import BaseReporter from '../src/reporter.js'
 
@@ -20,7 +20,7 @@ class CustomReporter {
     }
 }
 
-const capability: Capabilities.WebdriverIO = { browserName: 'foo' }
+const capability: WebdriverIO.Capabilities = { browserName: 'foo' }
 
 process.send = vi.fn()
 
@@ -36,6 +36,17 @@ describe('BaseReporter', () => {
         await reporter.initReporters()
 
         expect(reporter['_reporters']).toHaveLength(2)
+    })
+
+    it('should make "dot" reporter default', async () => {
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: []
+        } as Options.Testrunner, '0-0', capability)
+        await reporter.initReporters()
+
+        expect(reporter['_reporters']).toHaveLength(1)
+        expect(reporter['_reporters'][0].constructor.name).toBe('DotReporter')
     })
 
     it('getLogFile', async () => {
@@ -148,7 +159,7 @@ describe('BaseReporter', () => {
         } as Options.Testrunner, '0-0', capability)
         await reporter.initReporters()
 
-        const payload = { foo: [1, 2, 3] }
+        const payload: any = { foo: [1, 2, 3] }
         reporter.emit('runner:start', payload)
         expect(reporter['_reporters'].map((r) => vi.mocked(r.emit).mock.calls)).toEqual([
             [['runner:start', Object.assign(payload, { cid: '0-0' })]],
@@ -167,7 +178,7 @@ describe('BaseReporter', () => {
         } as Options.Testrunner, '0-0', capability)
         await reporter.initReporters()
 
-        const payload = { foo: [1, 2, 3] }
+        const payload: any = { foo: [1, 2, 3] }
         reporter.emit('test:fail', payload)
 
         reporter['_reporters'].forEach((reporter) => {
@@ -212,7 +223,7 @@ describe('BaseReporter', () => {
             throw new Error('Reporter throws an error')
         })
 
-        const payload = { foo: [1] }
+        const payload: any = { foo: [1] }
         reporter.emit('any', payload)
 
         expect(faultyReporterInstance.emit).toBeCalledTimes(1)

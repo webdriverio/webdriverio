@@ -64,21 +64,18 @@ export function isEmuSim(caps: WebdriverIO.Capabilities) {
 }
 
 /** Ensure capabilities are in the correct format for Sauce Labs
- * @param {string} tunnelIdentifier - The default Sauce Connect tunnel identifier
+ * @param {string} tunnelName - The default Sauce Connect tunnel identifier
  * @param {object} options - Additional options to set on the capability
  * @returns {function(object): void} - A function that mutates a single capability
  */
-export function makeCapabilityFactory(tunnelIdentifier: string) {
+export function makeCapabilityFactory(tunnelName: string) {
     return (capability: WebdriverIO.Capabilities) => {
         // If the `sauce:options` are not provided and it is a W3C session then add it
         if (!capability['sauce:options']) {
             capability['sauce:options'] = {}
         }
 
-        capability['sauce:options'].tunnelIdentifier = (
-            capability['sauce:options'].tunnelIdentifier ||
-            tunnelIdentifier
-        )
+        capability['sauce:options'].tunnelName = (capability['sauce:options'].tunnelName || tunnelName)
     }
 }
 

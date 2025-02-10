@@ -13,8 +13,8 @@ The package supports the following protocols:
 - [Chromium](http://chromedriver.chromium.org/) (additional Chromedriver specific commands)
 - [Selenium](https://www.selenium.dev/) (additional Selenium WebDriver specific commands)
 - [Sauce Labs](https://saucelabs.com/) (Sauce Labs specific WebDriver extensions)
-- [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) (depcrecated)
-- [Mobile JSONWireProtocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) (depcrecated)
+- [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) (deprecated)
+- [Mobile JSONWireProtocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) (deprecated)
 
 Commands are added to the client's protocol based on assumptions of provided capabilities. You can find more details about the commands by checking out the [`@wdio/protocols`](https://www.npmjs.com/package/@wdio/protocols) package. All commands come with TypeScript support.
 

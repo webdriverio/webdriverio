@@ -83,12 +83,12 @@ exports.remote = async function(
     params: any,
     remoteModifier?: () => any
 ) {
-    const { remote } = await import('./index.js')
+    const { remote } = await import('./node.js')
     return remote(params, remoteModifier)
 }
 
 exports.attach = async function(attachOptions: any) {
-    const { attach } = await import('./index.js')
+    const { attach } = await import('./node.js')
     return attach(attachOptions)
 }
 
@@ -115,6 +115,6 @@ exports.multiremote = async function(
     params: any,
     { automationProtocol }: { automationProtocol?: string } = {}
 ) {
-    const { multiremote } = await import('./index.js')
+    const { multiremote } = await import('./node.js')
     return multiremote(params, { automationProtocol })
 }

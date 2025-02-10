@@ -17,6 +17,7 @@ vi.mock('webdriver', () => {
         overwriteCommand: vi.fn(),
         strategies: new Map(),
         isWebDriver: true,
+        capabilities: { webSocketUrl: 'ws://' },
         on: vi.fn()
     }
     const newSessionMock = vi.fn()
