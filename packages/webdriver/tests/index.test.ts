@@ -175,9 +175,9 @@ describe('WebDriver', () => {
         it('should call "initiateBidi" with correct arguments', async () => {
             const webSocketUrl = 'ws://foo/bar'
             const strictSSL = true
-            const headers = { "Authorization": "OAuth 12345" }
+            const headers = { 'Authorization': 'OAuth 12345' }
 
-            vi.spyOn(utils, 'initiateBidi');
+            vi.spyOn(utils, 'initiateBidi')
             vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl } }))
             await WebDriver.newSession({
                 path: '/',
@@ -187,7 +187,7 @@ describe('WebDriver', () => {
             })
 
             expect(utils.initiateBidi).toHaveBeenCalledWith(webSocketUrl, strictSSL, headers)
-        });
+        })
     })
 
     describe('attachToSession', () => {
