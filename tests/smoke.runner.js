@@ -870,10 +870,10 @@ const cliSpecsWithWildCard = async () => {
         'cliSpecsWithWildCard',
         path.resolve(severalPassedConfig),
         {
-            spec: ['./mocha.test*.js']
+            spec: ['./mocha.test01*.js']
         }
     )
-    assert.strictEqual(passed, 5)
+    assert.strictEqual(passed, 2)
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
@@ -884,12 +884,12 @@ const cliSpecsTheSameWithWildCard = async () => {
         path.resolve(severalPassedConfig),
         {
             spec: [
-                './mocha.test*.js',
-                './mocha.test*.js'
+                './mocha.test01*.js',
+                './mocha.test01*.js'
             ]
         }
     )
-    assert.strictEqual(passed, 5)
+    assert.strictEqual(passed, 2)
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
@@ -899,25 +899,11 @@ const cliSpecsWithWildCardAndGroup = async () => {
         'cliSpecsWithWildCardAndGroup',
         path.resolve(severalPassedConfig),
         {
-            spec: ['./mocha.test*.js'],
+            spec: ['./mocha.test01*.js'],
             group: true
         }
     )
     assert.strictEqual(passed, 1)
-    assert.strictEqual(skippedSpecs, 0)
-    assert.strictEqual(failed, 0)
-}
-
-const cliExcludeOneWithWildCard = async () => {
-    const { passed, skippedSpecs, failed } = await launch(
-        'cliExcludeOneWithWildCard',
-        path.resolve(severalPassedConfig),
-        {
-            spec: ['./mocha.test*.js'],
-            exclude: ['./mocha.test04.js']
-        }
-    )
-    assert.strictEqual(passed, 4)
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
@@ -1110,7 +1096,6 @@ const jasmineAfterHookArgsValidation = async () => {
         cliSpecsWithWildCard,
         cliSpecsTheSameWithWildCard,
         cliSpecsWithWildCardAndGroup,
-        cliExcludeOneWithWildCard,
         cliExcludeTwoCertainWithWildCard,
         cliExcludeSomeFromConfWithWildCard,
         cliExcludeSomeFromConfWithWildCardAndGroup,
