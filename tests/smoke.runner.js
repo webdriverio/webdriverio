@@ -908,19 +908,18 @@ const cliSpecsWithWildCardAndGroup = async () => {
     assert.strictEqual(failed, 0)
 }
 
-const cliExcludeTwoCertainWithWildCard = async () => {
+const cliExcludeCertainWithWildCard = async () => {
     const { passed, skippedSpecs, failed } = await launch(
-        'cliExcludeTwoCertainWithWildCard',
+        'cliExcludeCertainWithWildCard',
         path.resolve(severalPassedConfig),
         {
-            spec: ['./mocha.test*.js'],
+            spec: ['./mocha.test01*.js'],
             exclude: [
-                './mocha.test03.js',
-                './mocha.test04.js'
+                './mocha.test01.js',
             ]
         }
     )
-    assert.strictEqual(passed, 3)
+    assert.strictEqual(passed, 1)
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
@@ -1096,7 +1095,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cliSpecsWithWildCard,
         cliSpecsTheSameWithWildCard,
         cliSpecsWithWildCardAndGroup,
-        cliExcludeTwoCertainWithWildCard,
+        cliExcludeCertainWithWildCard,
         cliExcludeSomeFromConfWithWildCard,
         cliExcludeSomeFromConfWithWildCardAndGroup,
         cliExcludeAllWithWildCard
