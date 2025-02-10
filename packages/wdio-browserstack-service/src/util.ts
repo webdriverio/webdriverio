@@ -32,6 +32,7 @@ import {
     UPLOAD_LOGS_ADDRESS,
     UPLOAD_LOGS_ENDPOINT,
     consoleHolder,
+    BSTACK_A11Y_POLLING_TIMEOUT,
     TESTOPS_SCREENSHOT_ENV,
     BROWSERSTACK_TESTHUB_UUID,
     PERF_MEASUREMENT_ENV,
@@ -41,7 +42,10 @@ import {
     BROWSERSTACK_OBSERVABILITY,
     BROWSERSTACK_ACCESSIBILITY,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
-    GIT_META_DATA_TRUNCATED
+    GIT_META_DATA_TRUNCATED,
+    APP_ALLY_ENDPOINT,
+    APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
+    APP_ALLY_ISSUES_ENDPOINT
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -315,18 +319,21 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
     }
 
     if (response.accessibility.options) {
-        const { accessibilityToken, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
+        const { accessibilityToken, pollingTimeout, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
         const scriptsJson = {
             'scripts': jsonifyAccessibilityArray(response.accessibility.options.scripts, 'name', 'command'),
             'commands': response.accessibility.options.commandsToWrap.commands
         }
         if (scannerVersion) {
             process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion
+            BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
         }
-        BStackLogger.debug(`Accessibility scannerVersion ${scannerVersion}`)
         if (accessibilityToken) {
             process.env.BSTACK_A11Y_JWT = accessibilityToken
             process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
+        }
+        if (pollingTimeout) {
+            process.env.BSTACK_A11Y_POLLING_TIMEOUT = pollingTimeout
         }
         if (scriptsJson) {
             AccessibilityScripts.update(scriptsJson)
@@ -421,6 +428,23 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
     }
 }))
 
+export const validateCapsWithAppA11y = (platformMeta?: { [key: string]: any; }) => {
+    /* Check if the current driver platform is eligible for AppAccessibility scan */
+    BStackLogger.debug(`platformMeta ${JSON.stringify(platformMeta)}`)
+    if (
+        platformMeta?.platform_name &&
+        String(platformMeta?.platform_name).toLowerCase() === 'android' &&
+        platformMeta?.platform_version &&
+        parseInt(platformMeta?.platform_version?.toString()) < 11
+    ) {
+        BStackLogger.warn(
+            'App Accessibility Automation tests are supported on OS version 11 and above for Android devices.'
+        )
+        return false
+    }
+    return true
+}
+
 export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: string]: any; }, chromeOptions?: any) => {
     /* Check if the current driver platform is eligible for Accessibility scan */
     try {
@@ -485,8 +509,35 @@ export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | s
     return false
 }
 
-export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
-    return PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN, async () => {
+export const isAppAccessibilityAutomationSession = (accessibilityFlag?: boolean | string, isAppAutomate?: boolean) => {
+    const accessibilityAutomation = isAccessibilityAutomationSession(accessibilityFlag)
+    return accessibilityAutomation && isAppAutomate
+}
+
+export const formatString = (template: (string | null), ...values: (string | null)[]): string => {
+    let i = 0
+    if (template === null) {
+        return ''
+    }
+    return template.replace(/%s/g, () => {
+        const value = values[i++]
+        return value !== null && value !== undefined ? value : ''
+    })
+}
+
+export const _getParamsForAppAccessibility = ( commandName?: string ): { thTestRunUuid: any, thBuildUuid: any, thJwtToken: any, authHeader: any, scanTimestamp: Number, method: string | undefined  } => {
+    return {
+        'thTestRunUuid': process.env.TEST_ANALYTICS_ID,
+        'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
+        'thJwtToken': process.env.BROWSERSTACK_TESTHUB_JWT,
+        'authHeader': process.env.BSTACK_A11Y_JWT,
+        'scanTimestamp': Date.now(),
+        'method': commandName
+    }
+}
+
+export const performA11yScan = async (isAppAutomate: boolean, browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
+    return await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN, async () => {
         if (!isBrowserStackSession) {
             BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
             return // since we are running only on Automate as of now
@@ -498,6 +549,11 @@ export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO
         }
 
         try {
+            if (isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
+                const results: unknown = await (browser as WebdriverIO.Browser).execute(formatString(AccessibilityScripts.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string, {})
+                BStackLogger.debug(util.format(results as string))
+                return ( results as { [key: string]: any; } | undefined )
+            }
             const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.performScan as string, { 'method': commandName || '' })
             BStackLogger.debug(util.format(results as string))
             return ( results as { [key: string]: any; } | undefined )
@@ -508,7 +564,7 @@ export const performA11yScan = async (browser: WebdriverIO.Browser | WebdriverIO
     }, { command: commandName })()
 }
 
-export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
+export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
         BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
         return [] // since we are running only on Automate as of now
@@ -521,16 +577,73 @@ export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_E
 
     try {
         BStackLogger.debug('Performing scan before getting results')
-        await performA11yScan(browser, isBrowserStackSession, isAccessibility)
+        await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
         const results: Array<{ [key: string]: any; }> = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResults as string)
         return results
-    } catch {
+    } catch (error: any) {
         BStackLogger.error('No accessibility results were found.')
+        BStackLogger.debug(`getA11yResults Failed. Error: ${error}`)
         return []
     }
 })
 
-export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
+export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<Array<{ [key: string]: any; }>> => {
+    if (!isBrowserStackSession) {
+        return [] // since we are running only on Automate as of now
+    }
+
+    if (!isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
+        BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
+        return []
+    }
+
+    try {
+        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
+        const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, isBrowserStackSession, isAccessibility, sessionId)
+        const result = apiRespone?.data?.data?.issues
+        BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
+        return result
+    } catch (error: any) {
+        BStackLogger.error('No accessibility summary was found.')
+        BStackLogger.debug(`getAppA11yResults Failed. Error: ${error}`)
+        return []
+    }
+})
+
+export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<{ [key: string]: any; }> => {
+    if (!isBrowserStackSession) {
+        return {} // since we are running only on Automate as of now
+    }
+
+    if (!isAppAccessibilityAutomationSession(isAccessibility, isAppAutomate)) {
+        BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
+        return {}
+    }
+
+    try {
+        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_SUMMARY_ENDPOINT}`
+        const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, isBrowserStackSession, isAccessibility, sessionId)
+        const result = apiRespone?.data?.data?.summary
+        BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
+        return result
+    } catch {
+        BStackLogger.error('No accessibility summary was found.')
+        return {}
+    }
+})
+
+const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<PollingResult> => {
+    BStackLogger.debug('Performing scan before getting results summary')
+    await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
+    const upperTimeLimit = process.env[BSTACK_A11Y_POLLING_TIMEOUT] ? Date.now() + parseInt(process.env[BSTACK_A11Y_POLLING_TIMEOUT]) * 1000 : Date.now() + 30000
+    const params = { test_run_uuid: process.env.TEST_ANALYTICS_ID, session_id: sessionId, timestamp: Date.now() } // Query params to pass
+    const header = { Authorization: `Bearer ${process.env.BSTACK_A11Y_JWT}` }
+    const apiRespone = await pollApi(apiUrl, params, header, upperTimeLimit)
+    BStackLogger.debug(`Polling Result: ${JSON.stringify(apiRespone)}`)
+    return apiRespone
+}
+
+export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
     if (!isBrowserStackSession) {
         return {} // since we are running only on Automate as of now
     }
@@ -542,7 +655,7 @@ export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANC
 
     try {
         BStackLogger.debug('Performing scan before getting results summary')
-        await performA11yScan(browser, isBrowserStackSession, isAccessibility)
+        await performA11yScan(isAppAutomate, browser, isBrowserStackSession, isAccessibility)
         const summaryResults: { [key: string]: any; } = await (browser as WebdriverIO.Browser).executeAsync(AccessibilityScripts.getResultsSummary as string)
         return summaryResults
     } catch {
@@ -1362,4 +1475,79 @@ export const isValidCapsForHealing = (caps: { [key: string]: Options.Testrunner 
 
     // Check if there are any capabilities and if at least one has a browser name
     return capValues.length > 0 && capValues.some(hasBrowserName)
+}
+
+type PollingResult = {
+    data: any;
+    headers: Record<string, any>;
+    message?: string; // Optional message for timeout cases
+  };
+
+export async function pollApi(
+    url: string,
+    params: Record<string, any>,
+    headers: Record<string, string>,
+    upperLimit: number,
+    startTime = Date.now()
+): Promise<PollingResult> {
+    params.timestamp = Math.round(Date.now() / 1000)
+    BStackLogger.debug(`current timestamp ${params.timestamp}`)
+
+    try {
+        const response = await got(url, {
+            searchParams: params,
+            headers,
+        })
+
+        const responseData = JSON.parse(response.body)
+        return {
+            data: responseData,
+            headers: response.headers,
+            message: 'Polling succeeded.',
+        }
+    } catch (error: any) {
+        if (error.response && error.response.statusCode === 404) {
+            const nextPollTime = parseInt(error.response.headers.next_poll_time as string, 10) * 1000
+            BStackLogger.debug(`timeInMillis ${nextPollTime}`)
+
+            if (isNaN(nextPollTime)) {
+                BStackLogger.warn('Invalid or missing `nextPollTime` header. Stopping polling.')
+                return {
+                    data: {},
+                    headers: error.response.headers,
+                    message: 'Invalid nextPollTime header value. Polling stopped.',
+                }
+            }
+
+            const elapsedTime = nextPollTime - Date.now()
+            BStackLogger.debug(
+                `elapsedTime ${elapsedTime} timeInMillis ${nextPollTime} upperLimit ${upperLimit}`
+            )
+
+            // Stop polling if the upper time limit is reached
+            if (nextPollTime > upperLimit) {
+                BStackLogger.warn('Polling stopped due to upper time limit.')
+                return {
+                    data: {},
+                    headers: error.response.headers,
+                    message: 'Polling stopped due to upper time limit.',
+                }
+            }
+
+            BStackLogger.debug(`Polling again in ${elapsedTime}ms with params:`, params)
+
+            // Wait for the specified time and poll again
+            await new Promise((resolve) => setTimeout(resolve, elapsedTime))
+            return pollApi(url, params, headers, upperLimit, startTime)
+        } else if (error.response) {
+            throw {
+                data: {},
+                headers: {},
+                message: error.response.body ? JSON.parse(error.response.body).message : 'Unknown error',
+            }
+        } else {
+            BStackLogger.error(`Unexpected error occurred: ${error}`)
+            return { data: {}, headers: {}, message: 'Unexpected error occurred.' }
+        }
+    }
 }
