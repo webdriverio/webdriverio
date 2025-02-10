@@ -47,7 +47,8 @@ const expectedEventData = {
             'automate': true,
             'app_automate': false
         },
-        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility'])
+        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
+        framework: 'framework'
     }
 }
 
@@ -109,7 +110,8 @@ describe('funnelInstrumentation', () => {
                     product: expect.arrayContaining(['observability', 'automate']),
                     productUsage: expect.objectContaining({
                         testObservability: expect.any(Object)
-                    })
+                    }),
+                    framework: 'framework'
                 },
             }
 
@@ -177,7 +179,8 @@ describe('funnelInstrumentation', () => {
                             'automate': true,
                             'app_automate': false
                         },
-                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility'])
+                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
+                        framework: 'framework'
                     }
                 }
             }))
@@ -212,7 +215,8 @@ describe('funnelInstrumentation', () => {
                             'automate': true,
                             'app_automate': false
                         },
-                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility'])
+                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
+                        framework: 'framework'
                     }
                 }
             }))
@@ -256,7 +260,8 @@ describe('funnelInstrumentation', () => {
                             'automate': true,
                             'app_automate': false
                         },
-                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility'])
+                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
+                        framework: 'framework'
                     }
                 }
             }))
@@ -296,7 +301,8 @@ describe('funnelInstrumentation', () => {
                             'automate': true,
                             'app_automate': false
                         },
-                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility'])
+                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
+                        framework: 'framework'
                     }
                 }
             }))
@@ -339,7 +345,8 @@ describe('funnelInstrumentation', () => {
                             'automate': true,
                             'app_automate': false
                         },
-                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility'])
+                        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
+                        framework: 'framework'
                     }
                 }
             }))

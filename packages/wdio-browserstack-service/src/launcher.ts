@@ -387,6 +387,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             BStackLogger.info(`Total duration is ${duration / 1000} s`)
         }
 
+        BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
         await sendFinish(this.browserStackConfig)
         try {
             await this._uploadServiceLogs()
