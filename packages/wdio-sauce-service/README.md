@@ -13,7 +13,7 @@ What else will this service do for you:
 - By default the Sauce Service will update the 'name' of the job when the job starts. This will give you the option to update the name at any given point in time.
 - You can define a `setJobName` parameter and customise the job name according to your capabilities, options and suite title
 - The Sauce Service will also push the error stack of a failed test to the Sauce Labs commands tab
-- It will allow you to automatically configure and spin up [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)
+- It will allow you to automatically configure and spin up [Sauce Connect](https://docs.saucelabs.com/secure-connections/)
 - And it will set context points in your command list to identify which commands were executed in what test
 
 ## Installation
@@ -51,17 +51,17 @@ export const config = {
 };
 ```
 
-If you want to use an existing Sauce Connect tunnel you only need to provide a `tunnelIdentifier`, or if you are using a parent tunnel, include the `parentTunnel` in the capabilities like this:
+If you want to use an existing Sauce Connect tunnel you only need to provide a `tunnelName`. If you are using a shared tunnel, and you are not the user who created the tunnel, you must identify the Sauce Labs user who did create the tunnel in order to use it for your test. Include the `tunnelOwner` in the capabilities like this:
 
 
 <Tabs
-  defaultValue="tunnelidentifier"
+  defaultValue="tunnelname"
   values={[
-    {label: 'Tunnel Identifier', value: 'tunnelidentifier'},
-    {label: 'Parent Tunnel', value: 'parenttunnel'}
+    {label: 'Tunnel Name', value: 'tunnelname'},
+    {label: 'Tunnel Owner', value: 'tunnelowner'}
   ]
 }>
-<TabItem value="tunnelidentifier">
+<TabItem value="tunnelname">
 
 ```js
 export const config = {
@@ -72,7 +72,7 @@ export const config = {
         browserVersion: 'latest',
         // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
         'sauce:options': {
-            tunnelIdentifier: 'YourTunnelName',
+            tunnelName: 'YourTunnelName',
 
             // Example options
             build: 'your-build-name',
@@ -85,7 +85,7 @@ export const config = {
 ```
 
 </TabItem>
-<TabItem value="parenttunnel">
+<TabItem value="tunnelowner">
 
 ```js
 export const config = {
@@ -96,8 +96,8 @@ export const config = {
         browserVersion: 'latest',
         // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
         'sauce:options': {
-            tunnelIdentifier: 'ParentTunnelName',
-            parentTunnel: '<username of parent>,
+            tunnelName: 'TunnelName',
+            tunnelOwner: '<username of owner>,
 
             // Example options
             build: 'your-build-name',
@@ -130,12 +130,12 @@ Type: `Boolean`<br />
 Default: `false`
 
 ### sauceConnectOpts
-Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy+Command-Line+Quick+Reference+Guide) for more information. Per default, the service disables SC proxy auto-detection via `noAutodetect`` as this can be unreliable for some machines.
+Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://docs.saucelabs.com/dev/cli/sauce-connect-5/run/) for more information.
 
 NOTE: When specifying the options the `--` should be omitted. It can also be turned into camelCase (e.g. `shared-tunnel` or `sharedTunnel`).
 
 Type: `Object`<br />
-Default: `{ noAutodetect: true }`
+Default: `{ }`
 
 ### uploadLogs
 

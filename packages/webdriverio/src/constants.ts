@@ -1,4 +1,3 @@
-import { resolve } from 'import-meta-resolve'
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from '@wdio/utils'
 import type { Options, Capabilities } from '@wdio/types'
 
@@ -19,8 +18,15 @@ export const WDIO_DEFAULTS: Options.Definition<Capabilities.WebdriverIOConfig> =
                 throw new Error('automationProtocol should be a string')
             }
 
+            /**
+             * skip following check if user uses Node.js v20.5 or below
+             */
+            if (typeof import.meta.resolve !== 'function') {
+                return
+            }
+
             try {
-                resolve(param, import.meta.url)
+                import.meta.resolve(param)
             } catch (err) {
                 const error = err instanceof Error ? err : new Error('unknown error')
                 throw new Error(`Couldn't find automation protocol "${param}": ${error.message}`)

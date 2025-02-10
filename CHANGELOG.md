@@ -23,6 +23,40 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.8.0 (2025-02-06)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14158](https://github.com/webdriverio/webdriverio/pull/14158) fix(webdriverio): only manage context navigation for desktop ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`, `wdio-spec-reporter`
+  * [#14130](https://github.com/webdriverio/webdriverio/pull/14130) Add support for Sauce Connect 5, drop support for Sauce Connect 4 ([@budziam](https://github.com/budziam))
+* `wdio-cli`
+  * [#14154](https://github.com/webdriverio/webdriverio/pull/14154) for in changed to for of for execArgv ([@udarrr](https://github.com/udarrr))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Michał Budziak ([@budziam](https://github.com/budziam))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+
+
+## v9.7.3 (2025-02-05)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14153](https://github.com/webdriverio/webdriverio/pull/14153) fix(webdriverio): properly run and test switch to frame by function ([@christian-bromann](https://github.com/christian-bromann))
+  * [#14128](https://github.com/webdriverio/webdriverio/pull/14128) fix(webdriverio): reset context on navigation events ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#14132](https://github.com/webdriverio/webdriverio/pull/14132) Copy capability before onWorkerStart is called ([@mato533](https://github.com/mato533))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@mato533](https://github.com/mato533)
+
+
 ## v9.7.2 (2025-01-29)
 
 #### :bug: Bug Fix

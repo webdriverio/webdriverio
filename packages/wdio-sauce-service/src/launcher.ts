@@ -11,6 +11,7 @@ import type { Services, Capabilities, Options } from '@wdio/types'
 
 import { makeCapabilityFactory, getLocalIpAddress } from './utils.js'
 import type { SauceServiceConfig } from './types.js'
+import { DEFAULT_RUNNER_NAME } from './constants.js'
 import path from 'node:path'
 
 const MAX_SC_START_TRIALS = 3
@@ -39,30 +40,35 @@ export default class SauceLauncher implements Services.ServiceInstance {
             return
         }
 
-        const sauceConnectTunnelIdentifier = (
-            this._options.sauceConnectOpts?.tunnelIdentifier ||
+        const sauceConnectTunnelName = (
+            this._options.sauceConnectOpts?.tunnelName ||
             /**
              * generate random identifier if not provided
              */
             `SC-tunnel-${Math.random().toString().slice(2)}`)
 
-        const noSslBumpDomains = new Set(['127.0.0.1', 'localhost', getLocalIpAddress()])
-        if (this._options.sauceConnectOpts?.noSslBumpDomains) {
-            this._options.sauceConnectOpts.noSslBumpDomains.split(',').forEach((domain) => noSslBumpDomains.add(domain))
+        const tlsPassthroughDomains = new Set(['127.0.0.1', 'localhost', getLocalIpAddress()])
+        if (this._options.sauceConnectOpts?.tlsPassthroughDomains) {
+            this._options.sauceConnectOpts.tlsPassthroughDomains.split(',').forEach((domain) => tlsPassthroughDomains.add(domain))
+        }
+
+        let metadata = this._options.sauceConnectOpts?.metadata || ''
+        if (!metadata.includes('runner=')) {
+            metadata += `runner=${DEFAULT_RUNNER_NAME}`
         }
 
         const sauceConnectOpts: SauceConnectOptions = {
-            noAutodetect: true,
-            tunnelIdentifier: sauceConnectTunnelIdentifier,
+            tunnelName: sauceConnectTunnelName,
             ...this._options.sauceConnectOpts,
-            noSslBumpDomains: Array.from(noSslBumpDomains).join(','),
+            tlsPassthroughDomains: Array.from(tlsPassthroughDomains).join(','),
+            metadata: metadata,
             logger: this._options.sauceConnectOpts?.logger || ((output) => log.debug(`Sauce Connect Log: ${output}`)),
-            ...(!this._options.sauceConnectOpts?.logfile && this._config.outputDir
+            ...(!this._options.sauceConnectOpts?.logFile && this._config.outputDir
                 ? { logfile: path.join(this._config.outputDir, 'wdio-sauce-connect-tunnel.log') }
                 : {}
             )
         }
-        const prepareCapability = makeCapabilityFactory(sauceConnectTunnelIdentifier)
+        const prepareCapability = makeCapabilityFactory(sauceConnectTunnelName)
         if (Array.isArray(capabilities)) {
             for (const capability of capabilities) {
                 /**
