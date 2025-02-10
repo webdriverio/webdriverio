@@ -546,11 +546,5 @@ function allKeywordsContainPath(excludedSpecList: string[]) {
 }
 
 function filterEmptyArrayItems(specList: Spec[]) {
-    return specList.filter(item => {
-        if (Array.isArray(item) && item.length){
-            return item
-        } else if (!Array.isArray(item)){
-            return item
-        }
-    })
+    return specList.filter(item=>(Array.isArray(item) && item.length) || !Array.isArray(item))
 }
