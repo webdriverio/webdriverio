@@ -126,7 +126,7 @@ export function validateCapabilities (capabilities: WebdriverIO.Capabilities) {
      * JSONWireProtocol and WebDriver protocol, e.g.
      */
     if (capabilities) {
-        const extensionCaps = Object.keys(capabilities).filter((cap) => cap.includes(':'))
+        const extensionCaps = Object.keys(capabilities).filter((cap) => cap.includes(':') && !cap.startsWith('wdio'))
         const invalidWebDriverCaps = Object.keys(capabilities)
             .filter((cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'))
 
