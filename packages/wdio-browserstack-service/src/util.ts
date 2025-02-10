@@ -414,6 +414,7 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
         if (response.build_hashed_id) {
             process.env[BROWSERSTACK_TESTHUB_UUID] = response.build_hashed_id
             TestOpsConfig.getInstance().buildHashedId = response.build_hashed_id
+            BStackLogger.info(`Testhub started with id: ${TestOpsConfig.getInstance().buildHashedId}`)
         }
         processLaunchBuildResponse(response, options)
         launchBuildUsage.success()

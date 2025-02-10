@@ -3,6 +3,7 @@ import type { Options } from '@wdio/types'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 import { isUndefined } from './util.js'
 import { v4 as uuidv4 } from 'uuid'
+import { BStackLogger } from './bstackLogger.js'
 
 class BrowserStackConfig {
     static getInstance(options?: BrowserstackConfig & Options.Testrunner, config?: Options.Testrunner): BrowserStackConfig {
@@ -43,6 +44,7 @@ class BrowserStackConfig {
         this.automate = !this.appAutomate
         this.buildIdentifier = options.buildIdentifier
         this.sdkRunID = uuidv4()
+        BStackLogger.info(`BrowserStack service started with id: ${this.sdkRunID}`)
     }
 
     sentFunnelData() {

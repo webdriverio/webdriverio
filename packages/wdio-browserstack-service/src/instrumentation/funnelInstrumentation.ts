@@ -117,6 +117,9 @@ function buildEventData(eventType: string, config: BrowserStackConfig): any {
         // Product Details
         productMap: getProductMap(config),
         product: getProductList(config),
+
+        // framework details
+        framework: config.framework,
     }
     if (TestOpsConfig.getInstance().buildHashedId) {
         eventProperties.testhub_uuid = TestOpsConfig.getInstance().buildHashedId
