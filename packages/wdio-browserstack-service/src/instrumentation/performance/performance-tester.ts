@@ -296,7 +296,7 @@ export default class PerformanceTester {
                         version: version(),
                         arch: arch()
                     }),
-                    event_json: { measures: measures }
+                    event_json: { measures: measures, sdkRunId: process.env.PERF_SDK_RUN_ID }
                 }
             }
             const result = await got.post(`${EDS_URL}/send_sdk_events`, {
