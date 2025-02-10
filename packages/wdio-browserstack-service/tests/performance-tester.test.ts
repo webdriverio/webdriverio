@@ -60,7 +60,7 @@ describe('PerformanceTester', function () {
             expect(PerformanceTester.started).toBe(false)
             PerformanceTester.startMonitoring('temp.csv')
             expect(PerformanceTester.started).toBe(true)
-            expect(fs.mkdirSync).toBeCalledTimes(1)
+            expect(fs.mkdirSync).toBeCalledTimes(2)
         })
 
         it('should push to events for sync functions', async () => {
