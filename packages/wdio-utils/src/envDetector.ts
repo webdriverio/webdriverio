@@ -28,8 +28,12 @@ export function isW3C(capabilities?: WebdriverIO.Capabilities) {
      * - it is an Appium session (since Appium is full W3C compliant)
      */
     const isAppium = Boolean(
+        // @ts-expect-error outdated jsonwp cap
+        (capabilities as Capabilities.DesiredCapabilities).automationName ||
         capabilities['appium:automationName'] ||
+        (capabilities as Capabilities.DesiredCapabilities).deviceName ||
         capabilities['appium:deviceName'] ||
+        (capabilities as Capabilities.DesiredCapabilities).appiumVersion ||
         capabilities['appium:appiumVersion']
     )
     const hasW3CCaps = Boolean(
@@ -43,6 +47,7 @@ export function isW3C(capabilities?: WebdriverIO.Capabilities) {
          * check also if setWindowRect is provided
          */
         (
+            (capabilities as Capabilities.DesiredCapabilities).platformVersion ||
             capabilities['appium:platformVersion'] ||
             Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect')
         )

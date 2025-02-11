@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 
-import type { Options, Services } from '@testplane/types'
+import type { Options, Services, Capabilities } from '@testplane/types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
 
@@ -344,8 +344,7 @@ export function isAppiumCapability(caps: WebdriverIO.Capabilities): boolean {
             caps['appium:deviceName'] ||
             ('appium:options' in caps && caps['appium:options']?.deviceName) ||
             ('lt:options' in caps && caps['lt:options']?.deviceName) ||
-            // @ts-expect-error outdated jsonwp cap
-            caps.appiumVersion ||
+            (caps as Capabilities.DesiredCapabilities).appiumVersion ||
             caps['appium:appiumVersion'] ||
             ('appium:options' in caps && caps['appium:options']?.appiumVersion) ||
             ('lt:options' in caps && caps['lt:options']?.appiumVersion)
