@@ -43,7 +43,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 <p align="center">
     <a href="https://eslint.org/"><img src="https://eslint.org/assets/images/logo/eslint-logo-color.png" alt="Eslint" /></a>
-    <a href="https://www.gridlastic.com/"><img src="https://webdriver.io/img/sponsors/gridlastic.png" alt="Gridlastic" /></a>
+    <a href="https://www.gridlastic.com/"><img src="https://webdriver.io/img/sponsors/gridlastic.png" width="200" alt="Gridlastic" /></a>
 </p>
 
 [Become a Bronze Sponsor](https://github.com/sponsors/christian-bromann/sponsorships?tier_id=303965&preview=false)
