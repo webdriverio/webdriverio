@@ -577,7 +577,7 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
     }
 }
 
-export const getA11yResults = async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
+export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
         BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
         return [] // since we are running only on Automate as of now
@@ -602,9 +602,9 @@ export const getA11yResults = async (isAppAutomate: boolean, browser: WebdriverI
         BStackLogger.debug(`getA11yResults Failed. Error: ${error}`)
         return []
     }
-}
+})
 
-export const getAppA11yResults = async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<Array<{ [key: string]: any; }>> => {
+export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<Array<{ [key: string]: any; }>> => {
     if (!isBrowserStackSession) {
         return [] // since we are running only on Automate as of now
     }
@@ -625,9 +625,9 @@ export const getAppA11yResults = async (isAppAutomate: boolean, browser: Webdriv
         BStackLogger.debug(`getAppA11yResults Failed. Error: ${error}`)
         return []
     }
-}
+})
 
-export const getAppA11yResultsSummary = async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<{ [key: string]: any; }> => {
+export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<{ [key: string]: any; }> => {
     if (!isBrowserStackSession) {
         return {} // since we are running only on Automate as of now
     }
@@ -647,7 +647,7 @@ export const getAppA11yResultsSummary = async (isAppAutomate: boolean, browser: 
         BStackLogger.error('No accessibility summary was found.')
         return {}
     }
-}
+})
 
 const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, sessionId?: string | null) : Promise<PollingResult> => {
     BStackLogger.debug('Performing scan before getting results summary')
@@ -660,7 +660,7 @@ const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, 
     return apiRespone
 }
 
-export const getA11yResultsSummary = async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
+export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
     if (!isBrowserStackSession) {
         return {} // since we are running only on Automate as of now
     }
@@ -683,7 +683,7 @@ export const getA11yResultsSummary = async (isAppAutomate: boolean, browser: Web
         BStackLogger.error('No accessibility summary was found.')
         return {}
     }
-}
+})
 
 export const stopBuildUpstream = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.STOP, o11yErrorHandler(async function stopBuildUpstream() {
     const stopBuildUsage = UsageStats.getInstance().stopBuildUsage

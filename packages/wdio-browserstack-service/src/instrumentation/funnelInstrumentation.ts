@@ -11,6 +11,7 @@ import { getProductMap } from '../testHub/utils.js'
 import fetchWrap from '../fetchWrapper.js'
 import type { BrowserstackHealing } from '@browserstack/ai-sdk-node'
 import type { FunnelData, EventProperties } from '../types.js'
+import TestOpsConfig from '../testOps/testOpsConfig.js'
 
 async function fireFunnelTestEvent(eventType: string, config: BrowserStackConfig) {
     if (!config.userName || !config.accessKey) {
@@ -104,6 +105,7 @@ function buildEventData(eventType: string, config: BrowserStackConfig) {
     const eventProperties: EventProperties = {
         // Framework Details
         sdkRunId: config?.sdkRunID,
+        testhub_uuid: TestOpsConfig.getInstance().buildHashedId,
         language_framework: getLanguageFramework(config.framework),
         referrer: getReferrer(config.framework),
         language: 'WebdriverIO',

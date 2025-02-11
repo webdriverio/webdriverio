@@ -358,6 +358,7 @@ export interface TOUsageStats {
 
 export interface EventProperties {
     sdkRunId: string
+    testhub_uuid?: string
     language_framework: string
     referrer: string
     language: string

@@ -187,7 +187,7 @@ export default class PerformanceTester {
         details.testName = PerformanceTester.scenarioThatRan && PerformanceTester.scenarioThatRan[PerformanceTester.scenarioThatRan.length - 1]
         details.platform = PerformanceTester.browser?.sessionId
 
-        return function (...args: object[]) {
+        return function (...args: (object|boolean|undefined|null|string)[]) {
 
             return self.measure(name, fn, details, args)
         }
@@ -198,7 +198,7 @@ export default class PerformanceTester {
         return !(process.env.BROWSERSTACK_SDK_INSTRUMENTATION === 'false')
     }
 
-    static measure(label: string, fn: Function, details = {}, args?: object[], thisArg: object|null = null) {
+    static measure(label: string, fn: Function, details = {}, args?: (object|boolean|undefined|null|string)[], thisArg: object|null = null) {
         if (!this.started || !this.isEnabled()) {
             return fn.apply(thisArg, args)
         }
