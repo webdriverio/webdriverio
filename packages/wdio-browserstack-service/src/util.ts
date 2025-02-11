@@ -1298,11 +1298,12 @@ export const patchConsoleLogs = o11yErrorHandler(() => {
             BStackLogger.debug(`Skipping method: ${method}, exists: ${method in console}, type: ${typeof console[method]}`)
             return
         }
+        // @ts-expect-error
         const origMethod = console[method].bind(console)
 
         // Make sure we don't override Constructors
         // Arrow functions are not construable
-        if (typeof console[method] === 'function' && method !== 'Console') {
+        if (method !== 'Console') {
             console[method] = (...args: unknown[]) => {
                 try {
                     if (!Object.keys(BSTestOpsPatcher).includes(method)) {
