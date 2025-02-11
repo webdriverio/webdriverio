@@ -72,4 +72,6 @@ Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silv
 
 <ImageSwitcher lightImageSrc="/img/sponsors/eslint_black.svg" darkImageSrc="/img/sponsors/eslint_white.svg" alt="Eslint" target="_blank" link="https://eslint.org/" width="150" />
 
+<ImageSwitcher lightImageSrc="/img/sponsors/gridlastic.png" darkImageSrc="/img/sponsors/gridlastic.png" alt="Gridlastic" target="_blank" link="https://www.gridlastic.com/" width="150" />
+
 Become a [Bronze Sponsor](https://opencollective.com/webdriverio/contribute/bronze-sponsor-69224/checkout?interval=month&amount=100&contributeAs=me).
