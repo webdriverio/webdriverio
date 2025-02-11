@@ -1298,7 +1298,6 @@ export const patchConsoleLogs = o11yErrorHandler(() => {
             BStackLogger.debug(`Skipping method: ${method}, exists: ${method in console}, type: ${typeof console[method]}`)
             return
         }
-        // @ts-expect-error
         const origMethod = console[method].bind(console)
 
         // Make sure we don't override Constructors
