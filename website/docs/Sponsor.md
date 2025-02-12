@@ -120,7 +120,7 @@ Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silv
     darkImageSrc="/img/sponsors/gridlastic.png"
     alt="Gridlastic"
     target="_blank"
-    link="https://www.gridlastic.com/"
+    link="https://www.gridlastic.com/webdriverio.html"
     width="150"
 />
 
