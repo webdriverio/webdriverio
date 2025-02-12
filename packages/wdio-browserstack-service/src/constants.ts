@@ -71,6 +71,8 @@ export const LOG_KIND_USAGE_MAP = {
 
 export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'
 
+export const EDS_URL = 'https://eds.browserstack.com'
+
 export const SUPPORTED_BROWSERS_FOR_AI = ['chrome', 'microsoftedge', 'firefox']
 
 export const TCG_URL = 'https://tcg.browserstack.com'

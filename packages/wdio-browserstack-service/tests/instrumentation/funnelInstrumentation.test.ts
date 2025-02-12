@@ -43,7 +43,8 @@ const expectedEventData = {
             'automate': true,
             'app_automate': false
         },
-        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility'])
+        product: expect.arrayContaining(['observability', 'automate', 'percy', 'accessibility']),
+        framework: 'framework'
     }
 }
 

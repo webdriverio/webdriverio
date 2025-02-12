@@ -8,14 +8,14 @@ import type { Options } from '@wdio/types'
 import { PercyLogger } from './PercyLogger.js'
 import Percy from './Percy.js'
 
-export const startPercy = async (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig): Promise<Percy> => {
+export const startPercy = async (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig): Promise<Percy|undefined> => {
     PercyLogger.debug('Starting percy')
     const percy = new Percy(options, config, bsConfig)
     const response = await percy.start()
     if (response) {
         return percy
     }
-    return ({} as Percy)
+    return undefined
 }
 
 export const stopPercy = async (percy: Percy) => {

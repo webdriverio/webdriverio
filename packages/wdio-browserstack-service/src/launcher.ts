@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
-
 import fs from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -14,7 +12,6 @@ import { getProductMap } from './testHub/utils.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 
 import type { Capabilities, Services, Options } from '@wdio/types'
-import PerformanceTester from './performance-tester.js'
 
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
 
@@ -50,6 +47,8 @@ import BrowserStackConfig from './config.js'
 import { setupExitHandlers } from './exitHandler.js'
 import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation.js'
 import AiHandler from './ai-handler.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -163,9 +162,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this.browserStackConfig.buildIdentifier = this._buildIdentifier
         this.browserStackConfig.buildName = this._buildName
 
-        if (process.env[PERF_MEASUREMENT_ENV]) {
-            PerformanceTester.startMonitoring('performance-report-launcher.csv')
-        }
+        PerformanceTester.startMonitoring('performance-report-launcher.csv')
 
         this._accessibilityAutomation ||= isTrue(this._options.accessibility)
         this._options.accessibility = this._accessibilityAutomation
@@ -187,6 +184,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_SETUP)
     async onWorkerStart (cid: string, caps: WebdriverIO.Capabilities) {
         try {
             if (this._options.percy && this._percyBestPlatformCaps) {
@@ -200,6 +198,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_PRE_TEST)
     async onPrepare (config: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities) {
         // Send Funnel start request
         await sendStart(this.browserStackConfig)
@@ -350,6 +349,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         let timer: NodeJS.Timeout
         performance.mark('tbTunnelStart')
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_START)
         return Promise.race([
             promisify(this.browserstackLocal.start.bind(this.browserstackLocal))(opts),
             new Promise((resolve, reject) => {
@@ -361,14 +361,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         ).then(function (result) {
             clearTimeout(timer)
             performance.mark('tbTunnelEnd')
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_START)
             performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
             return Promise.resolve(result)
         }, function (err) {
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_START, false, err)
             clearTimeout(timer)
             return Promise.reject(err)
         })
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
     async onComplete () {
         BStackLogger.debug('Inside OnComplete hook..')
 
@@ -379,8 +382,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
         this.browserStackConfig.testObservability.buildStopped = true
 
+        await PerformanceTester.stopAndGenerate('performance-launcher.html')
         if (process.env[PERF_MEASUREMENT_ENV]) {
-            await PerformanceTester.stopAndGenerate('performance-launcher.html')
             PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
 
             if (!process.env.START_TIME) {
@@ -390,6 +393,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             BStackLogger.info(`Total duration is ${duration / 1000} s`)
         }
 
+        BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
         await sendFinish(this.browserStackConfig)
         try {
             await this._uploadServiceLogs()
@@ -413,6 +417,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         let timer: NodeJS.Timeout
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_STOP)
         return Promise.race([
             new Promise<void>((resolve, reject) => {
                 this.browserstackLocal?.stop((err: Error) => {
@@ -430,9 +435,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 )
             })]
         ).then(function (result) {
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_STOP)
             clearTimeout(timer)
             return Promise.resolve(result)
         }, function (err) {
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.LOCAL_STOP, false, err)
             clearTimeout(timer)
             return Promise.reject(err)
         })
@@ -479,6 +486,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.APP_AUTOMATE_EVENTS.APP_UPLOAD)
     async _uploadApp(app:App): Promise<AppUploadResponse> {
         BStackLogger.info(`uploading app ${app.app} ${app.customId? `and custom_id: ${app.customId}` : ''} to browserstack`)
 
@@ -855,7 +863,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (process.env[BROWSERSTACK_TESTHUB_UUID]) {
             return process.env[BROWSERSTACK_TESTHUB_UUID]
         }
-        const uuid = uuidv4()
+        const uuid = this.browserStackConfig?.sdkRunID
         BStackLogger.logToFile(`If facing any issues, please contact BrowserStack support with the Build Run Id - ${uuid}`, 'info')
         return uuid
     }
