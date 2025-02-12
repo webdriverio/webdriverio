@@ -75,8 +75,9 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     darkImageSrc="/img/sponsors/route4me.svg"
     alt="Route4Me"
     link="https://www.route4me.com/"
-    width="350"
+    width="250"
     target="_blank"
+    style={{ marginRight: '20px', position: 'relative', top: '8px' }}
 />
 
 <ImageSwitcher
@@ -97,9 +98,8 @@ Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-s
     darkImageSrc="/img/sponsors/testingbot.svg"
     alt="TestingBot"
     link="https://testingbot.com/"
-    width="250"
+    width="150"
     target="_blank"
-    style={{ marginLeft: '30px', position: 'relative', top: '-8px' }}
 />
 
 Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silver-sponsor-69223/checkout?interval=month&amount=250&contributeAs=me).
