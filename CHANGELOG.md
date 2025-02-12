@@ -21,6 +21,31 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.42.0 (2025-02-12)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`, `webdriver`
+  * [#13993](https://github.com/webdriverio/webdriverio/pull/13993) catch failures onAfterCommand  ([@harsha509](https://github.com/harsha509))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14171](https://github.com/webdriverio/webdriverio/pull/14171) Additional instrumentation logs ([@07souravkunda](https://github.com/07souravkunda))
+  * [#14034](https://github.com/webdriverio/webdriverio/pull/14034) [v8] Accessibility Support for Browserstack app automate sessions ([@nishath-bs](https://github.com/nishath-bs))
+  * [#14052](https://github.com/webdriverio/webdriverio/pull/14052) Fix writable paths ([@sauravdas1997](https://github.com/sauravdas1997))
+* `wdio-runner`, `webdriverio`
+  * [#14166](https://github.com/webdriverio/webdriverio/pull/14166) [WDIO8] added supressing for runner's deleteSession ([@udarrr](https://github.com/udarrr))
+* `wdio-cli`
+  * [#14150](https://github.com/webdriverio/webdriverio/pull/14150) [WDIO8] fixed empty process.execArgv ([@udarrr](https://github.com/udarrr))
+
+#### Committers: 6
+- Mohamed Nishath N ([@nishath-bs](https://github.com/nishath-bs))
+- Rounak Bhatia ([@rounak610](https://github.com/rounak610))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- Sourav Kunda ([@07souravkunda](https://github.com/07souravkunda))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v8.41.0 (2024-12-18)
 
 #### :bug: Bug Fix
