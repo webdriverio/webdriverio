@@ -53,3 +53,7 @@ Feature: Example feature
 
     Scenario: timeout step
         Then this is a step with timeout
+
+    Scenario: Using Snapshot matcher in Cucumber works
+        # Test is simply to make sure snapshot matcher doesn't fail
+        When I use the snapshot matcher
