@@ -92,3 +92,7 @@ Given('this is ambiguous', () => {
 Given('this is a step with timeout', { timeout: 6000 }, async () => {
     await browser.pause(5500)
 })
+
+Given('I use the snapshot matcher', async () => {
+    await expect({ foo: 'bar' }).toMatchSnapshot()
+})
