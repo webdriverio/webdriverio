@@ -41,7 +41,7 @@ test('allow to attach to an existing session', async () => {
     /**
      * can open other pages which requires e.g. network manager to be reinitialized correctly
      */
-    await otherBrowser.url('https://webdriver.io/two.html')
+    await otherBrowser.url('https://guinea-pig.webdriver.io/two.html')
     expect(await otherBrowser.getTitle()).toBe('two')
 
     await otherBrowser.deleteSession()
