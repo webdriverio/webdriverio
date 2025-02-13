@@ -38,6 +38,12 @@ test('allow to attach to an existing session', async () => {
     const newContextTree = await otherBrowser.browsingContextGetTree({ maxDepth: 1 })
     expect(origContextTree.contexts[0].context).toBe(newContextTree.contexts[0].context)
 
+    /**
+     * can open other pages which requires e.g. network manager to be reinitialized correctly
+     */
+    await otherBrowser.url('https://webdriver.io/two.html')
+    expect(await otherBrowser.getTitle()).toBe('two')
+
     await otherBrowser.deleteSession()
 
     /**
