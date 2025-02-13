@@ -118,6 +118,3 @@ e2e/screenshot.png
 website/community/events
 website/events.json
 e2e/wdio/headless/*.png
-
-# Smoke test files
-tests/cucumber/__snapshots__
