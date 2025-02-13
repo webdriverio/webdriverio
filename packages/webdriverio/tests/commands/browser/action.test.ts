@@ -209,7 +209,7 @@ describe('action command', () => {
             .move({ origin: browser.$('#drag') })
             .perform()
         const calls = vi.mocked(fetch).mock.calls
-        const [,, [, performActionParam]] = calls as any
+        const [,,, [, performActionParam]] = calls as any
         expect(JSON.parse(performActionParam.body)).toMatchSnapshot()
     })
 
@@ -218,7 +218,7 @@ describe('action command', () => {
             .scroll({ origin: browser.$('#drag') })
             .perform()
         const calls = vi.mocked(fetch).mock.calls
-        const [,, [, performActionParam]] = calls as any
+        const [,,, [, performActionParam]] = calls as any
         expect(JSON.parse(performActionParam.body)).toMatchSnapshot()
     })
 })

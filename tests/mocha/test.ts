@@ -417,4 +417,17 @@ describe('Mocha smoke test', () => {
             await browser.url('https://mymockpage.com')
         })
     })
+
+    describe('waitForExist', () => {
+        it('should return true if element exists', async () => {
+            // @ts-expect-error custom command
+            await browser.waitForExistScenario()
+            const elem = await $('elem')
+            expect(elem.error).toBeDefined()
+            expect(elem.elementId).toBeUndefined()
+            expect(await elem.waitForExist()).toBe(true)
+            expect(elem.error).toBeUndefined()
+            expect(elem.elementId).toBeDefined()
+        })
+    })
 })
