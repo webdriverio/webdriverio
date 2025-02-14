@@ -23,6 +23,26 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.9.1 (2025-02-14)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14190](https://github.com/webdriverio/webdriverio/pull/14190) fix(webdriverio): fallback to classic navigate on concurrent request issues ([@christian-bromann](https://github.com/christian-bromann))
+  * [#14183](https://github.com/webdriverio/webdriverio/pull/14183) fix(webdriverio): fix initializing session manager after attaching to new session ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#14184](https://github.com/webdriverio/webdriverio/pull/14184) fix(webdriverio): populate new elementId after waitForExist call ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `eslint-plugin-wdio`
+  * [#14188](https://github.com/webdriverio/webdriverio/pull/14188) feat(eslint): Add support for multiple browser instances in eslint rules ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-runner`
+  * [#14185](https://github.com/webdriverio/webdriverio/pull/14185) Smoke test cucumber snapshot ([@jbblanchet](https://github.com/jbblanchet))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@jbblanchet](https://github.com/jbblanchet)
+
+
 ## v9.8.0 (2025-02-06)
 
 #### :bug: Bug Fix
