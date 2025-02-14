@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
-import { enableFileLogging, wrapCommand } from '@wdio/utils'
+import { enableFileLogging, wrapCommand, isBidi } from '@wdio/utils'
 import type { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
@@ -104,8 +104,14 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
         prototype,
         wrapCommand
     ) as WebdriverIO.Browser
-
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
+
+    /**
+     * Wait for the Bidi handler to be connected before registering the session manager
+     */
+    if (isBidi(driver.capabilities) && '_bidiHandler' in driver) {
+        await (driver['_bidiHandler'] as WebDriverTypes.BidiHandler).waitForConnected()
+    }
     await registerSessionManager(driver)
     return driver
 }
