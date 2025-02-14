@@ -8,9 +8,7 @@ export default defineConfig({
          * not to ESM ported packages
          */
         exclude: [
-            'dist', '.idea', '.git', '.cache',
-            '**/node_modules/**',
-            'packages/eslint-plugin-wdio/**/*'
+            'dist', '.idea', '.git', '.cache', '**/node_modules/**'
         ],
         env: {
             WDIO_SKIP_DRIVER_SETUP: '1'
