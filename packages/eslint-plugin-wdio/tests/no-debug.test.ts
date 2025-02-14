@@ -26,7 +26,7 @@ describe('no-debug', () => {
         })
     })
 
-    it.only('support different browser instances', () => {
+    it('support different browser instances', () => {
         ruleTester.run('no-debug', rule, {
             valid: [],
             invalid: [
