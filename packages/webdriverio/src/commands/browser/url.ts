@@ -183,7 +183,7 @@ export async function url (
                 // Firefox error message
                 err.message.includes('failed with error: unknown error')
             ) {
-                return this.navigateTo(path)
+                return this.navigateTo(validateUrl(path))
             }
 
             throw err
