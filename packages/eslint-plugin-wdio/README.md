@@ -58,8 +58,15 @@ See [ESLint documentation](https://eslint.org/docs/latest/use/configure/configur
 
 ## List of supported rules
 
-| Rule | Description |
-| :--- | :--- |
-| [wdio/await-expect](docs/rules/await-expect.md) | `expect` calls must be prefixed with an `await` |
-| [wdio/no-debug](docs/rules/no-debug.md) | Don't allow `browser.debug()` statements |
-| [wdio/no-pause](docs/rules/no-pause.md) | Don't allow `browser.pause(<number>)` statements |
+
+- [`wdio/await-expect`](./docs/async-methods.md)
+
+`expect` calls must be prefixed with an `await`
+
+- [`wdio/no-debug`](./docs/no-debug.md)
+
+Don't allow `browser.debug()` statements
+
+- [`wdio/no-pause`](./docs/no-pause.md)
+
+Don't allow `browser.pause(<number>)` statements
