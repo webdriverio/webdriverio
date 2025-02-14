@@ -172,6 +172,19 @@ export async function url (
             context,
             url: path,
             wait
+        }).catch((err) => {
+            /**
+             * It seems that WebDriver Bidi runs into issue with concurrent navigation.
+             * @see https://github.com/w3c/webdriver-bidi/issues/878
+             */
+            if (
+                err.message.includes('navigation canceled by concurrent navigation') ||
+                err.message.includes('failed with error: unknown error')
+            ) {
+                return this.navigateTo(path)
+            }
+
+            throw err
         })
 
         if (mock) {
@@ -195,6 +208,10 @@ export async function url (
          */
         if (resetPreloadScript) {
             await resetPreloadScript.remove()
+        }
+
+        if (!navigation) {
+            return
         }
 
         /**
