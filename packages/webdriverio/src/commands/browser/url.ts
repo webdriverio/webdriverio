@@ -178,7 +178,9 @@ export async function url (
              * @see https://github.com/w3c/webdriver-bidi/issues/878
              */
             if (
+                // Chrome error message
                 err.message.includes('navigation canceled by concurrent navigation') ||
+                // Firefox error message
                 err.message.includes('failed with error: unknown error')
             ) {
                 return this.navigateTo(path)
