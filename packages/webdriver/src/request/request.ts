@@ -53,6 +53,7 @@ export abstract class WebDriverRequest {
         const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
         const requestOptions: RequestInit = {
             method: this.method,
+            redirect: 'follow',
             signal: AbortSignal.timeout(timeout)
         }
 
@@ -115,6 +116,7 @@ export abstract class WebDriverRequest {
                 body: JSON.stringify(opts.body),
                 headers: opts.headers as Record<string, string>,
                 signal: opts.signal,
+                redirect: opts.redirect
             })
 
             // Cloning the response to prevent body unusable error
