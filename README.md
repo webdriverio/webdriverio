@@ -111,7 +111,7 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 - [@wdio/spec-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-spec-reporter) - A WebdriverIO plugin to report in spec style
 - [@wdio/sumologic-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sumologic-reporter) - A WebdriverIO reporter that sends test results to Sumologic for data analyse
 
--[wdio-json-html-reporter](https://github.com/aswinchembath/wdio-json-html-reporter) A  reporter that generates detailed JSON reports during test execution and provides a portable HTML report generator to visualize your test results.
+-[wdio-json-html-reporter](https://github.com/aswinchembath/wdio-json-html-reporter) A  reporter that generates detailed JSON reports during test execution and provides a portable HTML report generator to visualize your test results
 
 ### Services
 
