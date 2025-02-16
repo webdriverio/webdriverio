@@ -1,8 +1,9 @@
 import logger from '@wdio/logger'
-
 import { getBrowserObject } from '@testplane/utils'
-import { buttonValue } from '../../utils/actions/index.js'
+
+import type { RectReturn } from '@testplane/protocols'
 import type { ClickOptions } from '../../types.js'
+import type { Button } from '../../utils/actions/index.js'
 
 const log = logger('webdriver')
 /**
@@ -14,9 +15,7 @@ const log = logger('webdriver')
  * give added capabilities like passing button type, coordinates etc. By default, when using options a release action
  * command is send after performing the click action, pass `option.skipRelease=true` to skip this action.
  *
- * :::info
- *
- * If you have fixed-position elements (such as a fixed header or footer) that cover up the
+ * Note: If you have fixed-position elements (such as a fixed header or footer) that cover up the
  * selected element after it is scrolled within the viewport, the click will be issued at the given coordinates, but will
  * be received by your fixed (overlaying) element. In these cased the following error is thrown:
  *
@@ -27,15 +26,6 @@ const log = logger('webdriver')
  * To work around this, try to find the overlaying element and remove it via `execute` command so it doesn't interfere
  * the click. You also can try to scroll to the element yourself using `scroll` with an offset appropriate for your
  * scenario.
- *
- * :::
- *
- * :::info
- *
- * The click command can also be used to simulate a long press on a mobile device. This is done by setting the `duration`.
- * See the example below for more information.
- *
- * :::
  *
  * <example>
     :example.html
@@ -86,125 +76,94 @@ const log = logger('webdriver')
     })
  * </example>
  *
- * <example>
-    :longpress.example.js
-    it('should be able to open the contacts menu on iOS by executing a longPress', async () => {
-        const contacts = await $('~Contacts')
-        // opens the Contacts menu on iOS where you can quickly create
-        // a new contact, edit your home screen, or remove the app
-        await contacts.click({ duration: 2000 })
-    })
- * </example>
- *
  * @alias element.click
  * @uses protocol/element, protocol/elementIdClick, protocol/performActions, protocol/positionClick
  * @type action
- * @param {ClickOptions=}     options               Click options (optional)
- * @param {string= | number=} options.button        Can be one of `[0, "left", 1, "middle", 2, "right"]` <br /><strong>WEB-ONLY</strong> (Desktop/Mobile)
- * @param {number=}           options.x             Clicks X horizontal pixels away from location of the element (from center point of element)<br /><strong>WEB and Native</strong> (Desktop/Mobile)
- * @param {number=}           options.y             Clicks Y vertical pixels away from location of the element (from center point of element)<br /><strong>WEB and Native support</strong> (Desktop/Mobile)
- * @param {boolean=}          options.skipRelease   Boolean (optional) <br /><strong>WEB-ONLY</strong> (Desktop/Mobile)
- * @param {number=}           options.duration      Duration of the click, aka "LongPress" <br /><strong>MOBILE-NATIVE-APP-ONLY</strong> (Mobile)
+ * @param {ClickOptions=}     options        click options (optional)
+ * @param {string= | number=} options.button can be one of [0, "left", 1, "middle", 2, "right"] (optional)
+ * @param {number=}           options.x      Number (optional)
+ * @param {number=}           options.y      Number (optional)
+ * @param {boolean=}           options.skipRelease         Boolean (optional)
  */
-export function click(
+export async function click(
     this: WebdriverIO.Element,
     options?: Partial<ClickOptions>
 ) {
-    if (typeof options !== 'undefined') {
-        if (typeof options !== 'object' || Array.isArray(options)) {
-            throw new TypeError('Options must be an object')
-        }
-        return actionClick(this, options)
+    if (typeof options === 'undefined') {
+        return this.elementClick(this.elementId)
     }
 
-    return elementClick(this)
-}
-
-/**
-* Workaround function, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
-* Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
-* and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
-*/
-async function workaround(element: WebdriverIO.Element) {
-    await element.scrollIntoView({ block: 'center', inline: 'center' })
-}
-
-async function elementClick(element: WebdriverIO.Element) {
-    try {
-        return await element.elementClick(element.elementId)
-    } catch (error) {
-        // We will never reach this code in the case of a mobile app, the implicitWait will wait for the element but will throw
-        // an error with the following message:
-        // `Error: Can't call click on element with selector "<selector>" because element wasn't found at implicitWait`
-        // This means that he workaround is not reachable in the case of a mobile app and thus will not automatically scroll the element into view
-        let err = error as Error
-        if (typeof error === 'string') {
-            err = new Error(error)
-        }
-        if (!err.message.includes('element click intercepted')) {
-            // we only apply the workaround when the click got intercepted
-            // so that the middleware can handle any other errors
-            throw err
-        }
-        await workaround(element)
-        return element.elementClick(element.elementId)
-    }
-}
-
-async function actionClick(element: WebdriverIO.Element, options: Partial<ClickOptions>) {
-    const defaultOptions: ClickOptions = {
-        button: 0,
-        x: 0,
-        y: 0,
-        skipRelease: false,
-        duration: 0
+    if (typeof options !== 'object' || Array.isArray(options)) {
+        throw new TypeError('Options must be an object')
     }
 
-    const { button, x, y, skipRelease, duration }: ClickOptions = { ...defaultOptions, ...options }
+    let button = (options.button || 0) as Button
+    const {
+        x: xOffset = 0,
+        y: yOffset = 0,
+        skipRelease = false
+    } = options || {}
 
     if (
-        typeof x !== 'number'
-        || typeof y !== 'number'
-        || !Number.isInteger(x)
-        || !Number.isInteger(y)
-    ) {
+        typeof xOffset !== 'number'
+        || typeof yOffset !== 'number'
+        || !Number.isInteger(xOffset)
+        || !Number.isInteger(yOffset)) {
         throw new TypeError('Coordinates must be integers')
     }
 
-    if (!buttonValue.includes(button)) {
+    if (options.button === 'left') {
+        button = 0
+    }
+    if (options.button === 'middle') {
+        button = 1
+    }
+    if (options.button === 'right') {
+        button = 2
+    }
+    if (![0, 1, 2].includes(button as number)) {
         throw new Error('Button type not supported.')
     }
 
-    if (!element.isW3C) {
-        const { width, height } = await element.getElementSize(element.elementId) as {width: number, height: number}
-        await element.moveToElement(element.elementId, x + (width / 2), y + (height / 2))
-        return element.positionClick(button as number)
+    if (this.isW3C) {
+        const browser = getBrowserObject(this)
+        if (xOffset || yOffset) {
+            const { width, height } = await browser.getElementRect(this.elementId)
+            if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
+                log.warn('xOffset would cause a out of bounds error as it goes outside of element')
+            }
+            if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
+                log.warn('yOffset would cause a out of bounds error as it goes outside of element')
+            }
+        }
+        const clickNested = async () => {
+            await browser.action('pointer', {
+                parameters: { pointerType: 'mouse' }
+            })
+                .move({
+                    origin: this,
+                    x: xOffset,
+                    y: yOffset
+                })
+                .down({ button })
+                .up({ button })
+                .perform(skipRelease)
+        }
+        try {
+            await clickNested()
+        } catch {
+        /**
+        * Workaround, because sometimes browser.action().move() flaky and isn't able to scroll pointer to into view
+        * Moreover the action  with 'nearest' behavior by default where element is aligned at the bottom of its ancestor.
+        * and could be overlapped. Scroll to center should definitely work even if element was covered with sticky header/footer
+        */
+            await this.scrollIntoView({ block: 'center', inline: 'center' })
+            await clickNested()
+        }
+        return
     }
 
-    const browser = getBrowserObject(element) as WebdriverIO.Browser
-    if (x || y) {
-        const { width, height } = await browser.getElementRect(element.elementId)
-        if ((x && x < (-Math.floor(width / 2))) || (x && x > Math.floor(width / 2))) {
-            log.warn('x would cause a out of bounds error as it goes outside of element')
-        }
-        if ((y && y < (-Math.floor(height / 2))) || (y && y > Math.floor(height / 2))) {
-            log.warn('y would cause a out of bounds error as it goes outside of element')
-        }
-    }
-    const clickNested = async () => {
-        await browser.action('pointer', {
-            parameters: { pointerType: browser.isMobile ? 'touch' : 'mouse' }
-        })
-            .move({ origin: element, x, y })
-            .down({ button })
-            .pause(duration)
-            .up({ button })
-            .perform(skipRelease)
-    }
-    try {
-        return await clickNested()
-    } catch {
-        await workaround(element)
-        return clickNested()
-    }
+    const { width, height } = await this.getElementSize(this.elementId) as unknown as RectReturn
+    await this.moveToElement(this.elementId, xOffset + (width / 2), yOffset + (height / 2))
+    return this.positionClick(button as number)
 }
