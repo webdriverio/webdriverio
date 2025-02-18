@@ -94,7 +94,8 @@ describe('isDisplayed test', () => {
             capabilities: {
                 // @ts-ignore mock feature
                 keepBrowserName: true,
-                mobileMode: true
+                mobileMode: true,
+                nativeAppMode: true,
             } as any
         })
         elem = await browser.$('#foo')
@@ -113,7 +114,8 @@ describe('isDisplayed test', () => {
             capabilities: {
                 // @ts-ignore mock feature
                 keepBrowserName: true,
-                mobileMode: true
+                mobileMode: true,
+                nativeAppMode: true,
             } as any
         })
         elem = await browser.$('#foo')
