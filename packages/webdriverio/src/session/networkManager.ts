@@ -217,6 +217,20 @@ export class NetworkManager extends SessionManager {
     }
 
     getRequestResponseData(navigationId: string) {
+        /**
+         * In case the user reloads the page with a hash, we need to return the last request
+         * as there was no new navigation.
+         */
+        if (!this.#requests.has(navigationId)) {
+            const lastRequest = Array.from(this.#requests.values()).pop()
+            if (!lastRequest) {
+                return undefined
+            }
+            const lastRequestUrl = new URL(lastRequest.url)
+            if (lastRequestUrl.hash !== '') {
+                return lastRequest
+            }
+        }
         return this.#requests.get(navigationId)
     }
 

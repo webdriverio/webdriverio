@@ -12,7 +12,9 @@ const DEFAULT_WAIT_STATE = 'complete'
  *
  * The `url` command loads an URL in the browser. If a baseUrl is specified in the config,
  * it will be prepended to the url parameter using node's url.resolve() method. Calling
- * `browser.url('...')` with the same url as last time will trigger a page reload.
+ * `browser.url('...')` with the same url as last time will trigger a page reload. However,
+ * if the url contains a hash, the browser will not trigger a new navigation and the user
+ * has to [refresh](/docs/api/webdriver#refresh) the page to trigger one.
  *
  * The command returns an `WebdriverIO.Request` object that contains information about the
  * request and response data of the page load.
