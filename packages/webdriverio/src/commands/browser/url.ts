@@ -17,7 +17,38 @@ const DEFAULT_WAIT_STATE = 'complete'
  * has to [refresh](/docs/api/webdriver#refresh) the page to trigger one.
  *
  * The command returns an `WebdriverIO.Request` object that contains information about the
- * request and response data of the page load.
+ * request and response data of the page load:
+ *
+ * ```ts
+ * interface WebdriverIO.Request {
+ *   id?: string
+ *   url: string
+ *   timestamp: number
+ *   navigation?: string
+ *   redirectChain?: string[],
+ *   headers: Record<string, string>
+ *   cookies?: NetworkCookie[]
+ *   \/**
+ *    * Error message if request failed
+ *    *\/
+ *   error?: string
+ *   response?: {
+ *       fromCache: boolean
+ *       headers: Record<string, string>
+ *       mimeType: string
+ *       status: number
+ *   },
+ *   /**
+ *    * List of all requests that were made due to the main request.
+ *    * Note: the list may be incomplete and does not contain request that were
+ *    * made after the command has finished.
+ *    *
+ *    * The property will be undefined if the request is not a document request
+ *    * that was initiated by the browser.
+ *    *\/
+ *   children?: Request[]
+ * }
+ * ```
  *
  * The command supports the following options:
  *
@@ -56,6 +87,8 @@ const DEFAULT_WAIT_STATE = 'complete'
     const request = await browser.url('https://webdriver.io');
     // log url
     console.log(request.url); // outputs: "https://webdriver.io"
+    console.log(request.response?.status); // outputs: 200
+    console.log(request.response?.headers); // outputs: { 'content-type': 'text/html; charset=UTF-8' }
 
     :baseUrlResolutions.js
     // With a base URL of http://example.com/site, the following url parameters resolve as such:
