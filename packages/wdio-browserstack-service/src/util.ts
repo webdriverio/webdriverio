@@ -1294,28 +1294,23 @@ export const patchConsoleLogs = o11yErrorHandler(() => {
     const BSTestOpsPatcher = new logPatcher({})
 
     Object.keys(consoleHolder).forEach((method: keyof typeof console) => {
-        if (!(method in console) || typeof console[method] !== 'function') {
+        if (!(method in console) || method === 'Console' || typeof console[method] !== 'function') {
             BStackLogger.debug(`Skipping method: ${method}, exists: ${method in console}, type: ${typeof console[method]}`)
             return
         }
-        // @ts-expect-error
-        const origMethod = console[method].bind(console)
+        const origMethod: Function = console[method].bind(console)
 
-        // Make sure we don't override Constructors
-        // Arrow functions are not construable
-        if (method !== 'Console') {
-            console[method] = (...args: unknown[]) => {
-                try {
-                    if (!Object.keys(BSTestOpsPatcher).includes(method)) {
-                        origMethod(...args)
-                    } else {
-                        origMethod(...args);
-                        (BSTestOpsPatcher as any)[method](...args)
-                    }
-                } catch (error) {
-                    BStackLogger.debug(`Error while patching console logs : ${error}`)
+        console[method] = (...args: unknown[]) => {
+            try {
+                if (!Object.keys(BSTestOpsPatcher).includes(method)) {
                     origMethod(...args)
+                } else {
+                    origMethod(...args);
+                    (BSTestOpsPatcher as any)[method](...args)
                 }
+            } catch (error) {
+                BStackLogger.debug(`Error while patching console logs : ${error}`)
+                origMethod(...args)
             }
         }
     })
