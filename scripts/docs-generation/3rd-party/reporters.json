@@ -66,7 +66,7 @@
   },
   {
     "packageName": "wdio-json-html-reporter",
-    "title": "WDIO JSON HTML REPORTER",
+    "title": "JSON HTML Reporter",
     "githubUrl": "https://github.com/aswinchembath/wdio-json-html-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-json-html-reporter"
   }
