@@ -23,6 +23,25 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.9.2 (2025-02-18)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14196](https://github.com/webdriverio/webdriverio/pull/14196) fix(webdriverio): find the right request when loading hash urls ([@christian-bromann](https://github.com/christian-bromann))
+  * [#14191](https://github.com/webdriverio/webdriverio/pull/14191) fix: 14084 - displayed method broken after context switching ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-cli`
+  * [#14195](https://github.com/webdriverio/webdriverio/pull/14195) fix(cli): properly find ts as default config file ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#14194](https://github.com/webdriverio/webdriverio/pull/14194) Update-addingreporter ([@aswinchembath](https://github.com/aswinchembath))
+
+#### Committers: 3
+- Aswin Chembath ([@aswinchembath](https://github.com/aswinchembath))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.9.1 (2025-02-14)
 
 #### :bug: Bug Fix
