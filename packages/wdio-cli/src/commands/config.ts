@@ -214,7 +214,6 @@ export async function canAccessConfigPath(configPath: string) {
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
 export async function missingConfigurationPrompt(command: string, configPath: string, runConfigCmd = runConfigCommand) {
-
     const message = (
         `Could not execute "${command}" due to missing configuration, file ` +
         `"${path.parse(configPath).name}[.js/.ts]" not found! ` +
@@ -236,9 +235,13 @@ export async function missingConfigurationPrompt(command: string, configPath: st
         console.log(`No WebdriverIO configuration found in "${process.cwd()}"`)
 
         /* istanbul ignore next */
-        return !process.env.WDIO_UNIT_TESTS && process.exit(0)
+        if (!process.env.WDIO_UNIT_TESTS) {
+            process.exit(0)
+        }
+        return configPath
     }
 
     const parsedAnswers = await parseAnswers(false)
     await runConfigCmd(parsedAnswers, 'latest')
+    return configPath
 }
