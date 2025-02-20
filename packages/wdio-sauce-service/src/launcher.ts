@@ -9,7 +9,7 @@ import {
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
-import { makeCapabilityFactory, getLocalIpAddress } from './utils.js'
+import { makeCapabilityFactory } from './utils.js'
 import type { SauceServiceConfig } from './types.js'
 import { DEFAULT_RUNNER_NAME } from './constants.js'
 import path from 'node:path'
@@ -47,11 +47,6 @@ export default class SauceLauncher implements Services.ServiceInstance {
              */
             `SC-tunnel-${Math.random().toString().slice(2)}`)
 
-        const tlsPassthroughDomains = new Set(['127.0.0.1', 'localhost', getLocalIpAddress()])
-        if (this._options.sauceConnectOpts?.tlsPassthroughDomains) {
-            this._options.sauceConnectOpts.tlsPassthroughDomains.split(',').forEach((domain) => tlsPassthroughDomains.add(domain))
-        }
-
         let metadata = this._options.sauceConnectOpts?.metadata || ''
         if (!metadata.includes('runner=')) {
             metadata += `runner=${DEFAULT_RUNNER_NAME}`
@@ -60,7 +55,6 @@ export default class SauceLauncher implements Services.ServiceInstance {
         const sauceConnectOpts: SauceConnectOptions = {
             tunnelName: sauceConnectTunnelName,
             ...this._options.sauceConnectOpts,
-            tlsPassthroughDomains: Array.from(tlsPassthroughDomains).join(','),
             metadata: metadata,
             logger: this._options.sauceConnectOpts?.logger || ((output) => log.debug(`Sauce Connect Log: ${output}`)),
             ...(!this._options.sauceConnectOpts?.logFile && this._config.outputDir

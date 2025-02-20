@@ -1,5 +1,3 @@
-import os from 'node:os'
-
 /**
  * Determine if the current instance is a RDC instance. RDC tests are Real Device tests
  * that can be started with different sets of capabilities. A deviceName is not mandatory, the only mandatory cap for
@@ -86,15 +84,4 @@ export function ansiRegex() {
     ].join('|')
 
     return new RegExp(pattern, 'g')
-}
-
-export function getLocalIpAddress(): string {
-    const interfaces = os.networkInterfaces()
-    const internalAddresses = Object.keys(interfaces)
-        .map((nic) => {
-            const addresses = interfaces[nic]?.filter((details) => details.internal) || []
-            return addresses.length ? addresses[0].address : undefined
-        })
-        .filter(Boolean) as string[]
-    return internalAddresses.length ? internalAddresses[0] : '127.0.0.1'
 }
