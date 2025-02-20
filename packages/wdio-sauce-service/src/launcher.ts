@@ -64,7 +64,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
             metadata: metadata,
             logger: this._options.sauceConnectOpts?.logger || ((output) => log.debug(`Sauce Connect Log: ${output}`)),
             ...(!this._options.sauceConnectOpts?.logFile && this._config.outputDir
-                ? { logfile: path.join(this._config.outputDir, 'wdio-sauce-connect-tunnel.log') }
+                ? { logFile: path.join(this._config.outputDir, 'wdio-sauce-connect-tunnel.log') }
                 : {}
             )
         }
