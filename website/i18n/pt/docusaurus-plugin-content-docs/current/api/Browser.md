@@ -3,11 +3,11 @@ id: browser
 title: The Browser Object
 ---
 
-__Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
+__Extensões:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
 
-The browser object is the session instance you use to control the browser or mobile device with. If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object or import it using [`@wdio/globals`](/docs/api/globals). If you use WebdriverIO in standalone mode the browser object is returned by the [`remote`](/docs/api/modules#remoteoptions-modifier) method.
+O objeto browser é a instância de sessão usado para controlar o navegador ou dispositivo móvel. Se você usar o WDIO test runner, pode acessar a instância do WebDriver através do objeto global `browser` ou `driver`, ou importá-la usando [`@wdio/globals`](/docs/api/globals). Se você usar o WebdriverIO no modo standalone, o objeto browser será retornado pelo método [`remote`](/docs/api/modules#remoteoptions-modifier).
 
-The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+A sessão é inicializada pelo test runner. O mesmo vale para o encerramento da sessão. This is also done by the test runner process.
 
 ## Properties
 
