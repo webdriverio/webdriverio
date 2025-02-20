@@ -606,8 +606,6 @@ export type GetContextsOptions = {
     returnDetailedContexts?: boolean;
 }
 
-export type RestartAppOptions = {}
-
 export type ActiveAppInfo = {
     pid: number;
     bundleId: string;

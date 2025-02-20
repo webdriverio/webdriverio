@@ -1,4 +1,4 @@
-import type { ActiveAppInfo, RestartAppOptions } from '../../types.js'
+import type { ActiveAppInfo } from '../../types.js'
 
 /**
  *
@@ -21,27 +21,17 @@ import type { ActiveAppInfo, RestartAppOptions } from '../../types.js'
     })
  * </example>
  *
- * @type action
- * @param {RestartAppOptions=}  options  Long press options (optional)
  * @uses protocol/execute
  * @type utility
  * @skipUsage
  */
 export async function restartApp(
-    this: WebdriverIO.Browser,
-    options?: RestartAppOptions
+    this: WebdriverIO.Browser
 ) {
     const browser = this
 
     if (!browser.isMobile) {
         throw new Error('The `restartApp` command is only available for mobile platforms.')
-    }
-
-    if (
-        typeof options !== 'undefined' &&
-        (typeof options !== 'object' || Array.isArray(options))
-    ) {
-        throw new TypeError('`restartOptions` must be an object')
     }
 
     if (browser.isIOS) {
