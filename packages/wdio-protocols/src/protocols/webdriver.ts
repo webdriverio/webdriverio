@@ -820,7 +820,7 @@ export default {
             ],
             parameters: [],
             returns: {
-                type: 'string',
+                type: 'any',
                 name: 'property',
                 description:
                     'The named property of the element, accessed by calling GetOwnProperty on the element object.',

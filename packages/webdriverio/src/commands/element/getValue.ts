@@ -1,3 +1,5 @@
+import { getBrowserObject } from '@wdio/utils'
+
 /**
  *
  * Get the value of a `<textarea>`, `<select>` or text `<input>` found by given selector.
@@ -20,11 +22,13 @@
  * @uses protocol/elements, protocol/elementIdProperty
  *
  */
-export function getValue (this: WebdriverIO.Element) {
+export function getValue<T>(this: WebdriverIO.Element): Promise<T>
+export function getValue(this: WebdriverIO.Element): Promise<string>
+export function getValue<T>(this: WebdriverIO.Element) {
+    const browser = getBrowserObject(this)
     // `!this.isMobile` added to workaround https://github.com/appium/appium/issues/12218
-    if (this.isW3C && !this.isMobile) {
-        return this.getElementProperty(this.elementId, 'value')
+    if (browser.isNativeContext) {
+        return this.getElementAttribute(this.elementId, 'value') as Promise<string>
     }
-
-    return this.getElementAttribute(this.elementId, 'value')
+    return this.getElementProperty(this.elementId, 'value') as Promise<T>
 }
