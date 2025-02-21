@@ -1,13 +1,7 @@
-import path from 'node:path'
 import { expect, describe, it, vi, beforeEach } from 'vitest'
-import logger from '@wdio/logger'
 import { remote } from '../../../src/index.js'
-import { platform } from 'node:os'
-import exp from 'node:constants'
 
 vi.mock('fetch')
-const log = logger('test')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('deepLink test', () => {
     let browser: WebdriverIO.Browser
