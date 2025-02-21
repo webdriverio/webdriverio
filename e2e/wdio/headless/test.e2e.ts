@@ -430,25 +430,26 @@ describe('main suite 1', () => {
     })
 
     describe('emulate clock', () => {
-        const now = new Date(2021, 3, 14)
-        const getDateString = () => (new Date()).toLocaleString('en-GB', { timeZone: 'UTC' })
+        const now = new Date(Date.UTC(2021, 3, 14))
+        const getDateString = () => new Date()
+        const mockedDateString = now.toLocaleString('en-GB', { timeZone: 'UTC' })
 
         it('should allow to mock the clock', async () => {
             await browser.emulate('clock', { now })
-            expect(await browser.execute(getDateString))
-                .toBe(now.toLocaleString('en-GB', { timeZone: 'UTC' }))
+            expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+                .toBe(mockedDateString)
             await browser.url('https://guinea-pig.webdriver.io')
-            expect(await browser.execute(getDateString))
-                .toBe(now.toLocaleString('en-GB', { timeZone: 'UTC' }))
+            expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+                .toBe(mockedDateString)
         })
 
         it('should allow to restore the clock', async () => {
             await browser.restore('clock')
-            expect(await browser.execute(getDateString))
-                .not.toBe(now.toLocaleString('en-GB', { timeZone: 'UTC' }))
+            expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+                .not.toBe(mockedDateString)
             await browser.url('https://guinea-pig.webdriver.io/pointer.html')
-            expect(await browser.execute(getDateString))
-                .not.toBe(now.toLocaleString('en-GB', { timeZone: 'UTC' }))
+            expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+                .not.toBe(mockedDateString)
         })
     })
 
@@ -514,7 +515,7 @@ describe('main suite 1', () => {
             await browser.switchToWindow(handles[1])
 
             // Verify element text to ensure the browsing context has changed and can interact with elements
-            await expect(await $('.page').getText()).toBe('Second page!')
+            await expect($('.page')).toHaveText('Second page!')
         })
 
         it('should see that content is no longer displayed when window is closed', async () => {

@@ -39,12 +39,6 @@ export const config: WebdriverIO.Config = {
         'moz:firefoxOptions': {
             args: ['-headless']
         }
-    }, {
-        browserName: 'edge',
-        webSocketUrl: true,
-        'ms:edgeOptions': {
-            args: ['headless', 'disable-gpu']
-        }
     }],
 
     /**
@@ -67,6 +61,16 @@ if (os.platform() === 'darwin') {
         // not yet supported
         // webSocketUrl: true,
         browserName: 'safari'
+    })
+}
+
+if (os.platform() === 'win32') {
+    config.capabilities.push({
+        browserName: 'edge',
+        webSocketUrl: true,
+        'ms:edgeOptions': {
+            args: ['headless', 'disable-gpu']
+        }
     })
 }
 
