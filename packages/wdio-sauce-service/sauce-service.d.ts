@@ -42,9 +42,9 @@ interface SauceConnectOpts {
 	proxy?: string;
 
 	/**
-	 * Change sauce connect logfile location (optional)
+	 * Change sauce connect logFile location (optional)
 	 */
-	logfile?: string;
+	logFile?: string;
 
 	/**
 	 * Period to log statistics about HTTP traffic in seconds (optional)
@@ -52,7 +52,7 @@ interface SauceConnectOpts {
 	logStats?: number;
 
 	/**
-	 * Maximum size before which the logfile is rotated (optional)
+	 * Maximum size before which the logFile is rotated (optional)
 	 */
 	maxLogsize?: number;
 
