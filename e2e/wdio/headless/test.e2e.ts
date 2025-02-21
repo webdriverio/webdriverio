@@ -699,4 +699,22 @@ describe('main suite 1', () => {
             })
         }
     })
+
+    describe('selectByVisibleText', () => {
+        it('should wait for the option to be present', async () => {
+            const newOption = 'Option 2'
+            await browser.url('https://guinea-pig.webdriver.io/two.html')
+
+            await browser.execute(() => {
+                const select = document.createElement('select')
+                select.innerHTML = '<option>Option 1</option>'
+                document.body.insertAdjacentElement('beforeend', select)
+                setTimeout(() => select.innerHTML += `<option>${newOption}</option>`, 4000)
+            })
+
+            const $select = browser.$('select')
+            await $select.selectByVisibleText(newOption)
+            await expect($select).toHaveValue(newOption)
+        })
+    })
 })
