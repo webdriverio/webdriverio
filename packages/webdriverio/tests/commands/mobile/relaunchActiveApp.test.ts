@@ -1,15 +1,10 @@
-import path from 'node:path'
 import { expect, describe, it, vi, beforeEach } from 'vitest'
-import logger from '@wdio/logger'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
-const log = logger('test')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('relaunchActiveApp test', () => {
     let browser: WebdriverIO.Browser
-    let logSpy
 
     beforeEach(async () => {
         vi.mocked(fetch).mockClear()
