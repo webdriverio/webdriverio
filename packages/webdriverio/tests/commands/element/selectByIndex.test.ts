@@ -27,7 +27,7 @@ describe('selectByIndex test', () => {
         vi.mocked(fetch).mockClear()
     })
 
-    it.only('should select by index', async () => {
+    it('should select by index', async () => {
         await elem.selectByIndex(1)
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
@@ -44,7 +44,7 @@ describe('selectByIndex test', () => {
         })
     })
 
-    it.only('should throw an error when index < 0', async () => {
+    it('should throw an error when index < 0', async () => {
         // @ts-ignore uses expect-webdriverio
         expect.hasAssertions()
         try {
@@ -54,7 +54,7 @@ describe('selectByIndex test', () => {
         }
     })
 
-    it.only('should throw if there are no options elements', async () => {
+    it('should throw if there are no options elements', async () => {
         // @ts-ignore uses expect-webdriverio
         expect.hasAssertions()
         const mockElem = {
@@ -75,7 +75,7 @@ describe('selectByIndex test', () => {
         }
     })
 
-    it.only('should throw if index is out of range', async () => {
+    it('should throw if index is out of range', async () => {
         const mockElem = {
             options: {},
             selector: 'foobar',
@@ -89,7 +89,7 @@ describe('selectByIndex test', () => {
         expect(err.toString()).toBe('Error: Can\'t call selectByIndex on element with selector "foobar" because element wasn\'t found')
     })
 
-    it.only('should throw if index is out of range', async function () {
+    it('should throw if index is out of range', async function () {
         const err = await elem.selectByIndex(3).catch((err: any) => err)
         expect(err.toString()).toBe('Error: Option with index "3" not found. Select element only contains 3 option elements')
     }, { timeout: 10000 })
