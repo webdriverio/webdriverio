@@ -699,4 +699,31 @@ describe('main suite 1', () => {
             })
         }
     })
+
+    describe.only('selectBy*', () => {
+        const scenarios = [
+            ['selectByVisibleText', ['Option 2']],
+            ['selectByIndex', [1]],
+            ['selectByAttribute', ['value', 'someValue1']]
+        ] as const
+
+        for (const [command, args] of scenarios) {
+            it(`${command}: should wait for the option to be present`, async () => {
+                const newOption = 'Option 2'
+                await browser.url('https://guinea-pig.webdriver.io/two.html')
+
+                await browser.execute((newOption) => {
+                    const select = document.createElement('select')
+                    select.innerHTML = '<option value="someValue0">Option 1</option>'
+                    document.body.insertAdjacentElement('beforeend', select)
+                    setTimeout(() => select.innerHTML += `<option value="someValue1">${newOption}</option>`, 2000)
+                }, newOption)
+
+                const $select = browser.$('select')
+                // @ts-expect-error
+                await $select[command](...args)
+                await expect($select).toHaveValue('someValue1')
+            })
+        }
+    })
 })
