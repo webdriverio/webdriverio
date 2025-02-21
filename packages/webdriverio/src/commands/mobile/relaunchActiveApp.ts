@@ -2,14 +2,15 @@ import type { ActiveAppInfo } from '../../types.js'
 
 /**
  *
- * Performs a restart of the native app by:
+ * Performs a restart of the active native app by:
  *
  * - terminating the active app
  * - launching the previously active app
  *
  * :::important
- * This command will restart (terminate/close and launch/start) the app and will NOT reset the app state. Appium can not perform a hard reset of
+ * This command will restart (terminate/close and launch/start) the current active app and will NOT reset the app state. Appium can not perform a hard reset of
  * the app unless:
+ *
  * - you start a new session and the session handler removes the app state/cleans the device
  * - you have a backdoor in your app to reset the app state and Appium can call this backdoor
  *
@@ -18,6 +19,7 @@ import type { ActiveAppInfo } from '../../types.js'
  * - Android: Use the `adb` command to clear the app data: `adb shell pm clear <appPackage>`
  * - iOS: reinstall the app using the `mobile: installApp` command
  * - ....
+ * - not use this command
  *
  * The options you have depend on the platform, the app and the location (local with most of the times full access to the device, or in the cloud with less access) you are testing.
  *
@@ -26,7 +28,7 @@ import type { ActiveAppInfo } from '../../types.js'
  * <example>
     :restart.app.js
     it('should restart the app with default options', async () => {
-        await browser.restartApp()
+        await browser.relaunchActiveApp()
     })
  * </example>
  *
@@ -34,13 +36,13 @@ import type { ActiveAppInfo } from '../../types.js'
  * @type utility
  * @skipUsage
  */
-export async function restartApp(
+export async function relaunchActiveApp(
     this: WebdriverIO.Browser
 ) {
     const browser = this
 
     if (!browser.isMobile) {
-        throw new Error('The `restartApp` command is only available for mobile platforms.')
+        throw new Error('The `relaunchActiveApp` command is only available for mobile platforms.')
     }
 
     if (browser.isIOS) {

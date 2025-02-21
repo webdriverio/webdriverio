@@ -7,7 +7,7 @@ vi.mock('fetch')
 const log = logger('test')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-describe('restartApp test', () => {
+describe('relaunchActiveApp test', () => {
     let browser: WebdriverIO.Browser
     let logSpy
 
@@ -30,7 +30,7 @@ describe('restartApp test', () => {
             .mockResolvedValueOnce({ bundleId: 'com.example.app' })
             .mockResolvedValueOnce({ bundleId: 'com.example.app' })
 
-        await browser.restartApp()
+        await browser.relaunchActiveApp()
 
         expect(executeSpy).toHaveBeenCalledTimes(3)
         expect(executeSpy).toHaveBeenNthCalledWith(1, 'mobile: activeAppInfo')
@@ -53,7 +53,7 @@ describe('restartApp test', () => {
             .mockResolvedValueOnce({ bundleId: 'com.example.app' })
             .mockResolvedValueOnce({ bundleId: 'com.example.app' })
 
-        await browser.restartApp()
+        await browser.relaunchActiveApp()
 
         expect(executeSpy).toHaveBeenCalledTimes(3)
         expect(executeSpy).toHaveBeenNthCalledWith(1, 'mobile: activeAppInfo')
@@ -74,7 +74,7 @@ describe('restartApp test', () => {
         const currentPackageSpy = vi.spyOn(browser, 'getCurrentPackage').mockResolvedValue('com.wdiodemoapp')
         const executeSpy = vi.spyOn(browser, 'execute')
 
-        await browser.restartApp()
+        await browser.relaunchActiveApp()
 
         expect(currentPackageSpy).toHaveBeenCalledTimes(1)
         expect(executeSpy).toHaveBeenCalledTimes(2)
@@ -89,7 +89,7 @@ describe('restartApp test', () => {
                 browserName: 'foobar',
             } as any
         })
-        await expect(browser.restartApp()).rejects.toThrow('The `restartApp` command is only available for mobile platforms.')
+        await expect(browser.relaunchActiveApp()).rejects.toThrow('The `relaunchActiveApp` command is only available for mobile platforms.')
     })
 
 })
