@@ -221,7 +221,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone, maskingPatterns }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
@@ -263,9 +263,10 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
         {} as Protocol
     ) as Protocol
 
+    const maskingRegExps = toRegularExpressions(maskingPatterns)
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone) }
+            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone, maskingRegExps) }
         }
     }
 
@@ -278,7 +279,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, maskingPatterns }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -298,6 +299,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
             }
         },
         isChromium: { value: isChromium },
+        maskingPatterns: { value: maskingPatterns }
     }
 }
 
@@ -452,4 +454,25 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
     } catch (err) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
     }
+}
+
+export function toRegularExpressions (regExp : string[] | undefined) {
+    return regExp?.map(toRegularExpression)
+}
+
+export function toRegularExpression (regExp : string): RegExp {
+    const lastSlashIndex = regExp.lastIndexOf('/')
+
+    if (!regExp.startsWith('/') || lastSlashIndex === 0) {
+        // When not surrounded by slashes we do our best to convert it to a RegExp
+        return new RegExp(regExp)
+    }
+
+    const pattern = regExp.slice(1, lastSlashIndex)
+    const flags = regExp.slice(lastSlashIndex + 1)
+
+    // When no flags are provided
+    if (!flags) {return new RegExp(pattern)}
+
+    return new RegExp(pattern, flags)
 }

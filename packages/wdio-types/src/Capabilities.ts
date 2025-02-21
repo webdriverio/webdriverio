@@ -373,6 +373,13 @@ export interface WebdriverIOCapabilities {
      * the WebDriver protocol only.
      */
     'wdio:enforceWebDriverClassic'?: boolean
+
+    /**
+     * Regular expression patterns to use when masking user input in commands having a text parameter
+     * Example: `wdio:maskingPatterns: [/@mask@/i.toString()]`
+     * Note: Because RegExp are not serializable, you need to convert them to string
+     */
+    'wdio:maskingPatterns'?: string[]
 }
 
 export interface ChromeOptions {
