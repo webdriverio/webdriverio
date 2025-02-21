@@ -431,24 +431,24 @@ describe('main suite 1', () => {
 
     describe('emulate clock', () => {
         const now = new Date(2021, 3, 14)
-        const getDateString = () => (new Date()).toString()
+        const getDateString = () => (new Date()).toLocaleString('en-GB', { timeZone: 'UTC' })
 
         it('should allow to mock the clock', async () => {
             await browser.emulate('clock', { now })
             expect(await browser.execute(getDateString))
-                .toBe(now.toString())
+                .toBe(now.toLocaleString('en-GB', { timeZone: 'UTC' }))
             await browser.url('https://guinea-pig.webdriver.io')
             expect(await browser.execute(getDateString))
-                .toBe(now.toString())
+                .toBe(now.toLocaleString('en-GB', { timeZone: 'UTC' }))
         })
 
         it('should allow to restore the clock', async () => {
             await browser.restore('clock')
             expect(await browser.execute(getDateString))
-                .not.toBe(now.toString())
+                .not.toBe(now.toLocaleString('en-GB', { timeZone: 'UTC' }))
             await browser.url('https://guinea-pig.webdriver.io/pointer.html')
             expect(await browser.execute(getDateString))
-                .not.toBe(now.toString())
+                .not.toBe(now.toLocaleString('en-GB', { timeZone: 'UTC' }))
         })
     })
 
@@ -675,8 +675,8 @@ describe('main suite 1', () => {
         })
 
         it('chrome', async () => {
-            await browser.url('chrome://version/')
-            await expect(browser).toHaveTitle('About Version')
+            await browser.url('chrome://about/')
+            await expect($('li=chrome://accessibility')).toExist()
         })
     })
 
