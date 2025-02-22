@@ -66,24 +66,19 @@ describe('selectByAttribute test', () => {
     })
 
     it('should throw if option is not found', async () => {
-        // @ts-ignore uses expect-webdriverio
-        expect.hasAssertions()
-
         const mockElem = {
             options: {},
             selector: 'foobar2',
             elementId: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+            waitUntil: vi.fn().mockRejectedValue(new Error('Option with attribute "value=non-existing-value" not found.')),
             findElementFromElement: vi.fn().mockReturnValue(Promise.resolve({ error: 'no such element' }))
         }
         // @ts-ignore mock feature
         mockElem.selectByAttribute = elem.selectByAttribute.bind(mockElem)
 
-        try {
-            // @ts-ignore mock feature
-            await mockElem.selectByAttribute('value', 'non-existing-value')
-        } catch (err: any) {
-            expect(err.toString()).toBe('Error: Option with attribute "value=non-existing-value" not found.')
-        }
+        // @ts-expect-error
+        const err = await mockElem.selectByAttribute('value', 'non-existing-value').catch((err: any) => err)
+        expect(err.toString()).toBe('Error: Option with attribute "value=non-existing-value" not found.')
     })
 })

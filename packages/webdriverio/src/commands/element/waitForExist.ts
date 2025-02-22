@@ -1,3 +1,4 @@
+import { ELEMENT_KEY } from 'webdriver'
 import type { WaitForOptions } from '../../types.js'
 
 /**
@@ -65,6 +66,7 @@ export async function waitForExist (
      */
     if (!reverse && isExisting && typeof this.selector === 'string') {
         this.elementId = await this.parent.$(this.selector).elementId
+        this[ELEMENT_KEY] = this.elementId
         delete this.error
     }
 
