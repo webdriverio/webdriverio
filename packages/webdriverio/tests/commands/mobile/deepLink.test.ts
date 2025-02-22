@@ -73,7 +73,7 @@ describe('deepLink test', () => {
         })
 
         // @ts-expect-error test invalid input
-        await expect(browser.deepLink('string')).rejects.toThrow('The provided link is not a valid deep link URL. If your url is a `universal deep link` then use the `browser.url("your-url")`-method.')
+        await expect(browser.deepLink('string')).rejects.toThrow('The provided link is not a valid deep link URL. If your url is a `universal deep link` then use the `url` command instead.')
     })
 
     it('should throw an error when no bundleId is provided for iOS', async () => {

@@ -16,13 +16,13 @@
     })
  * </example>
  *
- * @param {string}  link        The deep link URL that should be opened in the mobile app. It should be a valid deep link URL (e.g. `myapp://path`). If it's a universal deep link, which can be used for iOS, use the `browser.url("your-url")`-method.
- * @param {string}  identifier  The value of the `packageName` (Android) or `bundleId` (iOS) of the app that the deep link should open.
+ * @param {string}  link            The deep link URL that should be opened in the mobile app. It should be a valid deep link URL (e.g. `myapp://path`). If it's a universal deep link, which can be used for iOS, use the `browser.url("your-url")`-method.
+ * @param {string}  appIdentifier   The value of the `packageName` (Android) or `bundleId` (iOS) of the app that the deep link should open.
  */
 export async function deepLink(
     this: WebdriverIO.Browser,
     link: string,
-    identifier: string
+    appIdentifier: string
 ) {
     const browser = this
 
@@ -31,21 +31,24 @@ export async function deepLink(
     }
 
     if (!isDeepLinkUrl(link)) {
-        throw new Error(`The provided link is not a valid deep link URL.${browser.isIOS ? ' If your url is a `universal deep link` then use the `browser.url("your-url")`-method.' : ''}`)
+        throw new Error(`The provided link is not a valid deep link URL.${browser.isIOS ? ' If your url is a `universal deep link` then use the `url` command instead.' : ''}`)
     }
 
-    if (!identifier) {
-        throw new Error(`When using a deep link URL for ${browser.isIOS ? 'iOS': 'Android'}, you need to provide the ${browser.isIOS ? '`bundleId`':'`packageName`'} of the app that the deep link should open.`)
+    if (!appIdentifier) {
+        const mobileOS = browser.isIOS ? 'iOS' : 'Android'
+        const identifierValue = browser.isIOS ? 'bundleId' : 'packageName'
+
+        throw new Error(`When using a deep link URL for ${mobileOS}, you need to provide the \`${identifierValue}\` of the app that the deep link should open.`)
     }
 
     return browser.execute('mobile:deepLink', {
         url: link,
-        [browser.isIOS ? 'bundleId' : 'packageName']: identifier,
+        [browser.isIOS ? 'bundleId' : 'packageName']: appIdentifier,
     })
 }
 
 function isDeepLinkUrl(link: string): boolean {
-    const deepLinkRegex = /^(?!https?:\/\/)([a-zA-Z][a-zA-Z\d+\-.]*):\/\//
+    const deepLinkRegex = /^(?!https?:\/\/)[a-zA-Z][\w+\-.]*:\/\//
 
     return deepLinkRegex.test(link)
 }
