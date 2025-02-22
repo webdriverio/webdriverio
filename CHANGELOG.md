@@ -23,6 +23,30 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.10.0 (2025-02-22)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#14212](https://github.com/webdriverio/webdriverio/pull/14212) feat: add deepLink command ([@wswebcreation](https://github.com/wswebcreation))
+  * [#14202](https://github.com/webdriverio/webdriverio/pull/14202) feat: add restartApp ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#14205](https://github.com/webdriverio/webdriverio/pull/14205) Fix logFile case for sauce service ([@Nyaran](https://github.com/Nyaran))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#14213](https://github.com/webdriverio/webdriverio/pull/14213) fix(webdriverio): wait for option to become available before clicking ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`
+  * [#14209](https://github.com/webdriverio/webdriverio/pull/14209) fix: Remove unused typings file on sauce service ([@Nyaran](https://github.com/Nyaran))
+  * [#14207](https://github.com/webdriverio/webdriverio/pull/14207) Remove default values for `tlsPassthroughDomains` on sauce service ([@Nyaran](https://github.com/Nyaran))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Luis ([@Nyaran](https://github.com/Nyaran))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.9.3 (2025-02-18)
 
 #### :bug: Bug Fix
