@@ -130,9 +130,7 @@ export default class BrowserRunner extends LocalRunner {
      */
     async shutdown() {
         await super.shutdown()
-        await Promise.allSettled(Array.from(this.#servers).map(async (server) => {
-            await server.close()
-        }))
+        await Promise.allSettled(Array.from(this.#servers).map((server) => server.close()))
         return this._generateCoverageReports()
     }
 
