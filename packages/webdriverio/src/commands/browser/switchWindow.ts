@@ -63,10 +63,10 @@ export async function switchWindow (
     }
 
     const matchesTarget = (target: string): boolean => {
-        if (typeof matcher ==='string') {
+        if (typeof matcher === 'string') {
             return target.includes(matcher)
         }
-        return !!target.match(matcher)
+        return matcher.test(target)
     }
 
     for (const tab of tabs) {

@@ -103,9 +103,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * start tests
          */
         let failures = 0
-        for (const spec of this._specs) {
+
+        await Promise.all(this._specs.map(async (spec) => {
             failures += await this.#runSpec(spec)
-        }
+        }))
 
         return failures
     }

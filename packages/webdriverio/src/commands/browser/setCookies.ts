@@ -68,9 +68,7 @@ export async function setCookies(
      * if session doesn't use Bidi, use WebDriver Classic command
      */
     if (!this.isBidi) {
-        for (const cookieObj of cookieObjsList) {
-            await this.addCookie(cookieObj)
-        }
+        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
         return
     }
 

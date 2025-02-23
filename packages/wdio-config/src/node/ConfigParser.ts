@@ -385,11 +385,13 @@ export default class ConfigParser {
                 // fileList can be a string[] or a string[][]
                 fileList.forEach(file => {
                     if (typeof file === 'string') {
+                        // TODO: filteredFile is not a regex and thus this is a false positive
                         if (file.match(filteredFile)) {
                             filesToFilter.add(file)
                         }
                     } else if (Array.isArray(file)) {
                         file.forEach(subFile => {
+                            // TODO: filteredFile is not a regex and thus this is a false positive
                             if (subFile.match(filteredFile)) {
                                 filesToFilter.add(subFile)
                             }

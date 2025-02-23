@@ -44,7 +44,7 @@ const defineStrategy = function (selector: SelectorStrategy) {
 
     const stringSelector = selector as string
     // Check if user has specified locator strategy directly
-    if (stringSelector.match(DIRECT_SELECTOR_REGEXP)) {
+    if (DIRECT_SELECTOR_REGEXP.test(stringSelector)) {
         return 'directly'
     }
     // Use appium image strategy if selector ends with certain text(.jpg,.gif..)
@@ -116,7 +116,7 @@ const defineStrategy = function (selector: SelectorStrategy) {
     if (stringSelector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))) {
         return 'xpath extended'
     }
-    if (stringSelector.match(/^\[role=[A-Za-z]+]$/)){
+    if (/^\[role=[A-Za-z]+]$/.test(stringSelector)){
         return 'role'
     }
 }
