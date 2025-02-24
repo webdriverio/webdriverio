@@ -30,4 +30,27 @@ An installation wizard will guide you through the process. Ensure you select _"D
 
 The configuration wizard will install all required packages and create a `wdio.conf.js` or `wdio.conf.ts` with the necessary configuration to test your application. If you agree to autogenerate some test files you can run your first test via `npm run wdio`.
 
+## Manual Setup
+
+If you are already using WebdriverIO in your project you can skip the installation wizard and just add the following dependencies:
+
+```sh
+npm install --save-dev wdio-electron-service
+```
+
+Then you can use the following configuration:
+
+```ts
+// wdio.conf.ts
+export const config: WebdriverIO.Config = {
+    // ...
+    services: [['electron', {
+        appEntryPoint: './path/to/bundled/electron/main.bundle.js',
+        appArgs: [/** ... */],
+    }]]
+}
+```
+
 That's it 🎉
+
+Learn more about how [to configure the Electron Service](/desktop-testing/electron/configuration), [how to mock Electron APIs](/desktop-testing/electron/mocking) and [how to access Electron APIs](/desktop-testing/electron/apis).
