@@ -12,7 +12,7 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
     const browser = getBrowserObject(currentElement)
     const skipForMobileScroll = browser.isMobile && await browser.isNativeContext && (commandName === 'scrollIntoView' || commandName === 'tap')
 
-    if (!currentElement.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/) && !skipForMobileScroll) {
+    if (!currentElement.elementId && !/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/.test(commandName) && !skipForMobileScroll) {
         log.debug(
             `command ${commandName} was called on an element ("${currentElement.selector}") ` +
             'that wasn\'t found, waiting for it...'

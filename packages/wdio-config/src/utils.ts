@@ -24,7 +24,7 @@ export function removeLineNumbers(filePath: string) {
  */
 export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     const specs = Array.isArray(spec) ? spec : [spec]
-    return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
+    return specs.some((s) => /:\d+(:\d+$|$)/.test(s))
 }
 
 export function isCloudCapability(caps: WebdriverIO.Capabilities) {

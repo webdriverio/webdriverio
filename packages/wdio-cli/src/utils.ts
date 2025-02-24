@@ -446,7 +446,7 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
         [(file, stats) => !stats.isDirectory() && !(file.endsWith('.ejs') || file.endsWith('.feature'))]
     )))).reduce((cur, acc) => [...acc, ...(cur)], [])
 
-    for (const file of files) {
+    await Promise.all(files.map(async (file) => {
         const renderedTpl = await renderFile(file, { answers })
         const isJSX = answers.preset && TSX_BASED_FRAMEWORKS.includes(answers.preset)
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
@@ -460,20 +460,20 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
 
         await fs.mkdir(path.dirname(destPath), { recursive: true })
         await fs.writeFile(destPath, renderedTpl)
-    }
+    }))
 }
 
 async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
-    const templateDirectories = {
+    const templateDirectories = Object.entries({
         [answers.projectRootDir]:           path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'config'),
         [answers.destSpecRootPath]:         path.join(TEMPLATE_ROOT_DIR, 'serenity-js', answers.serenityAdapter as string),
         [answers.destSerenityLibRootPath]:  path.join(TEMPLATE_ROOT_DIR, 'serenity-js', 'common', 'serenity'),
-    }
+    })
 
-    for (const [destinationRootDir, templateRootDir] of Object.entries(templateDirectories)) {
+    await Promise.all(templateDirectories.map(async ([destinationRootDir, templateRootDir]) => {
         const pathsToTemplates = await readDir(templateRootDir)
 
-        for (const pathToTemplate of pathsToTemplates) {
+        await Promise.all(pathsToTemplates.map(async (pathToTemplate) => {
             const extension = answers.isUsingTypeScript ? '.ts' : '.js'
             const destination = path.join(destinationRootDir, path.relative(templateRootDir, pathToTemplate))
                 .replace(/\.ejs$/, '')
@@ -486,8 +486,8 @@ async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
 
             await fs.mkdir(path.dirname(destination), { recursive: true })
             await fs.writeFile(destination, contents)
-        }
-    }
+        }))
+    }))
 }
 
 export async function getAnswers(yes: boolean): Promise<Questionnair> {
@@ -510,7 +510,7 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                      */
                     ? typeof question.default === 'function'
                         ? await question.default(answers)
-                        : await question.default
+                        : question.default
                     : question.choices && question.choices.length
                         /**
                          * pick first choice, select value if it exists
@@ -877,19 +877,18 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
         ...(parsedAnswers.serenityAdapter ? serenityTypes : [frameworkPackage.package]),
         ...(parsedAnswers.runner === 'browser' ? ['@wdio/browser-runner'] : []),
         ...servicePackages
-            .map(service => service.package)
             .filter(service => (
                 /**
                  * given that we know that all "official" services have
                  * typescript support we only include them
                  */
-                service.startsWith('@wdio') ||
+                service.package.startsWith('@wdio') ||
                 /**
                  * also include community maintained packages with known
                  * support for TypeScript
                  */
-                COMMUNITY_PACKAGES_WITH_TS_SUPPORT.includes(service)
-            ))
+                COMMUNITY_PACKAGES_WITH_TS_SUPPORT.includes(service.package)
+            )).map(service => service.package)
     ]
 
     const preset = getPreset(parsedAnswers)
