@@ -99,14 +99,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #loop () {
-        /**
-         * start tests
-         */
         let failures = 0
 
-        await Promise.all(this._specs.map(async (spec) => {
+        /**
+         * start tests in a single browser session, hence we use a for...of instead of using Promise concurrency
+         */
+        for (const spec of this._specs) {
             failures += await this.#runSpec(spec)
-        }))
+        }
 
         return failures
     }

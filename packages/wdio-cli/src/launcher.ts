@@ -379,7 +379,7 @@ class Launcher {
                 /**
                  * bail if number of errors exceeds allowed
                  */
-                .filter((a) => {
+                .filter((session) => {
                     const filter = typeof config.bail !== 'number' || config.bail < 1 ||
                         config.bail > this._runnerFailed
 
@@ -401,7 +401,7 @@ class Launcher {
                     /**
                      * make sure the capability has available capacities and still has caps to run
                      */
-                    return a.availableInstances > 0 && a.specs.length > 0
+                    return session.availableInstances > 0 && session.specs.length > 0
                 })
                 /**
                  * make sure we are running caps with less running instances first
