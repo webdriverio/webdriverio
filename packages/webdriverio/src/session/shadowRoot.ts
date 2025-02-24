@@ -1,10 +1,9 @@
-import { type local } from 'webdriver'
 import logger from '@wdio/logger'
 
 import type { remote } from 'webdriver'
 
 import { SessionManager } from './session.js'
-import customElementWrapper from '../scripts/customElement.js'
+import customElementWrapper, { type CustomElementEvent } from '../scripts/customElement.js'
 
 const log = logger('webdriverio:ShadowRootManager')
 
@@ -42,17 +41,18 @@ export class ShadowRootManager extends SessionManager {
         this.#initialize = this.#browser.sessionSubscribe({
             events: ['log.entryAdded', 'browsingContext.navigationStarted']
         }).then(() => true, () => false)
-        this.#browser.on('log.entryAdded', this.handleLogEntry.bind(this))
         this.#browser.on('result', this.#commandResultHandler.bind(this))
         this.#browser.on('bidiCommand', this.#handleBidiCommand.bind(this))
-        this.#browser.scriptAddPreloadScript({
-            functionDeclaration: customElementWrapper.toString()
+
+        console.log('\n\n ADD MEE\n\n')
+
+        this.#browser.addInitScript(customElementWrapper).then((script) => {
+            script.on('data', this.registerShadowRoot.bind(this))
         })
     }
 
     removeListeners(): void {
         super.removeListeners()
-        this.#browser.off('log.entryAdded', this.handleLogEntry.bind(this))
         this.#browser.off('result', this.#commandResultHandler.bind(this))
         this.#browser.off('bidiCommand', this.#handleBidiCommand.bind(this))
     }
@@ -96,102 +96,83 @@ export class ShadowRootManager extends SessionManager {
     /**
      * capture shadow root elements propagated through console.debug
      */
-    handleLogEntry(logEntry: local.LogEntry) {
-        const args = 'args' in logEntry && logEntry.level === 'debug'
-            ? logEntry.args
-            : undefined
-
-        /**
-         * filter for right log entry type
-         */
-        if (
-            !args ||
-            args[0].type !== 'string' || args[0].value !== '[WDIO]' ||
-            args[1].type !== 'string' // command name, "newShadowRoot" or "removeShadowRoot"
-        ) {
-            return
-        }
-
-        /**
-         * filter for log entry that was created in the right context
-         */
-        if (!logEntry.source.context) {
-            return
-        }
-
-        const eventType = args[1].value
-        if (eventType === 'newShadowRoot' && args[2].type === 'node' && args[3].type === 'node') {
-            const [/* [WDIO] */, /* newShadowRoot */, shadowElem, rootElem, isDocument, documentElement] = args
-            if (!this.#shadowRoots.has(logEntry.source.context)) {
+    registerShadowRoot(ev: CustomElementEvent) {
+        const { type: eventType } = ev
+        if (eventType === 'newShadowRoot') {
+            const { window, shadowElement, rootElement, isDocument, documentElement } = ev
+            if (!this.#shadowRoots.has(window.context)) {
                 /**
                  * initiate shadow tree for context
                  */
-                if (!rootElem.sharedId) {
-                    throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
+                if (!rootElement.sharedId) {
+                    throw new Error(`Expected "sharedId" parameter from object ${rootElement}`)
                 }
-                this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
-            } else if (isDocument.type === 'boolean' && isDocument.value) {
+                this.#shadowRoots.set(window.context, new ShadowRootTree(rootElement.sharedId))
+            } else if (isDocument) {
                 /**
                  * we've discovered a new root for the same context, this can happen if a page load
                  * occured after we registered the first shadow root
                  */
-                if (!rootElem.sharedId) {
-                    throw new Error(`Expected "sharedId" parameter from object ${rootElem}`)
+                if (!rootElement.sharedId) {
+                    throw new Error(`Expected "sharedId" parameter from object ${rootElement}`)
                 }
 
                 /**
                  * only overwrite if `root.sharedId` is different, otherwise it's another shadow component
                  * within the same context/document
                  */
-                const tree = this.#shadowRoots.get(logEntry.source.context)
-                if (tree?.element !== rootElem.sharedId) {
-                    this.#shadowRoots.set(logEntry.source.context, new ShadowRootTree(rootElem.sharedId))
+                const tree = this.#shadowRoots.get(window.context)
+                if (tree?.element !== rootElement.sharedId) {
+                    this.#shadowRoots.set(window.context, new ShadowRootTree(rootElement.sharedId))
                 }
             }
 
             /**
              * store document element
              */
-            this.#documentElement = documentElement as remote.ScriptNodeRemoteValue
+            this.#documentElement = documentElement
 
-            const tree = this.#shadowRoots.get(logEntry.source.context)
+            const tree = this.#shadowRoots.get(window.context)
             if (!tree) {
-                throw new Error(`Couldn't find tree for context id ${logEntry.source.context}`)
+                throw new Error(`Couldn't find tree for context id ${window.context}`)
             }
             if (
                 // we expect an element id
-                !shadowElem.sharedId ||
+                !shadowElement.sharedId ||
                 // we expect the element to have a shadow root
-                !shadowElem.value?.shadowRoot?.sharedId ||
+                !shadowElement.value?.shadowRoot?.sharedId ||
                 // we expect the shadow root to have a proper type
-                shadowElem.value.shadowRoot.value?.nodeType !== 11
+                shadowElement.value.shadowRoot.value?.nodeType !== 11
             ) {
-                return log.warn(`Expected element with shadow root but found <${shadowElem.value?.localName} />`)
+                return log.warn(`Expected element with shadow root but found <${shadowElement.value?.localName} />`)
             }
 
-            log.info(`Registered new shadow root for element <${shadowElem.value.localName} /> with id ${shadowElem.value.shadowRoot.sharedId}`)
+            log.info(`Registered new shadow root for element <${shadowElement.value.localName} /> with id ${shadowElement.value.shadowRoot.sharedId}`)
             const newTree = new ShadowRootTree(
-                shadowElem.sharedId,
-                shadowElem.value.shadowRoot.sharedId,
-                shadowElem.value.shadowRoot.value.mode
+                shadowElement.sharedId,
+                shadowElement.value.shadowRoot.sharedId,
+                shadowElement.value.shadowRoot.value.mode
             )
-            if (rootElem.sharedId) {
-                tree.addShadowElement(rootElem.sharedId, newTree)
+            if (rootElement.sharedId) {
+                console.log('ADD', rootElement.sharedId, newTree)
+                tree.addShadowElement(rootElement.sharedId, newTree)
             } else {
                 tree.addShadowElement(newTree)
             }
             return
         }
 
-        if (eventType === 'removeShadowRoot' && args[2].type === 'node' && args[2].sharedId) {
-            const tree = this.#shadowRoots.get(logEntry.source.context)
-            if (!tree) {
+        if (eventType === 'removeShadowRoot') {
+            const { window, element } = ev
+            const tree = this.#shadowRoots.get(window.context)
+            const sharedId = element.sharedId
+            if (!tree || !sharedId) {
                 return
             }
-            return tree.remove(args[2].sharedId)
+            return tree.remove(sharedId)
         }
 
-        throw new Error(`Invalid parameters for "${eventType}" event: ${args.join(', ')}`)
+        throw new Error(`Invalid parameters for "${eventType}" event: ${JSON.stringify(ev)}`)
     }
 
     getShadowElementsByContextId (contextId: string, scope?: string): string[] {
@@ -207,6 +188,7 @@ export class ShadowRootManager extends SessionManager {
          */
         if (scope) {
             const subTree = tree.find(scope)
+            console.log('SUBTREE', scope, subTree, tree)
             if (subTree) {
                 tree = subTree
             }
