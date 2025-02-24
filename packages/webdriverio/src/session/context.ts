@@ -40,7 +40,7 @@ export class ContextManager extends SessionManager {
          * Listens for the 'closeWindow' browser command to handle context changes.
          * (classic + bidi)
          */
-        this.#browser.on('result', this.#onCommandResultBidiAndClassic.bind(this))
+        // this.#browser.on('result', this.#onCommandResultBidiAndClassic.bind(this))
 
         // only listen to command events if we are in a bidi session or a mobile session
         // Adding the check for mobile in the `this.isEnabled()` method breaking the method and throws
@@ -101,27 +101,23 @@ export class ContextManager extends SessionManager {
 
     removeListeners(): void {
         super.removeListeners()
-        this.#browser.off('result', this.#onCommandResultBidiAndClassic.bind(this))
+        // this.#browser.off('result', this.#onCommandResultBidiAndClassic.bind(this))
         this.#browser.off('command', this.#onCommand.bind(this))
         if (this.#browser.isMobile) {
             this.#browser.off('result', this.#onCommandResultMobile.bind(this))
         }
     }
 
-    #onCommandResultBidiAndClassic(event: { command: string, result: unknown }) {
-        /**
-         * the `closeWindow` command returns:
-         *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
-         */
-        if (event.command === 'closeWindow') {
-            const windowHandles = (event.result as { value: string[] }).value
-            if (windowHandles.length === 0) {
-                throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
-            }
-            this.#currentContext = windowHandles[0]
-            return this.#browser.switchToWindow(this.#currentContext)
-        }
-    }
+    // #onCommandResultBidiAndClassic(event: { command: string, result: unknown }) {
+    //     /**
+    //      * the `closeWindow` command returns:
+    //      *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
+    //      */
+    //     if (event.command === 'closeWindow') {
+    //         this.#currentContext = (event.result as { value: string[] }).value[0]
+    //         return this.#browser.switchToWindow(this.#currentContext)
+    //     }
+    // }
 
     #onCommand(event: { command: string, body: unknown }) {
         /**
