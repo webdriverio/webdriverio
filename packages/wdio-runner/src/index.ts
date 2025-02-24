@@ -33,6 +33,7 @@ export default class Runner extends EventEmitter {
     private _cid?: string
     private _specs?: string[]
     private _caps?: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
+    private _sessionInitError?: Error
 
     /**
      * run test suite
@@ -272,7 +273,9 @@ export default class Runner extends EventEmitter {
         const browser = await this._startSession(config, caps) as WebdriverIO.Browser
 
         // return null if session couldn't get established
-        if (!browser) { return }
+        if (!browser) {
+            return
+        }
 
         /**
          * register global helper method to fetch elements
@@ -366,8 +369,9 @@ export default class Runner extends EventEmitter {
             if (this._isMultiremote) {
                 _setGlobal('multiremotebrowser', this._browser, config.injectGlobals)
             }
-        } catch (err: any) {
-            log.error(err)
+        } catch (error: any) {
+            log.error(error)
+            this._sessionInitError = error
             return
         }
 
@@ -393,7 +397,7 @@ export default class Runner extends EventEmitter {
                 config: this._config,
                 isMultiremote: this._isMultiremote,
                 instanceOptions: {},
-                capabilities: { ...this._configParser!.getCapabilities() },
+                capabilities: this._caps,
                 retry: this._specFileRetryAttempts
             })
         }
@@ -401,7 +405,8 @@ export default class Runner extends EventEmitter {
         this._reporter!.emit('runner:end', {
             failures,
             cid: this._cid,
-            retries
+            retries,
+            ...(this._sessionInitError instanceof Error ? { error: this._sessionInitError.message } : {})
         } as Options.RunnerEnd)
         try {
             await this._reporter!.waitForSync()

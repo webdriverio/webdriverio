@@ -19,6 +19,7 @@ export default class RunnerStats extends RunnableStats {
     retry?: number
     failures?: number
     retries?: number
+    error?: string
 
     constructor (runner: Options.RunnerStart) {
         super('runner')

@@ -213,6 +213,14 @@ export default class SpecReporter extends WDIOReporter {
         // Get the results
         const results = this.getResultDisplay(preface)
 
+        if (results.length === 0 && runner.error) {
+            results.push(
+                this.setMessageColor(`${this.getSymbol(State.FAILED)} Failed to create a session:`, State.FAILED),
+                runner.error,
+                ''
+            )
+        }
+
         // If there are no test results then return nothing
         if (results.length === 0) {
             return
