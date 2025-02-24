@@ -341,6 +341,16 @@ describe('SpecReporter', () => {
 
             expect(printReporter.write.mock.calls.length).toBe(0)
         })
+
+        it('should print a report even if session could not be created', () => {
+            printReporter['_suiteUids'] = []
+            printReporter.suites = {}
+            const runner = getRunnerConfig()
+            runner.error = 'No tests found'
+
+            printReporter.printReport(runner)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
+        })
     })
 
     describe('getHeaderDisplay', () => {

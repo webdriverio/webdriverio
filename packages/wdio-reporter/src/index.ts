@@ -209,6 +209,7 @@ export default class WDIOReporter extends EventEmitter {
             if (this.runnerStat) {
                 this.runnerStat.failures = runner.failures
                 this.runnerStat.retries = runner.retries
+                this.runnerStat.error = runner.error
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }

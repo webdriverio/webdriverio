@@ -476,6 +476,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             runner['_configParser'] = { getCapabilities: vi.fn().mockReturnValue([{ browserName: 'safari' }]) } as any
             runner['_browser'] = {} as unknown as BrowserObject
+            runner['_caps'] = { 'browserName': 'safari' }
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.resolve()),
                 emit: vi.fn()
@@ -485,9 +486,7 @@ describe('wdio-runner', () => {
 
             const args = [
                 ['runner:start', {
-                    'capabilities': {
-                        '0': { 'browserName': 'safari' }
-                    },
+                    'capabilities': { 'browserName': 'safari' },
                     'cid': undefined,
                     'config': undefined,
                     'instanceOptions': {},

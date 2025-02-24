@@ -331,7 +331,7 @@ describe('utils', () => {
                 logLevel: 'warn',
                 capabilities: {}
             }).catch((err) => err)
-            expect(error.message).toContain('Failed to create session')
+            expect(error.message).toContain('Invalid URL')
         })
 
         it('should break if JSONWire and WebDriver caps are mixed together', async () => {

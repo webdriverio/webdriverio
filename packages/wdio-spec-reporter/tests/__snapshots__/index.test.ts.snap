@@ -273,6 +273,21 @@ exports[`SpecReporter > onlyFailures > true > 1 failure 1`] = `
 ]
 `;
 
+exports[`SpecReporter > printReport > should print a report even if session could not be created 1`] = `
+[
+  [
+    "------------------------------------------------------------------
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] red ✖ Failed to create a session:
+[loremipsum 50 Windows 10 #0-0] No tests found
+[loremipsum 50 Windows 10 #0-0]
+",
+  ],
+]
+`;
+
 exports[`SpecReporter > printReport > with disabled sharable Sauce report links > should print the default Sauce Labs job details page link 1`] = `[]`;
 
 exports[`SpecReporter > printReport > with normal setup > should print jobs of all instance when run with multiremote 1`] = `

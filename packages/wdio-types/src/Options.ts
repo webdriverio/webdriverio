@@ -358,4 +358,5 @@ export interface RunnerEnd {
     failures: number
     cid: string
     retries: number
+    error?: string
 }
