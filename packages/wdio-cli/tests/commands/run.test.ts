@@ -66,7 +66,9 @@ describe('Command: run', () => {
     })
 
     it('should check for js and ts default config files', async () => {
-        vi.mocked(fs.access).mockRejectedValueOnce('not found')
+        vi.mocked(fs.access)
+            .mockRejectedValueOnce('not found')
+            .mockRejectedValueOnce('not found')
         const result = await runCmd.handler({ configPath: 'sample.conf.js' } as any)
         expect(result).toContain('sample.conf.ts')
     })
