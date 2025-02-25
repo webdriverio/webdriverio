@@ -23,6 +23,19 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.10.1 (2025-02-25)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`, `wdio-reporter`, `wdio-runner`, `wdio-spec-reporter`, `wdio-types`, `webdriver`
+  * [#14223](https://github.com/webdriverio/webdriverio/pull/14223) fix(@wdio/reporter): propagate failing session creation to report ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`, `wdio-cli`, `wdio-config`, `wdio-runner`, `wdio-utils`, `webdriverio`
+  * [#14219](https://github.com/webdriverio/webdriverio/pull/14219) polish: performance improvements and some general code improvements ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
 ## v9.10.0 (2025-02-22)
 
 #### :rocket: New Feature
