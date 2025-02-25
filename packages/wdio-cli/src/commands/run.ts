@@ -176,7 +176,7 @@ export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
 
     const wdioConf = await formatConfigFilePaths(configPath)
-    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension)
+    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension, wdioConf.fullPath)
     if (!confAccess) {
         try {
             await missingConfigurationPrompt('run', wdioConf.fullPathNoExtension)

@@ -172,17 +172,45 @@ test('missingConfigurationPrompt does run config if user agrees', async () => {
     expect(runConfigCmd).toBeCalledTimes(1)
 })
 
-test('canAccessConfigPath', async () => {
-    vi.mocked(fs.access)
-        .mockRejectedValueOnce(new Error('not found'))
-        .mockRejectedValueOnce(new Error('not found'))
-        .mockRejectedValueOnce(new Error('not found'))
-        .mockResolvedValue('Yay' as any)
-    expect(await canAccessConfigPath('/foo/bar')).toBe('/foo/bar.mts')
-    expect(fs.access).toBeCalledWith('/foo/bar.js')
-    expect(fs.access).toBeCalledWith('/foo/bar.ts')
-    expect(fs.access).toBeCalledWith('/foo/bar.mjs')
-    expect(fs.access).toBeCalledWith('/foo/bar.mts')
+describe('canAccessConfigPath', () => {
+    beforeEach(()=>{
+        vi.mocked(fs.access).mockClear()
+    })
+    test('no extension only', async () => {
+        vi.mocked(fs.access)
+            .mockRejectedValueOnce(new Error('not found'))
+            .mockRejectedValueOnce(new Error('not found'))
+            .mockRejectedValueOnce(new Error('not found'))
+            .mockResolvedValue('Yay' as any)
+        expect(await canAccessConfigPath('/foo/bar')).toBe('/foo/bar.mts')
+        expect(fs.access).not.toBeCalledWith('/foo/bar')
+        expect(fs.access).toBeCalledWith('/foo/bar.js')
+        expect(fs.access).toBeCalledWith('/foo/bar.ts')
+        expect(fs.access).toBeCalledWith('/foo/bar.mjs')
+        expect(fs.access).toBeCalledWith('/foo/bar.mts')
+    })
+
+    test('with full path of the existed file', async () => {
+        vi.mocked(fs.access)
+            .mockResolvedValue('Yay' as any)
+        expect(await canAccessConfigPath('/foo/bar', '/foo/bar.ts')).toBe('/foo/bar.ts')
+        expect(fs.access).toHaveBeenCalledTimes(1)
+        expect(fs.access).toBeCalledWith('/foo/bar.ts')
+    })
+
+    test('with full path of the not existed file', async () => {
+        vi.mocked(fs.access)
+            .mockRejectedValueOnce(new Error('not found'))
+            .mockRejectedValueOnce(new Error('not found'))
+            .mockRejectedValueOnce(new Error('not found'))
+            .mockRejectedValueOnce(new Error('not found'))
+            .mockResolvedValue('Yay' as any)
+        expect(await canAccessConfigPath('/foo/bar', '/foo/bar.ts')).toBe('/foo/bar.mts')
+        expect(fs.access).toBeCalledWith('/foo/bar.js')
+        expect(fs.access).toBeCalledWith('/foo/bar.ts')
+        expect(fs.access).toBeCalledWith('/foo/bar.mjs')
+        expect(fs.access).toBeCalledWith('/foo/bar.mts')
+    })
 })
 
 describe('Serenity/JS project generation', () => {
