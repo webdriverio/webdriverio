@@ -27,6 +27,7 @@ export interface Test {
     errors?: Error[]
     retries?: number
     argument?: string | Argument
+    state?: string
 }
 
 interface Output {

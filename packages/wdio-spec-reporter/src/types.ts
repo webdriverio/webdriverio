@@ -4,6 +4,7 @@ export interface StateCount {
     passed: number
     failed: number
     skipped: number
+    pending: number
 }
 
 export interface Symbols {
