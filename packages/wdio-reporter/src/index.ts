@@ -27,7 +27,8 @@ export default class WDIOReporter extends EventEmitter {
         hooks: 0,
         passes: 0,
         skipping: 0,
-        failures: 0
+        failures: 0,
+        pending: 0
     }
     retries = 0
     runnerStat?: RunnerStats
@@ -185,10 +186,17 @@ export default class WDIOReporter extends EventEmitter {
             }
 
             this.tests[currentTest.uid] = currentTest
-            currentTest.skip(test.pendingReason!)
-            this.counts.skipping++
-            this.counts.tests++
-            this.onTestSkip(currentTest)
+            if (test.state === 'pending') {
+                currentTest.state = 'pending'
+                this.counts.pending++
+                this.counts.tests++
+                this.onTestPending(currentTest)
+            } else {
+                currentTest.skip(test.pendingReason!)
+                this.counts.skipping++
+                this.counts.tests++
+                this.onTestSkip(currentTest)
+            }
         })
 
         this.on('test:end', (test: Test) => {
@@ -277,6 +285,7 @@ export default class WDIOReporter extends EventEmitter {
     onTestFail(_testStats: TestStats) { }
     onTestRetry(_testStats: TestStats) { }
     onTestSkip(_testStats: TestStats) { }
+    onTestPending(_testStats: TestStats) { }
     onTestEnd(_testStats: TestStats) { }
     onSuiteRetry(_suiteStats: SuiteStats) { }
     onSuiteEnd(_suiteStats: SuiteStats) { }
