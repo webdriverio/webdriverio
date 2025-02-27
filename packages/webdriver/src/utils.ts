@@ -111,7 +111,7 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
  */
 export function validateCapabilities (capabilities: WebdriverIO.Capabilities) {
     const chromeArgs = capabilities['goog:chromeOptions']?.args || []
-    if (chromeArgs.includes('incognito') || chromeArgs.includes('--incognito')) {
+    if ((chromeArgs.includes("incognito") || chromeArgs.includes("--incognito") ) && !capabilities["wdio:enforceWebDriverClassic"]) {
         throw new Error(
             'Please remove "incognito" from `"goog:chromeOptions".args` as it is not supported running Chrome with WebDriver. ' +
             'WebDriver sessions are always incognito mode and do not persist across browser sessions.'
