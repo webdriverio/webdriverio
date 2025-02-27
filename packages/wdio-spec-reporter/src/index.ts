@@ -33,7 +33,8 @@ export default class SpecReporter extends WDIOReporter {
     private _stateCounts: StateCount = {
         passed: 0,
         failed: 0,
-        skipped: 0
+        skipped: 0,
+        pending: 0
     }
 
     private _symbols: Symbols = {
@@ -128,6 +129,13 @@ export default class SpecReporter extends WDIOReporter {
         this._pendingReasons.push(testStat.pendingReason as string)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
+    }
+
+    onTestPending(testStat: TestStats) {
+        this.printCurrentStats(testStat)
+        this._pendingReasons.push(testStat.pendingReason as string)
+        this._consoleLogs.push(this._consoleOutput)
+        this._stateCounts.pending++
     }
 
     onRunnerEnd (runner: RunnerStats) {
@@ -446,6 +454,13 @@ export default class SpecReporter extends WDIOReporter {
             duration = ''
         }
 
+        // Get the pending tests
+        if (this._stateCounts.pending > 0) {
+            const text = `${this._stateCounts.pending} pending ${duration}`.trim()
+            output.push(this.setMessageColor(text, State.PENDING))
+            duration = ''
+        }
+        
         // Get the skipped tests
         if (this._stateCounts.skipped > 0) {
             const text = `${this._stateCounts.skipped} skipped ${duration}`.trim()

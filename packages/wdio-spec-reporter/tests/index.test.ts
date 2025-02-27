@@ -46,6 +46,7 @@ describe('SpecReporter', () => {
             expect(reporter['_stateCounts']).toEqual({
                 passed: 0,
                 skipped: 0,
+                pending: 0,
                 failed: 0,
             })
         })
