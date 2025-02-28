@@ -4,7 +4,7 @@ import { type local } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 
 import Timer from '../Timer.js'
-import { parseOverwrite, getPatternParam } from './utils.js'
+import { parseOverwrite, globToURLPattern } from './utils.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
 import type { MockFilterOptions, RequestWithOptions, RespondWithOptions } from './types.js'
 import type { WaitForOptions } from '../../types.js'
@@ -61,7 +61,7 @@ export default class WebDriverInterception {
         filterOptions: MockFilterOptions,
         browser: WebdriverIO.Browser
     ) {
-        const pattern = parseUrlPattern(url)
+        const pattern = globToURLPattern(url)
         if (!hasSubscribedToEvents) {
             await browser.sessionSubscribe({
                 events: [
@@ -80,11 +80,11 @@ export default class WebDriverInterception {
             phases: ['beforeRequestSent', 'responseStarted'],
             urlPatterns: [{
                 type: 'pattern',
-                protocol: getPatternParam(pattern, 'protocol'),
-                hostname: getPatternParam(pattern, 'hostname'),
-                pathname: getPatternParam(pattern, 'pathname'),
-                port: getPatternParam(pattern, 'port'),
-                search: getPatternParam(pattern, 'search')
+                protocol: pattern.protocol,
+                hostname: pattern.hostname,
+                pathname: pattern.pathname,
+                port: pattern.port,
+                search: pattern.search
             }]
         })
 

@@ -1,5 +1,5 @@
-import { it, expect, vi, describe } from 'vitest'
-import { parseOverwrite, getPatternParam } from '../../../src/utils/interception/utils.js'
+import { it, expect, vi, describe, beforeAll } from 'vitest'
+import { parseOverwrite, getPatternParam, globToURLPattern } from '../../../src/utils/interception/utils.js'
 
 describe('parseOverwrite', () => {
     it('should parse request overwrite', () => {
@@ -94,5 +94,172 @@ describe('getPatternParam', () => {
         expect(getPatternParam({ protocol: 'https', hostname: 'foo.com', port: '', pathname: '/bar' } as any, 'pathname')).toBe('/bar')
         expect(getPatternParam({ protocol: 'https', hostname: 'foo.com', port: '', pathname: '*' } as any, 'pathname')).toBe('\\*')
         expect(getPatternParam({ pathname: '*', hostname: '*' } as any, 'hostname')).toBe(undefined)
+    })
+})
+
+describe('globToURLPattern', () => {
+    interface TestCases {
+        pattern: string
+        matches: string[]
+        nonMatches: string[]
+        only?: boolean
+    }
+
+    const testCases: TestCases[] = [
+        // Basic URL patterns
+        {
+            pattern: 'http://example.com',
+            matches: ['http://example.com'],
+            nonMatches: ['https://example.com', 'http://example.org']
+        },
+
+        // Protocol patterns
+        {
+            pattern: 'http*://example.com',
+            matches: ['http://example.com', 'https://example.com'],
+            nonMatches: ['ftp://example.com', 'ws://example.com']
+        },
+
+        // Hostname wildcards
+        {
+            pattern: 'https://*.example.com',
+            matches: [
+                'https://test.example.com',
+                'https://sub.example.com',
+                'https://deep.sub.example.com'
+            ],
+            nonMatches: [
+                'https://example.com',
+                'https://example.org',
+                'http://sub.example.com'
+            ]
+        },
+
+        // Path patterns
+        {
+            pattern: 'https://api.example.com/v1/**/*.json',
+            matches: [
+                'https://api.example.com/v1/data.json',
+                'https://api.example.com/v1/users/profile.json',
+                'https://api.example.com/v1/deep/nested/file.json'
+            ],
+            nonMatches: [
+                'https://api.example.com/v2/data.json',
+                'https://api.example.com/v1/data.xml',
+                'http://api.example.com/v1/data.json'
+            ]
+        },
+
+        // Question mark patterns
+        {
+            pattern: 'https://api.example.com/user?.json',
+            matches: [
+                'https://api.example.com/user1.json',
+                'https://api.example.com/userA.json'
+            ],
+            nonMatches: [
+                'https://api.example.com/user10.json',
+                'https://api.example.com/user.json'
+            ]
+        },
+
+        // Brace expansion
+        {
+            pattern: 'https://api.example.com/{users,posts}/{1,2,3}.json',
+            matches: [
+                'https://api.example.com/users/1.json',
+                'https://api.example.com/users/2.json',
+                'https://api.example.com/posts/3.json'
+            ],
+            nonMatches: [
+                'https://api.example.com/comments/1.json',
+                'https://api.example.com/users/4.json'
+            ]
+        },
+
+        // Complex patterns
+        {
+            pattern: 'http*://*.example.{com,org}/v*/data/*.{json,xml}',
+            matches: [
+                'http://api.example.com/v1/data/users.json',
+                'https://sub.example.org/v2/data/posts.xml',
+                'https://test.example.com/v3/data/config.json'
+            ],
+            nonMatches: [
+                'http://example.net/v1/data/users.json',
+                'https://api.example.com/v1/other/data.json',
+                'https://api.example.com/v1/data/users.yaml'
+            ]
+        },
+
+        // Edge cases
+        {
+            pattern: '**',
+            matches: [
+                'http://example.com',
+                'https://api.example.org/path',
+            ],
+            nonMatches: []
+        },
+        {
+            pattern: 'http://{sub1,sub2}.example.com/**/*.min.{js,css}',
+            matches: [
+                'http://sub1.example.com/dist/app.min.js',
+                'http://sub2.example.com/assets/style.min.css',
+                'http://sub1.example.com/nested/deep/lib.min.js'
+            ],
+            nonMatches: [
+                'http://sub3.example.com/dist/app.min.js',
+                'http://sub1.example.com/dist/app.js',
+                'https://sub1.example.com/dist/app.min.js'
+            ]
+        }
+    ]
+
+    testCases.forEach(({ pattern, matches, nonMatches, only }) => {
+        describe(`pattern: ${pattern}`, () => {
+            const test = only ? it.only : it
+            let urlPattern: URLPattern
+
+            beforeAll(() => {
+                urlPattern = globToURLPattern(pattern)
+
+                if (only) {
+                    console.log('URLPattern parameters:')
+                    console.log(JSON.stringify({
+                        protocol: urlPattern.protocol,
+                        username: urlPattern.username,
+                        password: urlPattern.password,
+                        hostname: urlPattern.hostname,
+                        port: urlPattern.port,
+                        pathname: urlPattern.pathname,
+                        search: urlPattern.search,
+                        hash: urlPattern.hash
+                    }, null, 2))
+                }
+            })
+
+            matches.forEach((url) => {
+                test(`should match: ${url}`, () => {
+                    expect(urlPattern.test(url)).toBe(true)
+                })
+            })
+
+            nonMatches.forEach((url) => {
+                test(`should not match: ${url}`, () => {
+                    expect(urlPattern.test(url)).toBe(false)
+                })
+            })
+        })
+    })
+
+    describe('error cases', () => {
+        it('should not handle empty pattern', () => {
+            expect(() => globToURLPattern('')).toThrow()
+        })
+
+        it('should not handle invalid URL patterns', () => {
+            expect(() => globToURLPattern(':::invalid:::')).toThrow()
+        })
     })
 })

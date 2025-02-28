@@ -1,4 +1,6 @@
 import type { local, remote } from 'webdriver'
+import { URLPattern } from 'urlpattern-polyfill'
+
 import type { RequestWithOptions, RespondWithOptions } from './types.js'
 
 type Overwrite<T> = Omit<T extends RequestWithOptions ? remote.NetworkContinueRequestParameters : remote.NetworkContinueResponseParameters, 'request'>
@@ -69,9 +71,11 @@ export function parseOverwrite<
     }
 
     if ('statusCode' in overwrite && overwrite.statusCode) {
-        const statusCodeOverwrite = typeof overwrite.statusCode === 'function'
-            ? overwrite.statusCode(request as local.NetworkResponseCompletedParameters)
-            : overwrite.statusCode
+        const statusCodeOverwrite = (
+            typeof overwrite.statusCode === 'function'
+                ? overwrite.statusCode(request as local.NetworkResponseCompletedParameters)
+                : overwrite.statusCode
+        )
         ;(result as RespondWithOptions).statusCode = statusCodeOverwrite
     }
 
@@ -90,7 +94,7 @@ export function parseOverwrite<
     return result
 }
 
-export function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
+export function getPatternParam(pattern: URLPattern, key: keyof Omit<remote.NetworkUrlPatternPattern, 'type'>) {
     if (key !== 'pathname' && pattern[key] === '*') {
         return
     }
@@ -100,4 +104,75 @@ export function getPatternParam (pattern: URLPattern, key: keyof Omit<remote.Net
     }
 
     return pattern[key].replaceAll('*', '\\*')
+}
+
+/**
+ * Converts a glob pattern to a URLPattern compatible regular expression pattern
+ * @param globPattern - The glob pattern to convert
+ * @returns A URLPattern instance representing the converted glob pattern
+ */
+export function globToURLPattern(globPattern: string): URLPattern {
+    // Helper function to convert a glob segment to regex
+    function convertGlobToRegex(glob: string): string {
+        // Step 1: Escape characters that have special meaning in regex
+        let regex = glob.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+        // Step 2: Convert glob patterns to regex patterns
+        // Convert ** (matches any number of directories/segments)
+        regex = regex.replace(/\\\*\\\*/g, '.*')
+
+        // Convert * (matches anything within a single segment)
+        regex = regex.replace(/\\\*/g, '[^/]*')
+
+        // Convert ? (matches a single character)
+        regex = regex.replace(/\\\?/g, '(.)')
+
+        // Handle {a,b,c} expansion patterns
+        regex = regex.replace(/\\{([^{}]*)\\}/g, (_, contents: string) => {
+        // Split by comma but respect escaped commas
+            const options = contents.split(/(?<!\\),/)
+                .map(option => option.trim())
+                .join('|')
+            return `(${options})`
+        })
+
+        return regex
+    }
+
+    // Parse the glob pattern into URL components
+    const patternObj: Record<string, string> = {}
+
+    // Check if the pattern includes a protocol and/or hostname
+    const urlRegex = /^([^:/]+:\/{0,2})([^/]*)(.*)$/
+    const match = globPattern.match(urlRegex)
+
+    if (match) {
+        // We have a full URL pattern with protocol and possibly hostname
+        const [, protocol, host, path] = match
+
+        if (protocol) {
+            // Handle protocol (e.g., "http*:")
+            const protocolClean = protocol.replace(/\/{0,2}$/, '') // Remove trailing slashes
+            patternObj.protocol = `${convertGlobToRegex(protocolClean)}`
+        }
+
+        if (host) {
+            // Handle hostname (e.g., "api.*.example.com")
+            patternObj.hostname = `${convertGlobToRegex(host)}`
+        }
+
+        if (path) {
+            // Handle pathname (starting with /)
+            patternObj.pathname = `${convertGlobToRegex(path)}`
+        }
+    } else {
+        // It's just a pathname pattern
+        patternObj.pathname = `${convertGlobToRegex(globPattern)}`
+
+        if (patternObj.pathname === '') {
+            throw new Error('Invalid URL pattern')
+        }
+    }
+
+    // Create and return the URLPattern
+    return new URLPattern(patternObj)
 }
