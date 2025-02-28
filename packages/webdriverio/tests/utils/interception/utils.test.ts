@@ -115,7 +115,6 @@ describe('globToURLPattern', () => {
 
         // Complex patterns
         {
-            only: true,
             pattern: 'http://foobar.com:1234/foo/bar.html?foo=bar',
             matches: ['http://foobar.com:1234/foo/bar.html?foo=bar'],
             nonMatches: []
@@ -143,6 +142,13 @@ describe('globToURLPattern', () => {
             ]
         },
 
+        // Port patterns
+        {
+            pattern: 'http://example.com:80*',
+            matches: ['http://example.com:80', 'http://example.com:8080'],
+            nonMatches: ['http://example.com', 'http://example.com:81']
+        },
+
         // Path patterns
         {
             pattern: 'https://api.example.com/v1/**/*.json',
@@ -156,6 +162,13 @@ describe('globToURLPattern', () => {
                 'https://api.example.com/v1/data.xml',
                 'http://api.example.com/v1/data.json'
             ]
+        },
+
+        // Search patterns
+        {
+            pattern: 'https://api.example.com/user?.json',
+            matches: ['https://api.example.com/user1.json', 'https://api.example.com/userA.json'],
+            nonMatches: ['https://api.example.com/user10.json', 'https://api.example.com/user.json']
         },
 
         // Question mark patterns
