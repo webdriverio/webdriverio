@@ -58,16 +58,6 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     link="https://www.browserstack.com/automation-webdriverio"
 />
 
-<ImageSwitcher
-    lightImageSrc="/img/sponsors/saucelabs_black.svg"
-    darkImageSrc="/img/sponsors/saucelabs_white.svg"
-    alt="Sauce Labs"
-    link="https://www.saucelabs.com"
-    width={400}
-    target="_blank"
-    style={{ marginLeft: '30px', position: 'relative', top: '-8px' }}
-/>
-
 ### 🥇 Gold
 
 <ImageSwitcher
