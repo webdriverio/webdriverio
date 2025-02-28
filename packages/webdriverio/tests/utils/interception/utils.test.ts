@@ -113,6 +113,14 @@ describe('globToURLPattern', () => {
             nonMatches: ['https://example.com', 'http://example.org']
         },
 
+        // Complex patterns
+        {
+            only: true,
+            pattern: 'http://foobar.com:1234/foo/bar.html?foo=bar',
+            matches: ['http://foobar.com:1234/foo/bar.html?foo=bar'],
+            nonMatches: []
+        },
+
         // Protocol patterns
         {
             pattern: 'http*://example.com',

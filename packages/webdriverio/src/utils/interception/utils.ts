@@ -142,12 +142,12 @@ export function globToURLPattern(globPattern: string): URLPattern {
     const patternObj: Record<string, string> = {}
 
     // Check if the pattern includes a protocol and/or hostname
-    const urlRegex = /^([^:/]+:\/{0,2})([^/]*)(.*)$/
+    const urlRegex = /^([^:/]+:\/{0,2})([^/:]*):?([^/?]*)([^?]*)\??(.*)$/
     const match = globPattern.match(urlRegex)
 
     if (match) {
-        // We have a full URL pattern with protocol and possibly hostname
-        const [, protocol, host, path] = match
+        // We have a full URL pattern with protocol and possibly hostname, port, and search params
+        const [, protocol, host, port, path, search] = match
 
         if (protocol) {
             // Handle protocol (e.g., "http*:")
@@ -160,9 +160,19 @@ export function globToURLPattern(globPattern: string): URLPattern {
             patternObj.hostname = `${convertGlobToRegex(host)}`
         }
 
+        if (port) {
+            // Handle port (e.g., "80*" or "*")
+            patternObj.port = `${convertGlobToRegex(port)}`
+        }
+
         if (path) {
             // Handle pathname (starting with /)
             patternObj.pathname = `${convertGlobToRegex(path)}`
+        }
+
+        if (search) {
+            // Handle search parameters (e.g., "param1=value*&param2=*")
+            patternObj.search = `${convertGlobToRegex(search)}`
         }
     } else {
         // It's just a pathname pattern
