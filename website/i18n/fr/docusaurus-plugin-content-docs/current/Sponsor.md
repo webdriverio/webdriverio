@@ -61,8 +61,6 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 <br />
 <br />
 
-<ImageSwitcher lightImageSrc="/img/sponsors/saucelabs_black.svg" darkImageSrc="/img/sponsors/saucelabs_white.svg" alt="Sauce Labs" link="https://www.saucelabs.com" width={400} target="_blank" style={{ marginLeft: '30px', position: 'relative', top: '-8px' }} />
-
 ### 🥇 Gold
 
 <ImageSwitcher
@@ -127,7 +125,7 @@ Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silv
     width="150"
 />
 
-<ImageSwitcher lightImageSrc="/img/sponsors/gridlastic.png" darkImageSrc="/img/sponsors/gridlastic.png" alt="Gridlastic" target="_blank" link="https://www.gridlastic.com/" width="150" />
+<ImageSwitcher lightImageSrc="/img/sponsors/gridlastic.png" darkImageSrc="/img/sponsors/gridlastic.png" alt="Gridlastic" target="_blank" link="https://www.gridlastic.com/webdriverio.html" width="150" />
 
 Become a [Bronze Sponsor](https://opencollective.com/webdriverio/contribute/bronze-sponsor-69224/checkout?interval=month&amount=100&contributeAs=me).
 
