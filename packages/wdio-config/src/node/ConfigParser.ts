@@ -336,7 +336,7 @@ export default class ConfigParser {
         }
 
         // Remove any duplicate tests from the final specs array
-        specs = [...new Set(specs)]
+        specs = filterDublicationArrayItems(specs)
 
         // If the --repeat flag is set, duplicate the specs array N times
         // Ensure that when --repeat is used that either --spec or --suite is also used
@@ -501,7 +501,7 @@ export default class ConfigParser {
     filterSpecs(specs: Spec[], excludeList: string[]) {
         // If 'exclude' is array of paths
         if (allKeywordsContainPath(excludeList)) {
-            let filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
+            const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
                 if (Array.isArray(currSpec)) {
                     returnVal.push(currSpec.filter(specItem => !excludeList.includes(specItem)))
                 } else if (excludeList.indexOf(currSpec) === -1) {
@@ -509,12 +509,10 @@ export default class ConfigParser {
                 }
                 return returnVal
             }, [])
-            filteredSpec = filterDublicationArrayItems(filteredSpec)
-            filteredSpec = filterEmptyArrayItems(filteredSpec)
-            return filteredSpec
+            return filterEmptyArrayItems(filteredSpec)
         }
         // If 'exclude' is array of keywords
-        let filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
+        const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
             if (Array.isArray(currSpec)) {
                 returnVal.push(currSpec.filter(specItem => !excludeList.some(excludeVal => specItem.includes(excludeVal))))
             }
@@ -524,9 +522,7 @@ export default class ConfigParser {
             }
             return returnVal
         }, [])
-        filteredSpec = filterDublicationArrayItems(filteredSpec)
-        filteredSpec = filterEmptyArrayItems(filteredSpec)
-        return filteredSpec
+        return filterEmptyArrayItems(filteredSpec)
     }
 
     shard(specs: Spec[]) {
