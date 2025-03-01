@@ -28,14 +28,16 @@ export abstract class WebDriverRequest {
     protected abstract fetch(url: URL, opts: RequestInit): Promise<Response>
 
     body?: Record<string, unknown>
+    maskedBody?: Record<string, unknown>
     method: string
     endpoint: string
     isHubCommand: boolean
     requiresSessionId: boolean
     eventHandler: RequestEventHandler
 
-    constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false, eventHandler: RequestEventHandler = {}) {
+    constructor (method: string, endpoint: string, body?: Record<string, unknown>, maskedBody?: Record<string, unknown>, isHubCommand: boolean = false, eventHandler: RequestEventHandler = {}) {
         this.body = body
+        this.maskedBody = maskedBody
         this.method = method
         this.endpoint = endpoint
         this.isHubCommand = isHubCommand
@@ -45,13 +47,13 @@ export abstract class WebDriverRequest {
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
         const { url, requestOptions } = await this.createOptions(options, sessionId)
-        this.eventHandler.onRequest?.(requestOptions)
+        this.eventHandler.onRequest?.(requestOptions.maskedBody ? { ...requestOptions, body: requestOptions.maskedBody as unknown as BodyInit } : requestOptions)
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
+    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit & {maskedBody?: Record<string, unknown>};}> {
         const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
-        const requestOptions: RequestInit = {
+        const requestOptions: RequestInit & {maskedBody?: Record<string, unknown>} = {
             method: this.method,
             redirect: 'follow',
             signal: AbortSignal.timeout(timeout)
@@ -70,6 +72,7 @@ export abstract class WebDriverRequest {
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
             requestOptions.body = this.body as unknown as BodyInit
+            requestOptions.maskedBody = this.maskedBody
             requestHeaders.set('Content-Length', `${contentLength}`)
         }
 
@@ -141,7 +144,7 @@ export abstract class WebDriverRequest {
 
     protected async _request (
         url: URL,
-        fullRequestOptions: RequestInit,
+        fullRequestOptions: RequestInit & {maskedBody?: Record<string, unknown>},
         transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse,
         totalRetryCount = 0,
         retryCount = 0
@@ -149,14 +152,15 @@ export abstract class WebDriverRequest {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.body))
+            log.info('DATA', transformCommandLogResult((fullRequestOptions.maskedBody || fullRequestOptions.body) as Record<string, unknown>))
         }
 
-        const { ...requestLibOptions } = fullRequestOptions
         const startTime = performance.now()
-        let response = await this._libRequest(url!, requestLibOptions)
+        let response = await this._libRequest(url!, { ...fullRequestOptions })
             .catch((err: WebDriverRequestError) => err)
         const durationMillisecond = performance.now() - startTime
+
+        const maskedFullRequestsOptions =  fullRequestOptions.maskedBody ? { ...fullRequestOptions, body: fullRequestOptions.maskedBody as unknown as BodyInit } : fullRequestOptions
 
         /**
          * handle retries for requests
@@ -171,7 +175,7 @@ export abstract class WebDriverRequest {
             if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
                 log.error(error.message)
                 this.eventHandler.onResponse?.({ error })
-                this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+                this.eventHandler.onPerformance?.({ request: maskedFullRequestsOptions, durationMillisecond, success: false, error, retryCount })
                 throw error
             }
 
@@ -185,7 +189,7 @@ export abstract class WebDriverRequest {
             ++retryCount
 
             this.eventHandler.onRetry?.({ error, retryCount })
-            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+            this.eventHandler.onPerformance?.({ request: maskedFullRequestsOptions, durationMillisecond, success: false, error, retryCount })
             log.warn(error.message)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
             return this._request(url, fullRequestOptions, transformResponse, totalRetryCount, retryCount)
@@ -210,7 +214,7 @@ export abstract class WebDriverRequest {
             /**
              * throw if request error is unknown
              */
-            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error: response, retryCount })
+            this.eventHandler.onPerformance?.({ request: maskedFullRequestsOptions, durationMillisecond, success: false, error: response, retryCount })
             throw response
         }
 
@@ -223,11 +227,11 @@ export abstract class WebDriverRequest {
          */
         if (isSuccessfulResponse(response.statusCode, response.body)) {
             this.eventHandler.onResponse?.({ result: response.body })
-            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: true, retryCount })
+            this.eventHandler.onPerformance?.({ request: maskedFullRequestsOptions, durationMillisecond, success: true, retryCount })
             return response.body as WebDriverResponse<unknown>
         }
 
-        const error = new WebDriverResponseError(response, url, fullRequestOptions)
+        const error = new WebDriverResponseError(response, url, maskedFullRequestsOptions)
 
         /**
          * hub commands don't follow standard response formats
@@ -239,7 +243,7 @@ export abstract class WebDriverRequest {
              * directly without using a hub, therefore throw
              */
             if (typeof response.body === 'string' && response.body.startsWith('<!DOCTYPE html>')) {
-                this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+                this.eventHandler.onPerformance?.({ request: maskedFullRequestsOptions, durationMillisecond, success: false, error, retryCount })
                 return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
             }
 
@@ -253,7 +257,7 @@ export abstract class WebDriverRequest {
         if (error.name === 'stale element reference') {
             log.warn('Request encountered a stale element - terminating request')
             this.eventHandler.onResponse?.({ error })
-            this.eventHandler.onPerformance?.({ request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
+            this.eventHandler.onPerformance?.({ request: maskedFullRequestsOptions, durationMillisecond, success: false, error, retryCount })
             throw error
         }
 
