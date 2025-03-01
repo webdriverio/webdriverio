@@ -259,3 +259,20 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
         })
     })
 }
+/**
+ * Convert Cucumber status to WebdriverIO test status for reporting.
+ * Maps statuses like PASSED, PENDING, etc., to WebdriverIO's shorthand test status values.
+ * @param {TestStepResultStatus} status - The Cucumber status (e.g., 'PENDING')
+ * @returns {'pass' | 'fail' | 'skip' | 'pending'} - The corresponding WebdriverIO test status
+ */
+export function convertStatus(status: TestStepResultStatus): 'pass' | 'fail' | 'skip' | 'pending' {
+    switch (status) {
+    case 'PASSED': return 'pass'
+    case 'PENDING': return 'pending'
+    case 'SKIPPED': return 'skip'
+    case 'AMBIGUOUS': return 'skip'
+    case 'FAILED': return 'fail'
+    case 'UNDEFINED': return 'pass'
+    default: return 'fail'
+    }
+}

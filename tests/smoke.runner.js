@@ -390,6 +390,42 @@ const cucumberFailAmbiguousDefinitions = async () => {
 }
 
 /**
+ * Cucumber pending status test
+ */
+const cucumberPendingTest = async () => {
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberPendingTest.log')
+    await fs.rm(logFile, { force: true })
+
+    await launch(
+        'cucumberPendingTest',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'cucumber', 'test-pending.feature')
+            ],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]
+            ],
+            cucumberOpts: {
+                ignoreUndefinedDefinitions: true,
+                scenarioLevelReporter: true
+            }
+        }
+    )
+
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+    const pendingMatch = specLogs.match(/(\d+)\s+pending/)
+    assert.ok(
+        pendingMatch && parseInt(pendingMatch[1], 10) === 1,
+        'Expected exactly 1 pending test in output'
+    )
+}
+
+/**
  * Cucumber reporter
  */
 const cucumberReporter = async () => {
@@ -990,6 +1026,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberTestrunnerByLineNumber,
         cucumberTestrunnerMultipleByLineNumber,
         cucumberFailAmbiguousDefinitions,
+        cucumberPendingTest,
         cucumberReporter,
         cucumberFileOption,
         standaloneTest,
