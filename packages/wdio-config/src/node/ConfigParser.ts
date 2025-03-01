@@ -504,7 +504,7 @@ export default class ConfigParser {
     filterSpecs(specs: Spec[], excludeList: string[]) {
         // If 'exclude' is array of paths
         if (allKeywordsContainPath(excludeList)) {
-            const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
+            let filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
                 if (Array.isArray(currSpec)) {
                     returnVal.push(currSpec.filter(specItem => !excludeList.includes(specItem)))
                 } else if (excludeList.indexOf(currSpec) === -1) {
@@ -512,10 +512,12 @@ export default class ConfigParser {
                 }
                 return returnVal
             }, [])
-            return filterEmptyArrayItems(filteredSpec)
+            filteredSpec = filterDublicationArrayItems(filteredSpec)
+            filteredSpec = filterEmptyArrayItems(filteredSpec)
+            return filteredSpec
         }
         // If 'exclude' is array of keywords
-        const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
+        let filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
             if (Array.isArray(currSpec)) {
                 returnVal.push(currSpec.filter(specItem => !excludeList.some(excludeVal => specItem.includes(excludeVal))))
             }
@@ -525,7 +527,9 @@ export default class ConfigParser {
             }
             return returnVal
         }, [])
-        return filterEmptyArrayItems(filteredSpec)
+        filteredSpec = filterDublicationArrayItems(filteredSpec)
+        filteredSpec = filterEmptyArrayItems(filteredSpec)
+        return filteredSpec
     }
 
     shard(specs: Spec[]) {
@@ -547,4 +551,8 @@ function allKeywordsContainPath(excludedSpecList: string[]) {
 
 function filterEmptyArrayItems(specList: Spec[]) {
     return specList.filter(item=>(Array.isArray(item) && item.length) || !Array.isArray(item))
+}
+
+function filterDublicationArrayItems(specList: Spec[]) {
+    return [...new Set(specList.map(item=> Array.isArray(item) ? [...new Set(item)] : item))]
 }
