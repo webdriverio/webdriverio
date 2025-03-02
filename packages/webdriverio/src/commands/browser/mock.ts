@@ -8,7 +8,8 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
 
 /**
  * Mock the response of a request. You can define a mock based on a matching
- * glob and corresponding header and status code. Calling the mock method
+ * [URLPattern](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern)
+ * and corresponding header and status code. Calling the mock method
  * returns a stub object that you can use to modify the response of the
  * web resource.
  *
@@ -17,15 +18,23 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  *
  * There are 3 ways to modify the response:
  * - return a custom JSON object (for stubbing API request)
- * - replace web resource with a local file (service a modified JavaScript file) or
+ * - replace web resource with a local file (serve a modified JavaScript file) or
  * - redirect resource to a different url
  *
  * :::info
  *
- * Note that using the `mock` command requires support for Chrome DevTools protocol.
- * That support is given if you run tests locally in Chromium based browser or if
- * you use a Selenium Grid v4 or higher. This command can __not__ be used when running
- * automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
+ * Note that using the `mock` command requires support for WebDriver Bidi. That is
+ * usually the case when running tests locally in a Chromium based browser or on
+ * Firefox as well as if you use a Selenium Grid v4 or higher. If you run tests
+ * in the cloud, make sure that your cloud provider supports WebDriver Bidi.
+ *
+ * :::
+ *
+ * :::info
+ *
+ * The `URLPattern` is an experimental technology and not yet supported in some environments, e.g. Node.js.
+ * We recommend to import [a polyfill](https://www.npmjs.com/package/urlpattern-polyfill)
+ * until the feature is more widely supported.
  *
  * :::
  *
