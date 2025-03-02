@@ -539,7 +539,7 @@ export default class ConfigParser {
 }
 
 function allKeywordsContainPath(excludedSpecList: string[]) {
-    return excludedSpecList.every(val => val.includes('/') || val.includes('\\'))
+    return excludedSpecList.every(val => val.includes('/') || val.includes('\\') || val.includes('*'))
 }
 
 function filterEmptyArrayItems(specList: Spec[]) {

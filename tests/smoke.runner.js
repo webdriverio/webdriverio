@@ -904,7 +904,7 @@ const cliSpecsWithWildCard = async () => {
         'cliSpecsWithWildCard',
         path.resolve(severalPassedConfig),
         {
-            spec: ['./tests-cli-spec-arg/mocha.test01*.js']
+            spec: ['mocha.test01*.js']
         }
     )
     assert.strictEqual(passed, 2)
@@ -918,8 +918,8 @@ const cliSpecsTheSameWithWildCard = async () => {
         path.resolve(severalPassedConfig),
         {
             spec: [
-                './tests-cli-spec-arg/mocha.test01*.js',
-                './tests-cli-spec-arg/mocha.test01*.js'
+                'mocha.test01*.js',
+                'mocha.test01*.js'
             ]
         }
     )
@@ -933,7 +933,7 @@ const cliSpecsWithWildCardAndGroup = async () => {
         'cliSpecsWithWildCardAndGroup',
         path.resolve(severalPassedConfig),
         {
-            spec: ['./tests-cli-spec-arg/mocha.test01*.js'],
+            spec: ['mocha.test01*.js'],
             group: true
         }
     )
@@ -947,9 +947,9 @@ const cliExcludeCertainWithWildCard = async () => {
         'cliExcludeCertainWithWildCard',
         path.resolve(severalPassedConfig),
         {
-            spec: ['./tests-cli-spec-arg/mocha.test01*.js'],
+            spec: ['mocha.test01*.js'],
             exclude: [
-                './tests-cli-spec-arg/mocha.test01.js',
+                'mocha.test01.js',
             ]
         }
     )
@@ -963,7 +963,7 @@ const cliExcludeSomeFromConfWithWildCard = async () => {
         'cliExcludeSomeFromConfWithWildCard',
         path.resolve(allPassedWildCardConfig),
         {
-            exclude: ['./tests-cli-spec-arg/mocha.test01*.js'],
+            exclude: ['mocha.test01*.js'],
         }
     )
     assert.strictEqual(passed, 1)
@@ -976,7 +976,7 @@ const cliExcludeSomeFromConfWithWildCardAndGroup = async () => {
         'cliExcludeSomeFromConfWithWildCardAndGroup',
         path.resolve(allPassedWildCardConfig),
         {
-            exclude: ['./tests-cli-spec-arg/mocha.test01*.js'],
+            exclude: ['mocha.test01*.js'],
             group: true
         }
     )
@@ -991,8 +991,8 @@ const cliExcludeAllWithWildCard = async () => {
             'cliExcludeAllWithWildCard',
             path.resolve(allPassedWildCardConfig),
             {
-                spec: ['./tests-cli-spec-arg/mocha.test*.js'],
-                exclude: ['./tests-cli-spec-arg/mocha.test*.js'],
+                spec: ['mocha.test*.js'],
+                exclude: ['mocha.test*.js'],
             }
         )
         assert.ok(false)
