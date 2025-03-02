@@ -53,4 +53,4 @@ export const config: WebdriverIO.Config = {
 
 That's it 🎉
 
-Learn more about how [to configure the Electron Service](/desktop-testing/electron/configuration), [how to mock Electron APIs](/desktop-testing/electron/mocking) and [how to access Electron APIs](/desktop-testing/electron/apis).
+Learn more about how [to configure the Electron Service](/docs/desktop-testing/electron/configuration), [how to mock Electron APIs](/docs/desktop-testing/electron/mocking) and [how to access Electron APIs](/docs/desktop-testing/electron/api).
