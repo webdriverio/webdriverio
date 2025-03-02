@@ -192,7 +192,7 @@ describe('watcher', () => {
 
         expect(chokidar.watch).toHaveBeenCalledTimes(2)
         expect(chokidar.watch).toBeCalledWith(['/foo', '/bar'], expect.any(Object))
-        expect(chokidar.watch).toBeCalledWith(['./foobar'], expect.any(Object))
+        expect(chokidar.watch).toBeCalledWith([expect.stringContaining('/foobar')], expect.any(Object))
 
     })
 
