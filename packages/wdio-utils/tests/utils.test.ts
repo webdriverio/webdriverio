@@ -14,6 +14,9 @@ describe('utils', () => {
         const stringFunction = 'return (function () => { })()'
         const asyncStringFunction = 'return (async function () => { })()'
         const anotherStringFunction = '!function(t,e){}'
+        const normalStringFunction = `
+            function webdriverioPolyfill() {`
+        const shortStringFunction = '() => { // ... }'
         expect(commandCallStructure(
             'foobar',
             [
@@ -25,11 +28,13 @@ describe('utils', () => {
                 stringFunction,
                 asyncStringFunction,
                 anotherStringFunction,
+                normalStringFunction,
+                shortStringFunction,
                 null,
                 undefined,
                 (Buffer.from('some screenshot')).toString('base64')
             ]
-        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
+        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
         expect(commandCallStructure('foobar', ['/html/body/a']))
             .toBe('foobar("<Screenshot[base64]>")')
         expect(commandCallStructure('findElement', ['/html/body/a']))
