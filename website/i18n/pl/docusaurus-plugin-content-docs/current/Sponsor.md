@@ -62,6 +62,9 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 <br />
 <br />
 
+<br />
+<br />
+
 ### 🥇 Gold
 
 <ImageSwitcher
