@@ -1,9 +1,11 @@
 import { getErrorString, stopBuildUpstream } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 import fs from 'node:fs'
+import util from 'node:util'
 import { fireFunnelRequest } from './instrumentation/funnelInstrumentation.js'
 import { BROWSERSTACK_TESTHUB_UUID, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_OBSERVABILITY } from './constants.js'
 import type { FunnelData } from './types.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
 
 export default class BStackCleanup {
     static async startCleanup() {
@@ -27,6 +29,14 @@ export default class BStackCleanup {
         } catch (err) {
             const error = err as string
             BStackLogger.error(error)
+        }
+
+        try {
+            if (process.argv.includes('--performanceData')) {
+                await PerformanceTester.uploadEventsData()
+            }
+        } catch (er) {
+            BStackLogger.debug(`Error in sending events data ${util.format(er)}`)
         }
     }
     static async executeObservabilityCleanup(funnelData: FunnelData) {

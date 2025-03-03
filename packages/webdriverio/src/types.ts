@@ -606,6 +606,16 @@ export type GetContextsOptions = {
     returnDetailedContexts?: boolean;
 }
 
+export type ActiveAppInfo = {
+    pid: number;
+    bundleId: string;
+    name: string;
+    processArguments: {
+      args: string[];
+      env: Record<string, string>;
+    };
+}
+
 export type WaitUntilOptions = {
     timeout?: number,
     timeoutMsg?: string,

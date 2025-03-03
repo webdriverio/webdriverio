@@ -65,6 +65,14 @@ describe('Command: run', () => {
             .toContain('sample.conf')
     })
 
+    it('should check for js and ts default config files', async () => {
+        vi.mocked(fs.access)
+            .mockRejectedValueOnce('not found')
+            .mockRejectedValueOnce('not found')
+        const result = await runCmd.handler({ configPath: 'sample.conf.js' } as any)
+        expect(result).toContain('sample.conf.ts')
+    })
+
     it('should use local conf if nothing defined', async () => {
         const launcher = await runCmd.handler({ argv: {} } as any)
         expect(launcher).toContain('wdio.conf.js')

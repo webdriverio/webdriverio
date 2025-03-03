@@ -98,8 +98,8 @@ With WebdriverIO v9 we have deprecated the Devtools Service and transitioned man
 While in v6 performance tests were automatically run on a mobile environment, we have decided to change this and make the default behavior more obvious. Therefore, if you run performance tests in v7, there aren't any changes to the environment where you run your tests. We still recommend emulating a mobile device to more accurately capture the user experience of users most impacted by bad application performance. To do so, you can run the following commands:
 
 ```js
-browser.emulateDevice('iPhone X')
-browser.enablePerformanceAudits({
+await browser.emulate('device', 'iPhone X')
+await browser.enablePerformanceAudits({
     networkThrottling: 'Regular 3G',
     cpuThrottling: 4,
     cacheEnabled: false,

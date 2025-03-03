@@ -379,7 +379,7 @@ class Launcher {
                 /**
                  * bail if number of errors exceeds allowed
                  */
-                .filter(() => {
+                .filter((session) => {
                     const filter = typeof config.bail !== 'number' || config.bail < 1 ||
                         config.bail > this._runnerFailed
 
@@ -388,22 +388,21 @@ class Launcher {
                      */
                     if (!filter) {
                         this._schedule.forEach((t) => { t.specs = [] })
+                        return false
                     }
 
-                    return filter
+                    /**
+                     * make sure complete number of running instances is not higher than general maxInstances number
+                     */
+                    if (this._getNumberOfRunningInstances() >= config.maxInstances) {
+                        return false
+                    }
+
+                    /**
+                     * make sure the capability has available capacities and still has caps to run
+                     */
+                    return session.availableInstances > 0 && session.specs.length > 0
                 })
-                /**
-                 * make sure complete number of running instances is not higher than general maxInstances number
-                 */
-                .filter(() => this._getNumberOfRunningInstances() < config.maxInstances)
-                /**
-                 * make sure the capability has available capacities
-                 */
-                .filter((a) => a.availableInstances > 0)
-                /**
-                 * make sure capability has still caps to run
-                 */
-                .filter((a) => a.specs.length > 0)
                 /**
                  * make sure we are running caps with less running instances first
                  */
@@ -483,8 +482,8 @@ class Launcher {
         let debugType
         let debugHost = ''
         const debugPort = process.debugPort
-        for (const i in process.execArgv) {
-            const debugArgs = process.execArgv[i].match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
+        for (const arg of process.execArgv) {
+            const debugArgs = arg.match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
             if (debugArgs) {
                 const [, type, host] = debugArgs
                 if (type) {

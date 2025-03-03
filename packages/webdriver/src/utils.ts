@@ -91,7 +91,7 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     } catch (err) {
         log.error(err)
         const message = getSessionError(err as Error, params)
-        throw new Error('Failed to create session.\n' + message)
+        throw new Error(message)
     }
     const sessionId = response.value.sessionId || response.sessionId
 

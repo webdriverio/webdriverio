@@ -1,3 +1,4 @@
+import { ELEMENT_KEY } from 'webdriver'
 import type { WaitForOptions } from '../../types.js'
 
 /**
@@ -43,7 +44,7 @@ import type { WaitForOptions } from '../../types.js'
  * @type utility
  *
  */
-export function waitForExist (
+export async function waitForExist (
     this: WebdriverIO.Element,
     {
         timeout = this.options.waitforTimeout,
@@ -52,8 +53,22 @@ export function waitForExist (
         timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}existing after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
-    return this.waitUntil(
+    const isExisting = await this.waitUntil(
         async () => reverse !== await this.isExisting(),
         { timeout, interval, timeoutMsg }
     )
+
+    /**
+     * If we were waiting for an element to exist and it did, we can update the
+     * elementId of the current element and remove the error. This is important
+     * as the user may expect to be able to access an element id after it has
+     * calling `waitForExist`.
+     */
+    if (!reverse && isExisting && typeof this.selector === 'string') {
+        this.elementId = await this.parent.$(this.selector).elementId
+        this[ELEMENT_KEY] = this.elementId
+        delete this.error
+    }
+
+    return isExisting
 }

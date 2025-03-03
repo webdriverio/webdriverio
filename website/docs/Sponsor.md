@@ -58,15 +58,8 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     link="https://www.browserstack.com/automation-webdriverio"
 />
 
-<ImageSwitcher
-    lightImageSrc="/img/sponsors/saucelabs_black.svg"
-    darkImageSrc="/img/sponsors/saucelabs_white.svg"
-    alt="Sauce Labs"
-    link="https://www.saucelabs.com"
-    width={400}
-    target="_blank"
-    style={{ marginLeft: '30px', position: 'relative', top: '-8px' }}
-/>
+<br />
+<br />
 
 ### 🥇 Gold
 
@@ -75,8 +68,9 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
     darkImageSrc="/img/sponsors/route4me.svg"
     alt="Route4Me"
     link="https://www.route4me.com/"
-    width="350"
+    width="250"
     target="_blank"
+    style={{ marginRight: '20px', position: 'relative', top: '8px' }}
 />
 
 <ImageSwitcher
@@ -90,6 +84,8 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 
 Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-sponsor-26921/checkout?interval=month&amount=500&contributeAs=me).
 
+<br />
+
 ### 🥈 Silver
 
 <ImageSwitcher
@@ -97,12 +93,13 @@ Become a [Gold Sponsor](https://opencollective.com/webdriverio/contribute/gold-s
     darkImageSrc="/img/sponsors/testingbot.svg"
     alt="TestingBot"
     link="https://testingbot.com/"
-    width="250"
+    width="150"
     target="_blank"
-    style={{ marginLeft: '30px', position: 'relative', top: '-8px' }}
 />
 
 Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silver-sponsor-69223/checkout?interval=month&amount=250&contributeAs=me).
+
+<br />
 
 ### 🥉 Bronze
 
@@ -115,4 +112,29 @@ Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silv
     width="150"
 />
 
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/gridlastic.png"
+    darkImageSrc="/img/sponsors/gridlastic.png"
+    alt="Gridlastic"
+    target="_blank"
+    link="https://www.gridlastic.com/webdriverio.html"
+    width="150"
+/>
+
 Become a [Bronze Sponsor](https://opencollective.com/webdriverio/contribute/bronze-sponsor-69224/checkout?interval=month&amount=100&contributeAs=me).
+
+<br />
+<br />
+
+### 🙇 Notable Past Sponsors
+
+We are grateful for the support of all our sponsors! Here are some of the companies that have supported WebdriverIO in the past.
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/saucelabs_black.svg"
+    darkImageSrc="/img/sponsors/saucelabs_white.svg"
+    alt="Sauce Labs"
+    link="https://saucelabs.com/"
+    width="150"
+    target="_blank"
+/>

@@ -70,7 +70,7 @@ export async function generateElectronDocs () {
         await fs.writeFile(newDocsPath, `---
 id: ${id}
 title: ${title}
-custom_edit_url: https://github.com/${GITHUB_REPO}/edit/main/${sources[0][1]}
+custom_edit_url: https://github.com/${GITHUB_REPO}/edit/main/${sources[0][0]}
 ---
 ${content}`)
         console.log(`Generated docs for ${newDocsPath}`)

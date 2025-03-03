@@ -430,25 +430,26 @@ describe('main suite 1', () => {
     })
 
     describe('emulate clock', () => {
-        const now = new Date(2021, 3, 14)
-        const getDateString = () => (new Date()).toString()
+        const now = new Date(Date.UTC(2021, 3, 14))
+        const getDateString = () => new Date()
+        const mockedDateString = now.toLocaleString('en-GB', { timeZone: 'UTC' })
 
         it('should allow to mock the clock', async () => {
             await browser.emulate('clock', { now })
-            expect(await browser.execute(getDateString))
-                .toBe(now.toString())
+            expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+                .toBe(mockedDateString)
             await browser.url('https://guinea-pig.webdriver.io')
-            expect(await browser.execute(getDateString))
-                .toBe(now.toString())
+            expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+                .toBe(mockedDateString)
         })
 
         it('should allow to restore the clock', async () => {
             await browser.restore('clock')
-            expect(await browser.execute(getDateString))
-                .not.toBe(now.toString())
+            expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+                .not.toBe(mockedDateString)
             await browser.url('https://guinea-pig.webdriver.io/pointer.html')
-            expect(await browser.execute(getDateString))
-                .not.toBe(now.toString())
+            expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
+                .not.toBe(mockedDateString)
         })
     })
 
@@ -514,7 +515,7 @@ describe('main suite 1', () => {
             await browser.switchToWindow(handles[1])
 
             // Verify element text to ensure the browsing context has changed and can interact with elements
-            await expect(await $('.page').getText()).toBe('Second page!')
+            await expect($('.page')).toHaveText('Second page!')
         })
 
         it('should see that content is no longer displayed when window is closed', async () => {
@@ -538,10 +539,10 @@ describe('main suite 1', () => {
         })
 
         it('can switch to a frame via url', async () => {
-            await browser.url('https://www.w3schools.com/tags/tryit.asp?filename=tryhtml_iframe')
-            await browser.switchFrame('https://www.w3schools.com')
+            await browser.url('https://guinea-pig.webdriver.io/iframe.html')
+            await browser.switchFrame('https://guinea-pig.webdriver.io/iframeA2.html')
             expect(await browser.execute(() => [document.title, document.URL]))
-                .toEqual(['W3Schools Online Web Tutorials', 'https://www.w3schools.com/'])
+                .toEqual(['IFrame A2', 'https://guinea-pig.webdriver.io/iframeA2.html'])
         })
 
         it('can switch to a frame via element', async () => {
@@ -567,6 +568,22 @@ describe('main suite 1', () => {
             await expect($('#tinymce')).not.toBePresent()
             await browser.switchFrame($('iframe'))
             await expect($('#tinymce')).toBePresent()
+        })
+
+        it('allows expect after switching to non-children', async () => {
+            await browser.url('https://guinea-pig.webdriver.io/iframe.html')
+            await expect($('h1,h2,h3')).toHaveText('Frame Demo')
+
+            await browser.switchFrame($('#A')) // child
+            await expect($('h1,h2,h3')).toHaveText('IFrame A')
+
+            // child, we use this to proof switch frame with a function works
+            await browser.switchFrame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA1.html')
+            await expect($('h1,h2,h3')).toHaveText('IFrame A1')
+
+            // sibling
+            await browser.switchFrame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA2.html')
+            await expect($('h1,h2,h3')).toHaveText('IFrame A2') // FAILS "no such element"
         })
 
         describe('switchToParentFrame', () => {
@@ -614,6 +631,26 @@ describe('main suite 1', () => {
 
             after(() => browser.switchFrame(null))
         })
+
+        describe('iframe navigations', () => {
+            beforeEach(async () => {
+                await browser.url('https://guinea-pig.webdriver.io/iframeNavigation.html')
+            })
+
+            describe('ability to catch navigation event within iframe', () => {
+                it('should work by using a link with target=_top', async () => {
+                    await browser.switchFrame('iframeNavigationInner.html')
+                    await $('a').click()
+                    await expect($('h1')).toHaveText('Iframe Target')
+                })
+
+                it('should work by setting the location', async () => {
+                    await browser.switchFrame('iframeNavigationInner.html')
+                    await $('button').click()
+                    await expect($('h1')).toHaveText('Iframe Target')
+                })
+            })
+        })
     })
 
     describe('open resources with different protocols', () => {
@@ -639,8 +676,55 @@ describe('main suite 1', () => {
         })
 
         it('chrome', async () => {
-            await browser.url('chrome://version/')
-            await expect(browser).toHaveTitle('About Version')
+            await browser.url('chrome://about/')
+            await expect($('li=chrome://accessibility')).toExist()
         })
+    })
+
+    describe('reloading applications with different strategies', () => {
+        const scenarions = {
+            nothing: ['', '1'],
+            query: ['?foo=bar', '1'],
+            hash: ['#reloadCounter', '0']
+        }
+        for (const [name, [value, expected]] of Object.entries(scenarions)) {
+            it(`reloads with ${name}`, async () => {
+                const url = `https://guinea-pig.webdriver.io/reloadCounter.html${value}`
+                await browser.url(url)
+                await $('#reset').click()
+                await expect($('#counter')).toHaveValue('0')
+                await browser.url(url)
+                await expect($('#counter')).toHaveValue('0')
+                await browser.url(url)
+                await expect($('#counter')).toHaveValue(expected)
+            })
+        }
+    })
+
+    describe.only('selectBy*', () => {
+        const scenarios = [
+            ['selectByVisibleText', ['Option 2']],
+            ['selectByIndex', [1]],
+            ['selectByAttribute', ['value', 'someValue1']]
+        ] as const
+
+        for (const [command, args] of scenarios) {
+            it(`${command}: should wait for the option to be present`, async () => {
+                const newOption = 'Option 2'
+                await browser.url('https://guinea-pig.webdriver.io/two.html')
+
+                await browser.execute((newOption) => {
+                    const select = document.createElement('select')
+                    select.innerHTML = '<option value="someValue0">Option 1</option>'
+                    document.body.insertAdjacentElement('beforeend', select)
+                    setTimeout(() => select.innerHTML += `<option value="someValue1">${newOption}</option>`, 2000)
+                }, newOption)
+
+                const $select = browser.$('select')
+                // @ts-expect-error
+                await $select[command](...args)
+                await expect($select).toHaveValue('someValue1')
+            })
+        }
     })
 })

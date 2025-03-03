@@ -169,8 +169,6 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 <p align="center">
     <a href="https://www.browserstack.com/automation-webdriverio"><img src="https://webdriver.io/img/sponsors/browserstack_black.svg" alt="BrowserStack" /></a>
-    &nbsp; &nbsp; &nbsp;
-    <a href="https://saucelabs.com"><img src="https://webdriver.io/img/sponsors/saucelabs_black.svg" alt="Sauce Labs" width=400 /></a>
 </p>
 
 ### 🥇 Gold Sponsor
@@ -191,6 +189,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 <p align="center">
     <a href="https://eslint.org/"><img src="https://eslint.org/assets/images/logo/eslint-logo-color.png" alt="Eslint" /></a>
+    <a href="https://www.gridlastic.com/webdriverio.html"><img src="https://webdriver.io/img/sponsors/gridlastic.png" width="200" alt="Gridlastic" /></a>
 </p>
 
 ## :page_facing_up: License

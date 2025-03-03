@@ -4,7 +4,7 @@ import os from 'node:os'
 
 import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import junit from 'junit-report-builder'
+import junitReportBuilder, { type Builder as JUnitReportBuilder } from 'junit-report-builder'
 
 import type { JUnitReporterOptions } from './types.js'
 import { limit } from './utils.js'
@@ -276,7 +276,7 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _buildJunitXml(runner: RunnerStats) {
-        const builder = junit.newBuilder()
+        const builder = (junitReportBuilder as unknown as JUnitReportBuilder).newBuilder()
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
             // NOTE: platformVersion is used to build sanitizedCapabilities which can be incorrect and includes a minor version for iOS which is not guaranteed to be the same under Browserstack.
@@ -317,7 +317,14 @@ class JunitReporter extends WDIOReporter {
         return builder.build() as unknown as string
     }
 
-    private _buildOrderedReport(builder: any, runner: RunnerStats, specFileName: string, type: string, isCucumberFrameworkRunner: boolean) {
+    private _buildOrderedReport(builder: JUnitReportBuilder, runner: RunnerStats, specFileName: string, type: string, isCucumberFrameworkRunner: boolean) {
+        const suiteKeys = Object.keys(this.suites)
+
+        if (suiteKeys.length === 0) {
+            const error = this.runnerStat?.error ?? 'No tests found'
+            return builder.testCase().failure(error)
+        }
+
         for (const suiteKey of Object.keys(this.suites)) {
             /**
              * ignore root before all

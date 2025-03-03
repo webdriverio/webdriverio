@@ -38,12 +38,14 @@ export class NetworkManager extends SessionManager {
         this.#initialize = this.#browser.sessionSubscribe({
             events: [
                 'browsingContext.navigationStarted',
+                'browsingContext.fragmentNavigated',
                 'network.responseCompleted',
                 'network.beforeRequestSent',
                 'network.fetchError'
             ]
         }).then(() => true, () => false)
         this.#browser.on('browsingContext.navigationStarted', this.#navigationStarted.bind(this))
+        this.#browser.on('browsingContext.fragmentNavigated', this.#navigationStarted.bind(this))
         this.#browser.on('network.responseCompleted', this.#responseCompleted.bind(this))
         this.#browser.on('network.beforeRequestSent', this.#beforeRequestSent.bind(this))
         this.#browser.on('network.fetchError', this.#fetchError.bind(this))
@@ -52,6 +54,7 @@ export class NetworkManager extends SessionManager {
     removeListeners(): void {
         super.removeListeners()
         this.#browser.off('browsingContext.navigationStarted', this.#navigationStarted.bind(this))
+        this.#browser.off('browsingContext.fragmentNavigated', this.#navigationStarted.bind(this))
         this.#browser.off('network.responseCompleted', this.#responseCompleted.bind(this))
         this.#browser.off('network.beforeRequestSent', this.#beforeRequestSent.bind(this))
         this.#browser.off('network.fetchError', this.#fetchError.bind(this))

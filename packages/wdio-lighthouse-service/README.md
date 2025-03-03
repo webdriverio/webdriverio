@@ -71,17 +71,6 @@ describe('JSON.org page', () => {
 })
 ```
 
-You can emulate a mobile device by using the `emulateDevice` command, throttling CPU and network as well as setting `mobile` as form factor:
-
-```js
-await browser.emulateDevice('iPhone X')
-await browser.enablePerformanceAudits({
-    networkThrottling: 'Good 3G',
-    cpuThrottling: 4,
-    formFactor: 'mobile'
-})
-```
-
 The following commands with their results are available:
 
 #### `getMetrics`

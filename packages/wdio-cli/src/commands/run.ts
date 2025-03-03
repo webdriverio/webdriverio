@@ -176,10 +176,15 @@ export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
 
     const wdioConf = await formatConfigFilePaths(configPath)
-    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension)
+    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension, wdioConf.fullPath)
     if (!confAccess) {
         try {
             await missingConfigurationPrompt('run', wdioConf.fullPathNoExtension)
+            if (process.env.WDIO_UNIT_TESTS) {
+                return
+            }
+
+            return handler(argv)
         } catch {
             process.exit(1)
         }
@@ -196,7 +201,7 @@ export async function handler(argv: RunCommandArguments) {
         process.env.TSX_TSCONFIG_PATH && path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH)
     )
     const tsConfigPathFromParams = params.tsConfigPath && path.resolve(process.cwd(), params.tsConfigPath)
-    const tsConfigPathRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
+    const tsConfigPathRelativeToWdioConfig = path.join(path.dirname(confAccess), 'tsconfig.json')
     const localTSConfigPath = (
         tsConfigPathFromEnvVar ||
         tsConfigPathFromParams ||
@@ -211,7 +216,7 @@ export async function handler(argv: RunCommandArguments) {
      * if `--watch` param is set, run launcher in watch mode
      */
     if (params.watch) {
-        const watcher = new Watcher(wdioConf.fullPath, params)
+        const watcher = new Watcher(confAccess, params)
         return watcher.watch()
     }
 
@@ -223,12 +228,12 @@ export async function handler(argv: RunCommandArguments) {
      * stdin.isTTY is false when command is from nodes spawn since it's treated as a pipe
      */
     if (process.stdin.isTTY || !process.stdout.isTTY) {
-        return launch(wdioConf.fullPath, params)
+        return launch(confAccess, params)
     }
 
     /*
      * get a list of spec files to run from stdin, overriding any other
      * configuration suite or specs.
      */
-    launchWithStdin(wdioConf.fullPath, params)
+    launchWithStdin(confAccess, params)
 }

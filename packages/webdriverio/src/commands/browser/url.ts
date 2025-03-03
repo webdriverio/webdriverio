@@ -12,10 +12,43 @@ const DEFAULT_WAIT_STATE = 'complete'
  *
  * The `url` command loads an URL in the browser. If a baseUrl is specified in the config,
  * it will be prepended to the url parameter using node's url.resolve() method. Calling
- * `browser.url('...')` with the same url as last time will trigger a page reload.
+ * `browser.url('...')` with the same url as last time will trigger a page reload. However,
+ * if the url contains a hash, the browser will not trigger a new navigation and the user
+ * has to [refresh](/docs/api/webdriver#refresh) the page to trigger one.
  *
  * The command returns an `WebdriverIO.Request` object that contains information about the
- * request and response data of the page load.
+ * request and response data of the page load:
+ *
+ * ```ts
+ * interface WebdriverIO.Request {
+ *   id?: string
+ *   url: string
+ *   timestamp: number
+ *   navigation?: string
+ *   redirectChain?: string[],
+ *   headers: Record<string, string>
+ *   cookies?: NetworkCookie[]
+ *   \/**
+ *    * Error message if request failed
+ *    *\/
+ *   error?: string
+ *   response?: {
+ *       fromCache: boolean
+ *       headers: Record<string, string>
+ *       mimeType: string
+ *       status: number
+ *   },
+ *   /**
+ *    * List of all requests that were made due to the main request.
+ *    * Note: the list may be incomplete and does not contain request that were
+ *    * made after the command has finished.
+ *    *
+ *    * The property will be undefined if the request is not a document request
+ *    * that was initiated by the browser.
+ *    *\/
+ *   children?: Request[]
+ * }
+ * ```
  *
  * The command supports the following options:
  *
@@ -54,6 +87,8 @@ const DEFAULT_WAIT_STATE = 'complete'
     const request = await browser.url('https://webdriver.io');
     // log url
     console.log(request.url); // outputs: "https://webdriver.io"
+    console.log(request.response?.status); // outputs: 200
+    console.log(request.response?.headers); // outputs: { 'content-type': 'text/html; charset=UTF-8' }
 
     :baseUrlResolutions.js
     // With a base URL of http://example.com/site, the following url parameters resolve as such:
@@ -172,6 +207,21 @@ export async function url (
             context,
             url: path,
             wait
+        }).catch((err) => {
+            /**
+             * It seems that WebDriver Bidi runs into issue with concurrent navigation.
+             * @see https://github.com/w3c/webdriver-bidi/issues/878
+             */
+            if (
+                // Chrome error message
+                err.message.includes('navigation canceled by concurrent navigation') ||
+                // Firefox error message
+                err.message.includes('failed with error: unknown error')
+            ) {
+                return this.navigateTo(validateUrl(path))
+            }
+
+            throw err
         })
 
         if (mock) {
@@ -195,6 +245,10 @@ export async function url (
          */
         if (resetPreloadScript) {
             await resetPreloadScript.remove()
+        }
+
+        if (!navigation) {
+            return
         }
 
         /**

@@ -49,13 +49,13 @@ export default class BaseReporter {
         uid?: string
         file?: string
         title?: string
-        error?: Error
+        error?: string
         sessionId?: string
         config?: unknown
         isMultiremote?: boolean
         instanceOptions?: Options.Testrunner
         capabilities?: unknown
-        retry?: number
+        retry?: number,
     }) {
         payload.cid = this._cid
 

@@ -68,6 +68,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('asyncIterationScenario', this.asyncIterationScenario.bind(this))
         this._browser.addCommand('parentElementChaining', this.parentNextPreviousElementChaining.bind(this))
         this._browser.addCommand('refetchElementScenario', this.refetchElementScenario.bind(this))
+        this._browser.addCommand('waitForExistScenario', this.waitForExistScenario.bind(this))
         this._browser.addCommand('executeMemLeakScenario', this.executeMemLeakScenario.bind(this))
         this._browser.addCommand('requestRetryScenario', this.requestRetryScenario.bind(this))
     }
@@ -171,6 +172,14 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.findElements().times(1).reply(200, { value: [elemResponse1, elemResponse2] })
         this._mock.command.findElements().times(1).reply(200, { value: [elemResponse1, elemResponse2, elemResponse3] })
         this._mock.command.findElements().times(1).reply(200, { value: [elemResponse1, elemResponse2, elemResponse3, elemResponse4] })
+    }
+
+    waitForExistScenario() {
+        const elemResponse = { [ELEM_PROP]: '1' }
+        this._mock.command.findElement().times(1).reply(404, NO_SUCH_ELEMENT)
+        this._mock.command.findElement().times(1).reply(200, { value: elemResponse })
+        this._mock.command.findElements().times(4).reply(200, { value: [] })
+        this._mock.command.findElements().times(2).reply(200, { value: [elemResponse] })
     }
 
     asyncIterationScenario () {

@@ -23,6 +23,7 @@ export class ContextManager extends SessionManager {
     #currentContext?: string
     #mobileContext?: string
     #isNativeContext: boolean
+    #getContextSupport = true
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ContextManager.name)
@@ -59,6 +60,42 @@ export class ContextManager extends SessionManager {
          */
         if (this.#browser.isMobile) {
             this.#browser.on('result', this.#onCommandResultMobile.bind(this))
+        } else {
+            /**
+             * Listen to the 'browsingContext.navigationStarted' event to handle context changes
+             * through navigation within e.g. frames.
+             */
+            this.#browser.sessionSubscribe({
+                events: ['browsingContext.navigationStarted']
+            })
+            this.#browser.on('browsingContext.navigationStarted', async (nav) => {
+                /**
+                 * no need to do anything as we navigate within the same context
+                 */
+                if (!this.#currentContext || nav.context === this.#currentContext) {
+                    return
+                }
+
+                /**
+                 * a navigation event may have changed the tree structure, so we need to get the
+                 * current tree and see if our context is still there, if not, we need to reset
+                 * the context to the first context in the tree.
+                 */
+                const { contexts } = await this.#browser.browsingContextGetTree({})
+                /**
+                 * check if the context is still in the tree, if not, switch to...
+                 */
+                const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
+                /**
+                 * ...the context we are navigating to
+                 */
+                const newContext = contexts.find((context) => context.context === nav.context)
+                if (!hasContext && newContext) {
+                    this.setCurrentContext(newContext.context)
+                    this.#browser.switchToWindow(this.#currentContext)
+                    return
+                }
+            })
         }
     }
 
@@ -160,7 +197,8 @@ export class ContextManager extends SessionManager {
         if (
             this.#browser.isMobile &&
             !this.#isNativeContext &&
-            !this.#mobileContext
+            !this.#mobileContext &&
+            this.#getContextSupport
         ) {
             const context = await this.#browser.getContext().catch((err) => {
                 log.warn(
@@ -168,6 +206,14 @@ export class ContextManager extends SessionManager {
                     `WebDriver capabilities: ${JSON.stringify(this.#browser.capabilities)}\n` +
                     `Requested WebDriver capabilities: ${JSON.stringify(this.#browser.requestedCapabilities)}`
                 )
+
+                /**
+                 * Avoid continuing fetching the context if the environment does not support it
+                 */
+                if (err.message.includes('Request failed with status code 405')) {
+                    this.#getContextSupport = false
+                }
+
                 return undefined
             })
             this.#mobileContext = typeof context === 'string'

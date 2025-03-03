@@ -4,6 +4,8 @@ import BrowserStackConfig from './config.js'
 import { saveFunnelData } from './instrumentation/funnelInstrumentation.js'
 import { fileURLToPath } from 'node:url'
 import { BROWSERSTACK_TESTHUB_JWT } from './constants.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import TestOpsConfig from './testOps/testOpsConfig.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -28,6 +30,13 @@ export function shouldCallCleanup(config: BrowserStackConfig): string[] {
     if (config.userName && config.accessKey && !config.funnelDataSent) {
         const savedFilePath = saveFunnelData('SDKTestSuccessful', config)
         args.push('--funnelData', savedFilePath)
+    }
+
+    if (PerformanceTester.isEnabled()) {
+        process.env.PERF_USER_NAME = config.userName
+        process.env.PERF_TESTHUB_UUID = TestOpsConfig.getInstance().buildHashedId
+        process.env.SDK_RUN_ID = config.sdkRunID
+        args.push('--performanceData')
     }
 
     return args

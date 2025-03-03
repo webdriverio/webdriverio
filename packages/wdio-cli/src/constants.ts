@@ -106,7 +106,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service$--$delta' },
         { name: 'testrail', value: '@wdio/testrail-reporter$--$testrail' },
-        { name: 'light', value: 'wdio-light-reporter$--$light' }
+        { name: 'light', value: 'wdio-light-reporter$--$light' },
+        { name: 'wdio-json-html-reporter', value: 'wdio-json-html-reporter$--$jsonhtml' }
     ],
     plugin: [
         { name: 'wait-for: utilities that provide functionalities to wait for certain conditions till a defined task is complete.\n   > https://www.npmjs.com/package/wdio-wait-for', value: 'wdio-wait-for$--$wait-for' },
@@ -507,7 +508,7 @@ export const QUESTIONNAIRE = [{
         const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
         return getDefaultFiles(answers, pattern)
     },
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && Boolean(answers.framework.match(/(mocha|jasmine)/))
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && /(mocha|jasmine)/.test(answers.framework)
 }, {
     type: 'input',
     name: 'specs',

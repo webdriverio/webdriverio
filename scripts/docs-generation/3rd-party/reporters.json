@@ -63,5 +63,11 @@
     "title": "Light Reporter",
     "githubUrl": "https://github.com/sarfrajadstreaks/wdio-light-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-light-reporter"
+  },
+  {
+    "packageName": "wdio-json-html-reporter",
+    "title": "JSON HTML Reporter",
+    "githubUrl": "https://github.com/aswinchembath/wdio-json-html-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-json-html-reporter"
   }
 ]

@@ -21,7 +21,6 @@ vi.mock('../src/commands', () => {
         enablePerformanceAudits = vi.fn()
         disablePerformanceAudits = vi.fn()
         setThrottlingProfile = vi.fn()
-        emulateDevice = vi.fn()
         checkPWA = vi.fn()
         getCoverageReport = vi.fn()
         _logCoverage = vi.fn()

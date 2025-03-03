@@ -1,0 +1,7 @@
+// Snapshot v1
+
+exports[`Using Snapshot matcher in Cucumber works > I use the snapshot matcher 1`] = `
+{
+  "foo": "bar",
+}
+`;

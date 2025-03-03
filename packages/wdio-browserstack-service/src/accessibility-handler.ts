@@ -25,6 +25,8 @@ import {
     executeAccessibilityScript
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 import { BStackLogger } from './bstackLogger.js'
 
@@ -324,16 +326,23 @@ class _AccessibilityHandler {
 
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: unknown) {
         BStackLogger.debug('Performing scan before saving results')
-        await performA11yScan(this.isAppAutomate, browser, true, true)
+        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN, async () => {
+            await performA11yScan(this.isAppAutomate, browser, true, true)
+        }, { command: 'afterTest' })()
+
         if (isAppAccessibilityAutomationSession(this._accessibility, this.isAppAutomate)) {
             return
         }
-        if (accessibilityScripts.saveTestResults) {
-            const results: unknown = await executeAccessibilityScript(browser, accessibilityScripts.saveTestResults, dataForExtension)
-            BStackLogger.debug(util.format(results as string))
-        } else {
-            BStackLogger.error('saveTestResults script is null or undefined')
-        }
+
+        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.SAVE_RESULTS, async () => {
+            if (accessibilityScripts.saveTestResults) {
+                const results: unknown = await executeAccessibilityScript(browser, accessibilityScripts.saveTestResults, dataForExtension)
+                BStackLogger.debug(util.format(results as string))
+            } else {
+                BStackLogger.error('saveTestResults script is null or undefined')
+            }
+        })()
+
     }
 
     private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {

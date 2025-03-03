@@ -105,7 +105,7 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
          */
         driver = 'SafariDriver'
         driverProcess = startSafaridriver({
-            useTechnologyPreview: Boolean(caps.browserName.match(/preview/i)),
+            useTechnologyPreview: /preview/i.test(caps.browserName),
             ...safaridriverOptions,
             port
         })

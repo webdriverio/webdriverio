@@ -76,7 +76,19 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
  */
 export function commandCallStructure (commandName: string, args: unknown[], unfurl = false) {
     const callArgs = args.map((arg) => {
-        if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function') || arg.startsWith('return (async function'))) {
+        if (
+            typeof arg === 'string' &&
+            /**
+             * The regex pattern matches:
+             *  - Regular functions: `function()` or `function foo()`
+             *  - Async functions: `async function()` or `async function foo()`
+             *  - IIFEs: `!function()`
+             *  - Returned functions: `return function` or `return (function`
+             *  - Returned async functions: `return async function` or `return (async function`
+             *  - Arrow functions: `() =>` or `param =>` or `(param1, param2) =>`
+             */
+            /^\s*(?:(?:async\s+)?function\s*[\w\s]*\(|!function\(|return\s+\(?(?:async\s+)?function|\(?\w*(?:\s*,\s*\w+)*\)?\s*=>)/.test(arg.trim())
+        ) {
             arg = '<fn>'
         } else if (
             typeof arg === 'string' &&

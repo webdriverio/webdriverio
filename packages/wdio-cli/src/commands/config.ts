@@ -193,17 +193,25 @@ export async function formatConfigFilePaths(config: string) {
 
 /**
  * Helper utility used in `run` and `install` command to check whether a config file currently exists
- * @param configPath the file path to the WDIO config file
+ * @param configPathNoExtension the file path to the WDIO config file without extension
+ * @param configPath the file path to the WDIO config file that is checked first if set
  * @returns {string} the path to the config file that exists, otherwise undefined
  */
-export async function canAccessConfigPath(configPath: string) {
-    return Promise.all(SUPPORTED_CONFIG_FILE_EXTENSION.map(async (supportedExtension) => {
-        const configPathWithExtension = `${configPath}.${supportedExtension}`
+export async function canAccessConfigPath(configPathNoExtension:string, configPath?:string) {
+    return new Promise<string | undefined>((resolve, reject)=>{
+        if (configPath) {
+            const _configPath = configPath
+            fs.access(_configPath).then(()=>resolve(_configPath), reject)
+        } else {
+            reject()
+        }
+    }).catch(()=>Promise.all(SUPPORTED_CONFIG_FILE_EXTENSION.map(async (supportedExtension) => {
+        const configPathWithExtension = `${configPathNoExtension}.${supportedExtension}`
         return fs.access(configPathWithExtension).then(() => configPathWithExtension, () => undefined)
     })).then(
         (configFilePaths) => configFilePaths.find(Boolean),
         () => undefined
-    )
+    ))
 }
 
 /**
@@ -214,7 +222,6 @@ export async function canAccessConfigPath(configPath: string) {
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
 export async function missingConfigurationPrompt(command: string, configPath: string, runConfigCmd = runConfigCommand) {
-
     const message = (
         `Could not execute "${command}" due to missing configuration, file ` +
         `"${path.parse(configPath).name}[.js/.ts]" not found! ` +
@@ -236,9 +243,13 @@ export async function missingConfigurationPrompt(command: string, configPath: st
         console.log(`No WebdriverIO configuration found in "${process.cwd()}"`)
 
         /* istanbul ignore next */
-        return !process.env.WDIO_UNIT_TESTS && process.exit(0)
+        if (!process.env.WDIO_UNIT_TESTS) {
+            process.exit(0)
+        }
+        return configPath
     }
 
     const parsedAnswers = await parseAnswers(false)
     await runConfigCmd(parsedAnswers, 'latest')
+    return configPath
 }

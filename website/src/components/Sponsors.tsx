@@ -23,16 +23,6 @@ export default function Sponsors () {
                         target="_blank"
                         style={{ width: '200px' }}
                     />
-
-                    <ImageSwitcher
-                        lightImageSrc="/img/sponsors/saucelabs_black.svg"
-                        darkImageSrc="/img/sponsors/saucelabs_white.svg"
-                        alt="Sauce Labs"
-                        link="https://www.saucelabs.com"
-                        target="_blank"
-                        width={400}
-                        style={{ position: 'relative', top: '-2px', width: 200 }}
-                    />
                 </div>
             </div>
             <div className="gold">
