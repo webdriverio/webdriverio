@@ -1,10 +1,13 @@
 import url from 'node:url'
+import path from 'node:path'
 
 import chokidar from 'chokidar'
-import logger from '@wdio/logger'
 import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
+
+import logger from '@wdio/logger'
+import { FileSystemPathService } from '@wdio/config/node'
 import type { Capabilities, Workers } from '@wdio/types'
 
 import Launcher from './launcher.js'
@@ -50,7 +53,10 @@ export default class Watcher {
          */
         const { filesToWatch } = this._launcher.configParser.getConfig()
         if (filesToWatch.length) {
-            chokidar.watch(filesToWatch, { ignoreInitial: true })
+            const pathService = new FileSystemPathService()
+            const rootDir = path.dirname(path.resolve(process.cwd(), this._configFile))
+            const globbedFilesToWatch = filesToWatch.map((file) => pathService.ensureAbsolutePath(file, rootDir))
+            chokidar.watch(globbedFilesToWatch, { ignoreInitial: true })
                 .on('add', this.getFileListener(false))
                 .on('change', this.getFileListener(false))
         }
