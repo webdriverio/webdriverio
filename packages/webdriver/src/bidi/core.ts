@@ -10,6 +10,7 @@ import type { Client } from '../types.js'
 
 const SCRIPT_PREFIX = '/* __wdio script__ */'
 const SCRIPT_SUFFIX = '/* __wdio script end__ */'
+const base64Regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/
 
 const log = logger('webdriver')
 const RESPONSE_TIMEOUT = 1000 * 60
@@ -120,7 +121,19 @@ export class BidiCore {
                 return
             }
 
-            log.info('BIDI RESULT', data.toString())
+            /**
+             * If the result is a base64 encoded string, we want to log a simplified version
+             * of the result instead of the raw base64 encoded string
+             */
+            let resultLog = data.toString()
+            if ('data' in payload.result && typeof payload.result.data === 'string' && base64Regex.test(payload.result.data)) {
+                resultLog = JSON.stringify({
+                    ...payload.result,
+                    data: `Base64 string [${payload.result.data.length} chars]`
+                })
+            }
+
+            log.info('BIDI RESULT', resultLog)
             this.client?.emit('bidiResult', payload)
             const resolve = this.#pendingCommands.get(payload.id)
             if (!resolve) {
