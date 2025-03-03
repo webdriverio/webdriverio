@@ -554,10 +554,10 @@ function filterDublicationArrayItems(specList: Spec[]) {
 
 function isValidRegex(expression: string) {
     try {
-      new RegExp(expression)
-      return true
+        new RegExp(expression)
+        return true
     } catch {
-      return false
+        return false
     }
 }
 
