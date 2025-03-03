@@ -91,7 +91,7 @@ export const config: WebdriverIO.Config = {
     // - @wdio/mocha-framework, @wdio/jasmine-framework
     // - @wdio/local-runner
     // - @wdio/sumologic-reporter
-    // - @wdio/cli, @wdio/config, @testplane/utils
+    // - @wdio/cli, @wdio/config, @testplane/wdio-utils
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     // logLevels: {
     //     webdriver: 'info',

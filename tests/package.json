@@ -14,7 +14,7 @@
     "@testplane/wdio-repl": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/runner": "workspace:*",
-    "@testplane/utils": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/allure-reporter": "workspace:*",
     "@wdio/concise-reporter": "workspace:*",

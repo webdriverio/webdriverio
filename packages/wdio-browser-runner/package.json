@@ -81,7 +81,7 @@
     "@testplane/wdio-protocols": "workspace:*",
     "@wdio/runner": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
-    "@testplane/utils": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "expect": "30.0.0-alpha.7",
     "expect-webdriverio": "^5.1.0",

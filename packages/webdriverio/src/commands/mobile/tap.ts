@@ -1,6 +1,6 @@
 import logger from '@testplane/wdio-logger'
 
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import type { MobileScrollIntoViewOptions, TapOptions } from '../../types.js'
 
 const log = logger('webdriver')

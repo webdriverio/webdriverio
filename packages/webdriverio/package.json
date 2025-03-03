@@ -83,7 +83,7 @@
     "@testplane/wdio-protocols": "workspace:*",
     "@testplane/wdio-repl": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
-    "@testplane/utils": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*",
     "archiver": "^7.0.1",
     "aria-query": "^5.3.0",
     "cheerio": "^1.0.0-rc.12",

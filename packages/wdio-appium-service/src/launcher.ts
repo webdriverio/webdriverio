@@ -13,7 +13,7 @@ import { resolve } from 'import-meta-resolve'
 import { isCloudCapability } from '@wdio/config'
 import { SevereServiceError } from '@testplane/webdriverio'
 import type { Services, Capabilities, Options } from '@testplane/wdio-types'
-import { isAppiumCapability } from '@testplane/utils'
+import { isAppiumCapability } from '@testplane/wdio-utils'
 
 import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'

@@ -1,13 +1,5 @@
-<<<<<<< HEAD
-import { getBrowserObject } from '@testplane/utils'
-import type { ElementReference } from '@testplane/protocols'
-=======
-import fs from 'node:fs/promises'
-import url from 'node:url'
-
-import { resolve } from 'import-meta-resolve'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import type { ElementReference } from '@testplane/wdio-protocols'
->>>>>>> 0ce6e1836 (fix: rename @testplane/protocols to @testplane/wdio-protocols)
 
 import { resqScript } from '../constant.js'
 import { getElement } from '../../utils/getElementObject.js'

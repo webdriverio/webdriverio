@@ -3,7 +3,7 @@ import type { Frameworks, Services, Options } from '@testplane/wdio-types'
 
 import * as iterators from './pIteration.js'
 
-const log = logger('@testplane/utils:shim')
+const log = logger('@testplane/wdio-utils:shim')
 
 let inCommandHook = false
 

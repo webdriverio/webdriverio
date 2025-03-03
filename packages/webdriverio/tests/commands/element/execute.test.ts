@@ -1,11 +1,6 @@
 import path from 'node:path'
-<<<<<<< HEAD
 import { expect, describe, it, vi, beforeEach } from 'vitest'
 import { ELEMENT_KEY } from '@testplane/webdriver'
-=======
-import { expect, describe, it, vi } from 'vitest'
-import { ELEMENT_KEY } from '@testplane/webdriver'
->>>>>>> 9a3eb7366 (chore: rename webdriver to @testplane/webdriver)
 
 import { remote } from '../../../src/index.js'
 

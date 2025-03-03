@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import logger from '@testplane/wdio-logger'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
-import { executeHooksWithArgs } from '@testplane/utils'
+import { executeHooksWithArgs } from '@testplane/wdio-utils'
 import { ConfigParser } from '@wdio/config/node'
 import { attach } from '@testplane/webdriverio'
 import { _setGlobal } from '@wdio/globals'
@@ -25,7 +25,7 @@ vi.mock('expect-webdriverio', () => ({
     }
 }))
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
-vi.mock('@testplane/utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/utils')))
+vi.mock('@testplane/wdio-utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-utils')))
 vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('@wdio/globals', () => ({
     _setGlobal: vi.fn()

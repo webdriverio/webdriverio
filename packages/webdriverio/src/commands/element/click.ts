@@ -1,5 +1,5 @@
 import logger from '@testplane/wdio-logger'
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 
 import type { RectReturn } from '@testplane/wdio-protocols'
 import type { ClickOptions } from '../../types.js'

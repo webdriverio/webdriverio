@@ -1,7 +1,7 @@
 import logger from '@testplane/wdio-logger'
 import { ELEMENT_KEY } from '@testplane/webdriver'
 
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import type { ChainablePromiseElement, CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
 import { MobileScrollDirection } from '../../types.js'
 

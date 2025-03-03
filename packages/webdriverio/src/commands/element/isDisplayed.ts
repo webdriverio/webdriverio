@@ -1,4 +1,4 @@
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 
 import { hasElementId } from '../../utils/index.js'
 import isElementDisplayedLegacyScript from '../../scripts/isElementDisplayed.js'

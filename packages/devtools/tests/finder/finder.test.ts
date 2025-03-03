@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, describe, beforeAll, test, vi } from 'vitest'
-import { canAccess } from '@testplane/utils/node'
+import { canAccess } from '@testplane/wdio-utils/node'
 
 import getFinder from '../../src/finder/index.js'
 import edgeFinder from '../../src/finder/edge.js'
@@ -8,7 +8,7 @@ import { darwinGetAppPaths, darwinGetInstallations } from '../../src/finder/find
 
 const systemProfiler = await vi.importActual('./systemProfiler.json')
 
-vi.mock('@testplane/utils/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio', 'utils', 'node')))
+vi.mock('@testplane/wdio-utils/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio', 'utils', 'node')))
 
 vi.mock('child_process', vi.fn().mockImplementation(() => ({
     execSync() {

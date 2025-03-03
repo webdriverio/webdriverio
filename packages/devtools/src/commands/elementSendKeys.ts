@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { UNICODE_CHARACTERS } from '@testplane/utils'
+import { UNICODE_CHARACTERS } from '@testplane/wdio-utils'
 import type { ElementHandle, KeyInput } from 'puppeteer-core'
 
 import { getStaleElementError } from '../utils.js'

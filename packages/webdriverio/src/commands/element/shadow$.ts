@@ -3,7 +3,7 @@ import { SHADOW_ELEMENT_KEY } from '@testplane/webdriver'
 
 import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 import { getElement } from '../../utils/getElementObject.js'
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import { findStrategy } from '../../utils/findStrategy.js'
 
 const log = logger('webdriverio')

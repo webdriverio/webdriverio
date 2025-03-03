@@ -1,4 +1,4 @@
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 
 /**
  * :::warning

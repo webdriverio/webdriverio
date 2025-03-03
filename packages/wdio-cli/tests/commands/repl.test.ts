@@ -6,7 +6,7 @@ import { remote } from '@testplane/webdriverio'
 
 import { handler, builder } from '../../src/commands/repl.js'
 
-vi.mock('@testplane/utils', () => {
+vi.mock('@testplane/wdio-utils', () => {
     let syncSupport = false
 
     return {

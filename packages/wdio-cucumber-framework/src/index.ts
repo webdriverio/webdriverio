@@ -11,7 +11,7 @@ import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
 
 import logger from '@testplane/wdio-logger'
-import { executeHooksWithArgs, testFnWrapper } from '@testplane/utils'
+import { executeHooksWithArgs, testFnWrapper } from '@testplane/wdio-utils'
 import type { Capabilities, Options, Frameworks } from '@testplane/wdio-types'
 
 import {

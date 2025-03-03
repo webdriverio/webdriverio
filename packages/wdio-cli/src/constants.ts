@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import module from 'node:module'
-import { HOOK_DEFINITION } from '@testplane/utils'
+import { HOOK_DEFINITION } from '@testplane/wdio-utils'
 import type { Options, Services, Reporters } from '@testplane/wdio-types'
 
 import {

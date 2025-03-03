@@ -20,7 +20,7 @@ const packages = {
     '@testplane/webdriver': 'packages/webdriver',
     '@testplane/webdriverio': 'packages/webdriverio',
     '@wdio/globals': 'packages/wdio-globals',
-    '@testplane/utils': 'packages/wdio-utils',
+    '@testplane/wdio-utils': 'packages/wdio-utils',
     '@wdio/browser-runner': 'packages/wdio-browser-runner',
     '@wdio/reporter': 'packages/wdio-reporter',
     '@wdio/allure-reporter': 'packages/wdio-allure-reporter',

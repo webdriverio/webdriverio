@@ -43,7 +43,7 @@
     "@testplane/wdio-logger": "workspace:*",
     "@wdio/protocols": "8.32.0",
     "@testplane/wdio-types": "workspace:*",
-    "@testplane/utils": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*",
     "chrome-launcher": "^1.0.0",
     "edge-paths": "^3.0.5",
     "import-meta-resolve": "^4.0.0",

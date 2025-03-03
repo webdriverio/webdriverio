@@ -1,4 +1,4 @@
-import { sleep } from '@testplane/utils'
+import { sleep } from '@testplane/wdio-utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getContextManager } from '../../session/context.js'

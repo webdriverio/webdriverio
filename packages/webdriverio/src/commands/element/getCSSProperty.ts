@@ -1,5 +1,5 @@
 import cssShorthandProps from 'css-shorthand-properties'
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 
 import { parseCSS } from '../../utils/index.js'
 

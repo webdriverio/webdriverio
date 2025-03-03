@@ -38,7 +38,7 @@
   "dependencies": {
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
-    "@testplane/utils": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "glob": "^10.2.2",
     "import-meta-resolve": "^4.0.0"

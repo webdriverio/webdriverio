@@ -1,6 +1,6 @@
 import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
-import { webdriverMonad, wrapCommand } from '@testplane/utils'
+import { webdriverMonad, wrapCommand } from '@testplane/wdio-utils'
 import type { Options } from '@testplane/wdio-types'
 import type { ProtocolCommands } from '@testplane/wdio-protocols'
 

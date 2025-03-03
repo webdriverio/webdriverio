@@ -1,7 +1,7 @@
 import { ELEMENT_KEY } from '@testplane/webdriver'
 
 import { getElement } from '../../utils/getElementObject.js'
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import type { CustomStrategyFunction } from '../../types.js'
 
 /**

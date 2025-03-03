@@ -3,7 +3,7 @@ import type { ChildProcess } from 'node:child_process'
 
 import logger from '@testplane/wdio-logger'
 
-import { webdriverMonad, sessionEnvironmentDetector, startWebDriver, isBidi } from '@testplane/utils'
+import { webdriverMonad, sessionEnvironmentDetector, startWebDriver, isBidi } from '@testplane/wdio-utils'
 import { validateConfig } from '@wdio/config'
 import type { Capabilities, Options } from '@testplane/wdio-types'
 

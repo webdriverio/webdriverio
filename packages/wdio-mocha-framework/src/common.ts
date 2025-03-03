@@ -1,4 +1,4 @@
-import { wrapGlobalTestMethod } from '@testplane/utils'
+import { wrapGlobalTestMethod } from '@testplane/wdio-utils'
 
 import { INTERFACES, TEST_INTERFACES, MOCHA_TIMEOUT_MESSAGE } from './constants.js'
 import type { FormattedMessage, FrameworkMessage, MochaOpts } from './types.js'

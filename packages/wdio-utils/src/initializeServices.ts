@@ -3,7 +3,7 @@ import logger from '@testplane/wdio-logger'
 
 import initializePlugin from './initializePlugin.js'
 
-const log = logger('@testplane/utils:initializeServices')
+const log = logger('@testplane/wdio-utils:initializeServices')
 
 type IntialisedService = (
     [Services.ServiceClass | { default: Function }, WebdriverIO.ServiceOption, string] |

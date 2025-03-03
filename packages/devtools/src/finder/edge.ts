@@ -9,7 +9,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { execSync } from 'node:child_process'
 import { getEdgePath } from 'edge-paths'
-import { canAccess } from '@testplane/utils/node'
+import { canAccess } from '@testplane/wdio-utils/node'
 
 import { sort, findByWhich } from '../utils.js'
 import { darwinGetAppPaths, darwinGetInstallations } from './finder.js'

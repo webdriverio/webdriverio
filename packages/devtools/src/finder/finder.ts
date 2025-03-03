@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { execSync } from 'node:child_process'
 
-import { canAccess } from '@testplane/utils/node'
+import { canAccess } from '@testplane/wdio-utils/node'
 
 const DARWIN_LIST_APPS = 'system_profiler SPApplicationsDataType -json'
 

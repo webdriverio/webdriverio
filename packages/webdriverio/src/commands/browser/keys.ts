@@ -1,4 +1,4 @@
-import type { UNICODE_CHARACTERS } from '@testplane/utils'
+import type { UNICODE_CHARACTERS } from '@testplane/wdio-utils'
 
 import { checkUnicode } from '../../utils/index.js'
 

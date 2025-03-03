@@ -1,6 +1,6 @@
 import { ELEMENT_KEY } from '@testplane/webdriver'
 
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import isElementStable from '../../scripts/isElementStable.js'
 
 /**

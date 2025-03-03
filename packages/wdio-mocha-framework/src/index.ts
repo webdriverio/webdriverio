@@ -6,7 +6,7 @@ import Mocha from 'mocha'
 import { handleRequires } from 'mocha/lib/cli/run-helpers.js'
 
 import logger from '@testplane/wdio-logger'
-import { executeHooksWithArgs } from '@testplane/utils'
+import { executeHooksWithArgs } from '@testplane/wdio-utils'
 import type { Services, Options } from '@testplane/wdio-types'
 
 import { formatMessage, setupEnv } from './common.js'

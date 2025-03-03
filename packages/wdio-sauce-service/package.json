@@ -34,14 +34,9 @@
   "dependencies": {
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
-    "@testplane/utils": "workspace:*",
-<<<<<<< HEAD
     "saucelabs": "^9.0.1",
-    "@testplane/webdriverio": "workspace:*"
-=======
-    "saucelabs": "8.0.0",
-    "@testplane/webdriverio": "workspace:*"
->>>>>>> cd96ababa (chore: rename webdriverio to @testplane/webdriverio)
+    "@testplane/webdriverio": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*"
   },
   "devDependencies": {
     "@types/ip": "^1.1.0",

@@ -1,6 +1,6 @@
 import logger from '@testplane/wdio-logger'
 
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import type { MoveToOptions } from '../../types.js'
 
 const log = logger('webdriver')

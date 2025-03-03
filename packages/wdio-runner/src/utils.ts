@@ -5,7 +5,7 @@ import { DEFAULTS } from '@testplane/webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { AsymmetricMatchers } from 'expect-webdriverio'
 import type { Options, Capabilities } from '@testplane/wdio-types'
-import { enableFileLogging } from '@testplane/utils'
+import { enableFileLogging } from '@testplane/wdio-utils'
 
 const log = logger('@wdio/runner')
 

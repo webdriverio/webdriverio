@@ -43,7 +43,7 @@
  * @type utility
  *
  */
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import type { ThrottleOptions } from '../../types.js'
 
 const NETWORK_PRESETS = {

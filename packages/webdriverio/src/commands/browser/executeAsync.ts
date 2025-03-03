@@ -1,4 +1,4 @@
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import type { remote } from '@testplane/webdriver'
 
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'

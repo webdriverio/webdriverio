@@ -1,5 +1,5 @@
 import { ELEMENT_KEY } from '@testplane/webdriver'
-import { getBrowserObject } from '@testplane/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
