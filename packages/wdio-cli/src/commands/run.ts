@@ -87,11 +87,11 @@ export const cmdArgs = {
         type: 'array'
     },
     spec: {
-        desc: 'run only a certain spec file - overrides specs piped from stdin',
+        desc: 'run only a certain spec file or wildcard - overrides specs piped from stdin',
         type: 'array'
     },
     exclude: {
-        desc: 'exclude certain spec file from the test run - overrides exclude piped from stdin',
+        desc: 'exclude certain spec file or wildcard from the test run - overrides exclude piped from stdin',
         type: 'array'
     },
     'repeat': {
