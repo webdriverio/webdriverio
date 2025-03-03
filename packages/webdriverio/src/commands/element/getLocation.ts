@@ -1,4 +1,4 @@
-import type { RectReturn } from '@testplane/protocols'
+import type { RectReturn } from '@testplane/wdio-protocols'
 import { getElementRect } from '../../utils/index.js'
 
 export type Location = Pick<RectReturn, 'x' | 'y'>;

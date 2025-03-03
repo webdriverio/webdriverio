@@ -1,4 +1,4 @@
-import type { ElementReference } from '@testplane/protocols'
+import type { ElementReference } from '@testplane/wdio-protocols'
 import type { BaseActionParams, KeyActionType } from './base.js'
 import BaseAction from './base.js'
 import type { ChainablePromiseElement } from '../../types.js'

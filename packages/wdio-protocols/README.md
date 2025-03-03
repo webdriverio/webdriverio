@@ -16,7 +16,7 @@ This package stores the definition for various automation protocols such as [Web
 To install the package, run:
 
 ```sh
-npm install @testplane/protocols
+npm install @testplane/wdio-protocols
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ npm install @testplane/protocols
 You can get data by importing the package as follows:
 
 ```js
-import { WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol } from '@testplane/protocols'
+import { WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol } from '@testplane/wdio-protocols'
 
 /**
  * get description of session command

@@ -2,7 +2,7 @@ import path from 'node:path'
 import { ELEMENT_KEY } from '@testplane/webdriver'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import type { ElementReference } from '@testplane/protocols'
+import type { ElementReference } from '@testplane/wdio-protocols'
 import {
     getElementFromResponse,
     parseCSS,

@@ -612,12 +612,12 @@ importers:
       '@originjs/vite-plugin-commonjs':
         specifier: ^1.0.3
         version: 1.0.3
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -804,12 +804,12 @@ importers:
 
   packages/wdio-cli:
     dependencies:
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -1182,7 +1182,7 @@ importers:
         specifier: workspace:9.5.0
         version: link:../wdio-utils
       '@testplane/wdio-types':
-        specifier: workspace:9.5.0
+        specifier: workspace:*
         version: link:../wdio-types
       '@types/mocha':
         specifier: ^10.0.6
@@ -1251,7 +1251,7 @@ importers:
         specifier: workspace:9.5.0
         version: link:../wdio-utils
       '@testplane/wdio-types':
-        specifier: workspace:9.5.0
+        specifier: workspace:*
         version: link:../wdio-types
       '@testplane/webdriver':
         specifier: workspace:9.5.4
@@ -1495,7 +1495,7 @@ importers:
 
   packages/wdio-webdriver-mock-service:
     dependencies:
-      '@testplane/protocols':
+      '@testplane/wdio-protocols':
         specifier: workspace:*
         version: link:../wdio-protocols
       '@testplane/wdio-types':
@@ -1520,12 +1520,12 @@ importers:
 
   packages/webdriver:
     dependencies:
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -1553,12 +1553,12 @@ importers:
 
   packages/webdriverio:
     dependencies:
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../wdio-protocols
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -1656,12 +1656,12 @@ importers:
 
   tests:
     dependencies:
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../packages/wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../packages/wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../packages/wdio-protocols
       '@testplane/webdriver':
         specifier: workspace:*
         version: link:../packages/webdriver
@@ -1804,12 +1804,12 @@ importers:
 
   tests/typings/cucumber:
     dependencies:
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../../../packages/wdio-types
@@ -1870,12 +1870,12 @@ importers:
 
   tests/typings/jasmine:
     dependencies:
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../../../packages/wdio-types
@@ -1948,12 +1948,12 @@ importers:
 
   tests/typings/mocha:
     dependencies:
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../../../packages/wdio-types
@@ -2014,12 +2014,12 @@ importers:
 
   tests/typings/webdriver:
     dependencies:
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../../../packages/wdio-types
@@ -2080,12 +2080,12 @@ importers:
 
   tests/typings/webdriverio:
     dependencies:
-      '@testplane/protocols':
-        specifier: workspace:*
-        version: link:../../../packages/wdio-protocols
       '@testplane/utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
+      '@testplane/wdio-protocols':
+        specifier: workspace:*
+        version: link:../../../packages/wdio-protocols
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../../../packages/wdio-types

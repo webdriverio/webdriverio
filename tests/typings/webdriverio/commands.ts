@@ -1,6 +1,6 @@
 import { expectType } from 'tsd'
 import { $ } from '@wdio/globals'
-import type { RectReturn } from '@testplane/protocols'
+import type { RectReturn } from '@testplane/wdio-protocols'
 
 ;(async () => {
     const el = $('foxo')

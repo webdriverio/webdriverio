@@ -1,4 +1,4 @@
-import type { Cookie } from '@testplane/protocols'
+import type { Cookie } from '@testplane/wdio-protocols'
 
 /**
  *

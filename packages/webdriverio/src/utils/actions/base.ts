@@ -1,5 +1,5 @@
 import { ELEMENT_KEY } from '@testplane/webdriver'
-import type { ElementReference } from '@testplane/protocols'
+import type { ElementReference } from '@testplane/wdio-protocols'
 
 export type ActionType = 'key' | 'pointer' | 'wheel'
 export type KeyActionType = 'mouse' | 'pen' | 'touch'

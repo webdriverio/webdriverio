@@ -78,7 +78,7 @@
     "@wdio/local-runner": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
-    "@testplane/protocols": "workspace:*",
+    "@testplane/wdio-protocols": "workspace:*",
     "@wdio/runner": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",

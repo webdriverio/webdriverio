@@ -1,5 +1,5 @@
 import { getBrowserObject } from '@testplane/utils'
-import type { ElementReference } from '@testplane/protocols'
+import type { ElementReference } from '@testplane/wdio-protocols'
 
 import { resqScript } from '../constant.js'
 import { enhanceElementsArray } from '../../utils/index.js'

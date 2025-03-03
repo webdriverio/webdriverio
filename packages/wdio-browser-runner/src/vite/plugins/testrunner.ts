@@ -11,7 +11,7 @@ import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     type Protocol
-} from '@testplane/protocols'
+} from '@testplane/wdio-protocols'
 
 import { SESSIONS } from '../../constants.js'
 import { getTemplate, getErrorTemplate, normalizeId } from '../utils.js'

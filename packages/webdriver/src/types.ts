@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'node:events'
 import type { Options, Capabilities, ThenArg } from '@testplane/wdio-types'
-import type { WebDriverBidiProtocol, ProtocolCommands } from '@testplane/protocols'
+import type { WebDriverBidiProtocol, ProtocolCommands } from '@testplane/wdio-protocols'
 
 import type { BidiHandler } from './bidi/handler.js'
 import type { EventData } from './bidi/localTypes.js'

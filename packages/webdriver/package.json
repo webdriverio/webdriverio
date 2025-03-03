@@ -36,7 +36,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@testplane/protocols": "workspace:*",
+    "@testplane/wdio-protocols": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
     "@types/node": "^20.1.0",

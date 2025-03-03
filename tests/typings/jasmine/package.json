@@ -19,7 +19,7 @@
     "@wdio/firefox-profile-service": "workspace:*",
     "@wdio/jasmine-framework": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
-    "@testplane/protocols": "workspace:*",
+    "@testplane/wdio-protocols": "workspace:*",
     "@wdio/sauce-service": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
     "@wdio/static-server-service": "workspace:*",

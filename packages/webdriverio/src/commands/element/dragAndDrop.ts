@@ -1,5 +1,5 @@
 import { ELEMENT_KEY } from '@testplane/webdriver'
-import type { ElementReference } from '@testplane/protocols'
+import type { ElementReference } from '@testplane/wdio-protocols'
 import { getBrowserObject } from '@testplane/utils'
 import type { ChainablePromiseElement, DragAndDropCoordinate, DragAndDropOptions } from '../../types.js'
 

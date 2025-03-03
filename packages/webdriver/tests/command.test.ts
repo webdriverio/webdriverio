@@ -3,7 +3,7 @@ import { EventEmitter, on } from 'node:events'
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
-import type { CommandEndpoint } from '@testplane/protocols'
+import type { CommandEndpoint } from '@testplane/wdio-protocols'
 import type { Options } from '@testplane/wdio-types'
 
 import '../src/browser.js'

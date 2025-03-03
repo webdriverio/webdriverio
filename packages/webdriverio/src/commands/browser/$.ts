@@ -1,5 +1,5 @@
 import { ELEMENT_KEY } from '@testplane/webdriver'
-import type { ElementReference } from '@testplane/protocols'
+import type { ElementReference } from '@testplane/wdio-protocols'
 
 import { DEEP_SELECTOR } from '../../constants.js'
 import { findElement } from '../../utils/index.js'
