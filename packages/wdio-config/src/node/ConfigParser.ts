@@ -387,13 +387,13 @@ export default class ConfigParser {
                 fileList.forEach(file => {
                     if (typeof file === 'string') {
                         // TODO: filteredFile is not a regex and thus this is a false positive
-                        if (filteredFile && !filteredFile.includes('*') && file.match(filteredFile)) {
+                        if (isValidRegex(filteredFile) && file.match(filteredFile)) {
                             filesToFilter.add(file)
                         }
                     } else if (Array.isArray(file)) {
                         file.forEach(subFile => {
                             // TODO: filteredFile is not a regex and thus this is a false positive
-                            if (filteredFile && !filteredFile.includes('*') && subFile.match(filteredFile)) {
+                            if (isValidRegex(filteredFile) && subFile.match(filteredFile)) {
                                 filesToFilter.add(subFile)
                             }
                         })
@@ -551,3 +551,13 @@ function filterEmptyArrayItems(specList: Spec[]) {
 function filterDublicationArrayItems(specList: Spec[]) {
     return [...new Set(specList.map(item=> Array.isArray(item) ? [...new Set(item)] : item))]
 }
+
+function isValidRegex(expression: string) {
+    try {
+      new RegExp(expression)
+      return true
+    } catch {
+      return false
+    }
+}
+
