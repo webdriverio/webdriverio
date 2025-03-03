@@ -190,7 +190,7 @@ export const logos = [{
 }]
 
 export const LHIntregrationExample = `
-await browser.emulateDevice('iPhone X')
+await browser.emulate('device', 'iPhone X')
 await browser.enablePerformanceAudits({
     networkThrottling: 'Good 3G',
     cacheEnabled: true,
