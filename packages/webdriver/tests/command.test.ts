@@ -58,9 +58,10 @@ const requestHandler = {
 
 vi.mock('../src/request/request', () => {
     const thenMock = vi.fn()
-    const catchMock = vi.fn()
+    const finallyMock = vi.fn()
+    const catchMock = vi.fn().mockReturnValue({ finally: finallyMock })
 
-    const promise = { then: thenMock, catch: catchMock }
+    const promise = { then: thenMock, catch: catchMock, finally: finallyMock }
     const WebDriverRequest = vi.fn().mockReturnValue({
         makeRequest: () => (promise),
         on: vi.fn()
@@ -70,6 +71,7 @@ vi.mock('../src/request/request', () => {
     return {
         thenMock,
         catchMock,
+        finallyMock,
         WebDriverRequest,
     }
 })
@@ -102,7 +104,6 @@ describe('command wrapper', () => {
     beforeEach(() => {
         vi.mocked(log.warn).mockClear()
         vi.mocked(scope.emit).mockClear()
-        vi.mocked(RequestMock).mockClear()
         vi.mocked(thenMock).mockClear()
         vi.mocked(catchMock).mockClear()
     })
@@ -151,10 +152,10 @@ describe('command wrapper', () => {
                 using: 'css selector',
                 value: '#body'
             },
+            expect.any(AbortSignal),
             false,
             requestHandler
         )
-        vi.mocked(RequestMock).mockClear()
     })
 
     it('should do a proper request with non required params', async () => {
@@ -168,10 +169,10 @@ describe('command wrapper', () => {
                 value: '#body',
                 customParam: 123
             },
+            expect.any(AbortSignal),
             false,
             requestHandler
         )
-        vi.mocked(RequestMock).mockClear()
     })
 
     it('should encode uri parameters', async () => {
@@ -182,10 +183,10 @@ describe('command wrapper', () => {
             'POST',
             '/session/:sessionId/element/%2Fpath/element',
             expect.anything(),
+            expect.any(AbortSignal),
             false,
             requestHandler
         )
-        vi.mocked(RequestMock).mockClear()
     })
 
     it('should double encode uri parameters if using selenium', async () => {
@@ -196,10 +197,10 @@ describe('command wrapper', () => {
             'POST',
             '/session/:sessionId/element/%252Fpath/element',
             expect.anything(),
+            expect.any(AbortSignal),
             false,
             requestHandler
         )
-        vi.mocked(RequestMock).mockClear()
         expect(log.warn).toHaveBeenCalledTimes(0)
     })
 
@@ -236,11 +237,10 @@ describe('command wrapper result log', () => {
         const commandFn = commandWrapper(method, path, endpoint)
         await commandFn.call(scope)
         expect(RequestMock).toHaveBeenCalledTimes(1)
-        expect(RequestMock).toHaveBeenCalledWith(method, path, expect.any(Object), false, requestHandler)
+        expect(RequestMock).toHaveBeenCalledWith(method, path, expect.any(Object), expect.any(AbortSignal), false, requestHandler)
 
         const callback = thenMock.mock.calls[0][0]
 
-        vi.mocked(RequestMock).mockClear()
         vi.mocked(thenMock).mockClear()
         vi.mocked(log.info).mockClear()
 
