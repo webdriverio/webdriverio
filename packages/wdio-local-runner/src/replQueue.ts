@@ -1,5 +1,5 @@
 import type { ChildProcess } from 'node:child_process'
-import type { ReplConfig } from '@wdio/repl'
+import type { ReplConfig } from '@testplane/wdio-repl'
 
 import WDIORepl from './repl.js'
 

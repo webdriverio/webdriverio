@@ -1,5 +1,5 @@
 import { serializeError } from 'serialize-error'
-import WDIORepl from '@wdio/repl'
+import WDIORepl from '@testplane/wdio-repl'
 
 /**
  *

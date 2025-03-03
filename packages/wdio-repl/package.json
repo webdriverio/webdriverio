@@ -1,5 +1,5 @@
 {
-  "name": "@wdio/repl",
+  "name": "@testplane/wdio-repl",
   "version": "9.4.4",
   "description": "A WDIO helper utility to provide a repl interface for WebdriverIO",
   "author": "Christian Bromann <mail@bromann.dev>",

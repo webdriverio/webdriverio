@@ -81,7 +81,7 @@
     "@wdio/config": "workspace:*",
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-protocols": "workspace:*",
-    "@wdio/repl": "workspace:*",
+    "@testplane/wdio-repl": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
     "archiver": "^7.0.1",

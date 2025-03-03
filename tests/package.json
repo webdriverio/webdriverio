@@ -11,7 +11,7 @@
     "@wdio/config": "workspace:*",
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-protocols": "workspace:*",
-    "@wdio/repl": "workspace:*",
+    "@testplane/wdio-repl": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/runner": "workspace:*",
     "@testplane/utils": "workspace:*",

@@ -5,7 +5,7 @@ import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
 import type { Options, Workers } from '@testplane/wdio-types'
-import type { ReplConfig } from '@wdio/repl'
+import type { ReplConfig } from '@testplane/wdio-repl'
 
 import logger from '@testplane/wdio-logger'
 

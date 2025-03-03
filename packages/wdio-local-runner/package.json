@@ -38,7 +38,7 @@
   "dependencies": {
     "@types/node": "^20.1.0",
     "@testplane/wdio-logger": "workspace:*",
-    "@wdio/repl": "workspace:*",
+    "@testplane/wdio-repl": "workspace:*",
     "@wdio/runner": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "async-exit-hook": "^2.0.1",

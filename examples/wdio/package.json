@@ -24,7 +24,7 @@
     "@wdio/lighthouse-service": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
-    "@wdio/repl": "workspace:*",
+    "@testplane/wdio-repl": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
