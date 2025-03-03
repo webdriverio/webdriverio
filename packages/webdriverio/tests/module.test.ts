@@ -2,7 +2,7 @@ import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest'
 import path from 'node:path'
 import WebDriver from '@testplane/webdriver'
 import logger from '@testplane/wdio-logger'
-import { validateConfig } from '@wdio/config'
+import { validateConfig } from '@testplane/wdio-config'
 
 import detectBackend from '../src/utils/detectBackend.js'
 import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
@@ -63,7 +63,7 @@ vi.mock('devtools', () => {
     }
 })
 
-vi.mock('@wdio/config', () => {
+vi.mock('@testplane/wdio-config', () => {
     const validateConfigMock = {
         validateConfig: vi.fn((_, args) => args),
         detectBackend: vi.fn(),

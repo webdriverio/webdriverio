@@ -16,8 +16,8 @@ vi.mock('node:fs/promises', () => ({
     }
 }))
 vi.mock('@testplane/wdio-utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-utils')))
-vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
-vi.mock('@wdio/config/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config/node')))
+vi.mock('@testplane/wdio-config', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-config')))
+vi.mock('@testplane/wdio-config/node', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-config/node')))
 vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../src/interface', () => ({
     default: class {

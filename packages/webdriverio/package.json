@@ -78,7 +78,7 @@
   "dependencies": {
     "@types/node": "^20.11.30",
     "@types/sinonjs__fake-timers": "^8.1.5",
-    "@wdio/config": "workspace:*",
+    "@testplane/wdio-config": "workspace:*",
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-protocols": "workspace:*",
     "@testplane/wdio-repl": "workspace:*",

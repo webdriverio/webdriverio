@@ -2,8 +2,13 @@
 import logger from '@testplane/wdio-logger'
 
 import WebDriver, { DEFAULTS } from '@testplane/webdriver'
+<<<<<<< HEAD
 import { validateConfig } from '@wdio/config'
 import { enableFileLogging, wrapCommand, isBidi } from '@testplane/wdio-utils'
+=======
+import { validateConfig } from '@testplane/wdio-config'
+import { enableFileLogging, wrapCommand } from '@testplane/wdio-utils'
+>>>>>>> a9e27229b (fix: rename @wdio/config to @testplane/wdio-config)
 import type { Options, Capabilities } from '@testplane/wdio-types'
 import type * as WebDriverTypes from '@testplane/webdriver'
 

@@ -12,10 +12,10 @@ import Watcher from '../src/watcher.js'
 
 vi.mock('chokidar')
 vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
-vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
+vi.mock('@testplane/wdio-config', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-config')))
 vi.mock('@testplane/wdio-utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-utils')))
 vi.mock('../src/launcher', async () => {
-    const { ConfigParser } = await import('@wdio/config/node')
+    const { ConfigParser } = await import('@testplane/wdio-config/node')
 
     interface LauncherMockRunCommandArguments extends Omit<RunCommandArguments, 'configPath'> {
         isMultiremote?: boolean;

@@ -32,9 +32,14 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^20.11.28",
+<<<<<<< HEAD
     "@wdio/config": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
+=======
+    "@testplane/wdio-config": "workspace:*",
+    "@wdio/globals": "workspace:9.5.7",
+>>>>>>> a9e27229b (fix: rename @wdio/config to @testplane/wdio-config)
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "@testplane/wdio-utils": "workspace:*",

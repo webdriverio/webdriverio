@@ -49,7 +49,7 @@
     "@vue/compiler-dom": "^3.4.19",
     "@vue/test-utils": "^2.4.3",
     "@wdio/browser-runner": "workspace:*",
-    "@wdio/config": "workspace:*",
+    "@testplane/wdio-config": "workspace:*",
     "@wdio/cli": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",

@@ -35,7 +35,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/config": "workspace:*",
+    "@testplane/wdio-config": "workspace:*",
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "@testplane/wdio-utils": "workspace:*",

@@ -8,7 +8,7 @@
     "devtools": "workspace:*",
     "@testplane/webdriverio": "workspace:*",
     "@wdio/cli": "workspace:*",
-    "@wdio/config": "workspace:*",
+    "@testplane/wdio-config": "workspace:*",
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-protocols": "workspace:*",
     "@testplane/wdio-repl": "workspace:*",

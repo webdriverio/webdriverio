@@ -35,6 +35,9 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.1.1
         version: 3.1.2(svelte@4.2.19)(vite@5.4.14(@types/node@20.17.17)(terser@5.37.0))
+      '@testplane/wdio-config':
+        specifier: workspace:*
+        version: link:packages/wdio-config
       '@testplane/wdio-repl':
         specifier: workspace:*
         version: link:packages/wdio-repl
@@ -86,9 +89,6 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^2.0.5
         version: 2.1.8(vitest@2.1.9(@types/node@20.17.17)(jsdom@25.0.1)(terser@5.37.0))
-      '@wdio/config':
-        specifier: workspace:*
-        version: link:packages/wdio-config
       '@wdio/eslint':
         specifier: ^0.0.5
         version: 0.0.5(@typescript-eslint/eslint-plugin@8.18.1(@typescript-eslint/parser@8.18.1(eslint@9.17.0(jiti@2.4.2))(typescript@5.7.3))(eslint@9.17.0(jiti@2.4.2))(typescript@5.7.3))(eslint@9.17.0(jiti@2.4.2))(typescript@5.7.3)
@@ -240,6 +240,9 @@ importers:
       '@testing-library/vue':
         specifier: ^8.0.1
         version: 8.1.0(@vue/compiler-sfc@3.5.13)(vue@3.5.13(typescript@5.7.2))
+      '@testplane/wdio-config':
+        specifier: workspace:*
+        version: link:../packages/wdio-config
       '@testplane/wdio-repl':
         specifier: workspace:*
         version: link:../packages/wdio-repl
@@ -270,9 +273,6 @@ importers:
       '@wdio/cli':
         specifier: workspace:*
         version: link:../packages/wdio-cli
-      '@wdio/config':
-        specifier: workspace:*
-        version: link:../packages/wdio-config
       '@wdio/dot-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-dot-reporter
@@ -380,6 +380,9 @@ importers:
 
   examples/wdio:
     dependencies:
+      '@testplane/wdio-config':
+        specifier: workspace:*
+        version: link:../../packages/wdio-config
       '@testplane/wdio-repl':
         specifier: workspace:*
         version: link:../../packages/wdio-repl
@@ -398,9 +401,6 @@ importers:
       '@wdio/cli':
         specifier: workspace:*
         version: link:../../packages/wdio-cli
-      '@wdio/config':
-        specifier: workspace:*
-        version: link:../../packages/wdio-config
       '@wdio/cucumber-framework':
         specifier: workspace:*
         version: link:../../packages/wdio-cucumber-framework
@@ -488,24 +488,24 @@ importers:
 
   packages/devtools:
     dependencies:
-      '@testplane/wdio-logger':
-        specifier: workspace:*
-        version: link:../wdio-logger
-      '@testplane/wdio-types':
-        specifier: workspace:*
-        version: link:../wdio-types
-      '@testplane/wdio-utils':
-        specifier: workspace:*
-        version: link:../wdio-utils
       '@types/node':
         specifier: ^20.1.0
         version: 20.17.12
       '@wdio/config':
         specifier: 8.31.1
         version: 8.31.1
+      '@wdio/logger':
+        specifier: 8.28.0
+        version: 8.28.0
       '@wdio/protocols':
         specifier: 8.32.0
         version: 8.32.0
+      '@wdio/types':
+        specifier: 8.31.1
+        version: 8.31.1
+      '@wdio/utils':
+        specifier: 8.31.1
+        version: 8.31.1
       chrome-launcher:
         specifier: ^1.0.0
         version: 1.1.2
@@ -582,6 +582,9 @@ importers:
 
   packages/wdio-appium-service:
     dependencies:
+      '@testplane/wdio-config':
+        specifier: workspace:*
+        version: link:../wdio-config
       '@testplane/wdio-logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -594,9 +597,6 @@ importers:
       '@testplane/webdriverio':
         specifier: workspace:*
         version: link:../webdriverio
-      '@wdio/config':
-        specifier: workspace:*
-        version: link:../wdio-config
       change-case:
         specifier: ^5.4.3
         version: 5.4.4
@@ -807,6 +807,9 @@ importers:
 
   packages/wdio-cli:
     dependencies:
+      '@testplane/wdio-config':
+        specifier: workspace:*
+        version: link:../wdio-config
       '@testplane/wdio-logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -828,9 +831,6 @@ importers:
       '@vitest/snapshot':
         specifier: ^2.1.1
         version: 2.1.8
-      '@wdio/config':
-        specifier: workspace:*
-        version: link:../wdio-config
       '@wdio/globals':
         specifier: workspace:*
         version: link:../wdio-globals
@@ -1265,6 +1265,9 @@ importers:
 
   packages/wdio-runner:
     dependencies:
+      '@testplane/wdio-config':
+        specifier: workspace:*
+        version: link:../wdio-config
       '@testplane/wdio-logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -1541,6 +1544,9 @@ importers:
 
   packages/webdriver:
     dependencies:
+      '@testplane/wdio-config':
+        specifier: workspace:*
+        version: link:../wdio-config
       '@testplane/wdio-logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -1574,6 +1580,9 @@ importers:
 
   packages/webdriverio:
     dependencies:
+      '@testplane/wdio-config':
+        specifier: workspace:*
+        version: link:../wdio-config
       '@testplane/wdio-logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -1598,9 +1607,6 @@ importers:
       '@types/sinonjs__fake-timers':
         specifier: ^8.1.5
         version: 8.1.5
-      '@wdio/config':
-        specifier: workspace:*
-        version: link:../wdio-config
       archiver:
         specifier: ^7.0.1
         version: 7.0.1
@@ -1677,6 +1683,9 @@ importers:
 
   tests:
     dependencies:
+      '@testplane/wdio-config':
+        specifier: workspace:*
+        version: link:../packages/wdio-config
       '@testplane/wdio-logger':
         specifier: workspace:*
         version: link:../packages/wdio-logger
@@ -1713,9 +1722,6 @@ importers:
       '@wdio/concise-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-concise-reporter
-      '@wdio/config':
-        specifier: workspace:*
-        version: link:../packages/wdio-config
       '@wdio/cucumber-framework':
         specifier: workspace:*
         version: link:../packages/wdio-cucumber-framework

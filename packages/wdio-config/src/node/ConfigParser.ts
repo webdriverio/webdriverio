@@ -11,7 +11,7 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 
 import type { PathService } from '../types.js'
 
-const log = logger('@wdio/config:ConfigParser')
+const log = logger('@testplane/wdio-config:ConfigParser')
 const MERGE_DUPLICATION = ['services', 'reporters', 'capabilities'] as const
 
 type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]

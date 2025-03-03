@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@wdio/browser-runner": "workspace:*",
-    "@wdio/config": "workspace:*",
+    "@testplane/wdio-config": "workspace:*",
     "@wdio/cli": "workspace:*",
     "@wdio/cucumber-framework": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",

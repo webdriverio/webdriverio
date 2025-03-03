@@ -41,7 +41,7 @@
   "dependencies": {
     "@types/node": "^20.1.1",
     "@vitest/snapshot": "^2.1.1",
-    "@wdio/config": "workspace:*",
+    "@testplane/wdio-config": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-protocols": "workspace:*",
