@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ELEMENT_KEY } from '@testplane/webdriver'
+import { ELEMENT_KEY } from '@testplane/wdio-webdriver'
 import stringify from 'safe-stable-stringify'
 
 import { deserialize } from '../../../src/utils/bidi/index.js'

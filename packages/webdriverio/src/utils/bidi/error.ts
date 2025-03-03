@@ -1,4 +1,4 @@
-import { type local, type remote } from '@testplane/webdriver'
+import { type local, type remote } from '@testplane/wdio-webdriver'
 
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../../commands/constant.js'
 

@@ -1,7 +1,7 @@
-import { type local } from '@testplane/webdriver'
+import { type local } from '@testplane/wdio-webdriver'
 import logger from '@testplane/wdio-logger'
 
-import type { remote } from '@testplane/webdriver'
+import type { remote } from '@testplane/wdio-webdriver'
 
 import { SessionManager } from './session.js'
 import customElementWrapper from '../scripts/customElement.js'

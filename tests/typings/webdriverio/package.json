@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@testplane/webdriver": "workspace:*",
+    "@testplane/wdio-webdriver": "workspace:*",
     "@testplane/webdriverio": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@testplane/wdio-types": "workspace:*",

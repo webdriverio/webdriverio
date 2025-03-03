@@ -25,8 +25,13 @@
     "@wdio/static-server-service": "workspace:*",
     "@wdio/sumologic-reporter": "workspace:*",
     "@wdio/testingbot-service": "workspace:*",
+<<<<<<< HEAD
     "expect-webdriverio": "^5.1.0",
     "@testplane/webdriver": "workspace:*",
+=======
+    "expect-webdriverio": "^5.0.1",
+    "@testplane/wdio-webdriver": "workspace:*",
+>>>>>>> 3c4557873 (fix: rename @testplane/webdriver to @testplane/wdio-webdriver)
     "@testplane/webdriverio": "workspace:*"
   }
 }

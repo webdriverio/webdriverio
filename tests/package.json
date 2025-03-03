@@ -3,8 +3,13 @@
   "private": true,
   "type": "module",
   "dependencies": {
+<<<<<<< HEAD
     "expect-webdriverio": "^5.1.0",
     "@testplane/webdriver": "workspace:*",
+=======
+    "expect-webdriverio": "^5.0.1",
+    "@testplane/wdio-webdriver": "workspace:*",
+>>>>>>> 3c4557873 (fix: rename @testplane/webdriver to @testplane/wdio-webdriver)
     "devtools": "workspace:*",
     "@testplane/webdriverio": "workspace:*",
     "@wdio/cli": "workspace:*",

@@ -61,7 +61,7 @@ export async function getProtocolDriver (options: Capabilities.WebdriverIOConfig
         }
     }
 
-    const packageName = automationProtocol === 'webdriver' ? `@testplane/${automationProtocol}` : automationProtocol || '@testplane/webdriver'
+    const packageName = automationProtocol === 'webdriver' ? `@testplane/${automationProtocol}` : automationProtocol || '@testplane/wdio-webdriver'
     const Driver = webdriverImport || (await import(packageName)).default
 
     return { Driver, options }

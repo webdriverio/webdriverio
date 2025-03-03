@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from '@testplane/webdriver'
+import { ELEMENT_KEY } from '@testplane/wdio-webdriver'
 
 import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '@testplane/wdio-utils'

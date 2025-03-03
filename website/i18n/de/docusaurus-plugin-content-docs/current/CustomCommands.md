@@ -288,7 +288,7 @@ await elem.click({ force: true })
 Wenn Sie das WebDriver-Protokoll verwenden und Tests auf einer Plattform ausführen, die zusätzliche Befehle unterstützt, die nicht durch eine der Protokolldefinitionen in [`@testplane/wdio-protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) definiert sind, können Sie diese manuell über die Schnittstelle `addCommand` hinzufügen. Das Paket `webdriver` bietet einen Befehlswrapper, der es ermöglicht, diese neuen Endpunkte auf die gleiche Weise wie andere Befehle zu registrieren und dieselben Parameterprüfungen und Fehlerbehandlungen bereitzustellen. Um diesen neuen Endpunkt zu registrieren, importieren Sie den Befehlswrapper und registrieren Sie wie folgt einen neuen Befehl damit:
 
 ```js
-import { command } from '@testplane/webdriver'
+import { command } from '@testplane/wdio-webdriver'
 
 browser.addCommand('myNewCommand', command('POST', '/session/:sessionId/foobar/:someId', {
     command: 'myNewCommand',

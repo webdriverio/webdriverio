@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { type remote, type local } from '@testplane/webdriver'
+import { type remote, type local } from '@testplane/wdio-webdriver'
 
 let customStack: undefined | string
 

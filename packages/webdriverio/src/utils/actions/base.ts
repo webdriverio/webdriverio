@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from '@testplane/webdriver'
+import { ELEMENT_KEY } from '@testplane/wdio-webdriver'
 import type { ElementReference } from '@testplane/wdio-protocols'
 
 export type ActionType = 'key' | 'pointer' | 'wheel'

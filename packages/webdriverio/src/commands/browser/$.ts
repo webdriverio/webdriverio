@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from '@testplane/webdriver'
+import { ELEMENT_KEY } from '@testplane/wdio-webdriver'
 import type { ElementReference } from '@testplane/wdio-protocols'
 
 import { DEEP_SELECTOR } from '../../constants.js'

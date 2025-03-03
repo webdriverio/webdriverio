@@ -100,7 +100,7 @@
     "rgb2hex": "0.2.5",
     "serialize-error": "^11.0.3",
     "urlpattern-polyfill": "^10.0.0",
-    "@testplane/webdriver": "workspace:*"
+    "@testplane/wdio-webdriver": "workspace:*"
   },
   "peerDependencies": {
     "devtools": "^8.14.0",
