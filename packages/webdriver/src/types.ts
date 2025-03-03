@@ -38,9 +38,22 @@ export type BidiResponses = ValueOf<ObtainMethods<Pick<BidiHandler, BidiCommands
 export type RemoteConfig = Options.WebDriver & Capabilities.WithRequestedCapabilities
 
 type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
+export interface WebDriverCommandEvent {
+    command: string
+    method: string
+    endpoint: string
+    body: unknown
+}
+export interface WebDriverResultEvent {
+    command: string
+    method: string
+    endpoint: string
+    body: unknown
+    result: unknown
+}
 type WebDriverClassicEvents = {
-    command: { command: string, method: string, endpoint: string, body: unknown }
-    result: { command: string, method: string, endpoint: string, body: unknown, result: unknown }
+    command: WebDriverCommandEvent
+    result: WebDriverResultEvent
     bidiCommand: Omit<CommandData, 'id'>,
     bidiResult: CommandResponse,
     'request.performance': RequestPerformanceEvent
