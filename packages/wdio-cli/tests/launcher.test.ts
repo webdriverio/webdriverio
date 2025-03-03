@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { sleep, enableFileLogging } from '@testplane/utils'
 import Launcher from '../src/launcher.js'
 
@@ -18,7 +18,7 @@ vi.mock('node:fs/promises', () => ({
 vi.mock('@testplane/utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/utils')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 vi.mock('@wdio/config/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config/node')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../src/interface', () => ({
     default: class {
         emit = vi.fn()

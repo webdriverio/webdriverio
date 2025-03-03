@@ -1,7 +1,7 @@
 import url from 'node:url'
 import path from 'node:path'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@testplane/utils'
 import { matchers } from 'expect-webdriverio'

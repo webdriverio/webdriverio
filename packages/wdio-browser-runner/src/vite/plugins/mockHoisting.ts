@@ -3,7 +3,7 @@ import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { parse, print, visit, types } from 'recast'
 import typescriptParser from 'recast/parsers/typescript.js'
 import type { Plugin } from 'vite'

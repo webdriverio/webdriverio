@@ -3,7 +3,7 @@ import { expect, describe, it, afterEach, vi } from 'vitest'
 import { remote, Key } from '../../../src/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('keys', () => {
     it('should send keys', async () => {

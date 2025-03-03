@@ -1,7 +1,7 @@
 import util from 'node:util'
 
 import { deepmerge } from 'deepmerge-ts'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Capabilities, Options } from '@testplane/wdio-types'
 import type { CoverageSummary } from 'istanbul-lib-coverage'
 

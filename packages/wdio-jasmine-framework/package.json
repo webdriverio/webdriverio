@@ -36,7 +36,7 @@
   "dependencies": {
     "@types/node": "^20.1.0",
     "@wdio/globals": "workspace:*",
-    "@wdio/logger": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
     "expect-webdriverio": "^5.1.0",

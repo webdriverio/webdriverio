@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import WebDriver, { DEFAULTS } from '@testplane/webdriver'
 import { validateConfig } from '@wdio/config'

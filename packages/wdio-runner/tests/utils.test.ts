@@ -1,6 +1,6 @@
 import path from 'node:path'
 // @ts-expect-error - mock
-import { logMock } from '@wdio/logger'
+import { logMock } from '@testplane/wdio-logger'
 import { attach, remote, multiremote } from '@testplane/webdriverio'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 
@@ -10,7 +10,7 @@ import {
     initializeInstance, sanitizeCaps, getInstancesData
 } from '../src/utils.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@testplane/utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/utils')))
 

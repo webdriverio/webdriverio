@@ -5,7 +5,7 @@ import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
 vi.mock('devtools')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 vi.mock('../../../src/scripts/isElementDisplayed', () => ({
     __esModule: true,

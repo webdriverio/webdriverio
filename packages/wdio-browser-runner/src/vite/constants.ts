@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import type { InlineConfig } from 'vite'

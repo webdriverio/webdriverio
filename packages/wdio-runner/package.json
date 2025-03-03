@@ -32,10 +32,16 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^20.11.28",
+<<<<<<< HEAD
     "@wdio/config": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
+=======
+    "@wdio/config": "workspace:9.5.0",
+    "@wdio/globals": "workspace:9.5.7",
+    "@testplane/wdio-logger": "workspace:*",
+>>>>>>> 3c0684c6a (fix: rename @wdio/logger to @testplane/wdio-logger)
     "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",

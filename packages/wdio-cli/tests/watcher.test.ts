@@ -11,7 +11,7 @@ import type { RunCommandArguments } from '../src/types.js'
 import Watcher from '../src/watcher.js'
 
 vi.mock('chokidar')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 vi.mock('@testplane/utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/utils')))
 vi.mock('../src/launcher', async () => {

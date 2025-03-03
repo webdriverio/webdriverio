@@ -4,7 +4,7 @@ import type { LaunchResponse } from '../src/types.js'
 import { describe, expect, it, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import gitRepoInfo from 'git-repo-info'
 import CrashReporter from '../src/crash-reporter.js'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import * as utils from '../src/util.js'
 import logPatcher from '../src/logPatcher.js'
 import AccessibilityScripts from '../src/scripts/accessibility-scripts.js'
@@ -64,7 +64,7 @@ const log = logger('test')
 vi.mock('fetch')
 vi.mock('git-repo-info')
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 vi.mock('fs', () => ({
     default: {

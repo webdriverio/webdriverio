@@ -2,7 +2,7 @@ import url from 'node:url'
 import path from 'node:path'
 import { builtinModules } from 'node:module'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
 

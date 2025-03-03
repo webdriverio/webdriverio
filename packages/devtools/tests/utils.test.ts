@@ -13,9 +13,9 @@ import {
 
 vi.mock('which')
 vi.mock('chrome-launcher')
-vi.mock('@wdio/logger', async () => {
+vi.mock('@testplane/wdio-logger', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
-    return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/logger'))
+    return import(pathModule.join(process.cwd(), '__mocks__', '@testplane/wdio-logger'))
 })
 vi.mock('@testplane/utils', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path

@@ -7,7 +7,7 @@ import type { WritableStreamBuffer } from 'stream-buffers'
 import type { Options, Workers } from '@testplane/wdio-types'
 import type { ReplConfig } from '@wdio/repl'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import runnerTransformStream from './transformStream.js'
 import ReplQueue from './replQueue.js'

@@ -2,13 +2,13 @@ import path from 'node:path'
 import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Options, Services } from '@testplane/wdio-types'
 
 import { initializeLauncherService, initializeWorkerService } from '../src/initializeServices.js'
 import { safeImport } from '../src/utils.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../src/utils.js', () => ({
     safeImport: vi.fn(),
     isAbsolute: vi.fn().mockReturnValue(true)

@@ -1,14 +1,14 @@
 import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest'
 import path from 'node:path'
 import WebDriver from '@testplane/webdriver'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
 import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('webdriver', () => {
     const client = {
         sessionId: 'foobar-123',

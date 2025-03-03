@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { WritableStreamBuffer } from 'stream-buffers'
 import type { Options, Workers } from '@testplane/wdio-types'
 

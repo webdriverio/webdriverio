@@ -6,7 +6,7 @@ import { beforeAll, expect, test, afterAll, vi } from 'vitest'
 import { instances } from '@wdio/runner'
 
 vi.mock('@wdio/runner', () => import(path.join(process.cwd(), '__mocks__', '@wdio/runner')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 vi.mock('../src/constants', () => ({
     SHUTDOWN_TIMEOUT: 1

@@ -6,7 +6,7 @@ import refetchElement from '../../src/utils/refetchElement.js'
 import { waitForExist } from '../../src/commands/element/waitForExist.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../../src/commands/element/waitForExist', () => ({
     __esModule: true,
     waitForExist: vi.fn().mockImplementation(() => { return true })

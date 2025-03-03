@@ -11,7 +11,7 @@ import type { Capabilities } from '@testplane/wdio-types'
 import { TCG_URL } from '../src/constants.js'
 
 // Mock only the external dependency
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('@browserstack/ai-sdk-node')
 vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 vi.mock('uuid', () => ({ v4: () => '123456789' }))

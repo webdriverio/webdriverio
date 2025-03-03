@@ -5,7 +5,7 @@ import { expect, describe, it, vi, beforeEach } from 'vitest'
 
 import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from '../src/utils.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 vi.mock('deepmerge-ts', () => ({
     deepmerge: vi.fn()

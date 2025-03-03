@@ -1,13 +1,13 @@
 import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Capabilities } from '@testplane/wdio-types'
 
 import TestingBotLauncher from '../src/launcher.js'
 import type { TestingbotOptions } from '../src/types.js'
 
 vi.mock('testingbot-tunnel-launcher')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 const log = logger('')
 
 describe('wdio-testingbot-service', () => {

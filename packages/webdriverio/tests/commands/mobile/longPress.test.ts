@@ -3,7 +3,7 @@ import { expect, describe, it, afterEach, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('longPress test', () => {
     it('should call click with correct arguments for valid longPress', async () => {

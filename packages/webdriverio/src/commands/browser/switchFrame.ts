@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 import logger from '@wdio/logger'
 <<<<<<< HEAD
 import { ELEMENT_KEY, type remote } from '@testplane/webdriver'
 import type { ElementReference } from '@testplane/protocols'
 =======
+=======
+import logger from '@testplane/wdio-logger'
+>>>>>>> 3c0684c6a (fix: rename @wdio/logger to @testplane/wdio-logger)
 import { ELEMENT_KEY, type local, type remote } from '@testplane/webdriver'
 import type { ElementReference } from '@testplane/wdio-protocols'
 >>>>>>> 0ce6e1836 (fix: rename @testplane/protocols to @testplane/wdio-protocols)

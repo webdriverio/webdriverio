@@ -11,7 +11,7 @@ const EMPTY_INTERFACE_MESSAGE_OBJECT = {
 }
 
 vi.mock('chalk')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('cli interface', () => {
     let wdioClInterface: WDIOCLInterface

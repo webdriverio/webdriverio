@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { FakeTimerInstallOpts, InstalledClock, install } from '@sinonjs/fake-timers'
 
 const log = logger('webdriverio:ClockManager')

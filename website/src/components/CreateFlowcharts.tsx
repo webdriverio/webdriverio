@@ -119,7 +119,7 @@ const graphData = `
         RUNNER
         WEBDRIVER["webdriverio<br>webdriver"]-->
         RUNNER
-        GLOBAL["GLOBALS<br>@wdio/sync<br>@wdio/config<br>@wdio/logger<br>@testplane/utils"]
+        GLOBAL["GLOBALS<br>@wdio/sync<br>@wdio/config<br>@testplane/wdio-logger<br>@testplane/utils"]
     `
 
 export function CreateFlowcharts({ id }) {

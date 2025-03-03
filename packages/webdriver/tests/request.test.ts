@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 import path from 'node:path'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Options } from '@testplane/wdio-types'
 
 import '../src/browser.js'
 import { FetchRequest } from '../src/request/web.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('fetch')
 const { warn, error } = logger('test')
 

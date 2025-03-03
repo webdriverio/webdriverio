@@ -1,12 +1,12 @@
 import { describe, it, afterEach, expect, vi } from 'vitest'
 import path from 'node:path'
 // @ts-ignore mock feature
-import { logMock } from '@wdio/logger'
+import { logMock } from '@testplane/wdio-logger'
 import * as webdriverio from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('devtools')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('index.js', () => {
     afterEach(() => {

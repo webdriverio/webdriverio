@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import path from 'node:path'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import * as utils from '../../src/testHub/utils.js'
 import * as bstackLogger from '../../src/bstackLogger.js'
 import { BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBILITY } from '../../src/constants.js'
@@ -68,7 +68,7 @@ describe('shouldProcessEventForTesthub', () => {
 
 describe('logBuildError', () => {
     const log = logger('test')
-    vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+    vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
     const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
     bstackLoggerSpy.mockImplementation(() => {})
 

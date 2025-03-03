@@ -12,7 +12,7 @@ import * as utils from '../../../src/node/utils.js'
 
 vi.mock('fetch')
 vi.mock('fs/promises')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('saveScreenshot', () => {
     let getAbsoluteFilepathSpy: MockInstance

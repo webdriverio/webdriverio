@@ -6,7 +6,7 @@ import type { EventEmitter } from 'node:events'
 
 import { v4 as uuidv4 } from 'uuid'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { CommandEndpoint } from '@wdio/protocols'
 
 import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'

@@ -11,7 +11,7 @@ import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-b
 
 import ReportScoring from 'lighthouse/lighthouse-core/scoring.js'
 import defaultConfig from 'lighthouse/lighthouse-core/config/default-config.js'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { CustomInstanceCommands } from '@testplane/webdriverio'
 
 import { DEFAULT_FORM_FACTOR, PWA_AUDITS } from './constants.js'

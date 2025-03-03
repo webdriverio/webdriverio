@@ -7,7 +7,7 @@ import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
 import { promisify } from 'node:util'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import getPort from 'get-port'
 import { resolve } from 'import-meta-resolve'
 import { isCloudCapability } from '@wdio/config'

@@ -10,7 +10,7 @@ import {
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('@testplane/utils')
 vi.mock('fetch')
 

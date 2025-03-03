@@ -1,4 +1,10 @@
-import logger from '@wdio/logger'
+<<<<<<< HEAD
+import logger from '@testplane/wdio-logger'
+=======
+import EventEmitter from 'node:events'
+
+import logger from '@testplane/wdio-logger'
+>>>>>>> 3c0684c6a (fix: rename @wdio/logger to @testplane/wdio-logger)
 import type { JsonCompatible } from '@testplane/wdio-types'
 import { type local } from '@testplane/webdriver'
 import { URLPattern } from 'urlpattern-polyfill'

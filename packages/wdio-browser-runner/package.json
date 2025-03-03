@@ -76,7 +76,7 @@
     "@vitest/spy": "^2.0.4",
     "@wdio/globals": "workspace:*",
     "@wdio/local-runner": "workspace:*",
-    "@wdio/logger": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
     "@testplane/wdio-protocols": "workspace:*",
     "@wdio/runner": "workspace:*",

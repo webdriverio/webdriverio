@@ -6,7 +6,7 @@ import { multiremote } from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('devtools')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 const caps = (): Capabilities.MultiRemoteCapabilities => ({
     browserA: {

@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Capabilities, Services } from '@testplane/wdio-types'
 
 import { setPort } from './client.js'

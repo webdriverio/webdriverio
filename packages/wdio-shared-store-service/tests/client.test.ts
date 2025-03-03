@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeAll, afterEach } from 'vitest'
 import { getValue, setValue, setPort, setResourcePool, getValueFromPool, addValueToPool } from '../src/client.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.spyOn(global, 'fetch').mockImplementation((URL: string | URL | globalThis.Request, options?: RequestInit) => {
     const url = URL as string
     const body = options?.body as string

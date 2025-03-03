@@ -18,7 +18,7 @@ vi.mock('node:fs/promises', async (orig) => ({
         writeFile: vi.fn().mockResolvedValue({})
     }
 }))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../../src/install', () => ({
     installPackages: vi.fn(),
     getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')

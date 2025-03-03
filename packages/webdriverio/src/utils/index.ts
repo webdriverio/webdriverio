@@ -1,7 +1,7 @@
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from '@testplane/webdriver'
 import { UNICODE_CHARACTERS, asyncIterators, getBrowserObject } from '@testplane/utils'

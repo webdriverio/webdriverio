@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
 import type { Capabilities, Options, Reporters, Services } from '@testplane/wdio-types'
 

@@ -11,7 +11,7 @@ import { Readable, type Writable } from 'node:stream'
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'
 import type { Capabilities } from '@testplane/wdio-types'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import AppiumLauncher from '../src/launcher.js'
 
@@ -37,7 +37,7 @@ vi.mock('node:fs/promises', () => ({
     }
 }))
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('child_process', () => ({
     spawn: vi.fn(),
     exec: vi.fn()

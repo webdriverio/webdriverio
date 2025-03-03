@@ -1,12 +1,12 @@
 import { describe, it, beforeAll, afterEach, expect, vi } from 'vitest'
 import path from 'node:path'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import { waitForExist } from '../src/commands/element/waitForExist.js'
 import { remote } from '../src/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../src/commands/element/waitUntil', () => ({
     __esModule: true,
     waitUntil: vi.fn().mockImplementation(() => { return true })

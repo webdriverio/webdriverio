@@ -20,7 +20,7 @@ vi.mock('@testplane/utils', async (origMod) => {
         userImport: vi.fn().mockResolvedValue(puppeteer.default)
     }
 })
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 // @ts-ignore mock feature
 const cdpSession = new puppeteer.CDPSessionMock()

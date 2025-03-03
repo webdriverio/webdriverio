@@ -3,7 +3,7 @@ import path from 'node:path'
 import UAParser from 'ua-parser-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { webdriverMonad, devtoolsEnvironmentDetector } from '@testplane/utils'
 import { validateConfig } from '@wdio/config'
 import type { CommandEndpoint } from '@wdio/protocols'

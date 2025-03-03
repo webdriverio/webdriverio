@@ -5,7 +5,7 @@ import { MESSAGE_TYPES } from '@testplane/wdio-types'
 import { ServerWorkerCommunicator } from '../../src/communicator.js'
 import { SESSIONS } from '../../src/constants.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('ServerWorkerCommunicator', () => {
     it('should register server and worker', () => {

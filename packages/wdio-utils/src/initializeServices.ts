@@ -1,5 +1,5 @@
 import type { Services, Options, Capabilities } from '@testplane/wdio-types'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import initializePlugin from './initializePlugin.js'
 

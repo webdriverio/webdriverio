@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'node:events'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@testplane/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'

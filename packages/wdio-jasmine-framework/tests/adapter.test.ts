@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, test, vi, it, describe, afterEach } from 'vitest'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@testplane/utils'
 import { jasmine } from 'jasmine'
 import type { EventEmitter } from 'node:events'
@@ -13,7 +13,7 @@ vi.mock('expect-webdriverio', () => ({
     matchers: new Map([['toHaveTitle', vi.fn()]]),
     getConfig: vi.fn()
 }))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('@testplane/utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/utils')))
 
 const INTERFACES = {

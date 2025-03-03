@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@puppeteer/browsers": "^2.2.0",
-    "@wdio/logger": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^7.0.3",

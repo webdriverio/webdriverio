@@ -42,7 +42,7 @@
     "@types/node": "^20.1.0",
     "@types/ws": "^8.5.3",
     "@wdio/config": "workspace:*",
-    "@wdio/logger": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "undici": "6.12.0",
     "ws": "^8.8.0"

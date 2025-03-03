@@ -1,5 +1,5 @@
 import { type local } from '@testplane/webdriver'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import type { remote } from '@testplane/webdriver'
 

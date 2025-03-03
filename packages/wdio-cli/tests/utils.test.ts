@@ -51,7 +51,7 @@ vi.mock('recursive-readdir', () => ({
         '/foo/bar/example.e2e.js'
     ] as any)
 }))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('child_process', () => {
     const m = {
         execSyncRes: 'APPIUM_MISSING',

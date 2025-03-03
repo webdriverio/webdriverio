@@ -6,7 +6,7 @@ import { testrunner } from '../../../src/vite/plugins/testrunner.js'
 import { getTemplate, getErrorTemplate } from '../../../src/vite/utils.js'
 import { SESSIONS } from '../../../src/constants.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../../../src/vite/utils.js', () => ({
     getTemplate: vi.fn(),
     getErrorTemplate: vi.fn(),

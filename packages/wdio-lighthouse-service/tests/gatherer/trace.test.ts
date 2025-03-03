@@ -13,7 +13,7 @@ import TRACELOG from '../__fixtures__/tracelog.json' assert { type: 'json' }
 
 vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
 vi.mock('lighthouse/lighthouse-core/gather/driver/wait-for-condition')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 let traceGatherer: TraceGatherer
 

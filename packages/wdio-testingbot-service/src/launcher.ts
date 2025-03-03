@@ -2,7 +2,7 @@ import { performance, PerformanceObserver } from 'node:perf_hooks'
 import { promisify } from 'node:util'
 
 import testingbotTunnel from 'testingbot-tunnel-launcher'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Capabilities, Options, Services } from '@testplane/wdio-types'
 
 import type { TestingbotOptions, TestingbotTunnel, TunnelLauncherOptions } from './types.js'

@@ -2,7 +2,7 @@ import path from 'node:path'
 import { EventEmitter, on } from 'node:events'
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { CommandEndpoint } from '@testplane/wdio-protocols'
 import type { Options } from '@testplane/wdio-types'
 
@@ -12,7 +12,7 @@ import { WebDriverRequest as RequestMock, thenMock, catchMock } from '../src/req
 import commandWrapper from '../src/command.js'
 import type { BaseClient } from '../src/types.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('fetch')
 
 const log = logger('webdriver')

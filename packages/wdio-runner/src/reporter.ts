@@ -1,6 +1,10 @@
 import path from 'node:path'
+<<<<<<< HEAD
 import logger from '@wdio/logger'
 import DotReporter from '@wdio/dot-reporter'
+=======
+import logger from '@testplane/wdio-logger'
+>>>>>>> 3c0684c6a (fix: rename @wdio/logger to @testplane/wdio-logger)
 import { initializePlugin } from '@testplane/utils'
 import type { Options, Capabilities, Reporters } from '@testplane/wdio-types'
 

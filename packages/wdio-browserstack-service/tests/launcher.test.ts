@@ -5,7 +5,7 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 // @ts-expect-error mock feature
 import { Local, mockStart } from 'browserstack-local'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Capabilities, Options } from '@testplane/wdio-types'
 
 import BrowserstackLauncher from '../src/launcher.js'
@@ -17,7 +17,7 @@ import { RERUN_TESTS_ENV, BROWSERSTACK_TESTHUB_UUID, RERUN_ENV } from '../src/co
 import * as thUtils from '../src/testHub/utils.js'
 import TestOpsConfig from '../src/testOps/testOpsConfig.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('browserstack-local')
 vi.mock('node:fs', () => ({
     default: {

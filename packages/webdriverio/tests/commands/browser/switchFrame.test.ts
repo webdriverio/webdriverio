@@ -6,7 +6,7 @@ import { ELEMENT_KEY } from '@testplane/webdriver'
 
 let browser: WebdriverIO.Browser
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../../../src/session/context.ts', () => {
     const manager = {
         getCurrentContext: vi.fn().mockResolvedValue('5D4662C2B4465334DFD34239BA1E9E66'),

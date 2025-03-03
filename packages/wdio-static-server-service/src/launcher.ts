@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import express, { type Express } from 'express'
 import morgan from 'morgan'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Services } from '@testplane/wdio-types'
 
 import type { FolderOption, MiddleWareOption } from './types.js'

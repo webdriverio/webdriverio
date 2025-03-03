@@ -10,13 +10,13 @@ This package is used across all WebdriverIO packages to log information using th
 To install the package just call
 
 ```sh
-npm install @wdio/logger
+npm install @testplane/wdio-logger
 ```
 
 or when adding it to a WebdriverIO subpackage:
 
 ```sh
-lerna add @wdio/logger --scope <subpackage>
+lerna add @testplane/wdio-logger --scope <subpackage>
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ lerna add @wdio/logger --scope <subpackage>
 The package exposes a logger function that you can use to register an instance for your scoped package:
 
 ```js
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 const log = logger('myPackage')
 log.info('some logs')
@@ -51,7 +51,7 @@ log.progress('')
 ### Illustrative Usage of Progress
 
 ```javascript
-import logger from '@wdio/logger';
+import logger from '@testplane/wdio-logger';
 
 const log = logger('internal');
 

@@ -6,7 +6,7 @@ import { remote } from '../../../src/index.js'
 import * as utils from '../../../src/utils/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('selectByVisibleText test', () => {
     const getElementFromResponseSpy = vi.spyOn(utils, 'getElementFromResponse')

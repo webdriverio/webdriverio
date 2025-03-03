@@ -1,5 +1,5 @@
 {
-  "name": "@wdio/logger",
+  "name": "@testplane/wdio-logger",
   "version": "9.4.4",
   "description": "A helper utility for logging of WebdriverIO packages",
   "author": "Christian Bromann <mail@bromann.dev>",

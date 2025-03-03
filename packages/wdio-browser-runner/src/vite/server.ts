@@ -2,7 +2,7 @@ import path from 'node:path'
 import { EventEmitter } from 'node:events'
 
 import getPort from 'get-port'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import istanbulPlugin from 'vite-plugin-istanbul'
 import { deepmerge } from 'deepmerge-ts'
 import { createServer } from 'vite'

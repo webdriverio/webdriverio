@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ChildProcess } from 'node:child_process'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import { webdriverMonad, sessionEnvironmentDetector, startWebDriver, isBidi } from '@testplane/utils'
 import { validateConfig } from '@wdio/config'

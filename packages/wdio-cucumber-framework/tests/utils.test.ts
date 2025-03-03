@@ -15,7 +15,7 @@ import {
 } from '../src/utils.js'
 import { featureWithRules } from './fixtures/features.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('utils', () => {
     describe('createStepArgument', () => {

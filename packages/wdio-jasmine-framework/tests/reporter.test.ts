@@ -1,11 +1,11 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach, afterEach } from 'vitest'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { EventEmitter } from 'node:events'
 
 import JasmineReporter from '../src/reporter.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 const log = logger('')
 
 let jasmineReporter: JasmineReporter

@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { getBrowserObject } from '@testplane/utils'
 
 import type { RectReturn } from '@testplane/wdio-protocols'

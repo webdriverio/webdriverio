@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 // @ts-ignore mock feature
-import logger, { logMock } from '@wdio/logger'
+import logger, { logMock } from '@testplane/wdio-logger'
 import { sessionEnvironmentDetector } from '@testplane/utils'
 import { startWebDriver } from '@testplane/utils'
 
@@ -16,7 +16,7 @@ import type { Client } from '../src/types.js'
 vi.mock('geckodriver', () => ({ start: vi.fn() }))
 vi.mock('@testplane/utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/utils')))
 vi.mock('@testplane/utils/node', () => import(path.join(process.cwd(), '__mocks__', '@testplane/utils/node')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('fs')
 vi.mock('wait-port')
 vi.mock('ws')

@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import { SESSION_MOCKS } from './mock.js'
 

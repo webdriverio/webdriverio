@@ -2,7 +2,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import chalk from 'chalk'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import { PERCY_LOGS_FILE } from '../constants.js'
 import { COLORS } from '../util.js'

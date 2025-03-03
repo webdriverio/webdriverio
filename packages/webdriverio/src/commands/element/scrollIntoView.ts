@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { ELEMENT_KEY } from '@testplane/webdriver'
 
 import { getBrowserObject } from '@testplane/utils'

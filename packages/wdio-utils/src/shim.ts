@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Frameworks, Services, Options } from '@testplane/wdio-types'
 
 import * as iterators from './pIteration.js'

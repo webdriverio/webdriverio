@@ -5,7 +5,7 @@ import Mocha from 'mocha'
 // @ts-expect-error not exposed from package yet, see https://github.com/mochajs/mocha/issues/4961
 import { handleRequires } from 'mocha/lib/cli/run-helpers.js'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { executeHooksWithArgs } from '@testplane/utils'
 import type { Services, Options } from '@testplane/wdio-types'
 

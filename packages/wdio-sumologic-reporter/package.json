@@ -32,7 +32,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/logger": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "dateformat": "4.5.1",

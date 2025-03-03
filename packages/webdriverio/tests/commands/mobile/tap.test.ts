@@ -1,11 +1,11 @@
 import path from 'node:path'
 import { expect, describe, it, afterEach, vi } from 'vitest'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
 const log = logger('test')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('element tap test', () => {
     it('should log a warning when the tap command for mobile web is executed and options are provided', async () => {

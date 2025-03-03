@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@testplane/utils'
 import { WebDriverBidiProtocol, type CommandEndpoint } from '@testplane/wdio-protocols'
 

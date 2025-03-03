@@ -1,7 +1,7 @@
 import exitHook from 'async-exit-hook'
 import { resolve } from 'import-meta-resolve'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@testplane/utils'

@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { EventEmitter } from 'node:events'
 
 import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent, JasmineOpts } from './types.js'

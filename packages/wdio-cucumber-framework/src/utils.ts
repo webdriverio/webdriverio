@@ -1,5 +1,5 @@
 import path from 'node:path'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { isFunctionAsync } from '@testplane/utils'
 import type { supportCodeLibraryBuilder, World } from '@cucumber/cucumber'
 

@@ -40,7 +40,7 @@
     "@percy/appium-app": "^2.0.1",
     "@percy/selenium-webdriver": "^2.0.3",
     "@types/gitconfiglocal": "^2.0.1",
-    "@wdio/logger": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "browserstack-local": "^1.5.1",

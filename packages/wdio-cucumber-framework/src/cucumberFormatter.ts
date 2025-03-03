@@ -3,7 +3,7 @@ import { Formatter, Status } from '@cucumber/cucumber'
 import type { EventEmitter } from 'node:events'
 import path from 'node:path'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import type { Payload } from './types.js'
 import { convertStatus } from './utils.js'

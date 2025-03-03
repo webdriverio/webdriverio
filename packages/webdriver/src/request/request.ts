@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { transformCommandLogResult, sleep } from '@testplane/utils'
 import type { Options } from '@testplane/wdio-types'
 

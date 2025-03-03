@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Options } from '@testplane/wdio-types'
 
 import { registerSessionManager } from '../../session/index.js'

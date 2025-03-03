@@ -9,7 +9,7 @@
     "@testplane/webdriverio": "workspace:*",
     "@wdio/cli": "workspace:*",
     "@wdio/config": "workspace:*",
-    "@wdio/logger": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-protocols": "workspace:*",
     "@wdio/repl": "workspace:*",
     "@wdio/reporter": "workspace:*",

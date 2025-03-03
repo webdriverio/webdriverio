@@ -5,7 +5,7 @@ import { executeHooksWithArgs, executeAsync, wrapCommand } from '../src/shim.js'
 
 const globalAny: any = global
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 beforeEach(() => {
     globalAny.browser = {} as WebdriverIO.Browser

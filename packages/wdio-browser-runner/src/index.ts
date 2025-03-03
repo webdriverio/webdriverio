@@ -4,7 +4,7 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import LocalRunner from '@wdio/local-runner'
 import libCoverage, { type CoverageMap } from 'istanbul-lib-coverage'
 import libReport from 'istanbul-lib-report'

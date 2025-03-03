@@ -40,7 +40,7 @@
   "dependencies": {
     "@types/node": "^20.1.0",
     "@wdio/config": "8.31.1",
-    "@wdio/logger": "8.28.0",
+    "@testplane/wdio-logger": "workspace:*",
     "@wdio/protocols": "8.32.0",
     "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",

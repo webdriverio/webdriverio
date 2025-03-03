@@ -2,7 +2,7 @@ import url from 'node:url'
 import type { EventEmitter } from 'node:events'
 
 import Jasmine from 'jasmine'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@testplane/utils'
 import { expect as expectImport, matchers, getConfig } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'

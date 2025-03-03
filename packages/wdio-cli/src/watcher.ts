@@ -2,6 +2,10 @@ import url from 'node:url'
 import path from 'node:path'
 
 import chokidar from 'chokidar'
+<<<<<<< HEAD
+=======
+import logger from '@testplane/wdio-logger'
+>>>>>>> 3c0684c6a (fix: rename @wdio/logger to @testplane/wdio-logger)
 import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'

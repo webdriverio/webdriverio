@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { ClientOptions, RawData, WebSocket } from 'ws'
 
 import { environment } from '../environment.js'

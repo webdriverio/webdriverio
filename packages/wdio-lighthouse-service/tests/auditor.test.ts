@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { Trace } from '../src/gatherer/trace.js'
 
 import Auditor from '../src/auditor.js'
@@ -24,7 +24,7 @@ vi.mock('lighthouse/lighthouse-core/audits/content-width')
 vi.mock('lighthouse/lighthouse-core/audits/viewport')
 vi.mock('lighthouse/lighthouse-core/audits/apple-touch-icon')
 vi.mock('lighthouse/lighthouse-core/audits/maskable-icon')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 let auditor: Auditor
 

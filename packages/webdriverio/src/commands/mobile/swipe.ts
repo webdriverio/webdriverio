@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import type { ChainablePromiseElement, SwipeOptions, XY } from '../../types.js'
 import { MobileScrollDirection } from '../../types.js'

@@ -1,12 +1,12 @@
 import path from 'node:path'
 import type { Mock, VitestUtils } from 'vitest'
 import { beforeEach, expect, describe, it, afterEach, vi, beforeAll } from 'vitest'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { MobileScrollDirection, remote } from '../../../src/index.js'
 
 vi.mock('fetch')
 const log = logger('test')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 let browser: WebdriverIO.Browser
 let elem: WebdriverIO.Element
@@ -167,4 +167,3 @@ describe('swipe test', () => {
         logSpy.mockRestore()
     })
 })
-
