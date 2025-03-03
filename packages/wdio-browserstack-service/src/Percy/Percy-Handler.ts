@@ -1,4 +1,4 @@
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import {

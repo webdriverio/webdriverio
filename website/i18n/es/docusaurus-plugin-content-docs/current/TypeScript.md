@@ -108,10 +108,10 @@ Añadir servicios y reporteros a su configuración TypeScript también fortalece
 
 ## Definiciones de tipo
 
-Al ejecutar comandos WebdriverIO todas las propiedades se escriben para que no tenga que tratar de importar tipos adicionales. Sin embargo, hay casos en los que se desea definir variables de antemano. Para asegurarse de que estos son seguros, puede utilizar todos los tipos definidos en el paquete [`@testplane/types`](https://www.npmjs.com/package/@testplane/types). Por ejemplo, si desea definir la opción remota para `webdriverio` puede hacer:
+Al ejecutar comandos WebdriverIO todas las propiedades se escriben para que no tenga que tratar de importar tipos adicionales. Sin embargo, hay casos en los que se desea definir variables de antemano. Para asegurarse de que estos son seguros, puede utilizar todos los tipos definidos en el paquete [`@testplane/wdio-types`](https://www.npmjs.com/package/@testplane/wdio-types). Por ejemplo, si desea definir la opción remota para `webdriverio` puede hacer:
 
 ```ts
-import type { Options } from '@testplane/types'
+import type { Options } from '@testplane/wdio-types'
 
 const config: Options.WebdriverIO = {
     hostname: 'http://localhost',

@@ -33,7 +33,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/logger": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
 <<<<<<< HEAD
     "saucelabs": "^9.0.1",

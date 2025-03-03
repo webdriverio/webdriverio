@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
-import { MESSAGE_TYPES } from '@testplane/types'
+import { MESSAGE_TYPES } from '@testplane/wdio-types'
 
 import { ServerWorkerCommunicator } from '../../src/communicator.js'
 import { SESSIONS } from '../../src/constants.js'

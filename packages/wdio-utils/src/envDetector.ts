@@ -1,4 +1,4 @@
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 import { SUPPORTED_BROWSERNAMES } from './constants.js'
 
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']

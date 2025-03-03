@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { Capabilities, Options, Services, Frameworks } from '@testplane/types'
+import type { Capabilities, Options, Services, Frameworks } from '@testplane/wdio-types'
 
 import type { TestingbotOptions } from './types.js'
 

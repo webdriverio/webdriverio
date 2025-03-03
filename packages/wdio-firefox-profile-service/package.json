@@ -38,7 +38,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "firefox-profile": "^4.5.0"
   },
   "publishConfig": {

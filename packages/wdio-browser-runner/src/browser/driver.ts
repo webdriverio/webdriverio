@@ -3,7 +3,7 @@
 import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@testplane/utils'
 import { getEnvironmentVars, initiateBidi, parseBidiMessage } from '@testplane/webdriver'
-import { MESSAGE_TYPES, type Workers } from '@testplane/types'
+import { MESSAGE_TYPES, type Workers } from '@testplane/wdio-types'
 import safeStringify from 'safe-stringify'
 
 /**

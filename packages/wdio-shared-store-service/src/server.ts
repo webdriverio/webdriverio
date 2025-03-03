@@ -2,7 +2,7 @@ import type { AddressInfo } from 'node:net'
 import polka from 'polka'
 import { json } from '@polka/parse'
 
-import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@testplane/types'
+import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@testplane/wdio-types'
 
 const store: JsonObject = {}
 const resourcePoolStore: Map<string, JsonArray> = new Map()

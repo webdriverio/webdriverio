@@ -1,4 +1,4 @@
-import type { Options, Services } from '@testplane/types'
+import type { Options, Services } from '@testplane/wdio-types'
 
 const DEFAULT_TIMEOUT = 10000
 

@@ -1,6 +1,6 @@
 import path from 'node:path'
 import assert from 'node:assert'
-import type { Options } from '@testplane/types'
+import type { Options } from '@testplane/wdio-types'
 
 describe('Mocha smoke test', () => {
     const testJs = path.join('tests', 'mocha', 'test.ts')

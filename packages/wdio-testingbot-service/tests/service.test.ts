@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import type { Capabilities, Frameworks } from '@testplane/types'
+import type { Capabilities, Frameworks } from '@testplane/wdio-types'
 
 import TestingBotService from '../src/service.js'
 

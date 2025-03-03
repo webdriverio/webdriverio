@@ -6,7 +6,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 // @ts-expect-error mock feature
 import { Local, mockStart } from 'browserstack-local'
 import logger from '@wdio/logger'
-import type { Capabilities, Options } from '@testplane/types'
+import type { Capabilities, Options } from '@testplane/wdio-types'
 
 import BrowserstackLauncher from '../src/launcher.js'
 import type { BrowserstackConfig } from '../src/types.js'

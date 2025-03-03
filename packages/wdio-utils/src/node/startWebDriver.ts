@@ -13,7 +13,7 @@ import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriv
 import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from 'edgedriver'
 import type { InstallOptions } from '@puppeteer/browsers'
 
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 
 import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'

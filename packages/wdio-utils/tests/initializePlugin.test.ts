@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import type { Services } from '@testplane/types'
+import type { Services } from '@testplane/wdio-types'
 
 import initializePlugin from '../src/initializePlugin.js'
 

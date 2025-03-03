@@ -82,7 +82,7 @@
     "@wdio/logger": "workspace:*",
     "@testplane/protocols": "workspace:*",
     "@wdio/repl": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
     "archiver": "^7.0.1",
     "aria-query": "^5.3.0",

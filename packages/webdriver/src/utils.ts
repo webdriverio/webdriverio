@@ -8,7 +8,7 @@ import {
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@testplane/protocols'
 import { CAPABILITY_KEYS } from '@testplane/protocols'
-import type { Options } from '@testplane/types'
+import type { Options } from '@testplane/wdio-types'
 
 import command from './command.js'
 import { environment } from './environment.js'

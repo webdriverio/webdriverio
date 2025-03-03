@@ -5,7 +5,7 @@ import chokidar from 'chokidar'
 import EventEmitter from 'node:events'
 
 import { vi, describe, it, expect, afterEach } from 'vitest'
-import type { Options, Workers } from '@testplane/types'
+import type { Options, Workers } from '@testplane/wdio-types'
 
 import type { RunCommandArguments } from '../src/types.js'
 import Watcher from '../src/watcher.js'

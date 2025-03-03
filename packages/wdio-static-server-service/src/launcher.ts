@@ -4,7 +4,7 @@ import { promisify } from 'node:util'
 import express, { type Express } from 'express'
 import morgan from 'morgan'
 import logger from '@wdio/logger'
-import type { Services } from '@testplane/types'
+import type { Services } from '@testplane/wdio-types'
 
 import type { FolderOption, MiddleWareOption } from './types.js'
 

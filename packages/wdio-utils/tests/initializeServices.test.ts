@@ -3,7 +3,7 @@ import type { MockedFunction } from 'vitest'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 import logger from '@wdio/logger'
-import type { Options, Services } from '@testplane/types'
+import type { Options, Services } from '@testplane/wdio-types'
 
 import { initializeLauncherService, initializeWorkerService } from '../src/initializeServices.js'
 import { safeImport } from '../src/utils.js'

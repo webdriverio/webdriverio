@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@testplane/protocols": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
     "@types/node": "^20.1.0",
     "@types/ws": "^8.5.3",

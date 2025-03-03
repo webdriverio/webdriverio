@@ -37,7 +37,7 @@
     "@types/node": "^20.1.0",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
     "expect-webdriverio": "^5.1.0",
     "jasmine": "^5.0.0"

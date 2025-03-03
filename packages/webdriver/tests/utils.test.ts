@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import type { Capabilities, Options } from '@testplane/types'
+import type { Capabilities, Options } from '@testplane/wdio-types'
 
 import '../src/browser.js'
 

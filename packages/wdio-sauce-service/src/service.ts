@@ -10,7 +10,7 @@ import {
     type Status as TestStatus,
 } from 'saucelabs'
 import logger from '@wdio/logger'
-import type { Services, Capabilities, Options, Frameworks } from '@testplane/types'
+import type { Services, Capabilities, Options, Frameworks } from '@testplane/wdio-types'
 
 import { isRDC, ansiRegex } from './utils.js'
 import { DEFAULT_OPTIONS } from './constants.js'

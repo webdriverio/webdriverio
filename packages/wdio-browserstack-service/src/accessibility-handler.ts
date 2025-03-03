@@ -1,6 +1,6 @@
 import util from 'node:util'
 
-import type { Capabilities, Frameworks } from '@testplane/types'
+import type { Capabilities, Frameworks } from '@testplane/wdio-types'
 
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 

@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import type { SuiteStats, TestStats, RunnerStats, HookStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import type { Options } from '@testplane/types'
+import type { Options } from '@testplane/wdio-types'
 import * as url from 'node:url'
 
 import { v4 as uuidv4 } from 'uuid'
@@ -18,7 +18,7 @@ import {
     getPlatformVersion
 } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 import Listener from './testOps/listener.js'
 
 class _TestReporter extends WDIOReporter {

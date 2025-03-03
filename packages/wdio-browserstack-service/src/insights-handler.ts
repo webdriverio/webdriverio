@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import type { Frameworks } from '@testplane/types'
+import type { Frameworks } from '@testplane/wdio-types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
@@ -34,7 +34,7 @@ import type {
     IntegrationObject
 } from './types.js'
 import { BStackLogger } from './bstackLogger.js'
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 import Listener from './testOps/listener.js'
 import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 

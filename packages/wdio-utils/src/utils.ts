@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 
-import type { Options, Services, Capabilities } from '@testplane/types'
+import type { Options, Services, Capabilities } from '@testplane/wdio-types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
 

@@ -42,7 +42,7 @@
     "@wdio/config": "8.31.1",
     "@wdio/logger": "8.28.0",
     "@wdio/protocols": "8.32.0",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
     "chrome-launcher": "^1.0.0",
     "edge-paths": "^3.0.5",

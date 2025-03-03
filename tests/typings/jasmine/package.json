@@ -8,7 +8,7 @@
     "@types/jasmine": "^5.1.4",
     "@wdio/globals": "workspace:*",
     "@testplane/utils": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "@wdio/browser-runner": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/allure-reporter": "workspace:*",

@@ -8,7 +8,7 @@ import logger from '@wdio/logger'
 import PercyHandler from '../src/Percy/Percy-Handler.js'
 import PercyCaptureMap from '../src/Percy/PercyCaptureMap.js'
 import * as PercySDK from '../src/Percy/PercySDK.js'
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 import * as PercyLogger from '../src/Percy/PercyLogger.js'
 
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'

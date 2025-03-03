@@ -61,7 +61,7 @@
     "@wdio/sauce-service": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "babel-plugin-transform-hook-names": "^1.0.2",
     "cross-env": "^7.0.3",
     "expect": "^29.7.0",

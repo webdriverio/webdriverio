@@ -1,5 +1,5 @@
 import { expectType } from 'tsd'
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 
 class CustomService {
     onPrepare() {

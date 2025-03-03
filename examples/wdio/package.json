@@ -27,7 +27,7 @@
     "@wdio/repl": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "@testplane/webdriver": "workspace:*",
     "@testplane/webdriverio": "workspace:*"
   }

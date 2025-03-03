@@ -8,7 +8,7 @@ This package contains a bunch of TypeScript types for internal WebdriverIO consu
 To install this package from NPM run:
 
 ```sh
-npm i @testplane/types
+npm i @testplane/wdio-types
 ```
 
 ## Example
@@ -16,7 +16,7 @@ npm i @testplane/types
 The package exports the following major type bundles: `Capabilities`, `Clients`, `Options`, `Services`, `Frameworks` and ` Reporters`. A lot of them are very WebdriverIO specific but you can leverage some, e.g.
 
 ```js
-import type { Capabilities } from '@testplane/types';
+import type { Capabilities } from '@testplane/wdio-types';
 
 const w3cCaps: Capabilities.W3CCapabilities = {
     alwaysMatch: {...},

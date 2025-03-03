@@ -1,4 +1,4 @@
-import type { Options } from '@testplane/types'
+import type { Options } from '@testplane/wdio-types'
 
 export const DEFAULT_WIDTH = 1200
 export const DEFAULT_HEIGHT = 900

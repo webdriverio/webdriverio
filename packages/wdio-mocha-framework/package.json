@@ -38,9 +38,15 @@
   "dependencies": {
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.11.28",
+<<<<<<< HEAD
     "@wdio/logger": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "@testplane/utils": "workspace:*",
+=======
+    "@wdio/logger": "workspace:9.4.4",
+    "@testplane/wdio-types": "workspace:*",
+    "@testplane/utils": "workspace:9.5.0",
+>>>>>>> 14d3f4a28 (fix: rename @testplane/types to @testplane/wdio-types)
     "mocha": "^10.3.0"
   },
   "publishConfig": {

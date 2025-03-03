@@ -1,5 +1,5 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
-import { MESSAGE_TYPES, type Workers } from '@testplane/types'
+import { MESSAGE_TYPES, type Workers } from '@testplane/wdio-types'
 import { $ } from '@wdio/globals'
 import type { ChainablePromiseElement } from '@testplane/webdriverio'
 

@@ -5,7 +5,7 @@ import { format, promisify } from 'node:util'
 import path from 'node:path'
 import util from 'node:util'
 
-import type { Capabilities, Frameworks, Options } from '@testplane/types'
+import type { Capabilities, Frameworks, Options } from '@testplane/wdio-types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import type { GitRepoInfo } from 'git-repo-info'

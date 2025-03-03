@@ -4,7 +4,7 @@ import logger from '@wdio/logger'
 import WebDriver, { DEFAULTS } from '@testplane/webdriver'
 import { validateConfig } from '@wdio/config'
 import { enableFileLogging, wrapCommand, isBidi } from '@testplane/utils'
-import type { Options, Capabilities } from '@testplane/types'
+import type { Options, Capabilities } from '@testplane/wdio-types'
 import type * as WebDriverTypes from '@testplane/webdriver'
 
 import MultiRemote from './multiremote.js'

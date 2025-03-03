@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
-import type { Capabilities, Options, Reporters, Services } from '@testplane/types'
+import type { Capabilities, Options, Reporters, Services } from '@testplane/wdio-types'
 
 import FileSystemPathService from './FileSystemPathService.js'
 import { makeRelativeToCWD } from './utils.js'

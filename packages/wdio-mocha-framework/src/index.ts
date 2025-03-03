@@ -7,7 +7,7 @@ import { handleRequires } from 'mocha/lib/cli/run-helpers.js'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@testplane/utils'
-import type { Services, Options } from '@testplane/types'
+import type { Services, Options } from '@testplane/wdio-types'
 
 import { formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'

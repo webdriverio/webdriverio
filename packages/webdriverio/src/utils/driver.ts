@@ -1,4 +1,4 @@
-import type { Automation, Capabilities } from '@testplane/types'
+import type { Automation, Capabilities } from '@testplane/wdio-types'
 import logger from '@wdio/logger'
 
 import { isStub } from './index.js'

@@ -17,7 +17,7 @@ import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from '@testplane/webdriverio'
 import { ConfigParser } from '@wdio/config/node'
 import { CAPABILITY_KEYS } from '@testplane/protocols'
-import type { Capabilities, Options, Services } from '@testplane/types'
+import type { Capabilities, Options, Services } from '@testplane/wdio-types'
 
 import { installPackages, getInstallCommand } from './install.js'
 import {

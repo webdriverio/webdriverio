@@ -108,10 +108,10 @@ TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio
 
 ## परिभाषाएँ टाइप करें
 
-WebdriverIO कमांड चलाते समय सभी गुण आमतौर पर टाइप किए जाते हैं ताकि आपको अतिरिक्त प्रकार आयात करने से निपटना न पड़े। हालाँकि ऐसे मामले हैं जहाँ आप चर को पहले से परिभाषित करना चाहते हैं। यह सुनिश्चित करने के लिए कि ये टाइप सुरक्षित हैं आप [`@testplane/types`](https://www.npmjs.com/package/@testplane/types) पैकेज में परिभाषित सभी प्रकारों का उपयोग कर सकते हैं। उदाहरण के लिए यदि आप `webdriverio` के लिए दूरस्थ विकल्प को परिभाषित करना चाहते हैं तो आप यह कर सकते हैं:
+WebdriverIO कमांड चलाते समय सभी गुण आमतौर पर टाइप किए जाते हैं ताकि आपको अतिरिक्त प्रकार आयात करने से निपटना न पड़े। हालाँकि ऐसे मामले हैं जहाँ आप चर को पहले से परिभाषित करना चाहते हैं। यह सुनिश्चित करने के लिए कि ये टाइप सुरक्षित हैं आप [`@testplane/wdio-types`](https://www.npmjs.com/package/@testplane/wdio-types) पैकेज में परिभाषित सभी प्रकारों का उपयोग कर सकते हैं। उदाहरण के लिए यदि आप `webdriverio` के लिए दूरस्थ विकल्प को परिभाषित करना चाहते हैं तो आप यह कर सकते हैं:
 
 ```ts
-import type { Options } from '@testplane/types'
+import type { Options } from '@testplane/wdio-types'
 
 const config: Options.WebdriverIO = {
     hostname: 'http://localhost',

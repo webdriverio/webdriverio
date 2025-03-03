@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
-import type { Options } from '@testplane/types'
+import type { Options } from '@testplane/wdio-types'
 
 import '../src/browser.js'
 import { FetchRequest } from '../src/request/web.js'

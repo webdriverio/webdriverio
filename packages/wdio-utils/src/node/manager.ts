@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { Options, Capabilities } from '@testplane/types'
+import type { Options, Capabilities } from '@testplane/wdio-types'
 
 import {
     getCacheDir, getDriverOptions, setupChromedriver, setupEdgedriver,

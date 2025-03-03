@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import type { Options } from '@testplane/types'
+import type { Options } from '@testplane/wdio-types'
 
 import { getManualMocks } from './utils.js'
 import { DEFAULT_MOCK_DIRECTORY, DEFAULT_AUTOMOCK } from '../constants.js'

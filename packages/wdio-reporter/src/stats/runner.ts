@@ -1,4 +1,4 @@
-import type { Capabilities, Options } from '@testplane/types'
+import type { Capabilities, Options } from '@testplane/wdio-types'
 
 import RunnableStats from './runnable.js'
 import { sanitizeCaps } from '../utils.js'

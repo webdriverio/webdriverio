@@ -83,7 +83,7 @@ export const launcher = CustomLauncherService
 यदि आप टाइपस्क्रिप्ट का उपयोग कर रहे हैं और यह सुनिश्चित करना चाहते हैं कि हुक विधियाँ पैरामीटर सुरक्षित हैं, तो आप अपनी सेवा वर्ग को निम्नानुसार परिभाषित कर सकते हैं:
 
 ```ts
-import type { Capabilities, Options, Services } from '@testplane/types'
+import type { Capabilities, Options, Services } from '@testplane/wdio-types'
 
 export default class CustomWorkerService implements Services.ServiceInstance {
     constructor (

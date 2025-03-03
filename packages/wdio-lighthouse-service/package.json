@@ -44,7 +44,7 @@
     "@tracerbench/trace-event": "^8.0.0",
     "@types/node": "^20.1.0",
     "@wdio/logger": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "babel-plugin-istanbul": "^6.1.1",
     "devtools-protocol": "^0.0.1415363",
     "istanbul-lib-coverage": "^3.2.0",

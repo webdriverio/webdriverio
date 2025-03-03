@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 import launch from '../src/launcher.js'
 import DevTools from '../src/index.js'
 

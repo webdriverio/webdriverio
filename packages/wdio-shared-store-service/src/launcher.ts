@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { Capabilities, Services } from '@testplane/types'
+import type { Capabilities, Services } from '@testplane/wdio-types'
 
 import { setPort } from './client.js'
 import { CUSTOM_CAP } from './constants.js'

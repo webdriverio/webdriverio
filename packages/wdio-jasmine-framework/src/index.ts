@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@testplane/utils'
 import { expect as expectImport, matchers, getConfig } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import type { Options, Services, Capabilities } from '@testplane/types'
+import type { Options, Services, Capabilities } from '@testplane/wdio-types'
 
 import JasmineReporter from './reporter.js'
 import { jestResultToJasmine } from './utils.js'

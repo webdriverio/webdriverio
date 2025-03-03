@@ -1,4 +1,4 @@
-import type { Reporters } from '@testplane/types'
+import type { Reporters } from '@testplane/wdio-types'
 import type { SuiteStats } from '@wdio/reporter'
 
 type TestSuiteNameFunction = (options: TestSuiteNameFormatOptions) => string

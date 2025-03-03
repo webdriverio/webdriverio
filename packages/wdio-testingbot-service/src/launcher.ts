@@ -3,7 +3,7 @@ import { promisify } from 'node:util'
 
 import testingbotTunnel from 'testingbot-tunnel-launcher'
 import logger from '@wdio/logger'
-import type { Capabilities, Options, Services } from '@testplane/types'
+import type { Capabilities, Options, Services } from '@testplane/wdio-types'
 
 import type { TestingbotOptions, TestingbotTunnel, TunnelLauncherOptions } from './types.js'
 

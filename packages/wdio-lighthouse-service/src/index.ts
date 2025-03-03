@@ -1,4 +1,4 @@
-import type { Capabilities, Services, FunctionProperties, ThenArg } from '@testplane/types'
+import type { Capabilities, Services, FunctionProperties, ThenArg } from '@testplane/wdio-types'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 
 import CommandHandler from './commands.js'

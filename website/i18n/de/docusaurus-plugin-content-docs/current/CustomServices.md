@@ -83,7 +83,7 @@ export const launcher = CustomLauncherService
 Wenn Sie TypeScript verwenden und sicherstellen möchten, dass die Hook-Methodenparameter typsicher sind, können Sie Ihre Dienstklasse wie folgt definieren:
 
 ```ts
-import type { Capabilities, Options, Services } from '@testplane/types'
+import type { Capabilities, Options, Services } from '@testplane/wdio-types'
 
 export default class CustomWorkerService implements Services.ServiceInstance {
     constructor (

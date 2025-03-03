@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 
 import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector.js'
 

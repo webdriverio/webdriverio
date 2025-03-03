@@ -1,4 +1,4 @@
-import type { Options, Capabilities, Services, Workers } from '@testplane/types'
+import type { Options, Capabilities, Services, Workers } from '@testplane/wdio-types'
 import type BaseReporter from './reporter.js'
 
 export type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>

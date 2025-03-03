@@ -1,5 +1,5 @@
 import type { ConfigEnv, InlineConfig } from 'vite'
-import type { Workers, Options } from '@testplane/types'
+import type { Workers, Options } from '@testplane/wdio-types'
 import type { MochaOpts } from '@wdio/mocha-framework'
 import type { IstanbulPluginOptions } from 'vite-plugin-istanbul'
 

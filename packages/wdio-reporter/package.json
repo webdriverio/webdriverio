@@ -39,7 +39,7 @@
   "dependencies": {
     "@types/node": "^20.1.0",
     "@wdio/logger": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "diff": "^7.0.0",
     "object-inspect": "^1.12.0"
   },

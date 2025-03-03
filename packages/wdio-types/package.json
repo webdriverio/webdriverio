@@ -1,5 +1,5 @@
 {
-  "name": "@testplane/types",
+  "name": "@testplane/wdio-types",
   "version": "9.5.0",
   "description": "Utility package providing type information for a variety of WebdriverIO interfaces",
   "author": "Christian Bromann <mail@bromann.dev>",

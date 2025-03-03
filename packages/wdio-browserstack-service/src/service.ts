@@ -1,4 +1,4 @@
-import type { Services, Capabilities, Options, Frameworks } from '@testplane/types'
+import type { Services, Capabilities, Options, Frameworks } from '@testplane/wdio-types'
 
 import {
     getBrowserDescription,

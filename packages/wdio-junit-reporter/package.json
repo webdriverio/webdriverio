@@ -36,7 +36,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/reporter": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "json-stringify-safe": "^5.0.1",
     "junit-report-builder": "^5.1.1"
   },

@@ -1,4 +1,4 @@
-import type { Capabilities } from '@testplane/types'
+import type { Capabilities } from '@testplane/wdio-types'
 
 export type State = 'passed' | 'failed' | 'skipped' | 'pending'
 

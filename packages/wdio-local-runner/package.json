@@ -40,7 +40,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/repl": "workspace:*",
     "@wdio/runner": "workspace:*",
-    "@testplane/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "async-exit-hook": "^2.0.1",
     "split2": "^4.1.0",
     "stream-buffers": "^3.0.2"
