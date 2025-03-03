@@ -386,12 +386,12 @@ export default class ConfigParser {
                 // fileList can be a string[] or a string[][]
                 fileList.forEach(file => {
                     if (typeof file === 'string') {
-                        if (file.match(filteredFile)) {
+                        if (filteredFile && !filteredFile.includes('*') && file.match(filteredFile)) {
                             filesToFilter.add(file)
                         }
                     } else if (Array.isArray(file)) {
                         file.forEach(subFile => {
-                            if (subFile.match(filteredFile)) {
+                            if (filteredFile && !filteredFile.includes('*') && subFile.match(filteredFile)) {
                                 filesToFilter.add(subFile)
                             }
                         })
