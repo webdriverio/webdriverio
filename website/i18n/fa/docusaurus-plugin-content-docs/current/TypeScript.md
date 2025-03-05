@@ -113,12 +113,19 @@ When running WebdriverIO commands all properties are usually typed so that you d
 ```ts
 import type { Options } from '@wdio/types'
 
-const config: Options.WebdriverIO = {
+// Here is an example where you might want to import the types directly
+const remoteConfig: Options.WebdriverIO = {
     hostname: 'http://localhost',
     port: '4444' // Error: Type 'string' is not assignable to type 'number'.ts(2322)
     capabilities: {
         browserName: 'chrome'
     }
+}
+
+// For other cases, you can use the `WebdriverIO` namespace
+export const config: WebdriverIO.Config = {
+  ...remoteConfig
+  // Other configs options
 }
 ```
 
