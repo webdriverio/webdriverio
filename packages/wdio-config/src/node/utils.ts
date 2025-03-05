@@ -50,7 +50,7 @@ export function makeRelativeToCWD (files: (string | string[])[] = []): (string |
 
         returnFiles.push(file.startsWith('file:///')
             ? url.fileURLToPath(file)
-            : file.includes('/')
+            : file.includes('/') && !file.includes('*')
                 ? path.resolve(process.cwd(), file)
                 : file
         )
