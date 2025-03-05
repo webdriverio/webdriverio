@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.43.0 (2025-03-05)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-config`
+  * [#14169](https://github.com/webdriverio/webdriverio/pull/14169) [WDIO8] added supporting wildcars for --spec and --exclude, added --group cli… ([@udarrr](https://github.com/udarrr))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`, `wdio-reporter`, `wdio-spec-reporter`
+  * [#14235](https://github.com/webdriverio/webdriverio/pull/14235) feat(cucumber): Backport Distinguishing Cucumber PENDING status to v8 ([@Norva-bugged](https://github.com/Norva-bugged))
+
+#### Committers: 2
+- Avron Souto ([@Norva-bugged](https://github.com/Norva-bugged))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+
+
 ## v8.42.0 (2025-02-12)
 
 #### :bug: Bug Fix
