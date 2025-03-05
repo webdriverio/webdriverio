@@ -15,12 +15,14 @@ vi.mock('@wdio/utils', async (origMod) => {
 describe('reloadSession test', () => {
     const scenarios = [{
         name: 'should be undefined if sessionId is missing in response',
+        startingSessionId: 'some-session-id-1',
         sessionIdMock: 'ignored if jsonwpMode is false',
         requestMock: [{}, {}],
         newSessionId: undefined,
         jsonwpMode: false
     }, {
         name: 'should be ok if sessionId is in response',
+        startingSessionId: 'some-session-id-2',
         sessionIdMock: 'foobar-234',
         requestMock: [{}, {}],
         newSessionId: 'foobar-234',

@@ -26,6 +26,8 @@ describe('waitForDisplayed', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: vi.fn().mockImplementation(cb),
@@ -51,6 +53,8 @@ describe('waitForDisplayed', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,
@@ -71,6 +75,8 @@ describe('waitForDisplayed', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,
@@ -91,13 +97,16 @@ describe('waitForDisplayed', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
-            parent: { $: vi.fn(() => { return elem}) },
+            parent: {
+                $: vi.fn(() => { return elem}),
+                on: vi.fn(),
+                off: vi.fn(),
+            },
             waitForDisplayed: tmpElem.waitForDisplayed,
             waitUntil: tmpElem.waitUntil,
             isDisplayed: tmpElem.isDisplayed,
             options: { waitforTimeout: 500, waitforInterval: 50 },
         } as unknown as WebdriverIO.Element
-        // @ts-expect-error
         elem.getElement = () => Promise.resolve(elem)
 
         try {
@@ -129,6 +138,8 @@ describe('waitForDisplayed', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,

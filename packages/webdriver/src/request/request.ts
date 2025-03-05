@@ -10,6 +10,8 @@ import { isSuccessfulResponse } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
 import pkg from '../../package.json' with { type: 'json' }
 
+import './polyfill.js'
+
 const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'detached shadow root',
     'move target out of bounds'
@@ -33,14 +35,22 @@ export abstract class WebDriverRequest {
     isHubCommand: boolean
     requiresSessionId: boolean
     eventHandler: RequestEventHandler
-
-    constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false, eventHandler: RequestEventHandler = {}) {
+    abortSignal?: AbortSignal
+    constructor (
+        method: string,
+        endpoint: string,
+        body?: Record<string, unknown>,
+        abortSignal?: AbortSignal,
+        isHubCommand: boolean = false,
+        eventHandler: RequestEventHandler = {}
+    ) {
         this.body = body
         this.method = method
         this.endpoint = endpoint
         this.isHubCommand = isHubCommand
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
         this.eventHandler = eventHandler
+        this.abortSignal = abortSignal
     }
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
@@ -54,7 +64,10 @@ export abstract class WebDriverRequest {
         const requestOptions: RequestInit = {
             method: this.method,
             redirect: 'follow',
-            signal: AbortSignal.timeout(timeout)
+            signal: AbortSignal.any([
+                AbortSignal.timeout(timeout),
+                ...(this.abortSignal ? [this.abortSignal] : [])
+            ])
         }
 
         const requestHeaders: HeadersInit = new Headers({
@@ -198,11 +211,16 @@ export abstract class WebDriverRequest {
             const resError = response as WebDriverRequestError
 
             /**
-             * retry failed requests
+             * retry failed requests, only if:
+             * - the abort signal is not aborted
+             * - the error code or status code is retryable
              */
             if (
-                (resError.code && RETRYABLE_ERROR_CODES.includes(resError.code)) ||
-                (resError.statusCode && RETRYABLE_STATUS_CODES.includes(resError.statusCode))
+                !(this.abortSignal && this.abortSignal.aborted) &&
+                (
+                    (resError.code && RETRYABLE_ERROR_CODES.includes(resError.code)) ||
+                    (resError.statusCode && RETRYABLE_STATUS_CODES.includes(resError.statusCode))
+                )
             ) {
                 return retry(resError)
             }

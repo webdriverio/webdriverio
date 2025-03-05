@@ -5,10 +5,11 @@ import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 import { environment } from './environment.js'
 import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
-import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
+import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent } from './types.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
+const sessionAbortListeners = new Map<string, Set<AbortController> | null>()
 
 export default function (
     method: string,
@@ -120,7 +121,22 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = new environment.value.Request(method, endpoint, body, isHubCommand, {
+        /**
+         * Make sure we pass along an abort signal to the request class so we
+         * can abort the request as well as any retries in case the session is
+         * deleted.
+         *
+         * Abort the attempt to make the WebDriver call, except for:
+         *   - `deleteSession` calls which should go through in case we retry the command.
+         *   - requests that don't require a session.
+         */
+        const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
+        const requiresSession = endpointUri.includes('/:sessionId/')
+        if (isAborted && command !== 'deleteSession' && requiresSession) {
+            throw new Error(`Trying to run command "${commandCallStructure(command, args)}" after session has been deleted, aborting request without executing it`)
+        }
+
+        const request = new environment.value.Request(method, endpoint, body, abortSignal, isHubCommand, {
             onPerformance: (data) => this.emit('request.performance', data),
             onRequest: (data) => this.emit('request.start', data),
             onResponse: (data) => this.emit('request.end', data),
@@ -193,6 +209,56 @@ export default function (
         }).catch((error) => {
             this.emit('result', { command, method, endpoint, body, result: { error } })
             throw error
+        }).finally(() => {
+            cleanup()
         })
+    }
+}
+
+/**
+ * Manage session abortions, e.g. abort requests after session has been deleted.
+ * @param this - WebDriver client instance
+ * @returns Object with `isAborted`, `abortSignal`, and `cleanup`
+ */
+function manageSessionAbortions (this: BaseClient): {
+    isAborted: boolean
+    abortSignal?: AbortSignal
+    cleanup: () => void
+} {
+    const abort = new AbortController()
+    let abortListenerForCurrentSession = sessionAbortListeners.get(this.sessionId)
+    if (typeof abortListenerForCurrentSession === 'undefined') {
+        abortListenerForCurrentSession = new Set()
+        sessionAbortListeners.set(this.sessionId, abortListenerForCurrentSession)
+    }
+
+    /**
+     * If the session has been deleted, we don't want to run any further commands
+     */
+    if (abortListenerForCurrentSession === null) {
+        return { isAborted: true, abortSignal: undefined, cleanup: () => {} }
+    }
+
+    /**
+     * listen for session deletion and abort all requests
+     */
+    abortListenerForCurrentSession.add(abort)
+    const abortOnSessionEnd = (result: WebDriverResultEvent) => {
+        if (result.command === 'deleteSession') {
+            for (const abortListener of abortListenerForCurrentSession) {
+                abortListener.abort()
+            }
+            abortListenerForCurrentSession.clear()
+            sessionAbortListeners.set(this.sessionId, null)
+        }
+    }
+    this.on('result', abortOnSessionEnd)
+    return {
+        isAborted: false,
+        abortSignal: abort.signal,
+        cleanup: () => {
+            this.off('result', abortOnSessionEnd)
+            abortListenerForCurrentSession?.delete(abort)
+        }
     }
 }

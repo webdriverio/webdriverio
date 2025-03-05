@@ -124,7 +124,7 @@ describe('webdriver request', () => {
         })
 
         it('ignors path when command is a hub command', async () => {
-            const req = new FetchRequest('POST', '/grid/api/hub', {}, true)
+            const req = new FetchRequest('POST', '/grid/api/hub', {}, undefined, true)
             const options = await req.createOptions({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -221,7 +221,7 @@ describe('webdriver request', () => {
             const expectedResponse = { value: { 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' } }
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+            const req = new FetchRequest('POST', webdriverPath, {}, undefined, false, {
                 onResponse, onPerformance
             })
 
@@ -242,7 +242,7 @@ describe('webdriver request', () => {
         it('should short circuit if request throws a stale element exception', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', 'session/:sessionId/element', {}, false, {
+            const req = new FetchRequest('POST', 'session/:sessionId/element', {}, undefined, false, {
                 onResponse, onPerformance
             })
 
@@ -262,7 +262,7 @@ describe('webdriver request', () => {
         it('should not fail code due to an empty server response', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+            const req = new FetchRequest('POST', webdriverPath, {}, undefined, false, {
                 onResponse, onPerformance
             })
 
@@ -281,7 +281,7 @@ describe('webdriver request', () => {
             const onRetry = vi.fn()
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+            const req = new FetchRequest('POST', webdriverPath, {}, undefined, false, {
                 onResponse, onPerformance, onRetry
             })
 
@@ -304,7 +304,7 @@ describe('webdriver request', () => {
             const onRetry = vi.fn()
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+            const req = new FetchRequest('POST', webdriverPath, {}, undefined, false, {
                 onResponse, onPerformance, onRetry
             })
 
@@ -324,7 +324,7 @@ describe('webdriver request', () => {
         })
 
         it('should manage hub commands', async () => {
-            const req = new FetchRequest('POST', '/grid/api/hub', {}, true)
+            const req = new FetchRequest('POST', '/grid/api/hub', {}, undefined, true)
             expect(await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -335,7 +335,7 @@ describe('webdriver request', () => {
         })
 
         it('should fail if hub command is called on node', async () => {
-            const req = new FetchRequest('POST', '/grid/api/testsession', {}, true)
+            const req = new FetchRequest('POST', '/grid/api/testsession', {}, undefined, true)
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -353,7 +353,7 @@ describe('webdriver request', () => {
             it('should throw if timeout happens too often', async () => {
                 const retryCnt = 3
                 const onRetry = vi.fn()
-                const req = new FetchRequest('POST', '/timeout', {}, true, { onRetry })
+                const req = new FetchRequest('POST', '/timeout', {}, undefined, true, { onRetry })
                 const result = await req.makeRequest({
                     protocol: 'https',
                     hostname: 'localhost',
@@ -374,7 +374,7 @@ describe('webdriver request', () => {
                 const onRequest = vi.fn()
                 const onResponse = vi.fn()
                 const onPerformance = vi.fn()
-                const req = new FetchRequest('GET', '/timeout', {}, true, { onRetry, onRequest, onResponse, onPerformance })
+                const req = new FetchRequest('GET', '/timeout', {}, undefined, true, { onRetry, onRequest, onResponse, onPerformance })
                 const reqOpts = {
                     protocol: 'https',
                     hostname: 'localhost',
@@ -395,7 +395,7 @@ describe('webdriver request', () => {
         it('should return proper response if retry passes', async () => {
             const retryCnt = 7
             const onRetry = vi.fn()
-            const req = new FetchRequest('POST', '/timeout', {}, true, { onRetry })
+            const req = new FetchRequest('POST', '/timeout', {}, undefined, true, { onRetry })
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -414,7 +414,7 @@ describe('webdriver request', () => {
         it('should retry on connection refused error', async () => {
             const retryCnt = 7
             const onRetry = vi.fn()
-            const req = new FetchRequest('POST', '/connectionRefused', {}, false, { onRetry })
+            const req = new FetchRequest('POST', '/connectionRefused', {}, undefined, false, { onRetry })
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -430,7 +430,8 @@ describe('webdriver request', () => {
         }, 20_000)
 
         it('should throw if request error is unknown', async () => {
-            const req = new FetchRequest('POST', '/sumoerror', {}, true)
+            console.log('TESTING', AbortSignal)
+            const req = new FetchRequest('POST', '/sumoerror', {}, undefined, true)
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
