@@ -126,12 +126,14 @@ export default function (
          * can abort the request as well as any retries in case the session is
          * deleted.
          *
-         * Abort the attempt to make the WebDriver call, except for `deleteSession`
-         * calls which should go through in case we retry the command.
+         * Abort the attempt to make the WebDriver call, except for:
+         *   - `deleteSession` calls which should go through in case we retry the command.
+         *   - requests that don't require a session.
          */
         const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
-        if (isAborted && command !== 'deleteSession') {
-            return log.warn(`Trying to run command "${commandCallStructure(command, args)}" after session has been deleted, aborting request without executing it`)
+        const requiresSession = endpointUri.includes('/:sessionId/')
+        if (isAborted && command !== 'deleteSession' && requiresSession) {
+            throw new Error(`Trying to run command "${commandCallStructure(command, args)}" after session has been deleted, aborting request without executing it`)
         }
 
         const request = new environment.value.Request(method, endpoint, body, abortSignal, isHubCommand, {
