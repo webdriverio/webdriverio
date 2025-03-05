@@ -24,6 +24,8 @@ describe('waitForEnabled', () => {
     it('should wait for the element to exist', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
+            on: vi.fn(),
+            off: vi.fn(),
             waitForEnabled : tmpElem.waitForEnabled,
             waitForExist : vi.fn(),
             elementId : null,
@@ -38,6 +40,8 @@ describe('waitForEnabled', () => {
     it('element should already exist on the page', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
+            on: vi.fn(),
+            off: vi.fn(),
             waitForEnabled : tmpElem.waitForEnabled,
             waitForExist : vi.fn(),
             elementId : 123,
@@ -54,6 +58,8 @@ describe('waitForEnabled', () => {
         const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
+            on: vi.fn(),
+            off: vi.fn(),
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
             waitForExist : vi.fn(),
@@ -72,6 +78,8 @@ describe('waitForEnabled', () => {
     it('should call isEnabled and return true', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
+            on: vi.fn(),
+            off: vi.fn(),
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
             waitForExist : vi.fn(),
@@ -88,6 +96,8 @@ describe('waitForEnabled', () => {
     it('should call isEnabled and return false', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
+            on: vi.fn(),
+            off: vi.fn(),
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
             waitForExist : vi.fn(),
@@ -108,6 +118,8 @@ describe('waitForEnabled', () => {
         const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
+            on: vi.fn(),
+            off: vi.fn(),
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
             waitForExist : vi.fn(),
@@ -124,6 +136,8 @@ describe('waitForEnabled', () => {
     it('should call isEnabled and return false with custom error', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
+            on: vi.fn(),
+            off: vi.fn(),
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
             waitForExist : vi.fn(),

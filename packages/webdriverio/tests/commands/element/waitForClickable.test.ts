@@ -23,6 +23,8 @@ describe('waitForClickable', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : vi.fn(((cb))),
@@ -39,6 +41,8 @@ describe('waitForClickable', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
@@ -54,6 +58,8 @@ describe('waitForClickable', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
@@ -74,6 +80,8 @@ describe('waitForClickable', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
@@ -92,7 +100,11 @@ describe('waitForClickable', () => {
         const tmpElem = await browser.$('#foo')
         const elem: any = {
             selector : '#foo',
-            parent: { $: vi.fn(() => { return elem}) },
+            parent: {
+                $: vi.fn(() => { return elem}),
+                on: vi.fn(),
+                off: vi.fn(),
+            },
             waitForClickable : tmpElem.waitForClickable,
             waitUntil : tmpElem.waitUntil,
             isDisplayed : tmpElem.isDisplayed,
@@ -113,6 +125,8 @@ describe('waitForClickable', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : vi.fn(((cb))),
@@ -131,6 +145,8 @@ describe('waitForClickable', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
+            on: vi.fn(),
+            off: vi.fn(),
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : tmpElem.waitUntil,

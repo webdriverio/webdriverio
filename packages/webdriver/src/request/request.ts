@@ -10,6 +10,8 @@ import { isSuccessfulResponse } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
 import pkg from '../../package.json' with { type: 'json' }
 
+import './polyfill.js'
+
 const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'detached shadow root',
     'move target out of bounds'

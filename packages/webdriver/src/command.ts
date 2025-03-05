@@ -124,10 +124,13 @@ export default function (
         /**
          * Make sure we pass along an abort signal to the request class so we
          * can abort the request as well as any retries in case the session is
-         * deleted
+         * deleted.
+         *
+         * Abort the attempt to make the WebDriver call, except for `deleteSession`
+         * calls which should go through in case we retry the command.
          */
         const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
-        if (isAborted) {
+        if (isAborted && command !== 'deleteSession') {
             return log.warn(`Trying to run command "${commandCallStructure(command, args)}" after session has been deleted, aborting request without executing it`)
         }
 

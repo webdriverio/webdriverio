@@ -126,7 +126,7 @@ export class BidiCore {
              * of the result instead of the raw base64 encoded string
              */
             let resultLog = data.toString()
-            if ('data' in payload.result && typeof payload.result.data === 'string' && base64Regex.test(payload.result.data)) {
+            if (typeof payload.result === 'object' && payload.result && 'data' in payload.result && typeof payload.result.data === 'string' && base64Regex.test(payload.result.data)) {
                 resultLog = JSON.stringify({
                     ...payload.result,
                     data: `Base64 string [${payload.result.data.length} chars]`
