@@ -18,8 +18,6 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
     const isHeadless = options.headless || Boolean(process.env.CI)
     const alias = (options.viteConfig as (InlineConfig | undefined))?.resolve?.alias || {}
     const usesTailwindCSS = await hasFileByExtensions(path.join(root, 'tailwind.config'))
-    const mochaCSSHref = path.join(__dirname, 'third_party', 'mocha.css')
-    const mochaJSSrc = path.join(__dirname, 'third_party', 'mocha.js')
 
     /**
      * clean up some values that might cause serialization issues
@@ -71,8 +69,8 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                     return mod
                 }
             </script>
-            <link rel="stylesheet" href="/@fs/${mochaCSSHref}">
-            <script type="module" src="/@fs/${mochaJSSrc}"></script>
+            <link rel="stylesheet" href="@wdio/browser-runner/third_party/mocha.css">
+            <script type="module" src="@wdio/browser-runner/third_party/mocha.js"></script>
             ${sourceMapScript}
             <script type="module">
                 ${sourceMapSetupCommand}

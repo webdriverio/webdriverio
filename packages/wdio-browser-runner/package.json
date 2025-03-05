@@ -58,6 +58,9 @@
       "browserSource": "./src/browser/expect.ts",
       "browser": "./build/browser/expect.js",
       "types": "./build/browser/expect.d.ts"
+    },
+    "./third_party/*": {
+      "import": "./build/third_party/*"
     }
   },
   "scripts": {
