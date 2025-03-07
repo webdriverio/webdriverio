@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 import { remote } from '../../../src/index.js'
 import { getContextManager } from '../../../src/session/context.js'
-import { ELEMENT_KEY } from '@testplane/wdio-webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 
 let browser: WebdriverIO.Browser
 

@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { ELEMENT_KEY } from '@testplane/wdio-webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 import { remote } from '../../../src/index.js'

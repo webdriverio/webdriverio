@@ -1,4 +1,4 @@
-import { type local } from '@testplane/wdio-webdriver'
+import { type local } from '@testplane/webdriver'
 import { SessionManager } from './session.js'
 
 export function getNetworkManager(browser: WebdriverIO.Browser) {

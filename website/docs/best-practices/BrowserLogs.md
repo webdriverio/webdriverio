@@ -29,7 +29,7 @@ browser.on('log.entryAdded', (entryAdded) => console.log('received %s', entryAdd
 In a test you can just push log events to an array an assert that array once your action is done, e.g.:
 
 ```ts
-import type { local } from '@testplane/wdio-webdriver'
+import type { local } from '@testplane/webdriver'
 
 describe('should log when doing a certain action', () => {
     const logs: string[] = []

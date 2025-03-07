@@ -249,7 +249,7 @@ importers:
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../packages/wdio-types
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../packages/webdriver
       '@testplane/webdriverio':
@@ -389,7 +389,7 @@ importers:
       '@testplane/wdio-types':
         specifier: workspace:*
         version: link:../../packages/wdio-types
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../../packages/webdriver
       '@testplane/webdriverio':
@@ -627,7 +627,7 @@ importers:
       '@testplane/wdio-utils':
         specifier: workspace:*
         version: link:../wdio-utils
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../webdriver
       '@testplane/webdriverio':
@@ -1277,11 +1277,11 @@ importers:
       '@testplane/wdio-utils':
         specifier: workspace:*
         version: link:../wdio-utils
-      '@testplane/wdio-webdriver':
-        specifier: workspace:*
+      '@testplane/webdriver':
+        specifier: workspace:9.5.4
         version: link:../webdriver
       '@testplane/webdriverio':
-        specifier: workspace:*
+        specifier: workspace:9.5.7
         version: link:../webdriverio
       '@types/node':
         specifier: ^20.11.28
@@ -1598,7 +1598,7 @@ importers:
       '@testplane/wdio-utils':
         specifier: workspace:*
         version: link:../wdio-utils
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../webdriver
       '@types/node':
@@ -1698,7 +1698,7 @@ importers:
       '@testplane/wdio-utils':
         specifier: workspace:*
         version: link:../packages/wdio-utils
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../packages/webdriver
       '@testplane/webdriverio':
@@ -1796,7 +1796,7 @@ importers:
         version: link:../packages/webdriverio
   tests/interop:
     dependencies:
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../../packages/webdriver
       '@testplane/webdriverio':
@@ -1840,7 +1840,7 @@ importers:
       '@testplane/wdio-utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../../../packages/webdriver
       '@testplane/webdriverio':
@@ -1906,7 +1906,7 @@ importers:
       '@testplane/wdio-utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../../../packages/webdriver
       '@testplane/webdriverio':
@@ -1984,7 +1984,7 @@ importers:
       '@testplane/wdio-utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../../../packages/webdriver
       '@testplane/webdriverio':
@@ -2050,7 +2050,7 @@ importers:
       '@testplane/wdio-utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../../../packages/webdriver
       '@testplane/webdriverio':
@@ -2116,7 +2116,7 @@ importers:
       '@testplane/wdio-utils':
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
-      '@testplane/wdio-webdriver':
+      '@testplane/webdriver':
         specifier: workspace:*
         version: link:../../../packages/webdriver
       '@testplane/webdriverio':

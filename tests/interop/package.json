@@ -22,7 +22,7 @@
     "@wdio/cucumber-framework": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
     "npm-run-all2": "^6.2.3",
-    "@testplane/wdio-webdriver": "workspace:*",
+    "@testplane/webdriver": "workspace:*",
     "@testplane/webdriverio": "workspace:*"
   }
 }

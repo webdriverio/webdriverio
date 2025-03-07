@@ -1,9 +1,5 @@
 import { ELEMENT_KEY, type remote } from '@testplane/webdriver'
 import logger from '@testplane/wdio-logger'
-<<<<<<< HEAD
-=======
-import { ELEMENT_KEY, type local, type remote } from '@testplane/wdio-webdriver'
->>>>>>> 3c4557873 (fix: rename @testplane/webdriver to @testplane/wdio-webdriver)
 import type { ElementReference } from '@testplane/wdio-protocols'
 
 import { getContextManager, type FlatContextTree } from '../../session/context.js'

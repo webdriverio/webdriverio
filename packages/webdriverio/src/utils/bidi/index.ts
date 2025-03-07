@@ -1,4 +1,4 @@
-import { ELEMENT_KEY, type remote, type local } from '@testplane/wdio-webdriver'
+import { ELEMENT_KEY, type remote, type local } from '@testplane/webdriver'
 
 import { EvaluateResultType, NonPrimitiveType, PrimitiveType, RemoteType } from './constants.js'
 import { WebdriverBidiExeception } from './error.js'

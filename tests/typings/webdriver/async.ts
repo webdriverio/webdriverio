@@ -1,4 +1,4 @@
-import WebDriver from '@testplane/wdio-webdriver'
+import WebDriver from '@testplane/webdriver'
 import { expectType } from 'tsd'
 
 ;(async () => {

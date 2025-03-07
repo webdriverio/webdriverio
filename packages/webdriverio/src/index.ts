@@ -1,20 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import logger from '@testplane/wdio-logger'
 
-<<<<<<< HEAD
 import WebDriver, { DEFAULTS } from '@testplane/webdriver'
-<<<<<<< HEAD
-import { validateConfig } from '@wdio/config'
-import { enableFileLogging, wrapCommand, isBidi } from '@testplane/wdio-utils'
-=======
-=======
-import WebDriver, { DEFAULTS } from '@testplane/wdio-webdriver'
->>>>>>> 3c4557873 (fix: rename @testplane/webdriver to @testplane/wdio-webdriver)
 import { validateConfig } from '@testplane/wdio-config'
-import { enableFileLogging, wrapCommand } from '@testplane/wdio-utils'
->>>>>>> a9e27229b (fix: rename @wdio/config to @testplane/wdio-config)
+import { enableFileLogging, wrapCommand, isBidi } from '@testplane/wdio-utils'
 import type { Options, Capabilities } from '@testplane/wdio-types'
-import type * as WebDriverTypes from '@testplane/wdio-webdriver'
+import type * as WebDriverTypes from '@testplane/webdriver'
 
 import MultiRemote from './multiremote.js'
 import SevereServiceErrorImport from './utils/SevereServiceError.js'

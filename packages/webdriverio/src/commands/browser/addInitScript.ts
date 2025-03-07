@@ -1,9 +1,4 @@
-<<<<<<< HEAD
 import type { local, remote } from '@testplane/webdriver'
-=======
-import { EventEmitter } from 'node:events'
-import type { local, remote } from '@testplane/wdio-webdriver'
->>>>>>> 3c4557873 (fix: rename @testplane/webdriver to @testplane/wdio-webdriver)
 
 import { deserialize } from '../../utils/bidi/index.js'
 

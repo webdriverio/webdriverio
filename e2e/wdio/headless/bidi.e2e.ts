@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { browser, expect } from '@wdio/globals'
-import type { local } from '@testplane/wdio-webdriver'
+import type { local } from '@testplane/webdriver'
 
 describe('bidi e2e test', () => {
     describe('execute', () => {

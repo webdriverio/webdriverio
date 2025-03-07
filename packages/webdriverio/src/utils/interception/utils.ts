@@ -1,4 +1,4 @@
-import type { local, remote } from '@testplane/wdio-webdriver'
+import type { local, remote } from '@testplane/webdriver'
 import type { RequestWithOptions, RespondWithOptions } from './types.js'
 
 type Overwrite<T> = Omit<T extends RequestWithOptions ? remote.NetworkContinueRequestParameters : remote.NetworkContinueResponseParameters, 'request'>

@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from '@testplane/wdio-webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import { getBrowserObject } from '@testplane/wdio-utils'
 
 import getHTMLScript from '../../scripts/getHTML.js'
@@ -48,7 +48,7 @@ export function getHTML (
     } as unknown as HTMLElement, includeSelectorTag)
 }
 
-// import { ELEMENT_KEY } from '@testplane/wdio-webdriver'
+// import { ELEMENT_KEY } from '@testplane/webdriver'
 // import type { CheerioAPI } from 'cheerio'
 // import { prettify as prettifyFn } from 'htmlfy'
 

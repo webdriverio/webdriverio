@@ -288,7 +288,7 @@ await elem.click({ force: true })
 यदि आप WebDriver प्रोटोकॉल का उपयोग कर रहे हैं और ऐसे प्लेटफ़ॉर्म पर परीक्षण चला रहे हैं जो [`@testplane/wdio-protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) में किसी भी प्रोटोकॉल परिभाषा द्वारा परिभाषित नहीं किए गए अतिरिक्त कमांड का समर्थन करता है, तो आप उन्हें `addCommand` इंटरफ़ेस के माध्यम से मैन्युअल रूप से जोड़ सकते हैं। `webdriver` पैकेज एक कमांड रैपर प्रदान करता है जो इन नए एंडपॉइंट्स को उसी तरह पंजीकृत करने की अनुमति देता है जैसे अन्य कमांड, समान पैरामीटर चेक और त्रुटि प्रबंधन प्रदान करते हैं। इस नए समापन बिंदु को पंजीकृत करने के लिए कमांड रैपर को इम्पोर्ट करें और इसके साथ एक नया कमांड निम्नानुसार पंजीकृत करें:
 
 ```js
-import { command } from '@testplane/wdio-webdriver'
+import { command } from '@testplane/webdriver'
 
 browser.addCommand('myNewCommand', command('POST', '/session/:sessionId/foobar/:someId', {
     command: 'myNewCommand',

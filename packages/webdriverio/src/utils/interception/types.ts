@@ -1,4 +1,4 @@
-import type { local } from '@testplane/wdio-webdriver'
+import type { local } from '@testplane/webdriver'
 import type { Cookie } from '@testplane/wdio-protocols'
 
 export type MockFilterOptions = {
