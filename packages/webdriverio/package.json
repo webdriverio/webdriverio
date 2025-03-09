@@ -76,17 +76,17 @@
     "safe-stable-stringify": "^2.4.3"
   },
   "dependencies": {
-    "@types/node": "^20.11.30",
-    "@types/sinonjs__fake-timers": "^8.1.5",
     "@testplane/wdio-config": "workspace:*",
     "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-protocols": "workspace:*",
     "@testplane/wdio-repl": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "@testplane/wdio-utils": "workspace:*",
+    "@testplane/webdriver": "workspace:*",
+    "@types/node": "^20.11.30",
+    "@types/sinonjs__fake-timers": "^8.1.5",
     "archiver": "^7.0.1",
     "aria-query": "^5.3.0",
-    "cheerio": "^1.0.0-rc.12",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "grapheme-splitter": "^1.0.4",
@@ -99,8 +99,7 @@
     "resq": "^1.11.0",
     "rgb2hex": "0.2.5",
     "serialize-error": "^11.0.3",
-    "urlpattern-polyfill": "^10.0.0",
-    "@testplane/webdriver": "workspace:*"
+    "urlpattern-polyfill": "^10.0.0"
   },
   "peerDependencies": {
     "devtools": "^8.14.0",
