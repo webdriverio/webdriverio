@@ -9,8 +9,8 @@ import split2 from 'split2'
 import { deepmerge } from 'deepmerge-ts'
 
 import { start as startSafaridriver, type SafaridriverOptions as SafaridriverParameters } from 'safaridriver'
-import { start as startGeckodriver, type GeckodriverParameters } from 'geckodriver'
-import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from 'edgedriver'
+import { start as startGeckodriver, type GeckodriverParameters } from '@testplane/geckodriver'
+import { start as startEdgedriver, findEdgePath, type EdgedriverParameters } from '@testplane/edgedriver'
 import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities } from '@testplane/wdio-types'
