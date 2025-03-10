@@ -5,7 +5,7 @@ import path from 'node:path'
 import cp from 'node:child_process'
 
 import decamelize from 'decamelize'
-import logger from '@testplane/wdio-logger'
+import logger from '../logger.js'
 import {
     install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
     computeExecutablePath, type InstallOptions

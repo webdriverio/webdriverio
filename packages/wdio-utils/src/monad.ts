@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import logger from '@testplane/wdio-logger'
+import logger from './logger.js'
 import { MESSAGE_TYPES, type Workers } from '@testplane/wdio-types'
 
 import { commandCallStructure, overwriteElementCommands } from './utils.js'

@@ -1,4 +1,4 @@
-import logger from '@testplane/wdio-logger'
+import logger from './logger.js'
 import type { Capabilities } from '@testplane/wdio-types'
 
 import { definesRemoteDriver } from './utils.js'

@@ -4,7 +4,7 @@ import cp, { type ChildProcess } from 'node:child_process'
 
 import getPort from 'get-port'
 import waitPort from 'wait-port'
-import logger from '@testplane/wdio-logger'
+import logger from '../logger.js'
 import split2 from 'split2'
 import { deepmerge } from 'deepmerge-ts'
 
