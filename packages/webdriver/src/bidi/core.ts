@@ -1,5 +1,7 @@
 import logger from '@wdio/logger'
 import type { ClientOptions, RawData, WebSocket } from 'ws'
+import { isIP } from 'node:net'
+import dns from 'node:dns'
 
 import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
@@ -17,9 +19,10 @@ const RESPONSE_TIMEOUT = 1000 * 60
 
 export class BidiCore {
     #id = 0
-    #ws: WebSocket
+    #ws: WebSocket | null = null
     #waitForConnected = Promise.resolve(false)
     #webSocketUrl: string
+    #clientOptions: ClientOptions | undefined
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
 
     client: Client | undefined
@@ -30,9 +33,7 @@ export class BidiCore {
 
     constructor (webSocketUrl: string, opts?: ClientOptions) {
         this.#webSocketUrl = webSocketUrl
-        log.info(`Connect to webSocketUrl ${this.#webSocketUrl}`)
-        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
-        this.#ws.on('message', this.#handleResponse.bind(this))
+        this.#clientOptions = opts
     }
 
     /**
@@ -54,17 +55,43 @@ export class BidiCore {
             return
         }
 
+        log.info(`Connecting to webSocketUrl ${this.#webSocketUrl}`)
+        const parsedUrl = new URL(this.#webSocketUrl)
+        // https://github.com/webdriverio/webdriverio/issues/14039
+        const candidateUrls: string[] = [this.#webSocketUrl]
+        if (!isIP(parsedUrl.hostname)) {
+            const [ips4, ips6] = await Promise.all([
+                dns.promises.resolve4(parsedUrl.hostname),
+                dns.promises.resolve6(parsedUrl.hostname),
+            ])
+            const candidateIps = [...ips4, ...ips6]
+            candidateUrls.push(
+                ...candidateIps.map((ip) => this.#webSocketUrl.replace(parsedUrl.hostname, ip))
+            )
+        }
+
         this.#waitForConnected = new Promise<boolean>((resolve) => {
-            this.#ws.on('open', () => {
-                log.info('Connected session to Bidi protocol')
-                this._isConnected = true
-                resolve(this._isConnected)
-            })
-            this.#ws.on('error', (err) => {
-                log.warn(`Couldn't connect to Bidi protocol: ${err.message}`)
-                this._isConnected = false
-                resolve(this._isConnected)
-            })
+            for (const candidateUrl of candidateUrls) {
+                const ws = new environment.value.Socket(this.#webSocketUrl, this.#clientOptions) as unknown as WebSocket
+                ws.once('open', () => {
+                    if (this._isConnected) {
+                        return
+                    }
+                    log.info(`Connected session to Bidi protocol at ${candidateUrl}`)
+                    this._isConnected = true
+                    this.#ws = ws
+                    this.#ws.on('message', this.#handleResponse.bind(this))
+                    resolve(this._isConnected)
+                })
+                ws.once('error', (err) => {
+                    if (this._isConnected) {
+                        return
+                    }
+                    log.warn(`Couldn't connect to Bidi protocol: ${err.message}`)
+                    this._isConnected = false
+                    resolve(this._isConnected)
+                })
+            }
         })
         return this.#waitForConnected
     }
@@ -76,17 +103,19 @@ export class BidiCore {
 
         log.info(`Close Bidi connection to ${this.#webSocketUrl}`)
         this._isConnected = false
-        this.#ws.off('message', this.#handleResponse.bind(this))
-        this.#ws.close()
-        this.#ws.terminate()
+        if (this.#ws) {
+            this.#ws.off('message', this.#handleResponse.bind(this))
+            this.#ws.close()
+            this.#ws.terminate()
+            this.#ws = null
+        }
     }
 
     public reconnect (webSocketUrl: string, opts?: ClientOptions) {
         log.info(`Reconnect to new Bidi session at ${webSocketUrl}`)
         this.close()
         this.#webSocketUrl = webSocketUrl
-        this.#ws = new environment.value.Socket(this.#webSocketUrl, opts) as unknown as WebSocket
-        this.#ws.on('message', this.#handleResponse.bind(this))
+        this.#clientOptions = opts
         return this.connect()
     }
 
@@ -181,7 +210,7 @@ export class BidiCore {
     }
 
     public sendAsync (params: Omit<CommandData, 'id'>) {
-        if (!this._isConnected) {
+        if (!this.#ws || !this._isConnected) {
             throw new Error('No connection to WebDriver Bidi was established')
         }
 
