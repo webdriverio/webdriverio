@@ -1278,10 +1278,10 @@ importers:
         specifier: workspace:*
         version: link:../wdio-utils
       '@testplane/webdriver':
-        specifier: workspace:9.5.4
+        specifier: workspace:*
         version: link:../webdriver
       '@testplane/webdriverio':
-        specifier: workspace:9.5.7
+        specifier: workspace:*
         version: link:../webdriverio
       '@types/node':
         specifier: ^20.11.28
