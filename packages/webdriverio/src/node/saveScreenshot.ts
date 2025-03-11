@@ -49,7 +49,7 @@ export async function saveScreenshot (
 
     const screenBuffer = this.isBidi
         ? await takeScreenshotBidi.call(this, filepath, options)
-        : await takeScreenshotClassic.call(this, options)
+        : await takeScreenshotClassic.call(this, filepath, options)
 
     const screenshot = Buffer.from(screenBuffer, 'base64')
     await fs.writeFile(absoluteFilepath, screenshot)
@@ -61,9 +61,13 @@ export async function saveScreenshot (
  * take screenshot using legacy WebDriver command
  * @returns {string} a base64 encoded screenshot
  */
-export function takeScreenshotClassic (this: WebdriverIO.Browser, options?: SaveScreenshotOptions): Promise<string> {
+export function takeScreenshotClassic (this: WebdriverIO.Browser, filepath: string, options?: SaveScreenshotOptions): Promise<string> {
     if (options) {
         throw new Error('saveScreenshot does not support options in WebDriver Classic mode')
+    }
+    const fileExtension = path.extname(filepath).slice(1)
+    if (fileExtension !== 'png') {
+        throw new Error('Invalid file extension, use ".png" for PNG format')
     }
     return this.takeScreenshot()
 }
