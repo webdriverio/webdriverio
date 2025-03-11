@@ -210,10 +210,24 @@ export class BidiCore {
     async #connectWebsocket(candidateUrls: string[]): Promise<boolean> {
         const wsConnectPromises: Promise<WebSocket | null>[] = []
         const errorMessages: string[] = []
+        let onFirstWebsocketConnected = () => {}
+        const firstWebsocketConnectedPromise = new Promise<void>((resolve) => {
+            onFirstWebsocketConnected = resolve
+        })
+        const candidateWebsockets: WebSocket[] = []
         for (const candidateUrl of candidateUrls) {
+            const ws = new environment.value.Socket(candidateUrl, this.#clientOptions) as unknown as WebSocket
+            candidateWebsockets.push(ws)
             const connectPromise = new Promise<WebSocket | null>((resolve) => {
-                const ws = new environment.value.Socket(candidateUrl, this.#clientOptions) as unknown as WebSocket
-                ws.once('open', () => resolve(ws))
+                ws.once('open', () => {
+                    if (!this.#ws) {
+                        log.info(`Connected session to Bidi protocol at ${candidateUrl}`)
+                        this.#ws = ws
+                        this.#ws.on('message', this.#handleResponse.bind(this))
+                        onFirstWebsocketConnected()
+                    }
+                    resolve(ws)
+                })
                 ws.once('error', (err) => {
                     errorMessages.push(`Couldn't connect to Bidi protocol at ${candidateUrl}: ${err.message}`)
                     resolve(null)
@@ -221,19 +235,17 @@ export class BidiCore {
             })
             wsConnectPromises.push(connectPromise)
         }
-        const wsMapping = (await Promise.all(wsConnectPromises))
-            .map((ws, index) => [candidateUrls[index], ws]) as [string, WebSocket | null][]
-        const result = wsMapping.find(([, ws]) => Boolean(ws)) as [string, WebSocket] | undefined
-        // Cleanup extra opened connections
-        for (const item of wsMapping) {
-            if (item !== result && item[1]) {
-                item[1].close()
-            }
-        }
-        if (result) {
-            log.info(`Connected session to Bidi protocol at ${result[0]}`)
-            this.#ws = result[1]
-            this.#ws.on('message', this.#handleResponse.bind(this))
+        // We either wait until any web socket is successfully connected
+        // or all of them fail
+        await Promise.race([
+            firstWebsocketConnectedPromise,
+            Promise.all(wsConnectPromises)
+        ])
+        if (this.#ws) {
+            // Cleanup extra opened sockets
+            candidateWebsockets
+                .filter((ws) => ws !== this.#ws)
+                .forEach((ws) => ws.close())
             this._isConnected = true
         } else {
             for (const errorMessage of errorMessages) {
