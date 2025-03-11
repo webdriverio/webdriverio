@@ -1395,15 +1395,21 @@ export const ObjectsAreEqual = (object1: object, object2: object) => {
     return true
 }
 
-export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: any) {
-    if (!caps) {
+export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: any, userCaps: WebdriverIO.Capabilities) {
+    if (!caps && !userCaps) {
         return undefined
     }
+
+    const bstackOptions = (userCaps)?.['bstack:options']
     const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
 
     for (const key of keys) {
         if (caps?.[key]) {
             return String(caps?.[key])
+        } else if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+            return String(bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities])
+        } else if (userCaps[key as keyof WebdriverIO.Capabilities]) {
+            return String(userCaps[key as keyof WebdriverIO.Capabilities])
         }
     }
     return undefined
