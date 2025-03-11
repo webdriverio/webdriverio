@@ -660,7 +660,7 @@ export interface SaveScreenshotOptions {
      * The format of the screenshot.
      * @default 'png'
      */
-    format?: 'png' | 'jpeg'
+    format?: 'png' | 'jpeg' | 'jpg'
     /**
      * The quality of the screenshot in case of JPEG format in range 0-100 percent.
      * @default 100

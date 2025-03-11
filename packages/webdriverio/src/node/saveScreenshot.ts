@@ -1,4 +1,6 @@
 import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
 import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
@@ -46,7 +48,7 @@ export async function saveScreenshot (
     await assertDirectoryExists(absoluteFilepath)
 
     const screenBuffer = this.isBidi
-        ? await takeScreenshotBidi.call(this, options)
+        ? await takeScreenshotBidi.call(this, filepath, options)
         : await takeScreenshotClassic.call(this, options)
 
     const screenshot = Buffer.from(screenBuffer, 'base64')
@@ -70,31 +72,41 @@ export function takeScreenshotClassic (this: WebdriverIO.Browser, options?: Save
  * takeScreenshotBidi
  * @returns {string} a base64 encoded screenshot
  */
-export async function takeScreenshotBidi (this: WebdriverIO.Browser, options?: SaveScreenshotOptions): Promise<string> {
+export async function takeScreenshotBidi (this: WebdriverIO.Browser, filepath: string, options?: SaveScreenshotOptions): Promise<string> {
     const browser = getBrowserObject(this)
     const contextManager = getContextManager(browser)
     const context = await contextManager.getCurrentContext()
     const tree = await this.browsingContextGetTree({})
-
     const origin: remote.BrowsingContextCaptureScreenshotParameters['origin'] = options?.fullPage ? 'document' : 'viewport'
-    const imageFormat = (options?.format || 'png') === 'png'
+    const givenFormat = options?.format || path.extname(filepath).slice(1)
+    const imageFormat = givenFormat === 'png'
         ? 'image/png'
-        : options?.format === 'jpeg'
+        : givenFormat === 'jpeg' || givenFormat === 'jpg'
             ? 'image/jpeg'
             : undefined
 
     if (!imageFormat) {
-        throw new Error(`Invalid image format, use 'png' or 'jpeg', got '${options?.format}'`)
+        throw new Error(`Invalid image format, use 'png', 'jpg' or 'jpeg', got '${options?.format}'`)
     }
 
-    const quality = options?.quality || undefined
-    if (typeof quality !== 'undefined' && (typeof quality !== 'number' || (quality < 0 || quality > 100))) {
-        throw new Error(`Invalid quality, use a number between 0 and 100, got '${quality}'`)
+    if (imageFormat === 'image/jpeg' && path.extname(filepath) !== '.jpeg' && path.extname(filepath) !== '.jpg') {
+        throw new Error('Invalid file extension, use ".jpeg" or ".jpg" for JPEG format')
+    } else if (imageFormat === 'image/png' && path.extname(filepath) !== '.png') {
+        throw new Error('Invalid file extension, use ".png" for PNG format')
+    }
+
+    const quality = typeof options?.quality === 'number' ? (options.quality / 100) : undefined
+    if (typeof options?.quality === 'number' && (options?.quality < 0 || options?.quality > 100)) {
+        throw new Error(`Invalid quality, use a number between 0 and 100, got '${options?.quality}'`)
+    }
+
+    if (typeof options?.quality === 'number' && imageFormat !== 'image/jpeg') {
+        throw new Error('Invalid option "quality" for PNG format')
     }
 
     const format: remote.BrowsingContextImageFormat = {
         type: imageFormat,
-        quality: options?.quality
+        quality
     }
 
     const clip: remote.BrowsingContextBoxClipRectangle | undefined = options?.clip

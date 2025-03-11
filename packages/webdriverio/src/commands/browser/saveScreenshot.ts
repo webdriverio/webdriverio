@@ -51,7 +51,7 @@ import type { SaveScreenshotOptions } from '../../types.js'
 export async function saveScreenshot (
     this: WebdriverIO.Browser,
     filepath: string,
-    options: SaveScreenshotOptions
+    options?: SaveScreenshotOptions
 ) {
     /**
      * run command implementation based on given environment

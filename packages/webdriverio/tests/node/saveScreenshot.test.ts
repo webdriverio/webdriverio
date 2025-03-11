@@ -91,8 +91,20 @@ describe('saveScreenshot', () => {
             await expect(saveScreenshot.call(browserBidi, 'screenshot.png', { format: 'invalid' })).rejects.toThrow()
         })
 
+        it('should throw an error if the file extension is invalid', async () => {
+            await expect(saveScreenshot.call(browserBidi, 'screenshot.jpeg', { format: 'png' })).rejects.toThrow()
+        })
+
+        it('should throw an error if the file extension is invalid for JPEG format', async () => {
+            await saveScreenshot.call(browserBidi, 'screenshot.jpeg')
+            await expect(saveScreenshot.call(browserBidi, 'screenshot.exe', { format: 'jpeg' })).rejects.toThrow()
+        })
+
         it('should throw an error if the quality is invalid', async () => {
-            await expect(saveScreenshot.call(browserBidi, 'screenshot.png', { quality: 101 })).rejects.toThrow()
+            await expect(saveScreenshot.call(browserBidi, 'screenshot.png', { quality: 101 }))
+                .rejects.toThrow(/Invalid quality, use a number between 0 and 100,/)
+            await expect(saveScreenshot.call(browserBidi, 'screenshot.png', { quality: 50 }))
+                .rejects.toThrow(/Invalid option "quality" for PNG format/)
         })
 
         it('should throw an error if the clip is invalid', async () => {
