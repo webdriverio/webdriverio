@@ -64,13 +64,13 @@ export class BidiCore {
                 dns.promises.resolve4(parsedUrl.hostname),
                 dns.promises.resolve6(parsedUrl.hostname),
             ])
-            const candiadateIps = [...ips4, ...ips6]
+            const candidateIps = [...ips4, ...ips6]
             // If the host resolves to a single IP address
             // then it does not make sense to try additional candidates
             // as the web socket DNS resolver would do extactly the same
-            if (candiadateIps.length > 1) {
+            if (candidateIps.length > 1) {
                 const hostnameMapper = (ip: string) => this.#webSocketUrl.replace(parsedUrl.hostname, ip)
-                candidateUrls.push(...candiadateIps.map(hostnameMapper))
+                candidateUrls.push(...candidateIps.map(hostnameMapper))
             }
         }
 
