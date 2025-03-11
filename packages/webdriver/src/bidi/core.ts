@@ -70,7 +70,7 @@ export class BidiCore {
             // as the web socket DNS resolver would do extactly the same
             if (candiadateIps.length > 1) {
                 const hostnameMapper = (ip: string) => this.#webSocketUrl.replace(parsedUrl.hostname, ip)
-                candidateUrls.push(...ips4.map(hostnameMapper), ...ips6.map(hostnameMapper))
+                candidateUrls.push(...candiadateIps.map(hostnameMapper))
             }
         }
 
