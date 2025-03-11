@@ -10,7 +10,8 @@
   "exports": {
     ".": {
       "import": "./build/index.js",
-      "types": "./build/index.d.ts"
+      "types": "./build/index.d.ts",
+      "require": "./build/index.cjs"
     }
   },
   "engines": {
