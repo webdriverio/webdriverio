@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import type { ClientOptions, RawData, WebSocket } from 'ws'
 import { isIP } from 'node:net'
-import dns from 'node:dns'
+import dns from 'node:dns/promises'
 
 import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
@@ -19,7 +19,7 @@ const RESPONSE_TIMEOUT = 1000 * 60
 
 export class BidiCore {
     #id = 0
-    #ws: WebSocket | null = null
+    #ws: WebSocket | undefined
     #waitForConnected = Promise.resolve(false)
     #webSocketUrl: string
     #clientOptions: ClientOptions | undefined
@@ -56,60 +56,9 @@ export class BidiCore {
         }
 
         log.info(`Connecting to webSocketUrl ${this.#webSocketUrl}`)
-        const parsedUrl = new URL(this.#webSocketUrl)
         // https://github.com/webdriverio/webdriverio/issues/14039
-        const candidateUrls: string[] = [this.#webSocketUrl]
-        if (!isIP(parsedUrl.hostname)) {
-            const [ips4, ips6] = await Promise.all([
-                dns.promises.resolve4(parsedUrl.hostname),
-                dns.promises.resolve6(parsedUrl.hostname),
-            ])
-            const candidateIps = [...ips4, ...ips6]
-            // If the host resolves to a single IP address
-            // then it does not make sense to try additional candidates
-            // as the web socket DNS resolver would do extactly the same
-            if (candidateIps.length > 1) {
-                const hostnameMapper = (ip: string) => this.#webSocketUrl.replace(parsedUrl.hostname, ip)
-                candidateUrls.push(...candidateIps.map(hostnameMapper))
-            }
-        }
-
-        this.#waitForConnected = (async () => {
-            const wsConnectPromises: Promise<WebSocket | null>[] = []
-            const errorMessages: string[] = []
-            for (const candidateUrl of candidateUrls) {
-                const connectPromise = new Promise<WebSocket | null>((resolve) => {
-                    const ws = new environment.value.Socket(candidateUrl, this.#clientOptions) as unknown as WebSocket
-                    ws.once('open', () => resolve(ws))
-                    ws.once('error', (err) => {
-                        errorMessages.push(`Couldn't connect to Bidi protocol at ${candidateUrl}: ${err.message}`)
-                        resolve(null)
-                    })
-                })
-                wsConnectPromises.push(connectPromise)
-            }
-            const wsMapping = (await Promise.all(wsConnectPromises))
-                .map((ws, index) => [candidateUrls[index], ws]) as [string, WebSocket | null][]
-            const result = wsMapping.find(([, ws]) => Boolean(ws)) as [string, WebSocket] | undefined
-            // Cleanup extra opened connections
-            for (const item of wsMapping) {
-                if (item !== result && item[1]) {
-                    item[1].close()
-                }
-            }
-            if (result) {
-                log.info(`Connected session to Bidi protocol at ${result[0]}`)
-                this.#ws = result[1]
-                this.#ws.on('message', this.#handleResponse.bind(this))
-                this._isConnected = true
-            } else {
-                for (const errorMessage of errorMessages) {
-                    log.warn(errorMessage)
-                }
-                this._isConnected = false
-            }
-            return this._isConnected
-        })()
+        const candidateUrls = await this.#listWebsocketCandidateUrls()
+        this.#waitForConnected = this.#connectWebsocket(candidateUrls)
         return this.#waitForConnected
     }
 
@@ -124,7 +73,7 @@ export class BidiCore {
             this.#ws.off('message', this.#handleResponse.bind(this))
             this.#ws.close()
             this.#ws.terminate()
-            this.#ws = null
+            this.#ws = undefined
         }
     }
 
@@ -236,6 +185,63 @@ export class BidiCore {
         this.client?.emit('bidiCommand', params)
         this.#ws.send(JSON.stringify({ id, ...params }))
         return id
+    }
+
+    async #listWebsocketCandidateUrls(): Promise<string[]> {
+        const parsedUrl = new URL(this.#webSocketUrl)
+        // https://github.com/webdriverio/webdriverio/issues/14039
+        const candidateUrls: string[] = [this.#webSocketUrl]
+        if (!isIP(parsedUrl.hostname)) {
+            const candidateIps = (await Promise.all([
+                dns.resolve4(parsedUrl.hostname),
+                dns.resolve6(parsedUrl.hostname),
+            ])).flat()
+            // If the host resolves to a single IP address
+            // then it does not make sense to try additional candidates
+            // as the web socket DNS resolver would do extactly the same
+            if (candidateIps.length > 1) {
+                const hostnameMapper = (ip: string) => this.#webSocketUrl.replace(parsedUrl.hostname, ip)
+                candidateUrls.push(...candidateIps.map(hostnameMapper))
+            }
+        }
+        return candidateUrls
+    }
+
+    async #connectWebsocket(candidateUrls: string[]): Promise<boolean> {
+        const wsConnectPromises: Promise<WebSocket | null>[] = []
+        const errorMessages: string[] = []
+        for (const candidateUrl of candidateUrls) {
+            const connectPromise = new Promise<WebSocket | null>((resolve) => {
+                const ws = new environment.value.Socket(candidateUrl, this.#clientOptions) as unknown as WebSocket
+                ws.once('open', () => resolve(ws))
+                ws.once('error', (err) => {
+                    errorMessages.push(`Couldn't connect to Bidi protocol at ${candidateUrl}: ${err.message}`)
+                    resolve(null)
+                })
+            })
+            wsConnectPromises.push(connectPromise)
+        }
+        const wsMapping = (await Promise.all(wsConnectPromises))
+            .map((ws, index) => [candidateUrls[index], ws]) as [string, WebSocket | null][]
+        const result = wsMapping.find(([, ws]) => Boolean(ws)) as [string, WebSocket] | undefined
+        // Cleanup extra opened connections
+        for (const item of wsMapping) {
+            if (item !== result && item[1]) {
+                item[1].close()
+            }
+        }
+        if (result) {
+            log.info(`Connected session to Bidi protocol at ${result[0]}`)
+            this.#ws = result[1]
+            this.#ws.on('message', this.#handleResponse.bind(this))
+            this._isConnected = true
+        } else {
+            for (const errorMessage of errorMessages) {
+                log.warn(errorMessage)
+            }
+            this._isConnected = false
+        }
+        return this._isConnected
     }
 }
 
