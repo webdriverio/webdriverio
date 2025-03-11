@@ -74,7 +74,7 @@ Add bezel corners and notch/dynamic island to the screenshot for iOS devices.
 - iPhone 14 Plus: `iphone14plus`
 - iPhone 14 Pro: `iphone14pro`
 - iPhone 14 Pro Max: `iphone14promax`
-  **iPads:**
+    **iPads:**
 - iPad Mini 6th Generation: `ipadmini`
 - iPad Air 4th Generation: `ipadair`
 - iPad Air 5th Generation: `ipadair`
@@ -204,10 +204,10 @@ When all tests are executed, a new JSON file with the collection of the comparis
 
 - `describe` for Jasmine/Mocha or `Feature` for CucumberJS
 - `it` for Jasmine/Mocha or `Scenario` for CucumberJS
-  and then sorted by:
+    and then sorted by:
 - `commandName`, which are the compare method names used to compare the images
 - `instanceData`, browser first, then device, then platform
-  it will look like this
+    it will look like this
 
 ```json
 [
@@ -408,6 +408,15 @@ returns a string can also be used to set the screenshotPath value:
 
 The padding which needs to be added to the toolbar bar on iOS and Android to do a proper cutout of the viewport.
 
+### `waitForFontsLoaded`
+
+- **Type:** `boolean`
+- **Mandatory:** No
+- **Default:** `true`
+- **Supported:** Web, Hybrid App (Webview)
+
+Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
+
 ## Tabbable Options
 
 :::info NOTE
@@ -536,15 +545,6 @@ The color of the line.
 - **Supported:** Web
 
 The width of the line.
-
-### `waitForFontsLoaded`
-
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `true`
-- **Supported:** Web, Hybrid App (Webview)
-
-Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
 
 ## Compare options
 
