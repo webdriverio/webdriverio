@@ -18,8 +18,9 @@ const DEBUG_PIPE_FLAG = 'remote-debugging-pipe'
  * :::info
  *
  * Note that using Puppeteer requires support for Chrome DevTools protocol and e.g.
- * can not be used when running automated tests in the cloud. Find out more in the
- * [Automation Protocols](/docs/automationProtocols) section.
+ * can not be used when running automated tests in the cloud. Chrome DevTools protocol is not installed in v9 by default,
+ * use `npm install puppeteer-core` to install it.
+ * Find out more in the [Automation Protocols](/docs/automationProtocols) section.
  *
  * :::
  *
