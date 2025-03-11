@@ -24,6 +24,12 @@ const DEBUG_PIPE_FLAG = 'remote-debugging-pipe'
  *
  * :::
  *
+ * :::info
+ *
+ * Note: Puppeteer is currently __not__ supported when running [component tests](/docs/component-testing).
+ *
+ * :::
+ *
  * <example>
     :getPuppeteer.test.js
     it('should allow me to use Puppeteer', async () => {
@@ -45,6 +51,13 @@ const DEBUG_PIPE_FLAG = 'remote-debugging-pipe'
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
 export async function getPuppeteer (this: WebdriverIO.Browser): Promise<PuppeteerBrowser> {
+    /**
+     * Tell user that Puppeteer is not supported in browser runner
+     */
+    if (globalThis.wdio) {
+        throw new Error('Puppeteer is not supported in browser runner')
+    }
+
     const puppeteer = await userImport<Puppeteer>('puppeteer-core')
 
     if (!puppeteer) {
