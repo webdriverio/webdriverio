@@ -14,7 +14,7 @@ import { highlight } from 'cli-highlight'
 import { Changelog } from 'lerna-changelog'
 import { load } from 'lerna-changelog/lib/configuration.js'
 
-import pkg from '../lerna.json' assert { type: 'json' }
+import pkg from '../lerna.json' with { type: 'json' }
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
