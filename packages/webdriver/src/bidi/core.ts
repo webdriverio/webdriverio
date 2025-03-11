@@ -90,7 +90,7 @@ export class BidiCore {
             }
             const wsMapping = (await Promise.all(wsConnectPromises))
                 .map((ws, index) => [candidateUrls[index], ws]) as [string, WebSocket | null][]
-            const result = wsMapping.find(([, ws]) => Boolean(ws)) as [string, WebSocket]
+            const result = wsMapping.find(([, ws]) => Boolean(ws)) as [string, WebSocket] | undefined
             // Cleanup extra opened connections
             for (const item of wsMapping) {
                 if (item !== result && item[1]) {
