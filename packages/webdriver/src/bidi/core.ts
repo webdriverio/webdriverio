@@ -64,8 +64,14 @@ export class BidiCore {
                 dns.promises.resolve4(parsedUrl.hostname),
                 dns.promises.resolve6(parsedUrl.hostname),
             ])
-            const urlMapper = (ip: string) => this.#webSocketUrl.replace(parsedUrl.hostname, ip)
-            candidateUrls.push(...ips4.map(urlMapper), ...ips6.map(urlMapper))
+            const candiadateIps = [...ips4, ...ips6]
+            // If the host resolves to a single IP address
+            // then it does not make sense to try additional candidates
+            // as the web socket DNS resolver would do extactly the same
+            if (candiadateIps.length > 1) {
+                const hostnameMapper = (ip: string) => this.#webSocketUrl.replace(parsedUrl.hostname, ip)
+                candidateUrls.push(...ips4.map(hostnameMapper), ...ips6.map(hostnameMapper))
+            }
         }
 
         this.#waitForConnected = (async () => {
