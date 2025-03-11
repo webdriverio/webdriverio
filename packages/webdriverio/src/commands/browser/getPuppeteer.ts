@@ -17,9 +17,15 @@ const DEBUG_PIPE_FLAG = 'remote-debugging-pipe'
  *
  * :::info
  *
- * Note that using Puppeteer requires support for Chrome DevTools protocol and e.g.
+ * Note: that using Puppeteer requires support for Chrome DevTools protocol and e.g.
  * can not be used when running automated tests in the cloud. Find out more in the
  * [Automation Protocols](/docs/automationProtocols) section.
+ *
+ * :::
+ *
+ * :::info
+ *
+ * Note: Puppeteer is currently __not__ supported when running [component tests](/docs/component-testing).
  *
  * :::
  *
@@ -44,6 +50,13 @@ const DEBUG_PIPE_FLAG = 'remote-debugging-pipe'
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
 export async function getPuppeteer (this: WebdriverIO.Browser): Promise<PuppeteerBrowser> {
+    /**
+     * Tell user that Puppeteer is not supported in browser runner
+     */
+    if (globalThis.wdio) {
+        throw new Error('Puppeteer is not supported in browser runner')
+    }
+
     const puppeteer = await userImport<Puppeteer>('puppeteer-core')
 
     if (!puppeteer) {
