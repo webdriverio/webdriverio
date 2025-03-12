@@ -1,8 +1,13 @@
+import path from 'node:path'
 // @ts-expect-error mock feature
 import { instances } from 'ws'
 import { describe, it, expect, vi } from 'vitest'
 
+import logger from '@wdio/logger'
+
 import { listWebsocketCandidateUrls, createBidiConnection } from '../../src/node/bidi.js'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 vi.mock('dns/promises', () => ({
     default: {
@@ -20,9 +25,8 @@ vi.mock('ws', () => {
             send = vi.fn()
             once = vi.fn()
             error = vi.fn()
-            close = vi.fn()
             terminate = vi.fn()
-
+            removeAllListeners = vi.fn()
             constructor(url: string) {
                 instances.push(this as unknown as WebSocket)
                 this.wsUrl = url
@@ -31,6 +35,8 @@ vi.mock('ws', () => {
         instances
     }
 })
+
+const log = logger('test')
 
 describe('Bidi Node.js implementation', () => {
     it('listWebsocketCandidateUrls', async () => {
@@ -53,17 +59,30 @@ describe('Bidi Node.js implementation', () => {
         expect(instances[1].once).toHaveBeenCalledWith('open', expect.any(Function))
         expect(instances[2].once).toHaveBeenCalledWith('open', expect.any(Function))
 
-        console.log(11, instances[0].once.mock.calls[1][1])
-
         instances[0].once.mock.calls[1][1](new Error('foo')) // error callback
         instances[1].once.mock.calls[0][1]() // success callback
         instances[2].once.mock.calls[1][1](new Error('bar')) // error callback
 
         const ws = await wsPromise as any
-        expect(instances[0].close).toHaveBeenCalled()
-        expect(instances[1].close).not.toHaveBeenCalled()
-        expect(instances[2].close).toHaveBeenCalled()
+        expect(instances[0].terminate).toHaveBeenCalled()
+        expect(instances[1].terminate).not.toHaveBeenCalled()
+        expect(instances[2].terminate).toHaveBeenCalled()
 
         expect(ws.wsUrl).toBe('ws://127.0.0.1/bar')
+        expect(log.info).toHaveBeenCalledWith(
+            'Connected to Bidi protocol at ws://127.0.0.1/bar'
+        )
+        expect(log.error).not.toHaveBeenCalled()
+    })
+
+    it('createBidiConnection times out', async () => {
+        vi.useFakeTimers()
+        const wsPromise = createBidiConnection('ws://foo/bar')
+        vi.runAllTimersAsync()
+        expect(await wsPromise).toBeUndefined()
+        expect(log.error).toHaveBeenCalledWith(
+            'Could not connect to Bidi protocol of any candidate url: ' +
+            '"ws://foo/bar", "ws://127.0.0.1/bar", "ws://::1/bar"'
+        )
     })
 })
