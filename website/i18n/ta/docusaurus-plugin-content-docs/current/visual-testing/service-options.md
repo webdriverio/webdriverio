@@ -285,7 +285,7 @@ and reset when done
 
 This will hide all text on a page so only the layout will be used for comparison. Hiding will be done by adding the style `'color': 'transparent !important'` to **each** element.
 
-For the output see [Test Output](./test-output#enablelayouttesting)
+For the output see [Test Output](/docs/visual-testing/test-output#enablelayouttesting)
 
 :::info
 By using this flag each element that contains text (so not only `p, h1, h2, h3, h4, h5, h6, span, a, li`, but also `div|button|..`) will get this property. There is **no** option to tailor this.
@@ -555,4 +555,4 @@ The width of the line.
 - **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/6a988808c9adc58f58c5a66cd74296ae5c1ad6dc/packages/webdriver-image-comparison/src/helpers/options.ts#L46-L60) for all default values
 - **Supported:** Web, Hybrid App (Webview), Native App (See [Method Compare options](./method-options#compare-check-options) for more information)
 
-The compare options can also be set as service options, they are described in the [Method Compare options](./method-options#compare-check-options)
+The compare options can also be set as service options, they are described in the [Method Compare options](/docs/visual-testing/method-options#compare-check-options)
