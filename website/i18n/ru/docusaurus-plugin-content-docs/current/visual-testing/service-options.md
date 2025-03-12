@@ -548,4 +548,11 @@ The width of the line.
 
 ## Compare options
 
+### `compareOptions`
+
+- **Type:** `object`
+- **Mandatory:** No
+- **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/6a988808c9adc58f58c5a66cd74296ae5c1ad6dc/packages/webdriver-image-comparison/src/helpers/options.ts#L46-L60) for all default values
+- **Supported:** Web, Hybrid App (Webview), Native App (See [Method Compare options](./method-options#compare-check-options) for more information)
+
 The compare options can also be set as service options, they are described in the [Method Compare options](./method-options#compare-check-options)
