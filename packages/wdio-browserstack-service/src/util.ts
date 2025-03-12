@@ -1395,7 +1395,7 @@ export const ObjectsAreEqual = (object1: object, object2: object) => {
     return true
 }
 
-export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: any, userCaps: WebdriverIO.Capabilities) {
+export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: WebdriverIO.Capabilities, userCaps: WebdriverIO.Capabilities) {
     if (!caps && !userCaps) {
         return undefined
     }
@@ -1405,13 +1405,13 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
 
     for (const key of keys) {
         if (caps?.[key]) {
-            BStackLogger.debug('Got platform version from driver caps')
+            BStackLogger.debug(`Got ${key} from driver caps`)
             return String(caps?.[key])
         } else if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
-            BStackLogger.debug('Got platform version from user bstack options')
+            BStackLogger.debug(`Got ${key} from user bstack options`)
             return String(bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities])
         } else if (userCaps[key as keyof WebdriverIO.Capabilities]) {
-            BStackLogger.debug('Got platform version from user caps')
+            BStackLogger.debug(`Got ${key} from user caps`)
             return String(userCaps[key as keyof WebdriverIO.Capabilities])
         }
     }
