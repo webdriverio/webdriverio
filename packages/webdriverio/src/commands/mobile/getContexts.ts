@@ -113,7 +113,7 @@ const log = logger('webdriver')
     :description.data.test.js
     it('should return Android description data for the webview', async () => {
         // For Android
-        await driver.getContexts({returnDetailedContexts: true})
+        await driver.getContexts({returnDetailedContexts: true, returnAndroidDescriptionData: true})
         // Returns [
         //   { id: 'NATIVE_APP' },
         //   {
