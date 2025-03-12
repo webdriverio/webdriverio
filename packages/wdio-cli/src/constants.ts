@@ -629,15 +629,14 @@ export const QUESTIONNAIRE = [{
             defaultServices.push('vscode')
         } else if (getTestingPurpose(answers) === 'electron') {
             defaultServices.push('electron')
+        } else if (getTestingPurpose(answers) === 'roku') {
+            defaultServices.push('roku')
         }
         if (isNuxtProject) {
             defaultServices.push('nuxt')
         }
         if (answers.includeVisualTesting) {
             defaultServices.push('visual')
-        }
-        if (getTestingPurpose(answers) === 'roku') {
-            defaultServices.push('roku')
         }
         return selectDefaultService(defaultServices)
     }
@@ -672,7 +671,8 @@ export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
     'wdio-vscode-service',
     'wdio-nuxt-service',
     'wdio-vite-service',
-    'wdio-gmail-service'
+    'wdio-gmail-service',
+    'wdio-roku-service'
 ]
 
 export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner & { capabilities: unknown }> = {
