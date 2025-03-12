@@ -18,7 +18,6 @@ environment.value = {
     createBidiConnection: (webSocketUrl: string, options: unknown) => {
         log.info(`Connecting to webSocketUrl ${webSocketUrl}`)
         const ws = new BrowserSocket(webSocketUrl, options)
-        console.log('!!')
         return new Promise<WebSocket | undefined>((resolve) => {
             ws.on('open', () => {
                 log.info('Connected session to Bidi protocol')

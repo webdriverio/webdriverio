@@ -18,7 +18,8 @@ const RESPONSE_TIMEOUT = 1000 * 60
 export class BidiCore {
     #id = 0
     #ws: WebSocket | undefined
-    #waitForConnected = Promise.resolve(false)
+    #waitForConnected: Promise<boolean>
+    #resolveWaitForConnected: (value: boolean) => void
     #webSocketUrl: string
     #clientOptions: ClientOptions | undefined
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
@@ -32,6 +33,10 @@ export class BidiCore {
     constructor (webSocketUrl: string, opts?: ClientOptions) {
         this.#webSocketUrl = webSocketUrl
         this.#clientOptions = opts
+        this.#resolveWaitForConnected = () => {}
+        this.#waitForConnected = new Promise((resolve) => {
+            this.#resolveWaitForConnected = resolve
+        })
     }
 
     /**
@@ -50,13 +55,14 @@ export class BidiCore {
          * try to connect to different websocket urls depending on the protocol
          */
         this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions)
-        if (!this.#ws) {
-            this._isConnected = false
-            return false
+        this._isConnected = Boolean(this.#ws)
+        this.#resolveWaitForConnected(this._isConnected)
+
+        if (this.#ws) {
+            this.#ws.on('message', this.#handleResponse.bind(this))
         }
 
-        this._isConnected = true
-        return true
+        return this._isConnected
     }
 
     public close () {

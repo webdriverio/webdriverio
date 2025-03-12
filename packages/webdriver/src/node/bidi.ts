@@ -50,6 +50,7 @@ export async function connectWebsocket(candidateUrls: string[], _?: unknown): Pr
     })
     const candidateWebsockets: WebSocket[] = []
     for (const candidateUrl of candidateUrls) {
+        log.debug(`Attempt to connect to webSocketUrl ${candidateUrl}`)
         const ws = new WebSocket(candidateUrl) as unknown as WebSocket
         candidateWebsockets.push(ws)
         const connectPromise = new Promise<WebSocket | undefined>((resolve) => {
