@@ -610,6 +610,8 @@ export const QUESTIONNAIRE = [{
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'electron')]
         } else if (getTestingPurpose(answers) === 'macos') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'appium')]
+        } else if (getTestingPurpose(answers) === 'roku') {
+            return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'roku')]
         }
         return prioServiceOrderFor(services)
     },
