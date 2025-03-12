@@ -1404,9 +1404,9 @@ export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(c
     const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
 
     for (const key of keys) {
-        if (caps?.[key]) {
+        if (caps?.[key as keyof WebdriverIO.Capabilities]) {
             BStackLogger.debug(`Got ${key} from driver caps`)
-            return String(caps?.[key])
+            return String(caps?.[key as keyof WebdriverIO.Capabilities])
         } else if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
             BStackLogger.debug(`Got ${key} from user bstack options`)
             return String(bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities])
