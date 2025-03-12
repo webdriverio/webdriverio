@@ -42,5 +42,6 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     ...args: InnerArguments
 ): Promise<ReturnValue> {
     const browser = getBrowserObject(this)
+    await this.waitForExist()
     return browser.execute(script, this, ...args)
 }
