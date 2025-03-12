@@ -198,7 +198,7 @@ export class BidiCore {
             ])).flat()
             // If the host resolves to a single IP address
             // then it does not make sense to try additional candidates
-            // as the web socket DNS resolver would do extactly the same
+            // as the web socket DNS resolver would do exactly the same
             if (candidateIps.length > 1) {
                 const hostnameMapper = (ip: string) => this.#webSocketUrl.replace(parsedUrl.hostname, ip)
                 candidateUrls.push(...candidateIps.map(hostnameMapper))
