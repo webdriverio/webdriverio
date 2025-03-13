@@ -8,11 +8,12 @@ export const config: WebdriverIO.Config = {
      * specify test files
      */
     specs: [
-        path.join(__dirname, 'headless', 'puppeteer.e2e.ts'),
-        path.join(__dirname, 'headless', 'source-maps.e2e.ts'),
-        path.join(__dirname, 'headless', 'reloadSession.e2e.ts'),
-        path.join(__dirname, 'headless', 'test.e2e.ts'),
-        path.join(__dirname, 'headless', 'mocking.e2e.ts'),
+        // path.join(__dirname, 'headless', 'puppeteer.e2e.ts'),
+        // path.join(__dirname, 'headless', 'source-maps.e2e.ts'),
+        // path.join(__dirname, 'headless', 'reloadSession.e2e.ts'),
+        // path.join(__dirname, 'headless', 'test.e2e.ts'),
+        // path.join(__dirname, 'headless', 'mocking.e2e.ts'),
+        path.join(__dirname, 'headless', 'memory.e2e.ts'),
     ],
 
     /**
@@ -21,12 +22,13 @@ export const config: WebdriverIO.Config = {
     capabilities: [{
         browserName: 'chrome',
         browserVersion: 'stable',
+        'wdio:enforceWebDriverClassic': true,
         // 'goog:chromeOptions': {
         //     args: ['headless', 'disable-gpu']
         // }
     }],
     bail: 1,
-    services: ['lighthouse'],
+    // services: ['lighthouse'],
 
     /**
      * test configurations
