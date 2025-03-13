@@ -871,7 +871,7 @@ class _InsightsHandler {
             browser_version: caps?.browserVersion,
             platform: caps?.platformName,
             product: this._platformMeta?.product,
-            platform_version: getPlatformVersion(this._userCaps as WebdriverIO.Capabilities)
+            platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities)
         }
     }
 
