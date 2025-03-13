@@ -11,7 +11,7 @@ describe('getValue', () => {
         vi.mocked(fetch).mockClear()
     })
 
-    it('should get the value using getElementProperty', async () => {
+    it('should get the value using getElementProperty in web mode', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -22,26 +22,43 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
+        const url = vi.mocked(fetch).mock.calls[2][0] as URL
+        expect(url.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/property/value')
     })
 
-    it('should get value in mobile mode', async () => {
+    it('should get value using getElementProperty in mobile web mode', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar',
-                // @ts-ignore mock feature
                 mobileMode: true
             } as any
         })
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        // Due to mobileMode being enabled we will have extra calls to fetch
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
+
+        const url = vi.mocked(fetch).mock.calls[2][0] as URL
+        expect(url.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/property/value')
+    })
+
+    it('should get value using getElementProperty in mobile native mode', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                nativeAppMode: true
+            } as any
+        })
+        const elem = await browser.$('#foo')
+
+        await elem.getValue()
+
+        const url = vi.mocked(fetch).mock.calls[2][0] as URL
+        expect(url.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/attribute/value')
     })
 })
