@@ -139,10 +139,18 @@ async function calculateFromTo({
     const { x, y, width, height } = await browser.getElementRect(await scrollableElement?.elementId)
     // It's always advisable to swipe from the center of the element.
     const scrollRectangles = {
-        top: { x: Math.round(x + width / 2), y: Math.round(y + height - height * swipePercentage) },
-        right: { x: Math.round(x + width * swipePercentage), y: Math.round(y + height / 2) },
-        bottom: { x: Math.round(x + width / 2), y: Math.round(y + height * swipePercentage) },
-        left: { x: Math.round(x + width - width * swipePercentage), y: Math.round(y + height / 2) },
+        from: {
+            top: { x: Math.round(x + width / 2), y: Math.round(y + height - height * swipePercentage) },
+            right: { x: Math.round(x + width * swipePercentage), y: Math.round(y + height / 2) },
+            bottom: { x: Math.round(x + width / 2), y: Math.round(y + height * swipePercentage) },
+            left: { x: Math.round(x + width - width * swipePercentage), y: Math.round(y + height / 2) },
+        },
+        to:{
+            top: { x: Math.round(x + width / 2), y: Math.round(y + height) },
+            right: { x: Math.round(x + width), y: Math.round(y + height / 2) },
+            bottom: { x: Math.round(x + width / 2), y: Math.round(y + height) },
+            left: { x: Math.round(x + width), y: Math.round(y + height / 2) },
+        }
     }
 
     // 3. Swipe in the given direction
@@ -151,20 +159,20 @@ async function calculateFromTo({
 
     switch (direction) {
     case MobileScrollDirection.Down:
-        from = scrollRectangles.top
-        to = scrollRectangles.bottom
+        from = scrollRectangles.from.top
+        to = scrollRectangles.to.bottom
         break
     case MobileScrollDirection.Left:
-        from = scrollRectangles.right
-        to= scrollRectangles.left
+        from = scrollRectangles.from.right
+        to= scrollRectangles.to.left
         break
     case MobileScrollDirection.Right:
-        from = scrollRectangles.left
-        to = scrollRectangles.right
+        from = scrollRectangles.from.left
+        to = scrollRectangles.to.right
         break
     case MobileScrollDirection.Up:
-        from = scrollRectangles.bottom
-        to = scrollRectangles.top
+        from = scrollRectangles.from.bottom
+        to = scrollRectangles.to.top
         break
     default:
         throw new Error(`Unknown direction: ${direction}`)

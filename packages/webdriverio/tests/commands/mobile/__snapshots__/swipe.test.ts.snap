@@ -73,7 +73,7 @@ exports[`swipe test > should call a swipe down command with 25% for a scrollable
       "origin": "viewport",
       "type": "pointerMove",
       "x": 250,
-      "y": 300,
+      "y": 600,
     },
     {
       "button": 0,
@@ -113,7 +113,7 @@ exports[`swipe test > should call a swipe down command with duration 5000 for a 
       "origin": "viewport",
       "type": "pointerMove",
       "x": 250,
-      "y": 220,
+      "y": 600,
     },
     {
       "button": 0,
@@ -128,7 +128,7 @@ exports[`swipe test > should call a swipe down command with duration 5000 for a 
 }
 `;
 
-exports[`swipe test > should call a swipe left command with 75% for a scrollable element 1`] = `
+exports[`swipe test > should call a swipe left command with 50% for a scrollable element 1`] = `
 {
   "actions": [
     {
@@ -136,7 +136,7 @@ exports[`swipe test > should call a swipe left command with 75% for a scrollable
       "duration": 100,
       "origin": "viewport",
       "type": "pointerMove",
-      "x": 325,
+      "x": 250,
       "y": 400,
     },
     {
@@ -152,7 +152,7 @@ exports[`swipe test > should call a swipe left command with 75% for a scrollable
       "duration": 1500,
       "origin": "viewport",
       "type": "pointerMove",
-      "x": 175,
+      "x": 400,
       "y": 400,
     },
     {
@@ -168,7 +168,7 @@ exports[`swipe test > should call a swipe left command with 75% for a scrollable
 }
 `;
 
-exports[`swipe test > should call a swipe right command with 80% for a scrollable element 1`] = `
+exports[`swipe test > should call a swipe right command with 75% for a scrollable element 1`] = `
 {
   "actions": [
     {
@@ -176,7 +176,7 @@ exports[`swipe test > should call a swipe right command with 80% for a scrollabl
       "duration": 100,
       "origin": "viewport",
       "type": "pointerMove",
-      "x": 160,
+      "x": 175,
       "y": 400,
     },
     {
@@ -192,7 +192,7 @@ exports[`swipe test > should call a swipe right command with 80% for a scrollabl
       "duration": 1500,
       "origin": "viewport",
       "type": "pointerMove",
-      "x": 340,
+      "x": 400,
       "y": 400,
     },
     {
@@ -233,7 +233,7 @@ exports[`swipe test > should call a swipe up command with 45% for a scrollable e
       "origin": "viewport",
       "type": "pointerMove",
       "x": 250,
-      "y": 420,
+      "y": 600,
     },
     {
       "button": 0,
