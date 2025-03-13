@@ -287,7 +287,7 @@ and reset when done
 
 This will hide all text on a page so only the layout will be used for comparison. Hiding will be done by adding the style `'color': 'transparent !important'` to **each** element.
 
-For the output see [Test Output](./test-output#enablelayouttesting)
+For the output see [Test Output](/docs/visual-testing/test-output#enablelayouttesting)
 
 :::info
 By using this flag each element that contains text (so not only `p, h1, h2, h3, h4, h5, h6, span, a, li`, but also `div|button|..`) will get this property. There is **no** option to tailor this.
@@ -409,6 +409,15 @@ returns a string can also be used to set the screenshotPath value:
 -   **Supported:** Web
 
 The padding which needs to be added to the toolbar bar on iOS and Android to do a proper cutout of the viewport.
+
+### `waitForFontsLoaded`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Supported:** Web, Hybrid App (Webview)
+
+Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
 
 ## Tabbable Options
 
@@ -539,15 +548,13 @@ The color of the line.
 
 The width of the line.
 
-### `waitForFontsLoaded`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `true`
--   **Supported:** Web, Hybrid App (Webview)
-
-Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
-
 ## Compare options
 
-The compare options can also be set as service options, they are described in the [Method Compare options](./method-options#compare-check-options)
+### `compareOptions`
+
+-   **Type:** `object`
+-   **Mandatory:** No
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/6a988808c9adc58f58c5a66cd74296ae5c1ad6dc/packages/webdriver-image-comparison/src/helpers/options.ts#L46-L60) for all default values
+-   **Supported:** Web, Hybrid App (Webview), Native App (See [Method Compare options](./method-options#compare-check-options) for more information)
+
+The compare options can also be set as service options, they are described in the [Method Compare options](/docs/visual-testing/method-options#compare-check-options)

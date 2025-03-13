@@ -650,6 +650,33 @@ export interface ExtendedElementReference {
 export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock' | 'device'
 export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
 
+export interface SaveScreenshotOptions {
+    /**
+     * Whether to take a screenshot of the full page or just the current viewport.
+     * @default false
+     */
+    fullPage?: boolean
+    /**
+     * The format of the screenshot.
+     * @default 'png'
+     */
+    format?: 'png' | 'jpeg' | 'jpg'
+    /**
+     * The quality of the screenshot in case of JPEG format in range 0-100 percent.
+     * @default 100
+     */
+    quality?: number
+    /**
+     * Clipping a rectangle of the screenshot.
+     */
+    clip?: {
+        x: number
+        y: number
+        width: number
+        height: number
+    }
+}
+
 declare global {
     namespace WebdriverIO {
         /**

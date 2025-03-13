@@ -4,8 +4,9 @@
  * :::info
  *
  * Note that using the `throttleCPU` command requires support for Chrome DevTools protocol and e.g.
- * can not be used when running automated tests in the cloud. Find out more in the
- * [Automation Protocols](/docs/automationProtocols) section.
+ * can not be used when running automated tests in the cloud. Chrome DevTools protocol is not installed by default,
+ * use `npm install puppeteer-core` to install it.
+ * Find out more in the [Automation Protocols](/docs/automationProtocols) section.
  *
  * :::
  *

@@ -23,6 +23,67 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.12.0 (2025-03-11)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#14267](https://github.com/webdriverio/webdriverio/pull/14267) feat(webdriverio): allow more options for screenshot taking with Bidi ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#14268](https://github.com/webdriverio/webdriverio/pull/14268) fix(webdriverio): fail implicitly when trying to use Puppeteer with the browser runner ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#14266](https://github.com/webdriverio/webdriverio/pull/14266) docs: fix waitforfontsloaded position in docs ([@alcpereira](https://github.com/alcpereira))
+* `webdriverio`
+  * [#14263](https://github.com/webdriverio/webdriverio/pull/14263) docs: mention that Chrome DevTools protocol is not installed by default and what package is required ([@ianrenauld](https://github.com/ianrenauld))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Ian Renauld ([@ianrenauld](https://github.com/ianrenauld))
+- [@alcpereira](https://github.com/alcpereira)
+
+
+## v9.11.0 (2025-03-05)
+
+#### :rocket: New Feature
+* `wdio-cucumber-framework`, `wdio-reporter`, `wdio-spec-reporter`
+  * [#14234](https://github.com/webdriverio/webdriverio/pull/14234) feat(cucumber): Distinguish Cucumber PENDING status in reporters ([@Norva-bugged](https://github.com/Norva-bugged))
+
+#### :bug: Bug Fix
+* `webdriver`, `webdriverio`
+  * [#14246](https://github.com/webdriverio/webdriverio/pull/14246) fix(webdriver): abort all operation when session closes ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`
+  * [#14250](https://github.com/webdriverio/webdriverio/pull/14250) fix(@wdio/browser-runner): fix resolve of Mocha dependencies ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-config`
+  * [#14243](https://github.com/webdriverio/webdriverio/pull/14243) [WDIO9] added wildcards for cli ([@udarrr](https://github.com/udarrr))
+  * [#14244](https://github.com/webdriverio/webdriverio/pull/14244) fix(cli): bring back support for glob pattern in filesToWatch ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#14229](https://github.com/webdriverio/webdriverio/pull/14229) fix(cli): properly check and find the config file ([@mato533](https://github.com/mato533))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#14245](https://github.com/webdriverio/webdriverio/pull/14245) fix(@wdio/utils): better detect functions in parameter ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#14242](https://github.com/webdriverio/webdriverio/pull/14242) fix(webdriverio): don't continue failing context request ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#14251](https://github.com/webdriverio/webdriverio/pull/14251) docs: improve typescript example with webdriverio namespace ([@alcpereira](https://github.com/alcpereira))
+
+#### :house: Internal
+* [#14215](https://github.com/webdriverio/webdriverio/pull/14215) fix(webdriverio): fix failing e2e tests due to language and timezone differences ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 6
+- Avron Souto ([@Norva-bugged](https://github.com/Norva-bugged))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Siarhei Kliushnikau ([@udarrr](https://github.com/udarrr))
+- [@alcpereira](https://github.com/alcpereira)
+- [@mato533](https://github.com/mato533)
+
+
 ## v9.10.1 (2025-02-25)
 
 #### :bug: Bug Fix

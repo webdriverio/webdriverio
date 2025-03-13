@@ -140,8 +140,9 @@ export default class ProxyDriver {
          */
         if (params.capabilities.webSocketUrl && client._bidiHandler) {
             // make sure the Bidi connection is established before returning
-            await client._bidiHandler.connect()
-            client._bidiHandler.socket.on('message', parseBidiMessage.bind(client))
+            if (await client._bidiHandler.connect()) {
+                client._bidiHandler.socket?.on('message', parseBidiMessage.bind(client))
+            }
         }
 
         /**
