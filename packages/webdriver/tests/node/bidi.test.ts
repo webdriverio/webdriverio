@@ -1,6 +1,6 @@
 import path from 'node:path'
 // @ts-expect-error mock feature
-import { instances } from 'ws'
+import { instances, setThrowError } from 'ws'
 import { describe, it, expect, vi } from 'vitest'
 
 import logger from '@wdio/logger'
@@ -18,6 +18,7 @@ vi.mock('dns/promises', () => ({
 
 vi.mock('ws', () => {
     const instances: WebSocket[] = []
+    let throwError: Error | undefined
     return {
         default: class WebSocketMock {
             wsUrl: string
@@ -30,9 +31,16 @@ vi.mock('ws', () => {
             constructor(url: string) {
                 instances.push(this as unknown as WebSocket)
                 this.wsUrl = url
+
+                if (throwError) {
+                    throw throwError
+                }
             }
         },
-        instances
+        instances,
+        setThrowError: (error: Error) => {
+            throwError = error
+        }
     }
 })
 
@@ -84,5 +92,11 @@ describe('Bidi Node.js implementation', () => {
             'Could not connect to Bidi protocol of any candidate url: ' +
             '"ws://foo/bar", "ws://127.0.0.1/bar", "ws://::1/bar"'
         )
+    })
+
+    it('should not fail if WebSocket url is invalid', async () => {
+        setThrowError(new Error('ESERVFAIL'))
+        const wsPromise = createBidiConnection('ws://foo/bar')
+        expect(await wsPromise).toBeUndefined()
     })
 })

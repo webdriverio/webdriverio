@@ -52,8 +52,13 @@ interface ConnectionResult {
 export async function connectWebsocket(candidateUrls: string[], _?: unknown): Promise<WebSocket | undefined> {
     const websockets: WebSocket[] = candidateUrls.map((candidateUrl) => {
         log.debug(`Attempt to connect to webSocketUrl ${candidateUrl}`)
-        return new WebSocket(candidateUrl)
-    })
+        try {
+            const ws = new WebSocket(candidateUrl)
+            return ws
+        } catch {
+            return undefined
+        }
+    }).filter(Boolean) as WebSocket[]
 
     const wsConnectPromises: Promise<ConnectionResult>[] = websockets.map((ws, index) => {
         return new Promise<ConnectionResult>((resolve) => {
@@ -72,20 +77,20 @@ export async function connectWebsocket(candidateUrls: string[], _?: unknown): Pr
         }, CONNECTION_TIMEOUT)
     })
 
-    const ws = await Promise.race([
+    const wsInfo = await Promise.race([
         firstResolved(wsConnectPromises),
         connectionTimeoutPromise,
     ])
 
-    const socketsToCleanup = ws ? websockets.filter((_, index) => ws.index !== index) : websockets
+    const socketsToCleanup = wsInfo ? websockets.filter((_, index) => wsInfo.index !== index) : websockets
     for (const socket of socketsToCleanup) {
         socket.removeAllListeners()
         socket.terminate()
     }
 
-    if (ws?.isConnected) {
-        log.info(`Connected to Bidi protocol at ${candidateUrls[ws.index]}`)
-        return ws.ws
+    if (wsInfo?.isConnected) {
+        log.info(`Connected to Bidi protocol at ${candidateUrls[wsInfo.index]}`)
+        return wsInfo.ws
     }
 
     return undefined
