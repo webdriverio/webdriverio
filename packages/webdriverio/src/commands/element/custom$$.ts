@@ -2,7 +2,7 @@ import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
 
 import { getElements } from '../../utils/getElementObject.js'
-import { enhanceElementsArray } from '../../utils/index.js'
+import { ElementArray } from '../../element/array.js'
 import type { CustomStrategyFunction } from '../../types.js'
 
 /**
@@ -30,11 +30,11 @@ import type { CustomStrategyFunction } from '../../types.js'
  * @param {*} strategyArguments
  * @return {WebdriverIO.ElementArray}
  */
-export async function custom$$ (
+export function custom$$ (
     this: WebdriverIO.Element,
     strategyName: string,
     ...strategyArguments: unknown[]
-): Promise<WebdriverIO.ElementArray> {
+): ElementArray {
     const browserObject = getBrowserObject(this)
     const strategy = browserObject.strategies.get(strategyName) as CustomStrategyFunction
 
@@ -53,19 +53,24 @@ export async function custom$$ (
 
     const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
 
-    let res = await browserObject.execute(strategy, ...strategyArguments, this)
+    return ElementArray.fromAsyncCallback(async () => {
+        let res = await browserObject.execute(strategy, ...strategyArguments, this)
 
-    /**
-     * if the user's script return just one element
-     * then we convert it to an array as this method
-     * should return multiple elements
-     */
-    if (!Array.isArray(res)) {
-        res = [res]
-    }
+        /**
+         * if the user's script return just one element
+         * then we convert it to an array as this method
+         * should return multiple elements
+         */
+        if (!Array.isArray(res)) {
+            res = [res]
+        }
 
-    res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
+        res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
-    return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
+        const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
+        return elements
+    }, {
+        selector: strategyName,
+        parent: this
+    })
 }

@@ -2,7 +2,7 @@ import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import { resqScript } from '../constant.js'
-import { enhanceElementsArray } from '../../utils/index.js'
+import { ElementArray } from '../../element/array.js'
 import { getElements } from '../../utils/getElementObject.js'
 import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq.js'
 import type { ReactSelectorOptions } from '../../types.js'
@@ -40,19 +40,24 @@ import type { ReactSelectorOptions } from '../../types.js'
  * @return {WebdriverIO.ElementArray}
  *
  */
-export async function react$$(
+export function react$$(
     this: WebdriverIO.Element,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
-) {
-    const browser = await getBrowserObject(this)
-    await this.executeScript(resqScript.toString(), [])
-    await browser.execute(waitToLoadReact)
-    const res = await browser.execute(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        react$$Script as any, selector, props, state, this
-    ) as ElementReference[]
+): ElementArray {
+    return ElementArray.fromAsyncCallback(async () => {
+        const browser = await getBrowserObject(this)
+        await this.executeScript(resqScript.toString(), [])
+        await browser.execute(waitToLoadReact)
+        const res = await browser.execute(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            react$$Script as any, selector, props, state, this
+        ) as ElementReference[]
 
-    const elements = await getElements.call(this, selector, res, { isReactElement: true })
-    return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])
+        const elements = await getElements.call(this, selector, res, { isReactElement: true })
+        return elements
+    }, {
+        selector,
+        parent: this
+    })
 }
