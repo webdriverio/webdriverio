@@ -263,7 +263,9 @@ export async function url (
                 interval: 1,
                 timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
             }
-        )
+        ).catch(() => {
+            return {} as any
+        })
         return request
     }
 
