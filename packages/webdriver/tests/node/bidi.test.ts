@@ -1,7 +1,7 @@
 import path from 'node:path'
 // @ts-expect-error mock feature
-import { instances, setThrowError } from 'ws'
-import { describe, it, expect, vi } from 'vitest'
+import { instances, setThrowError, clearInstances } from 'ws'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import logger from '@wdio/logger'
 
@@ -38,6 +38,9 @@ vi.mock('ws', () => {
             }
         },
         instances,
+        clearInstances: () => {
+            instances.length = 0
+        },
         setThrowError: (error: Error) => {
             throwError = error
         }
@@ -47,6 +50,10 @@ vi.mock('ws', () => {
 const log = logger('test')
 
 describe('Bidi Node.js implementation', () => {
+    beforeEach(() => {
+        clearInstances()
+    })
+
     it('listWebsocketCandidateUrls', async () => {
         const candidateUrls = await listWebsocketCandidateUrls('ws://foo/bar')
         expect(candidateUrls).toEqual([
@@ -83,13 +90,23 @@ describe('Bidi Node.js implementation', () => {
         expect(log.error).not.toHaveBeenCalled()
     })
 
+    it('createBidiConnection returns undefined if no socket connection is established', async () => {
+        const wsPromise = createBidiConnection('ws://foo/bar')
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        setTimeout(() => instances[0].once.mock.calls[1][1](new Error('foo')), 300) // error callback
+        setTimeout(() => instances[1].once.mock.calls[1][1](new Error('bar')), 100) // error callback
+        setTimeout(() => instances[2].once.mock.calls[1][1](new Error('loo')), 200) // error callback
+        await expect(wsPromise).resolves.toBeUndefined()
+        expect(log.error).toBeCalledWith('Could not connect to Bidi protocol\n  - bar\n  - loo\n  - foo')
+    })
+
     it('createBidiConnection times out', async () => {
         vi.useFakeTimers()
         const wsPromise = createBidiConnection('ws://foo/bar')
         vi.runAllTimersAsync()
         expect(await wsPromise).toBeUndefined()
         expect(log.error).toHaveBeenCalledWith(
-            'Could not connect to Bidi protocol of any candidate url: ' +
+            'Could not connect to Bidi protocol of any candidate url in time: ' +
             '"ws://foo/bar", "ws://127.0.0.1/bar", "ws://::1/bar"'
         )
     })

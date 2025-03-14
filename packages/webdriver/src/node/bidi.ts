@@ -38,10 +38,15 @@ export async function listWebsocketCandidateUrls(webSocketUrl: string): Promise<
 }
 
 interface ConnectionResult {
-    index: number
     ws: WebSocket
     isConnected: boolean
     errorMessage?: string
+    index: number
+}
+
+interface ConnectionPromise {
+    index: number
+    promise: Promise<ConnectionResult>
 }
 
 /**
@@ -60,19 +65,20 @@ export async function connectWebsocket(candidateUrls: string[], _?: unknown): Pr
         }
     }).filter(Boolean) as WebSocket[]
 
-    const wsConnectPromises: Promise<ConnectionResult>[] = websockets.map((ws, index) => {
-        return new Promise<ConnectionResult>((resolve) => {
+    const wsConnectPromises: ConnectionPromise[] = websockets.map((ws, index) => {
+        const promise = new Promise<ConnectionResult>((resolve) => {
             ws.once('open', () => resolve({ ws, isConnected: true, index }))
             ws.once('error', (err) => {
                 log.debug(`Could not connect to Bidi protocol at ${candidateUrls[index]}: ${err.message}`)
                 resolve({ ws, isConnected: false, errorMessage: err.message, index })
             })
         })
+        return { promise, index }
     })
 
     const connectionTimeoutPromise = new Promise<undefined>((resolve) => {
         setTimeout(() => {
-            log.error(`Could not connect to Bidi protocol of any candidate url: "${candidateUrls.join('", "')}"`)
+            log.error(`Could not connect to Bidi protocol of any candidate url in time: "${candidateUrls.join('", "')}"`)
             return resolve(undefined)
         }, CONNECTION_TIMEOUT)
     })
@@ -101,14 +107,26 @@ export async function connectWebsocket(candidateUrls: string[], _?: unknown): Pr
  * @param promises - list of promises to race
  * @returns the first resolved promise
  */
-function firstResolved (promises: Promise<ConnectionResult>[]): Promise<ConnectionResult> {
+function firstResolved (promises: ConnectionPromise[], errorMessages: string[] = []): Promise<ConnectionResult | undefined> {
+    if (promises.length === 0) {
+        const sep = '\n  - '
+        const errorMessage = errorMessages.length > 0
+            ? sep + errorMessages.join(sep)
+            : ''
+        log.error('Could not connect to Bidi protocol' + errorMessage)
+        return Promise.resolve(undefined)
+    }
+
     // Race the wrapped promises
-    return Promise.race(promises).then(result => {
+    return Promise.race(promises.map(({ promise }) => promise)).then((result) => {
         if (result.isConnected) {
             return result
         }
 
         // If the first result was a rejection, race the remaining promises
-        return firstResolved(promises.filter((_, index) => index !== result.index))
+        return firstResolved(
+            promises.filter(({ index }) => index !== result.index),
+            [...errorMessages, result.errorMessage || 'unknown error']
+        )
     })
 }
