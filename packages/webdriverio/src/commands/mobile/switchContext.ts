@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, IosDetailedContext, SwitchContextOptions } from '../../types.js'
 
@@ -243,4 +243,3 @@ function findMatchingContext({
 
     return { matchingContext, reasons }
 }
-

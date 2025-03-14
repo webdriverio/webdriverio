@@ -1,4 +1,4 @@
-import type { ElementReference } from '@wdio/protocols'
+import type { ElementReference } from '@testplane/wdio-protocols'
 import { getElementFromResponse } from '../../utils/index.js'
 
 /**

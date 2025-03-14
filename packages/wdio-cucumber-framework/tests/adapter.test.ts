@@ -19,7 +19,6 @@ vi.mock('@testplane/wdio-utils')
 vi.mock('@testplane/wdio-utils/node')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber', async (orig) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { default: _def, ...origMod } = await orig() as typeof Cucumber
 
     const mod = {

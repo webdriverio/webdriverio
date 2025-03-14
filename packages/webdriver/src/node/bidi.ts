@@ -2,7 +2,7 @@ import { isIP } from 'node:net'
 import dns from 'node:dns/promises'
 import { type LookupAddress } from 'node:dns'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import WebSocket from 'ws'
 

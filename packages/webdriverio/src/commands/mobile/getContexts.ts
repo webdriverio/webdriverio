@@ -1,7 +1,7 @@
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContext } from '../../types.js'
-import type { Context } from '@wdio/protocols'
+import type { Context } from '@testplane/wdio-protocols'
 
 const log = logger('webdriver')
 

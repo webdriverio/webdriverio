@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { getBrowserObject } from '@testplane/utils'
-import type { remote } from 'webdriver'
+import { getBrowserObject } from '@testplane/wdio-utils'
+import type { remote } from '@testplane/webdriver'
 import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
 import { getContextManager } from '../session/context.js'
 import type { SaveScreenshotOptions } from '../types.js'
