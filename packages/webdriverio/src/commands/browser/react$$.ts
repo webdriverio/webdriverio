@@ -1,8 +1,8 @@
 import type { ElementReference } from '@wdio/protocols'
 
 import { resqScript } from '../constant.js'
-import { enhanceElementsArray } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
+import { ElementArray } from '../../element/array.js'
 import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq.js'
 import type { ReactSelectorOptions } from '../../types.js'
 
@@ -39,17 +39,22 @@ import type { ReactSelectorOptions } from '../../types.js'
  * @return {WebdriverIO.ElementArray}
  *
  */
-export async function react$$ (
+export function react$$ (
     this: WebdriverIO.Browser,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
-    await this.executeScript(resqScript, [])
-    await this.execute(waitToLoadReact)
-    const res = await this.execute(
-        react$$Script, selector, props, state
-    ) as unknown as ElementReference[]
+    return ElementArray.fromAsyncCallback(async () => {
+        await this.executeScript(resqScript, [])
+        await this.execute(waitToLoadReact)
+        const res = await this.execute(
+            react$$Script, selector, props, state
+        ) as unknown as ElementReference[]
 
-    const elements = await getElements.call(this, selector, res, { isReactElement: true })
-    return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])
+        const elements = await getElements.call(this, selector, res, { isReactElement: true })
+        return elements
+    }, {
+        selector,
+        parent: this
+    })
 }

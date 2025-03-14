@@ -717,66 +717,6 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
     }
 }
 
-type Entries<T> = {
-    [K in keyof T]: [K, T[K]];
-}[keyof T][]
-
-/**
- * Enhance elements array with data required to refetch it
- * @param   {object[]}          elements    elements
- * @param   {object}            parent      element or browser
- * @param   {string|Function}   selector    string or function, or strategy name for `custom$$`
- * @param   {string}            foundWith   name of the command elements were found with, ex `$$`, `react$$`, etc
- * @param   {Array}             props       additional properties required to fetch elements again
- * @returns {object[]}  elements
- */
-export const enhanceElementsArray = (
-    elements: WebdriverIO.Element[],
-    parent: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector | ElementReference[] | WebdriverIO.Element[],
-    foundWith = '$$',
-    props: unknown[] = []
-) => {
-    /**
-     * as we enhance the element array in this method we need to cast its
-     * type as well
-     */
-    const elementArray = elements as unknown as WebdriverIO.ElementArray
-
-    /**
-     * if we have an element collection, e.g. `const elems = $$([elemA, elemB])`
-     * we can't assign a common selector to the element array
-     */
-    if (!Array.isArray(selector)) {
-        elementArray.selector = selector
-    }
-
-    /**
-     * if all elements have the same selector we actually can assign a selector
-     */
-    const elems = selector as WebdriverIO.Element[]
-    if (Array.isArray(selector) && elems.length && elems.every((elem) => elem.selector && elem.selector === elems[0].selector)) {
-        elementArray.selector = elems[0].selector
-    }
-
-    /**
-     * replace Array prototype methods with custom ones that support
-     * async iterators
-     */
-    for (const [name, fn] of Object.entries(asyncIterators) as Entries<typeof asyncIterators>) {
-        /**
-         * ToDo(Christian): typing fails here for unknown reason
-         */
-        elementArray[name] = fn.bind(null, elementArray as unknown)
-    }
-
-    elementArray.parent = parent
-    elementArray.foundWith = foundWith
-    elementArray.props = props
-    elementArray.getElements = async () => elementArray
-    return elementArray
-}
-
 /**
  * is protocol stub
  * @param {string} automationProtocol
