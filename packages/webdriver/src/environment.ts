@@ -1,3 +1,5 @@
+import type WebSocket from 'ws'
+
 import type { BrowserSocket } from './bidi/socket.js'
 import type { FetchRequest } from './request/web.js'
 
@@ -14,6 +16,7 @@ export interface EnvironmentVariables {
 export interface EnvironmentDependencies {
     Request: typeof FetchRequest,
     Socket: typeof BrowserSocket,
+    createBidiConnection: (wsUrl?: string, options?: unknown) => Promise<WebSocket | undefined>,
     variables: EnvironmentVariables
 }
 
@@ -30,6 +33,9 @@ export const environment: {
         },
         get Socket(): EnvironmentDependencies['Socket'] {
             throw new Error('Socket is not available in this environment')
+        },
+        get createBidiConnection(): EnvironmentDependencies['createBidiConnection'] {
+            throw new Error('createBidiConnection is not available in this environment')
         },
         get variables(): EnvironmentDependencies['variables'] {
             return {}
