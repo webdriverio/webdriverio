@@ -110,7 +110,7 @@ export async function isDisplayed (
      * For mobile sessions with Appium we continue to use the elementDisplayed command
      * as we can't run JS in native apps
      */
-    if (browser.isMobile && browser.isNativeContext) {
+    if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         /**
          * there is no support yet for checking if an element is displayed within the
          * viewport for native apps. We can only check if it's displayed at all.

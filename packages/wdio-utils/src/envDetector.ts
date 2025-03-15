@@ -96,10 +96,20 @@ function isFirefox(capabilities?: WebdriverIO.Capabilities) {
 }
 
 /**
+ * get the automation name value of the session
+ *
+ * @param  {Object}  capabilities  capabilities
+ * @return {Boolean}               true if platform is mobile device
+ */
+function getAutomationName(capabilities: WebdriverIO.Capabilities) {
+    return capabilities['appium:options']?.automationName || capabilities['appium:automationName']
+}
+
+/**
  * check if current platform is mobile device
  *
- * @param  {Object}  caps  capabilities
- * @return {Boolean}       true if platform is mobile device
+ * @param  {Object}  capabilities  capabilities
+ * @return {Boolean}               true if platform is mobile device
  */
 function isMobile(capabilities: WebdriverIO.Capabilities) {
     const browserName = (capabilities.browserName || '').toLowerCase()
@@ -114,7 +124,7 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
      * Return `isMobile:false` for those cases. There we also accepts that specific mobile browser
      * tests (like the FF one on Android) are not seen as a mobile one
      */
-    const automationName = capabilities['appium:options']?.automationName || capabilities['appium:automationName']
+    const automationName = getAutomationName(capabilities)
     if (automationName && ['gecko', 'safari', 'chrome', 'chromium'].includes(automationName.toLocaleLowerCase())) {
         return false
     }
@@ -188,6 +198,44 @@ function isAndroid(capabilities?: WebdriverIO.Capabilities) {
         (/Android/i.test(bsOptions.browserName || '')) ||
         (capabilities.browserName && capabilities.browserName.match(/Android/i))
     )
+}
+
+/**
+ * Check if session uses a specific automation name
+ * @param  {Object}  capabilities  caps of session response
+ * @param  {String}  platform      platform to check for (e.g., 'windows', 'mac2')
+ * @return {Boolean}               true if run for specified platform
+ */
+function matchesAppAutomationName(automationNameValue: string, capabilities?: WebdriverIO.Capabilities): boolean {
+    if (!capabilities) {
+        return false
+    }
+
+    const automationName = getAutomationName(capabilities)
+
+    if (!automationName) {
+        return false
+    }
+
+    return Boolean(automationName.match(new RegExp(automationNameValue, 'i')))
+}
+
+/**
+ * Check if session is run for Windows apps
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run for Windows Apps
+ */
+function isWindowsApp(capabilities?: WebdriverIO.Capabilities): boolean {
+    return matchesAppAutomationName('windows', capabilities)
+}
+
+/**
+ * Check if session is run for Mac apps
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run for Mac Apps
+ */
+function isMacApp(capabilities?: WebdriverIO.Capabilities): boolean {
+    return matchesAppAutomationName('mac2', capabilities)
 }
 
 /**
@@ -270,7 +318,9 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(capabilities),
         isBidi: isBidi(capabilities),
-        isChromium: isChromium(capabilities)
+        isChromium: isChromium(capabilities),
+        isWindowsApp: isWindowsApp(capabilities),
+        isMacApp: isMacApp(capabilities)
     }
 }
 
@@ -297,6 +347,8 @@ export function sessionEnvironmentDetector({
         isSauce: isSauce(requestedCapabilities),
         isSeleniumStandalone: isSeleniumStandalone(capabilities),
         isBidi: isBidi(capabilities),
-        isChromium: isChromium(capabilities)
+        isChromium: isChromium(capabilities),
+        isWindowsApp: isWindowsApp(capabilities),
+        isMacApp: isMacApp(capabilities)
     }
 }
