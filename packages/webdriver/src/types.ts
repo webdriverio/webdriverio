@@ -27,6 +27,8 @@ export interface SessionFlags {
     isSauce: boolean
     isSeleniumStandalone: boolean
     isBidi: boolean
+    isWindowsApp: boolean
+    isMacApp: boolean
 }
 
 type Fn = (...args: unknown[]) => unknown
