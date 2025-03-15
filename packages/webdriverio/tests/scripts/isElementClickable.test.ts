@@ -308,7 +308,7 @@ describe('isElementClickable script', () => {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
-                top: 33,
+                top: 600,
                 left: 999
             }),
             getClientRects: () => [{}],
@@ -317,11 +317,16 @@ describe('isElementClickable script', () => {
         } as unknown as Element
         global.document = { elementFromPoint: () => elemMock } as any
 
-        const originalScrollX = window.scrollX
-        const originalScrollY = window.scrollY
+        // page scrolled passed element scenario
+        window.scroll(5000, 5000)
         isElementClickable(elemMock)
-        expect(window.scrollX).toBe(originalScrollX)
-        expect(window.scrollY).toBe(originalScrollY)
+        expect(window.scrollX).toBe(5000)
+        expect(window.scrollY).toBe(5000)
+        // page scrolled to the beginning scenario
+        window.scroll(0, 0)
+        isElementClickable(elemMock)
+        expect(window.scrollX).toBe(0)
+        expect(window.scrollY).toBe(0)
     })
 
     afterEach(() => {
