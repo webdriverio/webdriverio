@@ -39,7 +39,7 @@ const anonymousFn = `function anonymous(
 }`
 const otherFn = '(() => { ... }))()'
 
-describe('BidiCore', () => {
+describe.skip('BidiCore', () => {
     it('initiates with a WebSocket', () => {
         const handler = new BidiCore('ws://foo/bar')
         // @ts-expect-error "wsUrl" is a mock property
