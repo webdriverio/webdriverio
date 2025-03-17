@@ -87,6 +87,7 @@ class FakeClient extends EventEmitter {
     isBidi = false
     isSeleniumStandalone = false
     isNativeContext = false
+    isAbortListenerRegistered = false
     mobileContext = ''
     sessionId = '123'
     capabilities = {}
@@ -95,6 +96,7 @@ class FakeClient extends EventEmitter {
         logLevel: 'warn' as Options.WebDriverLogTypes
     } as any
     emit = vi.fn()
+    on = vi.fn()
 }
 
 const scope: BaseClient = new FakeClient()
@@ -104,6 +106,7 @@ describe('command wrapper', () => {
     beforeEach(() => {
         vi.mocked(log.warn).mockClear()
         vi.mocked(scope.emit).mockClear()
+        vi.mocked(scope.on).mockClear()
         vi.mocked(thenMock).mockClear()
         vi.mocked(catchMock).mockClear()
     })
@@ -202,6 +205,26 @@ describe('command wrapper', () => {
             requestHandler
         )
         expect(log.warn).toHaveBeenCalledTimes(0)
+    })
+
+    it('should register abort listener', async () => {
+        scope.isAbortListenerRegistered = false
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
+
+        expect(scope.isAbortListenerRegistered).toBe(true)
+        expect(scope.on).toHaveBeenCalledTimes(1)
+        expect(scope.on).toHaveBeenLastCalledWith('result', expect.any(Function))
+    })
+
+    it('should register abort listener once when request was called multiple times', async () => {
+        scope.isAbortListenerRegistered = false
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
+
+        expect(scope.isAbortListenerRegistered).toBe(true)
+        expect(scope.on).toHaveBeenCalledTimes(1)
     })
 
     it('should log deprecation notice', async () => {
