@@ -11,8 +11,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 vi.mock('dns/promises', () => ({
     default: {
-        resolve4: vi.fn().mockResolvedValue(['127.0.0.1']),
-        resolve6: vi.fn().mockResolvedValue(['::1'])
+        lookup: vi.fn().mockResolvedValue([{ address: '127.0.0.1' }, { address: '::1' }])
     }
 }))
 
