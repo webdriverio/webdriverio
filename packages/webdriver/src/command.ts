@@ -252,10 +252,7 @@ function manageSessionAbortions (this: BaseClient): {
             sessionAbortListeners.set(this.sessionId, null)
         }
     }
-    if (!this.isAbortListenerRegistered) {
-        this.on('result', abortOnSessionEnd)
-        this.isAbortListenerRegistered = true
-    }
+    this.on('result', abortOnSessionEnd)
     return {
         isAborted: false,
         abortSignal: abort.signal,
