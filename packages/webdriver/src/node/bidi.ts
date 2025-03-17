@@ -1,5 +1,6 @@
 import { isIP } from 'node:net'
 import dns from 'node:dns/promises'
+import { type LookupAddress } from 'node:dns'
 
 import logger from '@wdio/logger'
 
@@ -22,15 +23,12 @@ export async function listWebsocketCandidateUrls(webSocketUrl: string): Promise<
     const parsedUrl = new URL(webSocketUrl)
     const candidateUrls: string[] = [webSocketUrl]
     if (!isIP(parsedUrl.hostname)) {
-        const candidateIps = (await Promise.all([
-            dns.resolve4(parsedUrl.hostname),
-            dns.resolve6(parsedUrl.hostname),
-        ])).flat()
+        const candidateIps = await dns.lookup(parsedUrl.hostname, { family:0, all:true })
         // If the host resolves to a single IP address
         // then it does not make sense to try additional candidates
         // as the web socket DNS resolver would do extactly the same
         if (candidateIps.length > 1) {
-            const hostnameMapper = (ip: string) => webSocketUrl.replace(parsedUrl.hostname, ip)
+            const hostnameMapper = (result: LookupAddress) => webSocketUrl.replace(parsedUrl.hostname, result.address)
             candidateUrls.push(...candidateIps.map(hostnameMapper))
         }
     }
@@ -91,7 +89,11 @@ export async function connectWebsocket(candidateUrls: string[], _?: unknown): Pr
     const socketsToCleanup = wsInfo ? websockets.filter((_, index) => wsInfo.index !== index) : websockets
     for (const socket of socketsToCleanup) {
         socket.removeAllListeners()
-        socket.terminate()
+        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CLOSING) {
+            socket.terminate()
+        } else {
+            socket.once('open', () => socket.terminate())
+        }
     }
 
     if (wsInfo?.isConnected) {
