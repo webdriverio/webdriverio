@@ -22,15 +22,17 @@ export async function createBidiConnection(webSocketUrl: string, options?: unkno
 export async function listWebsocketCandidateUrls(webSocketUrl: string): Promise<string[]> {
     const parsedUrl = new URL(webSocketUrl)
     const candidateUrls: string[] = [webSocketUrl]
-    if (!isIP(parsedUrl.hostname)) {
-        const candidateIps = await dns.lookup(parsedUrl.hostname, { family:0, all:true })
-        // If the host resolves to a single IP address
-        // then it does not make sense to try additional candidates
-        // as the web socket DNS resolver would do extactly the same
-        if (candidateIps.length > 1) {
-            const hostnameMapper = (result: LookupAddress) => webSocketUrl.replace(parsedUrl.hostname, result.address)
-            candidateUrls.push(...candidateIps.map(hostnameMapper))
-        }
+    if (isIP(parsedUrl.hostname)) {
+        return candidateUrls
+    }
+
+    const candidateIps = await dns.lookup(parsedUrl.hostname, { family:0, all:true })
+    // If the host resolves to a single IP address
+    // then it does not make sense to try additional candidates
+    // as the web socket DNS resolver would do extactly the same
+    if (candidateIps.length > 1) {
+        const hostnameMapper = (result: LookupAddress) => webSocketUrl.replace(parsedUrl.hostname, result.address)
+        candidateUrls.push(...candidateIps.map(hostnameMapper))
     }
     return candidateUrls
 }
