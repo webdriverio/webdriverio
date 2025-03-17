@@ -4,6 +4,7 @@ import ws from 'ws'
 import WebDriver from './index.js'
 import { FetchRequest } from './request/node.js'
 import { FetchRequest as WebFetchRequest } from './request/web.js'
+import { createBidiConnection } from './node/bidi.js'
 import type { BrowserSocket } from './bidi/socket.js'
 
 export default WebDriver
@@ -27,6 +28,7 @@ environment.value = {
         process.env.WDIO_UNIT_TESTS
     ) ? WebFetchRequest : FetchRequest,
     Socket: ws as unknown as typeof BrowserSocket,
+    createBidiConnection,
     variables: {
         WEBDRIVER_CACHE_DIR: process.env.WEBDRIVER_CACHE_DIR || os.tmpdir(),
         PROXY_URL: process.env.HTTP_PROXY || process.env.HTTPS_PROXY
