@@ -1,7 +1,5 @@
 import logger from '@wdio/logger'
 import type { ClientOptions, RawData, WebSocket } from 'ws'
-import { isIP } from 'node:net'
-import dns from 'node:dns/promises'
 
 import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
@@ -20,7 +18,8 @@ const RESPONSE_TIMEOUT = 1000 * 60
 export class BidiCore {
     #id = 0
     #ws: WebSocket | undefined
-    #waitForConnected = Promise.resolve(false)
+    #waitForConnected: Promise<boolean>
+    #resolveWaitForConnected: (value: boolean) => void
     #webSocketUrl: string
     #clientOptions: ClientOptions | undefined
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
@@ -34,6 +33,10 @@ export class BidiCore {
     constructor (webSocketUrl: string, opts?: ClientOptions) {
         this.#webSocketUrl = webSocketUrl
         this.#clientOptions = opts
+        this.#resolveWaitForConnected = () => {}
+        this.#waitForConnected = new Promise((resolve) => {
+            this.#resolveWaitForConnected = resolve
+        })
     }
 
     /**
@@ -46,20 +49,20 @@ export class BidiCore {
     }
 
     public async connect () {
+        log.info(`Connecting to webSocketUrl ${this.#webSocketUrl}`)
+
         /**
-         * don't connect and stale unit tests when the websocket url is set to a dummy value
-         * Note: the value is defined in __mocks__/fetch.ts
+         * try to connect to different websocket urls depending on the protocol
          */
-        if (process.env.WDIO_UNIT_TESTS) {
-            this._isConnected = true
-            return
+        this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions)
+        this._isConnected = Boolean(this.#ws)
+        this.#resolveWaitForConnected(this._isConnected)
+
+        if (this.#ws) {
+            this.#ws.on('message', this.#handleResponse.bind(this))
         }
 
-        log.info(`Connecting to webSocketUrl ${this.#webSocketUrl}`)
-        // https://github.com/webdriverio/webdriverio/issues/14039
-        const candidateUrls = await this.#listWebsocketCandidateUrls()
-        this.#waitForConnected = this.#connectWebsocket(candidateUrls)
-        return this.#waitForConnected
+        return this._isConnected
     }
 
     public close () {
@@ -185,75 +188,6 @@ export class BidiCore {
         this.client?.emit('bidiCommand', params)
         this.#ws.send(JSON.stringify({ id, ...params }))
         return id
-    }
-
-    async #listWebsocketCandidateUrls(): Promise<string[]> {
-        const parsedUrl = new URL(this.#webSocketUrl)
-        // https://github.com/webdriverio/webdriverio/issues/14039
-        const candidateUrls: string[] = [this.#webSocketUrl]
-        if (!isIP(parsedUrl.hostname)) {
-            const candidateIps = (await Promise.all([
-                dns.resolve4(parsedUrl.hostname),
-                dns.resolve6(parsedUrl.hostname),
-            ])).flat()
-            // If the host resolves to a single IP address
-            // then it does not make sense to try additional candidates
-            // as the web socket DNS resolver would do exactly the same
-            if (candidateIps.length > 1) {
-                const hostnameMapper = (ip: string) => this.#webSocketUrl.replace(parsedUrl.hostname, ip)
-                candidateUrls.push(...candidateIps.map(hostnameMapper))
-            }
-        }
-        return candidateUrls
-    }
-
-    async #connectWebsocket(candidateUrls: string[]): Promise<boolean> {
-        const wsConnectPromises: Promise<WebSocket | null>[] = []
-        const errorMessages: string[] = []
-        let onFirstWebsocketConnected = () => {}
-        const firstWebsocketConnectedPromise = new Promise<void>((resolve) => {
-            onFirstWebsocketConnected = resolve
-        })
-        const candidateWebsockets: WebSocket[] = []
-        for (const candidateUrl of candidateUrls) {
-            const ws = new environment.value.Socket(candidateUrl, this.#clientOptions) as unknown as WebSocket
-            candidateWebsockets.push(ws)
-            const connectPromise = new Promise<WebSocket | null>((resolve) => {
-                ws.once('open', () => {
-                    if (!this.#ws) {
-                        log.info(`Connected session to Bidi protocol at ${candidateUrl}`)
-                        this.#ws = ws
-                        this.#ws.on('message', this.#handleResponse.bind(this))
-                        onFirstWebsocketConnected()
-                    }
-                    resolve(ws)
-                })
-                ws.once('error', (err) => {
-                    errorMessages.push(`Couldn't connect to Bidi protocol at ${candidateUrl}: ${err.message}`)
-                    resolve(null)
-                })
-            })
-            wsConnectPromises.push(connectPromise)
-        }
-        // We either wait until any web socket is successfully connected
-        // or all of them fail
-        await Promise.race([
-            firstWebsocketConnectedPromise,
-            Promise.all(wsConnectPromises)
-        ])
-        if (this.#ws) {
-            // Cleanup extra opened sockets
-            candidateWebsockets
-                .filter((ws) => ws !== this.#ws)
-                .forEach((ws) => ws.close())
-            this._isConnected = true
-        } else {
-            for (const errorMessage of errorMessages) {
-                log.warn(errorMessage)
-            }
-            this._isConnected = false
-        }
-        return this._isConnected
     }
 }
 
