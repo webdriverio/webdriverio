@@ -1,5 +1,7 @@
 const sessionManager = new Map<string, Map<WebdriverIO.Browser, SessionManager>>()
 
+const listenerRegisteredSession = new Set<string>()
+
 export class SessionManager {
     #browser: WebdriverIO.Browser
     #scope: string
@@ -13,7 +15,10 @@ export class SessionManager {
      */
     constructor(browser: WebdriverIO.Browser, scope: string) {
         this.#browser = browser
-        this.#browser.on('command', this.#onCommand.bind(this))
+        if (!listenerRegisteredSession.has(this.#browser.sessionId)) {
+            this.#browser.on('command', this.#onCommand.bind(this))
+            listenerRegisteredSession.add(this.#browser.sessionId)
+        }
         this.#scope = scope
     }
 
