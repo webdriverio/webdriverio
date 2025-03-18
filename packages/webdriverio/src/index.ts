@@ -98,7 +98,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     const prototype = getPrototype('browser')
     const { Driver } = await getProtocolDriver(params)
 
-    const driver = Driver.attachToSession(
+    const driver = await Driver.attachToSession(
         params,
         undefined,
         prototype,
@@ -165,7 +165,7 @@ export const multiremote = async function (
     const ProtocolDriver = typeof automationProtocol === 'string'
         ? (await import(/* @vite-ignore */automationProtocol)).default
         : WebDriver
-    const driver = ProtocolDriver.attachToSession(
+    const driver = await ProtocolDriver.attachToSession(
         sessionParams,
         multibrowser.modifier.bind(multibrowser),
         prototype,
