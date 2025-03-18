@@ -227,9 +227,11 @@ function manageSessionAbortions (this: BaseClient): {
 } {
     const abort = new AbortController()
     let abortListenerForCurrentSession = sessionAbortListeners.get(this.sessionId)
+    let shouldRegisterHandler = false
     if (typeof abortListenerForCurrentSession === 'undefined') {
         abortListenerForCurrentSession = new Set()
         sessionAbortListeners.set(this.sessionId, abortListenerForCurrentSession)
+        shouldRegisterHandler = true
     }
 
     /**
@@ -252,9 +254,8 @@ function manageSessionAbortions (this: BaseClient): {
             sessionAbortListeners.set(this.sessionId, null)
         }
     }
-    if (!this.isAbortListenerRegistered) {
+    if (shouldRegisterHandler) {
         this.on('result', abortOnSessionEnd)
-        this.isAbortListenerRegistered = true
     }
     return {
         isAborted: false,

@@ -87,7 +87,6 @@ class FakeClient extends EventEmitter {
     isBidi = false
     isSeleniumStandalone = false
     isNativeContext = false
-    isAbortListenerRegistered = false
     mobileContext = ''
     sessionId = '123'
     capabilities = {}
@@ -208,22 +207,20 @@ describe('command wrapper', () => {
     })
 
     it('should register abort listener', async () => {
-        scope.isAbortListenerRegistered = false
+        scope.sessionId = '456' // Emulate new session
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
         await commandFn.call(scope, '/path', 'css selector', '#body', 123)
 
-        expect(scope.isAbortListenerRegistered).toBe(true)
         expect(scope.on).toHaveBeenCalledTimes(1)
         expect(scope.on).toHaveBeenLastCalledWith('result', expect.any(Function))
     })
 
     it('should register abort listener once when request was called multiple times', async () => {
-        scope.isAbortListenerRegistered = false
+        scope.sessionId = '789' // Emulate new session
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
         await commandFn.call(scope, '/path', 'css selector', '#body', 123)
         await commandFn.call(scope, '/path', 'css selector', '#body', 123)
 
-        expect(scope.isAbortListenerRegistered).toBe(true)
         expect(scope.on).toHaveBeenCalledTimes(1)
     })
 
