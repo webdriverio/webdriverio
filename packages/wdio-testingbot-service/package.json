@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -32,10 +32,10 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "testingbot-tunnel-launcher": "^1.1.7",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.1.0",

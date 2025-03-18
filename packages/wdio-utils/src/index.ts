@@ -12,7 +12,10 @@ import {
 import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
 import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
-import { isW3C, isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } from './envDetector.js'
+import {
+    isW3C, isBidi, capabilitiesEnvironmentDetector,
+    sessionEnvironmentDetector, devtoolsEnvironmentDetector
+} from './envDetector.js'
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 
 export {
@@ -50,6 +53,7 @@ export {
     isBidi,
     sessionEnvironmentDetector,
     capabilitiesEnvironmentDetector,
+    devtoolsEnvironmentDetector,
 
     /**
      * constants

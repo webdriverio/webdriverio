@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-local-runner",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -37,10 +37,10 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^20.1.0",
-    "@wdio/logger": "workspace:*",
-    "@wdio/repl": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
+    "@testplane/wdio-repl": "workspace:*",
     "@wdio/runner": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "async-exit-hook": "^2.0.1",
     "split2": "^4.1.0",
     "stream-buffers": "^3.0.2"

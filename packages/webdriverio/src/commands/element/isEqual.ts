@@ -1,6 +1,6 @@
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 
 const getWebElement = (el: WebdriverIO.Element) => ({
     [ELEMENT_KEY]: el.elementId, // w3c compatible

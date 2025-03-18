@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@testplane/wdio-types'
 
 import '../src/browser.js'
 
@@ -10,8 +10,8 @@ import {
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('@wdio/utils')
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
+vi.mock('@testplane/wdio-utils')
 vi.mock('fetch')
 
 describe('utils', () => {
@@ -36,12 +36,21 @@ describe('utils', () => {
     })
 
     it('getPrototype', () => {
+        const isW3C = false
         const isChromium = false
         const isMobile = false
         const isSauce = false
         const isIOS = false
         const isAndroid = false
         const isSeleniumStandalone = false
+
+        const jsonWireProtocolPrototype = getPrototype({
+            isW3C, isChromium, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+        })
+        expect(jsonWireProtocolPrototype instanceof Object).toBe(true)
+        expect(typeof jsonWireProtocolPrototype.sendKeys.value).toBe('function')
+        expect(typeof jsonWireProtocolPrototype.sendCommand).toBe('undefined')
+        expect(typeof jsonWireProtocolPrototype.lock).toBe('undefined')
 
         const webdriverPrototype = getPrototype({
             isW3C: true, isChromium, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid

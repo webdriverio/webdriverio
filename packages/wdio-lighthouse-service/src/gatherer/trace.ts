@@ -3,7 +3,7 @@ import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder.js'
 import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor.js'
 import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session.js'
 import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition.js'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import type { Protocol } from 'devtools-protocol'
 import type { TraceEvent, TraceEventArgs } from '@tracerbench/trace-event'

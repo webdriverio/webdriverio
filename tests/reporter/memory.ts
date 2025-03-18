@@ -1,6 +1,6 @@
 import { writeHeapSnapshot } from 'node:v8'
 import { browser, expect } from '@wdio/globals'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 const log = logger('test')
 const executeCalls = 10

@@ -4,7 +4,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { sumByKey, setUnsupportedCommand, getLighthouseDriver } from '../src/utils.js'
 import type { RequestPayload } from '../src/handler/network.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('fs', () => ({
     readFileSync: vi.fn().mockReturnValue('1234\nsomepath'),
     existsSync: vi.fn()
@@ -60,13 +60,7 @@ describe('getLighthouseDriver', () => {
         const session = {
             connection: vi.fn().mockReturnValue({ url: urlMock })
         }
-        const target = {
-            asPage: vi.fn().mockReturnValue({
-                mainFrame: vi.fn().mockReturnValue({
-                    _id: 'foobar321'
-                })
-            })
-        }
+        const target = { _targetId: 'foobar321' }
         const driver = await getLighthouseDriver(session as any, target as any)
         // @ts-expect-error
         driver._connection.sendCommand('foobar')

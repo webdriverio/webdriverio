@@ -16,7 +16,7 @@ The package supports the following protocols:
 - [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) (deprecated)
 - [Mobile JSONWireProtocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) (deprecated)
 
-Commands are added to the client's protocol based on assumptions of provided capabilities. You can find more details about the commands by checking out the [`@wdio/protocols`](https://www.npmjs.com/package/@wdio/protocols) package. All commands come with TypeScript support.
+Commands are added to the client's protocol based on assumptions of provided capabilities. You can find more details about the commands by checking out the [`@testplane/wdio-protocols`](https://www.npmjs.com/package/@testplane/wdio-protocols) package. All commands come with TypeScript support.
 
 ## Install
 
@@ -31,7 +31,7 @@ npm i webdriver
 The following example demonstrates a simple Google Search scenario:
 
 ```js
-import WebDriver from 'webdriver';
+import WebDriver from '@testplane/webdriver';
 
 const client = await WebDriver.newSession({
     path: '/',
@@ -56,7 +56,7 @@ await client.deleteSession()
 To connect to the WebDriver Bidi protocol you have to send along a `webSocketUrl` flag to tell the browser driver to opt-in to the protocol:
 
 ```js
-import WebDriver from 'webdriver'
+import WebDriver from '@testplane/webdriver'
 
 const browser = await WebDriver.newSession({
     capabilities: {
@@ -81,7 +81,7 @@ await browser.deleteSession()
 To create a WebDriver session call the `newSession` method on the `WebDriver` class and pass in your configurations:
 
 ```js
-import WebDriver from 'webdriver'
+import WebDriver from '@testplane/webdriver'
 const client = await WebDriver.newSession(options)
 ```
 

@@ -3,7 +3,8 @@ import { describe, expect, test, vi } from 'vitest'
 import { remote, multiremote } from '../src/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('devtools')
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 const remoteConfig = {
     baseUrl: 'http://foobar.com',

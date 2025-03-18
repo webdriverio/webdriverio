@@ -7,8 +7,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import split2 from 'split2'
 import waitPort from 'wait-port'
 import { start as startSafaridriver } from 'safaridriver'
-import { start as startGeckodriver } from 'geckodriver'
-import { start as startEdgedriver } from 'edgedriver'
+import { start as startGeckodriver } from '@testplane/geckodriver'
+import { start as startEdgedriver } from '@testplane/edgedriver'
 import { install } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/node/index.js'
@@ -46,7 +46,8 @@ vi.mock('node:child_process', () => ({
     }
 }))
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
+vi.mock('devtools', () => ({ default: 'devtools package' }))
 vi.mock('webdriver', () => ({ default: 'webdriver package' }))
 vi.mock('safaridriver', () => ({
     start: vi.fn().mockReturnValue({

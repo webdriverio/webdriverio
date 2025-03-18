@@ -1,10 +1,10 @@
 import libSourceMap from 'istanbul-lib-source-maps'
 import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-lib-coverage'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { WebSocketClient } from 'vite'
 import type { WorkerInstance } from '@wdio/local-runner'
-import { MESSAGE_TYPES, type Options, type Workers } from '@wdio/types'
+import { MESSAGE_TYPES, type Options, type Workers } from '@testplane/wdio-types'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
 
 import { SESSIONS } from './constants.js'

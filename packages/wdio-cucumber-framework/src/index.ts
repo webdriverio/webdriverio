@@ -10,9 +10,9 @@ import { Writable } from 'node:stream'
 import isGlob from 'is-glob'
 import { sync as globSync } from 'glob'
 
-import logger from '@wdio/logger'
-import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
-import type { Capabilities, Options, Frameworks } from '@wdio/types'
+import logger from '@testplane/wdio-logger'
+import { executeHooksWithArgs, testFnWrapper } from '@testplane/wdio-utils'
+import type { Capabilities, Options, Frameworks } from '@testplane/wdio-types'
 
 import {
     setDefaultTimeout,

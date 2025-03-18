@@ -106,6 +106,51 @@ export type RequestedMultiremoteCapabilities = {
     [instanceName: string]: WebDriverIOOptions & WithRequestedCapabilities
 }
 
+export interface DesiredCapabilities extends WebdriverIO.Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
+    TestingbotCapabilities, SeleniumRCCapabilities, GeckodriverCapabilities, IECapabilities,
+    AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities,
+    ChromeCapabilities, BrowserStackCapabilities, AppiumXCUITestCapabilities, LambdaTestCapabilities {
+
+    // Read-only capabilities
+    cssSelectorsEnabled?: boolean
+    handlesAlerts?: boolean
+    version?: string
+    platform?: string
+    public?: any
+
+    loggingPrefs?: {
+        browser?: LoggingPreferences
+        driver?: LoggingPreferences
+        server?: LoggingPreferences
+        client?: LoggingPreferences
+    }
+
+    // Read-write capabilities
+    javascriptEnabled?: boolean
+    databaseEnabled?: boolean
+    locationContextEnabled?: boolean
+    applicationCacheEnabled?: boolean
+    browserConnectionEnabled?: boolean
+    webStorageEnabled?: boolean
+    acceptSslCerts?: boolean
+    rotatable?: boolean
+    nativeEvents?: boolean
+    unexpectedAlertBehaviour?: string
+    elementScrollBehavior?: number
+
+    // RemoteWebDriver specific
+    'webdriver.remote.sessionid'?: string
+    'webdriver.remote.quietExceptions'?: boolean
+
+    // Selenese-Backed-WebDriver specific
+    'selenium.server.url'?: string
+
+    // webdriverio specific
+    specs?: string[]
+    exclude?: string[]
+    excludeDriverLogs?: string[]
+}
+
 /**
  * Configuration object for the `webdriver` package
  */
@@ -278,7 +323,7 @@ export interface WithRequestedMultiremoteCapabilities {
     capabilities: RequestedMultiremoteCapabilities | RequestedMultiremoteCapabilities[]
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIOCapabilities,
+export interface VendorExtensions extends EdgeCapabilities, AppiumCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIOCapabilities,
     WebdriverIO.WDIOVSCodeServiceOptions, AppiumXCUITestCapabilities, AppiumAndroidCapabilities {
 
     // Appium Options
@@ -647,6 +692,74 @@ export interface AppiumCapabilities {
  * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/#android-only
  */
 export interface AppiumAndroidCapabilities {
+    appiumVersion?: string;
+    appActivity?: string;
+    appPackage?: string;
+    appWaitActivity?: string;
+    appWaitPackage?: string;
+    appWaitDuration?: number;
+    deviceReadyTimeout?: number;
+    allowTestPackages?: boolean;
+    androidCoverage?: string;
+    androidCoverageEndIntent?: string;
+    androidDeviceReadyTimeout?: number;
+    androidInstallTimeout?: number;
+    androidInstallPath?: string;
+    adbPort?: number;
+    systemPort?: number;
+    remoteAdbHost?: string;
+    androidDeviceSocket?: string;
+    avd?: string;
+    avdLaunchTimeout?: number;
+    avdReadyTimeout?: number;
+    avdArgs?: string;
+    useKeystore?: boolean;
+    keystorePath?: string;
+    keystorePassword?: string;
+    keyAlias?: string;
+    keyPassword?: string;
+    chromedriverExecutable?: string;
+    chromedriverArgs?: string[];
+    chromedriverExecutableDir?: string;
+    chromedriverChromeMappingFile?: string;
+    chromedriverUseSystemExecutable?: boolean;
+    autoWebviewTimeout?: number;
+    chromedriverPort?: number;
+    chromedriverPorts?: (number | number[])[]
+    intentAction?: string;
+    intentCategory?: string;
+    intentFlags?: string;
+    optionalIntentArguments?: string;
+    dontStopAppOnReset?: boolean;
+    unicodeKeyboard?: boolean;
+    resetKeyboard?: boolean;
+    noSign?: boolean;
+    ignoreUnimportantViews?: boolean;
+    disableAndroidWatchers?: boolean;
+    recreateChromeDriverSessions?: boolean;
+    nativeWebScreenshot?: boolean;
+    androidScreenshotPath?: string;
+    autoGrantPermissions?: boolean;
+    networkSpeed?: string;
+    gpsEnabled?: boolean;
+    isHeadless?: boolean;
+    adbExecTimeout?: number;
+    localeScript?: string;
+    skipDeviceInitialization?: boolean;
+    chromedriverDisableBuildCheck?: boolean;
+    skipUnlock?: boolean;
+    unlockType?: string;
+    unlockKey?: string;
+    autoLaunch?: boolean;
+    skipLogcatCapture?: boolean;
+    uninstallOtherPackages?: string;
+    disableWindowAnimation?: boolean;
+    uiautomator2ServerLaunchTimeout?: number;
+    uiautomator2ServerInstallTimeout?: number;
+    skipServerInstallation?: boolean;
+    espressoServerLaunchTimeout?: number;
+    disableSuppressAccessibilityService?: boolean;
+
     'appium:appiumVersion'?: string
     'appium:appActivity'?: string
     'appium:appPackage'?: string
@@ -1878,4 +1991,71 @@ export interface TestingbotCapabilities {
     'testingbot.geoCountryCode'?: string
     idletimeout?: number
     'load-extension'?: string
+}
+
+export interface SeleniumRCCapabilities {
+    // Selenium RC (1.0) only
+    commandLineFlags?: string
+    executablePath?: string
+    timeoutInSeconds?: number
+    onlyProxySeleniumTraffic?: boolean
+    avoidProxy?: boolean
+    proxyEverything?: boolean
+    proxyRequired?: boolean
+    browserSideLog?: boolean
+    optionsSet?: boolean
+    singleWindow?: boolean
+    dontInjectRegex?: RegExp
+    userJSInjection?: boolean
+    userExtensions?: string
+}
+
+export interface GeckodriverCapabilities {
+    'firefox_binary'?: string
+    firefoxProfileTemplate?: string
+    captureNetworkTraffic?: boolean
+    addCustomRequestHeaders?: boolean
+    trustAllSSLCertificates?: boolean
+    changeMaxConnections?: boolean
+    profile?: string
+    pageLoadingStrategy?: string
+}
+
+// IE specific
+export interface IECapabilities {
+    'ie.forceCreateProcessApi'?: boolean
+    'ie.browserCommandLineSwitches'?: string
+    'ie.usePerProcessProxy'?: boolean
+    'ie.ensureCleanSession'?: boolean
+    'ie.setProxyByServer'?: boolean
+    'ie.fileUploadDialogTimeout'?: number
+    'ie.edgechromium'?: boolean
+    'ie.edgepath'?: string
+    ignoreProtectedModeSettings?: boolean
+    ignoreZoomSetting?: boolean
+    initialBrowserUrl?: string
+    enablePersistentHover?: boolean
+    enableElementCacheCleanup?: boolean
+    requireWindowFocus?: boolean
+    browserAttachTimeout?: number
+    logFile?: string
+    logLevel?: string
+    host?: string
+    extractPath?: string
+    silent?: string
+    killProcessesByName?: boolean
+}
+
+// Selenium Grid specific
+export interface GridCapabilities {
+    // Grid-specific
+    seleniumProtocol?: string
+    maxInstances?: number
+    environment?: string
+}
+
+// Chrome specific
+export interface ChromeCapabilities {
+    chromeOptions?: ChromeOptions
+    mobileEmulationEnabled?: boolean
 }

@@ -3,8 +3,8 @@ import type { ChildProcess } from 'node:child_process'
 import { WritableStreamBuffer } from 'stream-buffers'
 import { describe, expect, it, vi } from 'vitest'
 
-import logger from '@wdio/logger'
-import type { Workers } from '@wdio/types'
+import logger from '@testplane/wdio-logger'
+import type { Workers } from '@testplane/wdio-types'
 
 import Worker from '../src/worker.js'
 
@@ -17,7 +17,7 @@ const workerConfig = {
     retries: 0
 }
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('handleMessage', () => {
     it('should emit payload with cid', () => {

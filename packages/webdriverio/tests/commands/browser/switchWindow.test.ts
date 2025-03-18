@@ -3,7 +3,7 @@ import { expect, describe, beforeEach, it, vi, beforeAll, afterAll } from 'vites
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 const webdriverResponses = [null, null, null, 'foo', 'bar', 'loo', null, 'hello', 'world', 'yo', null, 'some', 'url', 'here']
 
 describe('switchWindow', () => {

@@ -154,7 +154,7 @@ export async function url (
     this: WebdriverIO.Browser,
     path: string,
     options: UrlCommandOptions = {}
-): Promise<WebdriverIO.Request | void> {
+): Promise<WebdriverIO.Request | string | void> {
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')
     }

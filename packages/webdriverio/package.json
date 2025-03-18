@@ -1,7 +1,7 @@
 {
-  "name": "webdriverio",
+  "name": "@testplane/webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "9.12.0",
+  "version": "9.5.10",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -14,7 +14,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "tags": [
     "webdriver",
@@ -36,6 +36,7 @@
     "mocha",
     "nodeUnit",
     "buster",
+    "devtools",
     "puppeteer",
     "vows",
     "jasmine",
@@ -75,17 +76,17 @@
     "safe-stable-stringify": "^2.4.3"
   },
   "dependencies": {
+    "@testplane/wdio-config": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
+    "@testplane/wdio-protocols": "workspace:*",
+    "@testplane/wdio-repl": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*",
+    "@testplane/webdriver": "workspace:*",
     "@types/node": "^20.11.30",
     "@types/sinonjs__fake-timers": "^8.1.5",
-    "@wdio/config": "workspace:*",
-    "@wdio/logger": "workspace:*",
-    "@wdio/protocols": "workspace:*",
-    "@wdio/repl": "workspace:*",
-    "@wdio/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
     "archiver": "^7.0.1",
     "aria-query": "^5.3.0",
-    "cheerio": "^1.0.0-rc.12",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "grapheme-splitter": "^1.0.4",
@@ -98,13 +99,16 @@
     "resq": "^1.11.0",
     "rgb2hex": "0.2.5",
     "serialize-error": "^11.0.3",
-    "urlpattern-polyfill": "^10.0.0",
-    "webdriver": "workspace:*"
+    "urlpattern-polyfill": "^10.0.0"
   },
   "peerDependencies": {
+    "devtools": "^8.14.0",
     "puppeteer-core": "^22.3.0"
   },
   "peerDependenciesMeta": {
+    "devtools": {
+      "optional": true
+    },
     "puppeteer-core": {
       "optional": true
     }

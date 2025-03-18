@@ -8,7 +8,7 @@ import StaticServerLauncher from '../src/launcher.js'
 
 vi.mock('fs')
 vi.mock('express')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 test('should not start server when no mount folder is defined', async () => {
     const service = new StaticServerLauncher({})

@@ -1,5 +1,5 @@
-import { getBrowserObject } from '@wdio/utils'
-import type { remote } from 'webdriver'
+import { getBrowserObject } from '@testplane/wdio-utils'
+import type { remote } from '@testplane/webdriver'
 
 import { verifyArgsAndStripIfElement, createFunctionDeclarationFromString } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'

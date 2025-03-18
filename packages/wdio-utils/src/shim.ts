@@ -1,10 +1,9 @@
-import logger from '@wdio/logger'
-import type { Frameworks, Services, Options } from '@wdio/types'
+import logger from './logger.js'
+import type { Frameworks, Services, Options } from '@testplane/wdio-types'
 
 import * as iterators from './pIteration.js'
-import { getBrowserObject } from './utils.js'
 
-const log = logger('@wdio/utils:shim')
+const log = logger('@testplane/wdio-utils:shim')
 
 let inCommandHook = false
 
@@ -192,24 +191,6 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                              * `this` is an array of WebdriverIO elements
                              */
                             function (this: WebdriverIOInstance, index: number) {
-                                /**
-                                 * if we access an index that is out of bounds we wait for the
-                                 * array to get that long, and timeout eventually if it doesn't
-                                 */
-                                if (index >= this.length) {
-                                    const browser = getBrowserObject(this) as WebdriverIOInstance
-                                    return browser.waitUntil(async () => {
-                                        const elems = await this.parent[this.foundWith as unknown as '$$'](this.selector)
-                                        if (elems.length > index) {
-                                            return elems[index]
-                                        }
-                                        return false
-                                    }, {
-                                        timeout: browser.options.waitforTimeout,
-                                        timeoutMsg: `Index out of bounds! $$(${this.selector}) returned only ${this.length} elements.`
-                                    })
-                                }
-
                                 return this[index]
                             },
                             [prop],

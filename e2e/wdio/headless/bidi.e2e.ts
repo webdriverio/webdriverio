@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { browser, expect } from '@wdio/globals'
-import type { local } from 'webdriver'
+import type { local } from '@testplane/webdriver'
 
 describe('bidi e2e test', () => {
     describe('execute', () => {
@@ -63,7 +64,7 @@ describe('bidi e2e test', () => {
         await browser.sessionSubscribe({ events: ['log.entryAdded'] })
         browser.on('log.entryAdded', (logEntry) => logEvents.push(logEntry))
         await browser.execute(() => console.log('Hello Bidi'))
-        // eslint-disable-next-line wdio/no-pause
+
         await browser.waitUntil(
             async () => logEvents.find((logEvent) => logEvent.text === 'Hello Bidi'),
             {

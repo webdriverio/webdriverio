@@ -5,17 +5,17 @@ import chokidar from 'chokidar'
 import EventEmitter from 'node:events'
 
 import { vi, describe, it, expect, afterEach } from 'vitest'
-import type { Options, Workers } from '@wdio/types'
+import type { Options, Workers } from '@testplane/wdio-types'
 
 import type { RunCommandArguments } from '../src/types.js'
 import Watcher from '../src/watcher.js'
 
 vi.mock('chokidar')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
-vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
+vi.mock('@testplane/wdio-config', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-config')))
+vi.mock('@testplane/wdio-utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-utils')))
 vi.mock('../src/launcher', async () => {
-    const { ConfigParser } = await import('@wdio/config/node')
+    const { ConfigParser } = await import('@testplane/wdio-config/node')
 
     interface LauncherMockRunCommandArguments extends Omit<RunCommandArguments, 'configPath'> {
         isMultiremote?: boolean;

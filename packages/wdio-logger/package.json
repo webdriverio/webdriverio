@@ -1,6 +1,6 @@
 {
-  "name": "@wdio/logger",
-  "version": "9.4.4",
+  "name": "@testplane/wdio-logger",
+  "version": "9.4.5",
   "description": "A helper utility for logging of WebdriverIO packages",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger",
@@ -21,7 +21,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -37,10 +37,10 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "chalk": "^5.1.2",
+    "chalk": "^4.1.2",
     "loglevel": "^1.6.0",
     "loglevel-plugin-prefix": "^0.8.4",
-    "strip-ansi": "^7.1.0"
+    "strip-ansi": "^6.0.1"
   },
   "publishConfig": {
     "access": "public"

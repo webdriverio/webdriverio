@@ -11,7 +11,7 @@ vi.mock('puppeteer-core')
  * it and dynamically import it. Instead, we mock the "userImport" helper and make
  * it resolve to the mocked Puppeteer.
  */
-vi.mock('@wdio/utils', async (origMod) => {
+vi.mock('@testplane/wdio-utils', async (origMod) => {
     const orig = await origMod() as any
     // resolve the mocked puppeteer-core
     const puppeteer = await import('puppeteer-core')
@@ -20,7 +20,7 @@ vi.mock('@wdio/utils', async (origMod) => {
         userImport: vi.fn().mockResolvedValue(puppeteer.default)
     }
 })
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 // @ts-ignore mock feature
 const cdpSession = new puppeteer.CDPSessionMock()

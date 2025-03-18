@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { ELEMENT_KEY, type local } from 'webdriver'
+import { ELEMENT_KEY, type local } from '@testplane/webdriver'
 
 import {
     findElement,

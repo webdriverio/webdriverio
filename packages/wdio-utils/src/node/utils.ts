@@ -5,16 +5,16 @@ import path from 'node:path'
 import cp from 'node:child_process'
 
 import decamelize from 'decamelize'
-import logger from '@wdio/logger'
+import logger from '../logger.js'
 import {
     install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
     computeExecutablePath, type InstallOptions
 } from '@puppeteer/browsers'
-import { download as downloadGeckodriver } from 'geckodriver'
-import { download as downloadEdgedriver } from 'edgedriver'
+import { download as downloadGeckodriver } from '@testplane/geckodriver'
+import { download as downloadEdgedriver } from '@testplane/edgedriver'
 import { locateChrome, locateFirefox, locateApp } from 'locate-app'
-import type { EdgedriverParameters } from 'edgedriver'
-import type { Options } from '@wdio/types'
+import type { EdgedriverParameters } from '@testplane/edgedriver'
+import type { Options } from '@testplane/wdio-types'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']

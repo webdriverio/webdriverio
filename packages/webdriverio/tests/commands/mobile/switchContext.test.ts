@@ -1,12 +1,12 @@
 import path from 'node:path'
 import { expect, describe, it, vi, beforeEach } from 'vitest'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import type { IosDetailedContext } from '../../../src/index.js'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
 const log = logger('test')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('switchContext test', () => {
     let browser: WebdriverIO.Browser

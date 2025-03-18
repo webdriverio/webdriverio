@@ -1,14 +1,14 @@
 import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest'
 import path from 'node:path'
-import WebDriver from 'webdriver'
-import logger from '@wdio/logger'
-import { validateConfig } from '@wdio/config'
+import WebDriver from '@testplane/webdriver'
+import logger from '@testplane/wdio-logger'
+import { validateConfig } from '@testplane/wdio-config'
 
 import detectBackend from '../src/utils/detectBackend.js'
 import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('webdriver', () => {
     const client = {
         sessionId: 'foobar-123',
@@ -40,7 +40,30 @@ vi.mock('webdriver', () => {
     }
 })
 
-vi.mock('@wdio/config', () => {
+vi.mock('devtools', () => {
+    const client = { sessionId: 'foobar-123', isDevTools: true }
+    const newSessionMock = vi.fn()
+    newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
+    newSessionMock.mockImplementation((params, cb) => {
+        const result = cb(client, params)
+        // @ts-ignore mock feature
+        if (params.test_multiremote) {
+            result.options = { logLevel: 'error' }
+        }
+        return result
+    })
+    const attachToSessionMock = vi.fn().mockReturnValue(client)
+    return {
+        SUPPORTED_BROWSER: ['chrome'],
+        DEFAULTS: {},
+        default: class DevtoolsMock {
+            static newSession = newSessionMock
+            static attachToSession = attachToSessionMock
+        }
+    }
+})
+
+vi.mock('@testplane/wdio-config', () => {
     const validateConfigMock = {
         validateConfig: vi.fn((_, args) => args),
         detectBackend: vi.fn(),

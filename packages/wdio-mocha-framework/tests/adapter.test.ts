@@ -2,8 +2,8 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import url from 'node:url'
 import path from 'node:path'
 import Mocha from 'mocha'
-import logger from '@wdio/logger'
-import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
+import logger from '@testplane/wdio-logger'
+import { wrapGlobalTestMethod, executeHooksWithArgs } from '@testplane/wdio-utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
 import { EVENTS } from '../src/constants.js'
@@ -11,8 +11,8 @@ import { EVENTS } from '../src/constants.js'
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 vi.mock('mocha')
-vi.mock('@wdio/utils')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-utils')
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('expect-webdriverio')
 vi.mock('../src/utils', () => ({
     loadModule: vi.fn()

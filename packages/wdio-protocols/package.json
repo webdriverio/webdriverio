@@ -1,6 +1,6 @@
 {
-  "name": "@wdio/protocols",
-  "version": "9.7.0",
+  "name": "@testplane/wdio-protocols",
+  "version": "9.4.5",
   "description": "Utility package providing information about automation protocols",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols",
@@ -10,7 +10,8 @@
   "exports": {
     ".": {
       "import": "./build/index.js",
-      "types": "./build/index.d.ts"
+      "types": "./build/index.d.ts",
+      "require": "./build/index.cjs"
     }
   },
   "typeScriptVersion": "3.8.3",

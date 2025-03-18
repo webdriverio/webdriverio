@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-spec-reporter",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/reporter": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "chalk": "^5.1.2",
     "easy-table": "^1.2.0",
     "pretty-ms": "^9.0.0"

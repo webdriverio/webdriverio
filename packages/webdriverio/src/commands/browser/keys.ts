@@ -1,4 +1,4 @@
-import type { UNICODE_CHARACTERS } from '@wdio/utils'
+import type { UNICODE_CHARACTERS } from '@testplane/wdio-utils'
 
 import { checkUnicode } from '../../utils/index.js'
 
@@ -33,14 +33,21 @@ export async function keys (
      * replace key with corresponding unicode character
      */
     if (typeof value === 'string') {
-        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS)
+        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS, this.isDevTools)
     } else if (Array.isArray(value)) {
         const charArray = value as (keyof typeof UNICODE_CHARACTERS)[]
         for (const charSet of charArray) {
-            keySequence = keySequence.concat(checkUnicode(charSet))
+            keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools))
         }
     } else {
         throw new Error('"keys" command requires a string or array of strings as parameter')
+    }
+
+    /**
+     * JsonWireProtocol action
+     */
+    if (!this.isW3C) {
+        return this.sendKeys(keySequence)
     }
 
     /**

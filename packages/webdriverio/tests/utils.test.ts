@@ -1,8 +1,8 @@
 import path from 'node:path'
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import type { ElementReference } from '@wdio/protocols'
+import type { ElementReference } from '@testplane/wdio-protocols'
 import {
     getElementFromResponse,
     parseCSS,
@@ -134,6 +134,14 @@ describe('utils', () => {
             expect(Array.isArray(result)).toBe(true)
             expect(result).toHaveLength(1)
             expect(result[0]).toEqual('\uE011')
+        })
+
+        it('should not convert unicode if devtools is used', () => {
+            const result = checkUnicode('Home', true)
+
+            expect(Array.isArray(result)).toBe(true)
+            expect(result).toHaveLength(1)
+            expect(result[0]).toEqual('Home')
         })
 
         it('should return an array without unicode', () => {

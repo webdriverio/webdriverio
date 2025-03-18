@@ -1,9 +1,9 @@
 import { EventEmitter } from 'node:events'
 import chalk, { supportsColor } from 'chalk'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { SnapshotManager } from '@vitest/snapshot/manager'
 import type { SnapshotResult } from '@vitest/snapshot'
-import type { Options, Workers } from '@wdio/types'
+import type { Options, Workers } from '@testplane/wdio-types'
 
 import { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'

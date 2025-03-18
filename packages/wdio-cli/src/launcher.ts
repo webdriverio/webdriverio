@@ -1,12 +1,12 @@
 import exitHook from 'async-exit-hook'
 import { resolve } from 'import-meta-resolve'
 
-import logger from '@wdio/logger'
-import { validateConfig } from '@wdio/config'
-import { ConfigParser } from '@wdio/config/node'
-import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
-import { setupDriver, setupBrowser } from '@wdio/utils/node'
-import type { Options, Capabilities, Services } from '@wdio/types'
+import logger from '@testplane/wdio-logger'
+import { validateConfig } from '@testplane/wdio-config'
+import { ConfigParser } from '@testplane/wdio-config/node'
+import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@testplane/wdio-utils'
+import { setupDriver, setupBrowser } from '@testplane/wdio-utils/node'
+import type { Options, Capabilities, Services } from '@testplane/wdio-types'
 
 import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
@@ -136,8 +136,8 @@ class Launcher {
              * pre-configure necessary driver for worker threads
              */
             await Promise.all([
-                setupDriver(config, caps),
-                setupBrowser(config, caps)
+                setupDriver({}, []),
+                setupBrowser({}, [])
             ])
 
             exitCode = await this._runMode(config, caps)
@@ -337,13 +337,13 @@ class Launcher {
             caps = capabilities as WebdriverIO.Capabilities
         }
         const specs = (
-            // @ts-expect-error deprecated
-            caps.specs ||
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (caps as any).specs ||
             caps['wdio:specs']
         )
         const excludes = (
-            // @ts-expect-error deprecated
-            caps.exclude ||
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (caps as any).exclude ||
             caps['wdio:exclude']
         )
         const files = this.configParser.getSpecs(specs, excludes)

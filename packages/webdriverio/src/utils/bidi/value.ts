@@ -1,5 +1,5 @@
-import { ELEMENT_KEY, type remote } from 'webdriver'
-import type { ElementReference } from '@wdio/protocols'
+import { ELEMENT_KEY, type remote } from '@testplane/webdriver'
+import type { ElementReference } from '@testplane/wdio-protocols'
 
 import { PrimitiveType, NonPrimitiveType } from './constants.js'
 

@@ -5,13 +5,13 @@ import puppeteer from 'puppeteer-core'
 import DevToolsService from '../src/index.js'
 import { setUnsupportedCommand } from '../src/utils.js'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 vi.mock('ws')
 vi.mock('puppeteer-core')
 vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../src/commands', () => {
     class CommandHandlerMock {
         cdp = vi.fn()

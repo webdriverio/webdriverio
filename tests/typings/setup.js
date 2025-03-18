@@ -12,14 +12,15 @@ const tsDir = tsVersion ? path.join(__dirname, '@typescript', `ts${tsVersion}`) 
 
 // TypeScript project root for testing particular typings
 const outDirs = [
-    'webdriverio', 'webdriver', 'mocha', 'jasmine', 'cucumber'
+    'devtools', 'webdriverio', 'webdriver', 'mocha', 'jasmine', 'cucumber'
 ]
 
 const packages = {
-    'webdriver': 'packages/webdriver',
-    'webdriverio': 'packages/webdriverio',
+    'devtools': 'packages/devtools',
+    '@testplane/webdriver': 'packages/webdriver',
+    '@testplane/webdriverio': 'packages/webdriverio',
     '@wdio/globals': 'packages/wdio-globals',
-    '@wdio/utils': 'packages/wdio-utils',
+    '@testplane/wdio-utils': 'packages/wdio-utils',
     '@wdio/browser-runner': 'packages/wdio-browser-runner',
     '@wdio/reporter': 'packages/wdio-reporter',
     '@wdio/allure-reporter': 'packages/wdio-allure-reporter',
@@ -30,7 +31,7 @@ const packages = {
     '@wdio/firefox-profile-service': 'packages/wdio-firefox-profile-service',
     '@wdio/jasmine-framework': 'packages/wdio-jasmine-framework',
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
-    '@wdio/protocols': 'packages/wdio-protocols',
+    '@testplane/wdio-protocols': 'packages/wdio-protocols',
     '@wdio/sauce-service': 'packages/wdio-sauce-service',
     '@wdio/shared-store-service': 'packages/wdio-shared-store-service',
     '@wdio/static-server-service': 'packages/wdio-static-server-service',

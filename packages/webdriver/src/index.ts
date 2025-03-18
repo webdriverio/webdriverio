@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ChildProcess } from 'node:child_process'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
-import { webdriverMonad, sessionEnvironmentDetector, startWebDriver, isBidi } from '@wdio/utils'
-import { validateConfig } from '@wdio/config'
-import type { Capabilities, Options } from '@wdio/types'
+import { webdriverMonad, sessionEnvironmentDetector, startWebDriver, isBidi } from '@testplane/wdio-utils'
+import { validateConfig } from '@testplane/wdio-config'
+import type { Capabilities, Options } from '@testplane/wdio-types'
 
 import command from './command.js'
 import { DEFAULTS } from './constants.js'

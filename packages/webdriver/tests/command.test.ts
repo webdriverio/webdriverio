@@ -2,9 +2,9 @@ import path from 'node:path'
 import { EventEmitter, on } from 'node:events'
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import logger from '@wdio/logger'
-import type { CommandEndpoint } from '@wdio/protocols'
-import type { Options } from '@wdio/types'
+import logger from '@testplane/wdio-logger'
+import type { CommandEndpoint } from '@testplane/wdio-protocols'
+import type { Options } from '@testplane/wdio-types'
 
 import '../src/browser.js'
 // @ts-expect-error mock feature
@@ -12,7 +12,7 @@ import { WebDriverRequest as RequestMock, thenMock, catchMock } from '../src/req
 import commandWrapper from '../src/command.js'
 import type { BaseClient } from '../src/types.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('fetch')
 
 const log = logger('webdriver')
@@ -84,6 +84,7 @@ class FakeClient extends EventEmitter {
     isIOS = false
     isSauce = false
     isFirefox = false
+    isDevTools = false
     isBidi = false
     isSeleniumStandalone = false
     isNativeContext = false

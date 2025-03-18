@@ -5,6 +5,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   }
 }

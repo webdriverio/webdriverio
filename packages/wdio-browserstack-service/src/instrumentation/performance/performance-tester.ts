@@ -13,7 +13,7 @@ import { EDS_URL, PERF_MEASUREMENT_ENV } from '../../constants.js'
 import fetchWrap from '../../fetchWrapper.js'
 import type { CsvWriter } from 'csv-writer/src/lib/csv-writer.js'
 import type { ObjectMap } from 'csv-writer/src/lib/lang/object.js'
-import type { Browser } from 'webdriverio'
+import type { Browser } from '@testplane/webdriverio'
 
 type PerformanceDetails = {
     success?: true,

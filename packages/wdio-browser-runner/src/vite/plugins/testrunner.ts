@@ -2,16 +2,16 @@ import url from 'node:url'
 import path from 'node:path'
 import { builtinModules } from 'node:module'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
 
 import type { Plugin } from 'vite'
 import {
-    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     type Protocol
-} from '@wdio/protocols'
+} from '@testplane/wdio-protocols'
 
 import { SESSIONS } from '../../constants.js'
 import { getTemplate, getErrorTemplate, normalizeId } from '../utils.js'
@@ -21,7 +21,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const commands = deepmerge<any>(
-    WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
 ) as Protocol
 const protocolCommandList = Object.values(commands).map(
@@ -39,9 +39,9 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
  * functionality
  */
 const MODULES_TO_MOCK = [
-    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'ws', 'decamelize',
+    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws', 'decamelize',
     'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port',
-    'lodash.isequal', '@wdio/repl', 'jszip'
+    'lodash.isequal', '@testplane/wdio-repl', 'jszip'
 ]
 
 const POLYFILLS = [

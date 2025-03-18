@@ -2,7 +2,7 @@
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { resolve } from 'import-meta-resolve'
 import type { InlineConfig } from 'vite'
 

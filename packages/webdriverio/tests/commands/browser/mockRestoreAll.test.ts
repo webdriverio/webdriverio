@@ -5,7 +5,7 @@ import { remote } from '../../../src/index.js'
 import { getMockCalls } from '../../../src/commands/browser/mock.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('../../../src/commands/browser/mock', () => {
     let clearedMocks = 0
     const bumpCall = () => ++clearedMocks

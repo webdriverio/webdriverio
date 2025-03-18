@@ -9,15 +9,15 @@ import ejs from 'ejs'
 import chalk from 'chalk'
 import inquirer from 'inquirer'
 import pickBy from 'lodash.pickby'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import readDir from 'recursive-readdir'
 import { $ } from 'execa'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
-import { SevereServiceError } from 'webdriverio'
-import { ConfigParser } from '@wdio/config/node'
-import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Capabilities, Options, Services } from '@wdio/types'
+import { SevereServiceError } from '@testplane/webdriverio'
+import { ConfigParser } from '@testplane/wdio-config/node'
+import { CAPABILITY_KEYS } from '@testplane/wdio-protocols'
+import type { Capabilities, Options, Services } from '@testplane/wdio-types'
 
 import { installPackages, getInstallCommand } from './install.js'
 import {
@@ -638,7 +638,7 @@ export function specifyVersionIfNeeded(packagesToInstall: string[], version: str
     return packagesToInstall.map((p) => {
         if (
             (p.startsWith('@wdio') && p !== '@wdio/visual-service') ||
-            ['webdriver', 'webdriverio'].includes(p)
+            ['devtools', 'webdriver', 'webdriverio'].includes(p)
         ) {
             const tag = major && npmTag === 'latest'
                 ? `^${major}.${minor}.${patch}-${tagName}.${build}`

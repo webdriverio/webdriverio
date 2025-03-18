@@ -1,8 +1,8 @@
 import path from 'node:path'
 
 import { expect, test, vi, beforeEach, afterEach } from 'vitest'
-import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
+import logger from '@testplane/wdio-logger'
+import type { Capabilities } from '@testplane/wdio-types'
 
 import SauceService from '../src/index.js'
 import { isRDC } from '../src/utils.js'
@@ -57,7 +57,7 @@ vi.mock('../src/utils', async () => {
     }
 })
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 let browser: WebdriverIO.MultiRemoteBrowser
 beforeEach(() => {

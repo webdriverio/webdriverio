@@ -15,7 +15,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -36,9 +36,9 @@
   "dependencies": {
     "@types/node": "^20.1.0",
     "@wdio/globals": "workspace:*",
-    "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*",
     "expect-webdriverio": "^5.1.0",
     "jasmine": "^5.0.0"
   },

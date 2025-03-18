@@ -47,7 +47,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  * from the `webdriverio` package like so:
  *
  * ```ts
- * import { Key } from 'webdriverio'
+ * import { Key } from '@testplane/webdriverio'
  * ```
  *
  * The object allows you to access the unicode representation of the desired special character.
@@ -109,7 +109,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
             .perform()
     });
     :key-action.js
-    import { Key } from 'webdriverio'
+    import { Key } from '@testplane/webdriverio'
 
     it('should emit key events using key action commands', async () => {
         const elem = await $('input')

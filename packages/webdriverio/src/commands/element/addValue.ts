@@ -43,5 +43,10 @@ export function addValue (
         )
     }
 
-    return this.elementSendKeys(this.elementId, value.toString())
+    if (this.isW3C) {
+        return this.elementSendKeys(this.elementId, value.toString())
+    }
+
+    // @ts-expect-error command is not typed as JWP command
+    return this.elementSendKeys(this.elementId, [value.toString()])
 }

@@ -1,9 +1,9 @@
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, SevereServiceError, Key } from 'webdriverio'
-import type { ClickOptions, TouchAction, Selector, Action } from 'webdriverio'
-import type { DetailedContext } from '@wdio/protocols'
+import { remote, multiremote, SevereServiceError, Key } from '@testplane/webdriverio'
+import type { ClickOptions, TouchAction, Selector, Action } from '@testplane/webdriverio'
+import type { DetailedContext } from '@testplane/wdio-protocols'
 
 declare global {
     namespace WebdriverIO {
@@ -351,6 +351,7 @@ async function bar() {
     expectType<boolean>(browser.isMobile)
     expectType<boolean>(browser.isAndroid)
     expectType<boolean>(browser.isIOS)
+    expectType<boolean>(browser.isDevTools)
     expectType<boolean>(browser.isMobile)
 
     // shadow$ shadow$$

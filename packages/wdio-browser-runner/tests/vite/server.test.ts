@@ -18,13 +18,13 @@ vi.mock('../../src/vite/constants.js', () => ({
     DEFAULT_VITE_CONFIG: { someDefault: 'config' },
     PRESET_DEPENDENCIES: { lit: ['foobar', 'default', { bar: 'foo' }] }
 }))
-vi.mock('@wdio/utils', () => ({
+vi.mock('@testplane/wdio-utils', () => ({
     executeHooksWithArgs: vi.fn().mockResolvedValue('hook result')
 }))
 vi.mock('../../src/vite/mock.js', () => ({
     MockHandler: class {}
 }))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('foobar', () => ({ default: vi.fn().mockReturnValue('foobar') }))
 vi.mock('vite')
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))

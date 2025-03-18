@@ -3,7 +3,7 @@ import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 const browser = await remote({
     baseUrl: 'http://foobar.com',

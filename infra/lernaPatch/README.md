@@ -25,18 +25,18 @@ Which would fail during the release as WebdriverIO dependencies would reference 
 
 ```
 lerna ERR! /home/runner/work/webdriverio/webdriverio/packages/wdio-globals:
-lerna ERR!  ERR_PNPM_NO_MATCHING_VERSION  No matching version found for @wdio/logger@9.0.0
+lerna ERR!  ERR_PNPM_NO_MATCHING_VERSION  No matching version found for @testplane/wdio-logger@9.0.0
 lerna ERR!
 lerna ERR! This error happened while installing a direct dependency of /home/runner/work/webdriverio/webdriverio/packages/wdio-globals
 lerna ERR!
-lerna ERR! The latest release of @wdio/logger is "8.38.0".
+lerna ERR! The latest release of @testplane/wdio-logger is "8.38.0".
 lerna ERR!
 lerna ERR! Other releases are:
 lerna ERR!   * beta: 7.0.0-beta.1
 lerna ERR!   * v9: 9.0.0-alpha.0
 lerna ERR!   * next: 9.0.0-alpha.426
 lerna ERR!
-lerna ERR! If you need the full list of all 123 published versions run "$ pnpm view @wdio/logger versions".
+lerna ERR! If you need the full list of all 123 published versions run "$ pnpm view @testplane/wdio-logger versions".
 lerna ERR!     at makeError (/home/runner/work/webdriverio/webdriverio/node_modules/.pnpm/execa@5.0.0/node_modules/execa/lib/error.js:59:11)
 lerna ERR!     at handlePromise (/home/runner/work/webdriverio/webdriverio/node_modules/.pnpm/execa@5.0.0/node_modules/execa/index.js:114:26)
 lerna ERR!     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)

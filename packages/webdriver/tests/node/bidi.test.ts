@@ -3,11 +3,11 @@ import path from 'node:path'
 import { instances, setThrowError, clearInstances } from 'ws'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import { listWebsocketCandidateUrls, createBidiConnection } from '../../src/node/bidi.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 vi.mock('dns/promises', () => ({
     default: {

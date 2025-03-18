@@ -4,14 +4,14 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import LocalRunner from '@wdio/local-runner'
 import libCoverage, { type CoverageMap } from 'istanbul-lib-coverage'
 import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/wdio-types'
 import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartiallyMockedDeep } from '@vitest/spy'
 import type { InlineConfig } from 'vite'
 

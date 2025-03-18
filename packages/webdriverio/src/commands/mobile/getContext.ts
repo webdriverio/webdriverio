@@ -1,5 +1,5 @@
-import logger from '@wdio/logger'
-import type { Context, DetailedContext } from '@wdio/protocols'
+import logger from '@testplane/wdio-logger'
+import type { Context, DetailedContext } from '@testplane/wdio-protocols'
 
 import type { AppiumDetailedCrossPlatformContexts } from '../../types.js'
 

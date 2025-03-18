@@ -1,0 +1,60 @@
+{
+  "SPApplicationsDataType": [
+    {
+      "_name": "Firefox",
+      "arch_kind": "arch_i64",
+      "info": "Firefox 81.0.1",
+      "lastModified": "2020-10-02T07:43:53Z",
+      "obtained_from": "identified_developer",
+      "path": "/Applications/Firefox.app",
+      "signed_by": [
+        "Developer ID Application: Mozilla Corporation (43AQ936H96)",
+        "Developer ID Certification Authority",
+        "Apple Root CA"
+      ],
+      "version": "81.0.1"
+    },
+    {
+      "_name": "Someone Renamed Firefox",
+      "arch_kind": "arch_i64",
+      "info": "Firefox Nightly 83.0a1",
+      "lastModified": "2020-10-01T11:33:37Z",
+      "obtained_from": "identified_developer",
+      "path": "/Applications/Someone Renamed Firefox.app",
+      "signed_by": [
+        "Developer ID Application: Mozilla Corporation (43AQ936H96)",
+        "Developer ID Certification Authority",
+        "Apple Root CA"
+      ],
+      "version": "83.0a1"
+    },
+    {
+      "_name": "Microsoft Edge",
+      "arch_kind": "arch_i64",
+      "info": "Microsoft Edge 85.0.564.68, © 2020 Microsoft Corporation. All rights reserved.",
+      "lastModified": "2020-10-02T12:04:44Z",
+      "obtained_from": "identified_developer",
+      "path": "/Applications/Microsoft Edge.app",
+      "signed_by": [
+        "Developer ID Application: Microsoft Corporation (UBF8T346G9)",
+        "Developer ID Certification Authority",
+        "Apple Root CA"
+      ],
+      "version": "85.0.564.68"
+    },
+    {
+      "_name": "Google Chrome",
+      "arch_kind": "arch_i64",
+      "info": "Google Chrome 85.0.4183.121, Copyright 2020 Google LLC. All rights reserved.",
+      "lastModified": "2020-09-19T04:09:51Z",
+      "obtained_from": "identified_developer",
+      "path": "/Applications/Google Chrome.app",
+      "signed_by": [
+        "Developer ID Application: Google, Inc. (EQHXZ8M8AV)",
+        "Developer ID Certification Authority",
+        "Apple Root CA"
+      ],
+      "version": "85.0.4183.121"
+    }
+  ]
+}

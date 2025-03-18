@@ -1,8 +1,8 @@
 import path from 'node:path'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { deepmerge, deepmergeCustom } from 'deepmerge-ts'
-import type { Capabilities, Options, Reporters, Services } from '@wdio/types'
+import type { Capabilities, Options, Reporters, Services } from '@testplane/wdio-types'
 
 import FileSystemPathService from './FileSystemPathService.js'
 import { makeRelativeToCWD } from './utils.js'
@@ -11,7 +11,7 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 
 import type { PathService } from '../types.js'
 
-const log = logger('@wdio/config:ConfigParser')
+const log = logger('@testplane/wdio-config:ConfigParser')
 const MERGE_DUPLICATION = ['services', 'reporters', 'capabilities'] as const
 
 type KeyWithMergeDuplication = (typeof MERGE_DUPLICATION)[number]

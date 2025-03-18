@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { getBrowserObject } from '@wdio/utils'
-import type { remote } from 'webdriver'
+import { getBrowserObject } from '@testplane/wdio-utils'
+import type { remote } from '@testplane/webdriver'
 import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
 import { getContextManager } from '../session/context.js'
 import type { SaveScreenshotOptions } from '../types.js'
@@ -140,4 +140,3 @@ export async function takeScreenshotBidi (this: WebdriverIO.Browser, filepath: s
         : await this.browsingContextCaptureScreenshot({ context, origin, format, clip })
     return data
 }
-

@@ -1,4 +1,4 @@
-import type { remote } from 'webdriver'
+import type { remote } from '@testplane/webdriver'
 
 /**
  * Delete cookies visible to the current page. By providing a cookie name it

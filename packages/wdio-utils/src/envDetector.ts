@@ -1,4 +1,4 @@
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/wdio-types'
 import { SUPPORTED_BROWSERNAMES } from './constants.js'
 
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
@@ -28,8 +28,12 @@ export function isW3C(capabilities?: WebdriverIO.Capabilities) {
      * - it is an Appium session (since Appium is full W3C compliant)
      */
     const isAppium = Boolean(
+        // @ts-expect-error outdated jsonwp cap
+        (capabilities as Capabilities.DesiredCapabilities).automationName ||
         capabilities['appium:automationName'] ||
+        (capabilities as Capabilities.DesiredCapabilities).deviceName ||
         capabilities['appium:deviceName'] ||
+        (capabilities as Capabilities.DesiredCapabilities).appiumVersion ||
         capabilities['appium:appiumVersion']
     )
     const hasW3CCaps = Boolean(
@@ -43,6 +47,7 @@ export function isW3C(capabilities?: WebdriverIO.Capabilities) {
          * check also if setWindowRect is provided
          */
         (
+            (capabilities as Capabilities.DesiredCapabilities).platformVersion ||
             capabilities['appium:platformVersion'] ||
             Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect')
         )
@@ -259,19 +264,13 @@ function isChromium(capabilities?: WebdriverIO.Capabilities) {
 /**
  * returns information about the environment before the session is created
  * @param  {Object}  capabilities           caps provided by user
+ * @param  {string=} automationProtocol     `devtools`
  * @return {Object}                         object with environment flags
  */
-export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabilities) {
-    return {
-        isChrome: isChrome(capabilities),
-        isFirefox: isFirefox(capabilities),
-        isMobile: isMobile(capabilities),
-        isIOS: isIOS(capabilities),
-        isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(capabilities),
-        isBidi: isBidi(capabilities),
-        isChromium: isChromium(capabilities)
-    }
+export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabilities, automationProtocol: string) {
+    return automationProtocol === 'devtools'
+        ? devtoolsEnvironmentDetector(capabilities)
+        : webdriverEnvironmentDetector(capabilities)
 }
 
 /**
@@ -296,6 +295,45 @@ export function sessionEnvironmentDetector({
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(requestedCapabilities),
         isSeleniumStandalone: isSeleniumStandalone(capabilities),
+        isBidi: isBidi(capabilities),
+        isChromium: isChromium(capabilities)
+    }
+}
+
+/**
+ * returns information about the environment when `devtools` protocol is used
+ * @param  {Object}  capabilities           caps of session response
+ * @return {Object}                         object with environment flags
+ */
+export function devtoolsEnvironmentDetector({ browserName }: WebdriverIO.Capabilities) {
+    return {
+        isDevTools: true,
+        isW3C: true,
+        isMobile: false,
+        isIOS: false,
+        isAndroid: false,
+        isFirefox: false,
+        isChrome: browserName === 'chrome',
+        isSauce: false,
+        isSeleniumStandalone: false,
+        isBidi: false
+    }
+}
+
+/**
+ * returns information about the environment before the session is created
+ * `isW3C`, `isSeleniumStandalone` cannot be detected
+ * @param  {Object}  capabilities           caps provided by user
+ * @return {Object}                         object with environment flags
+ */
+export function webdriverEnvironmentDetector(capabilities: WebdriverIO.Capabilities) {
+    return {
+        isChrome: isChrome(capabilities),
+        isFirefox: isFirefox(capabilities),
+        isMobile: isMobile(capabilities),
+        isIOS: isIOS(capabilities),
+        isAndroid: isAndroid(capabilities),
+        isSauce: isSauce(capabilities),
         isBidi: isBidi(capabilities),
         isChromium: isChromium(capabilities)
     }

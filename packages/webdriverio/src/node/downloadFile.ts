@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import JSZip from 'jszip'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 const log = logger('webdriverio')
 

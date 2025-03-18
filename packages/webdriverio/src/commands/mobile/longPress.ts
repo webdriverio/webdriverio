@@ -1,4 +1,4 @@
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 import type { LongPressOptions } from '../../types.js'
 
 /**

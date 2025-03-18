@@ -548,10 +548,11 @@ describe('Hook reporting', () => {
         expect(results).toHaveLength(2)
         expect(containers[0].befores[0].steps).toHaveLength(1)
 
-        expect(['should can do something', 'My Login application'].includes(results[0].name)).toBeTruthy()
-        expect(containers[0].befores[0].status).toEqual(Status.BROKEN)
+        const testCaseStep = results.find((tc => tc.name === 'My Login application'))
+        expect(testCaseStep).toBeDefined()
+        expect(testCaseStep.status).toEqual(Status.BROKEN)
 
-        const hookCase = containers[0].befores[0].steps.find(((tc: any) => tc.name === '"before each" hook'))
+        const hookCase = results.find((tc => tc.name === '"before each" hook'))
         expect(hookCase).toBeDefined()
         expect(hookCase.status).toEqual(Status.BROKEN)
         expect(containers[0].befores[0].steps[0]).toBeDefined()
@@ -633,411 +634,412 @@ const assertionResults: any = {
     }
 }
 
-describe('command reporting', () => {
-    let outputDir: any
+for (const protocol of ['webdriver', 'devtools']) {
+    describe(`${protocol} command reporting`, () => {
+        let outputDir: any
 
-    beforeEach(() => {
-        outputDir = temporaryDirectory()
+        beforeEach(() => {
+            outputDir = temporaryDirectory()
+        })
+
+        afterEach(() => {
+            clean(outputDir)
+        })
+
+        it('should not add step if no tests started', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(0)
+        })
+
+        it('should not add step if isMultiremote = true', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(0)
+        })
+
+        it('should not end step if it was not started', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(0)
+        })
+
+        it('should not add step if disableWebdriverStepsReporting = true', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableWebdriverStepsReporting: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(Object.assign(runnerStart(),))
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(0)
+        })
+
+        it('should add step from command', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(1)
+
+            const responseAttachments = results[0].steps[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Response'
+            )
+
+            expect(results[0].steps[0].name).toEqual(assertionResults[protocol].commandTitle)
+            expect(responseAttachments).toHaveLength(1)
+            expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        })
+
+        it('should not empty attach for step from command', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+
+            const command = commandStart(protocol === 'devtools')
+
+            delete command.body
+
+            reporter.onBeforeCommand(command)
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(1)
+
+            const requestAttachments = results[0].steps[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Request'
+            )
+
+            expect(results[0].steps[0].name).toEqual(assertionResults[protocol].commandTitle)
+            expect(results[0].steps[0].status).toEqual(Status.PASSED)
+            expect(requestAttachments).toHaveLength(0)
+        })
+
+        it('should add step with screenshot command', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(1)
+
+            const screenshotAttachments = results[0].steps[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Screenshot'
+            )
+
+            expect(results[0].steps[0].name).toEqual(assertionResults[protocol].screenshotTitle)
+            expect(results[0].steps[0].status).toEqual(Status.PASSED)
+            expect(screenshotAttachments).toHaveLength(1)
+        })
+
+        it('should add step with screenshot command when disableWebdriverStepsReporting=true', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableWebdriverStepsReporting: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+
+            const screenshotAttachments = results[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Screenshot'
+            )
+            expect(screenshotAttachments).toHaveLength(1)
+        })
+
+        it('should not add step with screenshot command when disableWebdriverScreenshotsReporting=true', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableWebdriverScreenshotsReporting: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(1)
+
+            const screenshotAttachments = results[0].steps[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Screenshot'
+            )
+
+            expect(results[0].steps[0].name).toEqual(assertionResults[protocol].screenshotTitle)
+            expect(results[0].steps[0].status).toEqual(Status.PASSED)
+            expect(screenshotAttachments).toHaveLength(0)
+        })
+
+        it('should attach screenshot on hook failure', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+                disableWebdriverStepsReporting: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onHookStart(hookStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onHookEnd(hookFailed())
+            reporter.onTestPass()
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+            expect(results).toHaveLength(2)
+
+            const result = results.find( res => res.attachments.length === 1)
+            expect(result).toBeDefined()
+
+            const screenshotAttachments = result.attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Screenshot'
+            )
+
+            expect(screenshotAttachments).toHaveLength(1)
+        })
+
+        it('should attach console log for passing test', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+                addConsoleLogs: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            //this shouldn't be logged
+            log('Printing to console 1')
+            reporter.onTestStart(testStart())
+            //this should be logged
+            log('Printing to console 2')
+            //this shouldn't be logged
+            log('Printing webdriver to console 2')
+            reporter.onTestPass()
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+
+            const consoleAttachments = results[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Console Logs'
+            )
+
+            expect(consoleAttachments).toHaveLength(1)
+        })
+
+        it('should attach console log for failing test', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+                addConsoleLogs: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            //this shouldn't be logged
+            log('Printing to console 1')
+            reporter.onTestStart(testStart())
+            //this should be logged
+            log('Printing to console 2')
+            //this shouldn't be logged
+            log('Printing webdriver to console 2')
+            reporter.onTestFail(testFailed())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+
+            const consoleAttachments = results[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Console Logs'
+            )
+
+            expect(consoleAttachments).toHaveLength(1)
+        })
+
+        it('should attach console log for skipping test', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+                addConsoleLogs: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            //this shouldn't be logged
+            log('Printing to console 1')
+            reporter.onTestStart(testStart())
+            //this should be logged
+            log('Printing to console 2')
+            //this shouldn't be logged
+            log('Printing webdriver to console 2')
+            reporter.onTestSkip(testFailed())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+            const consoleAttachments = results[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Console Logs'
+            )
+
+            expect(results).toHaveLength(1)
+            expect(consoleAttachments).toHaveLength(1)
+        })
+
+        it('should not attach webdriver logs', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+                addConsoleLogs: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            //this shouldn't be logged
+            log('Printing to console 1')
+            reporter.onTestStart(testStart())
+            //this shouldn't be logged
+            log('Printing mwebdriver to console 2')
+            reporter.onTestPass()
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+            const consoleAttachments = results[0].attachments.filter(
+                (attachment: Attachment) => attachment.name === 'Console Logs'
+            )
+
+            expect(results).toHaveLength(1)
+            expect(consoleAttachments).toHaveLength(0)
+        })
     })
-
-    afterEach(() => {
-        clean(outputDir)
-    })
-
-    it('should not add step if no tests started', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onBeforeCommand(commandStart(false))
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
-    it('should not add step if isMultiremote = true', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStart(false))
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
-    it('should not end step if it was not started', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
-    it('should not add step if disableWebdriverStepsReporting = true', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableWebdriverStepsReporting: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(),))
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStart(false))
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(0)
-    })
-
-    it('should add step from command', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStart(false))
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(1)
-
-        const responseAttachments = results[0].steps[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Response'
-        )
-
-        expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].commandTitle)
-        expect(responseAttachments).toHaveLength(1)
-        expect(results[0].steps[0].status).toEqual(Status.PASSED)
-    })
-
-    it('should not empty attach for step from command', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-
-        const command = commandStart(false)
-
-        delete command.body
-
-        reporter.onBeforeCommand(command)
-        reporter.onAfterCommand(commandEnd(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(1)
-
-        const requestAttachments = results[0].steps[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Request'
-        )
-
-        expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].commandTitle)
-        expect(results[0].steps[0].status).toEqual(Status.PASSED)
-        expect(requestAttachments).toHaveLength(0)
-    })
-
-    it('should add step with screenshot command', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStartScreenShot(false))
-        reporter.onAfterCommand(commandEndScreenShot(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(1)
-
-        const screenshotAttachments = results[0].steps[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Screenshot'
-        )
-
-        expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].screenshotTitle)
-        expect(results[0].steps[0].status).toEqual(Status.PASSED)
-        expect(screenshotAttachments).toHaveLength(1)
-    })
-
-    it('should add step with screenshot command when disableWebdriverStepsReporting=true', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableWebdriverStepsReporting: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStartScreenShot(false))
-        reporter.onAfterCommand(commandEndScreenShot(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-
-        const screenshotAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Screenshot'
-        )
-        expect(screenshotAttachments).toHaveLength(1)
-    })
-
-    it('should not add step with screenshot command when disableWebdriverScreenshotsReporting=true', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableWebdriverScreenshotsReporting: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStartScreenShot(false))
-        reporter.onAfterCommand(commandEndScreenShot(false))
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-        expect(results[0].steps).toHaveLength(1)
-
-        const screenshotAttachments = results[0].steps[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Screenshot'
-        )
-
-        expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].screenshotTitle)
-        expect(results[0].steps[0].status).toEqual(Status.PASSED)
-        expect(screenshotAttachments).toHaveLength(0)
-    })
-
-    it('should attach screenshot on hook failure', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableMochaHooks: true,
-            disableWebdriverStepsReporting: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onHookStart(hookStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStartScreenShot(false))
-        reporter.onAfterCommand(commandEndScreenShot(false))
-        reporter.onHookEnd(hookFailed())
-        reporter.onTestPass()
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results, containers } = getResults(outputDir)
-        expect(results).toHaveLength(1)
-        expect(containers[0].befores[0].steps).toHaveLength(1)
-
-        const result = results.find((res: any) => res.attachments.length === 1)
-        expect(result).toBeDefined()
-
-        const screenshotAttachments = result.attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Screenshot'
-        )
-
-        expect(screenshotAttachments).toHaveLength(1)
-    })
-
-    it('should attach console log for passing test', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableMochaHooks: true,
-            addConsoleLogs: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        //this shouldn't be logged
-        log('Printing to console 1')
-        reporter.onTestStart(testStart())
-        //this should be logged
-        log('Printing to console 2')
-        //this shouldn't be logged
-        log('Printing webdriver to console 2')
-        reporter.onTestPass()
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-
-        const consoleAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Console Logs'
-        )
-
-        expect(consoleAttachments).toHaveLength(1)
-    })
-
-    it('should attach console log for failing test', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableMochaHooks: true,
-            addConsoleLogs: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        //this shouldn't be logged
-        log('Printing to console 1')
-        reporter.onTestStart(testStart())
-        //this should be logged
-        log('Printing to console 2')
-        //this shouldn't be logged
-        log('Printing webdriver to console 2')
-        reporter.onTestFail(testFailed())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-
-        expect(results).toHaveLength(1)
-
-        const consoleAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Console Logs'
-        )
-
-        expect(consoleAttachments).toHaveLength(1)
-    })
-
-    it('should attach console log for skipping test', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableMochaHooks: true,
-            addConsoleLogs: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        //this shouldn't be logged
-        log('Printing to console 1')
-        reporter.onTestStart(testStart())
-        //this should be logged
-        log('Printing to console 2')
-        //this shouldn't be logged
-        log('Printing webdriver to console 2')
-        reporter.onTestSkip(testFailed())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-        const consoleAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Console Logs'
-        )
-
-        expect(results).toHaveLength(1)
-        expect(consoleAttachments).toHaveLength(1)
-    })
-
-    it('should not attach webdriver logs', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableMochaHooks: true,
-            addConsoleLogs: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        //this shouldn't be logged
-        log('Printing to console 1')
-        reporter.onTestStart(testStart())
-        //this shouldn't be logged
-        log('Printing mwebdriver to console 2')
-        reporter.onTestPass()
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const { results } = getResults(outputDir)
-        const consoleAttachments = results[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Console Logs'
-        )
-
-        expect(results).toHaveLength(1)
-        expect(consoleAttachments).toHaveLength(0)
-    })
-})
+}

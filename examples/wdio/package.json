@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@wdio/browser-runner": "workspace:*",
-    "@wdio/config": "workspace:*",
+    "@testplane/wdio-config": "workspace:*",
     "@wdio/cli": "workspace:*",
     "@wdio/cucumber-framework": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
@@ -24,11 +24,11 @@
     "@wdio/lighthouse-service": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
-    "@wdio/repl": "workspace:*",
+    "@testplane/wdio-repl": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
-    "@wdio/types": "workspace:*",
-    "webdriver": "workspace:*",
-    "webdriverio": "workspace:*"
+    "@testplane/wdio-types": "workspace:*",
+    "@testplane/webdriver": "workspace:*",
+    "@testplane/webdriverio": "workspace:*"
   }
 }

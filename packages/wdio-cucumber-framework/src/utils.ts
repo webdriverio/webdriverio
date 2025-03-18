@@ -1,6 +1,6 @@
 import path from 'node:path'
-import logger from '@wdio/logger'
-import { isFunctionAsync } from '@wdio/utils'
+import logger from '@testplane/wdio-logger'
+import { isFunctionAsync } from '@testplane/wdio-utils'
 import type { supportCodeLibraryBuilder, World } from '@cucumber/cucumber'
 
 import type {
@@ -13,7 +13,7 @@ import type {
     TestStepResultStatus,
     FeatureChild
 } from '@cucumber/messages'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/wdio-types'
 import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')

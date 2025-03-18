@@ -1,5 +1,5 @@
-import { getBrowserObject } from '@wdio/utils'
-import type { WebDriverResultEvent } from 'webdriver'
+import { getBrowserObject } from '@testplane/wdio-utils'
+import type { WebDriverResultEvent } from '@testplane/webdriver'
 
 import Timer from '../../utils/Timer.js'
 import type { WaitUntilOptions } from '../../types.js'

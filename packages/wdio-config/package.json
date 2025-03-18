@@ -1,6 +1,6 @@
 {
-  "name": "@wdio/config",
-  "version": "9.11.0",
+  "name": "@testplane/wdio-config",
+  "version": "9.5.2",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
@@ -20,7 +20,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -36,9 +36,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "glob": "^10.2.2",
     "import-meta-resolve": "^4.0.0"

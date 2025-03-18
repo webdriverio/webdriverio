@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
-import WebDriver, { DEFAULTS } from 'webdriver'
-import { validateConfig } from '@wdio/config'
-import { enableFileLogging, wrapCommand, isBidi } from '@wdio/utils'
-import type { Options, Capabilities } from '@wdio/types'
-import type * as WebDriverTypes from 'webdriver'
+import WebDriver, { DEFAULTS } from '@testplane/webdriver'
+import { validateConfig } from '@testplane/wdio-config'
+import { enableFileLogging, wrapCommand, isBidi } from '@testplane/wdio-utils'
+import type { Options, Capabilities } from '@testplane/wdio-types'
+import type * as WebDriverTypes from '@testplane/webdriver'
 
 import MultiRemote from './multiremote.js'
 import SevereServiceErrorImport from './utils/SevereServiceError.js'
@@ -98,7 +98,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     const prototype = getPrototype('browser')
     const { Driver } = await getProtocolDriver(params)
 
-    const driver = Driver.attachToSession(
+    const driver = await Driver.attachToSession(
         params,
         undefined,
         prototype,
@@ -165,7 +165,7 @@ export const multiremote = async function (
     const ProtocolDriver = typeof automationProtocol === 'string'
         ? (await import(/* @vite-ignore */automationProtocol)).default
         : WebDriver
-    const driver = ProtocolDriver.attachToSession(
+    const driver = await ProtocolDriver.attachToSession(
         sessionParams,
         multibrowser.modifier.bind(multibrowser),
         prototype,
@@ -207,4 +207,3 @@ export const multiremote = async function (
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
     return driver
 }
-

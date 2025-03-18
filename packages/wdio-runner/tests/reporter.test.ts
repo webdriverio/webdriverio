@@ -1,12 +1,12 @@
 import path from 'node:path'
 import { describe, expect, it, vi, test, afterEach } from 'vitest'
-import type { Options } from '@wdio/types'
+import type { Options } from '@testplane/wdio-types'
 
 import BaseReporter from '../src/reporter.js'
 
-vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
+vi.mock('@testplane/wdio-utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-utils')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
+vi.mock('@testplane/wdio-config', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-config')))
 
 class CustomReporter {
     public emit = vi.fn()

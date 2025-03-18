@@ -17,6 +17,13 @@ jobs:
       - name: 🧑‍🔧 Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies
 
+      - name: Enable Latest Corepack
+        run: |
+          echo "Before: corepack version => $(corepack --version || echo 'not installed')"
+          npm install -g corepack@latest
+          echo "After : corepack version => $(corepack --version)"
+          corepack enable
+
       - name: 👷 Bootstrap Packages
         run: pnpm run setup
         shell: bash

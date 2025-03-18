@@ -1,6 +1,6 @@
-import logger from '@wdio/logger'
-import { ELEMENT_KEY, type remote } from 'webdriver'
-import type { ElementReference } from '@wdio/protocols'
+import { ELEMENT_KEY, type remote } from '@testplane/webdriver'
+import logger from '@testplane/wdio-logger'
+import type { ElementReference } from '@testplane/wdio-protocols'
 
 import { getContextManager, type FlatContextTree } from '../../session/context.js'
 import { LocalValue } from '../../utils/bidi/value.js'

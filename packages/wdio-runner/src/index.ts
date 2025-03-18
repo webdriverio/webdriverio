@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'node:events'
 
-import logger from '@wdio/logger'
-import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
-import { ConfigParser } from '@wdio/config/node'
+import logger from '@testplane/wdio-logger'
+import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@testplane/wdio-utils'
+import { ConfigParser } from '@testplane/wdio-config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
-import { attach } from 'webdriverio'
-import type { Selector } from 'webdriverio'
-import type { Options, Capabilities } from '@wdio/types'
+import { attach } from '@testplane/webdriverio'
+import type { Selector } from '@testplane/webdriverio'
+import type { Options, Capabilities } from '@testplane/wdio-types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'

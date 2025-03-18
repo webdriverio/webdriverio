@@ -2,12 +2,12 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import { PercyLogger } from '../src/Percy/PercyLogger.js'
 
 const log = logger('test')
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('node:fs/promises', () => ({
     default: {
         createReadStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
@@ -89,4 +89,3 @@ describe('PercyLogger Log methods', () => {
         expect(logDebugMock).toBeCalled()
     })
 })
-

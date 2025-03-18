@@ -1,6 +1,6 @@
 {
-  "name": "@wdio/utils",
-  "version": "9.11.0",
+  "name": "@testplane/wdio-utils",
+  "version": "9.5.2",
   "description": "A WDIO helper utility to provide several utility functions used across the project.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-utils",
@@ -9,18 +9,20 @@
   "exports": {
     ".": {
       "import": "./build/index.js",
-      "types": "./build/index.d.ts"
+      "types": "./build/index.d.ts",
+      "require": "./build/index.cjs"
     },
     "./node": {
       "source": "./src/node/index.ts",
       "import": "./build/node.js",
-      "types": "./src/node/index.d.ts"
+      "types": "./src/node/index.d.ts",
+      "require": "./build/node.cjs"
     }
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -38,12 +40,12 @@
   },
   "dependencies": {
     "@puppeteer/browsers": "^2.2.0",
-    "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/edgedriver": "^6.1.4",
+    "@testplane/geckodriver": "^5.0.2",
+    "@testplane/wdio-logger": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^7.0.3",
-    "edgedriver": "^6.1.1",
-    "geckodriver": "^5.0.0",
     "get-port": "^7.0.0",
     "import-meta-resolve": "^4.0.0",
     "locate-app": "^2.2.24",

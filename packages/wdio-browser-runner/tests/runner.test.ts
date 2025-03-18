@@ -10,7 +10,7 @@ import reports from 'istanbul-reports'
 import BrowserRunner from '../src/index.js'
 
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('@wdio/local-runner')
 vi.mock('../src/communicator.js', () => ({
     ServerWorkerCommunicator: class {

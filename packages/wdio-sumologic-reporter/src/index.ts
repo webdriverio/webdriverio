@@ -3,7 +3,7 @@ import stringify from 'json-stringify-safe'
 
 import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 
 import type { Options } from './types.js'
 

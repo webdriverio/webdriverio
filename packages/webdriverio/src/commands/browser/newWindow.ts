@@ -1,9 +1,9 @@
-import { sleep } from '@wdio/utils'
+import { sleep } from '@testplane/wdio-utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getContextManager } from '../../session/context.js'
 import type { NewWindowOptions } from '../../types.js'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 const log = logger('webdriverio:newWindow')
 
 const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000

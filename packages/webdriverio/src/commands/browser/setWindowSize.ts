@@ -1,4 +1,4 @@
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject } from '@testplane/wdio-utils'
 
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER
@@ -43,6 +43,10 @@ export async function setWindowSize(
     }
 
     const browser = getBrowserObject(this)
+
+    if (!browser.isW3C) {
+        return browser._setWindowSize(width, height)
+    }
 
     await browser.setWindowRect(null, null, width, height)
 }

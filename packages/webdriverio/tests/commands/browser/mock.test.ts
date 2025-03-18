@@ -4,7 +4,9 @@ import { expect, describe, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('fetch')
+vi.mock('devtools')
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('mock', () => {
     let browser: WebdriverIO.Browser

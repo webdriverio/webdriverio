@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { EventEmitter } from 'node:events'
-import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
-import type { Capabilities, Options, ThenArg } from '@wdio/types'
-import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
+import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from '@testplane/webdriver'
+import type { Capabilities, Options, ThenArg } from '@testplane/wdio-types'
+import type { ElementReference, ProtocolCommands } from '@testplane/wdio-protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
 import type { Dialog as DialogImport } from './session/dialog.js'

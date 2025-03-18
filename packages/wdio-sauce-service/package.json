@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -32,11 +32,11 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "saucelabs": "^9.0.1",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*",
+    "@testplane/wdio-utils": "workspace:*"
   },
   "devDependencies": {
     "@types/ip": "^1.1.0",

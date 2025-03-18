@@ -1,13 +1,13 @@
 import path from 'node:path'
-import logger from '@wdio/logger'
+import logger from '@testplane/wdio-logger'
 import SauceLabs from 'saucelabs'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@testplane/wdio-types'
 import { expect, test, vi, beforeEach } from 'vitest'
 
 import SauceServiceLauncher from '../src/launcher.js'
 import type { SauceServiceConfig } from '../src/types.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('saucelabs', () => ({
     default: {
         default: class SauceLabsMock {

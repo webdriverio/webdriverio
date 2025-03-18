@@ -3,7 +3,7 @@ import { expect, describe, it, afterEach, vi } from 'vitest'
 import { remote, Key } from '../../../src/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('keys', () => {
     it('should send keys', async () => {
@@ -28,6 +28,40 @@ describe('keys', () => {
             .toEqual({ type: 'keyDown', value: 'f' })
         expect(JSON.parse((vi.mocked(fetch).mock.calls[1][1] as any).body).actions[0].actions[12])
             .toEqual({ type: 'keyUp', value: 'r' })
+    })
+
+    it('should send keys (no w3c)', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        await browser.keys('foobar')
+        expect((vi.mocked(fetch).mock.calls[1][0] as any).pathname).toContain('/keys')
+        expect((vi.mocked(fetch).mock.calls[1][1] as any).json.value).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
+
+        await browser.keys('Enter')
+        expect((vi.mocked(fetch).mock.calls[2][0] as any).pathname).toContain('/keys')
+        expect((vi.mocked(fetch).mock.calls[2][1] as any).json.value).toEqual(['\uE007'])
+    })
+
+    it('should allow send keys as array', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        await browser.keys(['f', 'o', 'Enter', 'b', 'a', 'r'])
+        expect((vi.mocked(fetch).mock.calls[1][0] as any).pathname).toContain('/keys')
+        expect((vi.mocked(fetch).mock.calls[1][1] as any).json.value).toEqual(['f', 'o', '\uE007', 'b', 'a', 'r'])
+
+        await browser.keys('Enter')
+        expect((vi.mocked(fetch).mock.calls[2][0] as any).pathname).toContain('/keys')
+        expect((vi.mocked(fetch).mock.calls[2][1]as any).json.value).toEqual(['\uE007'])
     })
 
     it('should throw if invalid character was provided', async () => {

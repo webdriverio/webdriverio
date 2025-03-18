@@ -1,4 +1,4 @@
-import type { local, remote } from 'webdriver'
+import type { local, remote } from '@testplane/webdriver'
 
 import { deserialize } from '../../utils/bidi/index.js'
 

@@ -3,7 +3,7 @@ import { expect, describe, afterEach, it, vi, beforeAll } from 'vitest'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('setWindowSize', () => {
     let browser: WebdriverIO.Browser
@@ -25,6 +25,22 @@ describe('setWindowSize', () => {
             .toBe('/session/foobar-123/window/rect')
         expect(vi.mocked(fetch).mock.calls[1][1]!.body)
             .toEqual(JSON.stringify({ x: null, y: null, width: 777, height: 888 }))
+    })
+
+    it('should resize NO-W3C browser window', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        await browser.setWindowSize(999, 1111)
+        expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('POST')
+        expect((vi.mocked(fetch) as any).mock.calls[1][0]!.pathname)
+            .toBe('/session/foobar-123/window/current/size')
+        expect((vi.mocked(fetch) as any).mock.calls[1][1]!.json)
+            .toEqual({ width: 999, height: 1111 })
     })
 
     describe('input checks', () => {

@@ -9,7 +9,7 @@ import {
     type SessionManager
 } from '../../src/session/session.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 vi.mock('../../src/session/session.js', () => {
     const instances: SessionManager[] = []

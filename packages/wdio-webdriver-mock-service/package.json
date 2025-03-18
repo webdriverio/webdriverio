@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -28,11 +28,11 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/uuid": "^10.0.0",
-    "@wdio/protocols": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@testplane/wdio-protocols": "workspace:*",
+    "@testplane/wdio-types": "workspace:*",
     "nock": "14.0.1",
     "uuid": "^10.0.0",
-    "webdriverio": "workspace:*"
+    "@testplane/webdriverio": "workspace:*"
   },
   "devDependencies": {
     "@wdio/globals": "workspace:*"

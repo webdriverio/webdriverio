@@ -3,7 +3,7 @@ import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 describe('actions command', () => {
     let browser: WebdriverIO.Browser

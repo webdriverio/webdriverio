@@ -1,6 +1,6 @@
-import logger from '@wdio/logger'
-import { transformCommandLogResult, sleep } from '@wdio/utils'
-import type { Options } from '@wdio/types'
+import logger from '@testplane/wdio-logger'
+import { transformCommandLogResult, sleep } from '@testplane/wdio-utils'
+import type { Options } from '@testplane/wdio-types'
 
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
 import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'

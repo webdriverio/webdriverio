@@ -1,14 +1,14 @@
 import type { EventEmitter } from 'node:events'
 import { deepmergeCustom } from 'deepmerge-ts'
 
-import logger from '@wdio/logger'
-import type { Protocol } from '@wdio/protocols'
+import logger from '@testplane/wdio-logger'
+import type { Protocol } from '@testplane/wdio-protocols'
 import {
-    WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
-} from '@wdio/protocols'
-import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Options } from '@wdio/types'
+} from '@testplane/wdio-protocols'
+import { CAPABILITY_KEYS } from '@testplane/wdio-protocols'
+import type { Options } from '@testplane/wdio-types'
 
 import command from './command.js'
 import { environment } from './environment.js'
@@ -44,15 +44,15 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
-    const capabilities = params.capabilities && 'alwaysMatch' in params.capabilities
+    const [w3cCaps, jsonwpCaps] = params.capabilities && 'alwaysMatch' in params.capabilities
         /**
          * in case W3C compliant capabilities are provided
          */
-        ? params.capabilities
+        ? [params.capabilities, params.capabilities.alwaysMatch]
         /**
          * otherwise assume they passed in jsonwp-style caps (flat object)
          */
-        : { alwaysMatch: params.capabilities, firstMatch: [{}] }
+        : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
     /**
      * automatically opt-into WebDriver Bidi (@ref https://w3c.github.io/webdriver-bidi/)
@@ -61,28 +61,31 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
         /**
          * except, if user does not want to opt-in
          */
-        !capabilities.alwaysMatch['wdio:enforceWebDriverClassic'] &&
+        !w3cCaps.alwaysMatch['wdio:enforceWebDriverClassic'] &&
         /**
          * or user requests a Safari session which does not support Bidi
          */
-        typeof capabilities.alwaysMatch.browserName === 'string' &&
-        capabilities.alwaysMatch.browserName.toLowerCase() !== 'safari'
+        typeof w3cCaps.alwaysMatch.browserName === 'string' &&
+        w3cCaps.alwaysMatch.browserName.toLowerCase() !== 'safari'
     ) {
         /**
          * opt-into WebDriver Bidi
          */
-        capabilities.alwaysMatch.webSocketUrl = true
+        w3cCaps.alwaysMatch.webSocketUrl = true
         /**
          * allow WebdriverIO to handle alerts
          */
-        capabilities.alwaysMatch.unhandledPromptBehavior = 'ignore'
+        w3cCaps.alwaysMatch.unhandledPromptBehavior = 'ignore'
     }
 
-    validateCapabilities(capabilities.alwaysMatch)
+    validateCapabilities(w3cCaps.alwaysMatch)
     const sessionRequest = new environment.value.Request(
         'POST',
         '/session',
-        { capabilities }
+        {
+            capabilities: w3cCaps, // W3C compliant
+            desiredCapabilities: jsonwpCaps // JSONWP compliant
+        }
     )
 
     let response: SessionInitializationResponse
@@ -123,7 +126,7 @@ export function validateCapabilities (capabilities: WebdriverIO.Capabilities) {
      * JSONWireProtocol and WebDriver protocol, e.g.
      */
     if (capabilities) {
-        const extensionCaps = Object.keys(capabilities).filter((cap) => cap.includes(':'))
+        const extensionCaps = Object.keys(capabilities).filter((cap) => cap.includes(':') && !cap.startsWith('wdio'))
         const invalidWebDriverCaps = Object.keys(capabilities)
             .filter((cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'))
 
@@ -232,8 +235,8 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
          */
         isMobile
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
-            : WebDriverProtocol,
+            ? deepmerge<any>(JsonWProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
+            : isW3C ? WebDriverProtocol : JsonWProtocol,
         /**
          * enable Bidi protocol for W3C sessions
          */

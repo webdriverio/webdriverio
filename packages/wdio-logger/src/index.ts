@@ -2,10 +2,11 @@ import fs from 'node:fs'
 import util from 'node:util'
 
 import log from 'loglevel'
-import type { ColorName } from 'chalk'
 import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 import ansiStrip from 'strip-ansi'
+
+type ColorName = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'cyan' | 'magenta' | 'white' | 'cyanBright'
 
 prefix.reg(log)
 
@@ -229,4 +230,3 @@ const ERROR_LOG_VALIDATOR = [
     'nor as community package',
     'Please make sure you have it installed'
 ]
-

@@ -1,11 +1,12 @@
 import path from 'node:path'
 import { test, expect, vi, afterEach } from 'vitest'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@testplane/wdio-types'
 
 import { multiremote } from '../src/index.js'
 
 vi.mock('fetch')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('devtools')
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 const caps = (): Capabilities.MultiRemoteCapabilities => ({
     browserA: {

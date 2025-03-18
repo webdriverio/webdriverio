@@ -1,4 +1,4 @@
-import type { Timeouts } from '@wdio/protocols'
+import type { Timeouts } from '@testplane/wdio-protocols'
 
 /**
  *
@@ -58,6 +58,18 @@ export async function setTimeout(
     const pageLoad = (timeouts as unknown as { 'page load': number })['page load'] || timeouts.pageLoad
     const script = timeouts.script as number
     const setTimeouts = this.setTimeouts.bind(this)
+
+    /**
+     * JsonWireProtocol action
+     */
+    if (!this.isW3C) {
+        await Promise.all([
+            isFinite(implicit) && setTimeouts('implicit' as unknown as number, implicit),
+            isFinite(pageLoad!) && setTimeouts('page load' as unknown as number, pageLoad),
+            isFinite(script) && setTimeouts('script' as unknown as number, script),
+        ].filter(Boolean))
+        return
+    }
 
     return setTimeouts(implicit, pageLoad, script)
 }

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /// <reference types="@wdio/globals/types" />
 import { commands } from 'virtual:wdio'
-import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
-import { getEnvironmentVars, initiateBidi, parseBidiMessage } from 'webdriver'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { webdriverMonad, sessionEnvironmentDetector } from '@testplane/wdio-utils'
+import { getEnvironmentVars, initiateBidi, parseBidiMessage } from '@testplane/webdriver'
+import { MESSAGE_TYPES, type Workers } from '@testplane/wdio-types'
 import safeStringify from 'safe-stringify'
 
 /**

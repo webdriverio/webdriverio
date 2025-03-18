@@ -1,9 +1,9 @@
-import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
+import logger from './logger.js'
+import type { Capabilities } from '@testplane/wdio-types'
 
 import { definesRemoteDriver } from './utils.js'
 
-const log = logger('@wdio/utils')
+const log = logger('@testplane/wdio-utils')
 
 export async function startWebDriver (options: Capabilities.RemoteConfig) {
     /**

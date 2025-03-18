@@ -1,9 +1,9 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 // @ts-ignore mock feature
-import logger, { logMock } from '@wdio/logger'
-import { sessionEnvironmentDetector } from '@wdio/utils'
-import { startWebDriver } from '@wdio/utils'
+import logger, { logMock } from '@testplane/wdio-logger'
+import { sessionEnvironmentDetector } from '@testplane/wdio-utils'
+import { startWebDriver } from '@testplane/wdio-utils'
 
 import '../src/browser.js'
 
@@ -14,9 +14,9 @@ import * as utils from '../src/utils.js'
 import type { Client } from '../src/types.js'
 
 vi.mock('geckodriver', () => ({ start: vi.fn() }))
-vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
-vi.mock('@wdio/utils/node', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils/node')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-utils', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-utils')))
+vi.mock('@testplane/wdio-utils/node', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-utils/node')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('fs')
 vi.mock('wait-port')
 vi.mock('ws')
@@ -56,7 +56,7 @@ const sessionOptions = {
 // @ts-expect-error
 interface TestClient extends Client {
     getUrl (): string
-    rotateDevice (): void
+    getApplicationCacheStatus (): void
     takeElementScreenshot (): void
     getDeviceTime (): void
 }
@@ -218,7 +218,7 @@ describe('WebDriver', () => {
             expect(client.isChromium).toBeFalsy()
             expect(client.isMobile).toBeFalsy()
             expect(client.isSauce).toBeFalsy()
-            expect(client.rotateDevice).toBeFalsy()
+            expect(client.getApplicationCacheStatus).toBeFalsy()
             expect(client.takeElementScreenshot).toBeTruthy()
             expect(client.getDeviceTime).toBeFalsy()
         })
@@ -233,9 +233,23 @@ describe('WebDriver', () => {
 
             expect(client.isChromium).toBe(true)
             expect(client.isMobile).toBe(true)
-            expect(client.rotateDevice).toBeTruthy()
+            expect(client.getApplicationCacheStatus).toBeTruthy()
             expect(client.takeElementScreenshot).toBeTruthy()
             expect(client.getDeviceTime).toBeTruthy()
+        })
+
+        it('should allow to attach to existing session - non W3C', async () => {
+            const client = WebDriver.attachToSession({ ...sessionOptions,
+                isW3C: false,
+                isSauce: true,
+            }) as any as TestClient
+
+            await client.getUrl()
+
+            expect(client.isSauce).toBe(true)
+            expect(client.getApplicationCacheStatus).toBeTruthy()
+            expect(client.takeElementScreenshot).toBeFalsy()
+            expect(client.getDeviceTime).toBeFalsy()
         })
 
         it('it should propagate all environment flags', () => {
