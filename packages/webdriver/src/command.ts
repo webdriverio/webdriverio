@@ -246,13 +246,18 @@ function manageSessionAbortions (this: BaseClient): {
      */
     abortListenerForCurrentSession.add(abort)
     const abortOnSessionEnd = (result: WebDriverResultEvent) => {
-        if (result.command === 'deleteSession') {
-            for (const abortListener of abortListenerForCurrentSession) {
+        if (result.command !== 'deleteSession') {
+            return
+        }
+        const abortListeners = sessionAbortListeners.get(this.sessionId)
+        if (abortListeners) {
+            for (const abortListener of abortListeners) {
                 abortListener.abort()
             }
             abortListenerForCurrentSession.clear()
             sessionAbortListeners.set(this.sessionId, null)
         }
+
     }
     if (shouldRegisterHandler) {
         this.on('result', abortOnSessionEnd)
