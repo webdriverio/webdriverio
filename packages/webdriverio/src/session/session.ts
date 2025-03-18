@@ -15,11 +15,12 @@ export class SessionManager {
      */
     constructor(browser: WebdriverIO.Browser, scope: string) {
         this.#browser = browser
-        if (!listenerRegisteredSession.has(this.#browser.sessionId)) {
-            this.#browser.on('command', this.#onCommand.bind(this))
-            listenerRegisteredSession.add(this.#browser.sessionId)
-        }
         this.#scope = scope
+        const registrationId = `${this.#browser.sessionId}-${this.#scope}`
+        if (!listenerRegisteredSession.has(registrationId)) {
+            this.#browser.on('command', this.#onCommand.bind(this))
+            listenerRegisteredSession.add(registrationId)
+        }
     }
 
     #onCommand(ev: { command: string }) {

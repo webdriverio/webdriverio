@@ -19,8 +19,8 @@ describe('SessionManager', () => {
 
     it('should listener registered only once when initialized multiple times', ()=>{
         browser.sessionId = '456'
-        new SessionManager(browser, 'dummy1')
-        new SessionManager(browser, 'dummy2')
+        new SessionManager(browser, 'dummy')
+        new SessionManager(browser, 'dummy')
         expect(browser.on).toHaveBeenCalledTimes(1)
     })
 })
