@@ -137,12 +137,17 @@ async function calculateFromTo({
     //    - left
     //    of the element. These positions will contain the x and y coordinates on where to put the finger
     const { x, y, width, height } = await browser.getElementRect(await scrollableElement?.elementId)
+
+    // calculate the offset
+    const verticalOffset = height - height * swipePercentage
+    const horizontalOffset = width - width * swipePercentage
+
     // It's always advisable to swipe from the center of the element.
     const scrollRectangles = {
-        top: { x: Math.round(x + width / 2), y: Math.round(y + height - height * swipePercentage) },
-        right: { x: Math.round(x + width * swipePercentage), y: Math.round(y + height / 2) },
-        bottom: { x: Math.round(x + width / 2), y: Math.round(y + height * swipePercentage) },
-        left: { x: Math.round(x + width - width * swipePercentage), y: Math.round(y + height / 2) },
+        top: { x: Math.round(x + width / 2), y: Math.round(y + verticalOffset / 2) },
+        right: { x: Math.round(x + width - horizontalOffset / 2), y: Math.round(y + height / 2) },
+        bottom: { x: Math.round(x + width / 2), y: Math.round(y + height - verticalOffset / 2 ) },
+        left: { x: Math.round(x + horizontalOffset / 2), y: Math.round(y + height / 2) },
     }
 
     // 3. Swipe in the given direction
