@@ -1,10 +1,10 @@
 import path from 'node:path'
 import { expect, vi, describe, it, afterEach } from 'vitest'
 // @ts-ignore mock feature
-import { logMock } from '@wdio/logger'
+import { logMock } from '@testplane/wdio-logger'
 import DevTools from '../src/index.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 vi.mock('puppeteer-core', () => import(path.join(process.cwd(), '__mocks__', 'puppeteer-core')))
 vi.mock('chrome-launcher', () => import(path.join(process.cwd(), '__mocks__', 'chrome-launcher')))
 
