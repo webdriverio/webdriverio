@@ -76,9 +76,9 @@ class PercyBinary {
         try {
             const etagPath = this.#getETagPath(destParentDir)
             fs.writeFileSync(etagPath, etag)
-            BStackLogger.info('Saved new ETag for percy binary')
+            BStackLogger.debug('Saved new ETag for percy binary')
         } catch (err) {
-            BStackLogger.warn(`Failed to save ETag file ${err}`)
+            BStackLogger.error(`Failed to save ETag file ${err}`)
         }
     }
 
@@ -101,10 +101,10 @@ class PercyBinary {
                 try {
                     const needsUpdate = await this.#checkForUpdate(currentETag)
                     if (!needsUpdate) {
-                        BStackLogger.info('Percy binary is up to date (ETag unchanged)')
+                        BStackLogger.debug('Percy binary is up to date (ETag unchanged)')
                         return binaryPath
                     }
-                    BStackLogger.info('New Percy binary version available, downloading update')
+                    BStackLogger.debug('New Percy binary version available, downloading update')
                 } catch (err) {
                     BStackLogger.warn(`Failed to check for binary updates, using existing binary ${err}`)
                     return binaryPath
