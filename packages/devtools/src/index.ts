@@ -163,7 +163,7 @@ export default class DevTools {
         const uaParser = new UAParser(await browser.userAgent())
         const userAgent = uaParser.getResult()
 
-        const environmentPrototype: Record<string, { value: Browser | boolean }> = { puppeteer: { value: browser } }
+        const environmentPrototype: Record<string, { value: Browser | boolean, writable?: boolean }> = { puppeteer: { value: browser, writable: true } }
         Object.entries(devtoolsEnvironmentDetector({
             browserName: userAgent?.browser?.name?.toLowerCase()
         })).forEach(([name, value]) => {
