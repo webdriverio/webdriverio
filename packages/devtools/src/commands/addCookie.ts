@@ -1,4 +1,5 @@
 import type { Cookie } from '@testplane/wdio-protocols'
+import type { CookieParam } from 'puppeteer-core'
 
 import type DevToolsDriver from '../devtoolsdriver.js'
 
@@ -28,6 +29,6 @@ export default async function addCookie(
         cookie.value = (cookie.value as any).toString()
     }
 
-    await page.setCookie(cookie)
+    await page.setCookie(cookie as unknown as CookieParam)
     return null
 }

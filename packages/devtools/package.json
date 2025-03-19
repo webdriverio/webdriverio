@@ -20,19 +20,14 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "type": "module",
-  "main": "./build/cjs/index.js",
+  "main": "./build/index.cjs",
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./build/index.d.ts",
-        "default": "./build/index.js"
-      },
-      "require": {
-        "types": "./build/index.d.ts",
-        "default": "./build/cjs/index.js"
-      }
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "require": "./build/index.cjs"
     },
     "./package.json": "./package.json"
   },
