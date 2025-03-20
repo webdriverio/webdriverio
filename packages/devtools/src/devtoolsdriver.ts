@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import fs from 'node:fs'
-import url from 'node:url'
-import path from 'node:path'
 import type { EventEmitter } from 'node:events'
 
 import { v4 as uuidv4 } from 'uuid'
@@ -21,7 +18,6 @@ import { validate, sanitizeError } from './utils.js'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants.js'
 import type { ActiveListener } from './types.js'
 
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const log = logger('devtools')
 
 export default class DevToolsDriver {
@@ -38,27 +34,7 @@ export default class DevToolsDriver {
     activeListeners: ActiveListener[] = []
     constructor(browser: Browser, pages: Page[]) {
         this.browser = browser
-
-        const dir = path.resolve(__dirname, 'commands')
-        const files = fs.readdirSync(dir).filter(
-            (file) => (
-                file.endsWith('.js') ||
-                (
-                    file.endsWith('.ts') &&
-                    !file.endsWith('.d.ts')
-                )
-            )
-        )
-
-        for (const filename of files) {
-            const commandName = path.basename(filename, path.extname(filename))
-
-            if (!commandName) {
-                throw new Error('Couldn\'t determine command name')
-            }
-
-            this.commands[commandName] = commands[commandName as keyof typeof commands]
-        }
+        this.commands = commands
 
         this.initBrowser(browser, pages)
     }

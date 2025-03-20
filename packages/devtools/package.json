@@ -21,7 +21,6 @@
   },
   "type": "module",
   "main": "./build/index.cjs",
-  "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
     ".": {
