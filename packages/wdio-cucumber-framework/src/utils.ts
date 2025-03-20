@@ -2,6 +2,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import { isFunctionAsync } from '@wdio/utils'
 import type { supportCodeLibraryBuilder, World } from '@cucumber/cucumber'
+import { Status } from '@cucumber/cucumber'
 
 import type {
     TableRow,
@@ -257,4 +258,22 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
             }
         })
     })
+}
+
+/**
+ * Convert Cucumber status to WebdriverIO test status for reporting.
+ * Maps statuses like PASSED, PENDING, etc., to WebdriverIO's shorthand test status values.
+ * @param {TestStepResultStatus} status - The Cucumber status (e.g., 'PENDING')
+ * @returns {'pass' | 'fail' | 'skip' | 'pending'} - The corresponding WebdriverIO test status
+ */
+export function convertStatus(status: TestStepResultStatus): 'pass' | 'fail' | 'skip' | 'pending' {
+    switch (status) {
+    case Status.PASSED: return 'pass'
+    case Status.PENDING: return 'pending'
+    case Status.SKIPPED: return 'skip'
+    case Status.AMBIGUOUS: return 'skip'
+    case Status.FAILED: return 'fail'
+    case Status.UNDEFINED: return 'pass'
+    default: return 'fail'
+    }
 }
