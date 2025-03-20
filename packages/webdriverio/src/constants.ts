@@ -24,6 +24,13 @@ export const WDIO_DEFAULTS: Options.Definition<Capabilities.WebdriverIOConfig> =
             /**
              * path when proxy is used for browser testing
              */
+            if (param.endsWith('driver.js')) {
+                return
+            }
+
+            /**
+             * path when proxy is used for browser testing
+             */
             if (typeof param !== 'string') {
                 throw new Error('automationProtocol should be a string')
             }
