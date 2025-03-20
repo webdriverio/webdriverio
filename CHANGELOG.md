@@ -23,6 +23,49 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.12.1 (2025-03-20)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14288](https://github.com/webdriverio/webdriverio/pull/14288) Fix isClickable auto-scroll ([@dragosMC91](https://github.com/dragosMC91))
+  * [#14296](https://github.com/webdriverio/webdriverio/pull/14296) Allow switchWindow with no current window ([@ccharnkij](https://github.com/ccharnkij))
+  * [#14298](https://github.com/webdriverio/webdriverio/pull/14298) fix(webdriverio): update listener registration logic of SessionManager ([@mato533](https://github.com/mato533))
+  * [#14270](https://github.com/webdriverio/webdriverio/pull/14270) fix(webdriverio): wait for element to exist before executing on it ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`, `webdriver`, `webdriverio`
+  * [#14287](https://github.com/webdriverio/webdriverio/pull/14287) fix: support windows/mac apps for isDisplayed ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#14294](https://github.com/webdriverio/webdriverio/pull/14294) Add Roku service to default services ([@jcantfell](https://github.com/jcantfell))
+  * [#14279](https://github.com/webdriverio/webdriverio/pull/14279) chore(cli): remove unnecessary definition of the variables ([@mato533](https://github.com/mato533))
+* `webdriver`
+  * [#14278](https://github.com/webdriverio/webdriverio/pull/14278) fix(webdriver): update the registration logic for  abort listener ([@mato533](https://github.com/mato533))
+  * [#14274](https://github.com/webdriverio/webdriverio/pull/14274) chore(webdriver): fix typo ([@Delta456](https://github.com/Delta456))
+* `wdio-browser-runner`, `webdriver`
+  * [#14259](https://github.com/webdriverio/webdriverio/pull/14259) fix: Try to resolve ip addresses if no BiDi connection to the host could be established ([@mykola-mokhnach](https://github.com/mykola-mokhnach))
+
+#### :memo: Documentation
+* [#14277](https://github.com/webdriverio/webdriverio/pull/14277) docs: update service-options broken links ([@bimlote](https://github.com/bimlote))
+* [#14269](https://github.com/webdriverio/webdriverio/pull/14269) docs: add compareoptions object for visual test docs ([@alcpereira](https://github.com/alcpereira))
+
+#### :house: Internal
+* `webdriver`
+  * [#14272](https://github.com/webdriverio/webdriverio/pull/14272) chore(webdriver): add unit tests for DNS patch ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 11
+- -bimlote- ([@bimlote](https://github.com/bimlote))
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dragos Campean ([@dragosMC91](https://github.com/dragosMC91))
+- Jason Cantfell ([@jcantfell](https://github.com/jcantfell))
+- Mykola Mokhnach ([@mykola-mokhnach](https://github.com/mykola-mokhnach))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+- Volodymyr Parlah ([@vparlah](https://github.com/vparlah))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@alcpereira](https://github.com/alcpereira)
+- [@mato533](https://github.com/mato533)
+
+
 ## v9.12.0 (2025-03-11)
 
 #### :rocket: New Feature
