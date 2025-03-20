@@ -166,7 +166,9 @@ describe('WebdriverIO module interface', () => {
                 isIOS: false,
                 isMobile: false,
                 isSauce: false,
-                isBidi: false
+                isBidi: false,
+                isWindowsApp: false,
+                isMacApp: false,
             })
         })
     })
