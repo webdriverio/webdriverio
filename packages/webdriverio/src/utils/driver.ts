@@ -46,7 +46,8 @@ export async function getProtocolDriver (options: Capabilities.WebdriverIOConfig
      */
     if (automationProtocol === SupportedAutomationProtocols.devtools || automationProtocol?.startsWith('/@fs/')) {
         try {
-            const DevTools = await import(`@testplane/${automationProtocol}`)
+            const packageName = automationProtocol === 'devtools' ? `@testplane/${automationProtocol}` : automationProtocol
+            const DevTools = await import(packageName)
             log.info('Starting session using Chrome DevTools as automation protocol and Puppeteer as driver')
             return { Driver: DevTools.default, options }
         } catch (err: unknown) {

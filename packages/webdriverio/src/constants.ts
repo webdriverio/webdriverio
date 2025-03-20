@@ -42,26 +42,28 @@ export const WDIO_DEFAULTS: Options.Definition<Capabilities.WebdriverIOConfig> =
                 return
             }
 
+            const packageName = param === SupportedAutomationProtocols.stub ? param : `@testplane/${param}`
+
             try {
-                import.meta.resolve(param)
+                import.meta.resolve(packageName)
             } catch (err) {
                 const error = err instanceof Error ? err : new Error('unknown error')
-                throw new Error(`Couldn't find automation protocol "${param}": ${error.message}`)
+                throw new Error(`Couldn't find automation protocol "${packageName}": ${error.message}`)
             }
 
             try {
                 const __dirname = dirname(fileURLToPath(import.meta.url))
                 const require = createRequire(import.meta.url)
-                const id = param === SupportedAutomationProtocols.stub
-                    ? resolve(__dirname, '..', 'build', param)
-                    : param
+                const id = packageName === SupportedAutomationProtocols.stub
+                    ? resolve(__dirname, '..', 'build', packageName)
+                    : packageName
                 require.resolve(id)
             // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 /* istanbul ignore next */
                 throw new Error(
                     'Automation protocol package is not installed!\n' +
-                    `Please install it via \`npm install ${param}\``
+                    `Please install it via \`npm install ${packageName}\``
                 )
             }
         }
