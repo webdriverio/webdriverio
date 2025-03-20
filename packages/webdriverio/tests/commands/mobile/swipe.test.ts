@@ -108,8 +108,8 @@ describe('swipe test', () => {
         expect(logSpy).toHaveBeenCalledWith('The percentage to swipe should be a number between 0 and 1.')
     })
 
-    const percentages = [0.25, 0.45, 0.75, 0.8]
-    Object.values(MobileScrollDirection) .forEach((direction, index) => {
+    const percentages = [0.25, 0.45, 0.5, 0.75, 0.8]
+    Object.values(MobileScrollDirection).forEach((direction, index) => {
         const percent = percentages[index % percentages.length]
 
         it(`should call a swipe ${direction} command with ${percent * 100}% for a scrollable element`, async () => {
