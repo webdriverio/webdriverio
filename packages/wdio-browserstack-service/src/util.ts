@@ -1395,18 +1395,24 @@ export const ObjectsAreEqual = (object1: object, object2: object) => {
     return true
 }
 
-export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: WebdriverIO.Capabilities) {
-    if (!caps) {
+export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: WebdriverIO.Capabilities, userCaps: WebdriverIO.Capabilities) {
+    if (!caps && !userCaps) {
         return undefined
     }
-    const bstackOptions = (caps)?.['bstack:options']
+
+    const bstackOptions = (userCaps)?.['bstack:options']
     const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
 
     for (const key of keys) {
-        if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+        if (caps?.[key as keyof WebdriverIO.Capabilities]) {
+            BStackLogger.debug(`Got ${key} from driver caps`)
+            return String(caps?.[key as keyof WebdriverIO.Capabilities])
+        } else if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+            BStackLogger.debug(`Got ${key} from user bstack options`)
             return String(bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities])
-        } else if (caps[key as keyof WebdriverIO.Capabilities]) {
-            return String(caps[key as keyof WebdriverIO.Capabilities])
+        } else if (userCaps[key as keyof WebdriverIO.Capabilities]) {
+            BStackLogger.debug(`Got ${key} from user caps`)
+            return String(userCaps[key as keyof WebdriverIO.Capabilities])
         }
     }
     return undefined
