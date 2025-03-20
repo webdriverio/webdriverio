@@ -9,7 +9,7 @@ import WebSocket from 'ws'
 const log = logger('webdriver')
 const CONNECTION_TIMEOUT = 10000
 
-export async function createBidiConnection(webSocketUrl: string, options?: unknown): Promise<WebSocket | undefined> {
+export async function createBidiConnection(webSocketUrl: string, options?: WebSocket.ClientOptions): Promise<WebSocket | undefined> {
     const candidateUrls = await listWebsocketCandidateUrls(webSocketUrl)
     return connectWebsocket(candidateUrls, options)
 }
@@ -54,11 +54,11 @@ interface ConnectionPromise {
  * @param candidateUrls - list of websocket urls to try
  * @returns true if the connection was successful
  */
-export async function connectWebsocket(candidateUrls: string[], _?: unknown): Promise<WebSocket | undefined> {
+export async function connectWebsocket(candidateUrls: string[], options?: WebSocket.ClientOptions): Promise<WebSocket | undefined> {
     const websockets: WebSocket[] = candidateUrls.map((candidateUrl) => {
         log.debug(`Attempt to connect to webSocketUrl ${candidateUrl}`)
         try {
-            const ws = new WebSocket(candidateUrl)
+            const ws = new WebSocket(candidateUrl, options)
             return ws
         } catch {
             return undefined
