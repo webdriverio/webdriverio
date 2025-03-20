@@ -3,11 +3,11 @@ import path from 'node:path'
 import UAParser from 'ua-parser-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import logger from '@wdio/logger'
-import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
-import { validateConfig } from '@wdio/config'
-import type { CommandEndpoint } from '@wdio/protocols'
-import type { Options, Capabilities } from '@wdio/types'
+import logger from '@testplane/wdio-logger'
+import { webdriverMonad, devtoolsEnvironmentDetector } from '@testplane/wdio-utils'
+import { validateConfig } from '@testplane/wdio-config'
+import type { CommandEndpoint } from '@testplane/wdio-protocols'
+import type { Options, Capabilities } from '@testplane/wdio-types'
 import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 
 import DevToolsDriver from './devtoolsdriver.js'
@@ -18,20 +18,28 @@ import type { Client, AttachOptions, DevToolsOptions as WDIODevtoolsOptionsExten
 
 const log = logger('devtools:puppeteer')
 
+export const sessionMap = new Map()
+let isDebugPatched = false
+
 /**
  * patch debug package to log Puppeteer CDP messages
  */
-await patchDebug(log)
-
-export const sessionMap = new Map()
+async function patchDebugPkg() {
+    if (!isDebugPatched) {
+        await patchDebug(log)
+        isDebugPatched = true
+    }
+}
 
 export default class DevTools {
     static async newSession (
-        options: Options.WebDriver,
+        options: Capabilities.WebdriverIOConfig,
         modifier?: Function,
         userPrototype = {},
         customCommandWrapper?: Function
     ): Promise<Client> {
+        await patchDebugPkg()
+
         const envLogLevel = process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined
         options.logLevel = envLogLevel ?? options.logLevel
         const params = validateConfig(DEFAULTS, options)
@@ -75,7 +83,7 @@ export default class DevTools {
             browserName: (userAgent.browser.name || browserName || 'unknown').split(' ').shift()?.toLowerCase(),
             browserVersion: userAgent.browser.version,
             platformName: os.platform(),
-            platform: os.release()
+            // platform: os.release()
         }
 
         if (vendorCapPrefix) {
@@ -123,6 +131,8 @@ export default class DevTools {
      * @returns {string}           the new session id of the browser
      */
     static async reloadSession (instance: Client, newCapabilities: WebdriverIO.Capabilities): Promise<string> {
+        await patchDebugPkg()
+
         const { session } = sessionMap.get(instance.sessionId)
         const browser = await launch({
             ...instance.requestedCapabilities as WebdriverIO.Capabilities,
@@ -144,6 +154,8 @@ export default class DevTools {
         userPrototype = {},
         customCommandWrapper?: Function
     ): Promise<Client> {
+        await patchDebugPkg()
+
         const browser = await launch(options.capabilities)
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)
@@ -151,7 +163,7 @@ export default class DevTools {
         const uaParser = new UAParser(await browser.userAgent())
         const userAgent = uaParser.getResult()
 
-        const environmentPrototype: Record<string, { value: Browser | boolean }> = { puppeteer: { value: browser } }
+        const environmentPrototype: Record<string, { value: Browser | boolean, writable?: boolean }> = { puppeteer: { value: browser, writable: true } }
         Object.entries(devtoolsEnvironmentDetector({
             browserName: userAgent?.browser?.name?.toLowerCase()
         })).forEach(([name, value]) => {

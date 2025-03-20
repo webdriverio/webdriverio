@@ -5,7 +5,7 @@
   "dependencies": {
     "expect-webdriverio": "^5.1.0",
     "@testplane/webdriver": "workspace:*",
-    "devtools": "workspace:*",
+    "@testplane/devtools": "workspace:*",
     "@testplane/webdriverio": "workspace:*",
     "@wdio/cli": "workspace:*",
     "@testplane/wdio-config": "workspace:*",

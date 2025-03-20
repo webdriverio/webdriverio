@@ -1,6 +1,6 @@
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/api/Frame.js'
-import type { ElementReference } from '@wdio/protocols'
+import type { ElementReference } from '@testplane/wdio-protocols'
 
 import { ELEMENT_KEY } from '../constants.js'
 import { getStaleElementError } from '../utils.js'

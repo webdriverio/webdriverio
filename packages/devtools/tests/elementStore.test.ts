@@ -4,7 +4,7 @@ import ElementStore from '../src/elementstore.js'
 import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/common/ElementHandle.js'
 import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/api/Frame.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@testplane/wdio-logger', () => import(path.join(process.cwd(), '__mocks__', '@testplane/wdio-logger')))
 
 const elementHandleFactory = (
     { isConnected = true, frame = Symbol() }: { isConnected?: boolean, frame?: symbol } = {}

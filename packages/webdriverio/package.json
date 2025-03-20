@@ -102,11 +102,11 @@
     "urlpattern-polyfill": "^10.0.0"
   },
   "peerDependencies": {
-    "devtools": "^8.14.0",
+    "@testplane/devtools": "^8.32.1",
     "puppeteer-core": "^22.3.0"
   },
   "peerDependenciesMeta": {
-    "devtools": {
+    "@testplane/devtools": {
       "optional": true
     },
     "puppeteer-core": {
