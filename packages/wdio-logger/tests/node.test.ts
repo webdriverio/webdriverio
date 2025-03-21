@@ -221,6 +221,46 @@ describe('wdio-logger node', () => {
             expect(write.mock.results[3].value).toContain('test-logFile4: Error: bar')
         })
 
+        it('masked sensitive information with one pattern', () => {
+            process.env.WDIO_LOG_PATH = 'wdio.test.log'
+            process.env.WDIO_LOG_MASKING_PATTERNS = '--key=[^ ]*'
+
+            const log = nodeLogger('test-maskedLogPatternNoFlag')
+            log.info('wdio.conf.ts --user= --key=mySecretKey --spec template.test.ts')
+
+            expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** --spec template.test.ts')
+        })
+
+        it('masked sensitive information with one pattern having 0 group and global flag', () => {
+            process.env.WDIO_LOG_PATH = 'wdio.test.log'
+            process.env.WDIO_LOG_MASKING_PATTERNS = '/--key=[^ ]*/gi'
+
+            const log = nodeLogger('test-maskedLogFile0Group')
+            log.info('wdio.conf.ts --user= --KEY=mySecretKey --key=mySecretKey --spec template.test.ts')
+
+            expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** **MASKED** --spec template.test.ts')
+        })
+
+        it('masked sensitive information with one pattern having 2 group', () => {
+            process.env.WDIO_LOG_PATH = 'wdio.test.log'
+            process.env.WDIO_LOG_MASKING_PATTERNS = '(--key=)([^ ]*)'
+
+            const log = nodeLogger('test-maskedLogFile2Group')
+            log.info('wdio.conf.ts --user= --key=mySecretKey --spec template.test.ts')
+
+            expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= --key=**MASKED** --spec template.test.ts')
+        })
+
+        it('masked sensitive information with two patterns having 2 groups each', () => {
+            process.env.WDIO_LOG_PATH = 'wdio.test.log'
+            process.env.WDIO_LOG_MASKING_PATTERNS = '(--key=)([^ ]*),/(TOKEN=)([^ ]*)/i'
+
+            const log = nodeLogger('test-masked2RegExHaving2Group')
+            log.info('TOKEN=mySecretToken wdio.conf.ts --user=myUser --key=mySecretKey --spec template.test.ts')
+
+            expect(write.mock.results[0].value).toContain('TOKEN=**MASKED** wdio.conf.ts --user=myUser --key=**MASKED** --spec template.test.ts')
+        })
+
         it('is not confused by multiple copies of source code', () => {
             process.env.WDIO_LOG_PATH = 'wdio.test.log'
 
