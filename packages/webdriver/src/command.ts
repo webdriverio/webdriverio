@@ -155,10 +155,12 @@ export default function (
         this.emit('command', { command, method, endpoint, body: maskedBody || body })
         log.info('COMMAND', commandCallStructure(command, maskedArgs || args))
 
+        const options = maskedBody ? { ...this.options, headers: { ['x-appium-is-sensitive']: 'true' } } : this.options
+
         /**
          * use then here so we can better unit test what happens before and after the request
          */
-        return request.makeRequest(this.options, this.sessionId).then((result) => {
+        return request.makeRequest(options, this.sessionId).then((result) => {
             if (typeof result.value !== 'undefined') {
                 let resultLog = result.value
 
