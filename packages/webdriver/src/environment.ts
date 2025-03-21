@@ -16,7 +16,7 @@ export interface EnvironmentVariables {
 export interface EnvironmentDependencies {
     Request: typeof FetchRequest,
     Socket: typeof BrowserSocket,
-    createBidiConnection: (wsUrl?: string, options?: unknown) => Promise<WebSocket | undefined>,
+    createBidiConnection: (wsUrl?: string, options?: WebSocket.ClientOptions) => Promise<WebSocket | undefined>,
     variables: EnvironmentVariables
 }
 

@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { WebSocket } from 'ws'
+import type { WebSocket, ClientOptions } from 'ws'
 
 import WebDriver from './index.js'
 import { BrowserSocket } from './bidi/socket.js'
@@ -15,7 +15,7 @@ const log = logger('webdriver')
 environment.value = {
     Request: FetchRequest,
     Socket: BrowserSocket,
-    createBidiConnection: (webSocketUrl: string, options: unknown) => {
+    createBidiConnection: (webSocketUrl: string, options: ClientOptions) => {
         log.info(`Connecting to webSocketUrl ${webSocketUrl}`)
         const ws = new BrowserSocket(webSocketUrl, options)
         return new Promise<WebSocket | undefined>((resolve) => {
