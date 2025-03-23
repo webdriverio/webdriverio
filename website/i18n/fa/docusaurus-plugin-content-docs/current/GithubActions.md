@@ -3,7 +3,7 @@ id: githubactions
 title: Github Actions
 ---
 
-اگر مخزن شما در Github میزبانی می شود، می توانید از [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) برای اجرای آزمایش های خود در زیرساخت Github استفاده کنید.
+If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions) to run your tests on Github's infrastructure.
 
 1. every time you push changes
 2. در هر ایجاد درخواست pull
@@ -18,4 +18,4 @@ title: Github Actions
 https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml
 ```
 
-در [Github Docs](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) اطلاعات بیشتری در مورد ایجاد فایل های workflow می‌یابید.
+Find out in the [Github Docs](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow?tool=cli) on more information about creating workflow files.
