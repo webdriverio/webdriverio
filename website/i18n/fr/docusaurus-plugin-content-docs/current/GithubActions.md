@@ -3,7 +3,7 @@ id: githubactions
 title: Github Actions
 ---
 
-Si votre dépôt est hébergé sur Github, vous pouvez utiliser [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) pour exécuter vos tests sur l'infrastructure de Github.
+If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions) to run your tests on Github's infrastructure.
 
 1. every time you push changes
 2. à chaque création de pull request
@@ -18,4 +18,4 @@ Voir [jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate/bl
 https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml
 ```
 
-Découvrez dans les [Github Docs](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) plus d'informations sur la création de fichiers de workflow.
+Find out in the [Github Docs](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow?tool=cli) on more information about creating workflow files.
