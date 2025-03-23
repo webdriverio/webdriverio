@@ -3,7 +3,7 @@ id: githubactions
 title: Github Actions
 ---
 
-உங்கள் களஞ்சியமானது Github இல் ஹோஸ்ட் செய்யப்பட்டிருந்தால், Github இன் உள்கட்டமைப்பில் உங்கள் டெஸ்டுகளை இயக்க [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) பயன்படுத்தலாம்.
+If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions) to run your tests on Github's infrastructure.
 
 1. every time you push changes
 2. ஒவ்வொரு இழுப்பு கோரிக்கை உருவாக்கத்திலும்
@@ -18,4 +18,4 @@ title: Github Actions
 https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml
 ```
 
-ஒர்க்ப்ளோ பைல்களை உருவாக்குவது பற்றிய கூடுதல் தகவல்களை [Github Docs](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) இல் கண்டறியவும்.
+Find out in the [Github Docs](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow?tool=cli) on more information about creating workflow files.
