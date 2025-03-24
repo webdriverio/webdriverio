@@ -62,7 +62,8 @@ class PercyBinary {
         const etagPath = this.#getETagPath(destParentDir)
         if (await this.#checkPath(etagPath)) {
             try {
-                return fs.readFileSync(etagPath, 'utf8').trim()
+                const data = await fsp.readFile(etagPath, 'utf8')
+                return data.trim()
             } catch (err) {
                 BStackLogger.warn(`Failed to read ETag file ${err}`)
             }
@@ -71,11 +72,11 @@ class PercyBinary {
     }
 
     // Save the ETag for future use
-    #saveETag(destParentDir: string, etag: string) {
+    async #saveETag(destParentDir: string, etag: string) {
         if (!etag) {return}
         try {
             const etagPath = this.#getETagPath(destParentDir)
-            fs.writeFileSync(etagPath, etag)
+            await fsp.writeFile(etagPath, etag)
             BStackLogger.debug('Saved new ETag for percy binary')
         } catch (err) {
             BStackLogger.error(`Failed to save ETag file ${err}`)
@@ -142,7 +143,7 @@ class PercyBinary {
             // Save the new ETag if available
             const newETag = response.headers.get('eTag')
             if (newETag) {
-                this.#saveETag(path.dirname(this.#getETagPath(await this.#getAvailableDirs())), newETag)
+                await this.#saveETag(path.dirname(this.#getETagPath(await this.#getAvailableDirs())), newETag)
             }
 
             return true
@@ -182,7 +183,7 @@ class PercyBinary {
         const response = await fetch(this.#httpPath as unknown as URL)
         const newETag = response.headers.get('eTag')
         if (newETag) {
-            this.#saveETag(destParentDir, newETag)
+            await this.#saveETag(destParentDir, newETag)
         }
         // @ts-expect-error stream type
         await pipeline(response.body as unknown as RequestInit, downloadedFileStream)
