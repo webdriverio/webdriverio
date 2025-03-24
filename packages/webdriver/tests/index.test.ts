@@ -245,7 +245,9 @@ describe('WebDriver', () => {
                 isIOS: false,
                 isAndroid: false,
                 isChromium: false,
-                isSauce: false
+                isSauce: false,
+                isWindowsApp: false,
+                isMacApp: false
             })
             expect(client.isW3C).toBe(false)
             expect(client.isMobile).toBe(false)
@@ -253,6 +255,8 @@ describe('WebDriver', () => {
             expect(client.isAndroid).toBe(false)
             expect(client.isChromium).toBe(false)
             expect(client.isSauce).toBe(false)
+            expect(client.isWindowsApp).toBe(false)
+            expect(client.isMacApp).toBe(false)
 
             const anotherClient = WebDriver.attachToSession({ ...sessionOptions,
                 isW3C: true,
@@ -260,7 +264,9 @@ describe('WebDriver', () => {
                 isIOS: true,
                 isAndroid: true,
                 isChromium: true,
-                isSauce: true
+                isSauce: true,
+                isWindowsApp: true,
+                isMacApp: true
             })
             expect(anotherClient.isW3C).toBe(true)
             expect(anotherClient.isMobile).toBe(true)
@@ -268,6 +274,8 @@ describe('WebDriver', () => {
             expect(anotherClient.isAndroid).toBe(true)
             expect(anotherClient.isChromium).toBe(true)
             expect(anotherClient.isSauce).toBe(true)
+            expect(anotherClient.isWindowsApp).toBe(true)
+            expect(anotherClient.isMacApp).toBe(true)
         })
 
         it('should apply default connection details', () => {

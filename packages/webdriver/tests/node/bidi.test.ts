@@ -1,6 +1,6 @@
 import path from 'node:path'
 // @ts-expect-error mock feature
-import { instances, setThrowError, clearInstances } from 'ws'
+import { instances, setThrowError, clearInstances, type ClientOptions } from 'ws'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import logger from '@wdio/logger'
@@ -21,16 +21,17 @@ vi.mock('ws', () => {
     return {
         default: class WebSocketMock {
             wsUrl: string
+            options: ClientOptions | undefined
             on = vi.fn()
             send = vi.fn()
             once = vi.fn()
             error = vi.fn()
             terminate = vi.fn()
             removeAllListeners = vi.fn()
-            constructor(url: string) {
+            constructor(url: string, options?: ClientOptions) {
                 instances.push(this as unknown as WebSocket)
                 this.wsUrl = url
-
+                this.options = options
                 if (throwError) {
                     throw throwError
                 }
@@ -87,6 +88,14 @@ describe('Bidi Node.js implementation', () => {
             'Connected to Bidi protocol at ws://127.0.0.1/bar'
         )
         expect(log.error).not.toHaveBeenCalled()
+    })
+
+    it('createBidiConnection with options for the ws', async ()=>{
+        const wsPromise = createBidiConnection('ws://foo/bar', { headers: { 'cf-access-token': 'MY_TOKEN', 'X-Custom': 'xyz' } })
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        expect(instances.length).toBe(3)
+
+        expect(instances[0].options).toStrictEqual({ headers: { 'cf-access-token': 'MY_TOKEN', 'X-Custom': 'xyz' } })
     })
 
     it('createBidiConnection returns undefined if no socket connection is established', async () => {
