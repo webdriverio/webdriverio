@@ -85,6 +85,8 @@ class FakeClient extends EventEmitter {
     isSauce = false
     isFirefox = false
     isBidi = false
+    isWindowsApp = false
+    isMacApp = false
     isSeleniumStandalone = false
     isNativeContext = false
     mobileContext = ''
