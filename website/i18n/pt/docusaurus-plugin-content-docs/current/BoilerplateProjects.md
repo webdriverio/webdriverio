@@ -343,4 +343,21 @@ PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha test
     - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
     - Github workflow to run the test and upload the allure report
 
+## [Rondleysg/wdio-multiremote-appium-chromedriver-boilerplate](https://github.com/Rondleysg/wdio-multiremote-appium-chromedriver-boilerplate)
 
+This is a boilerplate project to help show how to run webdriverio multi-remote using appium and chromedriver service with the latest WebdriverIO.
+
+- Frameworks
+  - WebdriverIO (v9)
+  - Appium (v2)
+  - Mocha
+
+- Features
+  - [Page Object](pageobjects) Model
+  - Typescript
+  - Web + Mobile Tests - Multiremote
+  - Native Android and iOS apps
+  - Appium
+  - Chromedriver
+  - ESLint
+  - Tests examples for Login in http://the-internet.herokuapp.com and [WebdriverIO native demo app](https://github.com/webdriverio/native-demo-app)
