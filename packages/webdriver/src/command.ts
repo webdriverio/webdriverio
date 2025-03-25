@@ -44,7 +44,7 @@ export default function (
         if (typeof deprecated === 'string' && !process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS) {
             const warning = deprecated.replace('This command', `The "${command}" command`)
             log.warn(warning)
-            console.warn(`⚠️ [WEBDRIVERIO DEPRECATION NOTICE] ${warning}`)
+            // console.warn(`⚠️ [WEBDRIVERIO DEPRECATION NOTICE] ${warning}`)
         }
 
         /**
