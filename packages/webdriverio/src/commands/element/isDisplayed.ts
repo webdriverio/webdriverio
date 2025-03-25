@@ -1,8 +1,8 @@
+import { ELEMENT_KEY } from '@testplane/webdriver'
 import { getBrowserObject } from '@testplane/wdio-utils'
 
 import { hasElementId } from '../../utils/index.js'
 import isElementDisplayedLegacyScript from '../../scripts/isElementDisplayed.js'
-import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 
 /**
  *
@@ -126,42 +126,12 @@ export async function isDisplayed (
         return await this.isElementDisplayed(this.elementId)
     }
 
-    let hadToFallback = false
-    const [isDisplayed, displayProperty] = await Promise.all([
-        browser.execute(function checkVisibility (elem, params) {
-            return elem.checkVisibility(params)
-        }, this as unknown as HTMLElement, commandParams).catch((err) => {
-            /**
-             * Fallback to legacy script if checkVisibility is not available
-             */
-            if (err.message.includes('checkVisibility is not a function')) {
-                hadToFallback = true
-                return browser.execute(isElementDisplayedLegacyScript, this as unknown as HTMLElement)
-            }
-            throw err
-        }),
-        /**
-         * don't fail if element is not existing
-         */
-        this.getCSSProperty('display').catch(() => ({ value: '' }))
-    ])
+    return await browser.execute(isElementDisplayedLegacyScript, {
+        [ELEMENT_KEY]: this.elementId, // w3c compatible
+        ELEMENT: this.elementId // jsonwp compatible
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any as HTMLElement)
 
-    /**
-     * If the element is displayed with `display: contents` we need to recheck
-     * the visibility as the element itself is not visible but its children are
-     * (if there are any). Hence, we run the legacy script for it.
-     */
-    const hasDisplayContentsCSSProperty = displayProperty.value === 'contents'
-    const shouldRecheckContentVisibility = !hadToFallback && hasDisplayContentsCSSProperty
-    const finalResponse = shouldRecheckContentVisibility
-        ? await browser.execute(isElementDisplayedLegacyScript, this as unknown as HTMLElement).catch(() => false)
-        : isDisplayed
-
-    if (finalResponse && commandParams?.withinViewport) {
-        return browser.execute(isElementInViewportScript, this as unknown as HTMLElement)
-    }
-
-    return finalResponse
 }
 
 const DEFAULT_PARAMS: IsDisplayedParams = {
