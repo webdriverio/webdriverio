@@ -6,7 +6,7 @@ title: Docker
 डॉकर एक शक्तिशाली कंटेनरीकरण तकनीक है जो आपके टेस्ट सूट को एक ऐसे कंटेनर में समाहित करने की अनुमति देती है जो हर सिस्टम पर समान व्यवहार करता है। यह अलग-अलग ब्राउज़र या प्लेटफ़ॉर्म संस्करणों के कारण अस्थिरता से बच सकता है। एक कंटेनर के भीतर अपने परीक्षण चलाने के लिए, अपनी प्रोजेक्ट निर्देशिका में `Dockerfile` बनाएं, उदाहरण के लिए:
 
 ```Dockerfile
-FROM ianwalter/puppeteer:latest
+FROM selenium/standalone-chrome:134.0-20250323 # Change the browser and version according to your needs
 WORKDIR /app
 ADD . /app
 
@@ -22,7 +22,7 @@ node_modules
 ```
 
 :::info
-हम यहां डॉकर छवि का उपयोग कर रहे हैं जो पहले से इंस्टॉल गूगल क्रोम के साथ आती है। वहाँ विभिन्न ब्राउज़र सेटअप के साथ विभिन्न चित्र उपलब्ध हैं। [डॉकर हब](https://hub.docker.com/u/selenium).पर सेलेनियम प्रोजेक्ट द्वारा बनाए गए चित्रों को देखें।
+We are using a Docker image here that comes with Selenium and Google Chrome pre-installed. There are various of images available with different browser setups and browser versions. [डॉकर हब](https://hub.docker.com/u/selenium).पर सेलेनियम प्रोजेक्ट द्वारा बनाए गए चित्रों को देखें।
 :::
 
 जैसा कि हम अपने डॉकर कंटेनर में गूगल क्रोम को केवल हेडलेस मोड में चला सकते हैं, हमें यह सुनिश्चित करने के लिए अपने `wdio.conf.js` संशोधित करना होगा:
@@ -47,7 +47,7 @@ export const config = {
 }
 ```
 
-जैसा कि [ऑटोमेशन प्रोटोकॉल](/docs/automationProtocols) में बताया गया है, आप WebDriverIO को WebDriver प्रोटोकॉल या Chrome DevTools का उपयोग करके चला सकते हैं। यदि आप वेबड्राइवर का उपयोग करते हैं तो सुनिश्चित करें कि आपकी छवि पर स्थापित क्रोम संस्करण [क्रोमड्राइवर](https://www.npmjs.com/package/chromedriver) संस्करण से मेल खाता है जिसे आपने अपने `package.json`में परिभाषित किया है।
+As mentioned in [Automation Protocols](/docs/automationProtocols) you can run WebdriverIO using the WebDriver protocol or WebDriver BiDi protocol. Make sure that the Chrome version installed on your image matches the [Chromedriver](https://www.npmjs.com/package/chromedriver) version you have defined in your `package.json`.
 
 डॉकर कंटेनर बनाने के लिए आप चला सकते हैं:
 
