@@ -6,7 +6,7 @@ title: Docker
 Docker is a powerful containerization technology that allows to encapsulate your test suite into a container that behaves the same on every system. This can avoid flakiness due to different browser or platform versions. In order to run your tests within a container, create a `Dockerfile` in your project directory, e.g.:
 
 ```Dockerfile
-FROM ianwalter/puppeteer:latest
+FROM selenium/standalone-chrome:134.0-20250323 # Change the browser and version according to your needs
 WORKDIR /app
 ADD . /app
 
@@ -22,7 +22,7 @@ node_modules
 ```
 
 :::info
-We are using a Docker image here that comes with Google Chrome pre-installed. There various of images available with different browser setups. Check out the images maintained by the Selenium project [on Docker Hub](https://hub.docker.com/u/selenium).
+We are using a Docker image here that comes with Selenium and Google Chrome pre-installed. There are various of images available with different browser setups and browser versions. Check out the images maintained by the Selenium project [on Docker Hub](https://hub.docker.com/u/selenium).
 :::
 
 As we can only run Google Chrome in headless mode in our Docker container we have to modify our `wdio.conf.js` to ensure we do that:
@@ -47,7 +47,7 @@ export const config = {
 }
 ```
 
-As mentioned in [Automation Protocols](/docs/automationProtocols) you can run WebdriverIO using the WebDriver protocol or Chrome DevTools. If you use WebDriver make sure that the Chrome version installed on your image matches the [Chromedriver](https://www.npmjs.com/package/chromedriver) version you have defined in your `package.json`.
+As mentioned in [Automation Protocols](/docs/automationProtocols) you can run WebdriverIO using the WebDriver protocol or WebDriver BiDi protocol. Make sure that the Chrome version installed on your image matches the [Chromedriver](https://www.npmjs.com/package/chromedriver) version you have defined in your `package.json`.
 
 To build the Docker container you can run:
 
