@@ -124,7 +124,7 @@ export class ContextManager extends SessionManager {
          * update frame context if user switches using 'switchToParentFrame'
          */
         if (event.command === 'switchToParentFrame') {
-            if (!this.#currentContext) {
+            if (!this.#currentContext || !this.#browser.isBidi) {
                 return
             }
 
