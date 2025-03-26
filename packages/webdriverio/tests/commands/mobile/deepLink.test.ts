@@ -48,7 +48,7 @@ describe('deepLink test', () => {
         expect(executeSpy).toHaveBeenCalledTimes(1)
         expect(executeSpy).toHaveBeenCalledWith('mobile:deepLink', {
             url: 'wdio://drag',
-            packageName: 'com.wdio.app'
+            package: 'com.wdio.app'
         })
     })
 
@@ -90,7 +90,7 @@ describe('deepLink test', () => {
         await expect(browser.deepLink('wdio://drag')).rejects.toThrow('When using a deep link URL for iOS, you need to provide the `bundleId` of the app that the deep link should open.')
     })
 
-    it('should throw an error when no packageName is provided for Android', async () => {
+    it('should throw an error when no package is provided for Android', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -101,6 +101,6 @@ describe('deepLink test', () => {
         })
 
         // @ts-expect-error test invalid input
-        await expect(browser.deepLink('wdio://drag')).rejects.toThrow('When using a deep link URL for Android, you need to provide the `packageName` of the app that the deep link should open.')
+        await expect(browser.deepLink('wdio://drag')).rejects.toThrow('When using a deep link URL for Android, you need to provide the `package` of the app that the deep link should open.')
     })
 })
