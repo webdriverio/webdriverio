@@ -64,7 +64,7 @@ Al lado de las capacidades basadas en WebDriver usted puede aplicar opciones esp
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-Adicionalmente, una utilidad útil es el [Configurador Automatizado de Pruebas](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)de Sauce Labs, que le ayuda a crear este objeto haciendo clic juntos en las capacidades deseadas.
+Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), which helps you create this object by clicking together your desired capabilities.
 
 Type: `Object`<br /> Default: `null`
 
