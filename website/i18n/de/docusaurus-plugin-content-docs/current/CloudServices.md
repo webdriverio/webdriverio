@@ -26,7 +26,7 @@ Sie können auch jede optionale [Testkonfiguration](https://docs.saucelabs.com/d
 
 ### Sauce Connect
 
-Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)verwenden.
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Sauce Connect](https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy).
 
 Es liegt außerhalb des Umfangs von WebdriverIO, dies zu unterstützen, daher müssen Sie es selbst starten.
 
@@ -134,6 +134,7 @@ Es liegt außerhalb des Umfangs von WebdriverIO, dies nativ zu unterstützen, da
 Wenn Sie local Anwendungen testen, sollten Sie die Capability `tunnel` auf `true` setzen.
 
 Wenn Sie den WDIO-Testrunner verwenden, laden Sie den [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in Ihrer `wdio.conf.js`herunter und konfigurieren Sie diesen. Es hilft dabei, LambdaTest zum Laufen zu bringen, und verfügt über zusätzliche Funktionen, die Ihre Tests besser in den LambdaTest-Dienst integrieren.
+
 ### Mit Travis CI
 
 Wenn Sie Tests auf einem lokalen Server ausführen möchten, müssen Sie einen Tunnel selber starten.
