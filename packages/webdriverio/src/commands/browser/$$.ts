@@ -1,8 +1,9 @@
 import type { ElementReference } from '@wdio/protocols'
 
-import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
+import { findElements, isElement, findElement } from '../../utils/index.js'
 import { getElements, getElement } from '../../utils/getElementObject.js'
 import { findDeepElements } from '../../utils/index.js'
+import { WebdriverIOElementArray } from '../../element/array.js'
 import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
 
@@ -46,10 +47,10 @@ import type { Selector } from '../../types.js'
  * @type utility
  *
  */
-export async function $$ (
+export function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
-): Promise<WebdriverIO.ElementArray> {
+): WebdriverIOElementArray {
     /**
      * do a deep lookup if
      * - we are using Bidi
@@ -62,37 +63,52 @@ export async function $$ (
          */
         if (globalThis.wdio?.execute) {
             const command = '$$' as const
-            const res = 'elementId' in this
-                ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as unknown as ElementReference[]
-                : await globalThis.wdio.execute(command, selector) as unknown as ElementReference[]
-            const elements = await getElements.call(this, selector as Selector, res)
-            return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+            return WebdriverIOElementArray.fromAsyncCallback(async () => {
+                const res = 'elementId' in this
+                    ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as unknown as ElementReference[]
+                    : await globalThis.wdio.execute(command, selector) as unknown as ElementReference[]
+                const elements = await getElements.call(this, selector as Selector, res)
+                return elements
+            }, {
+                selector: selector as Selector,
+                parent: this
+            })
         }
 
-        const res = await findDeepElements.call(this, selector)
-        const elements = await getElements.call(this, selector as Selector, res)
-        return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+        return WebdriverIOElementArray.fromAsyncCallback(async () => {
+            const res = await findDeepElements.call(this, selector)
+            const elements = await getElements.call(this, selector as Selector, res)
+            return elements
+        }, {
+            selector: selector as Selector,
+            parent: this
+        })
     }
 
-    let res: (ElementReference | Error)[] = Array.isArray(selector)
-        ? selector as ElementReference[]
-        : await findElements.call(this, selector)
+    return WebdriverIOElementArray.fromAsyncCallback(async () => {
+        let res: (ElementReference | Error)[] = Array.isArray(selector)
+            ? selector as ElementReference[]
+            : await findElements.call(this, selector)
 
-    /**
-     * allow user to transform a set of HTMLElements into a set of WebdriverIO elements
-     */
-    if (Array.isArray(selector) && isElement(selector[0])) {
-        res = []
-        for (const el of selector) {
-            const $el = await findElement.call(this, el)
-            if ($el) {
-                res.push($el)
+        /**
+         * allow user to transform a set of HTMLElements into a set of WebdriverIO elements
+         */
+        if (Array.isArray(selector) && isElement(selector[0])) {
+            res = []
+            for (const el of selector) {
+                const $el = await findElement.call(this, el)
+                if ($el) {
+                    res.push($el)
+                }
             }
         }
-    }
 
-    const elements = await getElements.call(this, selector as Selector, res)
-    return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+        const elements = await getElements.call(this, selector as Selector, res)
+        return elements
+    }, {
+        selector: selector as Selector,
+        parent: this
+    })
 }
 
 function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: ElementReference[]) {
