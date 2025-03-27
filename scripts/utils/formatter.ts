@@ -10,6 +10,14 @@ const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.
 const repoUrl = `https://github.com/${organizationName}/${projectName}`
 
+function formatObjectToString(obj: Record<string, string[]>): string {
+    const formattedPairs = Object.entries(obj).map(([key, valueArray]) => {
+        const value = valueArray[0]
+        return `${key}: ${value}`
+    })
+    return `&#123;${formattedPairs.join(', ')}&#125;`
+}
+
 export default function (docfile: any) {
     const javadoc = docfile.javadoc[0]
 
@@ -35,9 +43,28 @@ export default function (docfile: any) {
 
     for (const tag of javadoc.tags) {
         if (tag.type === 'param') {
-            tag.joinedTypes = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                : 'any'
+            if (!Array.isArray(tag.types)) {
+                tag.joinedTypes = 'any'
+            } else {
+                const firstType = tag.types[0]
+
+                if (firstType && typeof firstType === 'object') {
+                    tag.joinedTypes = tag.types.map((item: Record<string, string[]>) => formatObjectToString(item)).join('|')
+                    tag.types = [tag.joinedTypes]
+                } else {
+                    tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+                    /**
+                     * Handles the special case when the 'dox.parseComments' fails to compile the type correctly,
+                     * resulting in a default string value of '[object Object]' for the elements.
+                     * In this scenario, we fallback to using 'tag.typesDescription' to retrieve and properly format the type information.
+                     */
+                    if (firstType === '[object Object]') {
+                        tag.joinedTypes = tag.typesDescription
+                        tag.types = tag.typesDescription.split(' | ').map((item: string) => `'${item.replace(/'/g, '')}'`)
+                    }
+                }
+            }
 
             if (tag.typesDescription.includes('|<code>undefined</code>')) {
                 tag.typesDescription = `<code>${tag.joinedTypes}</code>`
