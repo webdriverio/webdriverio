@@ -48,7 +48,7 @@ To simplify the interaction with the WebDriver protocol the `webdriverio` packag
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
 ```
 
-स्टैंडअलोन मोड में WebdriverIO का उपयोग करना अभी भी आपको सभी प्रोटोकॉल कमांड तक पहुंच प्रदान करता है लेकिन अतिरिक्त कमांड का एक सुपर सेट प्रदान करता है जो ब्राउज़र के साथ उच्च स्तर की सहभागिता प्रदान करता है। यह आपको एक नई ऑटोमेशन लाइब्रेरी बनाने के लिए इस ऑटोमेशन टूल को अपने (परीक्षण) प्रोजेक्ट में एकीकृत करने की अनुमति देता है। लोकप्रिय उदाहरणों में शामिल हैं [Spectron](https://www.electronjs.org/spectron) या [CodeceptJS](http://codecept.io)। आप सामग्री के लिए वेब को परिमार्जन करने के लिए सादा नोड स्क्रिप्ट भी लिख सकते हैं (या कुछ और जिसके लिए एक चल रहे ब्राउज़र की आवश्यकता होती है)।
+स्टैंडअलोन मोड में WebdriverIO का उपयोग करना अभी भी आपको सभी प्रोटोकॉल कमांड तक पहुंच प्रदान करता है लेकिन अतिरिक्त कमांड का एक सुपर सेट प्रदान करता है जो ब्राउज़र के साथ उच्च स्तर की सहभागिता प्रदान करता है। यह आपको एक नई ऑटोमेशन लाइब्रेरी बनाने के लिए इस ऑटोमेशन टूल को अपने (परीक्षण) प्रोजेक्ट में एकीकृत करने की अनुमति देता है। Popular examples include [Oxygen](https://github.com/oxygenhq/oxygen) or [CodeceptJS](http://codecept.io). आप सामग्री के लिए वेब को परिमार्जन करने के लिए सादा नोड स्क्रिप्ट भी लिख सकते हैं (या कुछ और जिसके लिए एक चल रहे ब्राउज़र की आवश्यकता होती है)।
 
 If no specific options are set WebdriverIO will always attempt to download and setup the browser driver that matches `browserName` property in your capabilities. In case of Chrome and Firefox it might also install them depending on whether it can find the corresponding browser on the machine.
 
