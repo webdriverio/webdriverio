@@ -2,6 +2,7 @@ import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager } from '../../session/networkManager.js'
 import { getContextManager } from '../../session/context.js'
 import type { InitScript } from './addInitScript.js'
+import type BidiInterception from '../../utils/interception/bidi.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
 
@@ -186,9 +187,9 @@ export async function url (
             }
         }
 
-        let mock: WebdriverIO.Mock | undefined
+        let mock: BidiInterception | undefined
         if (options.headers) {
-            mock = await this.mock(path)
+            mock = await this.mock(path) as unknown as BidiInterception
             mock.requestOnce({ headers: options.headers })
         }
 

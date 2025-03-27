@@ -4,7 +4,8 @@
     "baseUrl": ".",
     "outDir": "./build",
     "rootDir": "./src",
-    "allowJs": false
+    "allowJs": false,
+    "allowUnreachableCode": true
   },
   "include": [
     "src/**/*.ts",

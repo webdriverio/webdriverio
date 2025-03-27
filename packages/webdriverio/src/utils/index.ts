@@ -21,7 +21,7 @@ import type { CustomStrategyReference, ExtendedElementReference } from '../types
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
-const IGNORED_COMMAND_FILE_EXPORTS = ['SESSION_MOCKS', 'CDP_SESSIONS']
+const IGNORED_COMMAND_FILE_EXPORTS = ['SESSION_MOCKS', 'SESSION_DIBI_MOCKS', 'CDP_SESSIONS']
 
 declare global {
     interface Window { __wdio_element: Record<string, HTMLElement> }
