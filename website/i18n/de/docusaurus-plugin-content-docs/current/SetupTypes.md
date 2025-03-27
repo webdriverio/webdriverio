@@ -48,7 +48,7 @@ Um die Interaktion mit dem WebDriver-Protokoll zu vereinfachen, implementiert da
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
 ```
 
-Die Verwendung von WebdriverIO im Standalone-Modus gibt Ihnen weiterhin Zugriff auf alle Protokollbefehle, bietet jedoch einen zusätzlichen Satz an Befehlen, die eine vereinfachte Interaktion mit dem Browser ermöglichen. Damit können Sie WebdriverIO in Ihr eigenes (Test-)Projekt integrieren, um z.B. eine neue Automatisierungsbibliothek zu erstellen. Beliebte Beispiele sind [Spectron](https://www.electronjs.org/spectron) oder [CodeceptJS](http://codecept.io). Sie können auch einfache NodeJS-Skripte schreiben, um das Web nach Inhalten zu durchsuchen (oder alles andere, was einen Browser erfordert).
+Die Verwendung von WebdriverIO im Standalone-Modus gibt Ihnen weiterhin Zugriff auf alle Protokollbefehle, bietet jedoch einen zusätzlichen Satz an Befehlen, die eine vereinfachte Interaktion mit dem Browser ermöglichen. Damit können Sie WebdriverIO in Ihr eigenes (Test-)Projekt integrieren, um z.B. eine neue Automatisierungsbibliothek zu erstellen. Popular examples include [Oxygen](https://github.com/oxygenhq/oxygen) or [CodeceptJS](http://codecept.io). Sie können auch einfache NodeJS-Skripte schreiben, um das Web nach Inhalten zu durchsuchen (oder alles andere, was einen Browser erfordert).
 
 If no specific options are set WebdriverIO will always attempt to download and setup the browser driver that matches `browserName` property in your capabilities. In case of Chrome and Firefox it might also install them depending on whether it can find the corresponding browser on the machine.
 
