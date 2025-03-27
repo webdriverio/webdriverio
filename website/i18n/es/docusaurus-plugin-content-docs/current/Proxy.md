@@ -58,7 +58,7 @@ wdio wdio.conf.js
 
 `GLOBAL_AGENT_HTTP_PROXY` se utiliza para solicitudes HTTP y HTTPS si `GLOBAL_AGENT_HTTPS_PROXY` no está establecido.
 
-Si utiliza [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy), inicia a través de:
+Si utiliza [Sauce Connect Proxy](https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy), inicia a través de:
 
 ```sh
 sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090

@@ -426,7 +426,7 @@ export const QUESTIONNAIRE = [{
     name: 'useSauceConnect',
     message: (
         'Are you testing a local application and need Sauce Connect to be set-up?\n' +
-        'Read more on Sauce Connect at: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy'
+        'Read more on Sauce Connect at: https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy'
     ),
     default: isNuxtProject,
     when: /* istanbul ignore next */ (answers: Questionnair) => (
