@@ -32,9 +32,10 @@ export const config = {
     // ...
 }
 ```
+
 Additional information about configuring the proxy can be located [here](https://github.com/nodejs/undici/blob/main/docs/docs/api/ProxyAgent.md).
 
-यदि आप [सॉस कनेक्ट प्रॉक्सी](https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy)का उपयोग करते हैं, तो इसे इसके माध्यम से प्रारंभ करें:
+If you use [Sauce Connect Proxy](https://docs.saucelabs.com/secure-connections/sauce-connect-5), start it via:
 
 ```sh
 sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
