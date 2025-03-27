@@ -48,7 +48,7 @@ Para simplificar la interacción con el protocolo WebDriver el paquete `webdrive
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
 ```
 
-El uso de WebdriverIO en modo independiente todavía le da acceso a todos los comandos de protocolo, pero proporciona un súper conjunto de comandos adicionales que proporcionan una interacción de mayor nivel con el navegador. Le permite integrar esta herramienta de automatización en su propio proyecto (prueba) para crear una nueva biblioteca de automatización. Ejemplos populares incluyen [Espectron](https://www.electronjs.org/spectron) o [CodeceptJS](http://codecept.io). También puede escribir scripts simples de Node para eliminar la web por contenido (o cualquier otra cosa que requiera un navegador en ejecución).
+El uso de WebdriverIO en modo independiente todavía le da acceso a todos los comandos de protocolo, pero proporciona un súper conjunto de comandos adicionales que proporcionan una interacción de mayor nivel con el navegador. Le permite integrar esta herramienta de automatización en su propio proyecto (prueba) para crear una nueva biblioteca de automatización. Popular examples include [Oxygen](https://github.com/oxygenhq/oxygen) or [CodeceptJS](http://codecept.io). También puede escribir scripts simples de Node para eliminar la web por contenido (o cualquier otra cosa que requiera un navegador en ejecución).
 
 If no specific options are set WebdriverIO will always attempt to download and setup the browser driver that matches `browserName` property in your capabilities. In case of Chrome and Firefox it might also install them depending on whether it can find the corresponding browser on the machine.
 
