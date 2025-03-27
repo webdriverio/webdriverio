@@ -26,7 +26,7 @@ if (process.env.CI) {
 
 ### Sauce Connect
 
-यदि आप किसी ऐसे सर्वर के खिलाफ परीक्षण चलाना चाहते हैं जो इंटरनेट तक पहुंच योग्य नहीं है (जैसे `localhost`पर), तो आपको [लोकल टेस्टिंग ](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)का उपयोग करने की आवश्यकता है।
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Sauce Connect](https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy).
 
 यह इसका समर्थन करने के लिए WebdriverIO के दायरे से बाहर है, इसलिए आपको इसे अपने आप से शुरू करना होगा।
 
@@ -134,6 +134,7 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 यदि आप लोकल का उपयोग करते हैं, तो आपको अपनी क्षमताओं में `` को `true` सेट करना चाहिए।
 
 यदि आप WDIO टेस्टरनर का उपयोग कर रहे हैं, तो अपने `wdio.conf.js`में [`@wdio/testingbot-service`](https://github.com/LambdaTest/wdio-lambdatest-service) को डाउनलोड और कॉन्फ़िगर करें। यह लैम्बडाटेस्ट को चलाने में मदद करता है, और अतिरिक्त सुविधाओं के साथ आता है जो आपके परीक्षणों को लैम्ब्डाटेस्ट सेवा में बेहतर ढंग से एकीकृत करता है।
+
 ### Travis CI के साथ
 
 यदि आप ट्रैविस में लोकल टेस्टिंग जोड़ना चाहते हैं, तो आपको इसे स्वयं ही प्रारंभ करना होगा।
