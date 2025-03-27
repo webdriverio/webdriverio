@@ -64,7 +64,7 @@ Next to the WebDriver based capabilities you can apply browser and vendor specif
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/), which helps you create this object by clicking together your desired capabilities.
+Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), which helps you create this object by clicking together your desired capabilities.
 
 Type: `Object`<br /> Default: `null`
 
