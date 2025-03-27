@@ -26,14 +26,20 @@ export async function listWebsocketCandidateUrls(webSocketUrl: string): Promise<
         return candidateUrls
     }
 
-    const candidateIps = await dns.lookup(parsedUrl.hostname, { family:0, all:true })
-    // If the host resolves to a single IP address
-    // then it does not make sense to try additional candidates
-    // as the web socket DNS resolver would do extactly the same
-    if (candidateIps.length > 1) {
-        const hostnameMapper = (result: LookupAddress) => webSocketUrl.replace(parsedUrl.hostname, result.address)
-        candidateUrls.push(...candidateIps.map(hostnameMapper))
+    try {
+        const candidateIps = await dns.lookup(parsedUrl.hostname, { family:0, all:true })
+        // If the host resolves to a single IP address
+        // then it does not make sense to try additional candidates
+        // as the web socket DNS resolver would do extactly the same
+        if (candidateIps.length > 1) {
+            const hostnameMapper = (result: LookupAddress) => webSocketUrl.replace(parsedUrl.hostname, result.address)
+            candidateUrls.push(...candidateIps.map(hostnameMapper))
+        }
+    } catch (error) {
+        log.error(`Could not resolve hostname ${parsedUrl.hostname}: ${error}`)
+        return []
     }
+
     return candidateUrls
 }
 

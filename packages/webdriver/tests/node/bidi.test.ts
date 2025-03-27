@@ -1,4 +1,5 @@
 import path from 'node:path'
+import dns from 'node:dns/promises'
 // @ts-expect-error mock feature
 import { instances, setThrowError, clearInstances, type ClientOptions } from 'ws'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -52,15 +53,24 @@ const log = logger('test')
 describe('Bidi Node.js implementation', () => {
     beforeEach(() => {
         clearInstances()
+        vi.mocked(log.error).mockClear()
     })
 
-    it('listWebsocketCandidateUrls', async () => {
-        const candidateUrls = await listWebsocketCandidateUrls('ws://foo/bar')
-        expect(candidateUrls).toEqual([
-            'ws://foo/bar',
-            'ws://127.0.0.1/bar',
-            'ws://::1/bar'
-        ])
+    describe('listWebsocketCandidateUrls', () => {
+        it('should return the correct candidate urls', async () => {
+            const candidateUrls = await listWebsocketCandidateUrls('ws://foo/bar')
+            expect(candidateUrls).toEqual([
+                'ws://foo/bar',
+                'ws://127.0.0.1/bar',
+                'ws://::1/bar'
+            ])
+        })
+
+        it('should return an empty array if the hostname is not resolvable', async () => {
+            vi.mocked(dns.lookup).mockRejectedValueOnce(new Error('ESERVFAIL'))
+            const candidateUrls = await listWebsocketCandidateUrls('ws://foo/bar')
+            expect(candidateUrls).toEqual([])
+        })
     })
 
     it('createBidiConnection', async () => {
