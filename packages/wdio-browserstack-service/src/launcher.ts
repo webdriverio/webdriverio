@@ -132,6 +132,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
                             if (!isUndefined((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'])) {
                                 this._accessibilityAutomation ||= isTrue((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'])
+                                this.browserStackConfig.accessibility = this._accessibilityAutomation
                             } else if (isTrue(this._options.accessibility)) {
                                 (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (isTrue(this._options.accessibility)) }
                             }
@@ -275,6 +276,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this._updateObjectTypeCaps(capabilities, 'accessibilityOptions')
 
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
+        this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
+
         if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
             BStackLogger.debug('Sending launch start event')
 
