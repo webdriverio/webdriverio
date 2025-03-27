@@ -1,10 +1,17 @@
+import type Interception from '../../utils/interception/index.js'
+import DevtoolsNetworkInterception from '../../utils/interception/devtools.js'
+import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
+
 import { getBrowserObject } from '@testplane/wdio-utils'
 
 import type { MockFilterOptions } from '../../utils/interception/types.js'
-import WebDriverInterception from '../../utils/interception/index.js'
+import BidiInterception from '../../utils/interception/bidi.js'
 import { getContextManager } from '../../session/context.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
 
-export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
+export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
+export const SESSION_BIDI_MOCKS: Record<string, Set<BidiInterception>> = {}
+export const CDP_SESSIONS: Record<string, CDPSession> = {}
 
 /**
  * Mock the response of a request. You can define a mock based on a matching
@@ -127,16 +134,74 @@ export async function mock(
     filterOptions?: MockFilterOptions
 ): Promise<WebdriverIO.Mock> {
     if (!this.isBidi) {
-        throw new Error('Mocking is only supported when running tests using WebDriver Bidi')
+        const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
+
+        if (!this.isSauce) {
+            await this.getPuppeteer()
+        }
+
+        if (!this.puppeteer) {
+            throw new Error('No Puppeteer connection could be established which is required to use this command')
+        }
+
+        const browser = getBrowserObject(this)
+        const handle = await browser.getWindowHandle()
+        if (!SESSION_MOCKS[handle]) {
+            SESSION_MOCKS[handle] = new Set()
+        }
+
+        /**
+         * enable network Mocking if not already
+         */
+        if (SESSION_MOCKS[handle].size === 0 && !this.isSauce) {
+            const pages = await this.puppeteer.pages()
+
+            /**
+             * get active page
+             */
+            let page
+            for (let i = 0; i < pages.length && !page; i++) {
+                const isHidden = await pages[i].evaluate(() => document.hidden)
+                if (!isHidden) {
+                    page = pages[i]
+                }
+            }
+
+            /**
+             * fallback to the first page
+             */
+            if (!page) {
+                page = pages[0]
+            }
+
+            const client = CDP_SESSIONS[handle] = (await page.target().createCDPSession()) as unknown as CDPSession
+            await client.send('Fetch.enable', {
+                patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
+            })
+            client.on(
+                'Fetch.requestPaused',
+                (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
+                    .handleRequestInterception(client, SESSION_MOCKS[handle])
+            )
+        }
+
+        const networkInterception = new NetworkInterception(url, filterOptions, browser)
+        SESSION_MOCKS[handle].add(networkInterception as Interception)
+
+        if (this.isSauce) {
+            await (networkInterception as WebDriverNetworkInterception).init()
+        }
+
+        return networkInterception as WebdriverIO.Mock
     }
 
     const browser = getBrowserObject(this)
     const contextManager = getContextManager(browser)
     const context = await contextManager.getCurrentContext()
-    if (!SESSION_MOCKS[context]) {
-        SESSION_MOCKS[context] = new Set()
+    if (!SESSION_BIDI_MOCKS[context]) {
+        SESSION_BIDI_MOCKS[context] = new Set()
     }
-    const networkInterception = await WebDriverInterception.initiate(url, filterOptions || {}, this)
-    SESSION_MOCKS[context].add(networkInterception)
-    return networkInterception as WebdriverIO.Mock
+    const networkInterception = await BidiInterception.initiate(url, filterOptions || {}, this)
+    SESSION_BIDI_MOCKS[context].add(networkInterception)
+    return networkInterception as unknown as WebdriverIO.Mock
 }

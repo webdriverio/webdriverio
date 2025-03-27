@@ -1,6 +1,6 @@
 import logger from '@testplane/wdio-logger'
 
-import { SESSION_MOCKS } from './mock.js'
+import { SESSION_MOCKS, SESSION_BIDI_MOCKS } from './mock.js'
 
 const log = logger('webdriverio:mockRestoreAll')
 
@@ -28,8 +28,10 @@ const log = logger('webdriverio:mockRestoreAll')
  *
  * @alias browser.mockRestoreAll
  */
-export async function mockRestoreAll () {
-    for (const [handle, mocks] of Object.entries(SESSION_MOCKS)) {
+export async function mockRestoreAll (this: WebdriverIO.Browser) {
+    const sessionMocks = this.isBidi ? SESSION_BIDI_MOCKS : SESSION_MOCKS
+
+    for (const [handle, mocks] of Object.entries(sessionMocks)) {
         log.trace(`Clearing mocks for ${handle}`)
         for (const mock of mocks) {
             await mock.restore()

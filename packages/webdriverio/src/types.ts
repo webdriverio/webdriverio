@@ -1,15 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { EventEmitter } from 'node:events'
+import type { Protocol } from 'devtools-protocol'
 import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from '@testplane/webdriver'
-import type { Capabilities, Options, ThenArg } from '@testplane/wdio-types'
+import type { Capabilities, Options, FunctionProperties, ThenArg } from '@testplane/wdio-types'
 import type { ElementReference, ProtocolCommands } from '@testplane/wdio-protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
 import type { Dialog as DialogImport } from './session/dialog.js'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
+import type DevtoolsInterception from './utils/interception/devtools.js'
+import type BidiInterception from './utils/interception/bidi.js'
+import type { Matches } from './utils/interception/types.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
-import type WebDriverInterception from './utils/interception/index.js'
 
 /**
  * export mock primitives
@@ -145,7 +148,7 @@ type MultiRemoteElementCommands = {
 }
 
 export type MultiRemoteBrowserCommandsType = {
-    [K in keyof Omit<BrowserCommandsType, ElementCommandNames | 'SESSION_MOCKS' | 'CDP_SESSIONS'>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
+    [K in keyof Omit<BrowserCommandsType, ElementCommandNames | 'SESSION_MOCKS' | 'SESSION_BIDI_MOCKS' | 'CDP_SESSIONS'>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
 } & MultiRemoteElementCommands
 export type MultiRemoteElementCommandsType = {
     [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
@@ -627,6 +630,45 @@ export type DragAndDropCoordinate = {
     y: number
 }
 
+/**
+ * WebdriverIO Mock definition
+ */
+
+interface RequestEvent {
+    requestId: number
+    request: Matches
+    responseStatusCode: number
+    responseHeaders: Record<string, string>
+}
+
+interface MatchEvent extends Matches {
+    mockedResponse?: string | Buffer
+}
+
+interface OverwriteEvent {
+    requestId: number
+    responseCode: number
+    responseHeaders: Record<string, string>
+    body?: string | Record<string, any>
+}
+
+interface FailEvent {
+    requestId: number
+    errorReason: Protocol.Network.ErrorReason
+}
+
+interface MockFunctions extends Omit<FunctionProperties<DevtoolsInterception>, 'on'> {
+    on(event: 'request', callback: (request: RequestEvent) => void): Mock
+    on(event: 'match', callback: (match: MatchEvent) => void): Mock
+    on(event: 'continue', callback: (requestId: number) => void): Mock
+    on(event: 'overwrite', callback: (response: OverwriteEvent) => void): Mock
+    on(event: 'fail', callback: (error: FailEvent) => void): Mock
+}
+
+type MockProperties = Pick<DevtoolsInterception, 'calls'>
+export interface Mock extends MockFunctions, MockProperties {}
+export interface BidiMock extends BidiInterception {}
+
 export interface AttachOptions extends Omit<WebDriverAttachOptions, 'capabilities'> {
     options?: Options.WebdriverIO
     capabilities?: WebDriverAttachOptions['capabilities']
@@ -722,7 +764,7 @@ declare global {
          *
          * @see https://webdriver.io/docs/api/mock
          */
-        interface Mock extends WebDriverInterception {}
+        interface Mock extends MockFunctions, MockProperties {}
         /**
          * WebdriverIO Dialog object
          * The dialog object represents a user prompt that was triggered by the browser. It contains

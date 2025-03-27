@@ -71,7 +71,7 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
      * check if we already connected Puppeteer and if so return
      * that instance
      */
-    if (this.puppeteer?.connected) {
+    if (this.puppeteer?.isConnected()) {
         log.debug('Reusing existing puppeteer session')
         return this.puppeteer
     }
