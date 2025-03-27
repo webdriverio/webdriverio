@@ -23,6 +23,55 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.12.2 (2025-03-27)
+
+#### :rocket: New Feature
+* `webdriver`
+  * [#14304](https://github.com/webdriverio/webdriverio/pull/14304) feat(webdriver): support WebSocket options at the BiDi connection ([@mato533](https://github.com/mato533))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#14336](https://github.com/webdriverio/webdriverio/pull/14336) fix(webdriverio): try/catch dns lookup ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#14321](https://github.com/webdriverio/webdriverio/pull/14321) fix: android deepLink using package instead of packageName ([@fabioatcorreia](https://github.com/fabioatcorreia))
+* `wdio-utils`
+  * [#14311](https://github.com/webdriverio/webdriverio/pull/14311) Reduce wait port retry interval ([@dragosMC91](https://github.com/dragosMC91))
+* `wdio-browserstack-service`
+  * [#14280](https://github.com/webdriverio/webdriverio/pull/14280) Bug Fix: missing Platform version on BrowserStack Observability ([@AdityaHirapara](https://github.com/AdityaHirapara))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14332](https://github.com/webdriverio/webdriverio/pull/14332) SDK-2064 A11y-Platform-Level-Support ([@xxshubhamxx](https://github.com/xxshubhamxx))
+  * [#14312](https://github.com/webdriverio/webdriverio/pull/14312) Percy binary update ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### :memo: Documentation
+* Other
+  * [#14335](https://github.com/webdriverio/webdriverio/pull/14335) fix: fix in docs formatter to accept new types ([@Rondleysg](https://github.com/Rondleysg))
+  * [#14329](https://github.com/webdriverio/webdriverio/pull/14329) fix(docs): resolving broken sauce connect proxy link ([@rbronz](https://github.com/rbronz))
+  * [#14318](https://github.com/webdriverio/webdriverio/pull/14318) docs: boilerplate project added to MD ([@Rondleysg](https://github.com/Rondleysg))
+  * [#14320](https://github.com/webdriverio/webdriverio/pull/14320) docs: update docker docs to use official puppeteer image ([@alcpereira](https://github.com/alcpereira))
+  * [#14308](https://github.com/webdriverio/webdriverio/pull/14308) fix(docs): resolving broken github actions links ([@Sandi2212](https://github.com/Sandi2212))
+* `wdio-cli`, `wdio-protocols`, `wdio-sauce-service`, `wdio-spec-reporter`, `wdio-types`
+  * [#14327](https://github.com/webdriverio/webdriverio/pull/14327) docs: fix all references to Sauce Labs docs ([@Rondleysg](https://github.com/Rondleysg))
+* `wdio-spec-reporter`
+  * [#14306](https://github.com/webdriverio/webdriverio/pull/14306) updated spec reporter readme - sharable links value with valid sauce sharable link ([@vjuturu](https://github.com/vjuturu))
+
+#### Committers: 13
+- Aditya Hirapara ([@AdityaHirapara](https://github.com/AdityaHirapara))
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dragos Campean ([@dragosMC91](https://github.com/dragosMC91))
+- Fábio Correia ([@fabioatcorreia](https://github.com/fabioatcorreia))
+- Rondley Gregório ([@Rondleysg](https://github.com/Rondleysg))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- [@Sandi2212](https://github.com/Sandi2212)
+- [@alcpereira](https://github.com/alcpereira)
+- [@mato533](https://github.com/mato533)
+- [@rbronz](https://github.com/rbronz)
+- [@sauravdas1997](https://github.com/sauravdas1997)
+- [@vjuturu](https://github.com/vjuturu)
+
+
 ## v9.12.1 (2025-03-20)
 
 #### :bug: Bug Fix
