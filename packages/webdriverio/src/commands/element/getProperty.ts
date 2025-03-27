@@ -15,7 +15,7 @@
  * @param {string} property  name of the element property
  * @return {unknown} the value of the property of the selected element
  */
-export function getProperty (
+export function getProperty(
     this: WebdriverIO.Element,
     property: string
 ): Promise<unknown> {
