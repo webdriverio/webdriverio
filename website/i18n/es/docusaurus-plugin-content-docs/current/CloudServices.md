@@ -26,7 +26,7 @@ También puede pasar cualquier [opción opcional de configuración de prueba](ht
 
 ### Sauce Connect
 
-Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces tienes que usar [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy).
+Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces tienes que usar [Sauce Connect](https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy).
 
 Está fuera del alcance de WebdriverIO apoyar esto, por lo que tendrá que iniciarlo por sí mismo.
 
@@ -140,6 +140,7 @@ Está fuera del alcance de WebdriverIO para apoyar esto, por lo que usted debe e
 Si usa local, debería establecer `tunel` a `true` en sus capacidades.
 
 Si está utilizando el testrunner WDIO, descargue y configure el [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) en su `wdio.conf.js`. Ayuda a que LambdaTest funcione, y viene con funciones adicionales que integran mejor sus pruebas en el servicio LambdaTest.
+
 ### Con Travis CI
 
 Si quieres añadir pruebas locales en Travis, tienes que iniciarlo tú mismo.
