@@ -37,7 +37,6 @@ export async function listWebsocketCandidateUrls(webSocketUrl: string): Promise<
         }
     } catch (error) {
         log.error(`Could not resolve hostname ${parsedUrl.hostname}: ${error}`)
-        return []
     }
 
     return candidateUrls
