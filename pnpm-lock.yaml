@@ -507,8 +507,8 @@ importers:
         specifier: ^4.0.0
         version: 4.1.0
       puppeteer-core:
-        specifier: 22.3.0
-        version: 22.3.0(encoding@0.1.13)
+        specifier: 20.9.0
+        version: 20.9.0(encoding@0.1.13)(typescript@5.7.3)
       query-selector-shadow-dom:
         specifier: ^1.0.0
         version: 1.0.1
@@ -27741,6 +27741,7 @@ snapshots:
       typed-query-selector: 2.12.0
       ws: 8.18.0
     transitivePeerDependencies:
+      - bare-buffer
       - bufferutil
       - supports-color
       - utf-8-validate
