@@ -53,7 +53,8 @@ const requestHandler = {
     onPerformance: expect.any(Function),
     onRequest: expect.any(Function),
     onResponse: expect.any(Function),
-    onRetry: expect.any(Function)
+    onRetry: expect.any(Function),
+    onLogData: expect.any(Function)
 }
 
 vi.mock('../src/request/request', () => {
@@ -250,6 +251,70 @@ describe('command wrapper', () => {
             endpoint: '/session/:sessionId/element/%2Fpath/element',
             body: { using: 'css selector', value: '#body' },
             result: { error }
+        })
+    })
+
+    describe('masking command', () => {
+        const maskCommandEndpoint: CommandEndpoint = {
+            command: 'elementSendKeys',
+            ref: 'https://w3c.github.io/webdriver/#dfn-element-send-keys',
+            description: '',
+            variables: [{
+                name: 'elementId',
+                description: 'the id of an element returned in a previous call to Find Element(s)'
+            }],
+            parameters: [{
+                name: 'text',
+                type: 'string',
+                description: 'the text to be sent to the element',
+                required: true
+            }, {
+                name: 'mask',
+                type: 'boolean',
+                description: 'whether to mask the text in the log',
+                required: false
+
+            }]
+        }
+        const elementId = '123'
+        const text = 'mySecretPassword'
+        const doMask = true
+
+        it('should do a proper request with text unmasked when masking is requested', async () => {
+            const commandFn = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await commandFn.call(scope, elementId, text, doMask)
+
+            expect(RequestMock).toHaveBeenCalledWith(
+                expect.any(String),
+                expect.any(String),
+                {
+                    text: 'mySecretPassword',
+                    mask: true
+                },
+                expect.any(AbortSignal),
+                false,
+                requestHandler
+            )
+        })
+
+        it('should emit result with masked text', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, doMask)
+            vi.mocked(scope.emit).mockClear()
+            const thenCallback = thenMock.mock.calls[0][0]
+            vi.mocked(thenMock).mockClear()
+
+            thenCallback({})
+
+            expect(scope.emit).toBeCalledWith('result', {
+                command: 'elementSendKeys',
+                method: expect.any(String),
+                endpoint: expect.any(String),
+                body: { text: '**MASKED**', mask: true },
+                result: {}
+            })
         })
     })
 })
