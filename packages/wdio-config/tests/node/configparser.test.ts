@@ -456,17 +456,20 @@ describe('ConfigParser', () => {
             expect(configParser.getSpecs()).toHaveLength(4)
         })
 
-        it('should overwrite config and capabilities exclude if piped into cli command', async () => {
+        it('should not overwrite config and capabilities exclude if piped into cli command', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize()
             expect(configParser.getSpecs()).toHaveLength(3)
 
             configParser['merge']({ exclude: [FIXTURES_CONF] })
+
             const specs = configParser.getSpecs([FIXTURES_CONF, FIXTURES_CONF_RDC], [FIXTURES_CONF_RDC])
-            expect(specs).toEqual([FIXTURES_CONF_RDC])
+
+            // FIXTURES_CONF is in the exclude so this expects empty
+            expect(specs).toEqual([])
         })
 
-        it('should overwrite config and capabilities exclude if piped into cli command with suite', async () => {
+        it('should not overwrite config and capabilities exclude if piped into cli command with suite', async () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             const requireLibPath = path.join(__dirname, 'FileSystemPathService.test.ts')
             const configParserPath = path.join(__dirname, 'configparser.test.ts')
@@ -482,9 +485,7 @@ describe('ConfigParser', () => {
             // set capability 'specs' and 'exclude'
             const specs = configParser.getSpecs([configParserPath, requireLibPath], [configParserPath])
 
-            // validate that only the cli exclude is taken into account and the 'configparser' test is not removed
-            expect(specs).toHaveLength(1)
-            expect(specs).toContain(configParserPath)
+            expect(specs).toHaveLength(0)
         })
 
         it('should overwrite specs w/ wdio:specs files from capabilitoes', async () => {
@@ -680,9 +681,6 @@ describe('ConfigParser', () => {
             const requireLibPath = path.join(__dirname, 'FileSystemPathService.test.ts')
             const getSpecs = () => configParser.getSpecs([INDEX_PATH], [requireLibPath])
 
-            // verify that the capability exclude was ignored since
-            // config exclude takes precedence over capability exclude
-            expect(getSpecs()).toContain(requireLibPath)
             expect(getSpecs()).toContain(configParserPath)
 
             // verify that the capability exclude is applied successfully
