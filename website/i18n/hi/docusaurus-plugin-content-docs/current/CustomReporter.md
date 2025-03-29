@@ -122,7 +122,7 @@ const launcher = new Launcher('/path/to/config.file.js', {
 
 ## `isSynchronised` होने तक प्रतीक्षा करें
 
-यदि आपके रिपोर्टर को डेटा की रिपोर्ट करने के लिए async संचालन निष्पादित करना है (उदाहरण के लिए लॉग फ़ाइलों या अन्य संपत्तियों का अपलोड) तो आप अपने कस्टम रिपोर्टर में `isSynchronised` विधि को अधिलेखित कर सकते हैं ताकि WebdriverIO रनर को तब तक प्रतीक्षा करने दिया जा सके जब तक आप सब कुछ गणना नहीं कर लेते। इसका एक उदाहरण [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.js)में देखा जा सकता है:
+यदि आपके रिपोर्टर को डेटा की रिपोर्ट करने के लिए async संचालन निष्पादित करना है (उदाहरण के लिए लॉग फ़ाइलों या अन्य संपत्तियों का अपलोड) तो आप अपने कस्टम रिपोर्टर में `isSynchronised` विधि को अधिलेखित कर सकते हैं ताकि WebdriverIO रनर को तब तक प्रतीक्षा करने दिया जा सके जब तक आप सब कुछ गणना नहीं कर लेते। इसका एक उदाहरण [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.ts)में देखा जा सकता है:
 
 ```js
 export default class SumoLogicReporter extends WDIOReporter {
