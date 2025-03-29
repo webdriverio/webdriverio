@@ -4,7 +4,7 @@ This directory demonstrates a simple setup for a wdio test suite with page objec
 
 The goal behind this pattern is to abstract any page information away from the actual tests. Ideally you should store all selectors or specific instructions that are unique for a certain page in a page controller, so that you still can run your test after you've completely redesigned your page and fixed all selectors in the page object.
 
-The examples works without any 3rd party dependencies for assertions. These can be added if desired to make the test even more readable. The code is written using [JavaScript classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes). In order to be able to run the code make sure you run a Node.JS version that supports it or integrate [Babel](https://babeljs.io/) as compiler.
+The examples works without any 3rd party dependencies for assertions. These can be added if desired to make the test even more readable. The code is written using [JavaScript classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes). In order to be able to run the code make sure you run a Node.JS version that supports it.
 
 To run the test, change into this directory:
 

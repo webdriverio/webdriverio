@@ -1,7 +1,5 @@
 import path from 'node:path'
 
-import type { Options } from '@wdio/types'
-
 import { getManualMocks } from './utils.js'
 import { DEFAULT_MOCK_DIRECTORY, DEFAULT_AUTOMOCK } from '../constants.js'
 import type { MockRequestEvent } from './types.js'
@@ -17,7 +15,7 @@ export class MockHandler {
 
     manualMocks: string[] = []
 
-    constructor (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
+    constructor (options: WebdriverIO.BrowserRunnerOptions, config: WebdriverIO.Config) {
         this.#automock = typeof options.automock === 'boolean' ? options.automock : DEFAULT_AUTOMOCK
         this.#automockDir = path.resolve(config.rootDir!, options.automockDir || DEFAULT_MOCK_DIRECTORY)
         this.#manualMocksList = getManualMocks(this.#automockDir)

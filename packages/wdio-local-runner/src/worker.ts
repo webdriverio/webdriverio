@@ -4,7 +4,7 @@ import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import type { Options, Workers } from '@wdio/types'
+import type { Workers } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
 
 import logger from '@wdio/logger'
@@ -30,7 +30,7 @@ stdErrStream.pipe(process.stderr)
  */
 export default class WorkerInstance extends EventEmitter implements Workers.Worker {
     cid: string
-    config: Options.Testrunner
+    config: WebdriverIO.Config
     configFile: string
     // requestedCapabilities
     caps: WebdriverIO.Capabilities
@@ -67,7 +67,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  {object}   execArgv    execution arguments for the test run
      */
     constructor(
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
         stderr: WritableStreamBuffer

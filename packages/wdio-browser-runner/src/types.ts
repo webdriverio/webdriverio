@@ -1,5 +1,5 @@
 import type { ConfigEnv, InlineConfig } from 'vite'
-import type { Workers, Options } from '@wdio/types'
+import type { Workers } from '@wdio/types'
 import type { MochaOpts } from '@wdio/mocha-framework'
 import type { IstanbulPluginOptions } from 'vite-plugin-istanbul'
 
@@ -132,7 +132,7 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export interface Environment {
     args: MochaOpts
-    config: Options.Testrunner
+    config: WebdriverIO.Config
     capabilities: WebdriverIO.Capabilities
     sessionId: string
     injectGlobals: boolean
