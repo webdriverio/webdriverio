@@ -541,7 +541,7 @@ Um Serenity BDD-Berichte zu erstellen, muss Ihre Testsuite:
 - Erstellen Sie Zwischenberichte von Serenity BDD `.json` , indem Sie [`SerenityBDDReporter`](https://serenity-js.org/api/serenity-bdd/class/SerenityBDDReporter/?pk_campaign=wdio8&pk_source=webdriver.io) gemäß den [Konfigurationsanweisungen](#configuring-serenityjs)registrieren
 - Rufen Sie die Serenity BDD-CLI auf, wenn Sie den Bericht erstellen möchten, indem Sie `serenity-bdd run`aufrufen
 
-Das von allen [Serenity/JS-Projektvorlagen](https://serenity-js.org/handbook/getting-started#serenityjs-project-templates?pk_campaign=wdio8&pk_source=webdriver.io) verwendete Muster basiert auf der Verwendung von:
+Das von allen [Serenity/JS-Projektvorlagen](https://serenity-js.org/handbook/project-templates?pk_campaign=wdio8&pk_source=webdriver.io) verwendete Muster basiert auf der Verwendung von:
 - ein [`postinstall`](https://docs.npmjs.com/cli/v9/using-npm/scripts#life-cycle-operation-order) NPM-Skript zum Herunterladen der Serenity BDD CLI
 - [`npm-failsafe`](https://www.npmjs.com/package/npm-failsafe) , um den Berichtsprozess auch dann auszuführen, wenn die Testsuite selbst fehlgeschlagen ist (genau dann, wenn Sie Testberichte am meisten benötigen ...).
 - [`rimraf`](https://www.npmjs.com/package/rimraf) als bequeme Methode zum Entfernen aller Testberichte, die vom vorherigen Lauf übrig geblieben sind
