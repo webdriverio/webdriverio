@@ -64,7 +64,7 @@ Type: `String`<br /> Default: `null`
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-علاوه بر این، یک ابزار مفید Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/) است که به شما کمک می کند این شی را با کلیک کردن روی قابلیت های مورد نظر خود ایجاد کنید.
+علاوه بر این، یک ابزار مفید Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/) است که به شما کمک می کند این شی را با کلیک کردن روی قابلیت های مورد نظر خود ایجاد کنید.
 
 Type: `Object`<br /> Default: `null`
 

@@ -43,7 +43,7 @@ export const config = {
          */
         [CustomReporter, {
             someOption: 'foobar'
-        }]
+        }],
         /**
          * use absolute path to reporter
          */

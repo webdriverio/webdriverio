@@ -130,7 +130,10 @@ export async function isDisplayed (
     const [isDisplayed, displayProperty] = await Promise.all([
         browser.execute(function checkVisibility (elem, params) {
             return elem.checkVisibility(params)
-        }, this as unknown as HTMLElement, commandParams).catch((err) => {
+        }, this as unknown as HTMLElement, {
+            ...DEFAULT_PARAMS,
+            ...commandParams
+        }).catch((err) => {
             /**
              * Fallback to legacy script if checkVisibility is not available
              */

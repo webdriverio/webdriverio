@@ -9,6 +9,7 @@ import { spawn } from 'node:child_process'
 import { PercyLogger } from './PercyLogger.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
+import { BStackLogger } from '../bstackLogger.js'
 
 class PercyBinary {
     #hostOS = process.platform
@@ -51,6 +52,37 @@ class PercyBinary {
         }
     }
 
+    // Get the path for storing the ETag
+    #getETagPath(destParentDir: string) {
+        return path.join(destParentDir, `${this.#binaryName}.etag`)
+    }
+
+    // Load the stored ETag if it exists
+    async #loadETag(destParentDir: string) {
+        const etagPath = this.#getETagPath(destParentDir)
+        if (await this.#checkPath(etagPath)) {
+            try {
+                const data = await fsp.readFile(etagPath, 'utf8')
+                return data.trim()
+            } catch (err) {
+                BStackLogger.warn(`Failed to read ETag file ${err}`)
+            }
+        }
+        return null
+    }
+
+    // Save the ETag for future use
+    async #saveETag(destParentDir: string, etag: string) {
+        if (!etag) {return}
+        try {
+            const etagPath = this.#getETagPath(destParentDir)
+            await fsp.writeFile(etagPath, etag)
+            BStackLogger.debug('Saved new ETag for percy binary')
+        } catch (err) {
+            BStackLogger.error(`Failed to save ETag file ${err}`)
+        }
+    }
+
     async #getAvailableDirs() {
         for (let i = 0; i < this.#orderedPaths.length; i++) {
             const path = this.#orderedPaths[i]
@@ -65,16 +97,60 @@ class PercyBinary {
         const destParentDir = await this.#getAvailableDirs()
         const binaryPath = path.join(destParentDir, this.#binaryName)
         if (await this.#checkPath(binaryPath)) {
-            return binaryPath
+            const currentETag = await this.#loadETag(destParentDir)
+            if (currentETag) {
+                try {
+                    const needsUpdate = await this.#checkForUpdate(currentETag)
+                    if (!needsUpdate) {
+                        BStackLogger.debug('Percy binary is up to date (ETag unchanged)')
+                        return binaryPath
+                    }
+                    BStackLogger.debug('New Percy binary version available, downloading update')
+                } catch (err) {
+                    BStackLogger.warn(`Failed to check for binary updates, using existing binary ${err}`)
+                    return binaryPath
+                }
+            }
         }
+
         const downloadedBinaryPath: string = await this.download(destParentDir)
         const isValid = await this.validateBinary(downloadedBinaryPath)
         if (!isValid) {
-            // retry once
             PercyLogger.error('Corrupt percy binary, retrying')
             return await this.download(destParentDir)
         }
         return downloadedBinaryPath
+    }
+
+    async #checkForUpdate(currentETag: string): Promise<boolean> {
+        try {
+            const headers: HeadersInit = {
+                'If-None-Match': currentETag
+            }
+
+            const fetchOptions: RequestInit = {
+                method: 'HEAD',
+                headers
+            }
+
+            const response = await fetch(this.#httpPath as unknown as URL, fetchOptions)
+
+            // If status is 304 Not Modified, binary is up-to-date
+            if (response.status === 304) {
+                return false // No update needed
+            }
+
+            // Save the new ETag if available
+            const newETag = response.headers.get('eTag')
+            if (newETag) {
+                await this.#saveETag(path.dirname(this.#getETagPath(await this.#getAvailableDirs())), newETag)
+            }
+
+            return true
+        } catch (error) {
+            BStackLogger.warn(`Error checking for Percy binary updates: ${error}`)
+            throw error
+        }
     }
 
     async validateBinary(binaryPath: string) {
@@ -105,7 +181,10 @@ class PercyBinary {
         const downloadedFileStream = fs.createWriteStream(zipFilePath)
 
         const response = await fetch(this.#httpPath as unknown as URL)
-
+        const newETag = response.headers.get('eTag')
+        if (newETag) {
+            await this.#saveETag(destParentDir, newETag)
+        }
         // @ts-expect-error stream type
         await pipeline(response.body as unknown as RequestInit, downloadedFileStream)
 

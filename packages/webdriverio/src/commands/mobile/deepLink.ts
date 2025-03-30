@@ -8,7 +8,7 @@
         // open the Drag tab with a deep link (this the bundleId for the iOS Demo App)
         await browser.deepLink('wdio://drag', 'org.reactjs.native.example.wdiodemoapp');
 
-        // Or open the Drag tab with a deep link (this the packageName for the Android Demo App)
+        // Or open the Drag tab with a deep link (this the package name for the Android Demo App)
         await browser.deepLink('wdio://drag', 'com.wdiodemoapp');
 
         // Or if you want to have it "cross-platform" you can use it like this
@@ -17,7 +17,7 @@
  * </example>
  *
  * @param {string}  link            The deep link URL that should be opened in the mobile app. It should be a valid deep link URL (e.g. `myapp://path`). If it's a universal deep link, which can be used for iOS, use the `browser.url("your-url")`-method.
- * @param {string}  appIdentifier   The value of the `packageName` (Android) or `bundleId` (iOS) of the app that the deep link should open.
+ * @param {string}  appIdentifier   The value of the `package` (Android) or `bundleId` (iOS) of the app that the deep link should open.
  */
 export async function deepLink(
     this: WebdriverIO.Browser,
@@ -36,14 +36,14 @@ export async function deepLink(
 
     if (!appIdentifier) {
         const mobileOS = browser.isIOS ? 'iOS' : 'Android'
-        const identifierValue = browser.isIOS ? 'bundleId' : 'packageName'
+        const identifierValue = browser.isIOS ? 'bundleId' : 'package'
 
         throw new Error(`When using a deep link URL for ${mobileOS}, you need to provide the \`${identifierValue}\` of the app that the deep link should open.`)
     }
 
     return browser.execute('mobile:deepLink', {
         url: link,
-        [browser.isIOS ? 'bundleId' : 'packageName']: appIdentifier,
+        [browser.isIOS ? 'bundleId' : 'package']: appIdentifier,
     })
 }
 

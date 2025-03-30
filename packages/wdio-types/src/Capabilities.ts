@@ -1420,9 +1420,9 @@ export interface SauceLabsCapabilities {
 
     /**
      * You can provide a URL to an executable file, which will be downloaded and executed to configure the
-     * VM before the test starts. For faster performance, you may want to upload the executable to [Sauce Storage](https://wiki.saucelabs.com/display/DOCS/Uploading+your+Application+to+Emulators+and+Simulators),
+     * VM before the test starts. For faster performance, you may want to upload the executable to [Sauce Storage](https://docs.saucelabs.com/mobile-apps/app-storage/#uploading-apps),
      * a private temporary storage space. This capability takes a JSON object with four main keys.
-     * Check out the topics under [Using Pre-Run Executables to Configure Browsers and Virtual Machines](https://wiki.saucelabs.com/display/DOCS/Using+Pre-Run+Executables+to+Configure+Browsers+and+Virtual+Machines) for
+     * Check out the topics under [Using Pre-Run Executables to Configure Browsers and Virtual Machines](https://docs.saucelabs.com/web-apps/automated-testing/selenium/pre-run-executables/) for
      * more information.
      *
      * __Running AutoIt Scripts__
