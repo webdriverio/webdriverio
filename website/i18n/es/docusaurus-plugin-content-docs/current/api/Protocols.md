@@ -24,7 +24,7 @@ La siguiente sección explica cada protocolo individual.
 
 El protocolo [WebDriver](https://w3c.github.io/webdriver/#elements) es un estándar web para la automatización del navegador. A diferencia de otras herramientas E2E, garantiza que la automatización puede realizarse en los navegadores reales que utilizan sus usuarios, por ejemplo, Firefox, Safari y Chrome, y en navegadores basados en Chromium como Edge, y no sólo en motores de navegación, por ejemplo, WebKit, que son muy diferentes.
 
-La ventaja de utilizar el protocolo WebDriver frente a protocolos de depuración como [Chrome DevTools](https://w3c.github.io/webdriver/#elements) es que dispone de un conjunto específico de comandos que permiten interactuar con el navegador de la misma forma en todos los navegadores, lo que reduce la probabilidad de que se produzcan fallos. Además ofrece este protocolo capacidades para la escalabilidad masiva mediante el uso de proveedores de nube como [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) y [otros](https://github.com/christian-bromann/awesome-selenium#cloud-services).
+La ventaja de utilizar el protocolo WebDriver frente a protocolos de depuración como [Chrome DevTools](https://w3c.github.io/webdriver/#elements) es que dispone de un conjunto específico de comandos que permiten interactuar con el navegador de la misma forma en todos los navegadores, lo que reduce la probabilidad de que se produzcan fallos. Furthermore offers this protocol abilities for massive scalability by using cloud vendors such as [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) and [others](https://github.com/christian-bromann/awesome-selenium#cloud-services).
 
 ## Protocolo WebDriver Bidi
 
