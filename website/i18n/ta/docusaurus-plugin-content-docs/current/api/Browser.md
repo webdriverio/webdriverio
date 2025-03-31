@@ -140,7 +140,7 @@ This event is emitted whenever WebdriverIO receives a result of a WebDriver Clas
 
 This event is emitted whenever WebdriverIO sends a WebDriver Bidi command to the browser driver. It contains information about:
 
-- `method`: WebDriver Bidi command methid
+- `method`: WebDriver Bidi command method
 - `params`: associated command parameter (see [API](/docs/api/webdriverBidi))
 
 #### `bidiResult`
