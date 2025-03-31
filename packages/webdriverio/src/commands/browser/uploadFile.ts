@@ -6,7 +6,7 @@ import { environment } from '../../environment.js'
  * _Note:_ that this command is only supported if you use a Selenium Hub,
  * Chromedriver or EdgeDriver directly.
  *
- * __Note:__ this command uses an un-offical protocol feature that is currently
+ * __Note:__ this command uses an un-official protocol feature that is currently
  * only supported in Chrome and when running a [Selenium Grid](https://www.selenium.dev/documentation/en/grid/).
  *
  * <example>
