@@ -24,7 +24,7 @@ $('#lst-ib').getText()
 
 [वेबड्राइवर](https://w3c.github.io/webdriver/#elements) प्रोटोकॉल ब्राउज़र को स्वचालित करने के लिए एक वेब मानक है। कुछ अन्य E2E उपकरणों के विपरीत यह गारंटी देता है कि स्वचालन वास्तविक ब्राउज़र पर किया जा सकता है जो आपके उपयोगकर्ताओं द्वारा उपयोग किया जाता है, जैसे फ़ायरफ़ॉक्स, सफारी और क्रोम और क्रोमियम आधारित ब्राउज़र जैसे एज, और न केवल ब्राउज़र इंजन पर, जैसे वेबकिट, जो बहुत अलग।
 
-[Chrome DevTools](https://w3c.github.io/webdriver/#elements) जैसे डिबगिंग प्रोटोकॉल के विरोध में WebDriver प्रोटोकॉल का उपयोग करने का लाभ यह है कि आपके पास कमांड का एक विशिष्ट सेट होता है जो ब्राउज़र के साथ उसी तरह से इंटरैक्ट करने की अनुमति देता है जो सभी ब्राउज़र में फ़्लैकनेस की संभावना को कम करता है। इसके अलावा [सॉस लैब्स](https://saucelabs.com/), [ब्राउज़रस्टैक](https://www.browserstack.com/) और [अन्य](https://github.com/christian-bromann/awesome-selenium#cloud-services)जैसे क्लाउड विक्रेताओं का उपयोग करके बड़े पैमाने पर मापनीयता के लिए इस प्रोटोकॉल क्षमताओं की पेशकश करता है।
+[Chrome DevTools](https://w3c.github.io/webdriver/#elements) जैसे डिबगिंग प्रोटोकॉल के विरोध में WebDriver प्रोटोकॉल का उपयोग करने का लाभ यह है कि आपके पास कमांड का एक विशिष्ट सेट होता है जो ब्राउज़र के साथ उसी तरह से इंटरैक्ट करने की अनुमति देता है जो सभी ब्राउज़र में फ़्लैकनेस की संभावना को कम करता है। Furthermore offers this protocol abilities for massive scalability by using cloud vendors such as [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) and [others](https://github.com/christian-bromann/awesome-selenium#cloud-services).
 
 ## वेबड्राइवर बीड़ी प्रोटोकॉल
 
