@@ -244,7 +244,7 @@ Type: `Number`<br /> Default: `5000`
 
 Intervalo predeterminado para todos los comandos `waitFor*` para comprobar si un estado esperado (por ejemplo, visibilidad) ha sido cambiado.
 
-Type: `Number`<br /> Default: `500`
+Type: `Number`<br /> Default: `100`
 
 ### region
 

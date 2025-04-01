@@ -193,7 +193,7 @@ Type: `Number`<br /> Default: `5000`
 
 Standardintervall für alle `waitFor*` Befehle, um zu prüfen, ob ein erwarteter Zustand (z. B. Element Sichtbarkeit) geändert wurde.
 
-Type: `Number`<br /> Default: `500`
+Type: `Number`<br /> Default: `100`
 
 ### region
 
