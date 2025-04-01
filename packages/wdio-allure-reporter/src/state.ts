@@ -6,7 +6,7 @@ import type { AllureStepableUnit } from './types.js'
 export class AllureReporterState {
     currentFile?: string
     runningUnits: Array<AllureGroup | AllureStepableUnit> = []
-    stats: {test: number, hooks: number, suites: number} = { test: 0, hooks: 0, suites: 0 }
+    stats: { test: number, hooks: number, suites: number } = { test: 0, hooks: 0, suites: 0 }
 
     get currentSuite(): AllureGroup | undefined {
         return findLast(this.runningUnits, (unit) => unit instanceof AllureGroup) as AllureGroup | undefined

@@ -1,4 +1,4 @@
-/* eslint-disable quotes */
+
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
@@ -42,7 +42,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            ${usesTailwindCSS ? /*html*/`<link rel="stylesheet" href="/node_modules/tailwindcss/tailwind.css">` : ''}
+            ${usesTailwindCSS ? /*html*/'<link rel="stylesheet" href="/node_modules/tailwindcss/tailwind.css">' : ''}
             <script type="module">
                 const alias = ${JSON.stringify(alias)}
                 window.__wdioMockCache__ = new Map()

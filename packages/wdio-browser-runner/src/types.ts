@@ -138,4 +138,4 @@ export interface Environment {
     injectGlobals: boolean
 }
 
-export type MockFactoryWithHelper = (importOriginal: <T = unknown>() => Promise<T>) => unknown;
+export type MockFactoryWithHelper = (importOriginal: <T = unknown>() => Promise<T>) => unknown

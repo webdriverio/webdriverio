@@ -136,7 +136,7 @@ export interface Step {
     toXML(): string;
 }
 
-export type Status = 'passed' | 'pending' | 'skipped' | 'failed' | 'broken' | 'canceled';
+export type Status = 'passed' | 'pending' | 'skipped' | 'failed' | 'broken' | 'canceled'
 export interface Attachment {
     addStep(step: Step): void;
     addAttachment(attachment: Attachment): void;

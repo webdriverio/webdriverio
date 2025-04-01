@@ -109,7 +109,7 @@ export default class CrashReporter {
         }
     }
 
-    static deletePIIKeysFromObject(obj: {[key: string]: unknown}) {
+    static deletePIIKeysFromObject(obj: { [key: string]: unknown }) {
         if (!obj) {
             return
         }

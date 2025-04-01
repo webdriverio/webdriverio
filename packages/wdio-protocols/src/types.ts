@@ -207,7 +207,7 @@ export type SessionMethods =
     | 'session.new'
     | 'session.end'
     | 'session.subscribe'
-    | 'session.unsubscribe';
+    | 'session.unsubscribe'
 
 // Browser Methods
 export type BrowserMethods =
@@ -216,7 +216,7 @@ export type BrowserMethods =
     | 'browser.getClientWindows'
     | 'browser.getUserContexts'
     | 'browser.removeUserContext'
-    | 'browser.setClientWindowState';
+    | 'browser.setClientWindowState'
 
 // BrowsingContext Methods
 export type BrowsingContextMethods =
@@ -243,7 +243,7 @@ export type BrowsingContextMethods =
     | 'browsingContext.navigationAborted'
     | 'browsingContext.navigationFailed'
     | 'browsingContext.userPromptClosed'
-    | 'browsingContext.userPromptOpened';
+    | 'browsingContext.userPromptOpened'
 
 // Network Methods
 export type NetworkMethods =
@@ -259,7 +259,7 @@ export type NetworkMethods =
     | 'network.beforeRequestSent'
     | 'network.fetchError'
     | 'network.responseCompleted'
-    | 'network.responseStarted';
+    | 'network.responseStarted'
 
 // Script Methods
 export type ScriptMethods =
@@ -270,23 +270,23 @@ export type ScriptMethods =
     | 'script.getRealms'
     | 'script.removePreloadScript'
     | 'script.realmCreated'
-    | 'script.realmDestroyed';
+    | 'script.realmDestroyed'
 
 // Storage Methods
 export type StorageMethods =
     | 'storage.getCookies'
     | 'storage.setCookie'
-    | 'storage.deleteCookies';
+    | 'storage.deleteCookies'
 
 // Log Methods
 export type LogMethods =
-    | 'log.entryAdded';
+    | 'log.entryAdded'
 
 // Input Methods
 export type InputMethods =
     | 'input.performActions'
     | 'input.releaseActions'
-    | 'input.setFiles';
+    | 'input.setFiles'
 
 /**
  * Combined Type for Supported Methods
@@ -299,7 +299,7 @@ export type SupportedMethods =
     | ScriptMethods
     | StorageMethods
     | LogMethods
-    | InputMethods;
+    | InputMethods
 
 export interface BidiRequest {
     method: SupportedMethods

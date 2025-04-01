@@ -3,8 +3,8 @@ import { deepmerge } from 'deepmerge-ts'
 
 import type { MockSystemFilePath } from './MockPathService.js'
 
-export type MockFileContent = string | object;
-export type FilePathAndContent = [MockSystemFilePath, MockFileContent];
+export type MockFileContent = string | object
+export type FilePathAndContent = [MockSystemFilePath, MockFileContent]
 
 /**
  * Record builder for virtual file system for tests

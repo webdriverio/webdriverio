@@ -153,7 +153,7 @@ export interface ErrorAudit {
 }
 
 export type PWAAudits = keyof typeof PWA_AUDITS
-export type NetworkStates = 'offline' | 'GPRS' | 'Regular 2G' | 'Good 2G' | 'Regular 3G' | 'Good 3G' | 'Regular 4G' | 'DSL' | 'Wifi' | 'online';
+export type NetworkStates = 'offline' | 'GPRS' | 'Regular 2G' | 'Good 2G' | 'Regular 3G' | 'Good 3G' | 'Regular 4G' | 'DSL' | 'Wifi' | 'online'
 
 export interface Coverage {
     lines: Totals

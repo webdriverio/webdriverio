@@ -31,8 +31,8 @@ export default class PerformanceTester {
     private static _events: PerformanceEntry[] = []
     private static _measuredEvents: PerformanceEntry[] = []
     static started = false
-    static details: {[key: string]: PerformanceDetails} = {}
-    static eventsMap: {[key: string]: number} = {}
+    static details: { [key: string]: PerformanceDetails } = {}
+    static eventsMap: { [key: string]: number } = {}
     static browser?: Browser
     static scenarioThatRan: string[]
     static jsonReportDirName = 'performance-report'
