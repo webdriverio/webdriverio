@@ -90,7 +90,7 @@
     "@vitejs/plugin-vue": "^5.1.2",
     "@vitest/coverage-v8": "^2.0.5",
     "@wdio/config": "workspace:*",
-    "@wdio/eslint": "^0.0.5",
+    "@wdio/eslint": "^0.1.1",
     "@wdio/repl": "workspace:*",
     "camelcase": "^8.0.0",
     "cddl": "^0.8.5",
