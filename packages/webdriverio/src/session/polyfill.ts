@@ -48,6 +48,9 @@ export class PolyfillManager extends SessionManager {
             return
         }
 
+        // start listening for browsingContext.contextCreated
+        this.#browser.on('browsingContext.contextCreated', this.#registerScripts.bind(this))
+
         /**
          * apply polyfill script for upcoming as well as current execution context
          */
@@ -59,12 +62,11 @@ export class PolyfillManager extends SessionManager {
                 events: ['browsingContext.contextCreated']
             })
         ]).then(() => true, () => false)
-
-        this.#browser.on('browsingContext.contextCreated', this.#registerScripts.bind(this))
     }
 
     removeListeners() {
         super.removeListeners()
+        // stop listening for browsingContext.contextCreated
         this.#browser.off('browsingContext.contextCreated', this.#registerScripts.bind(this))
     }
 
