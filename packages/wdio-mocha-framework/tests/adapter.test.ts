@@ -241,7 +241,7 @@ test('getUID', () => {
     const adapter = adapterFactory()
 
     // disabling indent eslint rule for better visibility
-    /*eslint-disable indent */
+    /* eslint-disable @stylistic/indent */
     expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-0-0')
     expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-0-0')
     expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-0-1')
@@ -295,7 +295,7 @@ test('getUID', () => {
         expect(adapter.getUID({ type: 'test:fail' })).toBe('test-00-0')
     expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-0-0')
     expect(() => adapter.getUID({ type: 'test:nonexisting' })).toThrow()
-    /*eslint-enable indent */
+    /* eslint-enable @stylistic/indent */
 })
 
 describe('loadFiles', () => {

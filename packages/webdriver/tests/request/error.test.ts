@@ -1,4 +1,4 @@
-/* eslint-disable quotes */
+
 import { URL } from 'node:url'
 import type { MockedFunction } from 'vitest'
 import { transformCommandLogResult } from '@wdio/utils'
@@ -95,7 +95,7 @@ describe('WebDriverResponseError', () => {
             cmdURL,
             { body: { using: 'css selector', value: '!!' }, method: 'POST' } as any
         )
-        expect(error.message).toMatchInlineSnapshot(`"WebDriverError: The selector "!!" used with strategy "css selector" is invalid! when running "url" with method "POST" and args "{"using":"css selector","value":"!!"}""`)
+        expect(error.message).toMatchInlineSnapshot('"WebDriverError: The selector "!!" used with strategy "css selector" is invalid! when running "url" with method "POST" and args "{"using":"css selector","value":"!!"}""')
     })
 
     it('captures unknown command errors', () => {
@@ -110,7 +110,7 @@ describe('WebDriverResponseError', () => {
             cmdURL,
             init
         )
-        expect(error.message).toMatchInlineSnapshot(`"WebDriverError: Command not found: POST /some/command when running "url" with method "POST""`)
+        expect(error.message).toMatchInlineSnapshot('"WebDriverError: Command not found: POST /some/command when running "url" with method "POST""')
         expect(error.name).toBe('unknown method')
     })
 
