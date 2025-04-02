@@ -24,7 +24,7 @@
     "compile:all:main": "pnpm -r --filter=@wdio/compiler run build -p @wdio/utils -p @wdio/reporter -p @wdio/config -p webdriver -p webdriverio",
     "compile:all:all": "pnpm -r --filter=@wdio/compiler run build",
     "generate": "run-s generate:*",
-    "generate:bidi": "tsx ./scripts/bidi/index.ts",
+    "generate:bidi": "tsx ./scripts/bidi/index.ts && pnpm eslint --fix packages/webdriver/src/bidi/",
     "pushReleaseTag": "tsx ./scripts/pushTags.ts",
     "setup": "run-s clean build",
     "docs": "run-s docs:*",
