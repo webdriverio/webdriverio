@@ -195,7 +195,7 @@ Type: `Number`<br /> Default: `5000`
 
 فاصله پیش‌فرض برای همه دستورات `waitFor*` برای بررسی اینکه آیا وضعیت مورد انتظار (مثلاً visibility) تغییر کرده است یا خیر.
 
-Type: `Number`<br /> Default: `500`
+Type: `Number`<br /> Default: `100`
 
 ### region
 

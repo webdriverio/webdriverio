@@ -283,7 +283,7 @@ Default: `5000`
 Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
 
 Type: `Number`<br />
-Default: `500`
+Default: `100`
 
 ### region
 

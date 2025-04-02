@@ -13,7 +13,7 @@ export const DEFAULT_CONFIGS: () => Options.Testrunner = () => ({
     groupLogsByTestSpec: false,
     excludeDriverLogs: [],
     bail: 0,
-    waitforInterval: 500,
+    waitforInterval: 100,
     waitforTimeout: 5000,
     framework: 'mocha' as const,
     reporters: [],
