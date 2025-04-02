@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { describe, it, expect, vi } from 'vitest'
+import { type local } from 'webdriver'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
 
 describe('WebDriverInterception', () => {
@@ -188,6 +189,20 @@ describe('WebDriverInterception', () => {
         browser.emit('network.beforeRequestSent', blockedRequest)
         expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
         expect(browser.networkFailRequest).toHaveBeenCalledTimes(0)
+
+        browser.networkContinueRequest.mockClear()
+        browser.networkFailRequest.mockClear()
+        const binaryBody = Buffer.from('binary data')
+        mock.request({ body: binaryBody })
+        browser.emit('network.beforeRequestSent', blockedRequest)
+        expect(browser.networkFailRequest).toHaveBeenCalledTimes(0)
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({
+            request: 123,
+            body: {
+                type: 'base64',
+                value: Buffer.from(JSON.stringify(binaryBody)).toString('base64')
+            }
+        })
     })
 
     it('handleResponseStarted', async () => {
@@ -239,8 +254,8 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).toHaveBeenCalledWith({
             request: 123,
             body: {
-                type: 'string',
-                value: JSON.stringify({ foo: 'bar' })
+                type: 'base64',
+                value: Buffer.from(JSON.stringify({ type: 'string', value: JSON.stringify({ foo: 'bar' }) })).toString('base64')
             }
         })
         browser.emit('network.responseStarted', {
@@ -256,5 +271,101 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).toHaveBeenCalledWith({
             request: 123
         })
+        vi.mocked(browser.networkProvideResponse).mockClear()
+
+        mock.clear()
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        mock.respondOnce('hello')
+        browser.emit('network.responseStarted', {
+            isBlocked: true,
+            request: {
+                url: 'http://foobar.com:1234/foo/bar.html?foo=bar',
+                method: 'get',
+                request: 123,
+                headers: [{ name: 'foo', value: { type: 'string', value: 'bar' } }]
+            },
+            response: {
+                status: 200,
+                headers: [{ name: 'bar', value: { type: 'string', value: 'foo' } }]
+            }
+        })
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 123,
+            body: {
+                type: 'base64',
+                value: Buffer.from(JSON.stringify({ type: 'string', value: 'hello' })).toString('base64')
+            }
+        })
+        expect(mock.getBinaryResponse('123')).toBeNull()
+    })
+
+    it('handles binary response and clear', () => {
+        const browserMock = Object.assign(new EventEmitter(), {
+            networkProvideResponse: vi.fn().mockResolvedValue(undefined)
+        }) as unknown as WebdriverIO.Browser
+
+        const interception = new WebDriverInterception(
+            new URLPattern({ pathname: '/test/*' }),
+            'mock-id',
+            {},
+            browserMock
+        )
+
+        const binaryData = Buffer.from('binary data')
+        interception.respond(binaryData)
+
+        const mockRequest: local.NetworkResponseCompletedParameters = {
+            context: 'mock-context',
+            navigation: null,
+            redirectCount: 0,
+            timestamp: 0,
+            request: {
+                request: 'req-123',
+                url: 'http://localhost/test/bin',
+                method: 'GET',
+                headers: [],
+                cookies: [],
+                headersSize: 0,
+                bodySize: 0,
+                timings: {
+                    timeOrigin: 0,
+                    requestTime: 0,
+                    redirectStart: 0,
+                    redirectEnd: 0,
+                    fetchStart: 0,
+                    dnsStart: 0,
+                    dnsEnd: 0,
+                    connectStart: 0,
+                    connectEnd: 0,
+                    tlsStart: 0,
+                    requestStart: 0,
+                    responseStart: 0,
+                    responseEnd: 0
+                }
+            },
+            response: {
+                url: 'http://localhost/test/bin',
+                status: 200,
+                headers: [],
+                mimeType: 'application/octet-stream',
+                bytesReceived: 2,
+                headersSize: 0,
+                bodySize: 0,
+                content: { size: 0 },
+                protocol: 'http',
+                statusText: 'OK',
+                fromCache: false
+            },
+            isBlocked: true
+        }
+
+        interception.simulateResponseStarted(mockRequest)
+
+        console.log('DEBUG responseBodies:', interception.debugResponseBodies())
+
+        expect(interception.getBinaryResponse('req-123')).toEqual(binaryData)
+        interception.clear()
+        expect(interception.getBinaryResponse('req-123')).toBeNull()
     })
 })

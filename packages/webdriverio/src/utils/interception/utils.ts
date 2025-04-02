@@ -33,9 +33,7 @@ export function parseOverwrite<
              */
             {
                 type: 'base64',
-                value: globalThis.Buffer
-                    ? globalThis.Buffer.from(JSON.stringify(bodyOverwrite || '')).toString('base64')
-                    : btoa(JSON.stringify(bodyOverwrite))
+                value: Buffer.from(JSON.stringify(bodyOverwrite || '')).toString('base64')
             }
     }
 
