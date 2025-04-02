@@ -9,6 +9,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
+import * as pageCommands from '../commands/page.js'
 import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
@@ -27,14 +28,17 @@ declare global {
     interface Window { __wdio_element: Record<string, HTMLElement> }
 }
 
+type Scopes = 'browser' | 'element' | 'page'
+
 const scopes = {
     browser: browserCommands,
-    element: elementCommands
+    element: elementCommands,
+    page: pageCommands
 }
 
 const applyScopePrototype = (
     prototype: Record<string, PropertyDescriptor>,
-    scope: 'browser' | 'element') => {
+    scope: Scopes) => {
     Object.entries(scopes[scope])
         .filter(([exportName]) => !IGNORED_COMMAND_FILE_EXPORTS.includes(exportName))
         .forEach(([commandName, command]) => {
@@ -45,7 +49,7 @@ const applyScopePrototype = (
 /**
  * enhances objects with element commands
  */
-export const getPrototype = (scope: 'browser' | 'element') => {
+export const getPrototype = (scope: Scopes) => {
     const prototype: Record<string, PropertyDescriptor> = {
         /**
          * used to store the puppeteer instance in the browser scope

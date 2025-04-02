@@ -6,7 +6,8 @@ import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser () {},
-    element: /* istanbul ignore next */ function Element () {}
+    element: /* istanbul ignore next */ function Element () {},
+    page: /* istanbul ignore next */ function Page () {}
 }
 
 interface PropertiesObject {

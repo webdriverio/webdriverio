@@ -1,13 +1,5 @@
-import { sleep } from '@wdio/utils'
-
-import newWindowHelper from '../../scripts/newWindow.js'
-import { getContextManager } from '../../session/context.js'
-import { getBasePage } from '../../page/index.js'
-import type { NewWindowOptions } from '../../types.js'
-import logger from '@wdio/logger'
-const log = logger('webdriverio:newWindow')
-
-const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
+import { getPage } from '../../page/index.js'
+import { navigateContext } from '../browser/url.js'
 
 /**
  *
@@ -62,7 +54,9 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @param {String=}           options.windowName     name of the new window
  * @param {String=}           options.windowFeatures features of opened window (e.g. size, position, scrollbars, etc.)
  *
- * @return {Object}          An object containing the window handle and the type of new window `{handle: string, type: string}` handle - The ID of the window handle of the new tab or window, type - The type of the new window, either 'tab' or 'window'
+ * @return {Object}          An object containing the window handle and the type of new window
+ * @return {String}          handle - The ID of the window handle of the new tab or window
+ * @return {String}          type - The type of the new window, either 'tab' or 'window'
  *
  * @throws {Error} If `url` is invalid, if the command is used on mobile, or `type` is not 'tab' or 'window'.
  *
@@ -71,66 +65,16 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @type window or tab
  */
 export async function newWindow (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Page,
     url: string,
-    { type = 'window', windowName = '', windowFeatures = '' }: NewWindowOptions = {}
-): Promise<{ handle: string, type: 'tab' | 'window' } | WebdriverIO.Page> {
-    /**
-     * parameter check
-     */
-    if (typeof url !== 'string') {
-        throw new Error('number or type of arguments don\'t agree with newWindow command')
-    }
-
-    /**
-    * Validate the 'type' parameter to ensure it is either 'tab' or 'window'
-    */
-    if (!['tab', 'window'].includes(type)) {
-        throw new Error(`Invalid type '${type}' provided to newWindow command. Use either 'tab' or 'window'`)
-    }
-
-    if (windowName || windowFeatures) {
-        log.warn('The "windowName" and "windowFeatures" options are deprecated and only supported in WebDriver Classic sessions.')
-    }
-
-    /**
-     * mobile check
-     */
-    if (this.isMobile) {
-        throw new Error('newWindow command is not supported on mobile platforms')
-    }
-
-    const tabsBefore = await this.getWindowHandles()
-
-    if (this.isBidi) {
-        const page = await getBasePage.call(this)
-        const contextManager = getContextManager(this)
-        const newPage = await page.newWindow(url, { type })
-        contextManager.setCurrentContext(newPage.contextId)
-        return newPage
-    }
-    await this.execute(newWindowHelper, url, windowName, windowFeatures)
-
-    /**
-     * if tests are run in DevTools there might be a delay until
-     * a new window handle got registered, this little procedure
-     * waits for it to exist and avoid race conditions
-     */
-    let tabsAfter = await this.getWindowHandles()
-    const now = Date.now()
-    while ((Date.now() - now) < WAIT_FOR_NEW_HANDLE_TIMEOUT) {
-        tabsAfter = await this.getWindowHandles()
-        if (tabsAfter.length > tabsBefore.length) {
-            break
-        }
-        await sleep(100)
-    }
-    const newTab = tabsAfter.pop()
-
-    if (!newTab) {
-        throw new Error('No window handle was found to switch to')
-    }
-
-    await this.switchToWindow(newTab)
-    return { handle: newTab, type }
+    props: { type: 'tab' | 'window' }
+): Promise<WebdriverIO.Page> {
+    const { context } = await this.browser.browsingContextCreate({
+        type: props.type,
+        referenceContext: this.contextId
+    })
+    const request = await navigateContext.call(this.browser, url, context)
+    const isTab = props.type === 'tab'
+    const isWindow = props.type === 'window'
+    return getPage.call(this.browser, context, { isIframe: false, isTab, isWindow, request, parent: this })
 }
