@@ -8,6 +8,7 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 import type { Dialog as DialogImport } from './session/dialog.js'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
+import type * as PageCommands from './commands/page.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
 import type WebDriverInterception from './utils/interception/index.js'
 
@@ -26,7 +27,7 @@ export { InitScript } from './commands/browser/addInitScript.js'
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
-
+type $PageCommands = typeof PageCommands
 type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
 type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
@@ -675,6 +676,37 @@ export interface SaveScreenshotOptions {
         width: number
         height: number
     }
+}
+
+export interface Page extends $PageCommands {
+    /**
+     * context id of the page
+     */
+    contextId: string
+    /**
+     * true, if the page is an iframe
+     */
+    isIframe: boolean
+    /**
+     * true, if the page is a tab
+     */
+    isTab: boolean
+    /**
+     * true, if the page is a window
+     */
+    isWindow: boolean
+    /**
+     * if the page is an iframe, the parent page
+     */
+    parent?: Page
+    /**
+     * browser instance
+     */
+    browser: WebdriverIO.Browser
+    /**
+     * the associated network request, if not defined, no network data was captured
+     */
+    request?: WebdriverIO.Request
 }
 
 declare global {
