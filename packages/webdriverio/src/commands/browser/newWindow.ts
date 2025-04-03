@@ -61,9 +61,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @param {String=}           options.windowName     name of the new window
  * @param {String=}           options.windowFeatures features of opened window (e.g. size, position, scrollbars, etc.)
  *
- * @return {Object}          An object containing the window handle and the type of new window
- * @return {String}          handle - The ID of the window handle of the new tab or window
- * @return {String}          type - The type of the new window, either 'tab' or 'window'
+ * @return {Object}          An object containing the window handle and the type of new window `{handle: string, type: string}` handle - The ID of the window handle of the new tab or window, type - The type of the new window, either 'tab' or 'window'
  *
  * @throws {Error} If `url` is invalid, if the command is used on mobile, or `type` is not 'tab' or 'window'.
  *

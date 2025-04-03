@@ -19,7 +19,7 @@ const maxWindowSize = Number.MAX_SAFE_INTEGER
  * @alias browser.setWindowSize
  * @param {number} width browser will be resized to provided width
  * @param {number} height browser will be resized to provided height
- * @return {Null|Object} Null for *NO*W3C browser and Object{x, y, width, height} for W3C browser
+ * @return {Null|Object} Null for *NO*W3C browser and Object `{x, y, width, height}` for W3C browser
  * @type window
  *
  */

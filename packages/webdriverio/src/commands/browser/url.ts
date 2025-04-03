@@ -136,13 +136,13 @@ const DEFAULT_WAIT_STATE = 'complete'
  *
  * @param {string=} url  the URL to navigate to
  * @param {UrlOptions=} options  navigation options
- * @param {'none' | 'interactive' | 'networkIdle' | 'complete'} options.wait  The desired state the requested resource should be in before finishing the command. Default: 'complete'
+ * @param {'none'|'interactive'|'networkIdle'|'complete'} [options.wait]  The desired state the requested resource should be in before finishing the command. Default: 'complete'
  * @param {number=} options.timeout  If set to a number, the command will wait for the specified amount of milliseconds for the page to load
  * all responses before returning. Default: 5000
  * @param {Function=} options.onBeforeLoad  A function that is being called before your page has loaded all of its resources. It allows you to easily
  * mock the environment, e.g. overwrite Web APIs that your application uses.
- * @param {{user: string, pass: string}=} options.auth  basic authentication credentials
- * @param {Record<string, string>=} options.headers  headers to be sent with the request
+ * @param {`{user: string, pass: string}`=} options.auth  basic authentication credentials
+ * @param {`Record<string, string>`=} options.headers  headers to be sent with the request
  * @returns {WebdriverIO.Request} a request object of the page load with information about the request and response data
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
