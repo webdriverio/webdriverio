@@ -121,7 +121,7 @@ const notifs = await workbench.getNotifications()
 console.log(await notifs[0].getMessage()) // outputs: "I am an API call!"
 ```
 
-For the full page object documentation, check out the [docs](https://webdriverio-community.github.io/wdio-vscode-service/modules.html). You can find various usage examples in this [projects test suite](https://github.com/webdriverio-community/wdio-vscode-service/blob/main/test/specs/basic.e2e.ts).
+For the full page object documentation, check out the [docs](https://webdriverio-community.github.io/wdio-vscode-service/modules.html). You can find various usage examples in this [project's test suite](https://github.com/webdriverio-community/wdio-vscode-service/blob/main/test/specs).
 
 ## More Information
 
