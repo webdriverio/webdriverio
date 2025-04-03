@@ -316,6 +316,8 @@ export async function findDeepElement(
         context,
         (this as WebdriverIO.Element).elementId
     )
+    console.log('FOUND', shadowRoots)
+
     const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
     const locator = transformClassicToBidiSelector(using, value)
 
