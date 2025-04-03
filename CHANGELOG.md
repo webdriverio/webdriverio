@@ -23,6 +23,34 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.12.3 (2025-04-03)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14360](https://github.com/webdriverio/webdriverio/pull/14360) fix(interception): Properly handle binary response data in WebDriverInterception ([@Norva-bugged](https://github.com/Norva-bugged))
+  * [#14338](https://github.com/webdriverio/webdriverio/pull/14338) fix: Fixes isDisplayed to always use default params for checkVisibility. ([@damencho](https://github.com/damencho))
+* Other
+  * [#14341](https://github.com/webdriverio/webdriverio/pull/14341) SDK-2064 A11y-Platform-Level-Support ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### :memo: Documentation
+* [#14357](https://github.com/webdriverio/webdriverio/pull/14357) fix(docs): resolving broken sumologic reporter link ([@rbronz](https://github.com/rbronz))
+* [#14353](https://github.com/webdriverio/webdriverio/pull/14353) fix broken link in docs. Closes [#14348](https://github.com/webdriverio/webdriverio/issues/14348) ([@harsha509](https://github.com/harsha509))
+
+#### :house: Internal
+* `wdio-allure-reporter`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-firefox-profile-service`, `wdio-jasmine-framework`, `wdio-lighthouse-service`, `wdio-mocha-framework`, `wdio-protocols`, `wdio-runner`, `wdio-types`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#14363](https://github.com/webdriverio/webdriverio/pull/14363) chore: bump @wdio/eslint and format ([@alcpereira](https://github.com/alcpereira))
+
+#### Committers: 8
+- Avron Souto ([@Norva-bugged](https://github.com/Norva-bugged))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- [@alcpereira](https://github.com/alcpereira)
+- [@fetsorn](https://github.com/fetsorn)
+- [@rbronz](https://github.com/rbronz)
+- Дамян Минков ([@damencho](https://github.com/damencho))
+
+
 ## v9.12.2 (2025-03-27)
 
 #### :rocket: New Feature
