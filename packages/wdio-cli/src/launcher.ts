@@ -6,7 +6,7 @@ import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
@@ -215,7 +215,7 @@ class Launcher {
      * available running hooks in this order
      */
     async #runOnCompleteHook (
-        config: Required<Options.Testrunner>,
+        config: Required<WebdriverIO.Config>,
         caps: Capabilities.TestrunnerCapabilities,
         exitCode: number
     ): Promise<number> {
@@ -232,7 +232,7 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    private _runMode(config: Required<Options.Testrunner>, caps?: Capabilities.TestrunnerCapabilities): Promise<number> {
+    private _runMode(config: Required<WebdriverIO.Config>, caps?: Capabilities.TestrunnerCapabilities): Promise<number> {
         /**
          * fail if
          */

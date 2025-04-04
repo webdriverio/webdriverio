@@ -7,7 +7,6 @@ import istanbulPlugin from 'vite-plugin-istanbul'
 import { deepmerge } from 'deepmerge-ts'
 import { createServer } from 'vite'
 import type { ViteDevServer, InlineConfig, ConfigEnv } from 'vite'
-import type { Options } from '@wdio/types'
 
 import { testrunner } from './plugins/testrunner.js'
 import { mockHoisting } from './plugins/mockHoisting.js'
@@ -28,7 +27,7 @@ const DEFAULT_CONFIG_ENV: ConfigEnv = {
  */
 export class ViteServer extends EventEmitter {
     #options: WebdriverIO.BrowserRunnerOptions
-    #config: Options.Testrunner
+    #config: WebdriverIO.Config
     #viteConfig: Partial<InlineConfig>
     #server?: ViteDevServer
     #mockHandler: MockHandler
@@ -38,7 +37,7 @@ export class ViteServer extends EventEmitter {
         return this.#viteConfig
     }
 
-    constructor (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner, optimizations: InlineConfig) {
+    constructor (options: WebdriverIO.BrowserRunnerOptions, config: WebdriverIO.Config, optimizations: InlineConfig) {
         super()
         this.#options = options
         this.#config = config

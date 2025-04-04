@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import type { Options, Workers } from '@wdio/types'
+import type { Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
@@ -22,7 +22,7 @@ export default class LocalRunner {
 
     constructor (
         private _options: never,
-        protected _config: Options.Testrunner
+        protected _config: WebdriverIO.Config
     ) {}
 
     /**

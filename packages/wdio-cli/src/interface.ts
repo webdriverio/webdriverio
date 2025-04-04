@@ -3,7 +3,7 @@ import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
 import { SnapshotManager } from '@vitest/snapshot/manager'
 import type { SnapshotResult } from '@vitest/snapshot'
-import type { Options, Workers } from '@wdio/types'
+import type { Workers } from '@wdio/types'
 
 import { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'
@@ -58,7 +58,7 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
     constructor(
-        private _config: Options.Testrunner,
+        private _config: WebdriverIO.Config,
         public totalWorkerCnt: number,
         private _isWatchMode = false
     ) {

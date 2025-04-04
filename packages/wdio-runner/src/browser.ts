@@ -6,7 +6,7 @@ import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
-import { type Workers, type Options, type Services, MESSAGE_TYPES } from '@wdio/types'
+import { type Workers, type Services, MESSAGE_TYPES } from '@wdio/types'
 
 import { transformExpectArgs } from './utils.js'
 import type BaseReporter from './reporter.js'
@@ -56,7 +56,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
     constructor (
         private _cid: string,
-        private _config: Options.Testrunner & { sessionId?: string },
+        private _config: WebdriverIO.Config & { sessionId?: string },
         private _specs: string[],
         private _reporter: BaseReporter
     ) {
@@ -527,7 +527,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
     }
 
-    static init (cid: string, config: Options.Testrunner, specs: string[], _: unknown, reporter: BaseReporter) {
+    static init (cid: string, config: WebdriverIO.Config, specs: string[], _: unknown, reporter: BaseReporter) {
         const framework = new BrowserFramework(cid, config, specs, reporter)
         return framework
     }
