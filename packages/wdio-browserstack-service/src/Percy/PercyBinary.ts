@@ -96,15 +96,17 @@ class PercyBinary {
     async getBinaryPath(): Promise<string> {
         const destParentDir = await this.#getAvailableDirs()
         const binaryPath = path.join(destParentDir, this.#binaryName)
+        let response
         if (await this.#checkPath(binaryPath)) {
             const currentETag = await this.#loadETag(destParentDir)
             if (currentETag) {
                 try {
-                    const needsUpdate = await this.#checkForUpdate(currentETag)
-                    if (!needsUpdate) {
+                    const result = await this.#checkForUpdate(currentETag)
+                    if (!result.needsUpdate) {
                         BStackLogger.debug('Percy binary is up to date (ETag unchanged)')
                         return binaryPath
                     }
+                    response = result.response
                     BStackLogger.debug('New Percy binary version available, downloading update')
                 } catch (err) {
                     BStackLogger.warn(`Failed to check for binary updates, using existing binary ${err}`)
@@ -113,23 +115,23 @@ class PercyBinary {
             }
         }
 
-        const downloadedBinaryPath: string = await this.download(destParentDir)
+        const downloadedBinaryPath: string = await this.download(destParentDir, response)
         const isValid = await this.validateBinary(downloadedBinaryPath)
         if (!isValid) {
             PercyLogger.error('Corrupt percy binary, retrying')
-            return await this.download(destParentDir)
+            return await this.download(destParentDir, response)
         }
         return downloadedBinaryPath
     }
 
-    async #checkForUpdate(currentETag: string): Promise<boolean> {
+    async #checkForUpdate(currentETag: string): Promise<{ needsUpdate: boolean; response?: Response }> {
         try {
             const headers: HeadersInit = {
                 'If-None-Match': currentETag
             }
 
             const fetchOptions: RequestInit = {
-                method: 'HEAD',
+                method: 'GET',
                 headers
             }
 
@@ -137,7 +139,7 @@ class PercyBinary {
 
             // If status is 304 Not Modified, binary is up-to-date
             if (response.status === 304) {
-                return false // No update needed
+                return { needsUpdate: false } // No update needed
             }
 
             // Save the new ETag if available
@@ -146,7 +148,7 @@ class PercyBinary {
                 await this.#saveETag(path.dirname(this.#getETagPath(await this.#getAvailableDirs())), newETag)
             }
 
-            return true
+            return { needsUpdate: true, response }
         } catch (error) {
             BStackLogger.warn(`Error checking for Percy binary updates: ${error}`)
             throw error
@@ -171,7 +173,7 @@ class PercyBinary {
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.DOWNLOAD)
-    async download(destParentDir: string): Promise<string> {
+    async download(destParentDir: string, response?: Response): Promise<string> {
         if (!await this.#checkPath(destParentDir)){
             await fsp.mkdir(destParentDir)
         }
@@ -180,7 +182,9 @@ class PercyBinary {
         const binaryPath = path.join(destParentDir, binaryName)
         const downloadedFileStream = fs.createWriteStream(zipFilePath)
 
-        const response = await fetch(this.#httpPath as unknown as URL)
+        if (!response) {
+            response = await fetch(this.#httpPath as unknown as URL)
+        }
         const newETag = response.headers.get('eTag')
         if (newETag) {
             await this.#saveETag(destParentDir, newETag)
