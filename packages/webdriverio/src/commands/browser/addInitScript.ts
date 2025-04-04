@@ -54,31 +54,30 @@ import { deserialize } from '../../utils/bidi/index.js'
  * @type utility
  *
  */
-
 export async function addInitScript<Payload> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Page,
     script: string | InitScriptFunction<Payload>,
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Page,
     script: string | InitScriptFunctionArg1<Payload, Arg1>,
     arg1: Arg1
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Page,
     script: string | InitScriptFunctionArg2<Payload, Arg1, Arg2>,
     arg1: Arg1,
     arg2: Arg2
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Page,
     script: string | InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3>,
     arg1: Arg1,
     arg2: Arg2,
     arg3: Arg3
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Page,
     script: string | InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4>,
     arg1: Arg1,
     arg2: Arg2,
@@ -86,7 +85,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4> (
     arg4: Arg4
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Page,
     script: string | InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5>,
     arg1: Arg1,
     arg2: Arg2,
@@ -95,11 +94,14 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     arg5: Arg5
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Page,
     script: string | InitScriptFunction<Payload> | InitScriptFunctionArg1<Payload, Arg1> | InitScriptFunctionArg2<Payload, Arg1, Arg2> | InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> | InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> | InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...args: any
 ): Promise<InitScript<Payload>> {
+    const isBrowserScope = 'browser' in this
+    const scope = isBrowserScope ? this.browser : this
+
     /**
      * parameter check
      */
@@ -107,18 +109,27 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
         throw new Error('The `addInitScript` command requires a function as first parameter, but got: ' + typeof script)
     }
 
-    if (!this.isBidi) {
+    if (!scope.isBidi) {
         throw new Error('This command is only supported when automating browser using WebDriver Bidi protocol')
     }
 
     const serializedParameters = (args || []).map((arg: unknown) => JSON.stringify(arg))
-    const context = await this.getWindowHandle()
+
+    /**
+     * when command is called with browser scope, we need to retrieve the contextId from
+     * the current window handle, otherwise we can use the contextId that is registered
+     * to the page object
+     */
+    const context = 'contextId' in this
+        ? this.contextId
+        : await scope.getWindowHandle()
+
     const fn = `(emit) => {
         const closure = new Function(\`return ${script.toString()}\`)
         return closure()(${serializedParameters.length ? `${serializedParameters.join(', ')}, emit` : 'emit'})
     }`
     const channel = btoa(fn.toString())
-    const result = await this.scriptAddPreloadScript({
+    const result = await scope.scriptAddPreloadScript({
         functionDeclaration: fn,
         arguments: [{
             type: 'channel',
@@ -127,7 +138,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
         contexts: [context]
     })
 
-    await this.sessionSubscribe({
+    await scope.sessionSubscribe({
         events: ['script.message']
     })
     const eventHandler: Map<string, EventHandlerFunction<Payload>[]> = new Map()
@@ -137,11 +148,11 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
             return handler.forEach((fn) => fn(deserialize(msg.data as remote.ScriptLocalValue)))
         }
     }
-    this.on('script.message', messageHandler)
+    scope.on('script.message', messageHandler)
     const resetFn = (() => {
         eventHandler.clear()
-        this.off('script.message', messageHandler)
-        return this.scriptRemovePreloadScript({ script: result.script })
+        scope.off('script.message', messageHandler)
+        return scope.scriptRemovePreloadScript({ script: result.script })
     }) as unknown as () => Promise<void>
 
     const returnVal: InitScript<Payload> = {

@@ -24,12 +24,12 @@ declare const WDIO_FAKER_SCRIPT: string
 const fakerScript = WDIO_FAKER_SCRIPT
 
 export class ClockManager {
-    #browser: WebdriverIO.Browser
+    #instance: WebdriverIO.Browser | WebdriverIO.Page
     #resetFn: (() => Promise<unknown>) = () => Promise.resolve()
     #isInstalled = false
 
-    constructor(browser: WebdriverIO.Browser) {
-        this.#browser = browser
+    constructor(instance: WebdriverIO.Browser | WebdriverIO.Page) {
+        this.#instance = instance
     }
 
     /**
@@ -61,22 +61,29 @@ export class ClockManager {
             now: emulateOptions.now && (emulateOptions.now instanceof Date) ? emulateOptions.now.getTime() : emulateOptions.now
         }
 
+        const isBrowser = 'browser' in this.#instance
+        const page = this.#instance as WebdriverIO.Page
+        const browser = isBrowser ? page.browser : this.#instance as WebdriverIO.Browser
         const [, libScript, restoreInstallScript] = await Promise.all([
             /**
              * install fake timers for current ex
              */
-            this.#browser.executeScript(`return (${functionDeclaration}).apply(null, arguments)`, []).then(() => (
-                this.#browser.execute(installFakeTimers, installOptions)
-            )),
+            isBrowser
+                ? browser.executeScript(`return (${functionDeclaration}).apply(null, arguments)`, []).then(() => (
+                    browser.execute(installFakeTimers, installOptions)
+                ))
+                : page.execute(installFakeTimers, installOptions),
             /**
              * add preload script to to emulate clock for upcoming page loads
              */
-            this.#browser.scriptAddPreloadScript({ functionDeclaration }),
-            this.#browser.addInitScript(installFakeTimers, installOptions)
+            browser.scriptAddPreloadScript({ functionDeclaration, contexts: isBrowser ? [] : [page.contextId] }),
+            this.#instance.addInitScript(installFakeTimers, installOptions)
         ])
         this.#resetFn = async () => Promise.all([
-            this.#browser.scriptRemovePreloadScript({ script: libScript.script }),
-            this.#browser.execute(uninstallFakeTimers),
+            browser.scriptRemovePreloadScript({ script: libScript.script }),
+            isBrowser
+                ? browser.execute(uninstallFakeTimers)
+                : page.execute(uninstallFakeTimers),
             restoreInstallScript
         ])
         this.#isInstalled = true
@@ -125,7 +132,16 @@ export class ClockManager {
      * @returns  {Promise<void>}
      */
     async tick(ms: number) {
-        await this.#browser.execute((ms) => window.__clock.tick(ms), ms)
+        const isBrowser = 'browser' in this.#instance
+        const page = this.#instance as WebdriverIO.Page
+        const browser = isBrowser
+            ? page.browser
+            : this.#instance as WebdriverIO.Browser
+
+        await (isBrowser
+            ? browser.execute((ms) => window.__clock.tick(ms), ms)
+            : page.execute((ms) => window.__clock.tick(ms), ms)
+        )
     }
 
     /**
@@ -147,6 +163,14 @@ export class ClockManager {
      */
     async setSystemTime(date: number | Date) {
         const serializableSystemTime = date instanceof Date ? date.getTime() : date
-        await this.#browser.execute((date) => window.__clock.setSystemTime(date), serializableSystemTime)
+        const isBrowser = 'browser' in this.#instance
+        const page = this.#instance as WebdriverIO.Page
+        const browser = isBrowser
+            ? page.browser
+            : this.#instance as WebdriverIO.Browser
+        await (isBrowser
+            ? browser.execute((date) => window.__clock.setSystemTime(date), serializableSystemTime)
+            : page.execute((date) => window.__clock.setSystemTime(date), serializableSystemTime)
+        )
     }
 }

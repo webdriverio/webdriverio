@@ -27,16 +27,16 @@ import { restoreFunctions } from '../../constants.js'
     })
  * </example>
  *
- * @alias browser.restore
+ * @alias page.restore
  * @type utility
  *
  */
 export async function restore (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Page,
     scopes?: SupportedScopes | SupportedScopes[]
 ) {
     const scopeArray = !scopes || Array.isArray(scopes) ? scopes : [scopes]
-    const instanceRestoreFunctions = restoreFunctions.get(this.sessionId)
+    const instanceRestoreFunctions = restoreFunctions.get(this.contextId)
     if (!instanceRestoreFunctions) {
         return
     }
