@@ -1,7 +1,7 @@
 import type { UrlCommandOptions } from '../browser/url.js'
 import { navigateContext } from '../browser/url.js'
+
 /**
- *
  * The `url` command loads an URL in the browser. If a baseUrl is specified in the config,
  * it will be prepended to the url parameter using node's url.resolve() method. Calling
  * `browser.url('...')` with the same url as last time will trigger a page reload. However,
@@ -76,39 +76,39 @@ import { navigateContext } from '../browser/url.js'
  * <example>
     :url.js
     // navigate to a new URL
-    const request = await browser.url('https://webdriver.io');
+    const page = await browser.url('https://webdriver.io');
     // log url
-    console.log(request.url); // outputs: "https://webdriver.io"
-    console.log(request.response?.status); // outputs: 200
-    console.log(request.response?.headers); // outputs: { 'content-type': 'text/html; charset=UTF-8' }
+    console.log(page.request.url); // outputs: "https://webdriver.io"
+    console.log(page.request.response?.status); // outputs: 200
+    console.log(page.request.response?.headers); // outputs: { 'content-type': 'text/html; charset=UTF-8' }
 
     :baseUrlResolutions.js
     // With a base URL of http://example.com/site, the following url parameters resolve as such:
     // When providing a scheme:
     // https://webdriver.io
-    await browser.url('https://webdriver.io');
+    const page = await browser.url('https://webdriver.io');
 
     // When not starting with a slash, the URL resolves relative to the baseUrl
     // http://example.com/site/relative
-    await browser.url('relative');
+    const page = await browser.url('relative');
 
     // When starting with a slash, the URL resolves relative to the root path of the baseUrl
     // http://example.com/rootRelative
-    await browser.url('/rootRelative');
+    const page = await browser.url('/rootRelative');
 
     :basicAuth.js
     // navigate to a URL with basic authentication
-    await browser.url('https://the-internet.herokuapp.com/basic_auth', {
+    const page = await browser.url('https://the-internet.herokuapp.com/basic_auth', {
         auth: {
             user
             pass
         }
     });
-    await expect($('p=Congratulations! You must have the proper credentials.').toBeDisplayed();
+    await expect(page.$('p=Congratulations! You must have the proper credentials.').toBeDisplayed();
 
     :onBeforeLoad.js
     // navigate to a URL and mock the battery API
-    await browser.url('https://pazguille.github.io/demo-battery-api/', {
+    const page = await browser.url('https://pazguille.github.io/demo-battery-api/', {
         onBeforeLoad (win) {
             // mock "navigator.battery" property
             // returning mock charge object
@@ -121,9 +121,9 @@ import { navigateContext } from '../browser/url.js'
         }
     })
     // now we can assert actual text - we are charged at 50%
-    await expect($('.battery-percentage')).toHaveText('50%')
+    await expect(page.$('.battery-percentage')).toHaveText('50%')
     // and has enough juice for 1 hour
-    await expect($('.battery-remaining')).toHaveText('01:00)
+    await expect(page.$('.battery-remaining')).toHaveText('01:00)
  * </example>
  *
  * @param {string=} url  the URL to navigate to
