@@ -139,6 +139,8 @@ Specify custom `headers` to pass into every WebDriver request. If your Selenium 
 
 ```ts wdio.conf.ts
 import { Buffer } from 'buffer';
+import { defineConfig } from '@wdio/config'
+
 // Read the username and password from environment variables
 const username = process.env.SELENIUM_GRID_USERNAME;
 const password = process.env.SELENIUM_GRID_PASSWORD;
@@ -148,13 +150,13 @@ const credentials = `${username}:${password}`;
 // Encode the credentials using Base64
 const encodedCredentials = Buffer.from(credentials).toString('base64');
 
-export const config: WebdriverIO.Config = {
+export const config = defineConfig({
     // ...
     headers: {
         Authorization: `Basic ${encodedCredentials}`
     }
     // ...
-}
+})
 ```
 
 Type: `Object`<br />
@@ -497,9 +499,11 @@ Default: `none` if not provided and tests run in CI, `new` if not provided, othe
 Overrides default snapshot path. For example, to store snapshots next to test files.
 
 ```ts title="wdio.conf.ts"
-export const config: WebdriverIO.Config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
-}
+})
 ```
 
 Type: `(testPath: string, snapExtension: string) => string`<br />

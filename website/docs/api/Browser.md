@@ -58,7 +58,9 @@ For example, given this config:
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     capabilities: \\{
         platformName: 'iOS',
@@ -68,7 +70,7 @@ export const config = {
         // ...
     }
     // ...
-}
+})
 ```
 
 You can access these flags in your test like so:

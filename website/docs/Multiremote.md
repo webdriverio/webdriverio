@@ -60,7 +60,9 @@ import { multiremote } from 'webdriverio'
 In order to use multiremote in the WDIO testrunner, just define the `capabilities` object in your `wdio.conf.js` as an object with the browser names as keys (instead of a list of capabilities):
 
 ```js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     capabilities: {
         myChromeBrowser: {
@@ -75,7 +77,7 @@ export const config = {
         }
     }
     // ...
-}
+})
 ```
 
 This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io) or one mobile device and one browser.
@@ -83,7 +85,9 @@ This will create two WebDriver sessions with Chrome and Firefox. Instead of just
 You can also run multiremote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
 
 ```js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     capabilities: [{
         myChromeBrowser0: {
@@ -109,13 +113,15 @@ export const config = {
         }
     }]
     // ...
-}
+})
 ```
 
 You can even boot up one of the [cloud services backend](https://webdriver.io/docs/cloudservices.html) together with local Webdriver/Appium, or Selenium Standalone instances. WebdriverIO automatically detect cloud backend capabilities if you specified either of `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), or `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) in browser capabilities.
 
 ```js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     user: process.env.BROWSERSTACK_USERNAME,
     key: process.env.BROWSERSTACK_ACCESS_KEY,
@@ -138,7 +144,7 @@ export const config = {
         ['browserstack', 'selenium-standalone']
     ],
     // ...
-}
+})
 ```
 
 Any kind of OS/browser combination is possible here (including mobile and desktop browsers). All commands your tests call via the `browser` variable are executed in parallel with each instance. This helps streamline your integration tests and speed up their execution.
@@ -224,7 +230,9 @@ When(/^User (.) types a message into the chat/, async (userId) => {
 If you are using TypeScript and like to access the driver instance from the multiremote object directly, you can also extend the multiremote types to do so. For example, given the following capabilities:
 
 ```ts title=wdio.conf.ts
-export const config: WebdriverIO.MultiremoteConfig = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     capabilities: {
         myAppiumDriver: {
@@ -235,7 +243,7 @@ export const config: WebdriverIO.MultiremoteConfig = {
         }
     }
     // ...
-}
+})
 ```
 
 You can extend the multiremote instance by adding your custom driver names, e.g.:
