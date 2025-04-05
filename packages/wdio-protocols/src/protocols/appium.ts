@@ -512,8 +512,6 @@ export default {
                     type: 'object',
                     description:
                         'Command options. E.g. "timeout": (Only Android) Timeout to retry terminate the app (see more in Appium docs)',
-                    required: false,
-                    default: {},
                 },
             ],
             support: {
