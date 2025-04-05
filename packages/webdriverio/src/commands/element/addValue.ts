@@ -24,7 +24,7 @@ const VALID_TYPES = ['string', 'number']
  * </example>
  *
  * @alias element.addValue
- * @param {string | number}  value  value to be added
+ * @param {string|number}  value  value to be added
  *
  */
 export function addValue (

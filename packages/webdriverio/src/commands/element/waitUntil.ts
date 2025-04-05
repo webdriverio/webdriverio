@@ -13,7 +13,7 @@
  * A common example is to wait until a certain element contains a certain text (see example).
  *
  * @alias element.waitUntil
- * @param {Function#Boolean}  condition  condition to wait on
+ * @param {Function}  condition  condition to wait on
  * @param {WaitUntilOptions=} options    command options
  * @param {Number=}           options.timeout     time in ms (default set based on [`waitforTimeout`](/docs/configuration#waitfortimeout) config value)
  * @param {String=}           options.timeoutMsg  error message to throw when waitUntil times out

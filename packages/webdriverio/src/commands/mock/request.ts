@@ -24,8 +24,8 @@
  *
  * @alias mock.request
  * @param {MockOverwrite}          overwrites            payload to overwrite the response
- * @param {Record<string,string>} overwrites.header     overwrite specific headers
- * @param {Record<string,string>} overwrites.cookies    overwrite request cookies
+ * @param {`Record<string,string>`} overwrites.header     overwrite specific headers
+ * @param {`Record<string,string>`} overwrites.cookies    overwrite request cookies
  * @param {string}                 overwrites.method     overwrite request method
  * @param {string}                 overwrites.url        overwrite request url to initiate a redirect
  * @param {MockResponseParams=}    params                additional respond parameters to overwrite

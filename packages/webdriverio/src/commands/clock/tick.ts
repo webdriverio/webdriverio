@@ -12,7 +12,7 @@
  *
  * @alias clock.tick
  * @param    { number }  ms  The number of milliseconds to move the clock.
- * @returns  { Promise<void> }
+ * @returns  { `Promise<void>` }
  */
 // actual implementation is located in packages/webdriverio/src/clock.ts
 

@@ -19,7 +19,7 @@ interface BrowserSize {
  * </example>
  *
  * @alias browser.getWindowSize
- * @return {Object} { x, y, width, height } for W3C or { width, height } for non W3C browser
+ * @return {Object} `{ x, y, width, height }` for W3C or `{ width, height }` for non W3C browser
  * @type window
  *
  */

@@ -14,6 +14,6 @@
  * </example>
  *
  * @alias clock.restore
- * @returns { Promise<void> }
+ * @returns { `Promise<void>` }
  */
 // actual implementation is located in packages/webdriverio/src/clock.ts

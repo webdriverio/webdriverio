@@ -61,7 +61,7 @@ await clock.<%= it.command %>(<%= it.paramString %>)
   </thead>
   <tbody>
 <% it.paramTags.forEach((paramTag) => { %>
-<% if (paramTag.type === "rowInfo") { %>
+<% if (paramTag.tag === "rowInfo") { %>
     <tr>
       <% if (paramTag.string.includes('::')) { %>
         <% const parts = paramTag.string.split('::').map(part => part.trim()); %>
@@ -72,8 +72,8 @@ await clock.<%= it.command %>(<%= it.paramString %>)
     </tr>
 <% } else { %>
     <tr>
-      <td><code><var><%= paramTag.name %></var></code><% if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { %><br /><span className="label labelWarning">optional</span><% } %></td>
-      <td><%= Array.isArray(paramTag.types) ? paramTag.types.map((type) => `<code>${type.replace(/>/g, "&gt;").replace(/</g, "&lt;")}</code>`).join(', ') : paramTag.type.split('|').join(', ').replace('(', '').replace(')', '') %></td>
+      <td><code><var><%= paramTag.name + (paramTag.default ? `=${paramTag.default}` : '') %></var></code><% if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { %><br /><span className="label labelWarning">optional</span><% } %></td>
+      <td><%= paramTag.type.split('|').join(', ').replace('(', '').replace(')', '') %></td>
       <td><%= paramTag.description %></td>
     </tr>
 <% } %>
