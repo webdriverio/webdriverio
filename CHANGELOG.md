@@ -23,6 +23,34 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.12.4 (2025-04-05)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#14376](https://github.com/webdriverio/webdriverio/pull/14376) fix(webdriver): add timeout-related configurable options to ProxyAgent ([@mitya555](https://github.com/mitya555))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14373](https://github.com/webdriverio/webdriverio/pull/14373) refactor: Avoid making extra calls for eTag ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#14369](https://github.com/webdriverio/webdriverio/pull/14369) Migrate documentation parsing to comment-parser ([@Rondleysg](https://github.com/Rondleysg))
+* Other
+  * [#14366](https://github.com/webdriverio/webdriverio/pull/14366) [docs]: fix reference links ([@navin772](https://github.com/navin772))
+
+#### :house: Internal
+* `webdriverio`
+  * [#14361](https://github.com/webdriverio/webdriverio/pull/14361) fix(webdriverio): fix order of execution in session polyfill ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 5
+- Dmitriy Mukhin ([@mitya555](https://github.com/mitya555))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Navin Chandra ([@navin772](https://github.com/navin772))
+- Rondley Gregório ([@Rondleysg](https://github.com/Rondleysg))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v9.12.3 (2025-04-03)
 
 #### :bug: Bug Fix
