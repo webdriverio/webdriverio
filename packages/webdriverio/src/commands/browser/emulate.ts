@@ -18,14 +18,15 @@ interface EmulationOptions {
     clock?: FakeTimerInstallOpts
 }
 
-function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedScopes, fn: RestoreFunction) {
-    if (!restoreFunctions.has(browser)) {
-        restoreFunctions.set(browser, new Map())
+function storeRestoreFunction (browser: WebdriverIO.Browser | WebdriverIO.Page, scope: SupportedScopes, fn: RestoreFunction) {
+    const key = 'contextId' in browser ? browser.contextId : browser.sessionId
+    if (!restoreFunctions.has(key)) {
+        restoreFunctions.set(key, new Map())
     }
 
-    const restoreFunctionsList = restoreFunctions.get(browser)?.get(scope)
+    const restoreFunctionsList = restoreFunctions.get(key)?.get(scope)
     const updatedList = restoreFunctionsList ? [...restoreFunctionsList, fn] : [fn]
-    restoreFunctions.get(browser)?.set(scope, updatedList)
+    restoreFunctions.get(key)?.set(scope, updatedList)
 }
 
 export async function emulate(scope: 'clock', options?: FakeTimerInstallOpts): Promise<ClockManager>
@@ -82,11 +83,15 @@ export async function emulate(scope: 'onLine', state: boolean): Promise<RestoreF
  * @returns {Function}  a function to reset the emulation
  */
 export async function emulate<Scope extends SupportedScopes> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Page,
     scope: Scope,
     options: EmulationOptions[Scope]
 ) {
-    if (!this.isBidi) {
+    const isBrowser = !('browser' in this)
+    const browser = isBrowser ? this : this.browser
+    const page = this as WebdriverIO.Page
+
+    if (!browser.isBidi) {
         throw new Error('emulate command is only supported for Bidi')
     }
 
@@ -101,14 +106,15 @@ export async function emulate<Scope extends SupportedScopes> (
                 coords: ${JSON.stringify(options)},
                 timestamp: Date.now()
             })`
-        const res = await this.scriptAddPreloadScript({
+        const res = await browser.scriptAddPreloadScript({
+            contexts: isBrowser ? [] : [page.contextId],
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator.geolocation, 'getCurrentPosition', {
                     value: (cbSuccess, cbError) => ${patchedFn}
                 })
             }`
         })
-        const resetFn = async () => this.scriptRemovePreloadScript({ script: res.script })
+        const resetFn = async () => browser.scriptRemovePreloadScript({ script: res.script })
         storeRestoreFunction(this, 'geolocation', resetFn)
         return resetFn
     }
@@ -118,7 +124,8 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected userAgent emulation options to be a string, received ${typeof options}`)
         }
 
-        const res = await this.scriptAddPreloadScript({
+        const res = await browser.scriptAddPreloadScript({
+            contexts: isBrowser ? [] : [page.contextId],
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator, 'userAgent', {
                     value: ${JSON.stringify(options)}
@@ -126,7 +133,7 @@ export async function emulate<Scope extends SupportedScopes> (
             }`
         })
         const resetFn = async () => {
-            return this.scriptRemovePreloadScript({ script: res.script })
+            return browser.scriptRemovePreloadScript({ script: res.script })
         }
         storeRestoreFunction(this, 'userAgent', resetFn)
         return resetFn
@@ -144,7 +151,8 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "colorScheme" emulation options to be either "light" or "dark", received "${options}"`)
         }
 
-        const res = await this.scriptAddPreloadScript({
+        const res = await browser.scriptAddPreloadScript({
+            contexts: isBrowser ? [] : [page.contextId],
             functionDeclaration: /*js*/`() => {
                 const originalMatchMedia = window.matchMedia
                 Object.defineProperty(window, 'matchMedia', {
@@ -165,7 +173,7 @@ export async function emulate<Scope extends SupportedScopes> (
                 })
             }`
         })
-        const resetFn = async () => this.scriptRemovePreloadScript({ script: res.script })
+        const resetFn = async () => browser.scriptRemovePreloadScript({ script: res.script })
         storeRestoreFunction(this, 'colorScheme', resetFn)
         return resetFn
     }
@@ -175,14 +183,15 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "onLine" emulation options to be a boolean, received "${typeof options}"`)
         }
 
-        const res = await this.scriptAddPreloadScript({
+        const res = await browser.scriptAddPreloadScript({
+            contexts: isBrowser ? [] : [page.contextId],
             functionDeclaration: /*js*/`() => {
                 Object.defineProperty(navigator, 'onLine', {
                     value: ${options}
                 })
             }`
         })
-        const resetFn = async () => this.scriptRemovePreloadScript({ script: res.script })
+        const resetFn = async () => browser.scriptRemovePreloadScript({ script: res.script })
         storeRestoreFunction(this, 'onLine', resetFn)
         return resetFn
     }
@@ -199,16 +208,29 @@ export async function emulate<Scope extends SupportedScopes> (
 
         const [restoreUserAgent] = await Promise.all([
             this.emulate('userAgent', device.userAgent),
-            this.setViewport({
-                ...device.viewport,
-                devicePixelRatio: device.deviceScaleFactor
-            })
+            isBrowser
+                ? browser.setViewport({
+                    ...device.viewport,
+                    devicePixelRatio: device.deviceScaleFactor
+                })
+                : page.setViewport({
+                    ...device.viewport,
+                    devicePixelRatio: device.deviceScaleFactor
+                })
         ])
 
         const desktopViewport = deviceDescriptorsSource['Desktop Chrome']
         const restoreFn = async () => Promise.all([
             restoreUserAgent(),
-            this.setViewport({ ...desktopViewport.viewport, devicePixelRatio: desktopViewport.deviceScaleFactor })
+            isBrowser
+                ? browser.setViewport({
+                    ...desktopViewport.viewport,
+                    devicePixelRatio: desktopViewport.deviceScaleFactor
+                })
+                : page.setViewport({
+                    ...desktopViewport.viewport,
+                    devicePixelRatio: desktopViewport.deviceScaleFactor
+                })
         ])
 
         return restoreFn
