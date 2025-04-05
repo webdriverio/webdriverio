@@ -15,7 +15,9 @@ This can be set on the [Service Options](./service-options#enablelayouttesting) 
 
 ```js
 // wdio.conf.(js|ts)
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     // =====
     // Setup
@@ -29,7 +31,7 @@ export const config = {
         ]
     ]
     // ...
-}
+})
 ```
 
 The image output for the [Service Options](./service-options#enablelayouttesting) is equal to the [Method](./method-options), see below.

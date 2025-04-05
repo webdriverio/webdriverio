@@ -123,9 +123,10 @@ The only thing to do now in order to use this service is to assign it to the `se
 Modify your `wdio.conf.js` file to look like this:
 
 ```js
+import { defineConfig } from '@wdio/config'
 import CustomService from './service/my.custom.service'
 
-export const config = {
+export const config = defineConfig({
     // ...
     services: [
         /**
@@ -142,7 +143,7 @@ export const config = {
         }]
     ],
     // ...
-}
+})
 ```
 
 ## Publish Service on NPM
@@ -158,11 +159,13 @@ Following the recommended naming pattern allows services to be added by name:
 
 ```js
 // Add wdio-custom-service
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     services: ['custom'],
     // ...
-}
+})
 ```
 
 ### Add Published Service to WDIO CLI and Docs

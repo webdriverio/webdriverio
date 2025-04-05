@@ -54,11 +54,10 @@ npm install --save-dev @wdio/visual-service
 import path from "node:path";
 
 // wdio.conf.ts
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
-    // =====
-    // Setup
-    // =====
     services: [
         [
             "visual",
@@ -73,7 +72,7 @@ export const config = {
         ],
     ],
     // ...
-};
+});
 ```
 
 More service options can be found [here](/docs/visual-testing/service-options).
@@ -91,11 +90,8 @@ To enable this, you can define `logName` in the `capabilities` section and ensur
 import path from "node:path";
 
 // wdio.conf.ts
-export const config = {
+export const config = defineConfig({
     // ...
-    // =====
-    // Setup
-    // =====
     capabilities: [
         {
             browserName: 'chrome',
@@ -124,7 +120,7 @@ export const config = {
         ],
     ],
     // ...
-};
+});
 ```
 
 #### How it works
@@ -155,7 +151,7 @@ capabilities as you can see below. This will make sure that each screenshot will
 
 ```js
 // wdio.conf.js
-export const config = {
+export const config = defineConfig({
     capabilities: {
         chromeBrowserOne: {
             capabilities: {
@@ -182,7 +178,7 @@ export const config = {
             },
         },
     },
-};
+});
 ```
 
 ### Running Programmatically
@@ -306,11 +302,8 @@ import { join } from 'node:path';
 // Import the type definition
 import type { VisualServiceOptions } from '@wdio/visual-service';
 
-export const config = {
+export const config = defineConfig({
     // ...
-    // =====
-    // Setup
-    // =====
     services: [
         [
             "visual",
@@ -323,7 +316,7 @@ export const config = {
         ],
     ],
     // ...
-};
+});
 ```
 
 ## System Requirements

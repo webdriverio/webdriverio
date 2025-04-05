@@ -28,7 +28,9 @@ To use the service you need to add `vscode` to your list of services, optionally
 
 ```js
 // wdio.conf.ts
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     outputDir: 'trace',
     // ...
     capabilities: [{
@@ -48,14 +50,16 @@ export const config = {
      * services: [['vscode', { cachePath: __dirname }]]
      */
     // ...
-};
+});
 ```
 
 If you define `wdio:vscodeOptions` with any other `browserName` but `vscode`, e.g. `chrome`, the service will serve the extension as web extension. If you test on Chrome no additional driver service is required, e.g.:
 
 ```js
 // wdio.conf.ts
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     outputDir: 'trace',
     // ...
     capabilities: [{
@@ -66,7 +70,7 @@ export const config = {
     }],
     services: ['vscode'],
     // ...
-};
+});
 ```
 
 _Note:_ when testing web extensions you can only choose between `stable` or `insiders` as `browserVersion`.

@@ -13,14 +13,16 @@ By default it only watches for changes in your `specs` files. However by setting
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     filesToWatch: [
         // watch for all JS files in my app
         './src/app/**/*.js'
     ],
     // ...
-}
+})
 ```
 
 :::info

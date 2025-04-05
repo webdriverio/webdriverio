@@ -22,10 +22,11 @@ Loading a web extension in Chrome can be done through providing a `base64` encod
 ```js wdio.conf.js
 import path from 'node:path'
 import url from 'node:url'
+import { defineConfig } from '@wdio/config'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
-export const config = {
+export const config = defineConfig({
     // ...
     capabilities: [{
         browserName,
@@ -49,12 +50,13 @@ If you compile your extension as `.crx` file using e.g. the [crx](https://www.np
 ```js wdio.conf.js
 import path from 'node:path'
 import url from 'node:url'
+import { defineConfig } from '@wdio/config'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const extPath = path.join(__dirname, `web-extension-chrome.crx`)
 const chromeExtension = (await fs.readFile(extPath)).toString('base64')
 
-export const config = {
+export const config = defineConfig({
     // ...
     capabilities: [{
         browserName,
@@ -72,11 +74,12 @@ To create a Firefox profile that includes extensions you can use the [Firefox Pr
 ```js wdio.conf.js
 import path from 'node:path'
 import url from 'node:url'
+import { defineConfig } from '@wdio/config'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const extensionPath = path.resolve(__dirname, `web-extension.xpi`)
 
-export const config = {
+export const config = defineConfig({
     // ...
     before: async (capabilities) => {
         const browserName = (capabilities as WebdriverIO.Capabilities).browserName
@@ -138,15 +141,16 @@ In your `wdio.conf.js` you can import this file and register the custom command 
 
 ```ts wdio.conf.ts
 import { browser } from '@wdio/globals'
+import { defineConfig } from '@wdio/config'
 
 import { openExtensionPopup } from './support/customCommands'
 
-export const config: WebdriverIO.Config = {
+export const config = defineConfig({
   // ...
   before: () => {
     browser.addCommand('openExtensionPopup', openExtensionPopup)
   }
-}
+})
 ```
 
 Now, in your test, you can access the popup page via:

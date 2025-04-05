@@ -10,7 +10,9 @@ WebdriverIO's browser runner supports code coverage reporting using [`istanbul`]
 In order to enable code coverage reporting, enable it through the WebdriverIO browser runner configuration, e.g.:
 
 ```js title=wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     runner: ['browser', {
         preset: process.env.WDIO_PRESET,
@@ -19,7 +21,7 @@ export const config = {
         }
     }],
     // ...
-}
+})
 ```
 
 Checkout all [coverage options](/docs/runner#coverage-options), to learn how to properly configure it.

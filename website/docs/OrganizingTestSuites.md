@@ -17,7 +17,9 @@ If you run your own WebDriver grid, you may (for example) have more capacity for
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     // set maxInstance for all browser
     maxInstances: 10,
@@ -31,7 +33,7 @@ export const config = {
         browserName: 'chrome'
     }],
     // ...
-}
+})
 ```
 
 ## Inherit From Main Config File
@@ -45,10 +47,11 @@ Then create another config file for each environment, and supplement the the mai
 ```js
 // wdio.dev.config.js
 import { deepmerge } from 'deepmerge-ts'
+import { defineConfig } from '@wdio/config'
 import wdioConf from './wdio.conf.js'
 
 // have main config file as default but overwrite environment specific information
-export const config = deepmerge(wdioConf.config, {
+export const config = deepmerge(wdioConf.config, defineConfig({
     capabilities: [
         // more caps defined here
         // ...
@@ -58,7 +61,7 @@ export const config = deepmerge(wdioConf.config, {
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
     services: ['sauce']
-}, { clone: false })
+}), { clone: false })
 
 // add an additional reporter
 config.reporters.push('allure')
@@ -72,7 +75,9 @@ First, define your suites in your WDIO config:
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // define all tests
     specs: ['./test/specs/**/*.spec.js'],
     // ...
@@ -87,7 +92,7 @@ export const config = {
         ]
     },
     // ...
-}
+})
 ```
 
 Now, if you want to only run a single suite, you can pass the suite name as a CLI argument:
@@ -315,7 +320,9 @@ If you require both of these capabilities in your config file, then the Android 
 
 ```js
 //wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     "specs": [
         "tests/general/**/*.js"
     ],
@@ -335,6 +342,6 @@ export const config = {
             //config level specs will be used
         }
     ]
-}
+})
 ```
 

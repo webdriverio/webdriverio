@@ -44,7 +44,9 @@ To use the service you need to add `ocr` to your services array in `wdio.conf.ts
 
 ```js
 // wdio.conf.js
-exports.config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     //...
     services: [
         // your other services
@@ -57,7 +59,7 @@ exports.config = {
             },
         ],
     ],
-};
+});
 ```
 
 ### Configuration Options
