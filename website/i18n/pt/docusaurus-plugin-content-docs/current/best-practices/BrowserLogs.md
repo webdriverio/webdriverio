@@ -1,6 +1,6 @@
 ---
 id: browser-logs
-title: Logs do Navegador
+title: Browser Logs
 ---
 
 When running tests the browser may log important information that you are interested or want to assert against.
