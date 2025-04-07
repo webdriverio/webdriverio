@@ -24,7 +24,7 @@ import { checkUnicode } from '../../utils/index.js'
  * @alias page.keys
  */
 export async function keys (
-    this: WebdriverIO.Page,
+    this: WebdriverIO.BrowsingContext,
     value: string | string[]
 ) {
     let keySequence: string[] = []

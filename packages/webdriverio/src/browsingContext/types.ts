@@ -3,5 +3,5 @@ export interface ContextProps {
     isTab: boolean
     isWindow: boolean
     request?: WebdriverIO.Request
-    parent?: WebdriverIO.Page
+    parent?: WebdriverIO.BrowsingContext
 }

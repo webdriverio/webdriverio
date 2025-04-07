@@ -2,7 +2,7 @@ import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getContextManager } from '../../session/context.js'
-import { getBasePage } from '../../page/index.js'
+import { getBasePage } from '../../browsingContext/index.js'
 import type { NewWindowOptions } from '../../types.js'
 import logger from '@wdio/logger'
 const log = logger('webdriverio:newWindow')
@@ -74,7 +74,11 @@ export async function newWindow (
     this: WebdriverIO.Browser,
     url: string,
     { type = 'window', windowName = '', windowFeatures = '' }: NewWindowOptions = {}
-): Promise<{ handle: string, type: 'tab' | 'window' } | WebdriverIO.Page> {
+): Promise<{ handle: string, type: 'tab' | 'window' } | WebdriverIO.BrowsingContext> {
+    if (globalThis.wdio) {
+        throw new Error('"newWindow" command is not supported when using browser runner')
+    }
+
     /**
      * parameter check
      */

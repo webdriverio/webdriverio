@@ -1,9 +1,12 @@
 import fs from 'node:fs'
 
+import { getBrowserObject } from '@wdio/utils'
+
 import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
+import { isBrowsingContext } from '../utils/index.js'
 
 type PDFPrintOptions = {
-    orientation?: string,
+    orientation?: 'portrait' | 'landscape',
     scale?: number,
     background?: boolean,
     width?: number,
@@ -13,7 +16,7 @@ type PDFPrintOptions = {
     left?: number,
     right?: number,
     shrinkToFit?: boolean,
-    pageRanges?: object[]
+    pageRanges?: number[]
 }
 
 /**
@@ -34,9 +37,41 @@ export async function savePDF (
     const absoluteFilepath = getAbsoluteFilepath(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
-    const pdf = await this.printPage(options?.orientation, options?.scale, options?.background,
-        options?.width, options?.height, options?.top, options?.bottom, options?.left, options?.right,
-        options?.shrinkToFit, options?.pageRanges)
+    const browser = getBrowserObject(this)
+    const result = isBrowsingContext(this)
+        ? await browser.browsingContextPrint({
+            context: this.contextId,
+            background: options?.background,
+            margin: {
+                top: options?.top,
+                bottom: options?.bottom,
+                left: options?.left,
+                right: options?.right
+            },
+            orientation: options?.orientation,
+            page: {
+                width: options?.width,
+                height: options?.height
+            },
+            pageRanges: options?.pageRanges,
+            scale: options?.scale,
+            shrinkToFit: options?.shrinkToFit
+        })
+        : await this.printPage(
+            options?.orientation,
+            options?.scale,
+            options?.background,
+            options?.width,
+            options?.height,
+            options?.top,
+            options?.bottom,
+            options?.left,
+            options?.right,
+            options?.shrinkToFit,
+            options?.pageRanges as unknown as object[]
+        )
+
+    const pdf = typeof result === 'string' ? result : result.data
     const page = Buffer.from(pdf, 'base64')
     fs.writeFileSync(absoluteFilepath, page)
 

@@ -1,5 +1,7 @@
 /// <reference path="../../types.ts" />
+import { getBrowserObject } from '@wdio/utils'
 import { getContextManager } from '../../session/context.js'
+import { isBrowsingContext } from 'src/utils/index.js'
 
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER
@@ -34,7 +36,7 @@ export interface SetViewportOptions {
  * @type window
  */
 export async function setViewport(
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     options: SetViewportOptions
 ) {
     /**
@@ -55,10 +57,13 @@ export async function setViewport(
         throw new Error('setViewport expects devicePixelRatio to be a number in the 0 to 2^31 − 1 range')
     }
 
-    const contextManager = getContextManager(this)
-    const context = await contextManager.getCurrentContext()
+    const browser = getBrowserObject(this)
+    const contextManager = getContextManager(browser)
+    const context = isBrowsingContext(this)
+        ? this.contextId
+        : await contextManager.getCurrentContext()
 
-    await this.browsingContextSetViewport({
+    await browser.browsingContextSetViewport({
         context,
         devicePixelRatio: options.devicePixelRatio || 1,
         viewport: {

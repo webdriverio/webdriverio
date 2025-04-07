@@ -1,7 +1,7 @@
 import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager } from '../../session/networkManager.js'
 import { getContextManager } from '../../session/context.js'
-import { getPage } from '../../page/index.js'
+import { getPage } from '../../browsingContext/index.js'
 import type { InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
@@ -155,7 +155,11 @@ export async function url (
     this: WebdriverIO.Browser,
     path: string,
     options: UrlCommandOptions = {}
-): Promise<WebdriverIO.Page | void> {
+): Promise<WebdriverIO.BrowsingContext> {
+    if (globalThis.wdio) {
+        throw new Error('"url" command is not supported when using browser runner')
+    }
+
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')
     }
@@ -164,9 +168,9 @@ export async function url (
         path = (new URL(path, this.options.baseUrl)).href
     }
 
+    const contextManager = getContextManager(this)
+    const context = await contextManager.getCurrentContext()
     if (this.isBidi && path.startsWith('http')) {
-        const contextManager = getContextManager(this)
-        const context = await contextManager.getCurrentContext()
         const request = await navigateContext.call(this, path, context, options)
         return getPage.call(this, context, { isIframe: false, isTab: false, isWindow: true, request })
     }
@@ -176,6 +180,7 @@ export async function url (
     }
 
     await this.navigateTo(validateUrl(path))
+    return getPage.call(this, context, { isIframe: false, isTab: false, isWindow: true, request: undefined })
 }
 
 export interface UrlCommandOptions {

@@ -55,29 +55,29 @@ import { deserialize } from '../../utils/bidi/index.js'
  *
  */
 export async function addInitScript<Payload> (
-    this: WebdriverIO.Browser | WebdriverIO.Page,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunction<Payload>,
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1> (
-    this: WebdriverIO.Browser | WebdriverIO.Page,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg1<Payload, Arg1>,
     arg1: Arg1
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2> (
-    this: WebdriverIO.Browser | WebdriverIO.Page,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg2<Payload, Arg1, Arg2>,
     arg1: Arg1,
     arg2: Arg2
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3> (
-    this: WebdriverIO.Browser | WebdriverIO.Page,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3>,
     arg1: Arg1,
     arg2: Arg2,
     arg3: Arg3
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4> (
-    this: WebdriverIO.Browser | WebdriverIO.Page,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4>,
     arg1: Arg1,
     arg2: Arg2,
@@ -85,7 +85,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4> (
     arg4: Arg4
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
-    this: WebdriverIO.Browser | WebdriverIO.Page,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5>,
     arg1: Arg1,
     arg2: Arg2,
@@ -94,7 +94,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     arg5: Arg5
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
-    this: WebdriverIO.Browser | WebdriverIO.Page,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunction<Payload> | InitScriptFunctionArg1<Payload, Arg1> | InitScriptFunctionArg2<Payload, Arg1, Arg2> | InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> | InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> | InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...args: any

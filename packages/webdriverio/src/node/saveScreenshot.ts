@@ -3,8 +3,10 @@ import path from 'node:path'
 
 import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
+
 import { getAbsoluteFilepath, assertDirectoryExists } from './utils.js'
 import { getContextManager } from '../session/context.js'
+import { isBrowsingContext } from '../utils/index.js'
 import type { SaveScreenshotOptions } from '../types.js'
 /**
  *
@@ -33,7 +35,7 @@ import type { SaveScreenshotOptions } from '../types.js'
  *
  */
 export async function saveScreenshot (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     filepath: string,
     options?: SaveScreenshotOptions
 ) {
@@ -44,10 +46,11 @@ export async function saveScreenshot (
         throw new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
     }
 
+    const browser = getBrowserObject(this)
     const absoluteFilepath = getAbsoluteFilepath(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
-    const screenBuffer = this.isBidi
+    const screenBuffer = browser.isBidi
         ? await takeScreenshotBidi.call(this, filepath, options)
         : await takeScreenshotClassic.call(this, filepath, options)
 
@@ -79,7 +82,9 @@ export function takeScreenshotClassic (this: WebdriverIO.Browser, filepath: stri
 export async function takeScreenshotBidi (this: WebdriverIO.Browser, filepath: string, options?: SaveScreenshotOptions): Promise<string> {
     const browser = getBrowserObject(this)
     const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
+    const context = isBrowsingContext(this)
+        ? this.contextId
+        : await contextManager.getCurrentContext()
     const tree = await this.browsingContextGetTree({})
     const origin: remote.BrowsingContextCaptureScreenshotParameters['origin'] = options?.fullPage ? 'document' : 'viewport'
     const givenFormat = options?.format || path.extname(filepath).slice(1)

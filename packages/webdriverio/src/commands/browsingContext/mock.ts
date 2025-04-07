@@ -1,6 +1,4 @@
-import type { MockFilterOptions } from '../../utils/interception/types.js'
-import WebDriverInterception from '../../utils/interception/index.js'
-import { SESSION_MOCKS } from '../browser/mock.js'
+import { mock as mockBrowser } from '../browser/mock.js'
 
 /**
  * Mock the response of a request. You can define a mock based on a matching
@@ -118,19 +116,8 @@ import { SESSION_MOCKS } from '../browser/mock.js'
  * @param {Object|Function=}    filterOptions.responseHeaders   filter resource by specific response headers
  * @param {String|Function=}    filterOptions.postData          filter resource by request postData
  * @param {Number|Function=}    filterOptions.statusCode        filter resource by response statusCode
- * @return {Mock}                                               a mock object to modify the response
+ * @return {WebdriverIO.Mock}                                               a mock object to modify the response
  * @type utility
  *
  */
-export async function mock(
-    this: WebdriverIO.Page,
-    url: string,
-    filterOptions?: MockFilterOptions
-): Promise<WebdriverIO.Mock> {
-    if (!SESSION_MOCKS[this.contextId]) {
-        SESSION_MOCKS[this.contextId] = new Set()
-    }
-    const networkInterception = await WebDriverInterception.initiate(url, filterOptions || {}, this.browser)
-    SESSION_MOCKS[this.contextId].add(networkInterception)
-    return networkInterception as WebdriverIO.Mock
-}
+export const mock = mockBrowser

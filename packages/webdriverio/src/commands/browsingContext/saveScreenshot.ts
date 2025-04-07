@@ -1,5 +1,4 @@
-import { environment } from '../../environment.js'
-import type { SaveScreenshotOptions } from '../../types.js'
+import { saveScreenshot as saveScreenshotBrowser } from '../browser/saveScreenshot.js'
 
 /**
  *
@@ -10,23 +9,28 @@ import type { SaveScreenshotOptions } from '../../types.js'
  * <example>
     :saveScreenshot.js
     it('should save a screenshot of the browser viewport', async () => {
-        await browser.saveScreenshot('./some/path/screenshot.png');
+        const context = await browser.url('https://webdriver.io')
+        await context.saveScreenshot('./some/path/screenshot.png');
     });
 
     it('should save a screenshot of the full page', async () => {
-        await browser.saveScreenshot('./some/path/screenshot.png', { fullPage: true });
+        const context = await browser.url('https://webdriver.io')
+        await context.saveScreenshot('./some/path/screenshot.png', { fullPage: true });
     });
 
     it('should save a screenshot of a specific rectangle', async () => {
-        await browser.saveScreenshot('./some/path/screenshot.png', { clip: { x: 0, y: 0, width: 100, height: 100 } });
+        const context = await browser.url('https://webdriver.io')
+        await context.saveScreenshot('./some/path/screenshot.png', { clip: { x: 0, y: 0, width: 100, height: 100 } });
     });
 
     it('should save a screenshot of the full page in JPEG format', async () => {
-        await browser.saveScreenshot('./some/path/screenshot.jpeg', { fullPage: true, format: 'jpeg' });
+        const context = await browser.url('https://webdriver.io')
+        await context.saveScreenshot('./some/path/screenshot.jpeg', { fullPage: true, format: 'jpeg' });
     });
 
     it('should save a screenshot of the full page in JPEG format with quality 50', async () => {
-        await browser.saveScreenshot('./some/path/screenshot.jpeg', { fullPage: true, format: 'jpeg', quality: 50 });
+        const context = await browser.url('https://webdriver.io')
+        await context.saveScreenshot('./some/path/screenshot.jpeg', { fullPage: true, format: 'jpeg', quality: 50 });
     });
  * </example>
  *
@@ -34,7 +38,8 @@ import type { SaveScreenshotOptions } from '../../types.js'
  * <example>
     :wdio.conf.js
     afterTest: async function(test) {
-        await browser.saveScreenshot('./some/path/screenshot.png');
+        const context = await browser.url('https://webdriver.io')
+        await context.saveScreenshot('./some/path/screenshot.png');
     }
  * </example>
  * @alias browser.saveScreenshot
@@ -48,13 +53,4 @@ import type { SaveScreenshotOptions } from '../../types.js'
  * @type utility
  *
  */
-export async function saveScreenshot (
-    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
-    filepath: string,
-    options?: SaveScreenshotOptions
-) {
-    /**
-     * run command implementation based on given environment
-     */
-    return environment.value.saveScreenshot.call(this, filepath, options)
-}
+export const saveScreenshot = saveScreenshotBrowser

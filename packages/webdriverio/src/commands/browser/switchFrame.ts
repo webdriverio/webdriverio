@@ -1,8 +1,11 @@
 import logger from '@wdio/logger'
 import { ELEMENT_KEY, type remote } from 'webdriver'
+import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import { getContextManager, type FlatContextTree } from '../../session/context.js'
+import { getPage } from '../../browsingContext/index.js'
+import { isBrowsingContext } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
@@ -66,9 +69,10 @@ const log = logger('webdriverio:switchFrame')
  * @returns {`Promise<string>`} the current active context id
  */
 export async function switchFrame (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     context: WebdriverIO.Element | ChainablePromiseElement | string | null | ((tree: FlatContextTree) => boolean | Promise<boolean>)
 ) {
+    const browser = getBrowserObject(this)
     function isPossiblyUnresolvedElement(input: typeof context): input is WebdriverIO.Element | ChainablePromiseElement {
         return Boolean(input) && typeof input === 'object' && typeof (input as WebdriverIO.Element).getElement === 'function'
     }
@@ -76,7 +80,7 @@ export async function switchFrame (
     /**
      * Check if Bidi is supported, if not, just use the WebDriver Classic `switchToFrame`
      */
-    if (!this.isBidi) {
+    if (!browser.isBidi) {
         if (typeof context === 'function') {
             throw new Error('Cannot use a function to fetch a context in WebDriver Classic')
         }
@@ -88,19 +92,19 @@ export async function switchFrame (
             await element.waitForExist({
                 timeoutMsg: `Can't switch to frame with selector ${element.selector} because it doesn't exist`
             })
-            return switchToFrame(this, element)
+            return switchToFrame(browser, element)
         }
-        return switchToFrame(this, context)
+        return switchToFrame(browser, context)
     }
 
-    const sessionContext = getContextManager(this)
+    const sessionContext = getContextManager(browser)
 
     /**
      * if context is `null` the user is switching to the top level frame
      * which is always represented by the value of `getWindowHandle`
      */
     if (context === null) {
-        const handle = await this.getWindowHandle()
+        const handle = await browser.getWindowHandle()
         switchToFrameHelper(this, handle)
         await switchToFrame(this, context)
         return handle
@@ -112,7 +116,7 @@ export async function switchFrame (
      * the string.
      */
     if (typeof context === 'string') {
-        const tree = await this.browsingContextGetTree({})
+        const tree = await browser.browsingContextGetTree({})
         let newContextId: string | undefined
 
         const urlContext = (
@@ -150,7 +154,7 @@ export async function switchFrame (
             /**
              * first, fetch all iframes in given browsing context
              */
-            const { nodes } = await this.browsingContextLocateNodes({
+            const { nodes } = await browser.browsingContextLocateNodes({
                 locator: { type: 'css', value: 'iframe, frame' },
                 context: id
             }).catch(() => ({ nodes: [] }))
@@ -173,7 +177,7 @@ export async function switchFrame (
                     target: { context: id }
                 }
 
-                const result = await this.scriptCallFunction(params).catch((err) => (
+                const result = await browser.scriptCallFunction(params).catch((err) => (
                     log.warn(`Failed to identify frame context id: ${err.message}`)))
 
                 /**
@@ -253,7 +257,7 @@ export async function switchFrame (
         }
 
         sessionContext.setCurrentContext(newContextId)
-        return newContextId
+        return getPage.call(this, newContextId, { isIframe: true, isTab: false, isWindow: false, request: undefined })
     }
 
     /**
@@ -287,7 +291,7 @@ export async function switchFrame (
                 target: { context: contextId }
             }
 
-            const result = await this.scriptCallFunction(params).catch((err) => (
+            const result = await browser.scriptCallFunction(params).catch((err) => (
                 log.warn(`switchFrame context callback threw error: ${err.message}`)))
 
             if (!result || result.type !== 'success' || result.result.type !== 'boolean' || !result.result.value) {
@@ -299,11 +303,10 @@ export async function switchFrame (
              */
             await browser.switchFrame(null)
 
-            await this.switchFrame(contextId)
-            return contextId
+            await browser.switchFrame(contextId)
+            return getPage.call(this, contextId, { isIframe: true, isTab: false, isWindow: false, request: undefined })
         }
 
-        throw new Error('Could not find the desired frame')
     }
 
     throw new Error(
@@ -319,13 +322,16 @@ interface FrameResult {
     html: string
 }
 
-function switchToFrameHelper (browser: WebdriverIO.Browser, context: string) {
+function switchToFrameHelper (browser: WebdriverIO.Browser | WebdriverIO.BrowsingContext, context: string) {
+    if (isBrowsingContext(browser)) {
+        return
+    }
     const sessionContext = getContextManager(browser)
     sessionContext.setCurrentContext(context)
 }
 
-async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element: WebdriverIO.Element) {
-    const frame = await browser.execute(
+async function switchToFrameUsingElement (browser: WebdriverIO.Browser | WebdriverIO.BrowsingContext, element: WebdriverIO.Element) {
+    const frame = await (browser as WebdriverIO.BrowsingContext).execute(
         (iframe: unknown) => (iframe as HTMLIFrameElement).contentWindow,
         element
     ) as unknown as { context: string }
@@ -334,7 +340,7 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
 
     const elementId = element[ELEMENT_KEY]
     await switchToFrame(browser, { [ELEMENT_KEY]: elementId })
-    return frame.context
+    return getPage.call(browser, frame.context, { isIframe: true, isTab: false, isWindow: false, request: undefined })
 }
 
 /**
@@ -343,7 +349,14 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
  * In order to avoid unnecessary deprecation warnings, we disable the
  * deprecation message by setting a flag in the environment variable.
  */
-function switchToFrame (browser: WebdriverIO.Browser, frame: ElementReference | number | null) {
+function switchToFrame (browser: WebdriverIO.Browser | WebdriverIO.BrowsingContext, frame: ElementReference | number | null) {
+    /**
+     * if we are operating on a browsing context, we don't need to switch to a frame for WebDriver Classic
+     */
+    if (isBrowsingContext(browser)) {
+        return
+    }
+
     process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = 'true'
     return browser.switchToFrame(frame).finally(async () => {
         delete process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS

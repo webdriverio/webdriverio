@@ -28,7 +28,7 @@ import type { KeyAction, PointerAction, WheelAction } from '../../utils/bidi/act
  *
  */
 export async function actions (
-    this: WebdriverIO.Page,
+    this: WebdriverIO.BrowsingContext,
     actions: (KeyAction | PointerAction | WheelAction)[],
 ): Promise<void> {
     await this.browser.inputPerformActions({

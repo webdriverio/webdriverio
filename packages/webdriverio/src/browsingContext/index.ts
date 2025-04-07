@@ -5,7 +5,7 @@ import { webdriverMonad } from '@wdio/utils'
 import { getContextManager } from '../session/context.js'
 import { getPrototype as getWDIOPrototype } from '../utils/index.js'
 import type { ContextProps } from './types.js'
-import * as pageCommands from '../commands/page.js'
+import * as pageCommands from '../commands/browsingContext.js'
 
 /**
  * transforms a findElement response into a WDIO element
@@ -17,7 +17,7 @@ export function getPage(
     this: WebdriverIO.Browser,
     contextId: string,
     props: ContextProps = { isIframe: false, isTab: false, isWindow: false, request: undefined, parent: undefined }
-): WebdriverIO.Page {
+): WebdriverIO.BrowsingContext {
     const browser = getBrowserObject(this)
     const pageCommandKeys = Object.keys(pageCommands)
     const propertiesObject: PropertyDescriptorMap = {
@@ -30,19 +30,19 @@ export function getPage(
             }
             return commands
         }, {} as Record<string, PropertyDescriptor>)),
-        ...getWDIOPrototype('page'),
-        scope: { value: 'page' }
+        ...getWDIOPrototype('browsingContext'),
+        scope: { value: 'browser' }
     }
 
     propertiesObject.emit = { value: this.emit.bind(this) }
-    const page = webdriverMonad(this.options, (client: WebdriverIO.Page) => {
+    const page = webdriverMonad(this.options, (client: WebdriverIO.BrowsingContext) => {
         client.browser = browser
         client.contextId = contextId
         client.isIframe = props.isIframe
         client.isTab = props.isTab
         client.isWindow = props.isWindow
         client.request = props.request
-        client.parent = props.parent
+        client.parent = props.parent || browser
         return client
     }, propertiesObject)
 

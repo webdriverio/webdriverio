@@ -3,6 +3,7 @@ import { getBrowserObject } from '@wdio/utils'
 import type { MockFilterOptions } from '../../utils/interception/types.js'
 import WebDriverInterception from '../../utils/interception/index.js'
 import { getContextManager } from '../../session/context.js'
+import { isBrowsingContext } from '../../utils/index.js'
 
 export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
 
@@ -122,17 +123,20 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  *
  */
 export async function mock(
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     url: string,
     filterOptions?: MockFilterOptions
 ): Promise<WebdriverIO.Mock> {
-    if (!this.isBidi) {
+    const browser = getBrowserObject(this)
+    if (!browser.isBidi) {
         throw new Error('Mocking is only supported when running tests using WebDriver Bidi')
     }
 
-    const browser = getBrowserObject(this)
     const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
+    const context = isBrowsingContext(this)
+        ? this.contextId
+        : await contextManager.getCurrentContext()
+
     if (!SESSION_MOCKS[context]) {
         SESSION_MOCKS[context] = new Set()
     }

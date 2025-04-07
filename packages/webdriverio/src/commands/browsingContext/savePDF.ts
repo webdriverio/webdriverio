@@ -1,18 +1,4 @@
-import { environment } from '../../environment.js'
-
-type PDFPrintOptions = {
-    orientation?: 'portrait' | 'landscape',
-    scale?: number,
-    background?: boolean,
-    width?: number,
-    height?: number,
-    top?: number,
-    bottom?: number,
-    left?: number,
-    right?: number,
-    shrinkToFit?: boolean,
-    pageRanges?: number[]
-}
+import { savePDF as savePDFBrowser } from '../browser/savePDF.js'
 
 /**
  *
@@ -21,7 +7,8 @@ type PDFPrintOptions = {
  * <example>
     :savePDF.js
     it('should save a PDF screenshot of the browser view', function () {
-        await browser.savePDF('./some/path/screenshot.pdf');
+        const context = await browser.url('https://webdriver.io')
+        await context.savePDF('./some/path/screenshot.pdf');
     });
  * </example>
  *
@@ -43,13 +30,4 @@ type PDFPrintOptions = {
  * @type utility
  *
  */
-export async function savePDF (
-    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
-    filepath: string,
-    options?: PDFPrintOptions
-) {
-    /**
-     * run command implementation based on given environment
-     */
-    return environment.value.savePDF.call(this, filepath, options)
-}
+export const savePDF = savePDFBrowser

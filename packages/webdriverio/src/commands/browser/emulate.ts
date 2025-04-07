@@ -2,6 +2,7 @@ import type { FakeTimerInstallOpts } from '@sinonjs/fake-timers'
 
 import { ClockManager } from '../../clock.js'
 import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptorsSource.js'
+import { isBrowsingContext } from '../../utils/index.js'
 import { restoreFunctions } from '../../constants.js'
 import type { SupportedScopes } from '../../types.js'
 
@@ -18,7 +19,7 @@ interface EmulationOptions {
     clock?: FakeTimerInstallOpts
 }
 
-function storeRestoreFunction (browser: WebdriverIO.Browser | WebdriverIO.Page, scope: SupportedScopes, fn: RestoreFunction) {
+function storeRestoreFunction (browser: WebdriverIO.Browser | WebdriverIO.BrowsingContext, scope: SupportedScopes, fn: RestoreFunction) {
     const key = 'contextId' in browser ? browser.contextId : browser.sessionId
     if (!restoreFunctions.has(key)) {
         restoreFunctions.set(key, new Map())
@@ -83,13 +84,13 @@ export async function emulate(scope: 'onLine', state: boolean): Promise<RestoreF
  * @returns {Function}  a function to reset the emulation
  */
 export async function emulate<Scope extends SupportedScopes> (
-    this: WebdriverIO.Browser | WebdriverIO.Page,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     scope: Scope,
     options: EmulationOptions[Scope]
 ) {
-    const isBrowser = !('browser' in this)
+    const isBrowser = !isBrowsingContext(this)
     const browser = isBrowser ? this : this.browser
-    const page = this as WebdriverIO.Page
+    const page = this as WebdriverIO.BrowsingContext
 
     if (!browser.isBidi) {
         throw new Error('emulate command is only supported for Bidi')
