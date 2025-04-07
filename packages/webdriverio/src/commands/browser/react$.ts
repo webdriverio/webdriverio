@@ -45,7 +45,7 @@ import type { ReactSelectorOptions } from '../../types.js'
  * @param {ReactSelectorOptions=}                    options         React selector options
  * @param {Object=}                                  options.props   React props the element should contain
  * @param {`Array<any>|number|string|object|boolean`=} options.state  React state the element should be in
- * @return {Element}
+ * @return {WebdriverIO.Element}
  *
  */
 export async function react$ (

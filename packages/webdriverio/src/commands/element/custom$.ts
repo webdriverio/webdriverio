@@ -30,7 +30,7 @@ import type { CustomStrategyFunction } from '../../types.js'
  * @example https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11
  * @example https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/example.html#L8-L12
  * @example https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L16-L19
- * @return {Element}
+ * @return {WebdriverIO.Element}
  */
 export async function custom$ (
     this: WebdriverIO.Element,

@@ -18,7 +18,7 @@
  * </example>
  *
  * @alias element.parentElement
- * @return {Element}
+ * @return {HTMLElement}
  * @type utility
  */
 export function parentElement (this: WebdriverIO.Element) {

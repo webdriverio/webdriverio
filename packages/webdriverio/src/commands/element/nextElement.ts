@@ -18,7 +18,7 @@
  * </example>
  *
  * @alias element.nextElement
- * @return {Element}
+ * @return {HTMLElement}
  * @type utility
  */
 

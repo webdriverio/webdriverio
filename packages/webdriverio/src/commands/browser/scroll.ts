@@ -19,8 +19,8 @@ const log = logger('webdriverio')
  * </example>
  *
  * @alias element.scroll
- * @param {number=} x  horizontal scroll position (default: `0`)
- * @param {number=} y  vertical scroll position (default: `0`)
+ * @param {number} [x=0]  horizontal scroll position (default: `0`)
+ * @param {number} [y=0]  vertical scroll position (default: `0`)
  * @uses protocol/execute
  * @type utility
  *

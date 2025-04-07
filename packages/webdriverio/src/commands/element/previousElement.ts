@@ -18,7 +18,7 @@
  * </example>
  *
  * @alias element.previousElement
- * @return {Element}
+ * @return {HTMLElement}
  * @type utility
  */
 export function previousElement (this: WebdriverIO.Element) {
