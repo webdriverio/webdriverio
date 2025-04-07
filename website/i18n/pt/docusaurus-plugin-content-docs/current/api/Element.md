@@ -86,4 +86,4 @@ console.log(await divs.map((div) => div.selector)) // ✅ returns "string[]"
 
 ### Custom Commands
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+You can set custom commands on the browser scope to abstract away workflows that are commonly used. Confira nosso guia sobre [Comandos personalizados](/docs/customcommands#adding-custom-commands) para obter mais informações.
