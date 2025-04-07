@@ -683,6 +683,9 @@ class _InsightsHandler {
         }
 
         if (eventType === 'TestRunSkipped') {
+            if (this._hooks[fullTitle]) {
+                testData.hooks = this._hooks[fullTitle]
+            }
             testData.result = 'skipped'
             eventType = 'TestRunFinished'
         }
