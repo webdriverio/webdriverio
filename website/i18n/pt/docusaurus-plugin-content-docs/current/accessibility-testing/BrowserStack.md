@@ -32,33 +32,33 @@ npm install --save-dev @wdio/browserstack-service
 
 ```javascript
 exports.config = {
-    //...
-    user: '<browserstack_username>' || process.env.BROWSERSTACK_USERNAME,
-    key: '<browserstack_access_key>' || process.env.BROWSERSTACK_ACCESS_KEY,
-    commonCapabilities: {
-      'bstack:options': {
-        projectName: "Your static project name goes here",
-        buildName: "Your static build/job name goes here"
-      }
-    },
-    services: [
-      ['browserstack', {
-        accessibility: true,
-        // Optional configuration options
-        accessibilityOptions: {
-          'wcagVersion': 'wcag21a',
-          'includeIssueType': {
-            'bestPractice': false,
-            'needsReview': true
-          },
-          'includeTagsInTestingScope': ['Specify tags of test cases to be included'],
-          'excludeTagsInTestingScope': ['Specify tags of test cases to be excluded']
+  //...
+  user: '<browserstack_username>' || process.env.BROWSERSTACK_USERNAME,
+  key: '<browserstack_access_key>' || process.env.BROWSERSTACK_ACCESS_KEY,
+  commonCapabilities: {
+    'bstack:options': {
+      projectName: "Insira aqui o nome fixo do seu projeto",
+      buildName: "Insira aqui o nome fixo da sua build/job"
+    }
+  },
+  services: [
+    ['browserstack', {
+      accessibility: true,
+      // Opções de configuração opcionais
+      accessibilityOptions: {
+        'wcagVersion': 'wcag21a',
+        'includeIssueType': {
+          'bestPractice': false,
+          'needsReview': true
         },
-      }]
-    ],
-    //...
-  };
+        'includeTagsInTestingScope': ['Especifique as tags dos casos de teste a serem incluídas'],
+        'excludeTagsInTestingScope': ['Especifique as tags dos casos de teste a serem excluídas']
+      },
+    }]
+  ],
+  //...
+};
 ```
 
-You can view detailed instructions here.
+Você pode ver instruções detalhadas aqui.
 
