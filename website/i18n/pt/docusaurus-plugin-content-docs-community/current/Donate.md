@@ -40,4 +40,4 @@ If you are a member of the [Technical Steering Committee team](https://github.co
 
 - You must send out a post from your main social media account (e.g. Twitter, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
 - You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accomodations.
-- You must submit receipts with your reimbursement request.
+- Você deve enviar recibos com sua solicitação de reembolso.
