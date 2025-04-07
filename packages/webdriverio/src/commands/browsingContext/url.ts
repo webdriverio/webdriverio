@@ -147,7 +147,6 @@ export async function url (
     path: string,
     options: UrlCommandOptions = {}
 ): Promise<WebdriverIO.BrowsingContext> {
-    const request =  await navigateContext.call(this.browser, path, this.contextId, options)
-    this.request = request
+    this.request = await navigateContext.call(this.browser, path, this.contextId, options)
     return this
 }

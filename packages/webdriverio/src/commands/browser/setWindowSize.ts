@@ -39,7 +39,7 @@ export async function setWindowSize(
      * value check
      */
     if (width < minWindowSize || width > maxWindowSize || height < minWindowSize || height > maxWindowSize) {
-        throw new Error('setWindowSize expects width and height to be a number in the 0 to 2^31 − 1 range')
+        throw new Error(`setViewport expects devicePixelRatio to be a number in the range of ${minWindowSize} to ${maxWindowSize}`)
     }
 
     const browser = getBrowserObject(this)

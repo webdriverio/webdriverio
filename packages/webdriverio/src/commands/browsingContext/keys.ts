@@ -1,6 +1,4 @@
-import type { UNICODE_CHARACTERS } from '@wdio/utils'
-
-import { checkUnicode } from '../../utils/index.js'
+import { keys as keysCommand } from '../browser/keys.js'
 
 /**
  *
@@ -21,42 +19,6 @@ import { checkUnicode } from '../../utils/index.js'
  * @param {String|String[]} value  The sequence of keys to type. An array or string must be provided.
  * @see https://w3c.github.io/webdriver/#dispatching-actions
  * @example https://github.com/webdriverio/example-recipes/blob/355434bdef13d29608d6d5fbfbeaa034c8a2aa74/keys/keys.js#L1-L17
- * @alias page.keys
+ * @alias browsingContext.keys
  */
-export async function keys (
-    this: WebdriverIO.BrowsingContext,
-    value: string | string[]
-) {
-    let keySequence: string[] = []
-
-    /**
-     * replace key with corresponding unicode character
-     */
-    if (typeof value === 'string') {
-        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS)
-    } else if (Array.isArray(value)) {
-        const charArray = value as (keyof typeof UNICODE_CHARACTERS)[]
-        for (const charSet of charArray) {
-            keySequence = keySequence.concat(checkUnicode(charSet))
-        }
-    } else {
-        throw new Error('"keys" command requires a string or array of strings as parameter')
-    }
-
-    /**
-     * W3C way of handle it key actions
-     */
-    const keyAction = this.action('key')
-    keySequence.forEach((value) => keyAction.down(value))
-    /**
-     * XCTest API only allows to send keypresses (e.g. keydown+keyup).
-     * There is no way to "split" them
-     */
-    if (!this.browser.isIOS){
-        keyAction.pause(10)
-    }
-    keySequence.forEach((value) => keyAction.up(value))
-
-    // pass true to skip release of keys as they are already released
-    return keyAction.perform(true)
-}
+export const keys = keysCommand
