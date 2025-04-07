@@ -114,7 +114,10 @@ const ext = it.path.extname(filename).slice(1);
 <% if (it.returns) { %>
 ##### Returns
 
-- **&lt;<%= it.returns.type %>&gt; <code><var><%= it.returns.name %></var></code>:** <%= it.returns.description %>
+- **&lt;<%= it.returns.type %>&gt;**
+    <% if (it.returns.description) { %>
+        **<code><var><%= it.returns.name %></var></code>:** <%= it.returns.description %>
+    <% } %>
 <% } %>
 
 <% if (it.throwsTags.length) { %>
