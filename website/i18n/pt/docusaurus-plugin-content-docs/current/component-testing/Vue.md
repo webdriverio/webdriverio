@@ -3,11 +3,11 @@ id: vue
 title: Vue.js
 ---
 
-[Vue.js](https://vuejs.org/) is an approachable, performant and versatile framework for building web user interfaces. You can test Vue.js components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[Vue.js](https://vuejs.org/) é uma estrutura acessível, de alto desempenho e versátil para criar interfaces de usuário da web. Você pode testar componentes do Vue.js diretamente em um navegador real usando o WebdriverIO e seu [executor do navegador](/docs/runner#browser-runner).
 
-## Setup
+## Configurar
 
-To setup WebdriverIO within your Vue.js project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `vue` as preset within your runner options, e.g.:
+Para configurar o WebdriverIO no seu projeto Vue.js, siga as [instruções](/docs/component-testing#set-up) em nossos documentos de teste de componentes. Certifique-se de selecionar `vue` como predefinição nas opções do seu runner, por exemplo:
 
 ```js
 // wdio.conf.js
@@ -22,25 +22,25 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+Se você já estiver usando o [Vite](https://vitejs.dev/) como servidor de desenvolvimento, você também pode reutilizar sua configuração em `vite.config.ts` dentro da sua configuração do WebdriverIO. Para obter mais informações, consulte `viteConfig` em [opções do runner](/docs/runner#runner-options).
 
 :::
 
-The Vue preset requires `@vitejs/plugin-vue` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
+A predefinição do Vue requer que `@vitejs/plugin-vue` esteja instalado. Também recomendamos usar a [Biblioteca de testes](https://testing-library.com/) para renderizar o componente na página de teste. Portanto, você precisará instalar as seguintes dependências adicionais:
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/vue @vitejs/plugin-vue
 ```
 
-You can then start the tests by running:
+Você pode então iniciar os testes executando:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-## Writing Tests
+## Escrevendo testes
 
-Given you have the following Vue.js component:
+Considerando que você tem o seguinte componente Vue.js:
 
 ```tsx title="./components/Component.vue"
 <template>
@@ -65,7 +65,7 @@ export default {
 </script>
 ```
 
-In your test render the component into the DOM and run assertions on it. We recommend to either use [`@vue/test-utils`](https://test-utils.vuejs.org/) or [`@testing-library/vue`](https://testing-library.com/docs/vue-testing-library/intro/) to attach the component to the test page. To interact with the component use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+No seu teste, renderize o componente no DOM e execute asserções nele. Recomendamos usar [`@vue/test-utils`](https://test-utils.vuejs.org/) ou [`@testing-library/vue`](https://testing-library.com/docs/vue-testing-library/intro/) para anexar o componente à página de teste. Para interagir com o componente, use os comandos WebdriverIO, pois eles se comportam mais próximos das interações reais do usuário, por exemplo:
 
 <Tabs
   defaultValue="utils"
@@ -81,35 +81,35 @@ import { $, expect } from '@wdio/globals'
 import { mount } from '@vue/test-utils'
 import Component from './components/Component.vue'
 
-describe('Vue Component Testing', () => {
-    it('increments value on click', async () => {
-        // The render method returns a collection of utilities to query your component.
+describe('Teste de Componente Vue', () => {
+    it('incrementa o valor ao clicar', async () => {
+        // O método render retorna uma coleção de utilitários para consultar seu componente.
+
         const wrapper = mount(Component, { attachTo: document.body })
-        expect(wrapper.text()).toContain('Times clicked: 0')
+expect(wrapper.text()).toContain('Times clicked: 0')
 
-        const button = await $('aria/increment')
+const button = await $('aria/increment')
 
-        // Dispatch a native click event to our button element.
+// Dispara um evento de clique nativo no nosso elemento de botão.
+
         await button.click()
-        await button.click()
+await button.click()
 
-        expect(wrapper.text()).toContain('Times clicked: 2')
-        await expect($('p=Times clicked: 2')).toExist() // same assertion with WebdriverIO
-    })
+expect(wrapper.text()).toContain('Times clicked: 2')
+await expect($('p=Times clicked: 2')).toExist() // mesma asserção com WebdriverIO
 })
-```
+
 
 </TabItem>
 <TabItem value="testinglib">
 
-```ts title="vue.test.js"
 import { $, expect } from '@wdio/globals'
 import { render } from '@testing-library/vue'
 import Component from './components/Component.vue'
 
-describe('Vue Component Testing', () => {
-    it('increments value on click', async () => {
-        // The render method returns a collection of utilities to query your component.
+describe('Teste de Componente Vue', () => {
+    it('incrementa o valor ao clicar', async () => {
+        // O método render retorna uma coleção de utilitários para consultar seu componente.
         const { getByText } = render(Component)
 
         // getByText returns the first matching node for the provided text, and
@@ -120,22 +120,21 @@ describe('Vue Component Testing', () => {
 
         // Dispatch a native click event to our button element.
         await button.click()
-        await button.click()
+await button.click()
 
-        getByText('Times clicked: 2') // assert with Testing Library
-        await expect($('p=Times clicked: 2')).toExist() // assert with WebdriverIO
-    })
+getByText('Times clicked: 2') // asserção com Testing Library
+await expect($('p=Times clicked: 2')).toExist() // asserção com WebdriverIO
 })
-```
+
 
 </TabItem>
 </Tabs>
 
-You can find a full example of a WebdriverIO component test suite for Vue.js in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/vue-typescript-vite).
+Você pode encontrar um exemplo completo de um conjunto de testes de componentes WebdriverIO para Vue.js em nosso [repositório de exemplos](https://github.com/webdriverio/component-testing-examples/tree/main/vue-typescript-vite).
 
-## Testing Async Components in Vue3
+## Testando componentes assíncronos no Vue3
 
-If you are using Vue v3 and are testing [async components](https://vuejs.org/guide/built-ins/suspense.html#async-setup) like the following:
+Se você estiver usando o Vue v3 e estiver testando [componentes assíncronos](https://vuejs.org/guide/built-ins/suspense.html#async-setup) como o seguinte:
 
 ```vue
 <script setup>
@@ -148,7 +147,7 @@ const posts = await res.json()
 </template>
 ```
 
-We recommend to use [`@vue/test-utils`](https://www.npmjs.com/package/@vue/test-utils) and a little suspense wrapper to get the component rendered. Unfortunately [`@testing-library/vue`](https://github.com/testing-library/vue-testing-library/issues/230) has no support for this yet. Create a `helper.ts` file with the following content:
+Recomendamos usar [`@vue/test-utils`](https://www.npmjs.com/package/@vue/test-utils) e um pequeno wrapper de suspense para renderizar o componente. Infelizmente, [`@testing-library/vue`](https://github.com/testing-library/vue-testing-library/issues/230) ainda não tem suporte para isso. Crie um arquivo `helper.ts` com o seguinte conteúdo:
 
 ```ts
 import { mount, type VueWrapper as VueWrapperImport } from '@vue/test-utils'
@@ -189,7 +188,7 @@ export function renderAsyncComponent(vueComponent: ReturnType<typeof defineCompo
 }
 ```
 
-Then import and test the component as following:
+Em seguida, importe e teste o componente da seguinte maneira:
 
 ```ts
 import { $, expect } from '@wdio/globals'
@@ -213,40 +212,41 @@ describe('Testing Async Components', () => {
 })
 ```
 
-## Testing Vue Components in Nuxt
+## Testando componentes Vue no Nuxt
 
-If you are using the web framework [Nuxt](https://nuxt.com/), WebdriverIO will automatically enable the [auto-import](https://nuxt.com/docs/guide/concepts/auto-imports) feature and makes testing your Vue components and Nuxt pages easy. However any [Nuxt modules](https://nuxt.com/modules) that you might define in your config and requires context to the Nuxt application can not be supported.
+Se você estiver usando o framework web [Nuxt](https://nuxt.com/), o WebdriverIO habilitará automaticamente o recurso [importação automática](https://nuxt.com/docs/guide/concepts/auto-imports) e facilitará o teste de seus componentes Vue e páginas Nuxt. Entretanto, quaisquer [módulos Nuxt](https://nuxt.com/modules) que você possa definir em sua configuração e que exijam contexto para o aplicativo Nuxt não podem ser suportados.
 
-__Reasons for that are:__
-- WebdriverIO can't initiate a Nuxt application soley in a browser environment
-- Having component tests depend too much on the Nuxt environment creates complexity and we recommend to run these tests as e2e tests
+__As razões para isso são:__
+- O WebdriverIO não pode iniciar um aplicativo Nuxt somente em um ambiente de navegador
+- Ter testes de componentes dependendo muito do ambiente Nuxt cria complexidade e recomendamos executar esses testes como testes e2e
 
 :::info
 
-WebdriverIO also provides a service for running e2e tests on Nuxt applications, see [`webdriverio-community/wdio-nuxt-service`](https://github.com/webdriverio-community/wdio-nuxt-service) for information.
+O WebdriverIO também fornece um serviço para executar testes e2e em aplicativos Nuxt. Consulte [`webdriverio-community/wdio-nuxt-service`](https://github.com/webdriverio-community/wdio-nuxt-service) para obter informações.
 
 :::
 
-### Mocking built-in composables
+### Mocking de composables integrados
 
-In case your component uses a native Nuxt composable, e.g. [`useNuxtData`](https://nuxt.com/docs/api/composables/use-nuxt-data), WebdriverIO will automatically mock these functions and allows you to modify their behavior or assert against them, e.g.:
+Caso seu componente use um composable nativo do Nuxt, por exemplo, [`useNuxtData`](https://nuxt.com/docs/api/composables/use-nuxt-data), o WebdriverIO simulará automaticamente essas funções e permitirá que você modifique seu comportamento ou faça afirmações contra elas, por exemplo:
 
 ```ts
 import { mocked } from '@wdio/browser-runner'
 
-// e.g. your component uses calls `useNuxtData` the following way
+// por exemplo, seu componente usa a chamada `useNuxtData` da seguinte forma
 // `const { data: posts } = useNuxtData('posts')`
-// in your test you can assert against it
+// no seu teste, você pode afirmar contra isso
 expect(useNuxtData).toBeCalledWith('posts')
-// and change their behavior
+// e alterar o comportamento deles
 mocked(useNuxtData).mockReturnValue({
     data: [...]
 })
+})
 ```
 
-### Handling 3rd party composables
+### Manipulando composables de terceiros
 
-All [3rd party modules](https://nuxt.com/modules) that can supercharge your Nuxt project can't automatically get mocked. In those cases you need to manually mock them, e.g. given your application uses the [Supabase](https://nuxt.com/modules/supabase) module plugin:
+Todos os [módulos de terceiros](https://nuxt.com/modules) que podem potencializar seu projeto Nuxt não podem ser automaticamente simulados. Nesses casos, você precisa simulá-los manualmente, por exemplo, dado que seu aplicativo usa o plugin do módulo [Supabase](https://nuxt.com/modules/supabase):
 
 ```js title=""
 export default defineNuxtConfig({
@@ -258,19 +258,19 @@ export default defineNuxtConfig({
 });
 ```
 
-and you create an instance of Supabase somewhere in your composables, e.g.:
+e você cria uma instância do Supabase em algum lugar em seus composables, por exemplo:
 
 ```ts
 const superbase = useSupabaseClient()
 ```
 
-the test will fail due to:
+o teste falhará devido a:
 
 ```
-ReferenceError: useSupabaseClient is not defined
+ReferenceError: useSupabaseClient não está definido
 ```
 
-Here, we recommend to either mock out the whole module that uses the `useSupabaseClient` function or create a global variable that mocks this function, e.g.:
+Aqui, recomendamos simular todo o módulo que usa a função `useSupabaseClient` ou criar uma variável global que simula essa função, por exemplo:
 
 ```ts
 import { fn } from '@wdio/browser-runner'
