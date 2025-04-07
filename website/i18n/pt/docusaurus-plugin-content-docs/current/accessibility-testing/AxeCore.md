@@ -26,4 +26,4 @@ describe('Accessibility Test', () => {
 })
 ```
 
-You can find more documentation on the Axe WebdriverIO adapter [on GitHub](https://github.com/dequelabs/axe-core-npm/tree/develop/packages/webdriverio#usage).
+Você pode encontrar mais documentação sobre o adaptador Axe WebdriverIO [no GitHub](https://github.com/dequelabs/axe-core-npm/tree/develop/packages/webdriverio#usage).
