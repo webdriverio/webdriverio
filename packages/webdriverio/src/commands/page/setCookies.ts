@@ -1,4 +1,4 @@
-import type { Cookie } from '@wdio/protocols'
+import { setCookies as setCookiesProtocol } from '../browser/setCookies.js'
 
 /**
  *
@@ -9,10 +9,10 @@ import type { Cookie } from '@wdio/protocols'
  * <example>
     :setCookies.js
     it('should set a cookie for the page', async () => {
-        await browser.url('/')
+        const page = await browser.url('/')
 
         // set a single cookie
-        await browser.setCookies({
+        await page.setCookies({
             name: 'test1',
             value: 'one'
             // The below options are optional
@@ -24,12 +24,12 @@ import type { Cookie } from '@wdio/protocols'
         })
 
         // set multiple cookies
-        await browser.setCookies([
+        await page.setCookies([
             {name: 'test2', value: 'two'},
             {name: 'test3', value: 'three'}
         ])
 
-        const cookies = await browser.getCookies()
+        const cookies = await page.getCookies()
         console.log(cookies);
         // outputs:
         // [
@@ -40,8 +40,8 @@ import type { Cookie } from '@wdio/protocols'
     });
  * </example>
  *
- * @alias browser.setCookies
- * @param {`Array<WebDriverCookie>|WebDriverCookie`} cookie   cookie object or object array.
+ * @alias page.setCookies
+ * @param {Array<WebDriverCookie>|WebDriverCookie} cookie   cookie object or object array.
  * @param {String=}       cookie.name     The name of the cookie.
  * @param {String=}       cookie.value    The cookie value.
  * @param {String=}       cookie.path     The cookie path. Defaults to "/" if omitted when adding a cookie.
@@ -54,49 +54,4 @@ import type { Cookie } from '@wdio/protocols'
  * @type cookie
  *
  */
-export async function setCookies(
-    this: WebdriverIO.Browser | WebdriverIO.Page,
-    cookieObjs: Cookie | Cookie[]
-) {
-    const isPage = 'contextId' in this
-    const browser = isPage ? this.browser : this
-    const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
-
-    if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {
-        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies for documentation)')
-    }
-
-    /**
-     * if session doesn't use Bidi, use WebDriver Classic command
-     */
-    if (!browser.isBidi) {
-        await Promise.all(cookieObjsList.map(cookieObj => browser.addCookie(cookieObj)))
-        return
-    }
-
-    /**
-     * only fetch current url of browsing context if not all cookies have a domain set
-     */
-    let url = new URL('http://localhost')
-    if (cookieObjsList.some((cookie) => typeof cookie.domain !== 'string')) {
-        url = new URL(await browser.getUrl())
-    }
-
-    await Promise.all(cookieObjsList.map((cookie) => (
-        browser.storageSetCookie({
-            partition: isPage ? {
-                type: 'context',
-                context: this.contextId
-            } : undefined,
-            cookie: {
-                ...cookie,
-                domain: cookie.domain || url.hostname,
-                value: {
-                    type: 'string',
-                    value: cookie.value,
-                }
-            }
-        })
-    )))
-    return
-}
+export const setCookies = setCookiesProtocol
