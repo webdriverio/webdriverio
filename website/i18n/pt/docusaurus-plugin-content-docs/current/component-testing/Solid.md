@@ -3,11 +3,11 @@ id: solid
 title: SolidJS
 ---
 
-[SolidJS](https://www.solidjs.com/) is a framework to build user interfaces with simple and performant reactivity. You can test SolidJS components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[SolidJS](https://www.solidjs.com/) é uma estrutura para construir interfaces de usuário com reatividade simples e de alto desempenho. Você pode testar componentes SolidJS diretamente em um navegador real usando o WebdriverIO e seu [executor do navegador](/docs/runner#browser-runner).
 
-## Setup
+## Configurar
 
-To setup WebdriverIO within your SolidJS project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `solid` as preset within your runner options, e.g.:
+Para configurar o WebdriverIO no seu projeto SolidJS, siga as [instruções](/docs/component-testing#set-up) em nossos documentos de teste de componentes. Certifique-se de selecionar `sólido` como predefinição nas opções do seu corredor, por exemplo:
 
 ```js
 // wdio.conf.js
@@ -22,25 +22,25 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+Se você já estiver usando o [Vite](https://vitejs.dev/) como servidor de desenvolvimento, você também pode reutilizar sua configuração em `vite.config.ts` dentro da sua configuração do WebdriverIO. Para obter mais informações, consulte `viteConfig` em [opções do runner](/docs/runner#runner-options).
 
 :::
 
-The SolidJS preset requires `vite-plugin-solid` to be installed:
+A predefinição SolidJS requer que `vite-plugin-solid` esteja instalado:
 
 ```sh npm2yarn
 npm install --save-dev vite-plugin-solid
 ```
 
-You can then start the tests by running:
+Você pode então iniciar os testes executando:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-## Writing Tests
+## Escrevendo testes
 
-Given you have the following SolidJS component:
+Considerando que você tem o seguinte componente SolidJS:
 
 ```html title="./components/Component.tsx"
 import { createSignal } from 'solid-js'
@@ -61,7 +61,7 @@ function App() {
 export default App
 ```
 
-In your test use the `render` method from `solid-js/web` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+No seu teste, use o método `render` de `solid-js/web` para anexar o componente à página de teste. Para interagir com o componente, recomendamos usar comandos WebdriverIO, pois eles se comportam mais próximos das interações reais do usuário, por exemplo:
 
 ```ts title="app.test.tsx"
 import { expect } from '@wdio/globals'
@@ -69,10 +69,10 @@ import { render } from 'solid-js/web'
 
 import App from './components/Component.jsx'
 
-describe('Solid Component Testing', () => {
+describe('Teste de Componente Solid', () => {
     /**
-     * ensure we render the component for every test in a
-     * new root container
+     * garante que renderizamos o componente para cada teste em um
+     * novo container raiz
      */
     let root: Element
     beforeEach(() => {
@@ -84,7 +84,7 @@ describe('Solid Component Testing', () => {
         document.body.appendChild(root)
     })
 
-    it('Test theme button toggle', async () => {
+    it('Testar alternância do botão de tema', async () => {
         render(<App />, root)
         const buttonEl = await $('button')
 
@@ -92,7 +92,8 @@ describe('Solid Component Testing', () => {
         expect(buttonEl).toContainHTML('dark')
     })
 })
+
 ```
 
-You can find a full example of a WebdriverIO component test suite for SolidJS in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/solidjs-typescript-vite).
+Você pode encontrar um exemplo completo de um conjunto de testes de componentes WebdriverIO para SolidJS em nosso [repositório de exemplos](https://github.com/webdriverio/component-testing-examples/tree/main/solidjs-typescript-vite).
 
