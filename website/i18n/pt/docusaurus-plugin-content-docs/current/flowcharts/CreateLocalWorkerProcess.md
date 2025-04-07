@@ -1,8 +1,8 @@
 ---
 id: createlocalworkerprocess
-title: Create worker process
+title: Criar processo de trabalho
 ---
 
-This flowchart explains how a worker process is created.
+Este fluxograma explica como um processo de trabalho é criado.
 
 <CreateFlowcharts id='createlocalworkerprocess' />
