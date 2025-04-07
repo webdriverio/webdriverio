@@ -44,11 +44,9 @@ export async function keys (
         throw new Error('"keys" command requires a string or array of strings as parameter')
     }
 
-    /**
-     * W3C way of handle it key actions
-     */
     const keyAction = (this as WebdriverIO.BrowsingContext).action('key')
     keySequence.forEach((value) => keyAction.down(value))
+
     /**
      * XCTest API only allows to send keypresses (e.g. keydown+keyup).
      * There is no way to "split" them
