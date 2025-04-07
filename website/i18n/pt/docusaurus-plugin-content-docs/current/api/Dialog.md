@@ -21,6 +21,6 @@ await browser.execute(() => alert('Hello Dialog'))
 
 :::note
 
-Dialogs are dismissed automatically, unless there is a `browser.on('dialog')` listener. When listener is present, it must either [`dialog.accept()`](/docs/api/dialog/accept) or [`dialog.dismiss()`](/docs/api/dialog/dismiss) the dialog - otherwise the page will freeze waiting for the dialog, and actions like click will never finish.
+Dialogs are dismissed automatically, unless there is a `browser.on('dialog')` listener. Quando o ouvinte estiver presente, ele deve [`dialog.accept()`](/docs/api/dialog/accept) ou [`dialog.dismiss()`](/docs/api/dialog/dismiss) o diálogo - caso contrário, a página congelará esperando o diálogo, e ações como clicar nunca serão concluídas.
 
 :::
