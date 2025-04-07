@@ -40,14 +40,14 @@ await browser.saveElement(
 #### Parameters
 
 - **`element`:**
-  - **Mandatory:** Yes
-  - **Type:** WebdriverIO Element
+ - **Mandatory:** Yes
+ - **Type:** WebdriverIO Element
 - **`tag`:**
-  - **Mandatory:** Yes
-  - **Type:** string
+ - **Mandatory:** Yes
+ - **Type:** string
 - **`saveElementOptions`:**
-  - **Mandatory:** No
-  - **Type:** an object of options, see [Save Options](./method-options#save-options)
+ - **Mandatory:** No
+ - **Type:** an object of options, see [Save Options](./method-options#save-options)
 
 #### Output:
 
@@ -80,11 +80,11 @@ await browser.saveScreen(
 #### Parameters
 
 - **`tag`:**
-  - **Mandatory:** Yes
-  - **Type:** string
+ - **Mandatory:** Yes
+ - **Type:** string
 - **`saveScreenOptions`:**
-  - **Mandatory:** No
-  - **Type:** an object of options, see [Save Options](./method-options#save-options)
+ - **Mandatory:** No
+ - **Type:** an object of options, see [Save Options](./method-options#save-options)
 
 #### Output:
 
@@ -115,11 +115,11 @@ await browser.saveFullPageScreen(
 #### Parameters
 
 - **`tag`:**
-  - **Mandatory:** Yes
-  - **Type:** string
+ - **Mandatory:** Yes
+ - **Type:** string
 - **`saveFullPageScreenOptions`:**
-  - **Mandatory:** No
-  - **Type:** an object of options, see [Save Options](./method-options#save-options)
+ - **Mandatory:** No
+ - **Type:** an object of options, see [Save Options](./method-options#save-options)
 
 #### Output:
 
@@ -149,11 +149,11 @@ await browser.saveTabbablePage(
 #### Parameters
 
 - **`tag`:**
-  - **Mandatory:** Yes
-  - **Type:** string
+ - **Mandatory:** Yes
+ - **Type:** string
 - **`saveTabbableOptions`:**
-  - **Mandatory:** No
-  - **Type:** an object of options, see [Save Options](./method-options#save-options)
+ - **Mandatory:** No
+ - **Type:** an object of options, see [Save Options](./method-options#save-options)
 
 #### Output:
 
@@ -204,14 +204,14 @@ await browser.checkElement(
 #### Parameters
 
 - **`element`:**
-  - **Mandatory:** Yes
-  - **Type:** WebdriverIO Element
+ - **Mandatory:** Yes
+ - **Type:** WebdriverIO Element
 - **`tag`:**
-  - **Mandatory:** Yes
-  - **Type:** string
+ - **Mandatory:** Yes
+ - **Type:** string
 - **`checkElementOptions`:**
-  - **Mandatory:** No
-  - **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
+ - **Mandatory:** No
+ - **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
 
 #### Output:
 
@@ -244,11 +244,11 @@ await browser.checkScreen(
 #### Parameters
 
 - **`tag`:**
-  - **Mandatory:** Yes
-  - **Type:** string
+ - **Mandatory:** Yes
+ - **Type:** string
 - **`checkScreenOptions`:**
-  - **Mandatory:** No
-  - **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
+ - **Mandatory:** No
+ - **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
 
 #### Output:
 
@@ -279,11 +279,11 @@ await browser.checkFullPageScreen(
 #### Parameters
 
 - **`tag`:**
-  - **Mandatory:** Yes
-  - **Type:** string
+ - **Mandatory:** Yes
+ - **Type:** string
 - **`checkFullPageOptions`:**
-  - **Mandatory:** No
-  - **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
+ - **Mandatory:** No
+ - **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
 
 #### Output:
 
@@ -313,11 +313,11 @@ await browser.checkTabbablePage(
 #### Parameters
 
 - **`tag`:**
-  - **Mandatory:** Yes
-  - **Type:** string
+ - **Mandatory:** Yes
+ - **Type:** string
 - **`checkTabbableOptions`:**
-  - **Mandatory:** No
-  - **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
+ - **Mandatory:** No
+ - **Type:** an object of options, see [Compare/Check Options](./method-options#compare-check-options)
 
 #### Output:
 
