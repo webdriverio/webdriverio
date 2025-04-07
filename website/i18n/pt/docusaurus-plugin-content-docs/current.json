@@ -1,54 +1,54 @@
 {
   "version.label": {
-    "message": "Seguinte",
+    "message": "Next",
     "description": "The label for version current"
   },
   "sidebar.docs.category.Getting Started": {
-    "message": "Primeiros passos",
+    "message": "Getting Started",
     "description": "The label for category Getting Started in sidebar docs"
   },
   "sidebar.docs.category.Core Concepts": {
-    "message": "Conceitos Básicos",
+    "message": "Core Concepts",
     "description": "The label for category Core Concepts in sidebar docs"
   },
   "sidebar.docs.category.Configuration": {
-    "message": "Configuração",
+    "message": "Configuration",
     "description": "The label for category Configuration in sidebar docs"
   },
   "sidebar.docs.category.Guides": {
-    "message": "Guias",
+    "message": "Guides",
     "description": "The label for category Guides in sidebar docs"
   },
   "sidebar.docs.category.Testrunner": {
-    "message": "Executor de Teste",
+    "message": "Testrunner",
     "description": "The label for category Testrunner in sidebar docs"
   },
   "sidebar.docs.category.Component Testing": {
-    "message": "Teste de Componente",
+    "message": "Component Testing",
     "description": "The label for category Component Testing in sidebar docs"
   },
   "sidebar.docs.category.Framework Setup": {
-    "message": "Configuração do Framework",
+    "message": "Framework Setup",
     "description": "The label for category Framework Setup in sidebar docs"
   },
   "sidebar.docs.category.Migrate": {
-    "message": "Migração",
+    "message": "Migrate",
     "description": "The label for category Migrate in sidebar docs"
   },
   "sidebar.docs.category.Integration": {
-    "message": "Integração",
+    "message": "Integration",
     "description": "The label for category Integration in sidebar docs"
   },
   "sidebar.docs.category.Reporter": {
-    "message": "Gerador de Relatórios",
+    "message": "Reporter",
     "description": "The label for category Reporter in sidebar docs"
   },
   "sidebar.docs.category.Services": {
-    "message": "Serviços",
+    "message": "Services",
     "description": "The label for category Services in sidebar docs"
   },
   "sidebar.api.category.Protocols": {
-    "message": "Protocolos",
+    "message": "Protocols",
     "description": "The label for category Protocols in sidebar api"
   },
   "sidebar.api.category.browser": {
@@ -64,11 +64,11 @@
     "description": "The label for category mock in sidebar api"
   },
   "sidebar.flowcharts.category.Flowcharts": {
-    "message": "Fluxogramas",
+    "message": "Flowcharts",
     "description": "The label for category Flowcharts in sidebar flowcharts"
   },
   "sidebar.docs.category.Web Extension Testing": {
-    "message": "Teste de Extensão Web",
+    "message": "Web Extension Testing",
     "description": "The label for category Web Extension Testing in sidebar docs"
   }
 }
