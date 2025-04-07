@@ -39,7 +39,7 @@ await waitUntil(async ()=> await fs.existsSync(downloadPath), 5000);
 
 To override file download behavior for **Google Chrome**, **Mozilla Firefox**, and **Microsoft Edge**, provide the download directory in the WebDriverIO capabilities:
 
-\<Tabs
+<Tabs
 defaultValue="chrome"
 values={[
 {label: 'Chrome', value: 'chrome'},
