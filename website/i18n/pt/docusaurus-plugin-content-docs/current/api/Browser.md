@@ -132,7 +132,7 @@ This event is emitted whenever WebdriverIO sends a WebDriver Classic command. It
 
 #### `result`
 
-This event is emitted whenever WebdriverIO receives a result of a WebDriver Classic command. It contains the same information as the `command` event with the addition of the following information:
+This event is emitted whenever WebdriverIO receives a result of a WebDriver Classic command. Ele contém as mesmas informações do evento `comando` com a adição das seguintes informações:
 
 - `result`: the command result
 
@@ -208,4 +208,4 @@ Object {
 
 ### Custom Commands
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+You can set custom commands on the browser scope to abstract away workflows that are commonly used. Confira nosso guia sobre [Comandos personalizados](/docs/customcommands#adding-custom-commands) para obter mais informações.
