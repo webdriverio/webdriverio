@@ -84,4 +84,4 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
 >
 </Card>
 
-and [many many more](https://github.com/orgs/webdriverio/people).
+e [muitos muitos mais](https://github.com/orgs/webdriverio/people).
