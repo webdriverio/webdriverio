@@ -1,4 +1,7 @@
 import type { remote } from 'webdriver'
+import { getBrowserObject } from '@wdio/utils'
+
+import { isBrowsingContext } from '../../utils/index.js'
 
 /**
  * Delete cookies visible to the current page. By providing a cookie name it
@@ -10,34 +13,25 @@ import type { remote } from 'webdriver'
  * @example https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/deleteCookies/example.js#L31-L35
  */
 export async function deleteCookies(
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     filter?: string | string[] | remote.StorageCookieFilter | remote.StorageCookieFilter[]
 ): Promise<void> {
+    const browser = getBrowserObject(this)
     const filterArray = typeof filter === 'undefined'
         ? undefined
         : Array.isArray(filter) ? filter : [filter]
 
-    if (!this.isBidi) {
-        const names = filterArray?.map((f) => {
-            if (typeof f === 'object') {
-                const name = f.name
-                if (!name) {
-                    throw new Error('In WebDriver Classic you can only filter for cookie names')
-                }
-                return name
-            }
-            if (typeof f === 'string') {
-                return f
-            }
-
-            throw new Error(`Invalid value for cookie filter, expected 'string' or 'remote.StorageCookieFilter' but found "${typeof f}"`)
-        })
-        await deleteCookiesClassic.call(this, names)
+    if (!browser.isBidi) {
+        await deleteCookiesClassic.call(this, filterArray)
         return
     }
 
+    const partition = isBrowsingContext(this)
+        ? { type: 'context', context: this.contextId } as const
+        : undefined
+
     if (!filterArray) {
-        await this.storageDeleteCookies({})
+        await browser.storageDeleteCookies({ partition })
         return
     }
 
@@ -53,7 +47,7 @@ export async function deleteCookies(
     })
 
     await Promise.all(bidiFilter.map((filter) => (
-        this.storageDeleteCookies({ filter })
+        browser.storageDeleteCookies({ filter, partition })
     )))
 
     return
@@ -61,8 +55,23 @@ export async function deleteCookies(
 
 function deleteCookiesClassic(
     this: WebdriverIO.Browser,
-    names?: string[]
+    filterArray?: (string | remote.StorageCookieFilter)[]
 ) {
+    const names = filterArray?.map((f) => {
+        if (typeof f === 'object') {
+            const name = f.name
+            if (!name) {
+                throw new Error('In WebDriver Classic you can only filter for cookie names')
+            }
+            return name
+        }
+        if (typeof f === 'string') {
+            return f
+        }
+
+        throw new Error(`Invalid value for cookie filter, expected 'string' or 'remote.StorageCookieFilter' but found "${typeof f}"`)
+    })
+
     if (names === undefined) {
         return this.deleteAllCookies()
     }

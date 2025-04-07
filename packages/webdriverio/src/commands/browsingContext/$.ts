@@ -1,7 +1,6 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
-import { DEEP_SELECTOR } from '../../constants.js'
 import { findElement } from '../../utils/index.js'
 import { getElement } from '../../utils/getElementObject.js'
 import type { Selector } from '../../types.js'
@@ -40,14 +39,15 @@ import type { Selector } from '../../types.js'
  * <example>
     :$.js
     it('should use Androids DataMatcher or ViewMatcher selector', async () => {
-        const menuItem = await $({
+        const context = await browser.url('https://www.webdriver.io')
+        const menuItem = await context.$({
             "name": "hasEntry",
             "args": ["title", "ViewTitle"],
             "class": "androidx.test.espresso.matcher.ViewMatchers"
         });
         await menuItem.click();
 
-        const menuItem = await $({
+        const menuItem = await context.$({
             "name": "hasEntry",
             "args": ["title", "ViewTitle"]
         });
@@ -58,32 +58,12 @@ import type { Selector } from '../../types.js'
  * @alias $
  * @param {String|Function|Matcher} selector  selector, JS Function, or Matcher object to fetch a certain element
  * @return {WebdriverIO.Element}
- * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
- * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/singleElements.js#L9-L10
- * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/singleElements.js#L16-L25
- * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/singleElements.js#L42-L46
  * @type utility
- *
  */
 export async function $ (
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: WebdriverIO.BrowsingContext,
     selector: Selector
 ): Promise<WebdriverIO.Element> {
-    /**
-     * run this in Node.js land if we are using browser runner because we collect
-     * more browser information there that allows better lookups
-     */
-    if (globalThis.wdio && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
-        /**
-         * `res` is an element reference as we strip down the element
-         * result to its element id
-         */
-        const res: ElementReference = 'elementId' in this
-            ? await globalThis.wdio.executeWithScope('$' as const, this.elementId, selector)
-            : await globalThis.wdio.execute('$' as const, selector)
-        return getElement.call(this, selector as string, res)
-    }
-
     /**
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`

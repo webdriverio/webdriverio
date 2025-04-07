@@ -21,8 +21,8 @@ import { parseScriptResult } from '../../utils/bidi/index.js'
  * <example>
     :execute.js
     it('should inject javascript on the page', async () => {
-        const page = await browser.url('https://webdriver.io')
-        const result = await page.execute((a, b, c, d) => {
+        const context = await browser.url('https://webdriver.io')
+        const result = await context.execute((a, b, c, d) => {
             // browser context - you may not access client or console
             return a + b + c + d
         }, 1, 2, 3, 4)
@@ -41,7 +41,7 @@ import { parseScriptResult } from '../../utils/bidi/index.js'
  *
  */
 export async function execute<ReturnValue, InnerArguments extends unknown[]> (
-    this: WebdriverIO.Page,
+    this: WebdriverIO.BrowsingContext,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments
 ): Promise<ReturnValue> {

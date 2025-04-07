@@ -1,4 +1,4 @@
-import { getPage } from '../../page/index.js'
+import { getPage } from '../../browsingContext/index.js'
 import { navigateContext } from '../browser/url.js'
 
 /**
@@ -35,16 +35,16 @@ import { navigateContext } from '../browser/url.js'
  * @param {NewWindowOptions=} options                newWindow command options
  * @param {string=}           options.type           type of new window: 'tab' or 'window'
  *
- * @return {WebdriverIO.Page} a `WebdriverIO.Page` object
+ * @return {WebdriverIO.BrowsingContext} a `WebdriverIO.BrowsingContext` object
  * @throws {Error} If `url` is invalid, if the command is used on mobile, or `type` is not 'tab' or 'window'.
  *
  * @alias page.newWindow
  */
 export async function newWindow (
-    this: WebdriverIO.Page,
+    this: WebdriverIO.BrowsingContext,
     url: string,
     props: { type: 'tab' | 'window' }
-): Promise<WebdriverIO.Page> {
+): Promise<WebdriverIO.BrowsingContext> {
     const { context } = await this.browser.browsingContextCreate({
         type: props.type,
         referenceContext: this.contextId

@@ -1,4 +1,5 @@
 import { ELEMENT_KEY } from 'webdriver'
+import { getBrowserObject } from '@wdio/utils'
 
 import { enhanceElementsArray } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
@@ -29,18 +30,19 @@ import type { CustomStrategyFunction, CustomStrategyReference } from '../../type
  * @return {WebdriverIO.ElementArray}
  */
 export async function custom$$ (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     strategyName: string,
     ...strategyArguments: unknown[]
 ): Promise<WebdriverIO.ElementArray> {
-    const strategy = this.strategies.get(strategyName) as CustomStrategyFunction
+    const browser = getBrowserObject(this)
+    const strategy = browser.strategies.get(strategyName) as CustomStrategyFunction
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
     }
 
     const strategyRef: CustomStrategyReference = { strategy, strategyName, strategyArguments }
-    let res = await this.execute(strategy, ...strategyArguments)
+    let res = await (this as WebdriverIO.BrowsingContext).execute(strategy, ...strategyArguments)
 
     /**
      * if the user's script return just one element

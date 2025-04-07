@@ -1,5 +1,7 @@
-import type { SupportedScopes } from '../../types.js'
+import { getBrowserObject } from '@wdio/utils'
+
 import { restoreFunctions } from '../../constants.js'
+import type { SupportedScopes } from '../../types.js'
 
 /**
  *
@@ -14,7 +16,7 @@ import { restoreFunctions } from '../../constants.js'
         await browser.emulate('onLine', false)
     })
 
-    it('should restore all emulated behavior', async () => {
+    it('should run in an emulated environment', async () => {
         await browser.url('https://webdriver.io')
         // test within an emulated environment...
     })
@@ -32,11 +34,12 @@ import { restoreFunctions } from '../../constants.js'
  *
  */
 export async function restore (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     scopes?: SupportedScopes | SupportedScopes[]
 ) {
+    const browser = getBrowserObject(this)
     const scopeArray = !scopes || Array.isArray(scopes) ? scopes : [scopes]
-    const instanceRestoreFunctions = restoreFunctions.get(this.sessionId)
+    const instanceRestoreFunctions = restoreFunctions.get(browser.sessionId)
     if (!instanceRestoreFunctions) {
         return
     }

@@ -24,11 +24,11 @@ declare const WDIO_FAKER_SCRIPT: string
 const fakerScript = WDIO_FAKER_SCRIPT
 
 export class ClockManager {
-    #instance: WebdriverIO.Browser | WebdriverIO.Page
+    #instance: WebdriverIO.Browser | WebdriverIO.BrowsingContext
     #resetFn: (() => Promise<unknown>) = () => Promise.resolve()
     #isInstalled = false
 
-    constructor(instance: WebdriverIO.Browser | WebdriverIO.Page) {
+    constructor(instance: WebdriverIO.Browser | WebdriverIO.BrowsingContext) {
         this.#instance = instance
     }
 
@@ -62,7 +62,7 @@ export class ClockManager {
         }
 
         const isBrowser = 'browser' in this.#instance
-        const page = this.#instance as WebdriverIO.Page
+        const page = this.#instance as WebdriverIO.BrowsingContext
         const browser = isBrowser ? page.browser : this.#instance as WebdriverIO.Browser
         const [, libScript, restoreInstallScript] = await Promise.all([
             /**
@@ -133,7 +133,7 @@ export class ClockManager {
      */
     async tick(ms: number) {
         const isBrowser = 'browser' in this.#instance
-        const page = this.#instance as WebdriverIO.Page
+        const page = this.#instance as WebdriverIO.BrowsingContext
         const browser = isBrowser
             ? page.browser
             : this.#instance as WebdriverIO.Browser
@@ -164,7 +164,7 @@ export class ClockManager {
     async setSystemTime(date: number | Date) {
         const serializableSystemTime = date instanceof Date ? date.getTime() : date
         const isBrowser = 'browser' in this.#instance
-        const page = this.#instance as WebdriverIO.Page
+        const page = this.#instance as WebdriverIO.BrowsingContext
         const browser = isBrowser
             ? page.browser
             : this.#instance as WebdriverIO.Browser

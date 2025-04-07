@@ -1,6 +1,9 @@
 import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
+import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
+
+import { isBrowsingContext } from '../../utils/index.js'
 
 const log = logger('webdriverio')
 
@@ -41,20 +44,26 @@ const log = logger('webdriverio')
  *
  */
 export async function getCookies(
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     filter?: string | string[] | remote.StorageCookieFilter
 ): Promise<Cookie[]> {
+    const browser = getBrowserObject(this)
+
     /**
      * check if filter is a string array and let users know that this feature
      * is deprecated and will be removed in an upcoming version of WebdriverIO
      */
     const usesMultipleFilter = Array.isArray(filter) && filter.length > 1
-    if (!this.isBidi || usesMultipleFilter) {
+    if (!browser.isBidi || usesMultipleFilter) {
         return getCookiesClassic.call(this, filter)
     }
 
     const cookieFilter = getCookieFilter(filter)
-    const { cookies } = await this.storageGetCookies({ filter: cookieFilter })
+    const partition = isBrowsingContext(this)
+        ? { type: 'context', context: this.contextId } as const
+        : undefined
+
+    const { cookies } = await browser.storageGetCookies({ filter: cookieFilter, partition })
     return cookies.map((cookie) => ({
         ...cookie,
         value: cookie.value.type === 'base64' ? atob(cookie.value.value) : cookie.value.value

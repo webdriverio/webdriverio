@@ -153,20 +153,20 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/bidi/actions/
  *
  */
 export function action (
-    this: WebdriverIO.Page,
+    this: WebdriverIO.BrowsingContext,
     type: 'key',
 ): KeyAction
 export function action (
-    this: WebdriverIO.Page,
+    this: WebdriverIO.BrowsingContext,
     type: 'pointer',
     opts?: remote.InputPointerParameters
 ): PointerAction
 export function action (
-    this: WebdriverIO.Page,
+    this: WebdriverIO.BrowsingContext,
     type: 'wheel',
 ): WheelAction
 export function action (
-    this: WebdriverIO.Page,
+    this: WebdriverIO.BrowsingContext,
     type: ActionType,
     opts?: remote.InputPointerParameters
 ): KeyAction | PointerAction | WheelAction {

@@ -55,7 +55,7 @@ import type { Cookie } from '@wdio/protocols'
  *
  */
 export async function setCookies(
-    this: WebdriverIO.Browser | WebdriverIO.Page,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     cookieObjs: Cookie | Cookie[]
 ) {
     const isPage = 'contextId' in this

@@ -104,7 +104,7 @@ function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: Elemen
      * is defined on the object itself and if not, create a new element object.
      */
     let parent = res.length > 0 ? (res[0] as WebdriverIO.Element).parent || this : this
-    if (typeof parent.$ === 'undefined') {
+    if (!('$' in parent) || typeof parent.$ === 'undefined') {
         parent = 'selector' in parent
             ? getElement.call(this, parent.selector, parent)
             : this

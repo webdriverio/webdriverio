@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-
+import { getBrowserObject } from '@wdio/utils'
 const log = logger('webdriverio')
 
 /**
@@ -26,7 +26,7 @@ const log = logger('webdriverio')
  *
  */
 export function scroll (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     x = 0,
     y = 0
 ) {
@@ -34,12 +34,14 @@ export function scroll (
         return log.warn('"scroll" command was called with no parameters, skipping execution')
     }
 
+    const browser = getBrowserObject(this)
+
     // Appium does not support the "wheel" action
-    if (this.isMobile) {
-        return this.execute((x, y) => window.scrollBy(x, y), x, y)
+    if (browser.isMobile) {
+        return browser.execute((x, y) => window.scrollBy(x, y), x, y)
     }
 
-    return this.action('wheel')
+    return (this as WebdriverIO.BrowsingContext).action('wheel')
         .scroll({
             deltaX: x,
             deltaY: y,
