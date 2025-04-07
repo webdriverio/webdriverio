@@ -141,7 +141,6 @@ export default function (docfile: {
             break
         }
         case 'deprecated': {
-            console.log('parse deprecated tag for', docfile.filename)
             tagDeprecated = source[0].source.split('@deprecated')[1].trim()
             break
         }
