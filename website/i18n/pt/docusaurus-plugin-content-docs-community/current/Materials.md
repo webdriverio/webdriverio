@@ -1,9 +1,9 @@
 ---
 id: materials
-title: Materials
+title: Materiais
 ---
 
-Materiais
+Se você quiser usar materiais do WebdriverIO em seus próprios workshops ou eventos, fique à vontade para obtê-los diretamente aqui.
 
 ## Oficinas
 
