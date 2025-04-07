@@ -22,4 +22,4 @@ After that, you can book an appointment at any time on:
 
 All sessions will be held over [Zoom](https://zoom.us/) or [Google Hangouts](https://hangouts.google.com/) but alternative platforms are possible, please let us know in the comment section. Also please note that this is not a way to get individual consulting for your own projects. The time is to be used to work on WebdriverIO related bugs or features. For support questions we still ask you to use our [Discord Support Server](https://discord.webdriver.io).
 
-We are looking forward to meet you all online and hope to find more collaborators helping us to push the project forward!
+Estamos ansiosos para conhecer todos vocês ativos e esperamos encontrar mais colaboradores para nos ajudar a levar o projeto adiante!
