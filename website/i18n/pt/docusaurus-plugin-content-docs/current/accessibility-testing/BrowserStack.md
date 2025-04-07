@@ -1,34 +1,34 @@
 ---
 id: browserstack
-title: BrowserStack Accessibility Testing
+title: Teste de acessibilidade do BrowserStack
 ---
 
-# BrowserStack Accessibility Testing
+# Teste de acessibilidade do BrowserStack
 
-You can easily integrate accessibility tests in your WebdriverIO test suites using the Automated tests feature of BrowserStack Accessibility Testing.
+Você pode integrar facilmente testes de acessibilidade em seus conjuntos de testes do WebdriverIO usando o recurso de testes automatizados do BrowserStack Accessibility Testing.
 
-## Advantages of Automated Tests in BrowserStack Accessibility Testing
+## Vantagens dos testes automatizados no teste de acessibilidade do BrowserStack.
 
-To use Automated tests in BrowserStack Accessibility Testing, your tests should be running on BrowserStack Automate.
+Para usar testes automatizados no BrowserStack Accessibility Testing, seus testes devem estar em execução no BrowserStack Automate.
 
-The following are the advantages of Automated tests:
+As seguintes são as vantagens dos testes automatizados:
 
-- Seamlessly integrates into your pre-existing automation test suite.
-- No code changes are required in test cases.
-- Requires zero additional maintenance for accessibility testing.
-- Understand historical trends and gain test-case insights.
+- Integra-se perfeitamente ao seu conjunto de testes de automação pré-existente.
+- Nenhuma alteração de código é necessária em casos de teste.
+- Não requer manutenção adicional para testes de acessibilidade.
+- Entenda tendências históricas e obtenha insights de casos de teste.
 
-## Get Started with BrowserStack Accessibility Testing
+## Comece com o teste de acessibilidade do BrowserStack
 
-Follow these steps to integrate your WebdriverIO test suites with BrowserStack's Accessibility Testing:
+Siga estas etapas para integrar seus conjuntos de testes do WebdriverIO com o teste de acessibilidade do BrowserStack:
 
-1. Install `@wdio/browserstack-service` npm package.
+1. Instale o pacote npm `@wdio/browserstack-service`.
 
 ```bash npm2yarn
 npm install --save-dev @wdio/browserstack-service
 ```
 
-2. Update `wdio.conf.js` config file.
+2. Atualize o arquivo de configuração `wdio.conf.js`.
 
 ```javascript
 exports.config = {
