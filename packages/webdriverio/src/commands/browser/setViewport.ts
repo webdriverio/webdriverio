@@ -42,19 +42,19 @@ export async function setViewport(
     /**
      * type check
      */
-    if (typeof options.width !== 'number' || typeof options.height !== 'number') {
-        throw new Error('setViewport expects width and height of type number')
+    if (!Number.isInteger(options.width) || !Number.isInteger(options.height)) {
+        throw new Error('setViewport expects width and height to be an integer')
     }
 
     /**
      * value check
      */
     if (options.width < minWindowSize || options.width > maxWindowSize || options.height < minWindowSize || options.height > maxWindowSize) {
-        throw new Error('setViewport expects width and height to be a number in the 0 to 2^31 − 1 range')
+        throw new Error(`setViewport expects width and height to be a number in the range of ${minWindowSize} to ${maxWindowSize}`)
     }
 
-    if (options.devicePixelRatio && (typeof options.devicePixelRatio !== 'number' || options.devicePixelRatio < 0)) {
-        throw new Error('setViewport expects devicePixelRatio to be a number in the 0 to 2^31 − 1 range')
+    if (options.devicePixelRatio && (!Number.isInteger(options.devicePixelRatio) || options.devicePixelRatio < 0)) {
+        throw new Error(`setViewport expects devicePixelRatio to be a number in the range of ${minWindowSize} to ${maxWindowSize}`)
     }
 
     const browser = getBrowserObject(this)
