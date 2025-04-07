@@ -3,15 +3,15 @@ id: ocr-click-on-text
 title: ocrClickOnText
 ---
 
-Click on an element based on the provided texts. The command will search for the provided text and try to find a match based on Fuzzy Logic from [Fuse.js](https://fusejs.io/). This means that if you might provide a selector with a typo, or the found text might not be a 100% match it will still try to give you back an element. See the [logs](#logs) below.
+Clique em um elemento com base nos textos fornecidos. O comando pesquisará o texto fornecido e tentará encontrar uma correspondência com base na Lógica Fuzzy do [Fuse.js](https://fusejs.io/). Isso significa que se você fornecer um erro de digitação a um seletor, ou se o texto encontrado não for 100% correspondente, ele ainda tentará retornar um elemento. Veja os [logs](#logs) abaixo.
 
-## Usage
+## Uso
 
 ```js
 await browser.ocrClickOnText({ text: "Start3d" });
 ```
 
-## Output
+## Saída
 
 ### Logs
 
@@ -22,20 +22,20 @@ await browser.ocrClickOnText({ text: "Start3d" });
 [0-0] 2024-05-25T05:05:21.022Z INFO @wdio/ocr-service:ocrGetElementPositionByText: Multiple matches were found based on the word "Start3d". The match "Started" with score "85.71%" will be used.
 ```
 
-### Image
+### Imagem
 
-You will find an image in your (default)[`imagesFolder`](./getting-started#imagesfolder) with a target to show you where the module has clicked.
+Você encontrará uma imagem em seu (default)[`imagesFolder`](./getting-started#imagesfolder) com um alvo para mostrar onde o módulo clicou.
 
-![Process steps](/img/ocr/ocr-click-on-text-target.jpg)
+![Etapas do processo](/img/ocr/ocr-click-on-text-target.jpg)
 
-## Options
+## Opções
 
 ### `text`
 
-- **Type:** `string`
-- **Mandatory:** yes
+- **Tipo:** `string`
+- **Obrigatório:** sim
 
-The text you want to search for to click on.
+O texto que você deseja pesquisar para clicar.
 
 #### Example
 
