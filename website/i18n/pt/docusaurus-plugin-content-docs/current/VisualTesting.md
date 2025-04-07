@@ -24,8 +24,8 @@ This allows you to:
 - **block out custom regions** and even **automatically exclude** a status and or toolbars (mobile only) during a comparison
 - increase the element dimensions screenshots
 - **hide text** during website comparison to:
-  - **improve stability** and prevent font rendering flakiness
-  - only focus on the **layout** of a website
+    - **improve stability** and prevent font rendering flakiness
+    - only focus on the **layout** of a website
 - use **different comparison methods** and a set of **additional matchers** for better readable tests
 - verify how your website will **support tabbing with your keyboard)**, see also [Tabbing through a website](#tabbing-through-a-website)
 - and much more, see the [service](./visual-testing/service-options) and [method](./visual-testing/method-options) options
@@ -131,21 +131,21 @@ export const config = {
 
 1. Setting Up the `logName`:
 
-   - In the `capabilities` section, assign a unique `logName` to each browser or device. For example, `chrome-mac-15` identifies tests running on Chrome on macOS version 15.
+    - In the `capabilities` section, assign a unique `logName` to each browser or device. For example, `chrome-mac-15` identifies tests running on Chrome on macOS version 15.
 
 2. Custom Image Naming:
 
-   - The `formatImageName` option integrates the `logName` into the screenshot filenames. For example, if the `tag` is homepage and the resolution is `1920x1080`, the resulting filename might look like this:
+    - The `formatImageName` option integrates the `logName` into the screenshot filenames. For example, if the `tag` is homepage and the resolution is `1920x1080`, the resulting filename might look like this:
 
-     `homepage-chrome-mac-15-1920x1080.png`
+        `homepage-chrome-mac-15-1920x1080.png`
 
 3. Benefits of Custom Naming:
 
-   - Distinguishing between screenshots from different browsers or devices becomes much easier, especially when managing baselines and debugging discrepancies.
+    - Distinguishing between screenshots from different browsers or devices becomes much easier, especially when managing baselines and debugging discrepancies.
 
 4. Note on Defaults:
 
-   -If `logName` is not set in the capabilities, the `formatImageName` option will show it as an empty string in the filenames (`homepage--15-1920x1080.png`)
+    -If `logName` is not set in the capabilities, the `formatImageName` option will show it as an empty string in the filenames (`homepage--15-1920x1080.png`)
 
 ### WebdriverIO MultiRemote
 
