@@ -1,31 +1,31 @@
 ---
 id: autocompletion
-title: AutoCompletar
+title: Autocompletion
 ---
 
 ## IntelliJ
 
-AutoCompletar ou preenchimento automático vem pronto para o uso em IDEA e WebStorm.
+Autocompletion works out of the box in IDEA and WebStorm.
 
-Se você tem escrito código-fonte por um tempo, provavelmente gosta do preenchimento automático. O preenchimento automático está disponível e pronto para o uso em muitos editores de código.
+If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
 
-![AutoCompletar](/img/autocompletion/0.png)
+![Autocompletion](/img/autocompletion/0.png)
 
-Definições de tipo com base em [JSDoc](http://usejsdoc.org/) são utilizadas para documentar o código. Isso ajuda a ver mais detalhes sobre os parâmetros e seus tipos.
+Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
 
-![AutoCompletar](/img/autocompletion/1.png)
+![Autocompletion](/img/autocompletion/1.png)
 
-Use atalhos padrão <kbd>⇧ + ⌥ + SPACE</kbd> na Plataforma IntelliJ para ver documentação disponível:
+Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
 
-![AutoCompletar](/img/autocompletion/2.png)
+![Autocompletion](/img/autocompletion/2.png)
 
-## Visual Studio Code (VScode)
+## Visual Studio Code (VSCode)
 
-O Visual Studio Code geralmente tem suporte de tipos integrado automaticamente, e não é necessária nenhuma ação.
+Visual Studio Code usually has type support automatically integrated and there is no action needed.
 
-![AutoCompletar](/img/autocompletion/14.png)
+![Autocompletion](/img/autocompletion/14.png)
 
-Se você usa o JavaScript vanilla e quer ter suporte adequado de tipos, você precisa criar um `jsconfig.json` na raiz do seu projeto e referenciar os pacotes usados do wdio, por exemplo:
+If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
 
 ```json title="jsconfig.json"
 {
