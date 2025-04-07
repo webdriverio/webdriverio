@@ -1,37 +1,37 @@
 ---
 id: element
-title: The Element Object
+title: O objeto elemento
 ---
 
-An Element Object is an object representing an element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. It can be received using one of the many element query commands, e.g. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
+Um Objeto Elemento é um objeto que representa um elemento no agente de usuário remoto, por exemplo, um [Nó DOM](https://developer.mozilla.org/en-US/docs/Web/API/Element) ao executar uma sessão em um navegador ou [um elemento móvel](https://developer.apple.com/documentation/swift/sequence/element) para dispositivos móveis. Ele pode ser recebido usando um dos muitos comandos de consulta de elementos, por exemplo, [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) ou [`shadow$`](/docs/api/element/shadow$).
 
-## Properties
+## Propriedades
 
-An element object has the following properties:
+Um objeto elemento tem as seguintes propriedades:
 
-| Name        | Type     | Details                                                                                                                                                                                                                                       |
-| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId` | `String` | Session id assigned from the remote server.                                                                                                                                                                                                   |
-| `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
-| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                                        |
-| `parent`    | `Object` | Either the [Browser Object](/docs/api/browser) when element was fetched from the it (e.g. `const elem = browser.$('selector')`) or an [Element Object](/docs/api/element) if it was fetched from an element scope (e.g. `elem.$('selector')`) |
-| `options`   | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes).                                                                                                         |
+| Nome        | Tipo     | Detalhes                                                                                                                                                                                                                                                |
+| ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sessionId` | `String` | ID de sessão atribuído pelo servidor remoto.                                                                                                                                                                                                            |
+| `elementId` | `String` | [referência de elemento da web](https://w3c.github.io/webdriver/#elements) associada que pode ser usada para interagir com o elemento no nível do protocolo                                                                                             |
+| `selector`  | `String` | [Seletor](/docs/selectors) usado para consultar o elemento.                                                                                                                                                                                             |
+| `parent`    | `Object` | Ou o [Browser Object](/docs/api/browser) quando o elemento foi obtido dele (por exemplo, `const elem = browser.$('selector')`) ou um [Element Object](/docs/api/element) se ele foi obtido de um escopo de elemento (por exemplo, `elem.$('selector')`) |
+| `options`   | `Object` | [opções](/docs/configuration) do WebdriverIO dependendo de como o objeto do navegador foi criado. Veja mais [tipos de configuração](/docs/setuptypes).                                                                                                  |
 
-## Methods
-An element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. Available protocol commands depend on the type of session. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available and vice versa.
+## Metódos
+Um objeto de elemento fornece todos os métodos da seção de protocolo, por exemplo, o protocolo [WebDriver](/docs/api/webdriver), bem como os comandos listados na seção de elemento. Os comandos de protocolo disponíveis dependem do tipo de sessão. Se você executar uma sessão automatizada do navegador, nenhum dos [comandos](/docs/api/appium) do Appium estará disponível e vice-versa.
 
-In addition to that the following commands are available:
+Além disso, os seguintes comandos estão disponíveis:
 
-| Name               | Parameters                                                            | Details                                                                                                                                                                                                        |
-| ------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                           |
-| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Allows to overwrite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
+| Nome               | Parâmetros                                                            | Detalhes                                                                                                                                                                                                                                       |
+| ------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`       | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Permite definir comandos personalizados que podem ser chamados a partir do objeto do navegador para fins de composição. Leia mais no guia [Comando personalizado](/docs/customcommands).                                                       |
+| `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`) | Permite substituir qualquer comando do navegador com funcionalidade personalizada. Use com cuidado, pois pode confundir os usuários do framework. Leia mais no guia [Comando personalizado](/docs/customcommands#overwriting-native-commands). |
 
-## Remarks
+## Observações
 
-### Element Chain
+### Cadeia de Elementos
 
-When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element lookups. As element objects allow you to find elements within their tree branch using common query methods, users can fetch nested elements as follows:
+Ao trabalhar com elementos, o WebdriverIO fornece uma sintaxe especial para simplificar a consulta e compor pesquisas de elementos aninhados complexos. Como os objetos de elemento permitem que você encontre elementos dentro de seus ramos de árvore usando métodos de consulta comuns, os usuários podem buscar elementos aninhados da seguinte maneira:
 
 ```js
 const header = await $('#header')
@@ -39,20 +39,20 @@ const headline = await header.$('#headline')
 console.log(await headline.getText()) // outputs "I am a headline"
 ```
 
-With deep nested structures assigning any nested element to an array to then use it can be quite verbose. Therefore WebdriverIO has the concept of chained element queries that allow fetching nested elements like this:
+Com estruturas aninhadas profundas, atribuir qualquer elemento aninhado a uma matriz para depois usá-lo pode ser bastante prolixo. Portanto, o WebdriverIO tem o conceito de consultas de elementos encadeados que permitem buscar elementos aninhados como este:
 
 ```js
 console.log(await $('#header').$('#headline').getText())
 ```
 
-This also works when fetching a set of elements, e.g.:
+Isso também funciona ao buscar um conjunto de elementos, por exemplo:
 
 ```js
 // get the text of the 3rd headline within the 2nd header
 console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
-When working with a set of elements this can be especially useful when trying to interact with them, so instead of doing:
+Ao trabalhar com um conjunto de elementos, isso pode ser especialmente útil ao tentar interagir com eles, então, em vez de fazer:
 
 ```js
 const elems = await $$('div')
@@ -61,29 +61,29 @@ const locations = await Promise.all(
 )
 ```
 
-You can directly call Array methods on the element chain, e.g.:
+Você pode chamar métodos Array diretamente na cadeia de elementos, por exemplo:
 
 ```js
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-same as:
+o mesmo que:
 
 ```js
 const divs = await $$('div')
 const location = await divs.map((el) => el.getLocation())
 ```
 
-WebdriverIO uses a custom implementation that supports asynchronous iterators under the hood so all commands from their API are also supported for these use cases.
+O WebdriverIO usa uma implementação personalizada que oferece suporte a iteradores assíncronos, de modo que todos os comandos de sua API também são suportados para esses casos de uso.
 
-__Note:__ all async iterators return a promise even if your callback doesn't return one, e.g.:
+__Observação:__ todos os iteradores assíncronos retornam uma promessa, mesmo que seu retorno de chamada não retorne uma, por exemplo:
 
 ```ts
 const divs = await $$('div')
-console.log(divs.map((div) => div.selector)) // ❌ returns "Promise<string>[]"
-console.log(await divs.map((div) => div.selector)) // ✅ returns "string[]"
+console.log(divs.map((div) => div.selector)) // ❌ retorna "Promise<string>[]"
+console.log(await divs.map((div) => div.selector)) // ✅ retorna "string[]"
 ```
 
-### Custom Commands
+### Comandos personalizados
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Confira nosso guia sobre [Comandos personalizados](/docs/customcommands#adding-custom-commands) para obter mais informações.
+Você pode definir comandos personalizados no escopo do navegador para abstrair fluxos de trabalho comumente usados. Confira nosso guia sobre [Comandos personalizados](/docs/customcommands#adding-custom-commands) para obter mais informações.
