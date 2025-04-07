@@ -1,94 +1,94 @@
 {
   "theme.ErrorPageContent.title": {
-    "message": "Esta página travou.",
+    "message": "This page crashed.",
     "description": "The title of the fallback page when the page crashed"
   },
   "theme.ErrorPageContent.tryAgain": {
-    "message": "Tente novamente",
+    "message": "Try again",
     "description": "The label of the button to try again when the page crashed"
   },
   "theme.NotFound.title": {
-    "message": "Página Não Encontrada",
+    "message": "Page Not Found",
     "description": "The title of the 404 page"
   },
   "theme.NotFound.p1": {
-    "message": "Não conseguimos encontrar o que você estava procurando.",
+    "message": "We could not find what you were looking for.",
     "description": "The first paragraph of the 404 page"
   },
   "theme.NotFound.p2": {
-    "message": "Por favor, entre em contato com o proprietário do site que vinculou você à URL original e informe-lhes que o link está quebrado.",
+    "message": "Please contact the owner of the site that linked you to the original URL and let them know their link is broken.",
     "description": "The 2nd paragraph of the 404 page"
   },
   "theme.admonition.note": {
-    "message": "nota",
+    "message": "note",
     "description": "The default label used for the Note admonition (:::note)"
   },
   "theme.admonition.tip": {
-    "message": "dica",
+    "message": "tip",
     "description": "The default label used for the Tip admonition (:::tip)"
   },
   "theme.admonition.danger": {
-    "message": "perigo",
+    "message": "danger",
     "description": "The default label used for the Danger admonition (:::danger)"
   },
   "theme.admonition.info": {
-    "message": "informação",
+    "message": "info",
     "description": "The default label used for the Info admonition (:::info)"
   },
   "theme.admonition.caution": {
-    "message": "cautela",
+    "message": "caution",
     "description": "The default label used for the Caution admonition (:::caution)"
   },
   "theme.BackToTopButton.buttonAriaLabel": {
-    "message": "Voltar ao início",
+    "message": "Scroll back to top",
     "description": "The ARIA label for the back to top button"
   },
   "theme.blog.archive.title": {
-    "message": "Arquivo",
+    "message": "Archive",
     "description": "The page & hero title of the blog archive page"
   },
   "theme.blog.archive.description": {
-    "message": "Arquivo",
+    "message": "Archive",
     "description": "The page & hero description of the blog archive page"
   },
   "theme.blog.paginator.navAriaLabel": {
-    "message": "Navegação da página da lista do blog",
+    "message": "Blog list page navigation",
     "description": "The ARIA label for the blog pagination"
   },
   "theme.blog.paginator.newerEntries": {
-    "message": "Entradas recentes",
+    "message": "Newer Entries",
     "description": "The label used to navigate to the newer blog posts page (previous page)"
   },
   "theme.blog.paginator.olderEntries": {
-    "message": "Entradas Antigas",
+    "message": "Older Entries",
     "description": "The label used to navigate to the older blog posts page (next page)"
   },
   "theme.blog.post.paginator.navAriaLabel": {
-    "message": "Navegação da página do blog post",
+    "message": "Blog post page navigation",
     "description": "The ARIA label for the blog posts pagination"
   },
   "theme.blog.post.paginator.newerPost": {
-    "message": "Publicações mais recentes",
+    "message": "Newer Post",
     "description": "The blog post button label to navigate to the newer/previous post"
   },
   "theme.blog.post.paginator.olderPost": {
-    "message": "Publicações mais antigas",
+    "message": "Older Post",
     "description": "The blog post button label to navigate to the older/next post"
   },
   "theme.blog.post.plurals": {
-    "message": "Um post|{count} posts",
+    "message": "One post|{count} posts",
     "description": "Pluralized label for \"{count} posts\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.blog.tagTitle": {
-    "message": "{nPosts} etiquetados com \"{tagName}\"",
+    "message": "{nPosts} tagged with \"{tagName}\"",
     "description": "The title of the page for a blog tag"
   },
   "theme.tags.tagsPageLink": {
-    "message": "Visualizar Todas as Etiquetas",
+    "message": "View All Tags",
     "description": "The label of the link targeting the tag list page"
   },
   "theme.docs.breadcrumbs.home": {
-    "message": "Página inicial",
+    "message": "Home page",
     "description": "The ARIA label for the home page in the breadcrumbs"
   },
   "theme.docs.breadcrumbs.navAriaLabel": {
@@ -96,265 +96,265 @@
     "description": "The ARIA label for the breadcrumbs"
   },
   "theme.docs.DocCard.categoryDescription": {
-    "message": "{count} ítens",
+    "message": "{count} items",
     "description": "The default description for a category card in the generated index about how many items this category includes"
   },
   "theme.colorToggle.ariaLabel": {
-    "message": "Alternar entre modo escuro e claro (atualmente {mode})",
+    "message": "Switch between dark and light mode (currently {mode})",
     "description": "The ARIA label for the navbar color mode toggle"
   },
   "theme.colorToggle.ariaLabel.mode.dark": {
-    "message": "modo escuro",
+    "message": "dark mode",
     "description": "The name for the dark color mode"
   },
   "theme.colorToggle.ariaLabel.mode.light": {
-    "message": "modo claro",
+    "message": "light mode",
     "description": "The name for the light color mode"
   },
   "theme.docs.paginator.navAriaLabel": {
-    "message": "Navegação das páginas da documentação",
+    "message": "Docs pages navigation",
     "description": "The ARIA label for the docs pagination"
   },
   "theme.docs.paginator.previous": {
-    "message": "Anterior",
+    "message": "Previous",
     "description": "The label used to navigate to the previous doc"
   },
   "theme.docs.paginator.next": {
-    "message": "Próximo",
+    "message": "Next",
     "description": "The label used to navigate to the next doc"
   },
   "theme.docs.tagDocListPageTitle.nDocsTagged": {
-    "message": "Um documento etiquetado|{count} documentos etiquetados",
+    "message": "One doc tagged|{count} docs tagged",
     "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.docs.tagDocListPageTitle": {
-    "message": "{nDocsTagged} com \"{tagName}\"",
+    "message": "{nDocsTagged} with \"{tagName}\"",
     "description": "The title of the page for a docs tag"
   },
   "theme.docs.versionBadge.label": {
-    "message": "Versão: {versionLabel}"
+    "message": "Version: {versionLabel}"
   },
   "theme.docs.versions.unreleasedVersionLabel": {
-    "message": "Esta é a documentação não publicada para a versão {siteTitle} {versionLabel}.",
+    "message": "This is unreleased documentation for {siteTitle} {versionLabel} version.",
     "description": "The label used to tell the user that he's browsing an unreleased doc version"
   },
   "theme.docs.versions.unmaintainedVersionLabel": {
-    "message": "Esta é a documentação do {siteTitle} {versionLabel}, que não é mais mantida ativamente.",
+    "message": "This is documentation for {siteTitle} {versionLabel}, which is no longer actively maintained.",
     "description": "The label used to tell the user that he's browsing an unmaintained doc version"
   },
   "theme.docs.versions.latestVersionSuggestionLabel": {
-    "message": "Para documentação atualizada, veja o {latestVersionLink} ({versionLabel}).",
+    "message": "For up-to-date documentation, see the {latestVersionLink} ({versionLabel}).",
     "description": "The label used to tell the user to check the latest version"
   },
   "theme.docs.versions.latestVersionLinkLabel": {
-    "message": "versão mais recente",
+    "message": "latest version",
     "description": "The label used for the latest version suggestion link label"
   },
   "theme.common.editThisPage": {
-    "message": "Editar esta página",
+    "message": "Edit this page",
     "description": "The link label to edit the current page"
   },
   "theme.common.headingLinkTitle": {
-    "message": "Link direto para o cabeçalho",
+    "message": "Direct link to heading",
     "description": "Title for link to heading"
   },
   "theme.lastUpdated.atDate": {
-    "message": " em {date}",
+    "message": " on {date}",
     "description": "The words used to describe on which date a page has been last updated"
   },
   "theme.lastUpdated.byUser": {
-    "message": " por {user}",
+    "message": " by {user}",
     "description": "The words used to describe by who the page has been last updated"
   },
   "theme.lastUpdated.lastUpdatedAtBy": {
-    "message": "Última atualização em {atDate}{byUser}",
+    "message": "Last updated{atDate}{byUser}",
     "description": "The sentence used to display when a page has been last updated, and by who"
   },
   "theme.navbar.mobileVersionsDropdown.label": {
-    "message": "Versões",
+    "message": "Versions",
     "description": "The label for the navbar versions dropdown on mobile view"
   },
   "theme.AnnouncementBar.closeButtonAriaLabel": {
-    "message": "Fechar",
+    "message": "Close",
     "description": "The ARIA label for close button of announcement bar"
   },
   "theme.tags.tagsListLabel": {
-    "message": "Etiquetas:",
+    "message": "Tags:",
     "description": "The label alongside a tag list"
   },
   "theme.blog.sidebar.navAriaLabel": {
-    "message": "Navegação dos posts recentes do blog",
+    "message": "Blog recent posts navigation",
     "description": "The ARIA label for recent posts in the blog sidebar"
   },
   "theme.CodeBlock.copied": {
-    "message": "Copiado",
+    "message": "Copied",
     "description": "The copied button label on code blocks"
   },
   "theme.CodeBlock.copyButtonAriaLabel": {
-    "message": "Copiar código para a área de transferência",
+    "message": "Copy code to clipboard",
     "description": "The ARIA label for copy code blocks button"
   },
   "theme.CodeBlock.copy": {
-    "message": "Copiar",
+    "message": "Copy",
     "description": "The copy button label on code blocks"
   },
   "theme.CodeBlock.wordWrapToggle": {
-    "message": "Ativar/desativar quebra de palavra",
+    "message": "Toggle word wrap",
     "description": "The title attribute for toggle word wrapping button of code block lines"
   },
   "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
-    "message": "Mostrar/ocultar barra lateral da categoria '{label}'",
+    "message": "Toggle the collapsible sidebar category '{label}'",
     "description": "The ARIA label to toggle the collapsible sidebar category"
   },
   "theme.TOCCollapsible.toggleButtonLabel": {
-    "message": "Nesta página",
+    "message": "On this page",
     "description": "The label used by the button on the collapsible TOC component"
   },
   "theme.blog.post.readMore": {
-    "message": "Saiba Mais",
+    "message": "Read More",
     "description": "The label used in blog post item excerpts to link to full blog posts"
   },
   "theme.blog.post.readMoreLabel": {
-    "message": "Saiba mais sobre {title}",
+    "message": "Read more about {title}",
     "description": "The ARIA label for the link to full blog posts from excerpts"
   },
   "theme.blog.post.readingTime.plurals": {
-    "message": "Leitura de um minuto|{readingTime} minutos",
+    "message": "One min read|{readingTime} min read",
     "description": "Pluralized label for \"{readingTime} min read\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.navbar.mobileLanguageDropdown.label": {
-    "message": "Idiomas",
+    "message": "Languages",
     "description": "The label for the mobile language switcher dropdown"
   },
   "theme.docs.sidebar.collapseButtonTitle": {
-    "message": "Recolher barra lateral",
+    "message": "Collapse sidebar",
     "description": "The title attribute for collapse button of doc sidebar"
   },
   "theme.docs.sidebar.collapseButtonAriaLabel": {
-    "message": "Recolher barra lateral",
+    "message": "Collapse sidebar",
     "description": "The title attribute for collapse button of doc sidebar"
   },
   "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
-    "message": "Fechar a barra de navegação",
+    "message": "Close navigation bar",
     "description": "The ARIA label for close button of mobile sidebar"
   },
   "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
-    "message": "Voltar ao menu principal",
+    "message": "← Back to main menu",
     "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar secondary menu (notably used to display the docs sidebar)"
   },
   "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
-    "message": "Mostrar/ocultar barra de navegação",
+    "message": "Toggle navigation bar",
     "description": "The ARIA label for hamburger menu button of mobile navigation"
   },
   "theme.docs.sidebar.expandButtonTitle": {
-    "message": "Expandir barra lateral",
+    "message": "Expand sidebar",
     "description": "The ARIA label and title attribute for expand button of doc sidebar"
   },
   "theme.docs.sidebar.expandButtonAriaLabel": {
-    "message": "Expandir barra lateral",
+    "message": "Expand sidebar",
     "description": "The ARIA label and title attribute for expand button of doc sidebar"
   },
   "theme.SearchBar.seeAll": {
-    "message": "Ver todos os resultados de {count}"
+    "message": "See all {count} results"
   },
   "theme.SearchPage.documentsFound.plurals": {
-    "message": "Um documento encontrado|{count} documentos encontrados",
+    "message": "One document found|{count} documents found",
     "description": "Pluralized label for \"{count} documents found\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.SearchPage.existingResultsTitle": {
-    "message": "Resultados da pesquisa para \"{query}\"",
+    "message": "Search results for \"{query}\"",
     "description": "The search page title for non-empty query"
   },
   "theme.SearchPage.emptyResultsTitle": {
-    "message": "Pesquisar na documentação",
+    "message": "Search the documentation",
     "description": "The search page title for empty query"
   },
   "theme.SearchPage.inputPlaceholder": {
-    "message": "Digite aqui sua pesquisa",
+    "message": "Type your search here",
     "description": "The placeholder for search page input"
   },
   "theme.SearchPage.inputLabel": {
-    "message": "Pesquisar",
+    "message": "Search",
     "description": "The ARIA label for search page input"
   },
   "theme.SearchPage.algoliaLabel": {
-    "message": "Pesquisa por Algolia",
+    "message": "Search by Algolia",
     "description": "The ARIA label for Algolia mention"
   },
   "theme.SearchPage.noResultsText": {
-    "message": "Nenhum resultado encontrado",
+    "message": "No results were found",
     "description": "The paragraph for empty search result"
   },
   "theme.SearchPage.fetchingNewResults": {
-    "message": "Obtendo novos resultados...",
+    "message": "Fetching new results...",
     "description": "The paragraph for fetching new search results"
   },
   "theme.SearchBar.label": {
-    "message": "Pesquisar",
+    "message": "Search",
     "description": "The ARIA label and placeholder for search button"
   },
   "theme.SearchModal.searchBox.resetButtonTitle": {
-    "message": "Limpar a consulta",
+    "message": "Clear the query",
     "description": "The label and ARIA label for search box reset button"
   },
   "theme.SearchModal.searchBox.cancelButtonText": {
-    "message": "Cancelar",
+    "message": "Cancel",
     "description": "The label and ARIA label for search box cancel button"
   },
   "theme.SearchModal.startScreen.recentSearchesTitle": {
-    "message": "Recentes",
+    "message": "Recent",
     "description": "The title for recent searches"
   },
   "theme.SearchModal.startScreen.noRecentSearchesText": {
-    "message": "Não há pesquisas recentes",
+    "message": "No recent searches",
     "description": "The text when no recent searches"
   },
   "theme.SearchModal.startScreen.saveRecentSearchButtonTitle": {
-    "message": "Salvar esta pesquisa",
+    "message": "Save this search",
     "description": "The label for save recent search button"
   },
   "theme.SearchModal.startScreen.removeRecentSearchButtonTitle": {
-    "message": "Excluir esta pesquisa do histórico",
+    "message": "Remove this search from history",
     "description": "The label for remove recent search button"
   },
   "theme.SearchModal.startScreen.favoriteSearchesTitle": {
-    "message": "Favoritos",
+    "message": "Favorite",
     "description": "The title for favorite searches"
   },
   "theme.SearchModal.startScreen.removeFavoriteSearchButtonTitle": {
-    "message": "Excluir esta pesquisa dos favoritos",
+    "message": "Remove this search from favorites",
     "description": "The label for remove favorite search button"
   },
   "theme.SearchModal.errorScreen.titleText": {
-    "message": "Não foi possível obter resultados",
+    "message": "Unable to fetch results",
     "description": "The title for error screen of search modal"
   },
   "theme.SearchModal.errorScreen.helpText": {
-    "message": "Você pode verificar a sua conexão de rede.",
+    "message": "You might want to check your network connection.",
     "description": "The help text for error screen of search modal"
   },
   "theme.SearchModal.footer.selectText": {
-    "message": "para selecionar",
+    "message": "to select",
     "description": "The explanatory text of the action for the enter key"
   },
   "theme.SearchModal.footer.selectKeyAriaLabel": {
-    "message": "Inserir chave",
+    "message": "Enter key",
     "description": "The ARIA label for the Enter key button that makes the selection"
   },
   "theme.SearchModal.footer.navigateText": {
-    "message": "para navegar",
+    "message": "to navigate",
     "description": "The explanatory text of the action for the Arrow up and Arrow down key"
   },
   "theme.SearchModal.footer.navigateUpKeyAriaLabel": {
-    "message": "Seta para cima",
+    "message": "Arrow up",
     "description": "The ARIA label for the Arrow up key button that makes the navigation"
   },
   "theme.SearchModal.footer.navigateDownKeyAriaLabel": {
-    "message": "Seta para baixo",
+    "message": "Arrow down",
     "description": "The ARIA label for the Arrow down key button that makes the navigation"
   },
   "theme.SearchModal.footer.closeText": {
-    "message": "para fechar",
+    "message": "to close",
     "description": "The explanatory text of the action for Escape key"
   },
   "theme.SearchModal.footer.closeKeyAriaLabel": {
@@ -362,165 +362,165 @@
     "description": "The ARIA label for the Escape key button that close the modal"
   },
   "theme.SearchModal.footer.searchByText": {
-    "message": "Pesquisar por",
+    "message": "Search by",
     "description": "The text explain that the search is making by Algolia"
   },
   "theme.SearchModal.noResultsScreen.noResultsText": {
-    "message": "Sem resultados para",
+    "message": "No results for",
     "description": "The text explains that there are no results for the following search"
   },
   "theme.SearchModal.noResultsScreen.suggestedQueryText": {
-    "message": "Tente pesquisar por",
+    "message": "Try searching for",
     "description": "The text for the suggested query when no results are found for the following search"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsText": {
-    "message": "Crê que esta consulta deveria devolver resultados?",
+    "message": "Believe this query should return results?",
     "description": "The text for the question where the user thinks there are missing results"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsLinkText": {
-    "message": "Nos conte.",
+    "message": "Let us know.",
     "description": "The text for the link to report missing results"
   },
   "theme.SearchModal.placeholder": {
-    "message": "Pesquisar documentos",
+    "message": "Search docs",
     "description": "The placeholder of the input of the DocSearch pop-up modal"
   },
   "theme.IdealImageMessage.loading": {
-    "message": "Carregando...",
+    "message": "Loading...",
     "description": "When the full-scale image is loading"
   },
   "theme.IdealImageMessage.load": {
-    "message": "Clique para carregar{sizeMessage}",
+    "message": "Click to load{sizeMessage}",
     "description": "To prompt users to load the full image. sizeMessage is a parenthesized size figure."
   },
   "theme.IdealImageMessage.offline": {
-    "message": "Seu navegador está offline. Imagem não carregada",
+    "message": "Your browser is offline. Image not loaded",
     "description": "When the user is viewing an offline document"
   },
   "theme.IdealImageMessage.404error": {
-    "message": "404. Imagem não encontrada",
+    "message": "404. Image not found",
     "description": "When the image is not found"
   },
   "theme.IdealImageMessage.error": {
-    "message": "Erro. Clique para recarregar",
+    "message": "Error. Click to reload",
     "description": "When the image fails to load for unknown error"
   },
   "theme.PwaReloadPopup.info": {
-    "message": "Nova versão disponível",
+    "message": "New version available",
     "description": "The text for PWA reload popup"
   },
   "theme.PwaReloadPopup.refreshButtonText": {
-    "message": "Atualizar",
+    "message": "Refresh",
     "description": "The text for PWA reload button"
   },
   "theme.PwaReloadPopup.closeButtonAriaLabel": {
-    "message": "Fechar",
+    "message": "Close",
     "description": "The ARIA label for close button of PWA reload popup"
   },
   "theme.common.skipToMainContent": {
-    "message": "Pular para o conteúdo principal",
+    "message": "Skip to main content",
     "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
   },
   "theme.tags.tagsPageTitle": {
-    "message": "Etiquetas",
+    "message": "Tags",
     "description": "The title of the tag list page"
   },
   "WebdriverIO allows you to test in actual browser or mobile devices used by your users.": {
-    "message": "WebdriverIO permite que você teste no navegador ou em dispositivos móveis utilizados pelos seus usuários."
+    "message": "WebdriverIO allows you to test in actual browser or mobile devices used by your users."
   },
   "Use WebdriverIO for full e2e or unit and component testing in the browser.": {
-    "message": "Use WebdriverIO para teste e2e completo ou testes de unidade e de componentes no navegador."
+    "message": "Use WebdriverIO for full e2e or unit and component testing in the browser."
   },
   "WebdriverIO automatically waits for elements to appear before interacting with them.": {
-    "message": "WebdriverIO automaticamente aguarda que os elementos apareçam antes de interagir com eles."
+    "message": "WebdriverIO automatically waits for elements to appear before interacting with them."
   },
   "Get Started": {
-    "message": "Começar"
+    "message": "Get Started"
   },
   "Why WebdriverIO?": {
-    "message": "Por que WebdriverIO?"
+    "message": "Why WebdriverIO?"
   },
   "View on GitHub": {
-    "message": "Ver no GitHub"
+    "message": "View on GitHub"
   },
   "Watch on YouTube": {
-    "message": "Assistir no YouTube"
+    "message": "Watch on YouTube"
   },
   "Easy setup for web component testing with:": {
-    "message": "Configuração fácil para testes de componente web com:"
+    "message": "Easy setup for web component testing with:"
   },
   "homepage.hightlight.createProject": {
-    "message": "Começar com WebdriverIO em segundos"
+    "message": "Get Started With WebdriverIO within Seconds"
   },
   "The WebdriverIO testrunner comes with a command line interface that provides a powerful configuration utility and helps you to create your test setup in less than a minute. It let's you pick from available test framework integrations and easily allows to add all supported reporter and service plugins!": {
     "message": "The WebdriverIO testrunner comes with a command line interface that provides a powerful configuration utility and helps you to create your test setup in less than a minute. It let's you pick from available test framework integrations and easily allows to add all supported reporter and service plugins!"
   },
   "With just one simple command you can set up a complete test suite:": {
-    "message": "Com apenas um simples comando você pode configurar um conjunto completo de testes:"
+    "message": "With just one simple command you can set up a complete test suite:"
   },
   "homepage.hightlight.watch": {
-    "message": "Assista palestras sobre WebdriverIO"
+    "message": "Watch Talks about WebdriverIO"
   },
   "homepage.hightlight.lighthouse": {
-    "message": "Integração Google Lighthouse"
+    "message": "Google Lighthouse Integration"
   },
   "Integration to developer tools such as:": {
-    "message": "Integração às ferramentas de desenvolvedor, tais como:"
+    "message": "Integration to developer tools such as:"
   },
   "until October 2023": {
-    "message": "até Outubro de 2023"
+    "message": "until October 2023"
   },
   "since February 2022": {
-    "message": "desde fevereiro de 2022"
+    "message": "since February 2022"
   },
   "since January 2021": {
-    "message": "desde janeiro de 2021"
+    "message": "since January 2021"
   },
   "since December 2019": {
-    "message": "desde dezembro de 2019"
+    "message": "since December 2019"
   },
   "versions.description": {
     "message": "Docusaurus 2 Versions page listing all documented site versions"
   },
   "WebdriverIO documentation versions": {
-    "message": "Versões da documentação WebdriverIO"
+    "message": "WebdriverIO documentation versions"
   },
   "The project team releases new major versions roughly on a yearly cadence. LTS release status is \"long-term support\", which typically guarantees that critical bugs will be fixed for a total of 12 months until a new major release is made.": {
     "message": "The project team releases new major versions roughly on a yearly cadence. LTS release status is \"long-term support\", which typically guarantees that critical bugs will be fixed for a total of 12 months until a new major release is made."
   },
   "Current version (Stable)": {
-    "message": "Versão atual (Estável)"
+    "message": "Current version (Stable)"
   },
   "Here you can find the documentation for current released version.": {
-    "message": "Aqui pode encontrar a documentação para a versão atual lançada."
+    "message": "Here you can find the documentation for current released version."
   },
   "Documentation": {
-    "message": "Documentação"
+    "message": "Documentation"
   },
   "Release Notes": {
-    "message": "Notas de versão"
+    "message": "Release Notes"
   },
   "Past versions": {
-    "message": "Versões anteriores"
+    "message": "Past versions"
   },
   "Here you can find documentation for previous versions of Docusaurus.": {
-    "message": "Aqui você pode encontrar a documentação para versões anteriores do Docusaurus."
+    "message": "Here you can find documentation for previous versions of Docusaurus."
   },
   "homepage.createBrowserAnimation": {
-    "message": "Criar demo de WebdriverIO"
+    "message": "Create WebdriverIO Demo"
   },
   "homepage.highlight.getStartedOnYouTube": {
-    "message": "Comece a aprender mais sobre WebdriverIO e como começar {youtubeLink}."
+    "message": "Start learning more about WebdriverIO and how to get started {youtubeLink}."
   },
   "homepage.highlight.getStartedOnYouTube.label;": {
-    "message": "no YouTube",
+    "message": "on YouTube",
     "description": "The label for the link to my YouTube"
   },
   "homepage.highlight.conferenceTalk": {
     "message": "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk on {youtubeLink} by {videoAuthor} at {conferenceLink}."
   },
   "homepage.highlight.conferenceTalk.label": {
-    "message": "Minhas características favoritas de WebdriverIO",
+    "message": "My favourite features of WebdriverIO",
     "description": "The conference talk title"
   },
   "homepage.highlight.youtubeChannels": {
@@ -542,39 +542,39 @@
     "message": "Next-gen browser and mobile automation test framework for Node.js"
   },
   "homepage.componentTesting.para1": {
-    "message": "WebdriverIO é um framework {allInOne} para desenvolvimento de aplicativos web. Ele possibilita executar testes de componentes pequenos e leves, assim como executar cenários de teste e2e no navegador ou em um dispositivo móvel. Isso garante que os testes sejam realizados em um ambiente {usedBy}."
+    "message": "WebdriverIO is an {allInOne} framework for your web app development. It enables you to run small and lightweight component tests as well as running e2e test scenarios in the browser or on a mobile device. This guarantees that you to do the testing in an environment {usedBy}."
   },
   "features.realEnvironments": {
-    "message": "Teste em Ambientes reais"
+    "message": "Test in Real Environments"
   },
   "features.versatile": {
-    "message": "Versátil e cheio de recursos"
+    "message": "Versatile and Feature Rich"
   },
   "features.autoWait": {
-    "message": "Aguardar Automaticamente"
+    "message": "Auto Wait"
   },
   "features.standards": {
-    "message": "Baseado em Padrões Web"
+    "message": "Based on Web Standards"
   },
   "features.mobileSupport": {
-    "message": "Suporte Móvel Nativo"
+    "message": "Native Mobile Support"
   },
   "features.community": {
-    "message": "Comunidade Comprometida"
+    "message": "Committed Community"
   },
   "homepage.componentTesting.heading": {
-    "message": "Testes E2E e de Unidade/Componente no Navegador real!"
+    "message": "E2E and Unit / Component Testing in real Browser!"
   },
   "homepage.componentTesting.para2": {
     "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
   },
   "Who is using WebdriverIO?": {
-    "message": "Quem está utilizando WebdriverIO?"
+    "message": "Who is using WebdriverIO?"
   },
   "all in one": {
-    "message": "tudo em um"
+    "message": "all in one"
   },
   "used by your users": {
-    "message": "usado por seus usuários"
+    "message": "used by your users"
   }
 }
