@@ -129,7 +129,8 @@ export abstract class WebDriverRequest {
                 body: JSON.stringify(opts.body),
                 headers: opts.headers as Record<string, string>,
                 signal: opts.signal,
-                redirect: opts.redirect
+                redirect: opts.redirect,
+                ...(opts.dispatcher ? { dispatcher: opts.dispatcher } : {})
             })
 
             // Cloning the response to prevent body unusable error
