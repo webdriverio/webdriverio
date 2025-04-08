@@ -21,6 +21,31 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.44.0 (2025-04-08)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#14380](https://github.com/webdriverio/webdriverio/pull/14380) feat(@wdio/protocols): Add "options" parameter to "terminateApp" command (v8) ([@Nyaran](https://github.com/Nyaran))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14349](https://github.com/webdriverio/webdriverio/pull/14349) Fix isClickable auto-scroll (#14288) ([@dragosMC91](https://github.com/dragosMC91))
+* `wdio-browserstack-service`
+  * [#14300](https://github.com/webdriverio/webdriverio/pull/14300) [v8] Bug Fix: missing Platform version on BrowserStack Observability ([@AdityaHirapara](https://github.com/AdityaHirapara))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14384](https://github.com/webdriverio/webdriverio/pull/14384) chore: ignore error handling for command wrapping ([@sauravdas1997](https://github.com/sauravdas1997))
+  * [#14333](https://github.com/webdriverio/webdriverio/pull/14333) SDK-2064 fix: A11y-Platform-Level-Support for v8 ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### Committers: 5
+- Aditya Hirapara ([@AdityaHirapara](https://github.com/AdityaHirapara))
+- Dragos Campean ([@dragosMC91](https://github.com/dragosMC91))
+- Luis ([@Nyaran](https://github.com/Nyaran))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v8.43.0 (2025-03-05)
 
 #### :bug: Bug Fix

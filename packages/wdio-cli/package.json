@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "8.43.0",
+  "version": "8.44.0",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cli",
@@ -48,9 +48,9 @@
     "@types/node": "^22.2.0",
     "@vitest/snapshot": "^2.0.4",
     "@wdio/config": "8.43.0",
-    "@wdio/globals": "8.43.0",
+    "@wdio/globals": "8.44.0",
     "@wdio/logger": "8.38.0",
-    "@wdio/protocols": "8.40.3",
+    "@wdio/protocols": "8.44.0",
     "@wdio/types": "8.41.0",
     "@wdio/utils": "8.41.0",
     "async-exit-hook": "^2.0.1",
@@ -67,7 +67,7 @@
     "lodash.union": "^4.6.0",
     "read-pkg-up": "10.0.0",
     "recursive-readdir": "^2.2.3",
-    "webdriverio": "8.43.0",
+    "webdriverio": "8.44.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
