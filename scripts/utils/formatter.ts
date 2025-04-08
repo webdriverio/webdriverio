@@ -51,7 +51,7 @@ export default function (docfile: {
     const fires: string[] = []
     const listens: string[] = []
     const exampleReferences: string[] = []
-    let tagDeprecated = false
+    let tagDeprecated = ''
     let tagSee = ''
     let tagVersion = ''
     let tagAuthor = ''
@@ -141,7 +141,7 @@ export default function (docfile: {
             break
         }
         case 'deprecated': {
-            tagDeprecated = true
+            tagDeprecated = source[0].source.split('@deprecated')[1].trim()
             break
         }
         case 'mobileElement': {
