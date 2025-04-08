@@ -1,5 +1,5 @@
 ---
-id: події
+id: events
 title: Події
 ---
 

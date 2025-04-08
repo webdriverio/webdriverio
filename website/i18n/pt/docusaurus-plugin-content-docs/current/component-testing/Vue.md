@@ -86,23 +86,24 @@ describe('Teste de Componente Vue', () => {
         // O método render retorna uma coleção de utilitários para consultar seu componente.
 
         const wrapper = mount(Component, { attachTo: document.body })
-expect(wrapper.text()).toContain('Times clicked: 0')
+        expect(wrapper.text()).toContain('Times clicked: 0')
 
-const button = await $('aria/increment')
+        const button = await $('aria/increment')
 
-// Dispara um evento de clique nativo no nosso elemento de botão.
-
+        // Dispara um evento de clique nativo no nosso elemento de botão.
         await button.click()
-await button.click()
+        await button.click()
 
-expect(wrapper.text()).toContain('Times clicked: 2')
-await expect($('p=Times clicked: 2')).toExist() // mesma asserção com WebdriverIO
+        expect(wrapper.text()).toContain('Times clicked: 2')
+        await expect($('p=Times clicked: 2')).toExist() // mesma asserção com WebdriverIO
+    })
 })
-
+```
 
 </TabItem>
 <TabItem value="testinglib">
 
+```ts
 import { $, expect } from '@wdio/globals'
 import { render } from '@testing-library/vue'
 import Component from './components/Component.vue'
@@ -120,12 +121,13 @@ describe('Teste de Componente Vue', () => {
 
         // Dispatch a native click event to our button element.
         await button.click()
-await button.click()
+        await button.click()
 
-getByText('Times clicked: 2') // asserção com Testing Library
-await expect($('p=Times clicked: 2')).toExist() // asserção com WebdriverIO
+        getByText('Times clicked: 2') // asserção com Testing Library
+        await expect($('p=Times clicked: 2')).toExist() // asserção com WebdriverIO
+    })
 })
-
+```
 
 </TabItem>
 </Tabs>

@@ -5,7 +5,7 @@ title: Registros do navegador
 
 Ao executar testes, o navegador pode registrar informações importantes nas quais você está interessado ou deseja se basear.
 
-<0>
+<Tabs>
 
 <TabItem value='bidi'>
 
@@ -67,7 +67,8 @@ expect(logMessage).toBeTruthy()
 ```
 
 Observação: o comando `getLogs` só pode buscar os logs mais recentes do navegador. Eventualmente, ele pode limpar mensagens de log caso elas se tornem muito antigas.
-</0>
+
+</TabItem>
 
 </Tabs>
 

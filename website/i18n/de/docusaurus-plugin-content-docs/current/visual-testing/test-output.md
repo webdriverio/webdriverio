@@ -187,7 +187,10 @@ values={[
 iOS `saveScreen`-Ausführungen enthalten standardmäßig nicht die Geräterahmenecken. Um diese zu erhalten, fügen Sie bitte die Option `addIOSBezelCorners:true` beim Instanziieren des Services hinzu, siehe [hier](./service-options#addiosbezelcorners)
 :::
 
-![saveScreen Mobile iOS](/img/visual/screenshot-Iphone12Portrait15-390x844.png) </TabItem> </Tabs> </TabItem>
+![saveScreen Mobile iOS](/img/visual/screenshot-Iphone12Portrait15-390x844.png)
+</TabItem>
+</Tabs>
+</TabItem>
 
 <TabItem value="savefullpagescreen">
 
@@ -273,7 +276,9 @@ await browser.checkElement("#__docusaurus_skipToContent_fallback > header > div 
 Der Button-Text wurde von `Get Started` zu `Getting Started!` geändert und als Änderung erkannt.
 :::
 
-![Button Check Result](/img/visual/button-check.png) </TabItem>
+![Button Check Result](/img/visual/button-check.png)
+
+</TabItem>
 
 <TabItem value="checkscreen">
 

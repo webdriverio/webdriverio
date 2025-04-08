@@ -3,9 +3,6 @@ id: writing-tests
 title: Tests Schreiben
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 ## Unterstützung für Testrunner-Frameworks
 
 `@wdio/visual-service` ist Framework-unabhängig, was bedeutet, dass Sie es mit allen von WebdriverIO unterstützten Frameworks verwenden können, wie:
@@ -16,14 +13,13 @@ import TabItem from '@theme/TabItem';
 
 Innerhalb Ihrer Tests können Sie Screenshots _speichern_ oder den aktuellen visuellen Zustand Ihrer Anwendung mit einer Baseline vergleichen. Dafür bietet der Service [benutzerdefinierte Matcher](/docs/api/expect-webdriverio#visual-matcher) sowie _Check_-Methoden:
 
-\<Tabs
+<Tabs
 defaultValue="mocha"
 values={[
 {label: 'Mocha', value: 'mocha'},
 {label: 'Jasmine', value: 'jasmine'},
 {label: 'CucumberJS', value: 'cucumberjs'},
 ]}
-
 >
 
 <TabItem value="mocha">

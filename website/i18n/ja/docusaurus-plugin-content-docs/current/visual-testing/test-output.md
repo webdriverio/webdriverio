@@ -187,7 +187,10 @@ values={[
 iOS `saveScreen` executions are by default not with the device bezel corners. To have this please add the `addIOSBezelCorners:true` option when instantiating the service, see [this](./service-options#addiosbezelcorners)
 :::
 
-![saveScreen Mobile iOS](/img/visual/screenshot-Iphone12Portrait15-390x844.png) </TabItem> </Tabs> </TabItem>
+![saveScreen Mobile iOS](/img/visual/screenshot-Iphone12Portrait15-390x844.png)
+</TabItem>
+</Tabs>
+</TabItem>
 
 <TabItem value="savefullpagescreen">
 
@@ -273,7 +276,8 @@ await browser.checkElement("#__docusaurus_skipToContent_fallback > header > div 
 The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
-![Button Check Result](/img/visual/button-check.png) </TabItem>
+![Button Check Result](/img/visual/button-check.png)
+</TabItem>
 
 <TabItem value="checkscreen">
 

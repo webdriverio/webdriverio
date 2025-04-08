@@ -64,11 +64,7 @@ Neben den WebDriver-basierten Funktionen können Sie browser- und Cloud-Vendor-s
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-<<<<<<< HEAD
 Ein nützliches Dienstprogramm ist außerdem der Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), der Ihnen hilft, dieses Objekt zu erstellen, indem Sie Ihre gewünschten Capability zusammenklicken.
-=======
-Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), which helps you create this object by clicking together your desired capabilities.
->>>>>>> 80e765ad5 (New translations configuration.md (German))
 
 Type: `Object`<br /> Default: `null`
 

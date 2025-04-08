@@ -56,11 +56,7 @@
     "description": "The label of footer link with label=Blog linking to blog"
   },
   "copyright": {
-<<<<<<< HEAD
-    "message": "कॉपीराइट © 2024 ओपनजेएस फाउंडेशन",
-=======
-    "message": "Copyright © 2025 OpenJS Foundation",
->>>>>>> cbea72943 (New translations footer.json (Hindi))
+    "message": "कॉपीराइट © 2025 ओपनजेएस फाउंडेशन",
     "description": "The footer copyright"
   },
   "link.item.label.YouTube": {
