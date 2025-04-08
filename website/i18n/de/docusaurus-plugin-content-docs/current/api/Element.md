@@ -3,7 +3,7 @@ id: element
 title: Das Element-Objekt
 ---
 
-An Element Object is an object representing an element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. Es kann über einen der vielen Elementabfragebefehle empfangen werden, z. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) oder [`shadow$`](/docs/api/element/shadow$).
+Ein Element-Objekt ist ein Objekt, das ein Element auf dem Remote-User-Agent repräsentiert, z.B. ein [DOM-Knoten](https://developer.mozilla.org/en-US/docs/Web/API/Element) bei der Ausführung einer Sitzung in einem Browser oder [ein mobiles Element](https://developer.apple.com/documentation/swift/sequence/element) für mobile Anwendungen. Es kann über einen der vielen Elementabfragebefehle empfangen werden, z. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) oder [`shadow$`](/docs/api/element/shadow$).
 
 ## Eigenschaften
 
@@ -18,7 +18,7 @@ Ein Element-Objekt hat folgende Eigenschaften:
 | `options`   | `Object` | WebdriverIO [Optionen](/docs/configuration) je nachdem, wie das Browserobjekt erstellt wurde. Weitere [Setup-Typen](/docs/setuptypes).                                                                                                                                  |
 
 ## Methoden
-An element object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the element section. Verfügbare Protokollbefehle hängen vom Sitzungstyp ab. Wenn Sie eine automatisierte Browsersitzung ausführen, wird keines der Appium [Befehle](/docs/api/appium) verfügbar sein und umgekehrt.
+Ein Element-Objekt stellt alle Methoden aus dem Protokollabschnitt bereit, z.B. [WebDriver](/docs/api/webdriver) Protokoll sowie Befehle, die im Element-Abschnitt aufgeführt sind. Verfügbare Protokollbefehle hängen vom Sitzungstyp ab. Wenn Sie eine automatisierte Browsersitzung ausführen, wird keines der Appium [Befehle](/docs/api/appium) verfügbar sein und umgekehrt.
 
 Zusätzlich stehen folgende Befehle zur Verfügung:
 
@@ -31,15 +31,15 @@ Zusätzlich stehen folgende Befehle zur Verfügung:
 
 ### Elementketten
 
-When working with elements WebdriverIO provides special syntax to simplify querying them and composite complex nested element lookups. Da Elementobjekte es dir erlauben, Elemente in ihrem Zweig mit gemeinsamen Abfragemethoden zu finden, können Benutzer verschachtelte Elemente wie folgt abrufen:
+Bei der Arbeit mit Elementen bietet WebdriverIO eine spezielle Syntax, um die Abfrage von Elementen zu vereinfachen und komplexe verschachtelte Element-Lookups zusammenzusetzen. Da Elementobjekte es dir erlauben, Elemente in ihrem Zweig mit gemeinsamen Abfragemethoden zu finden, können Benutzer verschachtelte Elemente wie folgt abrufen:
 
 ```js
 const header = await $('#header')
 const headline = await header.$('#headline')
-console.log(await headline.getText()) // outputs "I am a headline"
+console.log(await headline.getText()) // gibt "I am a headline" aus
 ```
 
-Bei tiefen verschachtelten Strukturen kann die Zuweisung eines verschachtelten Elements an ein Array sehr detailliert sein. Therefore WebdriverIO has the concept of chained element queries that allow fetching nested elements like this:
+Bei tiefen verschachtelten Strukturen kann die Zuweisung eines verschachtelten Elements an ein Array sehr detailliert sein. Daher hat WebdriverIO das Konzept der verketteten Elementabfragen, die es ermöglichen, verschachtelte Elemente wie folgt abzurufen:
 
 ```js
 console.log(await $('#header').$('#headline').getText())
@@ -48,11 +48,11 @@ console.log(await $('#header').$('#headline').getText())
 Dies funktioniert auch beim Abrufen einer Reihe von Elementen, z. B.:
 
 ```js
-// get the text of the 3rd headline within the 2nd header
+// erhalte den Text der 3. Überschrift im 2. Header
 console.log(await $$('#header')[1].$$('#headline')[2].getText())
 ```
 
-When working with a set of elements this can be especially useful when trying to interact with them, so instead of doing:
+Bei der Arbeit mit einer Reihe von Elementen kann dies besonders nützlich sein, wenn Sie mit ihnen interagieren möchten. Anstatt also:
 
 ```js
 const elems = await $$('div')
@@ -67,21 +67,21 @@ Können Sie Array-Methoden direkt auf der Elementkette aufrufen, z.B.:
 const location = await $$('div').map((el) => el.getLocation())
 ```
 
-same as:
+gleich wie:
 
 ```js
 const divs = await $$('div')
 const location = await divs.map((el) => el.getLocation())
 ```
 
-WebdriverIO uses a custom implementation that supports asynchronous iterators under the hood so all commands from their API are also supported for these use cases.
+WebdriverIO verwendet eine benutzerdefinierte Implementierung, die asynchrone Iteratoren unter der Haube unterstützt, so dass alle Befehle aus ihrer API auch für diese Anwendungsfälle unterstützt werden.
 
-__Note:__ all async iterators return a promise even if your callback doesn't return one, e.g.:
+__Hinweis:__ Alle asynchronen Iteratoren geben ein Promise zurück, auch wenn Ihr Callback keines zurückgibt, z.B.:
 
 ```ts
 const divs = await $$('div')
-console.log(divs.map((div) => div.selector)) // ❌ returns "Promise<string>[]"
-console.log(await divs.map((div) => div.selector)) // ✅ returns "string[]"
+console.log(divs.map((div) => div.selector)) // ❌ gibt "Promise<string>[]" zurück
+console.log(await divs.map((div) => div.selector)) // ✅ gibt "string[]" zurück
 ```
 
 ### Benutzerdefinierte Befehle

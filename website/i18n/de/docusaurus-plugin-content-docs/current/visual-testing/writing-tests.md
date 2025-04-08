@@ -1,20 +1,20 @@
 ---
 id: writing-tests
-title: Writing Tests
+title: Tests Schreiben
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-## Testrunner Framework Support
+## Unterstützung für Testrunner-Frameworks
 
-`@wdio/visual-service` is test-runner framework agnostic, which means that you can use it with all the frameworks WebdriverIO supports like:
+`@wdio/visual-service` ist Framework-unabhängig, was bedeutet, dass Sie es mit allen von WebdriverIO unterstützten Frameworks verwenden können, wie:
 
 - [`Mocha`](https://webdriver.io/docs/frameworks#using-mocha)
 - [`Jasmine`](https://webdriver.io/docs/frameworks#using-jasmine)
 - [`CucumberJS`](https://webdriver.io/docs/frameworks#using-cucumber)
 
-Within your tests, you can _save_ screenshots or match the current visual state of your application under test with a baseline. For that, the service provides [custom matcher](/docs/api/expect-webdriverio#visual-matcher), as well as _check_ methods:
+Innerhalb Ihrer Tests können Sie Screenshots _speichern_ oder den aktuellen visuellen Zustand Ihrer Anwendung mit einer Baseline vergleichen. Dafür bietet der Service [benutzerdefinierte Matcher](/docs/api/expect-webdriverio#visual-matcher) sowie _Check_-Methoden:
 
 \<Tabs
 defaultValue="mocha"
@@ -347,9 +347,9 @@ Then('I should be able to compare some screenshots with a baseline', async funct
 </TabItem>
 </Tabs>
 
-:::note IMPORTANT
+:::note WICHTIG
 
-This service provides `save` and `check` methods. If you run your tests for the first time you **SHOULD NOT** combine `save` and `compare` methods, the `check`-methods will automatically create a baseline image for you
+Dieser Service bietet `save`- und `check`-Methoden. Wenn Sie Ihre Tests zum ersten Mal ausführen, **SOLLTEN SIE NICHT** `save`- und `compare`-Methoden kombinieren. Die `check`-Methoden erstellen automatisch ein Baseline-Bild für Sie
 
 ```sh
 #####################################################################################
@@ -359,7 +359,7 @@ This service provides `save` and `check` methods. If you run your tests for the 
 #####################################################################################
 ```
 
-When you've [disabled to automatically save baseline images](service-options#autosavebaseline), the Promise will be rejected with the following warning.
+Wenn Sie [das automatische Speichern von Baseline-Bildern deaktiviert haben](service-options#autosavebaseline), wird die Promise mit der folgenden Warnung abgelehnt.
 
 ```sh
 #####################################################################################
@@ -369,6 +369,6 @@ When you've [disabled to automatically save baseline images](service-options#aut
 #####################################################################################
 ```
 
-This means that the current screenshot is saved in the actual folder and you **manually need to copy it to your baseline**. If you instantiate `@wdio/visual-service` with [`autoSaveBaseline: true`](./service-options#autosavebaseline) the image will automatically be saved into the baseline folder.
+Das bedeutet, dass der aktuelle Screenshot im Actual-Ordner gespeichert wird und Sie ihn **manuell in Ihre Baseline kopieren müssen**. Wenn Sie `@wdio/visual-service` mit [`autoSaveBaseline: true`](./service-options#autosavebaseline) initialisieren, wird das Bild automatisch im Baseline-Ordner gespeichert.
 
 :::
