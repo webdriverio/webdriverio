@@ -18,7 +18,7 @@
  * </example>
  *
  * @alias element.nextElement
- * @return {HTMLElement}
+ * @return {WebdriverIO.Element}
  * @type utility
  */
 
