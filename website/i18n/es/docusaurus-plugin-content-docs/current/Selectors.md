@@ -21,15 +21,15 @@ Si bien hay tantos selectores diferentes disponibles, solo algunos de ellos brin
 
 Nosotros __hacemos__ y __no__ recomendamos los siguientes selectores:
 
-| Selector                                      | Recomendado     | Observaciones                                                              |
-| --------------------------------------------- | --------------- | -------------------------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Nunca         | El peor - demasiado genérico, sin contexto.                                |
-| `$('.btn.btn-large')`                         | 🚨 Nunca         | Malo. Unido al estilismo. Muy sujeto a cambios.                            |
-| `$('#main')`                                  | ⚠️ Parcialmente | Media-baja. Pero todavía se unieron a los oyentes de estilos o eventos JS. |
-| `$(() => document.queryElement('button'))` | ⚠️ Parcialmente | Consulta efectiva, compleja de escribir.                                   |
-| `$('button[name="submission"]')`              | ⚠️ Parcialmente | Acoplado al atributo `nombre` que tiene semántica HTML.                    |
-| `$('button[data-testid="submit"]')`           | ✅ Bueno         | Requiere atributo adicional, no conectado al a11y.                         |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ El mejor      | Óptimo. Se asemeja a cómo el usuario interactúa con la página.             |
+| Selector                                      | Recomendado     | Observaciones                                                                                                                                                                        |
+| --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `$('button')`                                 | 🚨 Nunca         | El peor - demasiado genérico, sin contexto.                                                                                                                                          |
+| `$('.btn.btn-large')`                         | 🚨 Nunca         | Malo. Unido al estilismo. Muy sujeto a cambios.                                                                                                                                      |
+| `$('#main')`                                  | ⚠️ Parcialmente | Media-baja. Pero todavía se unieron a los oyentes de estilos o eventos JS.                                                                                                           |
+| `$(() => document.queryElement('button'))` | ⚠️ Parcialmente | Consulta efectiva, compleja de escribir.                                                                                                                                             |
+| `$('button[name="submission"]')`              | ⚠️ Parcialmente | Acoplado al atributo `nombre` que tiene semántica HTML.                                                                                                                              |
+| `$('button[data-testid="submit"]')`           | ✅ Bueno         | Requiere atributo adicional, no conectado al a11y.                                                                                                                                   |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ El mejor      | Óptimo. Se asemeja a cómo el usuario interactúa con la página. It is recommended to use your frontend's translation files so your tests never fail when the translations are updated |
 
 ## Selector de consultas CSS
 
@@ -75,7 +75,7 @@ const elem = await $('header').$('*=driver')
 
 ## Elemento con un texto determinado
 
-También se puede aplicar la misma técnica a los elementos.
+The same technique can be applied to elements as well. Additionally, it is also possible to do a case-insensitive matching using `.=` or `.*=` within the query.
 
 Por ejemplo, aquí hay una consulta para un encabezado de nivel 1 con el texto "Bienvenido a mi página":
 
@@ -86,13 +86,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Puede consultar este elemento llamando:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L35C1-L38
 ```
 
 O usando texto parcial de la consulta:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L44C9-L47
 ```
 
 Lo mismo funciona para los nombres de la clase `id` y ``:
@@ -104,7 +104,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Puede consultar este elemento llamando:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L49-L67
 ```
 
 __Nota:__ No puede mezclar múltiples estrategias de selector en un selector. Usar múltiples consultas encadenadas de elementos para alcanzar el mismo objetivo, por ejemplo.:
@@ -273,11 +273,17 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## Selectores
 
+:::warning
+
+Starting with `v9` of WebdriverIO there is no need for this special selector as WebdriverIO automatically pierces through the Shadow DOM for you. It is recommended to migrate off this selector by removing the `>>>` in front it.
+
+:::
+
 Muchas aplicaciones de frontend dependen en gran medida de elementos con [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). Es técnicamente imposible consultar elementos dentro del DOM alternativo sin workarounds. La [`sombrea$`](https://webdriver.io/docs/api/element/shadow$) y [`sombrea$$`](https://webdriver.io/docs/api/element/shadow$$) han sido tales soluciones que tenían sus [limitaciones](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). Con el selector profundo ahora puede consultar todos los elementos dentro de cualquier DOM sombra usando el comando de consulta común.
 
 Dado que tenemos una aplicación con la siguiente estructura:
 
-![Ejemplo Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Ejemplo Chrome")
+![Ejemplo Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
 Con este selector puedes consultar el elemento `<button />` que está anidado dentro de otro DOM, por ejemplo.:
 
@@ -436,7 +442,7 @@ Utilizando la estrategia de localización de  `-image`, es posible enviar un App
 
 Formatos de archivo compatibles `jpg,png,gif,bmp,svg`
 
-Se puede encontrar una referencia completa [aquí](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+Full reference can be found [here](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md)
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
@@ -445,7 +451,7 @@ await elem.click()
 
 **Nota**: La forma en que funciona Appium con este selector es que internamente hará una captura de pantalla (app)y usará el selector de imagen proporcionado para verificar si el elemento puede encontrarse en esa captura de pantalla (app).
 
-Tenga en cuenta el hecho de que Appium podría cambiar el tamaño de la captura de pantalla tomada (aplicación) para que coincida con el tamaño CSS de su pantalla (aplicación) (esto sucederá en iPhones pero también en máquinas Mac con una pantalla Retina porque el DPR es más grande que 1). Esto resultará en no encontrar coincidencias porque el selector de imagen proporcionado podría haber sido tomado de la captura de pantalla original. Puede solucionar esto actualizando la configuración del servidor Appium, consulte los [documentos de Appium](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) para conocer la configuración y [este comentario](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) para obtener una explicación detallada.
+Tenga en cuenta el hecho de que Appium podría cambiar el tamaño de la captura de pantalla tomada (aplicación) para que coincida con el tamaño CSS de su pantalla (aplicación) (esto sucederá en iPhones pero también en máquinas Mac con una pantalla Retina porque el DPR es más grande que 1). Esto resultará en no encontrar coincidencias porque el selector de imagen proporcionado podría haber sido tomado de la captura de pantalla original. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
 
 ## Selectores de Cadena
 
@@ -572,7 +578,7 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 ## Estrategias de selección personalizadas
 
-Si su aplicación requiere una forma específica de obtener elementos, puede definir una estrategia de selección personalizada que puede usar con `custom$` y `custom$$`. Para eso registre su estrategia una vez al comienzo de la prueba:
+Si su aplicación requiere una forma específica de obtener elementos, puede definir una estrategia de selección personalizada que puede usar con `custom$` y `custom$$`. For that register your strategy once in the beginning of the test, e.g. in a `before` hook:
 
 ```js reference
 https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11

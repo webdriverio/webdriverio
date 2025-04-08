@@ -21,15 +21,15 @@ Obwohl so viele verschiedene Selektoren verfügbar sind, bieten nur wenige von i
 
 Empfehlen wir (oder nicht) die folgenden Selektoren:
 
-| Selektor                                      | Empfehlung | Anmerkungen                                                                |
-| --------------------------------------------- | ---------- | -------------------------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Niemals  | Am schlimmsten - zu allgemein, kein Kontext.                               |
-| `$('.btn.btn-large')`                         | 🚨 Niemals  | Weniger Gut. Verbunden mit Styling. Fehler durch Style-Änderungen möglich. |
-| `$('#main')`                                  | ⚠️ Sparsam | Besser. Aber immer noch an Styling oder JS-Event-Listener gekoppelt.       |
-| `$(() => document.queryElement('button'))` | ⚠️ Sparsam | Ermöglicht effektive Abfragen, allerdings komplex zu schreiben.            |
-| `$('button[name="submission"]')`              | ⚠️ Sparsam | Gekoppelt an das Attribut `name`, das HTML-Semantik hat.                   |
-| `$('button[data-testid="submit"]')`           | ✅ Gut      | Erfordert zusätzliches Attribut, das keine weitere Funktion hat.           |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Immer    | Am besten geeignet. Ähnelt, wie der Benutzer mit der Seite interagiert.    |
+| Selektor                                      | Empfehlung | Anmerkungen                                                                                                                                                                                   |
+| --------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `$('button')`                                 | 🚨 Niemals  | Am schlimmsten - zu allgemein, kein Kontext.                                                                                                                                                  |
+| `$('.btn.btn-large')`                         | 🚨 Niemals  | Weniger Gut. Verbunden mit Styling. Fehler durch Style-Änderungen möglich.                                                                                                                    |
+| `$('#main')`                                  | ⚠️ Sparsam | Besser. Aber immer noch an Styling oder JS-Event-Listener gekoppelt.                                                                                                                          |
+| `$(() => document.queryElement('button'))` | ⚠️ Sparsam | Ermöglicht effektive Abfragen, allerdings komplex zu schreiben.                                                                                                                               |
+| `$('button[name="submission"]')`              | ⚠️ Sparsam | Gekoppelt an das Attribut `name`, das HTML-Semantik hat.                                                                                                                                      |
+| `$('button[data-testid="submit"]')`           | ✅ Gut      | Erfordert zusätzliches Attribut, das keine weitere Funktion hat.                                                                                                                              |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Immer    | Am besten geeignet. Ähnelt, wie der Benutzer mit der Seite interagiert. It is recommended to use your frontend's translation files so your tests never fail when the translations are updated |
 
 ## CSS-Selektoren
 
@@ -75,7 +75,7 @@ const elem = await $('header').$('*=driver')
 
 ## Element mit bestimmtem Text
 
-Die gleiche Technik kann auch auf Elemente angewendet werden.
+The same technique can be applied to elements as well. Additionally, it is also possible to do a case-insensitive matching using `.=` or `.*=` within the query.
 
 Hier ist zum Beispiel eine Abfrage für eine Überschrift der Ebene 1 mit dem Text „Welcome to my page“:
 
@@ -86,13 +86,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Sie können dieses Element abfragen, indem Sie Folgendes aufrufen:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L35C1-L38
 ```
 
 Oder verwenden Sie die Teiltext-Abfrage:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L44C9-L47
 ```
 
 Das gleiche funktioniert für `id` und `class` Namen:
@@ -104,7 +104,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Sie können dieses Element abfragen, indem Sie Folgendes aufrufen:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L49-L67
 ```
 
 __Hinweis:__ Sie können nicht mehrere Selektorstrategien in einem Selektor mischen. Verwenden Sie mehrere verkettete Elementabfragen, um dasselbe Ziel zu erreichen, z. B.:
@@ -275,11 +275,17 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## Tiefe Selektoren
 
+:::warning
+
+Starting with `v9` of WebdriverIO there is no need for this special selector as WebdriverIO automatically pierces through the Shadow DOM for you. It is recommended to migrate off this selector by removing the `>>>` in front it.
+
+:::
+
 Viele Frontend-Anwendungen verlassen sich stark auf Elemente mit [Shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). Es ist technisch nicht möglich, Elemente innerhalb des Shadow-DOM ohne Workarounds abzufragen. Die [`shadow$`](https://webdriver.io/docs/api/element/shadow$) und [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) waren Möglichkeiten, die ihre [Einschränkungen hatten](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). Mit dem Tiefenselektor können Sie jetzt alle Elemente in jedem Schatten-DOM mit dem allgemeinen Abfragebefehl abfragen.
 
 Angenommen, wir haben eine Anwendung mit der folgenden Struktur:
 
-![Chrome-Beispiel](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome-Beispiel")
+![Chrome-Beispiel](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
 Mit diesem Selektor können Sie das `<button />` Element abfragen, das in einem anderen Schatten-DOM verschachtelt ist, z.B.:
 
@@ -438,7 +444,7 @@ Mit der  `-image-` Selektor ist es möglich, Appium eine Bilddatei zu senden, di
 
 Unterstützte Dateiformate `jpg,png,gif,bmp,svg`
 
-Eine vollständige Referenz finden Sie [hier](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+Full reference can be found [here](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md)
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
@@ -447,7 +453,7 @@ await elem.click()
 
 **Hinweis**: Die Art und Weise, wie Appium mit diesem Selektor arbeitet, ist, dass es intern einen (App-)Screenshot erstellt und den bereitgestellten Bildselektor verwendet, um zu überprüfen, ob das Element in diesem (App-)Screenshot gefunden werden kann.
 
-Beachten Sie, dass Appium die Größe des aufgenommenen (App-) möglicherweise an die CSS-Größe Ihres (App-)Bildschirms anpasst (dies geschieht auf iPhones, aber auch auf Mac-Computern mit einem Retina-Display, da der DPR größer ist als 1). Dies führt dazu dass keine Übereinstimmung gefunden wird, da die bereitgestellte Bildauswahl möglicherweise aus dem ursprünglichen Screenshot stammt. Sie können dies beheben, indem Sie die Appium Server-Einstellungen aktualisieren, siehe die [Appium-Dokumentation](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) für die Einstellungen und [diesen Kommentar](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) für eine detaillierte Erklärung.
+Beachten Sie, dass Appium die Größe des aufgenommenen (App-) möglicherweise an die CSS-Größe Ihres (App-)Bildschirms anpasst (dies geschieht auf iPhones, aber auch auf Mac-Computern mit einem Retina-Display, da der DPR größer ist als 1). Dies führt dazu dass keine Übereinstimmung gefunden wird, da die bereitgestellte Bildauswahl möglicherweise aus dem ursprünglichen Screenshot stammt. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
 
 ## React Selektoren
 
@@ -574,7 +580,7 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 ## Benutzerdefinierte Selektoren
 
-Wenn Ihre App eine bestimmte Methode zum Abrufen von Elementen erfordert, können Sie sich selbst eine benutzerdefinierte Selektorstrategie definieren, die Sie mit `custom$` und `custom$$`verwenden können. Registrieren Sie dazu Ihre Strategie einmalig zu Beginn des Tests:
+Wenn Ihre App eine bestimmte Methode zum Abrufen von Elementen erfordert, können Sie sich selbst eine benutzerdefinierte Selektorstrategie definieren, die Sie mit `custom$` und `custom$$`verwenden können. For that register your strategy once in the beginning of the test, e.g. in a `before` hook:
 
 ```js reference
 https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11

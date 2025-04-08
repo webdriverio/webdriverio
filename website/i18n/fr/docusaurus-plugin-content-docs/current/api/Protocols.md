@@ -24,7 +24,7 @@ La section suivante explique chaque protocole individuel.
 
 Le protocole [WebDriver](https://w3c.github.io/webdriver/#elements) est une norme Web pour l'automatisation du navigateur. Contrairement à certains autres outils E2E, il garantit que l'automatisation peut être effectuée sur le navigateur réel utilisé par vos utilisateurs, par exemple Firefox, Safari et Chrome et les navigateurs basés sur Chromium comme Edge, et pas seulement sur les moteurs de navigateur, par exemple WebKit, qui sont très différent.
 
-L'avantage d'utiliser le protocole WebDriver par opposition aux protocoles de débogage comme [Chrome DevTools](https://w3c.github.io/webdriver/#elements) est que vous disposez d'un ensemble spécifique de commandes qui permettent d'interagir avec le navigateur de la même manière sur tous les navigateurs, ce qui réduit le risque de flakiness. Offre en outre à ce protocole des capacités d'évolutivité massive en utilisant des fournisseurs de cloud tels que [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) et [autres](https://github.com/christian-bromann/awesome-selenium#cloud-services).
+L'avantage d'utiliser le protocole WebDriver par opposition aux protocoles de débogage comme [Chrome DevTools](https://w3c.github.io/webdriver/#elements) est que vous disposez d'un ensemble spécifique de commandes qui permettent d'interagir avec le navigateur de la même manière sur tous les navigateurs, ce qui réduit le risque de flakiness. Furthermore offers this protocol abilities for massive scalability by using cloud vendors such as [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) and [others](https://github.com/christian-bromann/awesome-selenium#cloud-services).
 
 ## Protocole WebDriver Bidi
 
@@ -45,7 +45,7 @@ Selon la documentation Appium [](https://appium.github.io/appium.io/docs/en/abou
 
 ## Chromium
 
-Le protocole Chromium offre un super ensemble de commandes en plus du protocole WebDriver qui n'est pris en charge que lors de l'exécution d'une session automatisée via [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary).
+The Chromium protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary) or [Edgedriver](https://developer.microsoft.com/fr-fr/microsoft-edge/tools/webdriver).
 
 ## Firefox
 

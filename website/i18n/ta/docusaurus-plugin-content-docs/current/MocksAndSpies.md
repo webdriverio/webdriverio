@@ -3,11 +3,11 @@ id: mocksandspies
 title: மாக்ஸ் மற்றும் ஸ்பைகளைக் கோருங்கள்
 ---
 
-WebdriverIO ஆனது நெட்ஒர்க் ரெஸ்பான்சுகளை மாற்றியமைப்பதற்கான ஆதரவுடன் வருகிறது, இது உங்கள் பின்தளம் அல்லது மாக் சேவையகத்தை அமைக்காமல் உங்கள் முன்பக்கம் பயன்பாட்டைச் சோதிப்பதில் கவனம் செலுத்த அனுமதிக்கிறது. உங்கள் டெஸ்டில் REST API கோரிக்கைகள் போன்ற இணைய ஆதாரங்களுக்கான தனிப்பயன் பதில்களை நீங்கள் வரையறுத்து அவற்றை மாறும் வகையில் மாற்றலாம்.
+WebdriverIO comes with built-in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. உங்கள் டெஸ்டில் REST API கோரிக்கைகள் போன்ற இணைய ஆதாரங்களுக்கான தனிப்பயன் பதில்களை நீங்கள் வரையறுத்து அவற்றை மாறும் வகையில் மாற்றலாம்.
 
 :::info
 
-Chrome இல் லோக்கல் டெஸ்டுகளை இயக்கும்போது மட்டுமே இந்த அம்சம் தற்போது ஆதரிக்கப்படுகிறது. இது விரைவில் [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1591389) மற்றும் [Sauce Labs](https://saucelabs.com/) இல் ஆதரிக்கப்பட திட்டமிடப்பட்டுள்ளது. இதைப் பயன்படுத்துவதில் உங்களுக்குச் சிக்கல்கள் ஏற்பட்டால், தயவுசெய்து [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) ஐப் பதிவுசெய்து எங்களுக்குத் தெரியப்படுத்துங்கள்!
+Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in a Chromium-based browser, via a Selenium Grid v4 or higher, or through a cloud vendor with support for the Chrome DevTools protocol (e.g. SauceLabs, BrowserStack, LambdaTest). Full cross-browser support will be available once the required primitives land in [Webdriver Bidi](https://wpt.fyi/results/webdriver/tests/bidi/network?label=experimental&label=master&aligned) and get implemented in the respective browser.
 
 :::
 

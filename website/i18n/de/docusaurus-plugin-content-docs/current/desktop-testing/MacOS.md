@@ -3,27 +3,27 @@ id: macos
 title: MacOS
 ---
 
-WebdriverIO can automate arbitrary MacOS application using [Appium](https://appium.io/docs/en/2.0/). All you need is [XCode](https://developer.apple.com/xcode/) installed on your system, Appium and the [Mac2 Driver](https://github.com/appium/appium-mac2-driver) installed as dependency and the correct capabilities set.
+WebdriverIO kann beliebige MacOS-Anwendungen mithilfe von [Appium](https://appium.io/docs/en/2.0/) automatisieren. Alles was du benötigst ist [XCode](https://developer.apple.com/xcode/), das auf deinem System installiert ist, Appium und der [Mac2 Driver](https://github.com/appium/appium-mac2-driver) als Abhängigkeit sowie die richtigen Capabilities.
 
-## Getting Started
+## Erste Schritte
 
-To initiate a new WebdriverIO project, run:
+Um ein neues WebdriverIO-Projekt zu starten, führe folgenden Befehl aus:
 
 ```sh
 npm create wdio@latest ./
 ```
 
-An installation wizard will guide you through the process. Ensure you select _"Desktop Testing - of MacOS Applications"_ when it asks you what type of testing you'ld like to do. Afterwards just keep the defaults or modify based on your preference.
+Ein Installationsassistent führt dich durch den Prozess. Stelle sicher, dass du _"Desktop Testing - of MacOS Applications"_ auswählst, wenn gefragt wird, welche Art von Tests du durchführen möchtest. Danach kannst du die Standardeinstellungen beibehalten oder nach deinen Vorlieben anpassen.
 
-The configuration wizard will install all required Appium packages and creates a `wdio.conf.js` or `wdio.conf.ts` with the necessary configuration to test on MacOS. If you agreed to autogenerate some tests files you can run your first test via `npm run wdio`.
+Der Konfigurationsassistent installiert alle erforderlichen Appium-Pakete und erstellt eine `wdio.conf.js` oder `wdio.conf.ts` mit der notwendigen Konfiguration für Tests auf MacOS. Wenn du der automatischen Generierung von Testdateien zugestimmt hast, kannst du deinen ersten Test über `npm run wdio` ausführen.
 
 <CreateMacOSProjectAnimation />
 
-That's it 🎉
+Das war's schon 🎉
 
-## Example
+## Beispiel
 
-This is how a simple test can look like that opens the Calculator application, makes a calculation and verifies its result:
+So kann ein einfacher Test aussehen, der die Taschenrechner-Anwendung öffnet, eine Berechnung durchführt und das Ergebnis überprüft:
 
 ```js
 describe('My Login application', () => {
@@ -37,8 +37,8 @@ describe('My Login application', () => {
 })
 ```
 
-__Note:__ the calculator app was opened automatically at the beginning of the session because `'appium:bundleId': 'com.apple.calculator'` was defined as capability option. You can switch apps during the session at all times.
+__Hinweis:__ Die Taschenrechner-App wurde zu Beginn der Sitzung automatisch geöffnet, da `'appium:bundleId': 'com.apple.calculator'` als Capability-Option definiert wurde. Du kannst während der Sitzung jederzeit zwischen Apps wechseln.
 
-## More Information
+## Weitere Informationen
 
-For information about specifics around testing on MacOS we recommend to go checkout the [Appium Mac2 Driver](https://github.com/appium/appium-mac2-driver) project.
+Für Informationen zu Besonderheiten beim Testen auf MacOS empfehlen wir, das [Appium Mac2 Driver](https://github.com/appium/appium-mac2-driver) Projekt zu besuchen.

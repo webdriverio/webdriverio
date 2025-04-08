@@ -6,7 +6,7 @@ title: Docker
 Docker es una potente tecnología de containerización que permite encapsular su suite de pruebas en un contenedor que se comporta lo mismo en cada sistema. Esto puede evitar errores debido a diferentes versiones de navegador o plataforma. Para ejecutar tus pruebas dentro de un contenedor, crea un `Dockerfile` en el directorio de tu proyecto, por ejemplo.:
 
 ```Dockerfile
-FROM ianwalter/puppeteer:latest
+FROM selenium/standalone-chrome:134.0-20250323 # Change the browser and version according to your needs
 WORKDIR /app
 ADD . /app
 
@@ -22,7 +22,7 @@ node_modules
 ```
 
 :::info
-Estamos usando una imagen de Docker que viene con Google Chrome preinstalado. Hay varias imágenes disponibles con diferentes configuraciones del navegador. Echa un vistazo a las imágenes mantenidas por el proyecto Selenium [en Docker Hub](https://hub.docker.com/u/selenium).
+We are using a Docker image here that comes with Selenium and Google Chrome pre-installed. There are various of images available with different browser setups and browser versions. Echa un vistazo a las imágenes mantenidas por el proyecto Selenium [en Docker Hub](https://hub.docker.com/u/selenium).
 :::
 
 Como sólo podemos ejecutar Google Chrome en modo sin cabeceras en nuestro contenedor Docker, tenemos que modificar nuestro `wdio. onf.js` para asegurar que hagamos eso:
@@ -47,7 +47,7 @@ export const config = {
 }
 ```
 
-Como se menciona en [Protocolos de automatización](/docs/automationProtocols) puede ejecutar WebdriverIO usando el protocolo WebDriver o Chrome DevTools. Si utiliza WebDriver asegúrese de que la versión de Chrome instalada en su imagen coincide con la versión de [Chromedriver](https://www.npmjs.com/package/chromedriver) que ha definido en su paquete `.
+As mentioned in [Automation Protocols](/docs/automationProtocols) you can run WebdriverIO using the WebDriver protocol or WebDriver BiDi protocol. Make sure that the Chrome version installed on your image matches the [Chromedriver](https://www.npmjs.com/package/chromedriver) version you have defined in your `package.json`.
 
 Para construir el contenedor Docker se puede ejecutar:
 

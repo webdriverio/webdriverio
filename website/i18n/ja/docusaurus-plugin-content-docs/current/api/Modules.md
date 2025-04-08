@@ -3,22 +3,22 @@ id: modules
 title: Modules
 ---
 
-WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
+WebdriverIOは、独自の自動化フレームワークを構築するために使用できるさまざまなモジュールをNPMやその他のレジストリに公開します。 WebdriverIO セットアップ タイプの詳細については、[こちら](/docs/setuptypes)をご覧ください。
 
 ## `webdriver` and `devtools`
 
-The protocol packages ([`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools)) expose a class with the following static functions attached that allow you to initiate sessions:
+プロトコルパッケージ ([`webdriver`](https://www.npmjs.com/package/webdriver) と [`devtools`](https://www.npmjs.com/package/devtools)) は、セッションを開始することを可能にする以下の静的関数が付いているクラスを公開します。
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
-Starts a new session with specific capabilities. Based on the session response commands from different protocols will be provided.
+新しいセッションを特定の機能で開始します。 異なるプロトコルからのセッション応答コマンドに基づいて提供されます。
 
 ##### Paramaters
 
-- `options`: [WebDriver Options](/docs/configuration#webdriver-options)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- ` options `: [WebDriver オプション](/docs/configuration#webdriver-options)
+- ` modifier`: クライアントインスタンスを返す前に変更できる関数。
+- `userPrototype`: インスタンスのプロトタイプを拡張できるプロパティオブジェクト
+- `customCommandWrapper`: 関数呼び出しの周りの機能をラップできる関数
 
 ##### Returns
 
@@ -34,14 +34,14 @@ const client = await WebDriver.newSession({
 
 #### `attachToSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
 
-Attaches to a running WebDriver or DevTools session.
+実行中の WebDriver または DevTools セッションにアタッチします。
 
 ##### Paramaters
 
-- `attachInstance`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `attachInstance`: セッションをアタッチするインスタンス、または少なくともプロパティ `sessionId` を持つオブジェクト (例: `{ sessionId: 'xxx' }`)
+- ` modifier`: クライアントインスタンスを返す前に変更できる関数。
+- `userPrototype`: インスタンスのプロトタイプを拡張できるプロパティオブジェクト
+- `customCommandWrapper`: 関数呼び出しの周りの機能をラップできる関数
 
 ##### Returns
 
@@ -56,7 +56,7 @@ const clonedClient = await WebDriver.attachToSession(client)
 
 #### `reloadSession(instance)`
 
-Reloads a session given provided instance.
+指定されたインスタンスを再読み込みします。
 
 ##### Paramaters
 
@@ -71,16 +71,16 @@ await WebDriver.reloadSession(client)
 
 ## `webdriverio`
 
-Similar as to the protocol packages (`webdriver` and `devtools`) you can also use the WebdriverIO package APIs to manage sessions. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
+プロトコルパッケージ(`webdriver` と `devtools`) と同様に、WebdriverIO パッケージ API をセッション管理に使用することもできます。 API は、 `import { remote, attach, multiremote } from 'webdriverio` を使用してインポートし、次の機能を含めることができます。
 
 #### `remote(options, modifier)`
 
-Starts a WebdriverIO session. The instance contains all commands as the protocol package but with additional higher order functions, see [API docs](/docs/api).
+WebdriverIO セッションを開始します。 インスタンスはプロトコルパッケージとしてすべてのコマンドを含んでいますが、追加の高次関数を含んでいます。 [API ドキュメント](/docs/api) を参照してください。
 
 ##### Paramaters
 
-- `options`: [WebdriverIO Options](/docs/configuration#webdriverio)
-- `modifier`: function that allows to modify the client instance before it is being returned
+- ` options `: [WebdriverIO オプション](/docs/configuration#webdriverio)
+- ` modifier`: クライアントインスタンスを返す前に変更できる関数。
 
 ##### Returns
 
@@ -98,11 +98,11 @@ const browser = await remote({
 
 #### `attach(attachOptions)`
 
-Attaches to a running WebdriverIO session.
+実行中の WebdriverIO セッションにアタッチします。
 
 ##### Paramaters
 
-- `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+- `attachInstance`: セッションをアタッチするインスタンス、または少なくともプロパティ `sessionId` を持つオブジェクト (例: `{ sessionId: 'xxx' }`)
 
 ##### Returns
 
@@ -119,11 +119,11 @@ const newBrowser = await attach(browser)
 
 #### `multiremote(multiremoteOptions)`
 
-Initiates a multiremote instance which allows you to control multiple session within a single instance. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases.
+1つのインスタンス内で複数のセッションを制御できるマルチリモートインスタンスを開始します。 具体的なユースケースについては、 [マルチリモート例](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) をご覧ください。
 
 ##### Paramaters
 
-- `multiremoteOptions`: an object with keys representing the browser name and their [WebdriverIO Options](/docs/configuration#webdriverio).
+- `multiremoteOptions`: ブラウザー名と [WebdriverIO Options](/docs/configuration#webdriverio) を表すキーを持つオブジェクト。
 
 ##### Returns
 
@@ -151,7 +151,7 @@ console.log(await matrix.getTitle())
 
 ## `@wdio/cli`
 
-Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this:
+`wdio` コマンドを呼び出す代わりに、テストランナーをモジュールとして含めて任意の環境で実行することもできます。 そのためには、以下のように、 `@wdio/cli` パッケージをモジュールにする必要があります。
 
 <Tabs
   defaultValue="esm"
@@ -176,16 +176,16 @@ const Launcher = require('@wdio/cli').default
 </TabItem>
 </Tabs>
 
-After that, create an instance of the launcher, and run the test.
+その後、ランチャーのインスタンスを作成し、テストを実行します。
 
 #### `Launcher(configPath, opts)`
 
-The `Launcher` class constructor expects the URL to the config file, and an `opts` object with settings that will overwrite those in the config.
+`Launcher` クラス コンストラクターは、構成ファイルへの URL、および構成内の設定を上書きする設定を持つ `opts` オブジェクトを期待します。
 
 ##### Paramaters
 
-- `configPath`: path to the `wdio.conf.js` to run
-- `opts`: arguments ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)) to overwrite values from the config file
+- `configPath`: 実行する `wdio.conf.js` へのパス
+- `opts`: 構成ファイルの値を上書きする引数 [`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)
 
 ##### Example
 
@@ -203,29 +203,29 @@ wdio.run().then((exitCode) => {
 })
 ```
 
-The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
+`run` コマンドは、 [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) を返します。 テストが正常に実行されたか失敗した場合は解決され、ランチャーがテストを開始できなかった場合は拒否されます。
 
 ## `@wdio/browser-runner`
 
-When running unit or component tests using WebdriverIO's [browser runner](/docs/runner#browser-runner) you can import mocking utilities for your tests, e.g.:
+WebdriverIOの [browser runner](/docs/runner#browser-runner) を使用してユニットまたはコンポーネントテストを実行する場合、テスト用のモックユーティリティをインポートすることができます。例えば：
 
 ```ts
 import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'
 ```
 
-The following named exports are available:
+次の名前付きエクスポートを使用できます。
 
 #### `fn`
 
-Mock function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
+モック機能は、公式の [Vitest docs](https://vitest.dev/api/mock.html#mock-functions)を参照してください。
 
 #### `spyOn`
 
-Spy function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
+スパイ機能は、公式の [Vitest docs](https://vitest.dev/api/mock.html#mock-functions)を参照してください。
 
 #### `mock`
 
-Method to mock file or dependency module.
+ファイルまたは依存関係モジュールをモックする方法。
 
 ##### Paramaters
 
@@ -250,11 +250,11 @@ mock('lodash', (origModuleFactory) => {
 
 #### `unmock`
 
-Unmock dependency that is defined within the manual mock (`__mocks__`) directory.
+マニュアルモック(`__mocks__`) ディレクトリ内で定義されているモック依存性を解除します。
 
 ##### Paramaters
 
-- `moduleName`: name of the module to be unmocked.
+- `moduleName`: アンモックするモジュールの名前。
 
 ##### Example
 

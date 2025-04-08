@@ -21,15 +21,15 @@ title: Селектори
 
 Ми __рекомендуємо__ і __не рекомендуємо__ наступні селектори:
 
-| Селектор                                      | Використовувати | Роз'яснення                                                     |
-| --------------------------------------------- | --------------- | --------------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Ніколи        | Найгірше – надто загальне, без контексту.                       |
-| `$('.btn.btn-large')`                         | 🚨 Ніколи        | Поганий. Зв'язаний зі стилями. Дуже схильний до змін.           |
-| `$('#main')`                                  | ⚠️ Обережно     | Краще. Але все ще зв'язаний зі стилями або слухачами подій JS.  |
-| `$(() => document.queryElement('button'))` | ⚠️ Обережно     | Ефективний, проте занадто складний для написання.               |
-| `$('button[name="submission"]')`              | ⚠️ Обережно     | Зв'язаний із атрибутом `name`, який має семантику HTML.         |
-| `$('button[data-testid="submit"]')`           | ✅ Можна         | Вимагає додаткових атрибутів, не пов'язаних із доступністю.     |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Завжди        | Найкращий. Демонструє те, як користувач взаємодіє зі сторінкою. |
+| Селектор                                      | Використовувати | Роз'яснення                                                                                                                                                                           |
+| --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `$('button')`                                 | 🚨 Ніколи        | Найгірше – надто загальне, без контексту.                                                                                                                                             |
+| `$('.btn.btn-large')`                         | 🚨 Ніколи        | Поганий. Зв'язаний зі стилями. Дуже схильний до змін.                                                                                                                                 |
+| `$('#main')`                                  | ⚠️ Обережно     | Краще. Але все ще зв'язаний зі стилями або слухачами подій JS.                                                                                                                        |
+| `$(() => document.queryElement('button'))` | ⚠️ Обережно     | Ефективний, проте занадто складний для написання.                                                                                                                                     |
+| `$('button[name="submission"]')`              | ⚠️ Обережно     | Зв'язаний із атрибутом `name`, який має семантику HTML.                                                                                                                               |
+| `$('button[data-testid="submit"]')`           | ✅ Можна         | Вимагає додаткових атрибутів, не пов'язаних із доступністю.                                                                                                                           |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Завжди        | Найкращий. Демонструє те, як користувач взаємодіє зі сторінкою. It is recommended to use your frontend's translation files so your tests never fail when the translations are updated |
 
 ## CSS селектори
 
@@ -75,7 +75,7 @@ const elem = await $('header').$('*=driver')
 
 ## Елемент з певним текстом
 
-Цю ж техніку можна застосувати і до елементів.
+The same technique can be applied to elements as well. Additionally, it is also possible to do a case-insensitive matching using `.=` or `.*=` within the query.
 
 Наприклад, ось запит для заголовка рівня 1 із текстом "Welcome to my Page":
 
@@ -86,13 +86,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Ви можете знайти цей елемент, викликавши:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L35C1-L38
 ```
 
 Або використовуючи пошук за частковим збігом тексту:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L44C9-L47
 ```
 
 Те саме працює для атрибутів `id` та `class`:
@@ -104,7 +104,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 Ви можете знайти цей елемент, викликавши:
 
 ```js reference useHTTPS
-https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
+https://github.com/webdriverio/example-recipes/blob/13eddfac6f18a2a4812cc09ed7aa5e468f392060/selectors/example.js#L49-L67
 ```
 
 __Примітка:__ Ви не можете поєднувати кілька типів пошуку в одному селекторі. Використовуйте кілька послідовних пошуків елементів для досягнення цієї мети, наприклад:
@@ -273,11 +273,17 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## Глибокі селектори
 
+:::warning
+
+Starting with `v9` of WebdriverIO there is no need for this special selector as WebdriverIO automatically pierces through the Shadow DOM for you. It is recommended to migrate off this selector by removing the `>>>` in front it.
+
+:::
+
 Багато вебзастосунків інтегрують елементи із [тіньовим DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). Без обхідних шляхів пошук елементів у тіньовому DOM є технічно неможливим. [`shadow$`](https://webdriver.io/docs/api/element/shadow$) і [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) були такими обхідними шляхами, які мали свої [обмеження](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). Але тепер за допомогою глибокого селектора ви можете шукати елементи всередині будь-якого тіньового DOM використовуючи стандартну функцію для пошуку.
 
 Маючи вебзастосунок із такою структурою:
 
-![Приклад Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Приклад Chrome")
+![Приклад Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
 
 За допомогою цього селектора ви можете знайти елемент `<button />`, який розташований в іншому тіньову DOM, наприклад:
 
@@ -436,7 +442,7 @@ await $('.row .entry:nth-child(2)').$('button*=Add').click()
 
 Підтримувані формати файлів `jpg,png,gif,bmp,svg`
 
-Повну довідку можна знайти [тут](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+Full reference can be found [here](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md)
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
@@ -445,7 +451,7 @@ await elem.click()
 
 **Примітка**: Спосіб, у який Appium працює з цим селектором, полягає в тому, що він створює знімок екрана (застосунку) і використовує надане зображення, щоб перевірити, чи можна знайти елемент на знімку екрана (застосунку).
 
-Майте на увазі, що Appium може змінити розмір зробленого знімка екрана (застосунку), щоб він відповідав CSS-розміру вашого екрана (застосунку) (це обов'язково станеться на iPhone, а також на комп’ютерах Mac із дисплеєм Retina, оскільки DPR більший ніж 1). Це призведе до того, що збіг не буде знайдено, оскільки наданий селектор зображення міг бути взятий з оригінального знімка екрана. Ви можете виправити це, оновивши налаштування сервера Appium, перегляньте [документацію Appium](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) для налаштувань і [цей коментар](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) з докладним поясненням.
+Майте на увазі, що Appium може змінити розмір зробленого знімка екрана (застосунку), щоб він відповідав CSS-розміру вашого екрана (застосунку) (це обов'язково станеться на iPhone, а також на комп’ютерах Mac із дисплеєм Retina, оскільки DPR більший ніж 1). Це призведе до того, що збіг не буде знайдено, оскільки наданий селектор зображення міг бути взятий з оригінального знімка екрана. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/packages/images-plugin/docs/find-by-image.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
 
 ## Селектори React
 
@@ -572,36 +578,23 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 ## Користувацькі селектори
 
-Якщо для вашого застосунку потрібен особливий спосіб пошуку елементів, ви можете визначити власний тип селектора, який можна використовувати за допомогою `custom$` і `custom$$`. Для цього зареєструйте свій тип селектора один раз на початку тесту:
 
-```js
-browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
-    /**
-     * scope should be document if called on browser object
-     * and `root` if called on an element object
-     */
-    const scope = root ? root : document
-    return scope.querySelectorAll(selector)
-})
+Якщо для вашого застосунку потрібен особливий спосіб пошуку елементів, ви можете визначити власний тип селектора, який можна використовувати за допомогою `custom$` і `custom$$`. For that register your strategy once in the beginning of the test, e.g. in a `before` hook:
+
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L2-L11
 ```
 
 Маючи наступну структуру HTML:
 
-```html
-<div class="foobar" id="first">
-    <div class="foobar" id="second">
-        barfoo
-    </div>
-</div>
+```html reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/example.html#L8-L12
 ```
 
 Потім використовуйте його, викликавши:
 
-```js
-const elem = await browser.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "first"
-const nestedElem = await elem.custom$('myCustomStrategy', '.foobar')
-console.log(await elem.getAttribute('id')) // returns "second"
+```js reference
+https://github.com/webdriverio/example-recipes/blob/f5730428ec3605e856e90bf58be17c9c9da891de/queryElements/customStrategy.js#L16-L19
 ```
 
 **Примітка:** це працюватиме лише у вебсередовищі, де можна запустити команду [`execute`](/docs/api/browser/execute).

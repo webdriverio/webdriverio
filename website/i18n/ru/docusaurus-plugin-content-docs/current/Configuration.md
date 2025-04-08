@@ -19,13 +19,13 @@ Type: `String`<br /> Default: `http`
 
 Host of your driver server.
 
-Type: `String`<br /> Default: `localhost`
+Type: `String`<br /> Default: `0.0.0.0`
 
 ### port
 
 Port your driver server is on.
 
-Type: `Number`<br /> Default: `4444`
+Type: `Number`<br /> Default: `undefined`
 
 ### path
 
@@ -37,19 +37,19 @@ Type: `String`<br /> Default: `/`
 
 Query parameters that are propagated to the driver server.
 
-Type: `Object`<br /> Default: `null`
+Type: `Object`<br /> Default: `undefined`
 
 ### user
 
 Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### key
 
 Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### capabilities
 
@@ -248,7 +248,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
 
 To increase the timeout for a _test_, please see the framework docs.
 
@@ -296,7 +296,7 @@ Type: `Object`<br /> Default: `{}`
 
 ### capabilities
 
-The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
+The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](/docs/multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
 
 You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
 
@@ -332,7 +332,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options. (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
+If you want your test run to stop after a specific number of test failures, use `bail`. It defaults to `0`, which runs all tests no matter what. **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
@@ -368,6 +368,18 @@ By default, it is set to `false` so logs are printed in real-time.
 Type: `Boolean`<br />
 Default: `false`
 
+### groupLogsByTestSpec
+
+Choose the log output view.
+
+If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
+
+If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+
+By default, it is set to `false` so logs are printed in real-time.
+
+Type: `Boolean`<br /> Default: `false`
+
 ### services
 
 Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
@@ -381,7 +393,6 @@ Defines the test framework to be used by the WDIO testrunner.
 Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
-
 
 Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
 
@@ -399,7 +410,7 @@ List of reporters to use. A reporter can be either a string, or an array of `['r
 
 Type: `String[]|Object[]`<br /> Default: `[]`
 
-Пример:
+Example:
 
 ```js
 reporters: [
@@ -436,27 +447,31 @@ A list of glob supporting string patterns that tell the testrunner to have it ad
 
 Type: `String[]`<br /> Default: `[]`
 
-### autoCompileOpts
+### updateSnapshots
 
-Compiler options when using WebdriverIO with TypeScript or Babel.
+Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
 
-#### autoCompileOpts.autoCompile
+Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
 
-If set to `true` the WDIO testrunner will automatically try to transpile the spec files.
+### resolveSnapshotPath
 
-Type: `Boolean` Default: `true`
+Overrides default snapshot path. For example, to store snapshots next to test files.
 
-#### autoCompileOpts.tsNodeOpts
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
+}
+```
 
-Configure how [`ts-node`](https://www.npmjs.com/package/ts-node) is suppose to transpile the files.
+Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
-Type: `Object` Default: `{ transpileOnly: true }`
+### tsConfigPath
 
-#### autoCompileOpts.babelOpts
+WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
 
-Configure how [@babel/register](https://www.npmjs.com/package/@babel/register) is suppose to transpile the files.
+See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
 
-Type: `Object` Default: `{}`
+Type: `String`<br /> Default: `null`<br />
 
 ## Hooks
 
@@ -470,7 +485,7 @@ Every hook has as parameter specific information about the lifecycle (e.g. infor
 
 Gets executed once before all workers get launched.
 
-Параметры:
+Parameters:
 
 - `config` (`object`): WebdriverIO configuration object
 - `param` (`object[]`): list of capabilities details
@@ -479,7 +494,7 @@ Gets executed once before all workers get launched.
 
 Gets executed before a worker process is spawned and can be used to initialize specific service for that worker as well as modify runtime environments in an async fashion.
 
-Параметры:
+Parameters:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -491,7 +506,7 @@ Gets executed before a worker process is spawned and can be used to initialize s
 
 Gets executed just after a worker process has exited.
 
-Параметры:
+Parameters:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `exitCode` (`number`): 0 - success, 1 - fail
@@ -502,7 +517,7 @@ Gets executed just after a worker process has exited.
 
 Gets executed just before initializing the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
 
-Параметры:
+Parameters:
 
 - `config` (`object`): WebdriverIO configuration object
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -512,7 +527,7 @@ Gets executed just before initializing the webdriver session and test framework.
 
 Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
 
-Параметры:
+Parameters:
 
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
 - `specs` (`string[]`): specs to be run in the worker process
@@ -522,7 +537,7 @@ Gets executed before test execution begins. At this point you can access to all 
 
 Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
-Параметры:
+Parameters:
 
 - `suite` (`object`): suite details
 
@@ -530,7 +545,7 @@ Hook that gets executed before the suite starts (in Mocha/Jasmine only)
 
 Hook that gets executed *before* a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
 
-Параметры:
+Parameters:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
@@ -539,7 +554,7 @@ Hook that gets executed *before* a hook within the suite starts (e.g. runs befor
 
 Hook that gets executed *after* a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
 
-Параметры:
+Parameters:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
@@ -567,7 +582,7 @@ Parameters:
 
 Runs after a WebdriverIO command gets executed.
 
-Параметры:
+Parameters:
 
 - `commandName` (`string`): command name
 - `args` (`*`): arguments that command would receive
@@ -578,7 +593,7 @@ Runs after a WebdriverIO command gets executed.
 
 Function to be executed after a test (in Mocha/Jasmine) ends.
 
-Параметры:
+Parameters:
 
 - `test` (`object`): test details
 - `context` (`object`): scope object the test was executed with
@@ -593,7 +608,7 @@ Function to be executed after a test (in Mocha/Jasmine) ends.
 
 Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
-Параметры:
+Parameters:
 
 - `suite` (`object`): suite details
 
@@ -601,7 +616,7 @@ Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
 
 Gets executed after all tests are done. You still have access to all global variables from the test.
 
-Параметры:
+Parameters:
 
 - `result` (`number`): 0 - test pass, 1 - test fail
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -621,7 +636,7 @@ Parameters:
 
 Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
 
-Параметры:
+Parameters:
 
 - `exitCode` (`number`): 0 - success, 1 - fail
 - `config` (`object`): WebdriverIO configuration object
@@ -630,9 +645,9 @@ Gets executed after all workers got shut down and the process is about to exit. 
 
 ### onReload
 
-Выполняется, когда происходит обновление.
+Gets executed when a refresh happens.
 
-Параметры:
+Parameters:
 
 - `oldSessionId` (`string`): session ID of the old session
 - `newSessionId` (`string`): session ID of the new session
@@ -641,7 +656,7 @@ Gets executed after all workers got shut down and the process is about to exit. 
 
 Runs before a Cucumber Feature.
 
-Параметры:
+Parameters:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
@@ -650,7 +665,7 @@ Runs before a Cucumber Feature.
 
 Runs after a Cucumber Feature.
 
-Параметры:
+Parameters:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
@@ -723,4 +738,3 @@ Parameters:
 - `params.expectedValue`: value that is passed into the matcher
 - `params.options`: assertion options
 - `params.result`: assertion results
-

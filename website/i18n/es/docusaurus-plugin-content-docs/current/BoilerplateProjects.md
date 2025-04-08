@@ -12,8 +12,8 @@ Con el tiempo, nuestra comunidad ha desarrollado varios proyectos que usted pued
 Nuestra propia boilerplate para las salas de pruebas de pepinos. Hemos creado más de 150 definiciones de pasos predefinidos para usted, así que puede empezar a escribir archivos de características en su proyecto inmediatamente.
 
 - Framework
-    - Cucumber (v8)
-    - WebdriverIO (v8)
+    - Cucumber
+    - WebdriverIO
 - Funcionalidades
     - Más de 150 pasos predefinidos que cubren casi todo lo necesario
     - Integra la funcionalidad multiremoto de WebdriverIO
@@ -23,11 +23,20 @@ Nuestra propia boilerplate para las salas de pruebas de pepinos. Hemos creado m�
 Proyecto Boilerplate para ejecutar pruebas WebdriverIO con Jasmine usando las características Babel y el patrón de objetos de página.
 
 - Frameworks
-    - WebdriverIO (v8)
-    - Jasmine (v4)
+    - WebdriverIO
+    - Jasmine
 - Funcionalidades
     - Patrón de objetos de página
     - Integración de Sauce Labs
+
+## [webdriverio/electron-boilerplate](https://github.com/webdriverio/electron-boilerplate)
+Boilerplate project to run WebdriverIO tests on a minimal Electron application.
+
+- Frameworks
+    - WebdriverIO
+    - Mocha
+- Funcionalidades
+    - Electron API mocking
 
 ## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
 
@@ -61,6 +70,9 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - Gitlab pipelines for Gitlab repository
     - Github actions for Github repository
     - Docker compose for setting up the docker hub
+    - Accessibility testing using AXE
+    - Visual testing using Applitools
+    - Log mechansim
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
@@ -74,7 +86,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - Soporte de base de datos a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecutando cualquier consulta / obtención de resultados etc. con ejemplos de pruebas E2E
     - Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y reportes de Allure y Xunit/Junit en el servidor web.
     - Ejemplos de aplicación de demostración https://search.yahoo.com/ y http://the-internet.herokuapp.com.
-    - BrowserStack, Sauce Labs, LambdaTest y Appium específico `.config` archivo (para la reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en máquina local para iOS y Android, consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    - BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). Para hacer clic en la configuración de Appium en máquina local para iOS y Android, consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
@@ -87,7 +99,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y Reportes Allure y Xunit/Junit en WebServer.
     -  Ejemplos de lectura/escritura de datos de MS-Excel para una fácil administración de datos de prueba desde fuentes externas de datos con ejemplos
     -  Ejemplos de conexión de DB a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), cualquier ejecución de consultas / obtención de resultados etc. con ejemplos para pruebas E2E
-    -  BrowserStack, Sauce Labs, LambdaTest y Appium específico `.config` archivo ( para reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file (for playback on mobile device). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
@@ -100,7 +112,7 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y Reportes Allure y Xunit/Junit en WebServer.
     -  Ejemplos de datos de lectura/escritura de MS-Excel para una fácil administración de datos de prueba desde fuentes externas de datos con ejemplos
     -  Ejemplos de conexión de DB a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), cualquier ejecución de consultas / obtención de resultados etc. con ejemplos para pruebas E2E
-    -  BrowserStack, Sauce Labs, LambdaTest y Appium específico `.config` archivo (para reproducción en el dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+    -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file ( for playback on mobile device). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [klassijs/klassi-js (cucumber-template)](https://github.com/klassijs/klassi-example-test-suite.git)
 
@@ -249,7 +261,7 @@ Boilerplate proyecto para ejecutar pruebas de appium para navegador nativo y mó
     - Cucumber v7
     - Appium
 
-- Funcionalidades
+- Features
     - Aplicaciones nativas de Android e iOS
     - Navegador de Android Chrome
     - Navegador Safari iOS

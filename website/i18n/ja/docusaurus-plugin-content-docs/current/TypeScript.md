@@ -5,28 +5,28 @@ title: TypeScript Setup
 
 You can write tests using [TypeScript](http://www.typescriptlang.org) to get auto-completion and type safety.
 
-You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`, via:
+You will need [`tsx`](https://github.com/privatenumber/tsx) installed in `devDependencies`, via:
 
 ```bash npm2yarn
-$ npm install typescript ts-node --save-dev
+$ npm install tsx --save-dev
 ```
 
-WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as you WDIO config. If you need to configure how ts-node runs please use the environment variables for [ts-node](https://www.npmjs.com/package/ts-node#options) or use wdio config's [autoCompileOpts section](/docs/configurationfile).
+WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as your WDIO config.
 
-## Configuration
+#### Custom TSConfig
 
-You can provide custom `ts-node` options through the environment (by default it uses the tsconfig.json in the root relative to your wdio config if the file exists):
+If you need to set a different path for `tsconfig.json` please set the TSCONFIG_PATH environment variable with your desired path, or use wdio config's [tsConfigPath setting](/docs/configurationfile).
 
-```sh
-# run wdio testrunner with custom options
-TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
-```
+Alternatively, you can use the [environment variable](https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path) for `tsx`.
 
-The minimum TypeScript version is `v4.0.5`.
+
+#### Type Checking
+
+Note that `tsx` does not support type-checking - if you wish to check your types then you will need to do this in a separate step with `tsc`.
 
 ## Framework Setup
 
-And your `tsconfig.json` needs the following:
+Your `tsconfig.json` needs the following:
 
 ```json title="tsconfig.json"
 {
@@ -113,12 +113,19 @@ When running WebdriverIO commands all properties are usually typed so that you d
 ```ts
 import type { Options } from '@wdio/types'
 
-const config: Options.WebdriverIO = {
+// Here is an example where you might want to import the types directly
+const remoteConfig: Options.WebdriverIO = {
     hostname: 'http://localhost',
     port: '4444' // Error: Type 'string' is not assignable to type 'number'.ts(2322)
     capabilities: {
         browserName: 'chrome'
     }
+}
+
+// For other cases, you can use the `WebdriverIO` namespace
+export const config: WebdriverIO.Config = {
+  ...remoteConfig
+  // Other configs options
 }
 ```
 

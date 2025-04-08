@@ -6,7 +6,7 @@ title: Premiers pas
 Bienvenue sur la documentation de WebdriverIO. Cela vous aidera à démarrer rapidement. Si vous rencontrez des problèmes, vous pouvez trouver de l'aide et des réponses sur notre [Discord Support Server](https://discord.webdriver.io) ou vous pouvez me contacter sur [Twitter](https://twitter.com/webdriverio).
 
 :::info
-Ce sont les documents de la dernière version (__>=8.x__) de WebdriverIO. Si vous utilisez toujours une version plus ancienne, veuillez visiter les [anciens sites de documentation](/versions)!
+These are the docs for the latest version (__>=9.x__) of WebdriverIO. Si vous utilisez toujours une version plus ancienne, veuillez visiter les [anciens sites de documentation](/versions)!
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Démarrage avec les guides" />
@@ -29,18 +29,19 @@ Si vous êtes dans le répertoire racine d'un projet existant, exécutez :
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio .
+npm init wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-npm init wdio ./path/to/new/project
+npm init wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
@@ -55,9 +56,27 @@ yarn create wdio .
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio .
+pnpm create wdio@latest .
+```
+
+or if you want to create a new project:
+
 ```sh
-pnpm create wdio .
+pnpm create wdio@latest ./path/to/new/project
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest .
+```
+
+or if you want to create a new project:
+
+```sh
+bun create wdio@latest ./path/to/new/project
+```
 
 </TabItem>
 </Tabs>
@@ -74,12 +93,13 @@ L'assistant vous demandera une série de questions qui vous guideront à travers
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio . -- --yes
+npm init wdio@latest . -- --yes
 ```
 
 </TabItem>
@@ -93,7 +113,14 @@ yarn create wdio . --yes
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio . --yes
+pnpm create wdio@latest . --yes
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest . --yes
 ```
 
 </TabItem>
@@ -149,7 +176,7 @@ WebdriverIO fournit des outils pour vous aider à démarrer en enregistrant vos 
 
 Vous aurez besoin de [Node.js](http://nodejs.org) installé.
 
-- Installez au moins la version v16.x ou supérieur car il s'agit de la plus ancienne version LTS active
+- Install at least v18.20.0 or higher as this is the oldest active LTS version
 - Seules les versions qui sont ou deviendront une version LTS sont officiellement prises en charge
 
 Si Node n'est pas installé sur votre système, nous suggérons d'utiliser un outil tel que [NVM](https://github.com/creationix/nvm) ou [Volta](https://volta.sh/) pour vous aider à gérer plusieurs versions de Node.js. NVM est un choix populaire, tandis que Volta est également une bonne alternative.

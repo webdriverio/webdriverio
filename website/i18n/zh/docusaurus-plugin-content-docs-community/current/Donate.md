@@ -3,15 +3,15 @@ id: donate
 title: Donate
 ---
 
-If your company uses WebdriverIO and benefits from it, please ask your manager or your marketing team to support the project by donating to the collective. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
+如果您的公司使用 WebdriverIO 并从中受益。 请让您的经理或您的营销团队通过向集体捐赠来支持该项目。 支持将使维护者能够花更多时间为每个人提供维护和新功能。
 
-Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
+请查看我们的 [OpenCollective 页面](https://opencollective.com/webdriverio) 以了解如何捐赠项目的更多信息。
 
-Thank you to everyone who will or has donated money to the collective and therefore has supported the project and everyone who contributed to it. It really means a lot ❤️
+感谢所有将要或已经向我们捐赠的人，从而支持该项目的人以及为其作出贡献的人。 这真的意味着很多❤️
 
 ## Expense Policies
 
-We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+我们希望以透明的方式接受集体的开支。 每个人都应有资格以某些特征参与和支付发展费用。 我们还想让我们的钱用于社区。 下列各类费用可以从集体获得偿还：
 
 ### Event Expenses
 

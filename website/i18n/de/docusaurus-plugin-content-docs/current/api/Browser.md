@@ -13,16 +13,26 @@ Das Beenden der Session wird ebenfalls vom Testrunner übernommen. Das Beenden d
 
 Ein Browser-Objekt hat folgende Eigenschaften:
 
-| Namen                   | Typ        | Details                                                                                                                                |
-| ----------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `capabilities`          | `Object`   | Zugewiesene Capabilities vom WebDriver Server.<br /><b>Beispiel:</b><pre>\{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: \{<br />    chromedriverVersion: '105.0.5195.52',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  \},<br />  'goog:chromeOptions': \{ debuggerAddress: 'localhost:64679' \},<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: \{},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: \{ implicit: 0, pageLoad: 300000, script: 30000 \},<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />\}</pre> |
-| `requestedCapabilities` | `Object`   | Angefragte Capabilities vom WebDriver Server.<br /><b>Beispiel:</b><pre>\{ browserName: 'chrome' \}</pre>                            |
-| `sessionId`             | `String`   | Session-Id vom Remote-Server zugewiesen.                                                                                               |
-| `options`               | `Object`   | WebdriverIO [Optionen](/docs/configuration) je nachdem, wie das Browserobjekt erstellt wurde. Weitere [Setup-Typen](/docs/setuptypes). |
-| `commandList`           | `String[]` | Eine Liste der Befehle, die in der Browser-Instanz registriert sind                                                                    |
-| `isMobile`              | `Boolean`  | Zeigt eine mobile Session an. Mehr unter [Mobile Flags](#mobile-flags).                                                                |
-| `isIOS`                 | `Boolean`  | Zeigt eine iOS-Session an. Mehr unter [Mobile Flags](#mobile-flags).                                                                   |
-| `isAndroid`             | `Boolean`  | Zeigt eine Android-Sitzung an. Mehr unter [Mobile Flags](#mobile-flags).                                                               |
+| Namen                   | Typ        | Details                                                                                                                                                                                                                                                                  |
+| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `capabilities`          | `Object`   | Assigned capabilities from the remote server.<br /><b>Example:</b><pre>\{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: \{<br />    chromedriverVersion: '105.0.5195.52',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  \},<br />  'goog:chromeOptions': \{ debuggerAddress: 'localhost:64679' \},<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: \{},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: \{ implicit: 0, pageLoad: 300000, script: 30000 \},<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />\}</pre>                                                                                                                                                              |
+| `requestedCapabilities` | `Object`   | Angefragte Capabilities vom WebDriver Server.<br /><b>Beispiel:</b><pre>\{ browserName: 'chrome' \}</pre>                                                                                                                                                              |
+| `sessionId`             | `String`   | Session-Id vom Remote-Server zugewiesen.                                                                                                                                                                                                                                 |
+| `options`               | `Object`   | WebdriverIO [Optionen](/docs/configuration) je nachdem, wie das Browserobjekt erstellt wurde. Weitere [Setup-Typen](/docs/setuptypes).                                                                                                                                   |
+| `commandList`           | `String[]` | Eine Liste der Befehle, die in der Browser-Instanz registriert sind                                                                                                                                                                                                      |
+| `isW3C`                 | `Boolean`  | Indicates if this is a W3C session                                                                                                                                                                                                                                       |
+| `isChrome`              | `Boolean`  | Indicates if this Chrome instance                                                                                                                                                                                                                                        |
+| `isFirefox`             | `Boolean`  | Indicates if this Firefox instance                                                                                                                                                                                                                                       |
+| `isBidi`                | `Boolean`  | Indicates if this session uses Bidi                                                                                                                                                                                                                                      |
+| `isSauce`               | `Boolean`  | Indicates if this session is Running on Sauce Labs                                                                                                                                                                                                                       |
+| `isMacApp`              | `Boolean`  | Indicates if this session is Running for a native Mac App                                                                                                                                                                                                                |
+| `isWindowsApp`          | `Boolean`  | Indicates if this session is Running for a native Windows App                                                                                                                                                                                                            |
+| `isMobile`              | `Boolean`  | Zeigt eine mobile Session an. Mehr unter [Mobile Flags](#mobile-flags).                                                                                                                                                                                                  |
+| `isIOS`                 | `Boolean`  | Zeigt eine iOS-Session an. Mehr unter [Mobile Flags](#mobile-flags).                                                                                                                                                                                                     |
+| `isAndroid`             | `Boolean`  | Zeigt eine Android-Sitzung an. Mehr unter [Mobile Flags](#mobile-flags).                                                                                                                                                                                                 |
+| `isNativeContext`       | `Boolean`  | Indicates if the mobile is in the `NATIVE_APP` context. See more under [Mobile Flags](#mobile-flags).                                                                                                                                                                    |
+| `mobileContext`         | `string`   | The will provide the **current** context the driver is in, for example `NATIVE_APP`, `WEBVIEW_<packageName>` for Android or `WEBVIEW_<pid>` for iOS. It will save an extra WebDriver to `driver.getContext()`. See more under [Mobile Flags](#mobile-flags). |
+
 
 ## Methoden
 
@@ -50,7 +60,7 @@ Zum Beispiel mit dieser Konfiguration:
 // wdio.conf.js
 export const config = {
     // ...
-    capabilities: {
+    capabilities: \\{
         platformName: 'iOS',
         app: 'net.company.SafariLauncher',
         udid: '123123123123abc',
@@ -110,6 +120,71 @@ describe('my test', () => {
 Das Browser-Objekt ist ein EventEmitter und ein paar Ereignisse werden für Ihren Gebrauch emittiert.
 
 Hier ist eine Liste der Ereignisse. Beachten Sie, dass dies noch nicht die vollständige Liste der verfügbaren Events ist. Zögern Sie nicht, das Dokument zu aktualisieren, indem Sie hier Beschreibungen von weiteren Events hinzufügen.
+
+#### `request.start`
+This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.
+
+```ts
+browser.on('request.start', (ev: RequestInit) => {
+    // ...
+})
+```
+
+#### `request.end`
+This event is fired once the request to the driver received a response. The event object either contains the response body as result or an error if the WebDriver command failed.
+
+```ts
+browser.on('request.end', (ev: { result: unknown, error?: Error }) => {
+    // ...
+})
+```
+
+#### `request.retry`
+The retry event can notify you when WebdriverIO attempts to retry running the command, e.g. due to a network issue. It contains information about the error that caused the retry and the amount of retries already done.
+
+```ts
+browser.on('request.retry', (ev: { error: Error, retryCount: number }) => {
+    // ...
+})
+```
+
+#### `command`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Classic command. It contains the following information:
+
+- `command`: the command name, e.g. `navigateTo`
+- `method`: the HTTP method used to send the command request, e.g. `POST`
+- `endpoint`: the command endpoint, e.g. `/session/fc8dbda381a8bea36a225bd5fd0c069b/url`
+- `body`: the command payload, e.g. `{ url: 'https://webdriver.io' }`
+
+#### `result`
+
+This event is emitted whenever WebdriverIO receives a result of a WebDriver Classic command. It contains the same information as the `command` event with the addition of the following information:
+
+- `result`: the command result
+
+#### `bidiCommand`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Bidi command to the browser driver. It contains information about:
+
+- `method`: WebDriver Bidi command method
+- `params`: associated command parameter (see [API](/docs/api/webdriverBidi))
+
+#### `bidiResult`
+
+In case of a successful command execution, the event payload will be:
+
+- `type`: `success`
+- `id`: the command id
+- `result`: the command result (see [API](/docs/api/webdriverBidi))
+
+In case of a command error, the event payload will be:
+
+- `type`: `error`
+- `id`: the command id
+- `error`: the error code, e.g. `invalid argument`
+- `message`: details about the error
+- `stacktrace`: a stack trace
 
 #### `request.start`
 This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.

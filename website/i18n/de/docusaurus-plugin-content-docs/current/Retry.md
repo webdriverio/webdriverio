@@ -158,9 +158,9 @@ export const config = {
 
 ## Wiederholen spezifischer Tests
 
-Dadurch soll verhindert werden, dass unzuverlässige Tests in eine Codebasis eingeführt werden. Durch Hinzufügen der Option `--repeat` cli werden die angegebenen Tests oder Suiten x-mal ausgeführt. Bei Verwendung dieses CLI-Flags muss auch das Flag `--spec` oder `--suite` angegeben werden.
+Dadurch soll verhindert werden, dass unzuverlässige Tests in eine Codebasis eingeführt werden. By adding the `--repeat` cli option it will run the specified specs or suites N times. Bei Verwendung dieses CLI-Flags muss auch das Flag `--spec` oder `--suite` angegeben werden.
 
-When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. Diese Fehlerbeständigkeit kann von einer Reihe von Dingen wie Netzwerkproblemen, Serverlast, Datenbankgröße usw. erzeugt werden. Die Verwendung des Flags `--repeat` in Ihrem CD/CD-Prozess kann dabei helfen, diese fehlerhaften Tests abzufangen, bevor sie zu einer Hauptcodebasis zusammengeführt werden.
+When adding new tests to a codebase, especially through a CI/CD process the tests could pass and get merged but become flaky later on. Diese Fehlerbeständigkeit kann von einer Reihe von Dingen wie Netzwerkproblemen, Serverlast, Datenbankgröße usw. erzeugt werden. Using the `--repeat` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase.
 
 One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specified in `--spec` along with `--repeat` so it runs the new test x number of times. Wenn der Test in einem dieser Fälle fehlschlägt, muss der Test erst untersucht werden und stabiler gemacht werden.
 
