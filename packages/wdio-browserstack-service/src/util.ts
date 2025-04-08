@@ -254,7 +254,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 
     Object.getOwnPropertyNames(prototype).forEach((methodName) => {
         const method = prototype[methodName]
-        if (typeof method === 'function' && methodName !== 'constructor') {
+        if (typeof method === 'function' && methodName !== 'constructor' && methodName !== 'commandWrapper') {
             // In order to preserve this context, need to define like this
             Object.defineProperty(prototype, methodName, {
                 writable: true,
