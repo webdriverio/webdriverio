@@ -1,61 +1,61 @@
 ---
 id: configuration
-title: Configuration
+title: Configuração
 ---
 
-Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+Com base no [tipo de configuração](/docs/setuptypes) (por exemplo, usando as ligações de protocolo bruto, o WebdriverIO como pacote autônomo ou o WDIO testrunner), há um conjunto diferente de opções disponíveis para controlar o ambiente.
 
-## WebDriver Options
+## Opções WebDriver
 
-The following options are defined when using the [`webdriver`](https://www.npmjs.com/package/webdriver) protocol package:
+As seguintes opções são definidas ao usar o pacote de protocolo [`webdriver`](https://www.npmjs.com/package/webdriver):
 
 ### protocol
 
-Protocol to use when communicating with the driver server.
+Protocolo a ser usado na comunicação com o servidor do driver.
 
 Type: `String`<br /> Default: `http`
 
 ### hostname
 
-Host of your driver server.
+Host do seu servidor de driver
 
-Type: `String`<br /> Default: `0.0.0.0`
+Tipo: `String`<br /> Padrão: `0.0.0.0`
 
 ### port
 
-Port your driver server is on.
+A porta em que seu servidor de driver está instalado.
 
-Type: `Number`<br /> Default: `undefined`
+Tipo: `Número`<br /> Padrão: `indefinido`
 
 ### path
 
-Path to driver server endpoint.
+Caminho para o ponto final do servidor do driver.
 
 Type: `String`<br /> Default: `/`
 
 ### queryParams
 
-Query parameters that are propagated to the driver server.
+Parâmetros de consulta que são propagados para o servidor do driver.
 
-Type: `Object`<br /> Default: `undefined`
+Tipo: `Objeto`<br /> Padrão: `indefinido`
 
 ### user
 
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+Seu nome de usuário do serviço de nuvem (funciona somente para contas [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) ou [LambdaTest](https://www.lambdatest.com)). Se definido, o WebdriverIO definirá automaticamente as opções de conexão para você. Se você não usa um provedor de nuvem, isso pode ser usado para autenticar qualquer outro backend do WebDriver.
 
-Type: `String`<br /> Default: `undefined`
+Tipo: `String`<br /> Padrão: `indefinido`
 
 ### key
 
-Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+Sua chave de acesso ao serviço de nuvem ou chave secreta (funciona somente para contas [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) ou [LambdaTest](https://www.lambdatest.com)). Se definido, o WebdriverIO definirá automaticamente as opções de conexão para você. Se você não usa um provedor de nuvem, isso pode ser usado para autenticar qualquer outro backend do WebDriver.
 
-Type: `String`<br /> Default: `undefined`
+Tipo: `String`<br /> Padrão: `indefinido`
 
 ### capabilities
 
-Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support the WebDriver protocol, you’ll need to use the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfully run a session.
+Define os recursos que você deseja executar na sua sessão do WebDriver. Confira o [Protocolo WebDriver](https://w3c.github.io/webdriver/#capabilities) para mais detalhes. Se você executar um driver mais antigo que não suporta o protocolo WebDriver, será necessário usar os [recursos do JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) para executar uma sessão com sucesso.
 
-Next to the WebDriver based capabilities you can apply browser and vendor specific options that allow deeper configuration to the remote browser or device. These are documented in the corresponding vendor docs, e.g.:
+Além dos recursos baseados no WebDriver, você pode aplicar opções específicas do navegador e do fornecedor que permitem uma configuração mais profunda no navegador ou dispositivo remoto. Eles estão documentados nos documentos do fornecedor correspondente, por exemplo:
 
 - `goog:chromeOptions`: for [Google Chrome](https://chromedriver.chromium.org/capabilities#h.p_ID_106)
 - `moz:firefoxOptions`: for [Mozilla Firefox](https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html)
@@ -64,51 +64,51 @@ Next to the WebDriver based capabilities you can apply browser and vendor specif
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), which helps you create this object by clicking together your desired capabilities.
+Além disso, um utilitário útil é o [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/) do Sauce Labs, que ajuda você a criar esse objeto clicando nos recursos desejados.
 
 Type: `Object`<br /> Default: `null`
 
-**Example:**
+**Exemplo:**
 
 ```js
 {
     browserName: 'chrome', // options: `chrome`, `edge`, `firefox`, `safari`
-    browserVersion: '27.0', // browser version
+    browserVersion: '27.0', // versão do navegador
     platformName: 'Windows 10' // OS platform
 }
 ```
 
-If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
+Se você estiver executando testes nativos ou da web em dispositivos móveis, `capabilities` difere do protocolo WebDriver. Veja [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) para mais detalhes.
 
 ### logLevel
 
-Level of logging verbosity.
+Nível de verbosidade do log.
 
 Type: `String`<br /> Default: `info`<br /> Options: `trace` | `debug` | `info` | `warn` | `error` | `silent`
 
 ### outputDir
 
-Directory to store all testrunner log files (including reporter logs and `wdio` logs). If not set, all logs are streamed to `stdout`. Since most reporters are made to log to `stdout`, it is recommended to only use this option for specific reporters where it makes more sense to push report into a file (like the `junit` reporter, for example).
+Diretório para armazenar todos os arquivos de log do testrunner (incluindo logs do reporter e logs `wdio`). Se não for definido, todos os logs serão transmitidos para `stdout`. Como a maioria dos relatores são feitos para registrar em `stdout`, é recomendado usar esta opção somente para relatores específicos onde faz mais sentido enviar o relatório para um arquivo (como o relator `junit`, por exemplo).
 
-When running in standalone mode, the only log generated by WebdriverIO will be the `wdio` log.
+Ao executar no modo autônomo, o único log gerado pelo WebdriverIO será o log `wdio`.
 
 Type: `String`<br /> Default: `null`
 
 ### connectionRetryTimeout
 
-Timeout for any WebDriver request to a driver or grid.
+Tempo limite para qualquer solicitação do WebDriver para um driver ou grade.
 
 Type: `Number`<br /> Default: `120000`
 
 ### connectionRetryCount
 
-Maximum count of request retries to the Selenium server.
+Contagem máxima de tentativas de solicitação para o servidor Selenium.
 
 Type: `Number`<br /> Default: `3`
 
 ### agent
 
-Allows you to use a custom`http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
+Permite que você use um `http`/`https`/`http2` [agente](https://www.npmjs.com/package/got#agent) personalizado para fazer solicitações.
 
 Type: `Object`<br /> Default:
 
@@ -121,21 +121,22 @@ Type: `Object`<br /> Default:
 
 ### headers
 
-Specify custom `headers` to pass into every WebDriver request. If your Selenium Grid requires Basic Authentification we recommend to pass in an `Authorization` header through this option to authenticate your WebDriver requests, e.g.:
+Especifique `cabeçalhos` personalizados para passar em cada solicitação do WebDriver. Se o seu Selenium Grid exigir autenticação básica, recomendamos passar um cabeçalho `Authorization` por meio desta opção para autenticar suas solicitações do WebDriver, por exemplo:
 
 ```ts wdio.conf.ts
 import { Buffer } from 'buffer';
-// Read the username and password from environment variables
+// Leia o nome de usuário e a senha das variáveis ​​de ambiente
+
 const username = process.env.SELENIUM_GRID_USERNAME;
 const password = process.env.SELENIUM_GRID_PASSWORD;
 
-// Combine the username and password with a colon separator
+// Combine o nome de usuário e a senha com um separador de dois pontos
 const credentials = `${username}:${password}`;
-// Encode the credentials using Base64
+// Codifique as credenciais usando Base64
 const encodedCredentials = Buffer.from(credentials).toString('base64');
 
 export const config: WebdriverIO.Config = {
-    // ...
+// ...
     headers: {
         Authorization: `Basic ${encodedCredentials}`
     }
@@ -143,104 +144,104 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-Type: `Object`<br /> Default: `{}`
+Tipo: `Objeto`<br /> Padrão: `{}`
 
 ### transformRequest
 
-Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made
+Função interceptando [opções de solicitação HTTP](https://github.com/sindresorhus/got#options) antes que uma solicitação WebDriver seja feita
 
-Type: `(RequestOptions) => RequestOptions`<br /> Default: *none*
+Tipo: `(RequestOptions) => RequestOptions`<br /> Padrão: *nenhum*
 
 ### transformResponse
 
-Function intercepting HTTP response objects after a WebDriver response has arrived. The function is passed the original response object as the first and the corresponding `RequestOptions` as the second argument.
+Função que intercepta objetos de resposta HTTP após a chegada de uma resposta do WebDriver. A função recebe o objeto de resposta original como o primeiro argumento e o `RequestOptions` correspondente como o segundo argumento.
 
-Type: `(Response, RequestOptions) => Response`<br /> Default: *none*
+Tipo: `(Response, RequestOptions) => Resposta`<br /> Padrão: *none*
 
 ### strictSSL
 
-Whether it does not require SSL certificate to be valid. It can be set via an environment variables as `STRICT_SSL` or `strict_ssl`.
+Se não requer certificado SSL para ser válido. Ele pode ser definido por meio de variáveis ​​de ambiente como `STRICT_SSL` ou `strict_ssl`.
 
-Type: `Boolean`<br /> Default: `true`
+Tipo: `Boolean`<br /> Padrão: `true`
 
 ### enableDirectConnect
 
-Whether enable [Appium direct connection feature](https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments). It does nothing if the response did not have proper keys while the flag is enabled.
+Se você deseja habilitar o [recurso de conexão direta do Appium](https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments). Não faz nada se a resposta não tiver chaves adequadas enquanto o sinalizador estiver habilitado.
 
-Type: `Boolean`<br /> Default: `true`
+Tipo: `Boolean`<br /> Padrão: `true`
 
 ### cacheDir
 
-The path to the root of the cache directory. This directory is used to store all drivers that are downloaded when attempting to start a session.
+O caminho para a raiz do diretório de cache. Este diretório é usado para armazenar todos os drivers baixados ao tentar iniciar uma sessão.
 
-Type: `String`<br /> Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+Tipo: `String`<br /> Padrão: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
 ---
 
 ## WebdriverIO
 
-The following options (including the ones listed above) can be used with WebdriverIO in standalone:
+As seguintes opções (incluindo as listadas acima) podem ser usadas com o WebdriverIO de forma autônoma:
 
 ### automationProtocol
 
-Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) is supported, as it is the main browser automation technology WebdriverIO uses.
+Defina o protocolo que você deseja usar para a automação do seu navegador. Atualmente, apenas [`webdriver`](https://www.npmjs.com/package/webdriver) é suportado, pois é a principal tecnologia de automação de navegador usada pelo WebdriverIO.
 
-If you want to automate the browser using a different automation technology, make you set this property to a path that resolves to a module that adheres to the following interface:
+Se você quiser automatizar o navegador usando uma tecnologia de automação diferente, defina esta propriedade como um caminho que resolva um módulo que adere à seguinte interface:
 
 ```ts
 import type { Capabilities } from '@wdio/types';
 import type { Client, AttachOptions } from 'webdriver';
 
 export default class YourAutomationLibrary {
-    /**
-     * Start a automation session and return a WebdriverIO [monad](https://github.com/webdriverio/webdriverio/blob/940cd30939864bdbdacb2e94ee6e8ada9b1cc74c/packages/wdio-utils/src/monad.ts)
-     * with respective automation commands. See the [webdriver](https://www.npmjs.com/package/webdriver) package
-     * as a reference implementation
-     *
-     * @param {Capabilities.RemoteConfig} options WebdriverIO options
-     * @param {Function} hook that allows to modify the client before it gets released from the function
-     * @param {PropertyDescriptorMap} userPrototype allows user to add custom protocol commands
-     * @param {Function} customCommandWrapper allows to modify the command execution
-     * @returns a WebdriverIO compatible client instance
-     */
-    static newSession(
-        options: Capabilities.RemoteConfig,
-        modifier?: (...args: any[]) => any,
-        userPrototype?: PropertyDescriptorMap,
-        customCommandWrapper?: (...args: any[]) => any
-    ): Promise<Client>;
+/**
+* Inicie uma sessão de automação e retorne um WebdriverIO [monad](https://github.com/webdriverio/webdriverio/blob/940cd30939864bdbdacb2e94ee6e8ada9b1cc74c/packages/wdio-utils/src/monad.ts)
+* com os respectivos comandos de automação. Veja o pacote [webdriver](https://www.npmjs.com/package/webdriver)
+* como uma implementação de referência
+*
+* @param {Capabilities.RemoteConfig} opções Opções do WebdriverIO
+* @param {Function} hook que permite modificar o cliente antes que ele seja liberado da função
+* @param {PropertyDescriptorMap} userPrototype permite que o usuário adicione comandos de protocolo personalizados
+* @param {Function} customCommandWrapper permite modificar a execução do comando
+* @returns uma instância de cliente compatível com WebdriverIO
+*/
+static newSession(
+options: Capabilities.RemoteConfig,
+modifier?: (...args: any[]) => any,
+userPrototype?: PropertyDescriptorMap,
+customCommandWrapper?: (...args: any[]) => any
+): Promise<Client>;
 
-    /**
-     * allows user to attach to existing sessions
-     * @optional
-     */
-    static attachToSession(
-        options?: AttachOptions,
-        modifier?: (...args: any[]) => any, userPrototype?: {},
-        commandWrapper?: (...args: any[]) => any
-    ): Client;
+/**
+* permite que o usuário anexe a sessões existentes
+* @optional
+*/
+static attachToSession(
+options?: AttachOptions,
+modifier?: (...args: any[]) => any, userPrototype?: {},
+commandWrapper?: (...args: any[]) => any
+): Client;
 
-    /**
-     * Changes The instance session id and browser capabilities for the new session
-     * directly into the passed in browser object
-     *
-     * @optional
-     * @param   {object} instance  the object we get from a new browser session.
-     * @returns {string}           the new session id of the browser
-     */
-    static reloadSession(
-        instance: Client,
-        newCapabilities?: WebdriverIO.Capabilitie
-    ): Promise<string>;
+/**
+* Altera o ID da sessão da instância e os recursos do navegador para a nova sessão
+* diretamente no objeto do navegador passado
+*
+* @optional
+* @param {object} instance o objeto que obtemos de uma nova sessão do navegador.
+     * @returns {string} o novo id de sessão do navegador
+*/
+static reloadSession(
+instance: Client,
+newCapabilities?: WebdriverIO.Capabilitie
+): Promise<string>;
 }
 ```
 
-Type: `String`<br /> Default: `webdriver`
+Tipo: `String`<br /> Padrão: `webdriver`
 
 ### baseUrl
 
-Shorten `url` command calls by setting a base URL.
-- If your `url` parameter starts with `/`, then `baseUrl` is prepended (except the `baseUrl` path, if it has one).
+Encurte chamadas de comando `url` definindo uma URL base.
+- Se o seu parâmetro `url` começar com `/`, então `baseUrl` será prefixado (exceto o caminho `baseUrl`, se houver um).
 - If your `url` parameter starts without a scheme or `/` (like `some/path`), then the full `baseUrl` is prepended directly.
 
 Type: `String`<br /> Default: `null`
@@ -345,57 +346,57 @@ Type: `Number`<br /> Default: `0`
 
 Delay in seconds between the spec file retry attempts
 
-Type: `Number`<br /> Default: `0`
+Tipo: `Número`<br /> Padrão: `0`
 
 ### specFileRetriesDeferred
 
-Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
+Se os arquivos de especificação repetidos devem ser repetidos imediatamente ou adiados para o final da fila.
 
-Type: `Boolean`<br /> Default: `true`
+Tipo: `Boolean`<br /> Padrão: `true`
 
 ### groupLogsByTestSpec
 
-Choose the log output view.
+Escolha a visualização de saída do log.
 
-If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
+If set to `false` logs from different test files will be printed in real-time. Observe que isso pode resultar na mistura de saídas de log de arquivos diferentes quando executado em paralelo.
 
-If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+Se definido como `true`, as saídas de log serão agrupadas por especificação de teste e impressas somente quando a especificação de teste for concluída.
 
-By default, it is set to `false` so logs are printed in real-time.
+Por padrão, ele é definido como `false` para que os logs sejam impressos em tempo real.
 
-Type: `Boolean`<br /> Default: `false`
+Tipo: `Boolean`<br /> Padrão: `false`
 
 ### services
 
-Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
+Os serviços assumem uma tarefa específica que você não quer cuidar. Eles aprimoram sua configuração de teste com quase nenhum esforço.
 
-Type: `String[]|Object[]`<br /> Default: `[]`
+Tipo: `String[]|Object[]`<br /> Padrão: `[]`
 
 ### framework
 
-Defines the test framework to be used by the WDIO testrunner.
+Define a estrutura de teste a ser usada pelo executor de testes WDIO.
 
-Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
+Tipo: `String`<br /> Padrão: `mocha`<br /> Opções: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
-Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
+Opções específicas relacionadas à estrutura. Consulte a documentação do adaptador de estrutura para saber quais opções estão disponíveis. Leia mais sobre isso em [Frameworks](frameworks).
 
-Type: `Object`<br /> Default: `{ timeout: 10000 }`
+Tipo: `Objeto`<br /> Padrão: `{ timeout: 10000 }`
 
 ### cucumberFeaturesWithLineNumbers
 
-List of cucumber features with line numbers (when [using cucumber framework](./Frameworks.md#using-cucumber)).
+Lista de recursos do Cucumber com números de linha (ao [usar o framework Cucumber](./Frameworks.md#using-cucumber)).
 
-Type: `String[]` Default: `[]`
+Tipo: `String[]` Padrão: `[]`
 
 ### reporters
 
-List of reporters to use. A reporter can be either a string, or an array of `['reporterName', { /* reporter options */}]` where the first element is a string with the reporter name and the second element an object with reporter options.
+Lista de repórteres a serem usados. Um repórter pode ser uma string ou uma matriz de `['reporterName', { /* reporter options */}]` onde o primeiro elemento é uma string com o nome do repórter e o segundo elemento um objeto com opções do repórter.
 
-Type: `String[]|Object[]`<br /> Default: `[]`
+Tipo: `String[]|Object[]`<br /> Padrão: `[]`
 
-Example:
+Exemplo:
 
 ```js
 reporters: [
@@ -410,37 +411,37 @@ reporters: [
 
 ### reporterSyncInterval
 
-Determines in which interval the reporter should check if they are synchronized if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
+Determina em qual intervalo o relator deve verificar se eles estão sincronizados caso relatem seus logs de forma assíncrona (por exemplo, se os logs forem transmitidos para um fornecedor terceirizado).
 
-Type: `Number`<br /> Default: `100` (ms)
+Tipo: `Número`<br /> Padrão: `100` (ms)
 
 ### reporterSyncTimeout
 
-Determines the maximum time reporters have to finish uploading all their logs until an error is being thrown by the testrunner.
+Determina o tempo máximo que os repórteres têm para terminar de enviar todos os seus logs até que um erro seja gerado pelo executor de teste.
 
-Type: `Number`<br /> Default: `5000` (ms)
+Tipo: `Número`<br /> Padrão: `5000` (ms)
 
 ### execArgv
 
-Node arguments to specify when launching child processes.
+Argumentos de nó para especificar ao iniciar processos filho.
 
-Type: `String[]`<br /> Default: `null`
+Tipo: `String[]`<br /> Padrão: `null`
 
 ### filesToWatch
 
-A list of glob supporting string patterns that tell the testrunner to have it additionally watch other files, e.g. application files, when running it with the `--watch` flag. By default the testrunner already watches all spec files.
+Uma lista de padrões de string de suporte glob que informam ao executor de testes para monitorar outros arquivos, por exemplo, arquivos de aplicativo, ao executá-lo com o sinalizador `--watch`. Por padrão, o testrunner já monitora todos os arquivos de especificação.
 
-Type: `String[]`<br /> Default: `[]`
+Tipo: `String[]`<br /> Padrão: `[]`
 
 ### updateSnapshots
 
-Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
+Defina como verdadeiro se quiser atualizar seus instantâneos. Idealmente usado como parte de um parâmetro CLI, por exemplo, `wdio run wdio.conf.js --s`.
 
-Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
+Tipo: `'new' | 'all' | 'none'`<br /> Padrão: `none` se não fornecido e os testes forem executados em CI, `new` se não fornecido, caso contrário, o que foi fornecido
 
 ### resolveSnapshotPath
 
-Overrides default snapshot path. For example, to store snapshots next to test files.
+Substitui o caminho padrão do instantâneo. Por exemplo, para armazenar instantâneos ao lado de arquivos de teste.
 
 ```ts title="wdio.conf.ts"
 export const config: WebdriverIO.Config = {
@@ -448,19 +449,19 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
+Tipo: `(testPath: string, snapExtension: string) => string`<br /> Padrão: armazena arquivos de snapshot no diretório `__snapshots__` próximo ao arquivo de teste
 
 ### tsConfigPath
 
-WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
+O WDIO usa `tsx` para compilar arquivos TypeScript.  Seu TSConfig é detectado automaticamente no diretório de trabalho atual, mas você pode especificar um caminho personalizado aqui ou definindo a variável de ambiente TSX_TSCONFIG_PATH.
 
-See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
+Veja a documentação do `tsx`: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
 
-Type: `String`<br /> Default: `null`<br />
+Tipo: `String`<br /> Padrão: `null`<br />
 
 ## Hooks
 
-The WDIO testrunner allows you to set hooks to be triggered at specific times of the test lifecycle. This allows custom actions (e.g. take screenshot if a test fails).
+O WDIO testrunner permite que você defina ganchos para serem acionados em momentos específicos do ciclo de vida do teste. This allows custom actions (e.g. take screenshot if a test fails).
 
 Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
 
@@ -556,170 +557,170 @@ Parameters:
 
 ### beforeCommand
 
-Runs before a WebdriverIO command gets executed.
+Isso permite ações personalizadas (por exemplo, fazer uma captura de tela se um teste falhar).
 
-Parameters:
+Parâmetros:
 
-- `commandName` (`string`): command name
-- `args` (`*`): arguments that command would receive
+- `commandName` (`string`): nome do comando
+- `args` (`*`): argumentos que o comando receberia
 
 ### afterCommand
 
-Runs after a WebdriverIO command gets executed.
+É executado após um comando WebdriverIO ser executado.
 
-Parameters:
+Parâmetros:
 
-- `commandName` (`string`): command name
-- `args` (`*`): arguments that command would receive
-- `result` (`number`): 0 - command success, 1 - command error
-- `error` (`Error`): error object if any
+- `commandName` (`string`): nome do comando
+- `args` (`*`): argumentos que o comando receberia
+- `resultado` (`número`): 0 - comando bem-sucedido, 1 - comando errado
+- `error` (`Error`): objeto de erro se houver
 
 ### afterTest
 
-Function to be executed after a test (in Mocha/Jasmine) ends.
+Função a ser executada após o término de um teste (em Mocha/Jasmine).
 
-Parameters:
+Parâmetros:
 
-- `test` (`object`): test details
-- `context` (`object`): scope object the test was executed with
-- `result.error` (`Error`): error object in case the test fails, otherwise `undefined`
-- `result.result` (`Any`): return object of test function
-- `result.duration` (`Number`): duration of test
-- `result.passed` (`Boolean`): true if test has passed, otherwise false
-- `result.retries` (`Object`): information about single test related retries as defined for [Mocha and Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) as well as [Cucumber](./Retry.md#rerunning-in-cucumber), e.g. `{ attempts: 0, limit: 0 }`, see
-- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `test` (`object`): detalhes do teste
+- `context` (`object`): objeto de escopo com o qual o teste foi executado
+- `result.error` (`Error`): objeto de erro caso o teste falhe, caso contrário `undefined`
+- `result.result` (`Any`): retorna objeto da função de teste
+- `result.duration` (`Number`): duração do teste
+- `result.passed` (`Boolean`): verdadeiro se o teste foi aprovado, caso contrário falso
+- `result.retries` (`Object`): informações sobre tentativas relacionadas a testes individuais, conforme definido para [Mocha e Jasmine](./Retry.md#rerun-single-tests-in-jasmine-or-mocha), bem como [Cucumber](./Retry.md#rerunning-in-cucumber), por exemplo, `{ attempts: 0, limit: 0 }`, consulte
+- `result` (`object`): resultado do hook (contém as propriedades `error`, `result`, `duration`, `passed`, `retries`)
 
 ### afterSuite
 
-Hook that gets executed after the suite has ended (in Mocha/Jasmine only)
+Gancho que é executado após o término da suíte (somente em Mocha/Jasmine)
 
-Parameters:
+Parâmetros:
 
-- `suite` (`object`): suite details
+- `suite` (`object`): detalhes da suíte
 
 ### after
 
-Gets executed after all tests are done. You still have access to all global variables from the test.
+É executado depois que todos os testes são feitos. Você ainda tem acesso a todas as variáveis ​​globais do teste.
 
-Parameters:
+Parâmetros:
 
-- `result` (`number`): 0 - test pass, 1 - test fail
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `result` (`number`): 0 - teste aprovado, 1 - teste reprovado
+- `caps` (`object`): contendo recursos para a sessão que serão gerados no trabalhador
+- `specs` (`string[]`): especificações a serem executadas no processo de trabalho
 
 ### afterSession
 
-Gets executed right after terminating the webdriver session.
+É executado logo após o término da sessão do webdriver.
 
-Parameters:
+Parâmetros:
 
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `config` (`object`): Objeto de configuração do WebdriverIO
+- `caps` (`object`): contendo recursos para a sessão que serão gerados no trabalhador
+- `specs` (`string[]`): especificações a serem executadas no processo de trabalho
 
 ### onComplete
 
-Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
+É executado depois que todos os trabalhadores são desligados e o processo está prestes a sair. Um erro gerado no gancho onComplete resultará na falha da execução do teste.
 
-Parameters:
+Parâmetros:
 
-- `exitCode` (`number`): 0 - success, 1 - fail
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `result` (`object`): results object containing test results
+- `exitCode` (`number`): 0 - success, 1 - falha
+- `config` (`object`): Objeto de configuração do WebdriverIO
+- `caps` (`object`): contendo recursos para a sessão que serão gerados no trabalhador
+- `result` (`object`): objeto results contendo resultados de teste
 
 ### onReload
 
-Gets executed when a refresh happens.
+É executado quando ocorre uma atualização.
 
-Parameters:
+Parâmetros:
 
-- `oldSessionId` (`string`): session ID of the old session
-- `newSessionId` (`string`): session ID of the new session
+- `oldSessionId` (`string`): ID da sessão antiga
+- `newSessionId` (`string`): ID da nova sessão
 
 ### beforeFeature
 
-Runs before a Cucumber Feature.
+É exibido antes de um filme do Cucumber.
 
 Parameters:
 
-- `uri` (`string`): path to feature file
-- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
+- `uri` (`string`): caminho para o arquivo de recursos
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Objeto de feature Cucumber
 
 ### afterFeature
 
-Runs after a Cucumber Feature.
+Corre atrás de um recurso do Cucumber.
 
-Parameters:
+Parâmetros:
 
-- `uri` (`string`): path to feature file
-- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
+- `uri` (`string`): caminho para o arquivo de recursos
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Objeto de feature Cucumber
 
 ### beforeScenario
 
-Runs before a Cucumber Scenario.
+É executado antes de um cenário de Cucumber.
 
-Parameters:
+Parâmetros:
 
-- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
-- `context` (`object`): Cucumber World object
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): objeto world contendo informações sobre pickle e etapa de teste
+- `contexto` (`objeto`): Objeto Cucumber World
 
 ### afterScenario
 
-Runs after a Cucumber Scenario.
+Corre atrás de um cenário de Cucumber.
 
-Parameters:
+Parâmetros:
 
-- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
-- `result` (`object`): results object containing scenario results
-- `result.passed` (`boolean`): true if scenario has passed
-- `result.error` (`string`): error stack if scenario failed
-- `result.duration` (`number`): duration of scenario in milliseconds
-- `context` (`object`): Cucumber World object
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): objeto world contendo informações sobre pickle e etapa de teste
+- `result` (`object`): objeto results contendo resultados do cenário
+- `result.passed` (`boolean`): verdadeiro se o cenário foi aprovado
+- `result.error` (`string`): pilha de erros se o cenário falhou
+- `result.duration` (`number`): duração do cenário em milissegundos
+- `context` (`object`): Objeto Cucumber World
 
 ### beforeStep
 
-Runs before a Cucumber Step.
+Corre antes de um Cucumber Step.
 
-Parameters:
+Parâmetros:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
-- `context` (`object`): Cucumber World object
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Objeto de passo Cucumber
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Objeto de cenário Cucumber
+- `contexto` (`objeto`): Objeto Cucumber World
 
 ### afterStep
 
-Runs after a Cucumber Step.
+Corre atrás de um Cucumber Step.
 
-Parameters:
+Parâmetros:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
-- `result`: (`object`): results object containing step results
-- `result.passed` (`boolean`): true if scenario has passed
-- `result.error` (`string`): error stack if scenario failed
-- `result.duration` (`number`): duration of scenario in milliseconds
-- `context` (`object`): Cucumber World object
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Objeto de passo Cucumber
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Objeto de cenário Cucumber
+- `result`: (`object`): objeto results contendo resultados de etapas
+- `result.passed` (`boolean`): verdadeiro se o cenário foi aprovado
+- `result.error` (`string`): pilha de erros se o cenário falhou
+- `result.duration` (`number`): duração do cenário em milissegundos
+- `contexto` (`objeto`): Objeto Cucumber World
 
 ### beforeAssertion
 
-Hook that gets executed before a WebdriverIO assertion happens.
+Gancho que é executado antes que uma asserção WebdriverIO aconteça.
 
-Parameters:
+Parâmetros:
 
-- `params`: assertion information
-- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
-- `params.expectedValue`: value that is passed into the matcher
-- `params.options`: assertion options
+- `params`: informações de asserção
+- `params.matcherName` (`string`): nome do correspondente (por exemplo, `toHaveTitle`)
+- `params.expectedValue`: valor que é passado para o matcher
+- `params.options`: opções de asserção
 
 ### afterAssertion
 
-Hook that gets executed after a WebdriverIO assertion happened.
+Gancho que é executado após uma asserção WebdriverIO ocorrer.
 
-Parameters:
+Parâmetros:
 
-- `params`: assertion information
-- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
-- `params.expectedValue`: value that is passed into the matcher
-- `params.options`: assertion options
-- `params.result`: assertion results
+- `params`: informações de asserção
+- `params.matcherName` (`string`): nome do correspondente (por exemplo, `toHaveTitle`)
+- `params.expectedValue`: valor que é passado para o matcher
+- `params.options`: opções de asserção
+- `params.result`: resultados de asserção
