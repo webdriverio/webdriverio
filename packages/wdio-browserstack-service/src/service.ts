@@ -58,6 +58,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = this._options)
+        this._config.framework = this._config.framework.toLowerCase();
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
         this._percy =  process.env.BROWSERSTACK_PERCY === 'true'
