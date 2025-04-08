@@ -1,4 +1,3 @@
-
 ---
 id: capabilities
 title: قابلیت ها(capabilities)
