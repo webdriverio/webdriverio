@@ -1,54 +1,60 @@
 ---
 id: browser-logs
-title: Registros do navegador
+title: Logs do Navegador
 ---
 
-Ao executar testes, o navegador pode registrar informações importantes nas quais você está interessado ou deseja se basear.
+When running tests the browser may log important information that you are interested or want to assert against.
 
-<0>
+<Tabs
+defaultValue="bidi"
+values={[
+{label: 'Bidi', value: 'bidi'},
+{label: 'Classic (Deprecated)', value: 'classic'
+}]
+}>
 
 <TabItem value='bidi'>
 
-Ao usar o WebDriver Bidi, que é a maneira padrão como o WebdriverIO automatiza o navegador, você pode assinar eventos provenientes do navegador. Para eventos de log que você deseja escutar em `log.entryAdded'`, por exemplo:
+When using WebDriver Bidi, which is the default way how WebdriverIO automates the browser, you can subscribe to events coming from the browser. For log events you want to listen on `log.entryAdded'`, e.g.:
 
 ```ts
 await browser.sessionSubscribe({ events: ['log.entryAdded'] })
 
 /**
- * retorna: {"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}
+ * returns: {"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}
  */
 browser.on('log.entryAdded', (entryAdded) => console.log('received %s', entryAdded))
 ```
 
-Em um teste, você pode simplesmente enviar eventos de log para um array e afirmar esse array quando sua ação for concluída, por exemplo:
+In a test you can just push log events to an array an assert that array once your action is done, e.g.:
 
 ```ts
 import type { local } from 'webdriver'
 
-describe('deve registrar ao fazer uma determinada ação', () => {
-const logs: string[] = []
+describe('should log when doing a certain action', () => {
+    const logs: string[] = []
 
-function logEvents (event: local.LogEntry) {
-logs.push(event.text) // adiciona mensagem de log ao array
-}
+    function logEvents (event: local.LogEntry) {
+        logs.push(event.text) // add log message to the array
+    }
 
-before(async () => {
-await browser.sessionSubscribe({ events: ['log.entryAdded'] })
-browser.on('log.entryAdded', logEvents)
-})
+    before(async () => {
+        await browser.sessionSubscribe({ events: ['log.entryAdded'] })
+        browser.on('log.entryAdded', logEvents)
+    })
 
-it('deve disparar o evento do console', () => {
-// dispara o navegador envia uma mensagem para o console
-...
+    it('should trigger the console event', () => {
+        // trigger the browser send a message to the console
+        ...
 
-// afirma se o log foi capturado
-expect(logs).toContain('Hello Bidi')
-})
+        // assert if log was captured
+        expect(logs).toContain('Hello Bidi')
+    })
 
-// limpa o listener depois
-after(() => {
-browser.off('log.entryAdded', logEvents)
-})
+    // clean up listener afterwards
+    after(() => {
+        browser.off('log.entryAdded', logEvents)
+    })
 })
 ```
 
@@ -56,19 +62,18 @@ browser.off('log.entryAdded', logEvents)
 
 <TabItem value='classic'>
 
-Se você ainda usa o WebDriver Classic ou desabilitou o uso do Bidi por meio do recurso `'wdio:enforceWebDriverClassic': true`, você pode usar o comando JSONWire `getLogs` para buscar os logs mais recentes. Como o WebdriverIO removeu esses comandos obsoletos, você terá que usar o [Serviço JSONWP](https://github.com/webdriverio-community/wdio-jsonwp-service) para adicionar o comando de volta à instância do seu navegador.
+If you still use WebDriver Classic or disabled Bidi usage via the `'wdio:enforceWebDriverClassic': true` capability, you can use the `getLogs` JSONWire command to fetch the latest logs. Since WebdriverIO has removed these deprecated commands you will have to use the [JSONWP Service](https://github.com/webdriverio-community/wdio-jsonwp-service) to add the command back to your browser instance.
 
-Depois de adicionar ou iniciar o serviço, você pode obter logs via:
+After you added or initiate the service you can fetch logs via:
 
 ```ts
 const logs = await browser.getLogs('browser')
-const logMessage = logs.find((log) => log.message.includes('Olá Bidi'))
+const logMessage = logs.find((log) => log.message.includes('Hello Bidi'))
 expect(logMessage).toBeTruthy()
 ```
 
-Observação: o comando `getLogs` só pode buscar os logs mais recentes do navegador. Eventualmente, ele pode limpar mensagens de log caso elas se tornem muito antigas.
-</0>
+Note: the `getLogs` command can only fetch the most recent logs from the browser. It may clean up log messages eventually if they become to old. </TabItem>
 
 </Tabs>
 
-Observe que você pode usar esse método para recuperar mensagens de erro e verificar se seu aplicativo encontrou algum erro.
+Please note that you can use this method to retrieve error messages and verify whether your application has encountered any errors.
