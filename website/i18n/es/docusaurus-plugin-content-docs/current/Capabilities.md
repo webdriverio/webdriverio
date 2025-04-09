@@ -238,7 +238,7 @@ Ejecutar un navegador remotamente significa ejecutar una instancia del navegador
 
 ```ts
 {
-    browserName: 'chrome',    // or 'chromium'
+    browserName: 'chrome',   // or 'chromium'
     'goog:chromeOptions': {
         args: ['headless', 'disable-gpu']
     }
