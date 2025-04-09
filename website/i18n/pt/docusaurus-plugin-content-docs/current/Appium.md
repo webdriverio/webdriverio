@@ -1,20 +1,20 @@
 ---
 id: appium
-title: Appium Setup
+title: Instalação do Appim
 ---
 
-With WebdriverIO you can test not only web application in the browser but also other platforms such as:
+Com o WebDriverIO você pode testar não apenas o aplicativo web no navegador, mas também outras plataformas, tais como:
 
-- 📱 mobile applications on iOS, Android or Tizen
-- 🖥️ desktop applications on macOS or Windows
-- 📺 as well as TV apps for Roku, tvOS, Android TV and Samsung
+- 📱 mobile applications para iOS, Android ou Tizen
+- 🖥️ desktop applications para macOS ou Windows
+- 📺 bem como aplicativos de TV para Roku, tvOS, Android TV e Samsung
 
-We recommend to use [Appium](https://appium.io/) to help you facilitate these types of tests. You can get an overview on Appium on their [official documentation page](https://appium.io/docs/en/2.0/intro/).
+Recomendamos usar o [Appium](https://appium.io/) para ajudá-lo a facilitar esses tipos de testes. Você pode obter uma visão geral do Appium na [página de documentação oficial](https://appium.io/docs/en/2.0/intro/).
 
-Setting up the right environment is not straight forward. Luckily the Appium ecosystem has great tooling around this to help you. To set-up one of the above environments, just run:
+Configurar o ambiente certo não é uma tarefa simples. Felizmente, o ecossistema Appium tem ótimas ferramentas para ajudar você. Para configurar um dos ambientes acima, basta executar:
 
 ```sh
 $ npx appium-installer
 ```
 
-This will initiate the [appium-installer](https://github.com/AppiumTestDistribution/appium-installer) toolkit that guides you through the setup process.
+Isso iniciará o kit de ferramentas [appium-installer](https://github.com/AppiumTestDistribution/appium-installer) que o orientará pelo processo de configuração.
