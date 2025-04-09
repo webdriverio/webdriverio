@@ -121,33 +121,6 @@ describe('my test', () => {
 
 நிகழ்வுகளின் பட்டியல் இங்கே. இது இன்னும் கிடைக்கக்கூடிய நிகழ்வுகளின் முழு பட்டியல் அல்ல என்பதை நினைவில் கொள்ளவும். மேலும் நிகழ்வுகளின் விளக்கங்களை இங்கே சேர்ப்பதன் மூலம் ஆவணத்தைப் புதுப்பிக்கப் பங்களிக்க தயங்க வேண்டாம்.
 
-#### `request.start`
-This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.
-
-```ts
-browser.on('request.start', (ev: RequestInit) => {
-    // ...
-})
-```
-
-#### `request.end`
-This event is fired once the request to the driver received a response. The event object either contains the response body as result or an error if the WebDriver command failed.
-
-```ts
-browser.on('request.end', (ev: { result: unknown, error?: Error }) => {
-    // ...
-})
-```
-
-#### `request.retry`
-The retry event can notify you when WebdriverIO attempts to retry running the command, e.g. due to a network issue. It contains information about the error that caused the retry and the amount of retries already done.
-
-```ts
-browser.on('request.retry', (ev: { error: Error, retryCount: number }) => {
-    // ...
-})
-```
-
 #### `command`
 
 This event is emitted whenever WebdriverIO sends a WebDriver Classic command. It contains the following information:
