@@ -5,7 +5,7 @@ title: BrowserStack Accessibility Testing
 
 # BrowserStack Accessibility Testing
 
-You can easily integrate accessibility tests in your WebdriverIO test suites using the [Automated tests feature of BrowserStack Accessibility Testing](https://www.browserstack.com/docs/accessibility/automated-tests?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
+You can easily integrate accessibility tests in your WebdriverIO test suites using the Automated tests feature of BrowserStack Accessibility Testing.
 
 ## Advantages of Automated Tests in BrowserStack Accessibility Testing
 
@@ -59,4 +59,5 @@ exports.config = {
   };
 ```
 
-You can view detailed instructions [here](https://www.browserstack.com/docs/accessibility/automated-tests/get-started/webdriverio?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
+You can view detailed instructions here.
+
