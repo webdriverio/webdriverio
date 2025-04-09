@@ -3,16 +3,16 @@ id: team
 title: Equipe
 ---
 
-O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvolvedores e SDETs de várias empresas, além de contribuições de pessoas ao redor do mundo.
+O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvolvedores e SDETs de várias empresas, assim como contribuições de pessoas de todo o mundo.
 
-## Comitê de Direção Técnica
+## Comité Técnico de Direção
 
 <Card
     name="Adam Bjerstedt"
     avatar="https://avatars2.githubusercontent.com/u/4043890?s=460"
     github="abjerstedt"
 >
-    Engenheiro de software sênior - Android na <a href="https://www.target.com/">Target</a>.
+    Engenheiro de Software Sénior — Android em <a href="https://www.target.com/">Target</a>.
 </Card>
 
 <Card
@@ -21,7 +21,7 @@ O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvol
     github="christian-bromann"
     twitter="bromann"
 >
-    Engenheiro de software da equipe no Open Source Program Office <a href="https://saucelabs.com/">@saucelabs</a>.
+    Engenheiro de Software de Equipe no Open Source Program Office <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
 <Card
@@ -29,7 +29,7 @@ O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvol
     avatar="https://avatars.githubusercontent.com/u/15839059?s=460"
     github="erwinheitzman"
 >
-    Engenheiro Sênior de Automação de Testes na <a href="https://detesters.nl/">deTesters</a>.
+    Engenheiro de Automatização de Teste Sénior em <a href="https://detesters.nl/">deTesters</a>.
 </Card>
 
 <Card
@@ -38,7 +38,7 @@ O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvol
     github="klamping"
     twitter="klamping"
 >
-    Engenheiro Sênior de Front End.
+    Engenheiro de Front End Sénior.
 </Card>
 
 <Card
@@ -46,7 +46,7 @@ O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvol
     avatar="https://avatars0.githubusercontent.com/u/25589559?s=460"
     github="mgrybyk"
 >
-    Engenheiro Sênior de Desenvolvimento de Software em Teste.
+    Engenheiro de Desenvolvimento de Software de Teste Sénior.
 </Card>
 
 <Card
@@ -54,7 +54,7 @@ O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvol
     avatar="https://avatars3.githubusercontent.com/u/1300981?s=460"
     github="WillBrock"
 >
-    Gerente de Engenharia de Automação na <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
+    Gerente de Engenharia de Automatização na <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
 </Card>
 
 <Card
@@ -63,7 +63,7 @@ O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvol
     github="wswebcreation"
     twitter="wswebcreation"
 >
-    Arquiteto de soluções sênior <a href="https://saucelabs.com/">@saucelabs</a>.
+    Arquiteto de Soluções Sénior <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
 ## Colaboradores do Projeto
@@ -84,4 +84,4 @@ O desenvolvimento do WebdriverIO é liderado por uma equipe dedicada de desenvol
 >
 </Card>
 
-e [muitos muitos mais](https://github.com/orgs/webdriverio/people).
+e [muitos outros](https://github.com/orgs/webdriverio/people).
