@@ -41,13 +41,13 @@ Type: `Object`<br /> Default: `undefined`
 
 ### user
 
-نام کاربری سرویس ابری شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
 
 Type: `String`<br /> Default: `undefined`
 
 ### key
 
-کلید دسترسی به سرویس ابری یا کلید مخفی شما (فقط برای اکانت های [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) کار می کند). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). در صورت تنظیم، WebdriverIO به طور خودکار ویژگی های اتصال را برای شما تنظیم می کند. اگر از ارائه‌دهنده ابری استفاده نمی‌کنید، می‌توان از آن برای احراز هویت هر بک اند WebDriver دیگری استفاده کرد.
 
 Type: `String`<br /> Default: `undefined`
 
@@ -64,7 +64,7 @@ Type: `String`<br /> Default: `undefined`
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-علاوه بر این، یک ابزار مفید Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/) است که به شما کمک می کند این شی را با کلیک کردن روی قابلیت های مورد نظر خود ایجاد کنید.
+Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), which helps you create this object by clicking together your desired capabilities.
 
 Type: `Object`<br /> Default: `null`
 
@@ -351,21 +351,7 @@ Type: `Number`<br /> Default: `0`
 
 Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
-Type: `Boolean`<br />
-Default: `true`
-
-### groupLogsByTestSpec
-
-Choose the log output view.
-
-If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
-
-If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
-
-By default, it is set to `false` so logs are printed in real-time.
-
-Type: `Boolean`<br />
-Default: `false`
+Type: `Boolean`<br /> Default: `true`
 
 ### groupLogsByTestSpec
 
