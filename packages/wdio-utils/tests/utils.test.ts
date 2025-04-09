@@ -47,6 +47,8 @@ describe('utils', () => {
             .toBe('findElementsFromElement("/html/body/a")')
         expect(commandCallStructure('switchToWindow', ['9A562133B0552E0ECB7628F2E8A09E86']))
             .toBe('switchToWindow("9A562133B0552E0ECB7628F2E8A09E86")')
+        expect(commandCallStructure('switchFrame', ['9A562133B0552E0ECB7628F2E8A09E86']))
+            .toBe('switchFrame("9A562133B0552E0ECB7628F2E8A09E86")')
     })
 
     it('transformCommandLogResult', () => {
