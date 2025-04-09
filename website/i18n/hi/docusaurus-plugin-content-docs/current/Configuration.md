@@ -3,7 +3,7 @@ id: configuration
 title: कॉन्फ़िगरेशन
 ---
 
-[सेटअप प्रकार](/docs/setuptypes) के आधार पर (उदाहरण के लिए कच्चे प्रोटोकॉल बाइंडिंग का उपयोग करके, वेबड्राइवरियो स्टैंडअलोन पैकेज या WDIO टेस्टरनर के रूप में) पर्यावरण को नियंत्रित करने के लिए विकल्पों का एक अलग सेट उपलब्ध है।
+Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
 ## वेब ड्राइवर विकल्प
 
@@ -41,13 +41,13 @@ Type: `Object`<br /> Default: `undefined`
 
 ### user
 
-आपका क्लाउड सर्विस यूज़रनेम (केवल [सॉस लैब्स](https://saucelabs.com), [ब्राउज़रस्टैक](https://www.browserstack.com), [टेस्टिंगबॉट](https://testingbot.com) या [लैम्ब्डाटेस्ट](https://www.lambdatest.com) खातों के लिए काम करता है)। यदि सेट किया जाता है, तो WebdriverIO स्वचालित रूप से आपके लिए कनेक्शन विकल्प सेट कर देगा। यदि आप क्लाउड प्रदाता का उपयोग नहीं करते हैं तो इसका उपयोग किसी अन्य वेबड्राइवर बैकएंड को प्रमाणित करने के लिए किया जा सकता है।
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). यदि सेट किया जाता है, तो WebdriverIO स्वचालित रूप से आपके लिए कनेक्शन विकल्प सेट कर देगा। यदि आप क्लाउड प्रदाता का उपयोग नहीं करते हैं तो इसका उपयोग किसी अन्य वेबड्राइवर बैकएंड को प्रमाणित करने के लिए किया जा सकता है।
 
 Type: `String`<br /> Default: `undefined`
 
 ### key
 
-आपका क्लाउड सर्विस यूज़रनेम (केवल [सॉस लैब्स](https://saucelabs.com), [ब्राउज़रस्टैक](https://www.browserstack.com), [टेस्टिंगबॉट](https://testingbot.com) या [लैम्ब्डाटेस्ट](https://www.lambdatest.com) खातों के लिए काम करता है)। यदि सेट किया जाता है, तो WebdriverIO स्वचालित रूप से आपके लिए कनेक्शन विकल्प सेट कर देगा। यदि आप क्लाउड प्रदाता का उपयोग नहीं करते हैं तो इसका उपयोग किसी अन्य वेबड्राइवर बैकएंड को प्रमाणित करने के लिए किया जा सकता है।
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). यदि सेट किया जाता है, तो WebdriverIO स्वचालित रूप से आपके लिए कनेक्शन विकल्प सेट कर देगा। यदि आप क्लाउड प्रदाता का उपयोग नहीं करते हैं तो इसका उपयोग किसी अन्य वेबड्राइवर बैकएंड को प्रमाणित करने के लिए किया जा सकता है।
 
 Type: `String`<br /> Default: `undefined`
 
@@ -64,7 +64,7 @@ Type: `String`<br /> Default: `undefined`
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-इसके अतिरिक्त, सॉस लैब्स [ऑटोमेटेड टेस्ट कॉन्फिगरेटर](https://docs.saucelabs.com/basics/platform-configurator/)एक उपयोगी उपयोगिता है, जो आपकी इच्छित क्षमताओं को एक साथ क्लिक करके इस ऑब्जेक्ट को बनाने में आपकी मदद करती है।
+Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), which helps you create this object by clicking together your desired capabilities.
 
 Type: `Object`<br /> Default: `null`
 
@@ -351,21 +351,7 @@ Type: `Number`<br /> Default: `0`
 
 Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
-Type: `Boolean`<br />
-Default: `true`
-
-### groupLogsByTestSpec
-
-Choose the log output view.
-
-If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
-
-If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
-
-By default, it is set to `false` so logs are printed in real-time.
-
-Type: `Boolean`<br />
-Default: `false`
+Type: `Boolean`<br /> Default: `true`
 
 ### groupLogsByTestSpec
 
