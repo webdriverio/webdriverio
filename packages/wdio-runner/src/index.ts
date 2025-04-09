@@ -29,7 +29,7 @@ export default class Runner extends EventEmitter {
 
     private _reporter?: BaseReporter
     private _framework?: TestFramework
-    private _config?: Options.Testrunner
+    private _config?: WebdriverIO.Config
     private _cid?: string
     private _specs?: string[]
     private _caps?: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
@@ -109,7 +109,7 @@ export default class Runner extends EventEmitter {
          * run `beforeSession` command before framework and browser are initiated
          */
         ;(await initializeWorkerService(
-            this._config as Options.Testrunner,
+            this._config as WebdriverIO.Config,
             this._caps as WebdriverIO.Capabilities,
             args.ignoredWorkerServices
         )).map(this._configParser.addService.bind(this._configParser))
@@ -233,7 +233,7 @@ export default class Runner extends EventEmitter {
 
     async #initFramework (
         cid: string,
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
         reporter: BaseReporter,
         specs: string[]
@@ -267,7 +267,7 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     private async _initSession (
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     ) {
         const browser = await this._startSession(config, caps) as WebdriverIO.Browser
@@ -309,7 +309,7 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     private async _startSession (
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     ) {
         try {

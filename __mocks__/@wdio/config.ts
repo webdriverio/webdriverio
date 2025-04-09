@@ -1,13 +1,10 @@
 import { vi } from 'vitest'
-import type { Options } from '../../packages/wdio-types'
-
-import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../packages/wdio-config/src/constants.js'
 import {
     isCloudCapability as isCloudCapabilityMock,
     validateConfig as validateConfigMock
 } from '../../packages/wdio-config/src/utils.js'
 
-export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT as () => Options.Testrunner
+export { DEFAULT_CONFIGS } from '../../packages/wdio-config/src/constants.js'
 export const isCloudCapability = vi.fn().mockImplementation(isCloudCapabilityMock)
 export const validateConfig = vi.fn().mockImplementation((defaults, config) => {
     const returnVal = validateConfigMock(defaults, config)

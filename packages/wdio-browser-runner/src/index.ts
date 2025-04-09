@@ -11,7 +11,6 @@ import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
-import type { Options } from '@wdio/types'
 import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartiallyMockedDeep } from '@vitest/spy'
 import type { InlineConfig } from 'vite'
 
@@ -27,7 +26,7 @@ const log = logger('@wdio/browser-runner')
 
 export default class BrowserRunner extends LocalRunner {
     #options: BrowserRunnerOptionsImport
-    #config: Options.Testrunner
+    #config: WebdriverIO.Config
     #servers: Set<ViteServer> = new Set()
     #coverageOptions: CoverageOptions
     #reportsDirectory: string
@@ -36,7 +35,7 @@ export default class BrowserRunner extends LocalRunner {
 
     constructor(
         private options: BrowserRunnerOptionsImport,
-        protected _config: Options.Testrunner
+        protected _config: WebdriverIO.Config,
     ) {
         super(options as never, _config)
 

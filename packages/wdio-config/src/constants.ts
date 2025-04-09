@@ -1,12 +1,13 @@
-import type { Options, Services } from '@wdio/types'
+import type { Services } from '@wdio/types'
 
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
-export const DEFAULT_CONFIGS: () => Options.Testrunner = () => ({
+export const DEFAULT_CONFIGS: () => WebdriverIO.Config = () => ({
     specs: [],
     suites: {},
     exclude: [],
+    capabilities: [],
     outputDir: undefined,
     logLevel: 'info' as const,
     logLevels: {},

@@ -416,7 +416,7 @@ export default class ConfigParser {
         if (!this.#isInitialised) {
             throw new Error('ConfigParser was not initialized, call "await config.initialize()" first!')
         }
-        return this._config as Required<Options.Testrunner>
+        return this._config as Required<WebdriverIO.Config>
     }
 
     /**

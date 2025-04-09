@@ -1,6 +1,6 @@
 import nock from 'nock'
 import { v4 as uuidv4 } from 'uuid'
-import type { Services, Options } from '@wdio/types'
+import type { Services } from '@wdio/types'
 
 import WebDriverMock from './WebDriverMock.js'
 
@@ -38,7 +38,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.getLogTypes().reply(200, { value: [] })
     }
 
-    beforeSession(config: Options.Testrunner): void {
+    beforeSession(config: WebdriverIO.Config): void {
         config.hostname = 'localhost'
         config.port = 4444
     }

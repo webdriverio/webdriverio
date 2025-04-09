@@ -1,4 +1,5 @@
 import type { Options } from '@wdio/types'
+import { DEFAULT_CONFIGS } from './constants.js'
 
 export const validObjectOrArray = (object: object): object is object | Array<unknown> => (Array.isArray(object) && object.length > 0) ||
     (typeof object === 'object' && Object.keys(object).length > 0)
@@ -30,6 +31,14 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
 export function isCloudCapability(caps: WebdriverIO.Capabilities) {
     return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
 }
+
+/**
+ * Creates a configuration object while providing types for both TypeScript and Javascript
+ */
+export const defineConfig = (options?: Partial<WebdriverIO.Config> | WebdriverIO.Config): WebdriverIO.Config => ({
+    ...DEFAULT_CONFIGS(),
+    ...options,
+})
 
 /**
  * validates configurations based on default values
