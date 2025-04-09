@@ -1,20 +1,20 @@
 ---
 id: writing-tests
-title: Escrevendo Testes
+title: Writing Tests
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-## Suporte à Estrutura Testrunner
+## Testrunner Framework Support
 
-`@wdio/visual-service` é agnostico framework de test-runner, o que significa que você pode usá-lo com todos os frameworks WebdriverIO suportes como:
+`@wdio/visual-service` is test-runner framework agnostic, which means that you can use it with all the frameworks WebdriverIO supports like:
 
 - [`Mocha`](https://webdriver.io/docs/frameworks#using-mocha)
 - [`Jasmine`](https://webdriver.io/docs/frameworks#using-jasmine)
 - [`CucumberJS`](https://webdriver.io/docs/frameworks#using-cucumber)
 
-Within your tests, you can _save_ screenshots or match the current visual state of your application under test with a baseline. Para isso, o serviço fornece [custom matcher](/docs/api/expect-webdriverio#visual-matcher), bem como métodos _check_:
+Within your tests, you can _save_ screenshots or match the current visual state of your application under test with a baseline. For that, the service provides [custom matcher](/docs/api/expect-webdriverio#visual-matcher), as well as _check_ methods:
 
 <Tabs
 defaultValue="mocha"
@@ -87,12 +87,12 @@ describe('Mocha Example', () => {
             }
         )
 
-        // Salvar uma captura de tela de página inteira
+        // Save a full page screenshot
         await browser.saveFullPageScreen('fullPage', {
             /* some options */
         })
 
-       // Salve uma captura de tela de página inteira com todas as execuções de guias
+        // Save a full page screenshot with all tab executions
         await browser.saveTabbablePage('save-tabbable', {
             /* some options, use the same options as for saveFullPageScreen */
         })
@@ -117,14 +117,14 @@ describe('Mocha Example', () => {
             )
         ).toEqual(0)
 
-       // Verifique uma captura de tela da página inteira
+        // Check a full page screenshot
         await expect(
             await browser.checkFullPageScreen('fullPage', {
                 /* some options */
             })
         ).toEqual(0)
 
-        // Verifique uma captura de tela de página inteira com todas as execuções de guias
+        // Check a full page screenshot with all tab executions
         await expect(
             await browser.checkTabbablePage('check-tabbable', {
                 /* some options, use the same options as for checkFullPageScreen */
@@ -347,19 +347,19 @@ Then('I should be able to compare some screenshots with a baseline', async funct
 </TabItem>
 </Tabs>
 
-:::note IMPORTANTE
+:::note IMPORTANT
 
-Este serviço fornece os métodos `save` e `check`. Se você executar seus testes pela primeira vez, **NÃO DEVE** combinar os métodos `save` e `compare`, os métodos `check` criarão automaticamente uma imagem de base para você
+This service provides `save` and `check` methods. If you run your tests for the first time you **SHOULD NOT** combine `save` and `compare` methods, the `check`-methods will automatically create a baseline image for you
 
 ```sh
-######################################################################################
-INFORMAÇÕES:
-A imagem foi salva automaticamente em
-/Users/wswebcreation/sample/baselineFolder/desktop_chrome/examplePage-chrome-latest-1366x768.png
-# ...
+#####################################################################################
+ INFO:
+ Autosaved the image to
+ /Users/wswebcreation/sample/baselineFolder/desktop_chrome/examplePage-chrome-latest-1366x768.png
+#####################################################################################
 ```
 
-Quando você [desabilitar o salvamento automático de imagens de base](service-options#autosavebaseline), a Promessa será rejeitada com o seguinte aviso.
+When you've [disabled to automatically save baseline images](service-options#autosavebaseline), the Promise will be rejected with the following warning.
 
 ```sh
 #####################################################################################
@@ -369,6 +369,6 @@ Quando você [desabilitar o salvamento automático de imagens de base](service-o
 #####################################################################################
 ```
 
-Isso significa que a captura de tela atual é salva na pasta real e você **precisa copiá-la manualmente para sua linha de base**. Se você instanciar `@wdio/visual-service` com [`autoSaveBaseline: true`](./service-options#autosavebaseline), a imagem será salva automaticamente na pasta de base.
+This means that the current screenshot is saved in the actual folder and you **manually need to copy it to your baseline**. If you instantiate `@wdio/visual-service` with [`autoSaveBaseline: true`](./service-options#autosavebaseline) the image will automatically be saved into the baseline folder.
 
 :::
