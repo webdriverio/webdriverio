@@ -122,7 +122,7 @@ const launcher = new Launcher('/path/to/config.file.js', {
 
 ## Reporter Synchronisation
 
-Wenn Ihr Reporter asynchrone Operationen ausführen muss, um die Log Daten zu bearbeiten (z. B. das Hochladen von Log-Daten oder anderen Assets), können Sie die Methode `isSynchronised` in Ihrem benutzerdefinierten Reporter überschreiben, damit der WebdriverIO-Runner warten kann, bis Sie alles verarbeitet ist. Ein Beispiel dafür ist in [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.ts)zu sehen:
+Wenn Ihr Reporter asynchrone Operationen ausführen muss, um die Log Daten zu bearbeiten (z. B. das Hochladen von Log-Daten oder anderen Assets), können Sie die Methode `isSynchronised` in Ihrem benutzerdefinierten Reporter überschreiben, damit der WebdriverIO-Runner warten kann, bis Sie alles verarbeitet ist. An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.ts):
 
 ```js
 export default class SumoLogicReporter extends WDIOReporter {
