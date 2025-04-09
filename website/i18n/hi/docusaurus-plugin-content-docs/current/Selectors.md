@@ -578,6 +578,7 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 ## कस्टम चयनकर्ता रणनीतियाँ
 
+
 यदि आपके ऐप को तत्वों को लाने के लिए एक विशिष्ट तरीके की आवश्यकता है तो आप स्वयं को एक कस्टम चयनकर्ता रणनीति परिभाषित कर सकते हैं जिसका उपयोग आप `custom$` और `custom$$`के साथ कर सकते हैं। For that register your strategy once in the beginning of the test, e.g. in a `before` hook:
 
 ```js reference
