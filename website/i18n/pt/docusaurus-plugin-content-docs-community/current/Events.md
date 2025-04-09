@@ -1,14 +1,14 @@
 ---
-id: eventos
+id: events
 title: Eventos
 ---
 
-# Eventos WEBDRIVERIO
+# Eventos do WebdriverIO
 
-A comunidade WEBDRIVERIO organiza eventos ao redor do mundo. O projeto é totalmente conduzido pela comunidade e nós incentivamos e apoiamos todos que gostam de hospedar e executar encontros e eventos do WEBDRIVERIO.
+A comunidade WebdriverIO organiza eventos ao redor do mundo. O projeto é completamente conduzido pela comunidade e nós encorajamos e apoiamos todos que desejam hospedar e realizar encontros e eventos do WebdriverIO.
 
 <EventList></EventList>
 
-# Hospedar seu próprio evento no WEBDRIVERIO?
+# Quer organizar seu próprio evento WebdriverIO?
 
-Você gostaria de sediar um encontro no WEBDRIVERIO? Incrível ❤️! Gostaríamos de apoiá-lo e fornecer piza e bebidas. Vamos entrar em contato: por favor levante um problema no repositório de WebdriverIO e vamos recebê-lo daqui.
+Você gostaria de organizar uma reunião deo WebdriverIO? Incrível ❤️! Adoraríamos apoiar você e fornecer pizza e bebidas. Entre em contato conosco: por favor, abra uma issue no repositório do WebdriverIO e nós cuidaremos do resto.
