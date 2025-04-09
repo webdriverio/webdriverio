@@ -1,12 +1,12 @@
 ---
 id: more-test-optimization
-title: Tempo de execução do teste
+title: Test execution time
 ---
 
-Por padrão, este módulo verificará se você tem uma instalação local do Tesseract na sua máquina/no seu pipeline. Se você não tiver uma instalação local, ele usará automaticamente uma versão [NodeJS](https://github.com/naptha/tesseract.js). Isso pode causar alguma lentidão porque o processamento da imagem será feito pelo Node.js. O NodeJS não é o melhor sistema para fazer
-processamento pesado.
+By default, this module will check if you have a local installation of Tesseract on your machine/in your pipeline. If you don't have a local installation it will automatically use a [NodeJS](https://github.com/naptha/tesseract.js) version. This might cause some slowness because the image processing will be done by Node.js. NodeJS is not the best system to do
+heavy processing.
 
-**MAS....**, existem maneiras de otimizar o tempo de execução. Vamos pegar o seguinte script de teste
+**BUT....**, there are ways to optimize the execution time. Let's take the following test script
 
 ```ts
 import { browser } from "@wdio/globals";
@@ -28,7 +28,7 @@ describe("Search", () => {
 });
 ```
 
-Ao executar isso pela primeira vez, você poderá ver os seguintes resultados: levou 5,9 segundos para concluir o teste.
+When you execute this for the first time you might see the following results where it took 5.9 seconds to finish the test.
 
 ```log
 npm run wdio -- --logLevel=silent
@@ -60,11 +60,11 @@ Execution of 1 workers started at 2024-05-26T04:52:53.405Z
 Spec Files:      1 passed, 1 total (100% completed) in 00:00:08
 ```
 
-## Cortando a área de pesquisa de uma tela
+## Cropping the search area of a screen
 
-Você pode otimizar o tempo de execução fornecendo uma área recortada para executar o OCR.
+You can optimize the execution time by providing a cropped area to execute the OCR on.
 
-Se você pudesse então alterar o script para isto:
+If you would then change the script to this:
 
 ```ts
 import { browser } from "@wdio/globals";
@@ -89,7 +89,7 @@ describe("Search", () => {
 });
 ```
 
-Então você verá um tempo de execução diferente.
+Then you will see a different execution time.
 
 ```log
 npm run wdio -- --logLevel=silent
@@ -121,13 +121,13 @@ Execution of 1 workers started at 2024-05-26T04:56:55.326Z
 Spec Files:      1 passed, 1 total (100% completed) in 00:00:08
 ```
 
-:::tip Cortar imagens
-Isso reduziu o tempo de execução local de **5,9** para **4,8 segundos**. Isso representa uma redução de quase **19%**. Imagine o que ele pode fazer com um script maior, com mais dados.
+:::tip Cropping images
+This reduced the local execution time from **5.9** to **4.8 seconds**. This is a reduction of almost **19%**. Imagine what it can do for a larger script with more data on it.
 :::
 
-## Usando uma instalação local do Tesseract
+## Using a local installation of Tesseract
 
-Você pode acelerar seu tempo de execução para menos de um minuto se tiver uma instalação local do Tessarect em sua máquina local e/ou em seu pipeline (mais informações sobre como instalar o Tesseract em seu sistema local podem ser encontradas [aqui](https://tesseract-ocr.github.io/tessdoc/Installation.html)). Você pode encontrar o tempo de execução do mesmo script usando uma instalação local do Tesseract abaixo.
+You can speed up your execution time to even less than a minute if you have a local installation of Tessarect on your local machine and or in your pipeline (more information about installing Tesseract on your local system can be found [here](https://tesseract-ocr.github.io/tessdoc/Installation.html)). You can find the execution time of the same script using a local installation of Tesseract below.
 
 ```log
 npm run wdio -- --logLevel=silent
@@ -156,6 +156,6 @@ Execution of 1 workers started at 2024-05-26T04:59:11.620Z
 Spec Files:      1 passed, 1 total (100% completed) in 00:00:06
 ```
 
-:::tip Instalação local
-Isso reduziu o tempo de execução local de **5,9** para **3,9 segundos**. Isso representa uma redução de quase **34%**. Imagine o que ele pode fazer com um script maior, com mais dados.
+:::tip Local installation
+This reduced the local execution time from **5.9** to **3.9 seconds**. This is a reduction of almost **34%**. Imagine what it can do for a larger script with more data on it.
 :::
