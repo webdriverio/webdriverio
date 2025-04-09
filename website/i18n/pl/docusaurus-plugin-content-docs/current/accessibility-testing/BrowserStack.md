@@ -5,7 +5,7 @@ title: Testy Dostępności z BrowserStack
 
 # Testy Dostępności BrowserStack
 
-Możesz łatwo zintegrować testy dostępności w zestawach testowych WebdriverIO za pomocą [funkcji zautomatyzowanych testów w ramach Testów Dostępności BrowserStack](https://www.browserstack.com/docs/accessibility/automated-tests?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
+Możesz łatwo zintegrować testy dostępności w zestawach testowych WebdriverIO za pomocą funkcji zautomatyzowanych testów w ramach Testów Dostępności BrowserStack.
 
 ## Zalety zautomatyzowanych testów w Testach Dostępności BrowserStack
 
@@ -60,4 +60,5 @@ exports.config = {
 };
 ```
 
-Dokładniejsze instrukcje [tutaj](https://www.browserstack.com/docs/accessibility/automated-tests/get-started/webdriverio?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
+Dokładniejsze instrukcje tutaj.
+
