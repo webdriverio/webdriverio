@@ -235,8 +235,7 @@ export default class YourAutomationLibrary {
 }
 ```
 
-Type: `String`<br />
-Default: `webdriver`
+Type: `String`<br /> Default: `webdriver`
 
 ### baseUrl
 
@@ -352,21 +351,7 @@ Type: `Number`<br /> Default: `0`
 
 Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
-Type: `Boolean`<br />
-Default: `true`
-
-### groupLogsByTestSpec
-
-Choose the log output view.
-
-If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
-
-If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
-
-By default, it is set to `false` so logs are printed in real-time.
-
-Type: `Boolean`<br />
-Default: `false`
+Type: `Boolean`<br /> Default: `true`
 
 ### groupLogsByTestSpec
 
