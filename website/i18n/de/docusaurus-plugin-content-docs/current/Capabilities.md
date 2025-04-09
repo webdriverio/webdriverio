@@ -238,7 +238,7 @@ Das Ausführen eines Headless-Browsers bedeutet, eine Browserinstanz ohne Fenste
 
 ```ts
 {
-    browserName: 'chrome',    // or 'chromium'
+    browserName: 'chrome',   // or 'chromium'
     'goog:chromeOptions': {
         args: ['headless', 'disable-gpu']
     }
