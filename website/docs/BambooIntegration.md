@@ -10,7 +10,9 @@ WebdriverIO offers a tight integration to CI systems like [Bamboo](https://www.a
 
 ```js
 // wdio.conf.js
-module.exports = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     reporters: [
         'dot',
@@ -19,13 +21,15 @@ module.exports = {
         }]
     ],
     // ...
-}
+})
 ```
 Note: *It's always a good standard to keep the test results in separate folder than in the root folder.*
 
 ```js
 // wdio.conf.js - For tests running in parallel
-module.exports = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     reporters: [
         'dot',
@@ -37,7 +41,7 @@ module.exports = {
         }]
     ],
     // ...
-}
+})
 ```
 
 The reports will be similar for all the frameworks and you can use anyone: Mocha, Jasmine or Cucumber.

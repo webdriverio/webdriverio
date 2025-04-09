@@ -12,7 +12,9 @@ To utilize this feature, ensure you have the required configuration to generate 
 Before using the Visual Reporter, make sure you have configured the Visual Testing service to generate JSON report files:
 
 ```ts
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     services: [
         [
@@ -22,7 +24,7 @@ export const config = {
             },
         ],
     ],
-};
+});
 ```
 
 For more detailed setup instructions, refer to the WebdriverIO [Visual Testing Documentation](./) or the [`createJsonReportFiles`](./service-options.md#createjsonreportfiles-new)

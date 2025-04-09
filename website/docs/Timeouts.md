@@ -56,11 +56,13 @@ WebdriverIO provides multiple commands to wait on elements to reach a certain st
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     waitforTimeout: 5000,
     // ...
-}
+})
 ```
 
 In your tests, you now can do this:
@@ -111,14 +113,16 @@ In Cucumber, the timeout applies to a single step definition. However, if you wa
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     framework: 'mocha',
     mochaOpts: {
         timeout: 20000
     },
     // ...
-}
+})
 ```
 
 </TabItem>
@@ -126,14 +130,16 @@ export const config = {
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     framework: 'jasmine',
     jasmineOpts: {
         defaultTimeoutInterval: 20000
     },
     // ...
-}
+})
 ```
 
 </TabItem>
@@ -141,14 +147,16 @@ export const config = {
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     framework: 'cucumber',
     cucumberOpts: {
         timeout: 20000
     },
     // ...
-}
+})
 ```
 
 </TabItem>
