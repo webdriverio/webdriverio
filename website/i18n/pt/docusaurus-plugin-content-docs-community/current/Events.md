@@ -1,5 +1,5 @@
 ---
-id: events
+id: eventos
 title: Eventos
 ---
 
