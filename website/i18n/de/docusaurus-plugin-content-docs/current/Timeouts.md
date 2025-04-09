@@ -7,10 +7,7 @@ Jeder Befehl in WebdriverIO ist eine asynchrone Operation. Eine Anfrage wird an 
 
 Daher ist Zeit eine entscheidende Komponente im gesamten Testprozess. Wenn eine bestimmte Aktion vom Ergebnis einer anderen Aktion abhängt, müssen Sie sicherstellen, dass sie die Befehle in der richtigen Reihenfolge ausgeführen. Timeouts spielen eine wichtige Rolle beim Umgang mit diesen Problemen.
 
-<LiteYouTubeEmbed
-    id="5oI37h4qxEw"
-    title="Timeouts"
-/>
+<LiteYouTubeEmbed id="5oI37h4qxEw" title="Timeouts" />
 
 ## WebDriver Timeouts
 
