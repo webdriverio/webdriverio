@@ -3,7 +3,7 @@ id: cloudservices
 title: Servicios en la Nube
 ---
 
-Utilizar servicios a la demanda como Sauce Labs, Browserstack, TestingBot, LambdaTest o Perfecto con WebdriverIO es bastante simple. Todo lo que necesitas hacer es establecer el `usuario` y `clave` de tu servicio en tus opciones.
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, LambdaTest or Perfecto with WebdriverIO is pretty simple. Todo lo que necesitas hacer es establecer el `usuario` y `clave` de tu servicio en tus opciones.
 
 Opcionalmente, también puede parametrizar su prueba configurando capacidades específicas de la nube como `compilación`. Si sólo desea ejecutar servicios en la nube en Travis, puede utilizar la variable de entorno `CI` para verificar si está en Travis y modificar la configuración en consecuencia.
 
@@ -26,7 +26,7 @@ También puede pasar cualquier [opción opcional de configuración de prueba](ht
 
 ### Sauce Connect
 
-Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces tienes que usar [Sauce Connect](https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy).
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Sauce Connect](https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy).
 
 Está fuera del alcance de WebdriverIO apoyar esto, por lo que tendrá que iniciarlo por sí mismo.
 
@@ -116,12 +116,6 @@ Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (com
 Su página de soporte del túnel contiene la información necesaria para ponerla en marcha y funcionar.
 
 Si está utilizando el testrunner WDIO, descargue y configure la [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) en su `wdio.conf.js`. Ayudaa a que TestingBot funcione, y viene con funciones adicionales que integran mejor sus pruebas en el servicio TestingBot.
-
-### Pruebas locales
-
-Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesita usar [Local Testing](https://testingbot.com/support/other/tunnel). Testing Bot proporciona un túnel que le permite probar sitios web que no son accesibles desde Internet.
-
-Si está utilizando el testrunner WDIO, descargue y configure el [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) en su `wdio.conf.js`. Ayuda a ejecutar Testing Bot y viene con características adicionales que integran mejor sus pruebas en el servicio Testing Bot.
 
 ## Prueba de Lambda
 
