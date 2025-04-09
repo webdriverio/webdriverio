@@ -153,18 +153,6 @@ This will run the files matching the pattern above in the following order:
   ]
 ```
 
-Now, if you want to only run all files sequentially, you can do the same in cli pass the command as a CLI argument:
-
-```sh
-wdio wdio.conf.js --spec "./test/specs/**/*.js" --group
-```
-
-The group command group every --spec even though it's been added like two or more specs
-
-```sh
-wdio wdio.conf.js --spec "./test/specs/**/*.js" --spec "./test/standolone/login.js" --group
-```
-
 ## Run Selected Tests
 
 In some cases, you may wish to only execute a single test (or subset of tests) of your suites.
@@ -181,12 +169,6 @@ Or run multiple specs at once:
 
 ```sh
 wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
-```
-
-Or run wildcards:
-
-```sh
-wdio wdio.conf.js --spec "./test/specs/**/*.js"
 ```
 
 If the `--spec` value does not point to a particular spec file, it is instead used to filter the spec filenames defined in your configuration.
@@ -217,19 +199,6 @@ Or, exclude multiple spec files:
 
  ```sh
 wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
-```
-
-Or, exclude specs from group and single files in wdio config by wildcards:
-
- ```sh
-wdio wdio.conf.js --exclude "./test/specs/**/*.js"
-```
-
-Or, exclude specs from cli by wildcards:
-
- ```sh
-wdio wdio.conf.js --spec "./test/specs/**/*.js" --exclude "./test/specs/**/login.js"
-wdio wdio.conf.js --spec "./test/specs/**/*.js" --group --exclude "./test/specs/**/login.js"
 ```
 
 Or, exclude a spec file when filtering using a suite:
