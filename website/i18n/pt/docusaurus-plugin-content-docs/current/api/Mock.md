@@ -3,30 +3,30 @@ id: mock
 title: The Mock Object
 ---
 
-O objeto simulado é um objeto que representa uma simulação de rede e contém informações sobre solicitações que correspondem a `url` e `filterOptions` fornecidos. Ele pode ser recebido usando o comando [`mock`](/docs/api/browser/mock).
+The mock object is an object that represents a network mock and contains information about requests that were matching given `url` and `filterOptions`. It can be received using the [`mock`](/docs/api/browser/mock) command.
 
 :::info
 
-Observe que usar o comando `mock` requer suporte ao protocolo Chrome DevTools. Esse suporte é fornecido se você executar testes localmente no navegador baseado em Chromium ou se você usar um Selenium Grid v4 ou superior. Este comando __não__ pode ser usado ao executar testes automatizados na nuvem. Saiba mais na seção [Protocolos de automação](/docs/automationProtocols).
+Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in Chromium based browser or if you use a Selenium Grid v4 or higher. This command can __not__ be used when running automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
 
 :::
 
-Você pode ler mais sobre solicitações e respostas simuladas no WebdriverIO em nosso guia [Mocks e Spies](/docs/mocksandspies).
+You can read more about mocking requests and responses in WebdriverIO in our [Mocks and Spies](/docs/mocksandspies) guide.
 
-## Propriedades
+## Properties
 
-Um objeto simulado contém as seguintes propriedades:
+A mock object contains the following properties:
 
-| Nome            | Tipo       | Detalhes                                                                                                                                                                                         |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `url`           | `String`   | A url passada para o comando mock                                                                                                                                                                |
-| `filterOptions` | `Object`   | As opções de filtro de recursos passadas para o comando mock                                                                                                                                     |
-| `browser`       | `Object`   | O [Objeto do Navegador](/docs/api/browser) usado para obter o objeto simulado.                                                                                                                   |
-| `calls`         | `Object[]` | Informações sobre solicitações de navegador correspondentes, contendo propriedades como `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` e `body` |
+| Name            | Type       | Details                                                                                                                                                                               |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`           | `String`   | The url passed into the mock command                                                                                                                                                  |
+| `filterOptions` | `Object`   | The resource filter options passed into the mock command                                                                                                                              |
+| `browser`       | `Object`   | The [Browser Object](/docs/api/browser) used to get the mock object.                                                                                                                  |
+| `calls`         | `Object[]` | Information about matching browser requests, containing properties such as `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
 
-## Métodos
+## Methods
 
-Objetos simulados fornecem vários comandos, listados na seção `mock`, que permitem aos usuários modificar o comportamento da solicitação ou resposta.
+Mock objects provide various commands, listed in the `mock` section, that allow users to modify the behavior of the request or response.
 
 - [`abort`](/docs/api/mock/abort)
 - [`abortOnce`](/docs/api/mock/abortOnce)
@@ -37,17 +37,17 @@ Objetos simulados fornecem vários comandos, listados na seção `mock`, que per
 - [`respondOnce`](/docs/api/mock/respondOnce)
 - [`restore`](/docs/api/mock/restore)
 
-## Eventos
+## Events
 
-O objeto simulado é um EventEmitter e alguns eventos são emitidos para seus casos de uso.
+The mock object is an EventEmitter and a couple of events are emitted for your use cases.
 
-Aqui está uma lista de eventos.
+Here is a list of events.
 
 ### `request`
 
-Este evento está sendo emitido ao iniciar uma solicitação de rede que corresponde a padrões simulados. A solicitação é passada no retorno de chamada do evento.
+This event is being emitted when launching a network request that matches mock patterns. Request is passed in event callback.
 
-Interface de solicitação:
+Request interface:
 ```ts
 interface RequestEvent {
     requestId: number
@@ -59,9 +59,9 @@ interface RequestEvent {
 
 ### `overwrite`
 
-Este evento está sendo emitido quando a resposta da rede é substituída por [`respond`](/docs/api/mock/respond) ou [`respondOnce`](/docs/api/mock/respondOnce). A resposta é passada no retorno de chamada do evento.
+This event is being emitted when network response is overwrited with [`respond`](/docs/api/mock/respond) or [`respondOnce`](/docs/api/mock/respondOnce). Response is passed in event callback.
 
-Interface de resposta:
+Response interface:
 ```ts
 interface OverwriteEvent {
     requestId: number
@@ -73,9 +73,9 @@ interface OverwriteEvent {
 
 ### `fail`
 
-Este evento é emitido quando a solicitação de rede é abortada com [`abort`](/docs/api/mock/abort) ou [`abortOnce`](/docs/api/mock/abortOnce). Fail é passado no retorno de chamada do evento.
+This event is being emitted when network request is aborted with [`abort`](/docs/api/mock/abort) or [`abortOnce`](/docs/api/mock/abortOnce). Fail is passed in event callback.
 
-Interface de falha:
+Fail interface:
 ```ts
 interface FailEvent {
     requestId: number
@@ -85,9 +85,9 @@ interface FailEvent {
 
 ### `match`
 
-Este evento está sendo emitido quando uma nova correspondência é adicionada, antes de `continuar` ou `sobrescrever`. A correspondência é passada no retorno de chamada do evento.
+This event is being emitted when new match is added, before `continue` or `overwrite`. Match is passed in event callback.
 
-Interface de correspondência:
+Match interface:
 ```ts
 interface MatchEvent {
     url: string // Request URL (without fragment).
@@ -109,11 +109,11 @@ interface MatchEvent {
 
 ### `continue`
 
-Este evento é emitido quando a resposta da rede não foi substituída nem interrompida, ou se a resposta já foi enviada por outro mock. `requestId` é passado no retorno de chamada do evento.
+This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.
 
-## Exemplos
+## Examples
 
-Recebendo uma série de solicitações pendentes:
+Getting a number of pending requests:
 
 ```js
 let pendingRequests = 0
@@ -128,7 +128,7 @@ mock.on('match', ({url}) => {
 })
 ```
 
-Lançando um erro em falha de rede 404:
+Throwing an error on 404 network fail:
 
 ```js
 browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Promise(async (resolve, reject) => {
@@ -157,7 +157,7 @@ browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Pro
 await browser.loadPageWithout404(browser, 'some/url', { selector: 'main' })
 ```
 
-Determinando se o valor de resposta simulada foi usado:
+Determining if mock respond value was used:
 
 ```js
 const firstMock = await browser.mock('**/foo/**')
@@ -179,4 +179,4 @@ secondMock.on('continue', () => {
 })
 ```
 
-Neste exemplo, `firstMock` foi definido primeiro e tem uma chamada `respondOnce`, então o valor de resposta `secondMock` não será usado para a primeira solicitação, mas será usado para as demais.
+In this example, `firstMock` was defined first and has one `respondOnce` call, so the `secondMock` response value will not be used for the first request, but will be used for the rest of them.
