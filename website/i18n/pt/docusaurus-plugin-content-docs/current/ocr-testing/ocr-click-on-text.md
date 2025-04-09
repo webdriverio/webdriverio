@@ -3,15 +3,15 @@ id: ocr-click-on-text
 title: ocrClickOnText
 ---
 
-Clique em um elemento com base nos textos fornecidos. O comando pesquisará o texto fornecido e tentará encontrar uma correspondência com base na Lógica Fuzzy do [Fuse.js](https://fusejs.io/). Isso significa que se você fornecer um erro de digitação a um seletor, ou se o texto encontrado não for 100% correspondente, ele ainda tentará retornar um elemento. Veja os [logs](#logs) abaixo.
+Click on an element based on the provided texts. The command will search for the provided text and try to find a match based on Fuzzy Logic from [Fuse.js](https://fusejs.io/). This means that if you might provide a selector with a typo, or the found text might not be a 100% match it will still try to give you back an element. See the [logs](#logs) below.
 
-## Uso
+## Usage
 
 ```js
 await browser.ocrClickOnText({ text: "Start3d" });
 ```
 
-## Saída
+## Output
 
 ### Logs
 
@@ -22,22 +22,22 @@ await browser.ocrClickOnText({ text: "Start3d" });
 [0-0] 2024-05-25T05:05:21.022Z INFO @wdio/ocr-service:ocrGetElementPositionByText: Multiple matches were found based on the word "Start3d". The match "Started" with score "85.71%" will be used.
 ```
 
-### Imagem
+### Image
 
-Você encontrará uma imagem em seu (default)[`imagesFolder`](./getting-started#imagesfolder) com um alvo para mostrar onde o módulo clicou.
+You will find an image in your (default)[`imagesFolder`](./getting-started#imagesfolder) with a target to show you where the module has clicked.
 
-![Etapas do processo](/img/ocr/ocr-click-on-text-target.jpg)
+![Process steps](/img/ocr/ocr-click-on-text-target.jpg)
 
-## Opções
+## Options
 
 ### `text`
 
-- **Tipo:** `string`
-- **Obrigatório:** sim
+- **Type:** `string`
+- **Mandatory:** yes
 
-O texto que você deseja pesquisar para clicar.
+The text you want to search for to click on.
 
-#### Exemplo
+#### Example
 
 ```js
 await browser.ocrClickOnText({ text: "WebdriverIO" });
@@ -45,30 +45,30 @@ await browser.ocrClickOnText({ text: "WebdriverIO" });
 
 ### `clickDuration`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
-- **Padrão:** `500` milissegundos
+- **Type:** `number`
+- **Mandatory:** no
+- **Default:** `500` milliseconds
 
-Esta é a duração do clique. Se quiser, você também pode criar um "clique longo" aumentando o tempo.
+This is the duration of the click. If you want you can also create a "long click" by increasing the time.
 
-#### Exemplo
+#### Example
 
 ```js
 await browser.ocrClickOnText({
     text: "WebdriverIO",
-    clickDuration: 3000, // Isso dura 3 segundos
+    clickDuration: 3000, // This is 3 seconds
 });
 ```
 
 ### `contrast`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
-- **Padrão:** `0.25`
+- **Type:** `number`
+- **Mandatory:** no
+- **Default:** `0.25`
 
-Quanto maior o contraste, mais escura a imagem e vice-versa. Isso pode ajudar a encontrar texto em uma imagem. Ele aceita valores entre `-1` e `1`.
+The higher the contrast, the darker the image and vice versa. This can help to find text in an image. It accepts values between `-1` and `1`.
 
-#### Exemplo
+#### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -79,12 +79,12 @@ await browser.ocrClickOnText({
 
 ### `haystack`
 
-- **Tipo:** `número`
-- **Obrigatório:** `WebdriverIO.Element | ChainablePromiseElement | Rectangle`
+- **Type:** `number`
+- **Mandatory:** `WebdriverIO.Element | ChainablePromiseElement | Rectangle`
 
-Esta é a área de pesquisa na tela onde o OCR precisa procurar texto. Pode ser um elemento ou um retângulo contendo `x`, `y`, `largura` e `altura`
+This is the search area in the screen where the OCR needs to look for text. This can be an element or a rectangle containing `x`, `y`, `width` and `height`
 
-#### Exemplo
+#### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -92,13 +92,13 @@ await browser.ocrClickOnText({
     haystack: $("elementSelector"),
 });
 
-// OU
+// OR
 await browser.ocrClickOnText({
     text: "WebdriverIO",
     haystack: await $("elementSelector"),
 });
 
-// OU
+// OR
 await browser.ocrClickOnText({
     text: "WebdriverIO",
     haystack: {
@@ -112,13 +112,13 @@ await browser.ocrClickOnText({
 
 ### `language`
 
-- **Tipo:** `string`
-- **Obrigatório:** Não
-- **Padrão:** `eng`
+- **Type:** `string`
+- **Mandatory:** No
+- **Default:** `eng`
 
-A linguagem que o Tesseract reconhecerá. Mais informações podem ser encontradas [aqui](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions) e os idiomas suportados podem ser encontrados [aqui](https://github.com/webdriverio/visual-testing/blob/main/packages/ocr-service/src/utils/constants.ts).
+The language that Tesseract will recognize. More info can be found [here](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions) and the supported languages can be found [here](https://github.com/webdriverio/visual-testing/blob/main/packages/ocr-service/src/utils/constants.ts).
 
-#### Exemplo
+#### Example
 
 ```js
 import { SUPPORTED_OCR_LANGUAGES } from "@wdio/ocr-service";
@@ -131,20 +131,20 @@ await browser.ocrClickOnText({
 
 ### `relativePosition`
 
-- **Tipo:** `objeto`
-- **Obrigatório:** não
+- **Type:** `object`
+- **Mandatory:** no
 
-Você pode clicar na tela relativa ao elemento correspondente. Isso pode ser feito com base em pixels relativos `acima`, `direita`, `abaixo` ou `esquerda` do elemento correspondente
+You can click on the screen relative to the matching element. This can be done based on relative pixels `above`, `right`, `below` or `left` from the matching element
 
 :::note
 
-As seguintes combinações são permitidas
+The following combinations are allowed
 
-- propriedades individuais
+- single properties
 - `above` + `left` or `above` + `right`
 - `below` + `left` or `below` + `right`
 
-As seguintes combinações **NÃO** são permitidas
+The following combinations are **NOT** allowed
 
 - `above` plus `below`
 - `left` plus `right`
@@ -153,12 +153,12 @@ As seguintes combinações **NÃO** são permitidas
 
 #### `relativePosition.above`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
+- **Type:** `number`
+- **Mandatory:** no
 
-Clique x pixels `acima` do elemento correspondente.
+Click x pixels `above` the matching element.
 
-##### Exemplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -171,12 +171,12 @@ await browser.ocrClickOnText({
 
 #### `relativePosition.right`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
+- **Type:** `number`
+- **Mandatory:** no
 
-Clique x pixels `à direita` do elemento correspondente.
+Click x pixels `right` from the matching element.
 
-##### Exemplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -189,12 +189,12 @@ await browser.ocrClickOnText({
 
 #### `relativePosition.below`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
+- **Type:** `number`
+- **Mandatory:** no
 
-Clique x pixels `abaixo` do elemento correspondente.
+Click x pixels `below` the matching element.
 
-##### Exemplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -207,12 +207,12 @@ await browser.ocrClickOnText({
 
 #### `relativePosition.left`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
+- **Type:** `number`
+- **Mandatory:** no
 
-Clique em x pixels `à esquerda` do elemento correspondente.
+Click x pixels `left` from the matching element.
 
-##### Examplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -225,17 +225,17 @@ await browser.ocrClickOnText({
 
 ### `fuzzyFindOptions`
 
-Você pode alterar a lógica difusa para encontrar texto com as seguintes opções. Isso pode ajudar a encontrar uma correspondência melhor`fuzzyFindOptions.distance`
+You can alter the fuzzy logic to find text with the following options. This might help find a better match
 
 #### `fuzzyFindOptions.distance`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
-- **Padrão:** 100
+- **Type:** `number`
+- **Mandatory:** no
+- **Default:** 100
 
-Determina o quão próxima a correspondência deve ser do local difuso (especificado pelo local). Uma correspondência exata de letras, que é a distância de caracteres do local difuso, seria considerada uma incompatibilidade completa. Uma distância de 0 exige que a correspondência esteja no local exato especificado. Uma distância de 1000 exigiria que uma correspondência perfeita estivesse dentro de 800 caracteres do local a ser encontrado usando um limite de 0,8.
+Determines how close the match must be to the fuzzy location (specified by location). An exact letter match which is distance characters away from the fuzzy location would score as a complete mismatch. A distance of 0 requires the match to be at the exact location specified. A distance of 1000 would require a perfect match to be within 800 characters of the location to be found using a threshold of 0.8.
 
-##### Exemplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -248,13 +248,13 @@ await browser.ocrClickOnText({
 
 #### `fuzzyFindOptions.location`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
-- **Padrão:** 0
+- **Type:** `number`
+- **Mandatory:** no
+- **Default:** 0
 
-Determina aproximadamente onde no texto o padrão deve ser encontrado.
+Determines approximately where in the text is the pattern expected to be found.
 
-##### Exemplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -267,13 +267,13 @@ await browser.ocrClickOnText({
 
 #### `fuzzyFindOptions.threshold`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
-- **Padrão:** 0.6
+- **Type:** `number`
+- **Mandatory:** no
+- **Default:** 0.6
 
-Em que ponto o algoritmo de correspondência desiste? Um limite de 0 requer uma correspondência perfeita (de letras e localização), um limite de 1,0 corresponderia a qualquer coisa.
+At what point does the matching algorithm give up. A threshold of 0 requires a perfect match (of both letters and location), a threshold of 1.0 would match anything.
 
-##### Exemplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -286,13 +286,13 @@ await browser.ocrClickOnText({
 
 #### `fuzzyFindOptions.isCaseSensitive`
 
-- **Tipo:** `boolean`
-- **Obrigatório:** não
-- **Padrão:** false
+- **Type:** `boolean`
+- **Mandatory:** no
+- **Default:** false
 
-Se a pesquisa deve diferenciar maiúsculas de minúsculas.
+Whether the search should be case sensitive.
 
-##### Exemplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -305,13 +305,13 @@ await browser.ocrClickOnText({
 
 #### `fuzzyFindOptions.minMatchCharLength`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
-- **Padrão:** 2
+- **Type:** `number`
+- **Mandatory:** no
+- **Default:** 2
 
-Somente as correspondências cujo comprimento exceda esse valor serão retornadas. (Por exemplo, se você quiser ignorar correspondências de caracteres individuais no resultado, defina-o como 2)
+Only the matches whose length exceeds this value will be returned. (For instance, if you want to ignore single character matches in the result, set it to 2)
 
-##### Exemplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
@@ -324,13 +324,13 @@ await browser.ocrClickOnText({
 
 #### `fuzzyFindOptions.findAllMatches`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
-- **Padrão:** falso
+- **Type:** `number`
+- **Mandatory:** no
+- **Default:** false
 
-Quando `true`, a função de correspondência continuará até o final de um padrão de pesquisa, mesmo que uma correspondência perfeita já tenha sido localizada na string.
+When `true`, the matching function will continue to the end of a search pattern even if a perfect match has already been located in the string.
 
-##### Exemplo
+##### Example
 
 ```js
 await browser.ocrClickOnText({
