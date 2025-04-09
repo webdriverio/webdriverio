@@ -39,7 +39,7 @@ await waitUntil(async ()=> await fs.existsSync(downloadPath), 5000);
 
 Para substituir o comportamento de download de arquivos para **Google Chrome**, **Mozilla Firefox** e **Microsoft Edge**, forneça o diretório de download nos recursos do WebDriverIO:
 
-<Tabs>
+<0>
 
 <TabItem value='chrome'>
 
