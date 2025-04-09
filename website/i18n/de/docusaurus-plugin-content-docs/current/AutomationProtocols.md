@@ -32,16 +32,3 @@ Für jede Art von mobiler Automatisierung müssen Sie [Appium](http://appium.io)
 Es gibt auch viele Dienste, mit denen Sie Ihren Automatisierungstest in großem Umfang in der Cloud ausführen können. Anstatt all diese Treiber lokal einrichten zu müssen, können Sie einfach mit diesen Diensten (z. B. [Sauce Labs](https://saucelabs.com)) in der Cloud sprechen und die Ergebnisse auf ihrer Plattform überprüfen. Die Kommunikation zwischen Testskript und Automatisierungsumgebung sieht wie folgt aus:
 
 ![WebDriver-Setup](/img/webdriver.png)
-
-### Vorteile
-
-- Offizieller W3C-Webstandard, der von allen gängigen Browsern unterstützt wird
-- Vereinfachtes Protokoll, das allgemeine Benutzerinteraktionen abdeckt
-- Unterstützung für mobile Automatisierung (und sogar native Desktop-Apps)
-- Kann sowohl lokal als auch in der Cloud über Dienste wie [Sauce Labs](https://saucelabs.com)verwendet werden
-
-### Nachteile
-
-- Nicht für tiefgreifende Browseranalysen ausgelegt (z. B. Verfolgen oder Abfangen von Netzwerkereignissen)
-- Eingeschränkte Automatisierungsfunktionen (z. B. keine Unterstützung zum Drosseln von CPU oder Netzwerk)
-- Zusätzlicher Aufwand zur Einrichtung des Browsertreibers mit selenium-standalone/chromedriver/etc
