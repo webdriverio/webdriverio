@@ -1,64 +1,64 @@
 ---
 id: browserstack
-title: Teste de acessibilidade do BrowserStack
+title: BrowserStack Accessibility Testing
 ---
 
-# Teste de acessibilidade do BrowserStack
+# BrowserStack Accessibility Testing
 
-Você pode integrar facilmente testes de acessibilidade em seus conjuntos de testes do WebdriverIO usando o recurso de testes automatizados do BrowserStack Accessibility Testing.
+You can easily integrate accessibility tests in your WebdriverIO test suites using the Automated tests feature of BrowserStack Accessibility Testing.
 
-## Vantagens dos testes automatizados no teste de acessibilidade do BrowserStack.
+## Advantages of Automated Tests in BrowserStack Accessibility Testing
 
-Para usar testes automatizados no BrowserStack Accessibility Testing, seus testes devem estar em execução no BrowserStack Automate.
+To use Automated tests in BrowserStack Accessibility Testing, your tests should be running on BrowserStack Automate.
 
-As seguintes são as vantagens dos testes automatizados:
+The following are the advantages of Automated tests:
 
-- Integra-se perfeitamente ao seu conjunto de testes de automação pré-existente.
-- Nenhuma alteração de código é necessária em casos de teste.
-- Não requer manutenção adicional para testes de acessibilidade.
-- Entenda tendências históricas e obtenha insights de casos de teste.
+- Seamlessly integrates into your pre-existing automation test suite.
+- No code changes are required in test cases.
+- Requires zero additional maintenance for accessibility testing.
+- Understand historical trends and gain test-case insights.
 
-## Comece com o teste de acessibilidade do BrowserStack
+## Get Started with BrowserStack Accessibility Testing
 
-Siga estas etapas para integrar seus conjuntos de testes do WebdriverIO com o teste de acessibilidade do BrowserStack:
+Follow these steps to integrate your WebdriverIO test suites with BrowserStack's Accessibility Testing:
 
-1. Instale o pacote npm `@wdio/browserstack-service`.
+1. Install `@wdio/browserstack-service` npm package.
 
 ```bash npm2yarn
 npm install --save-dev @wdio/browserstack-service
 ```
 
-2. Atualize o arquivo de configuração `wdio.conf.js`.
+2. Update `wdio.conf.js` config file.
 
 ```javascript
 exports.config = {
-  //...
-  user: '<browserstack_username>' || process.env.BROWSERSTACK_USERNAME,
-  key: '<browserstack_access_key>' || process.env.BROWSERSTACK_ACCESS_KEY,
-  commonCapabilities: {
-    'bstack:options': {
-      projectName: "Insira aqui o nome fixo do seu projeto",
-      buildName: "Insira aqui o nome fixo da sua build/job"
-    }
-  },
-  services: [
-    ['browserstack', {
-      accessibility: true,
-      // Opções de configuração opcionais
-      accessibilityOptions: {
-        'wcagVersion': 'wcag21a',
-        'includeIssueType': {
-          'bestPractice': false,
-          'needsReview': true
+    //...
+    user: '<browserstack_username>' || process.env.BROWSERSTACK_USERNAME,
+    key: '<browserstack_access_key>' || process.env.BROWSERSTACK_ACCESS_KEY,
+    commonCapabilities: {
+      'bstack:options': {
+        projectName: "Your static project name goes here",
+        buildName: "Your static build/job name goes here"
+      }
+    },
+    services: [
+      ['browserstack', {
+        accessibility: true,
+        // Optional configuration options
+        accessibilityOptions: {
+          'wcagVersion': 'wcag21a',
+          'includeIssueType': {
+            'bestPractice': false,
+            'needsReview': true
+          },
+          'includeTagsInTestingScope': ['Specify tags of test cases to be included'],
+          'excludeTagsInTestingScope': ['Specify tags of test cases to be excluded']
         },
-        'includeTagsInTestingScope': ['Especifique as tags dos casos de teste a serem incluídas'],
-        'excludeTagsInTestingScope': ['Especifique as tags dos casos de teste a serem excluídas']
-      },
-    }]
-  ],
-  //...
-};
+      }]
+    ],
+    //...
+  };
 ```
 
-Você pode ver instruções detalhadas aqui.
+You can view detailed instructions here.
 
