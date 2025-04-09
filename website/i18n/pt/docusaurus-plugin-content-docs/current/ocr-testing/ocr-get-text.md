@@ -3,9 +3,9 @@ id: ocr-get-text
 title: ocrGetText
 ---
 
-Obtenha o texto em uma imagem.
+Get the text on an image.
 
-### Uso
+### Usage
 
 ```js
 const result = await browser.ocrGetText();
@@ -13,12 +13,12 @@ const result = await browser.ocrGetText();
 console.log("result = ", JSON.stringify(result, null, 2));
 ```
 
-## Saída
+## Output
 
-### Resultado
+### Result
 
 ```logs
-resultado = "VS docs API Blog Contribuir Comunidade Patrocinador v8 *Engishy CV} Q OQ G asearch Navegador de última geração e automação móvel Bem-vindo! Como posso | ajudar? i framework de teste para Node.js Comece Por que WebdriverI0? Ver no GitHub Assistir no YouTube"
+result = "VS docs API Blog Contribute Community Sponsor v8 *Engishy CV} Q OQ G asearch Next-gen browser and mobile automation Welcome! How can | help? i test framework for Node.js Get Started Why WebdriverI0? View on GitHub Watch on YouTube"
 ```
 
 ### Logs
@@ -29,17 +29,17 @@ resultado = "VS docs API Blog Contribuir Comunidade Patrocinador v8 *Engishy CV}
 [0-0] 2024-05-25T17:38:26.738Z INFO webdriver: RESULT VS docs API Blog Contribute Community Sponsor v8 *Engishy CV} Q OQ G asearch Next-gen browser and mobile automation Welcome! How can | help? i test framework for Node.js Get Started Why WebdriverI0? View on GitHub Watch on YouTube
 ```
 
-## Opções
+## Options
 
 ### `contrast`
 
-- **Tipo:** `número`
-- **Obrigatório:** não
-- **Padrão:** `0.25`
+- **Type:** `number`
+- **Mandatory:** no
+- **Default:** `0.25`
 
-Quanto maior o contraste, mais escura a imagem e vice-versa. Isso pode ajudar a encontrar texto em uma imagem. Ele aceita valores entre `-1` e `1`.
+The higher the contrast, the darker the image and vice versa. This can help to find text in an image. It accepts values between `-1` and `1`.
 
-#### Exemplo
+#### Example
 
 ```js
 await browser.ocrGetText({ contrast: 0.5 });
@@ -47,20 +47,20 @@ await browser.ocrGetText({ contrast: 0.5 });
 
 ### `haystack`
 
-- **Tipo:** `número`
-- **Obrigatório:** `WebdriverIO.Element | ChainablePromiseElement | Rectangle`
+- **Type:** `number`
+- **Mandatory:** `WebdriverIO.Element | ChainablePromiseElement | Rectangle`
 
-Esta é a área de pesquisa na tela onde o OCR precisa procurar texto. Pode ser um elemento ou um retângulo contendo `x`, `y`, `largura` e `altura`
+This is the search area in the screen where the OCR needs to look for text. This can be an element or a rectangle containing `x`, `y`, `width` and `height`
 
-#### Exemplo
+#### Example
 
 ```js
 await browser.ocrGetText({ haystack: $("elementSelector") });
 
-// OU
+// OR
 await browser.ocrGetText({ haystack: await $("elementSelector") });
 
-// OU
+// OR
 await browser.ocrGetText({
     haystack: {
         x: 10,
@@ -73,13 +73,13 @@ await browser.ocrGetText({
 
 ### `language`
 
-- **Tipo:** `string`
-- **Obrigatório:** Não
-- **Padrão:** `eng`
+- **Type:** `string`
+- **Mandatory:** No
+- **Default:** `eng`
 
-A linguagem que o Tesseract reconhecerá. Mais informações podem ser encontradas [aqui](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions) e os idiomas suportados podem ser encontrados [aqui](https://github.com/webdriverio/visual-testing/blob/main/packages/ocr-service/src/utils/constants.ts).
+The language that Tesseract will recognize. More info can be found [here](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions) and the supported languages can be found [here](https://github.com/webdriverio/visual-testing/blob/main/packages/ocr-service/src/utils/constants.ts).
 
-#### Exemplo
+#### Example
 
 ```js
 import { SUPPORTED_OCR_LANGUAGES } from "@wdio/ocr-service";
