@@ -1,50 +1,59 @@
 ---
 id: file-download
-title: Baixar arquivo
+title: File Download
 ---
 
-Ao automatizar downloads de arquivos em testes web, é essencial lidar com eles de forma consistente em diferentes navegadores para garantir uma execução confiável do teste.
+When automating file downloads in web testing, it's essential to handle them consistently across different browsers to ensure reliable test execution.
 
-Aqui, fornecemos as melhores práticas para downloads de arquivos e demonstramos como configurar diretórios de download para **Google Chrome**, **Mozilla Firefox** e **Microsoft Edge**.
+Here, we provide best practices for file downloads and demonstrate how to configure download directories for **Google Chrome**, **Mozilla Firefox**, and **Microsoft Edge**.
 
-## Baixar Paths
+## Download Paths
 
-**A codificação** de caminhos de download em scripts de teste pode levar a problemas de manutenção e portabilidade. Utilize **caminhos relativos** para diretórios de download para garantir portabilidade e compatibilidade entre diferentes ambientes.
+**Hardcoding** download paths in test scripts can lead to maintenance issues and portability problems. Utilize **relative paths** for download directories to ensure portability and compatibility across different environments.
 
 ```javascript
 // 👎
-// Caminho de download codificado
-const downloadPath = '/caminho/para/downloads';
+// Hardcoded download path
+const downloadPath = '/path/to/downloads';
 
 // 👍
-// Caminho de download relativo
+// Relative download path
 const downloadPath = path.join(__dirname, 'downloads');
 ```
 
-## Estratégias de espera
+## Wait Strategies
 
-Deixar de implementar estratégias de espera adequadas pode levar a condições de corrida ou testes não confiáveis, especialmente para conclusão de download. Implemente estratégias de espera **explícitas** para aguardar a conclusão dos downloads de arquivos, garantindo a sincronização entre as etapas do teste.
+Failing to implement proper wait strategies can lead to race conditions or unreliable tests, especially for download completion. Implement **explicit** wait strategies to wait for file downloads to complete, ensuring synchronization between test steps.
 
 ```javascript
 // 👎
-// Nenhuma espera explícita para conclusão do download
+// No explicit wait for download completion
 await browser.pause(5000);
 
 // 👍
-// Aguarde a conclusão do download do arquivo
+// Wait for file download completion
 await waitUntil(async ()=> await fs.existsSync(downloadPath), 5000);
 ```
 
-## Configurando diretórios de download
+## Configuring Download Directories
 
-Para substituir o comportamento de download de arquivos para **Google Chrome**, **Mozilla Firefox** e **Microsoft Edge**, forneça o diretório de download nos recursos do WebDriverIO:
+To override file download behavior for **Google Chrome**, **Mozilla Firefox**, and **Microsoft Edge**, provide the download directory in the WebDriverIO capabilities:
 
-<0>
+<Tabs
+defaultValue="chrome"
+values={[
+{label: 'Chrome', value: 'chrome'},
+{label: 'Firefox', value: 'firefox'},
+{label: 'Microsoft Edge', value: 'edge'},
+]
+}>
 
 <TabItem value='chrome'>
 
 ```javascript reference title="wdio.conf.js"
+
 https://github.com/webdriverio/example-recipes/blob/84dda93011234d0b2a34ee0cfb3cdfa2a06136a5/testDownloadBehavior/wdio.conf.js#L8-L16
+
 ```
 
 </TabItem>
@@ -52,7 +61,9 @@ https://github.com/webdriverio/example-recipes/blob/84dda93011234d0b2a34ee0cfb3c
 <TabItem value='firefox'>
 
 ```javascript reference title="wdio.conf.js"
+
 https://github.com/webdriverio/example-recipes/blob/84dda93011234d0b2a34ee0cfb3cdfa2a06136a5/testDownloadBehavior/wdio.conf.js#L20-L32
+
 ```
 
 </TabItem>
@@ -60,39 +71,41 @@ https://github.com/webdriverio/example-recipes/blob/84dda93011234d0b2a34ee0cfb3c
 <TabItem value='edge'>
 
 ```javascript reference title="wdio.conf.js"
+
 https://github.com/webdriverio/example-recipes/blob/84dda93011234d0b2a34ee0cfb3cdfa2a06136a5/testDownloadBehavior/wdio.conf.js#L36-L44
+
 ```
 
 </TabItem>
 
 </Tabs>
 
-Para um exemplo de implementação, consulte a [Receita de comportamento de download de teste do WebdriverIO](https://github.com/webdriverio/example-recipes/tree/main/testDownloadBehavior).
+For an example implementation, refer to the [WebdriverIO Test Download Behavior Recipe](https://github.com/webdriverio/example-recipes/tree/main/testDownloadBehavior).
 
-## Configurando downloads do navegador Chromium
+## Configuring Chromium Browser Downloads
 
-Para alterar o caminho de download para navegadores **baseados em Chromium** (como Chrome, Edge, Brave, etc.) usando o método `getPuppeteer` do WebDriverIO para acessar o Chrome DevTools.
+To change the download path for **Chromium-based** browsers (such as Chrome, Edge, Brave, etc.) using WebDriverIOs `getPuppeteer` method for accessing Chrome DevTools.
 
 ```javascript
 const page = await browser.getPuppeteer();
-// Iniciar uma sessão CDP:
+// Initiate a CDP Session:
 const cdpSession = await page.target().createCDPSession();
-// Definir o caminho de download:
+// Set the Download Path:
 await cdpSession.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: downloadPath });
 ```
 
-## Lidando com downloads de vários arquivos
+## Handling Multiple File Downloads
 
-Ao lidar com cenários que envolvem downloads de vários arquivos, é essencial implementar estratégias para gerenciar e validar cada download de forma eficaz. Considere as seguintes abordagens:
+When dealing with scenarios involving multiple file downloads, it's essential to implement strategies to manage and validate each download effectively. Consider the following approaches:
 
-**Manuseio de download sequencial:** Baixe os arquivos um por um e verifique cada download antes de iniciar o próximo para garantir a execução ordenada e a validação precisa.
+**Sequential Download Handling:** Download files one by one and verify each download before initiating the next one to ensure orderly execution and accurate validation.
 
-**Manipulação de downloads paralelos:** Utilize técnicas de programação assíncrona para iniciar vários downloads de arquivos simultaneamente, otimizando o tempo de execução do teste. Implemente mecanismos de validação robustos para verificar todos os downloads após a conclusão.
+**Parallel Download Handling:** Utilize asynchronous programming techniques to initiate multiple file downloads simultaneously, optimizing test execution time. Implement robust validation mechanisms to verify all downloads upon completion.
 
-## Considerações sobre compatibilidade entre navegadores
+## Cross-Browser Compatibility Considerations
 
-Embora o WebDriverIO forneça uma interface unificada para automação do navegador, é essencial levar em conta as variações no comportamento e nos recursos do navegador. Considere testar a funcionalidade de download de arquivos em diferentes navegadores para garantir compatibilidade e consistência.
+While WebDriverIO provides a unified interface for browser automation, it's essential to account for variations in browser behavior and capabilities. Consider testing your file download functionality across different browsers to ensure compatibility and consistency.
 
-**Configurações específicas do navegador:** Ajuste as configurações do caminho de download e as estratégias de espera para acomodar as diferenças no comportamento e nas preferências do navegador no Chrome, Firefox, Edge e outros navegadores compatíveis.
+**Browser-Specific Configurations:** Adjust download path settings and wait strategies to accommodate differences in browser behavior and preferences across Chrome, Firefox, Edge, and other supported browsers.
 
-**Compatibilidade com versões do navegador:** Atualize regularmente as versões do seu WebDriverIO e do navegador para aproveitar os recursos e aprimoramentos mais recentes, garantindo a compatibilidade com seu conjunto de testes existente.
+**Browser Version Compatibility:** Regularly update your WebDriverIO and browser versions to leverage the latest features and enhancements while ensuring compatibility with your existing test suite.
