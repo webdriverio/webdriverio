@@ -3,7 +3,7 @@ id: configuration
 title: Konfiguration
 ---
 
-Basierend auf dem [Setup-Type](/docs/setuptypes) (z. B. die Verwendung der Raw-Protokollbindungen, WebdriverIO als eigenständiges Paket oder der WDIO-Testrunner) stehen verschiedene Optionen zur Verfügung, um die Umgebung zu steuern.
+Based on the [setup type](/docs/setuptypes) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
 ## WebDriver-Optionen
 
@@ -41,13 +41,13 @@ Type: `Object`<br /> Default: `undefined`
 
 ### user
 
-Ihr Cloud-Service-Benutzername (funktioniert nur für [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) oder [LambdaTest](https://www.lambdatest.com) Konten). Wenn festgelegt, stellt WebdriverIO automatisch Verbindungsoptionen für Sie ein. Wenn Sie keinen Cloud-Anbieter verwenden, kann dies verwendet werden, um jedes andere WebDriver-Backend zu authentifizieren.
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). Wenn festgelegt, stellt WebdriverIO automatisch Verbindungsoptionen für Sie ein. Wenn Sie keinen Cloud-Anbieter verwenden, kann dies verwendet werden, um jedes andere WebDriver-Backend zu authentifizieren.
 
 Type: `String`<br /> Default: `undefined`
 
 ### key
 
-Ihr Cloud-Service-Benutzername (funktioniert nur für [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) oder [LambdaTest](https://www.lambdatest.com) Konten). Wenn festgelegt, stellt WebdriverIO automatisch Verbindungsoptionen für Sie ein. Wenn Sie keinen Cloud-Anbieter verwenden, kann dies verwendet werden, um jedes andere WebDriver-Backend zu authentifizieren.
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). Wenn festgelegt, stellt WebdriverIO automatisch Verbindungsoptionen für Sie ein. Wenn Sie keinen Cloud-Anbieter verwenden, kann dies verwendet werden, um jedes andere WebDriver-Backend zu authentifizieren.
 
 Type: `String`<br /> Default: `undefined`
 
@@ -64,7 +64,7 @@ Neben den WebDriver-basierten Funktionen können Sie browser- und Cloud-Vendor-s
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-Ein nützliches Dienstprogramm ist außerdem der Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), der Ihnen hilft, dieses Objekt zu erstellen, indem Sie Ihre gewünschten Capability zusammenklicken.
+Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), which helps you create this object by clicking together your desired capabilities.
 
 Type: `Object`<br /> Default: `null`
 
@@ -351,21 +351,7 @@ Type: `Number`<br /> Default: `0`
 
 Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
-Type: `Boolean`<br />
-Default: `true`
-
-### groupLogsByTestSpec
-
-Choose the log output view.
-
-If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
-
-If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
-
-By default, it is set to `false` so logs are printed in real-time.
-
-Type: `Boolean`<br />
-Default: `false`
+Type: `Boolean`<br /> Default: `true`
 
 ### groupLogsByTestSpec
 
