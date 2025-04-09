@@ -3,7 +3,7 @@ id: record
 title: Registro de pruebas
 ---
 
-Chrome DevTools tiene un panel de _Grabadora_ que permite a los usuarios grabar y reproducir pasos automatizados dentro de Chrome. Estos pasos pueden ser [exportados a pruebas WebdriverIO con una extensión](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn?hl=en) haciendo la prueba de escritura muy fácil.
+Chrome DevTools tiene un panel de _Grabadora_ que permite a los usuarios grabar y reproducir pasos automatizados dentro de Chrome. These steps can be [exported into WebdriverIO tests with an extension](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn?hl=en) making writing test very easy.
 
 ## ¿Qué es Chrome DevTools Recorder?
 
