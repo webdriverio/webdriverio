@@ -578,6 +578,7 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 ## استراتژی های انتخاب کننده سفارشی
 
+
 اگر برنامه شما به روش خاصی برای دریافت عناصر نیاز دارد، می‌توانید یک استراتژی انتخاب‌کننده سفارشی برای خود تعریف کنید که می‌توانید از `custom$` و `custom$$`استفاده کنید. For that register your strategy once in the beginning of the test, e.g. in a `before` hook:
 
 ```js reference
