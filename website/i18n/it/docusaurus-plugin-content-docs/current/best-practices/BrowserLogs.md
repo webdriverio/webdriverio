@@ -72,8 +72,7 @@ const logMessage = logs.find((log) => log.message.includes('Hello Bidi'))
 expect(logMessage).toBeTruthy()
 ```
 
-Note: the `getLogs` command can only fetch the most recent logs from the browser. It may clean up log messages eventually if they become to old.
-</TabItem>
+Note: the `getLogs` command can only fetch the most recent logs from the browser. It may clean up log messages eventually if they become to old. </TabItem>
 
 </Tabs>
 
