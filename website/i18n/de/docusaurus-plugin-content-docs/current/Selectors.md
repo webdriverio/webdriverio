@@ -580,6 +580,7 @@ await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the
 
 ## Benutzerdefinierte Selektoren
 
+
 Wenn Ihre App eine bestimmte Methode zum Abrufen von Elementen erfordert, können Sie sich selbst eine benutzerdefinierte Selektorstrategie definieren, die Sie mit `custom$` und `custom$$`verwenden können. For that register your strategy once in the beginning of the test, e.g. in a `before` hook:
 
 ```js reference
