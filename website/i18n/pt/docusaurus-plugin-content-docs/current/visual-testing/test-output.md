@@ -1,40 +1,40 @@
 ---
 id: test-output
-title: Test Output
+title: Teste de Saída
 ---
 
 :::info
 
-[This WebdriverIO](https://guinea-pig.webdriver.io/image-compare.html) demo site has been used for the example image output.
+[Este site de demonstração do WebdriverIO](https://guinea-pig.webdriver.io/image-compare.html) foi usado para a saída de imagem de exemplo.
 
 :::
 
 ## `enableLayoutTesting`
 
-This can be set on the [Service Options](./service-options#enablelayouttesting) as well as on the [Method](./method-options) level.
+Isso pode ser definido nas [Opções de serviço](./service-options#enablelayouttesting) e também no nível do [Método](./method-options).
 
 ```js
 // wdio.conf.(js|ts)
 export const config = {
-    // ...
-    // =====
-    // Setup
-    // =====
-    services: [
-        [
-            'visual',
-            {
-                enableLayoutTesting: true
-            }
-        ]
-    ]
-    // ...
+// ...
+// =====
+// Configuração
+// =====
+services: [
+[
+'visual',
+{
+enableLayoutTesting: true
+}
+]
+]
+// ...
 }
 ```
 
-The image output for the [Service Options](./service-options#enablelayouttesting) is equal to the [Method](./method-options), see below.
+A saída de imagem para as [Opções de serviço](./service-options#enablelayouttesting) é igual ao [Método](./method-options), veja abaixo.
 
-### Image Output
+### Saída de imagem
 
 <Tabs
 defaultValue="saveelement"
@@ -51,7 +51,7 @@ values={[
 
 ```js
 await browser.saveElement(".features_vqN4", "example-element-tag", {enableLayoutTesting: true})
-// Or
+// Ou
 await browser.checkElement(".features_vqN4", "example-element-tag", {enableLayoutTesting: true})
 ```
 
@@ -73,7 +73,7 @@ await browser.saveScreen("example-page-tag")
 
 ```js
 await browser.saveFullPageScreen("full-page-tag")
-// Or
+// OU
 await browser.checkFullPageScreen("full-page-tag", {enableLayoutTesting: true})
 ```
 
@@ -85,7 +85,7 @@ await browser.checkFullPageScreen("full-page-tag", {enableLayoutTesting: true})
 
 ```js
 await browser.saveTabbablePage("tabbable-page-tag")
-// Or
+// OU
 await browser.checkTabbablePage("tabbable-page-tag", {enableLayoutTesting: true})
 ```
 
@@ -96,26 +96,26 @@ await browser.checkTabbablePage("tabbable-page-tag", {enableLayoutTesting: true}
 
 ## save(Screen/Element/FullPageScreen)
 
-### Console Output
+### Saída do console
 
-The `save(Screen/Element/FullPageScreen)` methods will provide the following information after the method has been executed:
+Os métodos `save(Screen/Element/FullPageScreen)` fornecerão as seguintes informações após o método ter sido executado:
 
 ```js
 const saveResult = await browser.saveFullPageScreen({ ... })
 console.log(saveResults)
 /**
- * {
- *   // The device pixel ratio of the instance that has run
- *   devicePixelRatio: 1,
- *   // The formatted filename, this depends on the options `formatImageName`
- *   fileName: "examplePage-chrome-latest-1366x768.png",
- *   // The path where the actual screenshot file can be found
- *   path: "/path/to/project/.tmp/actual/desktop_chrome",
- * };
- */
+* {
+* // A proporção de pixels do dispositivo da instância executada
+* devicePixelRatio: 1,
+* // O nome do arquivo formatado, que depende das opções `formatImageName`
+* fileName: "examplePage-chrome-latest-1366x768.png",
+* // O caminho onde o arquivo de captura de tela pode ser encontrado
+* path: "/path/to/project/.tmp/actual/desktop_chrome",
+* };
+*/
 ```
 
-### Image Output
+### Saída de imagem
 
 <Tabs
 defaultValue="saveelement"
@@ -144,14 +144,11 @@ values={[
 >
 
 <TabItem value="desktop">
-![saveElement Desktop](/img/visual/wdioLogo-chrome-latest-1-1366x768.png)
-</TabItem>
+![saveElement Desktop](/img/visual/wdioLogo-chrome-latest-1-1366x768.png)</TabItem>
 <TabItem value="android">
-![saveElement Mobile Android](/img/visual/wdioLogo-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)
-</TabItem>
+![saveElement Mobile Android](/img/visual/wdioLogo-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)</TabItem>
 <TabItem value="ios">
-![saveElement Mobile iOS](/img/visual/wdioLogo-Iphone12Portrait16-390x844.png)
-</TabItem>
+![saveElement Mobile iOS](/img/visual/wdioLogo-Iphone12Portrait16-390x844.png)</TabItem>
 </Tabs>
 </TabItem>
 
@@ -173,24 +170,18 @@ values={[
 >
 
 <TabItem value="desktop">
-![saveScreen Desktop](/img/visual/examplePage-chrome-latest-1366x768.png)
-</TabItem>
+![saveScreen Desktop](/img/visual/examplePage-chrome-latest-1366x768.png)</TabItem>
 <TabItem value="android-chromedriver">
-![saveScreen Mobile Android ChromeDriver](/img/visual/screenshot-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)
-</TabItem>
+![saveScreen Mobile Android ChromeDriver](/img/visual/screenshot-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)</TabItem>
 <TabItem value="android-native">
-![saveScreen Mobile Android nativeWebScreenshot](/img/visual/screenshot-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)
-</TabItem>
+![saveScreen Mobile Android nativeWebScreenshot](/img/visual/screenshot-EmulatorAndroidGoogleAPIPortraitNativeWebScreenshot14.0-384x640.png)</TabItem>
 <TabItem value="ios">
 
-:::info TIP
-iOS `saveScreen` executions are by default not with the device bezel corners. To have this please add the `addIOSBezelCorners:true` option when instantiating the service, see [this](./service-options#addiosbezelcorners)
+:::info DICA
+As execuções de `saveScreen` do iOS não ocorrem por padrão nos cantos do painel do dispositivo. Para isso, adicione a opção `addIOSBezelCorners:true` ao instanciar o serviço, veja [isto](./service-options#addiosbezelcorners)
 :::
 
-![saveScreen Mobile iOS](/img/visual/screenshot-Iphone12Portrait15-390x844.png)
-</TabItem>
-</Tabs>
-</TabItem>
+![saveScreen Mobile iOS](/img/visual/screenshot-Iphone12Portrait15-390x844.png) </TabItem> </Tabs> </TabItem>
 
 <TabItem value="savefullpagescreen">
 
@@ -209,14 +200,11 @@ values={[
 >
 
 <TabItem value="desktop">
-![saveFullPageScreens Desktop](/img/visual/fullPage-chrome-latest-1366x768.png)
-</TabItem>
+![saveFullPageScreens Desktop](/img/visual/fullPage-chrome-latest-1366x768.png)</TabItem>
 <TabItem value="android">
-![saveFullPageScreens Mobile Android](/img/visual/fullPage-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)
-</TabItem>
+![saveFullPageScreens Mobile Android](/img/visual/fullPage-EmulatorAndroidGoogleAPIPortraitChromeDriver14.0-384x640.png)</TabItem>
 <TabItem value="ios">
-![saveFullPageScreens Mobile iOS](/img/visual/fullPage-Iphone12Portrait16-390x844.png)
-</TabItem>
+![saveFullPageScreens Mobile iOS](/img/visual/fullPage-Iphone12Portrait16-390x844.png)</TabItem>
 </Tabs>
 </TabItem>
 </Tabs>
@@ -276,8 +264,7 @@ await browser.checkElement("#__docusaurus_skipToContent_fallback > header > div 
 The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
-![Button Check Result](/img/visual/button-check.png)
-</TabItem>
+![Button Check Result](/img/visual/button-check.png) </TabItem>
 
 <TabItem value="checkscreen">
 
