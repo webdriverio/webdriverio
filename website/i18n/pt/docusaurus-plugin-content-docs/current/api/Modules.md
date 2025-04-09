@@ -1,30 +1,30 @@
 ---
 id: modules
-title: Módulos
+title: Modules
 ---
 
-O WebdriverIO publica vários módulos no NPM e outros registros que você pode usar para criar sua própria estrutura de automação. Veja mais documentação sobre os tipos de configuração do WebdriverIO [aqui](/docs/setuptypes).
+WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
 
-## `webdriver` e `devtools`
+## `webdriver` and `devtools`
 
-Os pacotes de protocolo ([`webdriver`](https://www.npmjs.com/package/webdriver) e [`devtools`](https://www.npmjs.com/package/devtools)) expõem uma classe com as seguintes funções estáticas anexadas que permitem iniciar sessões:
+The protocol packages ([`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools)) expose a class with the following static functions attached that allow you to initiate sessions:
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
-Inicia uma nova sessão com recursos específicos. Com base na resposta da sessão, serão fornecidos comandos de diferentes protocolos.
+Starts a new session with specific capabilities. Based on the session response commands from different protocols will be provided.
 
-##### Parâmetros
+##### Paramaters
 
-- `options`: [Opções do WebDriver](/docs/configuration#webdriver-options)
-- `modifier`: função que permite modificar a instância do cliente antes que ela seja retornada
-- `userPrototype`: objeto de propriedades que permite estender o protótipo da instância
-- `customCommandWrapper`: função que permite envolver a funcionalidade em torno de chamadas de função
+- `options`: [WebDriver Options](/docs/configuration#webdriver-options)
+- `modifier`: function that allows to modify the client instance before it is being returned
+- `userPrototype`: properties object that allows to extend the instance prototype
+- `customCommandWrapper`: function that allows to wrap functionality around function calls
 
-##### Retornos
+##### Returns
 
-- Objeto [Navegador](/docs/api/browser)
+- [Browser](/docs/api/browser) object
 
-##### Exemplo
+##### Example
 
 ```js
 const client = await WebDriver.newSession({
@@ -34,20 +34,20 @@ const client = await WebDriver.newSession({
 
 #### `attachToSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
 
-Anexa-se a uma sessão em execução do WebDriver ou DevTools.
+Attaches to a running WebDriver or DevTools session.
 
-##### Parâmetros
+##### Paramaters
 
-- `attachInstance`: instância para anexar uma sessão ou pelo menos um objeto com uma propriedade `sessionId` (por exemplo, `{ sessionId: 'xxx' }`)
-- `modifier`: função que permite modificar a instância do cliente antes que ela seja retornada
-- `userPrototype`: objeto de propriedades que permite estender o protótipo da instância
-- `customCommandWrapper`: função que permite envolver a funcionalidade em torno de chamadas de função
+- `attachInstance`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+- `modifier`: function that allows to modify the client instance before it is being returned
+- `userPrototype`: properties object that allows to extend the instance prototype
+- `customCommandWrapper`: function that allows to wrap functionality around function calls
 
-##### Retornos
+##### Returns
 
 - [Browser](/docs/api/browser) object
 
-##### Exemplo
+##### Example
 
 ```js
 const client = await WebDriver.newSession({...})
@@ -56,13 +56,13 @@ const clonedClient = await WebDriver.attachToSession(client)
 
 #### `reloadSession(instance)`
 
-Recarrega uma sessão dada a instância fornecida.
+Reloads a session given provided instance.
 
-##### Parâmetros
+##### Paramaters
 
-- `instance`: instância do pacote para recarregar
+- `instance`: package instance to reload
 
-##### Exemplo
+##### Example
 
 ```js
 const client = await WebDriver.newSession({...})
@@ -71,22 +71,22 @@ await WebDriver.reloadSession(client)
 
 ## `webdriverio`
 
-Semelhante aos pacotes de protocolo (`webdriver` e `devtools`), você também pode usar as APIs do pacote WebdriverIO para gerenciar sessões. As APIs podem ser importadas usando `import { remote, attach, multiremote } from 'webdriverio` e contêm as seguintes funcionalidades:
+Similar as to the protocol packages (`webdriver` and `devtools`) you can also use the WebdriverIO package APIs to manage sessions. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
 
 #### `remote(options, modifier)`
 
-Inicia uma sessão WebdriverIO. A instância contém todos os comandos do pacote de protocolo, mas com funções adicionais de ordem superior. Consulte [Documentação da API](/docs/api).
+Starts a WebdriverIO session. The instance contains all commands as the protocol package but with additional higher order functions, see [API docs](/docs/api).
 
-##### Parâmetros
+##### Paramaters
 
-- `options`: [Opções do WebdriverIO](/docs/configuration#webdriverio)
-- `modifier`: função que permite modificar a instância do cliente antes que ela seja retornada
+- `options`: [WebdriverIO Options](/docs/configuration#webdriverio)
+- `modifier`: function that allows to modify the client instance before it is being returned
 
-##### Retornos
+##### Returns
 
-- Objeto [Navegador](/docs/api/browser)
+- [Browser](/docs/api/browser) object
 
-##### Exemplo
+##### Example
 
 ```js
 import { remote } from 'webdriverio'
@@ -98,17 +98,17 @@ const browser = await remote({
 
 #### `attach(attachOptions)`
 
-Anexa-se a uma sessão WebdriverIO em execução.
+Attaches to a running WebdriverIO session.
 
-##### Parâmetros
+##### Paramaters
 
-- `attachOptions`: instância para anexar uma sessão ou pelo menos um objeto com uma propriedade `sessionId` (por exemplo, `{ sessionId: 'xxx' }`)
+- `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
 
-##### Retorno
+##### Returns
 
-- Objeto [Navegador](/docs/api/browser)
+- [Browser](/docs/api/browser) object
 
-##### Exemplo
+##### Example
 
 ```js
 import { remote, attach } from 'webdriverio'
@@ -119,17 +119,17 @@ const newBrowser = await attach(browser)
 
 #### `multiremote(multiremoteOptions)`
 
-Inicia uma instância multiremota que permite controlar várias sessões dentro de uma única instância. Confira nossos [exemplos multiremote](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) para casos de uso concretos.
+Initiates a multiremote instance which allows you to control multiple session within a single instance. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases.
 
-##### Parâmetros
+##### Paramaters
 
-- `multiremoteOptions`: um objeto com chaves que representam o nome do navegador e suas [Opções do WebdriverIO](/docs/configuration#webdriverio).
+- `multiremoteOptions`: an object with keys representing the browser name and their [WebdriverIO Options](/docs/configuration#webdriverio).
 
-##### Retornos
+##### Returns
 
-- Objeto [Navegador](/docs/api/browser)
+- [Browser](/docs/api/browser) object
 
-##### Exemplo
+##### Example
 
 ```js
 import { multiremote } from 'webdriverio'
@@ -151,7 +151,7 @@ console.log(await matrix.getTitle())
 
 ## `@wdio/cli`
 
-Em vez de chamar o comando `wdio`, você também pode incluir o executor de teste como módulo e executá-lo em um ambiente arbitrário. Para isso, você precisará solicitar o pacote `@wdio/cli` como módulo, assim:
+Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this:
 
 <Tabs
   defaultValue="esm"
@@ -176,18 +176,18 @@ const Launcher = require('@wdio/cli').default
 </TabItem>
 </Tabs>
 
-Depois disso, crie uma instância do inicializador e execute o teste.
+After that, create an instance of the launcher, and run the test.
 
 #### `Launcher(configPath, opts)`
 
-O construtor da classe `Launcher` espera a URL para o arquivo de configuração e um objeto `opts` com configurações que substituirão aquelas na configuração.
+The `Launcher` class constructor expects the URL to the config file, and an `opts` object with settings that will overwrite those in the config.
 
-##### Parâmetros
+##### Paramaters
 
-- `configPath`: caminho para o `wdio.conf.js` a ser executado
-- `opts`: argumentos ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)) para substituir valores do arquivo de configuração
+- `configPath`: path to the `wdio.conf.js` to run
+- `opts`: arguments ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)) to overwrite values from the config file
 
-##### Exemplo
+##### Example
 
 ```js
 const wdio = new Launcher(
@@ -203,36 +203,36 @@ wdio.run().then((exitCode) => {
 })
 ```
 
-O comando `run` retorna uma [Promessa](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). Ele é resolvido se os testes foram executados com sucesso ou falharam, sendo negado se o inicializador não conseguiu iniciar a execução dos testes.
+The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
 
 ## `@wdio/browser-runner`
 
-Ao executar testes de unidade ou componente usando o WebAo executar testes de unidade ou componente usando o [browser runner](/docs/runner#browser-runner) do WebdriverIO, você pode importar utilitários de simulação para seus testes, por exemplo: [browser runner](/docs/runner#browser-runner) do driverIO, você pode importar utilitários de simulação para seus testes, por exemplo:
+When running unit or component tests using WebdriverIO's [browser runner](/docs/runner#browser-runner) you can import mocking utilities for your tests, e.g.:
 
 ```ts
 import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'
 ```
 
-As seguintes exportações nomeadas estão disponíveis:
+The following named exports are available:
 
 #### `fn`
 
-Função simulada, veja mais na [documentação oficial do Vitest](https://vitest.dev/api/mock.html#mock-functions).
+Mock function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
 
 #### `spyOn`
 
-Função espiã, veja mais na [documentação oficial do Vitest](https://vitest.dev/api/mock.html#mock-functions).
+Spy function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
 
 #### `mock`
 
-Método para simular arquivo ou módulo de dependência.
+Method to mock file or dependency module.
 
-##### Parâmetros
+##### Paramaters
 
-- `moduleName`: um caminho relativo para o arquivo a ser simulado ou um nome de módulo.
-- `factory`: função para retornar o valor simulado (opcional)
+- `moduleName`: either a relative path to the file to be mocked or a module name.
+- `factory`: function to return the mocked value (optional)
 
-##### Exemplo
+##### Example
 
 ```js
 mock('../src/constants.ts', () => ({
@@ -250,13 +250,13 @@ mock('lodash', (origModuleFactory) => {
 
 #### `unmock`
 
-Dependência Unmock definida dentro do diretório de simulação manual (`__mocks__`).
+Unmock dependency that is defined within the manual mock (`__mocks__`) directory.
 
-##### Parâmetros
+##### Paramaters
 
-- `moduleName`: nome do módulo a ser desmockeado.
+- `moduleName`: name of the module to be unmocked.
 
-##### Exemplo
+##### Example
 
 ```js
 unmock('lodash')
