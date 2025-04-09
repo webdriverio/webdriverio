@@ -1,9 +1,9 @@
 ---
 id: parameterize-tests
-title: Tests Parametrisieren
+title: Parameterize Tests
 ---
 
-Du kannst Tests auf Testebene einfach parametrisieren, z.B. über einfache `for`-Schleifen:
+You can simply parameterize tests on a test level, via simple `for` loops e.g.:
 
 ```ts title=example.spec.js
 const people = ['Alice', 'Bob']
@@ -16,7 +16,7 @@ describe('my tests', () => {
 })
 ```
 
-oder indem du Tests in dynamische Funktionen extrahierst, z.B.:
+or by extracting tests into dynamic functions, e.g.:
 
 ```js title=dynamic.spec.js
 import { browser } from '@wdio/globals'
@@ -34,11 +34,11 @@ describe('page components', () => {
 })
 ```
 
-## Umgebungsvariablen Übergeben
+## Passing Environment Variables
 
-Du kannst Umgebungsvariablen verwenden, um Tests über die Befehlszeile zu konfigurieren.
+You can use environment variables to configure tests from the command line.
 
-Betrachte zum Beispiel die folgende Testdatei, die einen Benutzernamen und ein Passwort benötigt. Es ist in der Regel eine gute Idee, deine Geheimnisse nicht im Quellcode zu speichern, daher benötigen wir eine Möglichkeit, Geheimnisse von außen zu übergeben.
+For example, consider the following test file that needs a username and a password. It is usually a good idea not to store your secrets in the source code, so we'll need a way to pass secrets from outside.
 
 ```ts title=example.spec.ts
 it(`example test`, async () => {
@@ -48,7 +48,7 @@ it(`example test`, async () => {
 })
 ```
 
-Du kannst diesen Test mit deinem geheimen Benutzernamen und Passwort ausführen, die in der Befehlszeile festgelegt werden.
+You can run this test with your secret username and password set in the command line.
 
 <Tabs
   defaultValue="bash"
@@ -85,7 +85,7 @@ npx wdio run wdio.conf.js
 </TabItem>
 </Tabs>
 
-In ähnlicher Weise kann die Konfigurationsdatei auch Umgebungsvariablen lesen, die über die Befehlszeile übergeben werden.
+Similarly, configuration file can also read environment variables passed through the command line.
 
 ```ts title=wdio.config.js
 export const config = {
@@ -97,7 +97,7 @@ export const config = {
 }
 ```
 
-Jetzt kannst du Tests in einer Staging- oder Produktionsumgebung ausführen:
+Now, you can run tests against a staging or a production environment:
 
 <Tabs
   defaultValue="bash"
@@ -132,9 +132,9 @@ npx wdio run wdio.conf.js
 </TabItem>
 </Tabs>
 
-## `.env` Dateien
+## `.env` files
 
-Um Umgebungsvariablen einfacher zu verwalten, betrachte die Verwendung von `.env` Dateien. WebdriverIO lädt `.env` Dateien automatisch in deine Umgebung. Anstatt die Umgebungsvariable als Teil des Befehlsaufrufs zu definieren, kannst du die folgende `.env` Datei definieren:
+To make environment variables easier to manage, consider something like `.env` files. WebdriverIO loads `.env` files automatically into your environment. Instead of defining the environment variable as part of the command call, you can define the following `.env`:
 
 ```bash title=".env"
 # .env file
@@ -143,17 +143,17 @@ USERNAME=me
 PASSWORD=secret
 ```
 
-Führe Tests wie gewohnt aus, deine Umgebungsvariablen sollten erkannt werden.
+Run tests as usual, your environment variables should be picked up.
 
 ```sh
 npx wdio run wdio.conf.js
 ```
 
-## Tests über eine CSV-Datei erstellen
+## Create tests via a CSV file
 
-Der WebdriverIO Test-Runner läuft in Node.js, das bedeutet, du kannst Dateien direkt aus dem Dateisystem lesen und mit deiner bevorzugten CSV-Bibliothek analysieren.
+The WebdriverIO test-runner runs in Node.js, this means you can directly read files from the file system and parse them with your preferred CSV library.
 
-Siehe zum Beispiel diese CSV-Datei, in unserem Beispiel input.csv:
+See for example this CSV file, in our example input.csv:
 
 ```csv
 "test_case","some_value","some_other_value"
@@ -163,7 +163,7 @@ Siehe zum Beispiel diese CSV-Datei, in unserem Beispiel input.csv:
 "value 4","value 44","foobar4321"
 ```
 
-Basierend darauf generieren wir einige Tests mit der csv-parse Bibliothek von NPM:
+Based on this we'll generate some tests by using the csv-parse library from NPM:
 
 ```js title=test.spec.ts
 import fs from 'node:fs'
