@@ -3,53 +3,53 @@ id: cli-wizard
 title: CLI Wizard
 ---
 
-Você pode validar qual texto pode ser encontrado em uma imagem sem executar um teste usando o Assistente OCR CLI. As únicas coisas necessárias são:
+You can validate which text can be found in an image without running a test by using the OCR CLI Wizard. The only thing that are needed are:
 
 - you have installed the `@wdio/ocr-service` as a dependency, see [Getting Started](./getting-started)
-- uma imagem que você deseja processar
+- an image that you want to process
 
-Em seguida, execute o seguinte comando para iniciar o assistente
+Then run the following command to start the wizard
 
 ```sh
 npx ocr-service
 ```
 
-Isso iniciará um assistente que o guiará pelas etapas para selecionar uma imagem e usar o modo haystack plus avançado. As seguintes perguntas são feitas
+This will start a wizard that will guide you through the steps to select an image and use a haystack plus advanced mode. The following questions are asked
 
-## Como você gostaria de especificar o arquivo?
+## How would you like to specify the file?
 
-As seguintes opções podem ser selecionadas
+The following options can be selected
 
-- Use um "explorador de arquivos"
-- Digite o caminho do arquivo manualmente
+- Use a "file explorer"
+- Type the file path manually
 
-### Use um "explorador de arquivos"
+### Use a "file explorer"
 
-O assistente CLI fornece uma opção para usar um "explorador de arquivos" para procurar arquivos no seu sistema. Ele começa na pasta em que você chama o comando. Após selecionar uma imagem (use as setas do teclado e a tecla ENTER) você prosseguirá para a próxima pergunta
+The CLI wizard provides an option to use a "file explorer" to search for files on your system. It starts from the folder you call the command. After selecting an image (use your arrow keys and the ENTER key) you will proceed to the next question
 
-### Digite o caminho do arquivo manualmente
+### Type the file path manually
 
-Este é um caminho direto para um arquivo em algum lugar na sua máquina local
+This is a direct path to a file somewhere on your local machine
 
-### Você gostaria de usar um palheiro?
+### Would you like to use a haystack?
 
-Aqui você tem a opção de selecionar uma área que precisa ser processada. Isso pode acelerar o processo ou reduzir/limitar a quantidade de texto que o mecanismo de OCR pode encontrar. Você precisa fornecer dados `x`, `y`, `largura`, `altura` com base nas seguintes perguntas:
+Here you have the option to select an area that needs to be processed. This can speed up the process or reduce/narrow down the amount of text the OCR engine might find. You need to provide `x`, `y`, `width`, `height` data based on the following questions:
 
-- Insira a coordenada x:
-- Insira a coordenada y:
-- Insira a largura:
-- Insira a altura:
+- Enter the x coordinate:
+- Enter the y coordinate:
+- Enter the width:
+- Enter the height:
 
-## Você quer usar o modo avançado?
+## Do you want to use the advanced mode?
 
-O modo avançado terá recursos extras como:
+Advanced mode will hold extra features like:
 
-- definindo o contraste
-- mais a seguir no futuro
+- setting the contrast
+- more to follow in the future
 
-## Demonstração
+## Demo
 
-Aqui está uma demonstração
+Here's a demo
 
 <video controls width="100%">
   <source src="/img/ocr/ocr-service-cli.mp4" />
