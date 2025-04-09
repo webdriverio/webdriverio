@@ -5,36 +5,36 @@ title: BrowserStack Accessibility Testing
 
 # BrowserStack Accessibility Testing
 
-Sie können Barrierefreiheitstests ganz einfach in Ihre WebdriverIO-Testsuiten integrieren, indem Sie die [Funktion für automatisierte Tests von BrowserStack Accessibility Testing](https://www.browserstack.com/docs/accessibility/automated-tests?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation) verwenden.
+You can easily integrate accessibility tests in your WebdriverIO test suites using the Automated tests feature of BrowserStack Accessibility Testing.
 
-## Vorteile von automatisierten Tests in BrowserStack Accessibility Testing
+## Advantages of Automated Tests in BrowserStack Accessibility Testing
 
-Um automatisierte Tests in BrowserStack Accessibility Testing zu verwenden, sollten Ihre Tests auf BrowserStack Automate ausgeführt werden.
+To use Automated tests in BrowserStack Accessibility Testing, your tests should be running on BrowserStack Automate.
 
-Die folgenden Vorteile bieten automatisierte Tests:
+The following are the advantages of Automated tests:
 
-- Nahtlose Integration in Ihre bestehende Automatisierungs-Testsuite.
-- Keine Codeänderungen in Testfällen erforderlich.
-- Kein zusätzlicher Wartungsaufwand für Barrierefreiheitstests.
-- Verständnis historischer Trends und Einblicke in Testfälle.
+- Seamlessly integrates into your pre-existing automation test suite.
+- No code changes are required in test cases.
+- Requires zero additional maintenance for accessibility testing.
+- Understand historical trends and gain test-case insights.
 
-## Erste Schritte mit BrowserStack Accessibility Testing
+## Get Started with BrowserStack Accessibility Testing
 
-Befolgen Sie diese Schritte, um Ihre WebdriverIO-Testsuiten mit BrowserStack's Accessibility Testing zu integrieren:
+Follow these steps to integrate your WebdriverIO test suites with BrowserStack's Accessibility Testing:
 
-1. Aktualisieren Sie das `@wdio/browserstack-service` npm-Paket.
+1. Install `@wdio/browserstack-service` npm package.
 
-```bash
-npm update @wdio/browserstack-service
+```bash npm2yarn
+npm install --save-dev @wdio/browserstack-service
 ```
 
-2. Aktualisieren Sie die `wdio.conf.js` Konfigurationsdatei.
+2. Update `wdio.conf.js` config file.
 
 ```javascript
 exports.config = {
     //...
     user: '<browserstack_username>' || process.env.BROWSERSTACK_USERNAME,
-    key: 'browserstack_access_key> || process.env.BROWSERSTACK_ACCESS_KEY,
+    key: '<browserstack_access_key>' || process.env.BROWSERSTACK_ACCESS_KEY,
     commonCapabilities: {
       'bstack:options': {
         projectName: "Your static project name goes here",
@@ -44,7 +44,7 @@ exports.config = {
     services: [
       ['browserstack', {
         accessibility: true,
-        // Optionale Konfigurationsoptionen
+        // Optional configuration options
         accessibilityOptions: {
           'wcagVersion': 'wcag21a',
           'includeIssueType': {
@@ -60,4 +60,5 @@ exports.config = {
   };
 ```
 
-Detaillierte Anweisungen finden Sie [hier](https://www.browserstack.com/docs/accessibility/automated-tests/get-started/webdriverio?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
+You can view detailed instructions here.
+
