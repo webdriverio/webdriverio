@@ -1,17 +1,17 @@
 ---
 id: test-output
-title: Testausgabe
+title: Test Output
 ---
 
 :::info
 
-Für die Beispielbildausgabe wurde [diese WebdriverIO](https://guinea-pig.webdriver.io/image-compare.html) Demo-Seite verwendet.
+[This WebdriverIO](https://guinea-pig.webdriver.io/image-compare.html) demo site has been used for the example image output.
 
 :::
 
 ## `enableLayoutTesting`
 
-Dies kann sowohl in den [Service-Optionen](./service-options#enablelayouttesting) als auch auf der [Methoden](./method-options)-Ebene eingestellt werden.
+This can be set on the [Service Options](./service-options#enablelayouttesting) as well as on the [Method](./method-options) level.
 
 ```js
 // wdio.conf.(js|ts)
@@ -32,9 +32,9 @@ export const config = {
 }
 ```
 
-Die Bildausgabe für die [Service-Optionen](./service-options#enablelayouttesting) ist identisch mit der [Methoden](./method-options)-Ebene, siehe unten.
+The image output for the [Service Options](./service-options#enablelayouttesting) is equal to the [Method](./method-options), see below.
 
-### Bildausgabe
+### Image Output
 
 <Tabs
 defaultValue="saveelement"
@@ -51,7 +51,7 @@ values={[
 
 ```js
 await browser.saveElement(".features_vqN4", "example-element-tag", {enableLayoutTesting: true})
-// Oder
+// Or
 await browser.checkElement(".features_vqN4", "example-element-tag", {enableLayoutTesting: true})
 ```
 
@@ -73,7 +73,7 @@ await browser.saveScreen("example-page-tag")
 
 ```js
 await browser.saveFullPageScreen("full-page-tag")
-// Oder
+// Or
 await browser.checkFullPageScreen("full-page-tag", {enableLayoutTesting: true})
 ```
 
@@ -85,7 +85,7 @@ await browser.checkFullPageScreen("full-page-tag", {enableLayoutTesting: true})
 
 ```js
 await browser.saveTabbablePage("tabbable-page-tag")
-// Oder
+// Or
 await browser.checkTabbablePage("tabbable-page-tag", {enableLayoutTesting: true})
 ```
 
@@ -96,26 +96,26 @@ await browser.checkTabbablePage("tabbable-page-tag", {enableLayoutTesting: true}
 
 ## save(Screen/Element/FullPageScreen)
 
-### Konsolenausgabe
+### Console Output
 
-Die `save(Screen/Element/FullPageScreen)`-Methoden liefern die folgenden Informationen, nachdem die Methode ausgeführt wurde:
+The `save(Screen/Element/FullPageScreen)` methods will provide the following information after the method has been executed:
 
 ```js
 const saveResult = await browser.saveFullPageScreen({ ... })
 console.log(saveResults)
 /**
  * {
- *   // Das Gerätepixelverhältnis der ausgeführten Instanz
+ *   // The device pixel ratio of the instance that has run
  *   devicePixelRatio: 1,
- *   // Der formatierte Dateiname, abhängig von der Option `formatImageName`
+ *   // The formatted filename, this depends on the options `formatImageName`
  *   fileName: "examplePage-chrome-latest-1366x768.png",
- *   // Der Pfad, unter dem die tatsächliche Screenshot-Datei zu finden ist
+ *   // The path where the actual screenshot file can be found
  *   path: "/path/to/project/.tmp/actual/desktop_chrome",
  * };
  */
 ```
 
-### Bildausgabe
+### Image Output
 
 <Tabs
 defaultValue="saveelement"
@@ -183,14 +183,11 @@ values={[
 </TabItem>
 <TabItem value="ios">
 
-:::info TIPP
-iOS `saveScreen`-Ausführungen enthalten standardmäßig nicht die Geräterahmenecken. Um diese zu erhalten, fügen Sie bitte die Option `addIOSBezelCorners:true` beim Instanziieren des Services hinzu, siehe [hier](./service-options#addiosbezelcorners)
+:::info TIP
+iOS `saveScreen` executions are by default not with the device bezel corners. To have this please add the `addIOSBezelCorners:true` option when instantiating the service, see [this](./service-options#addiosbezelcorners)
 :::
 
-![saveScreen Mobile iOS](/img/visual/screenshot-Iphone12Portrait15-390x844.png)
-</TabItem>
-</Tabs>
-</TabItem>
+![saveScreen Mobile iOS](/img/visual/screenshot-Iphone12Portrait15-390x844.png) </TabItem> </Tabs> </TabItem>
 
 <TabItem value="savefullpagescreen">
 
@@ -223,37 +220,37 @@ values={[
 
 ## check(Screen/Element/FullPageScreen)
 
-### Konsolenausgabe
+### Console Output
 
-Standardmäßig liefern die `check(Screen/Element/FullPageScreen)`-Methoden nur einen Abweichungsprozentsatz wie `1.23`, aber wenn das Plugin die Option `returnAllCompareData: true` hat, werden folgende Informationen nach der Ausführung der Methode bereitgestellt:
+By default, the `check(Screen/Element/FullPageScreen)` methods will only provide a mismatch percentage like `1.23`, but when the plugin has the option `returnAllCompareData: true` the following information is provided after the method has been executed:
 
 ```js
 const checkResult = await browser.checkFullPageScreen({ ... })
 console.log(checkResult)
 /**
  * {
- *     // Der formatierte Dateiname, abhängig von der Option `formatImageName`
+ *     // The formatted filename, this depends on the options `formatImageName`
  *     fileName: "examplePage-chrome-headless-latest-1366x768.png",
  *     folders: {
- *         // Der Ordner für die tatsächlichen Bilder und der Dateiname
+ *         // The actual folder and the file name
  *         actual: "/path/to/project/.tmp/actual/desktop_chrome/examplePage-chrome-headless-latest-1366x768.png",
- *         // Der Baseline-Ordner und der Dateiname
+ *         // The baseline folder and the file name
  *         baseline:
  *             "/path/to/project/localBaseline/desktop_chrome/examplePage-chrome-headless-latest-1366x768.png",
- *         // Dieser folgende Ordner ist optional und nur vorhanden, wenn es eine Abweichung gibt
- *         // Der Ordner, der die Unterschiede und den Dateinamen enthält
+ *         // This following folder is optional and only if there is a mismatch
+ *         // The folder that holds the diffs and the file name
  *         diff: "/path/to/project/.tmp/diff/desktop_chrome/examplePage-chrome-headless-latest-1366x768.png",
  *     },
- *     // Der Abweichungsprozentsatz
+ *     // The mismatch percentage
  *     misMatchPercentage: 2.34,
  * };
  */
 ```
 
-### Bildausgabe
+### Image Output
 
 :::info
-Die folgenden Bilder zeigen nur Unterschiede als Ergebnis der Ausführung der Check-Befehle. Es wird nur die Differenz in einem Browser angezeigt, aber die Ausgabe für Android und iOS ist die gleiche.
+The images below will only show differences as a result of running the check commands. Only the diff in a browser is shown, but the output for Android and iOS is the same.
 :::
 
 <Tabs
@@ -273,12 +270,10 @@ await browser.checkElement("#__docusaurus_skipToContent_fallback > header > div 
 ```
 
 :::info
-Der Button-Text wurde von `Get Started` zu `Getting Started!` geändert und als Änderung erkannt.
+The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
-![Button Check Result](/img/visual/button-check.png)
-
-</TabItem>
+![Button Check Result](/img/visual/button-check.png) </TabItem>
 
 <TabItem value="checkscreen">
 
@@ -287,7 +282,7 @@ await browser.checkScreen("example-page-tag")
 ```
 
 :::info
-Der Button-Text wurde von `Get Started` zu `Getting Started!` geändert und als Änderung erkannt.
+The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
 ![Button Check Result](/img/visual/screen-check.png)
@@ -301,7 +296,7 @@ await browser.checkFullPageScreen("full-page-tag")
 ```
 
 :::info
-Der Button-Text wurde von `Get Started` zu `Getting Started!` geändert und als Änderung erkannt.
+The button text has been changed from `Get Started` to `Getting Started!` and detected as a change.
 :::
 
 ![Button Check Result](/img/visual/fullpage-check.png)
@@ -310,9 +305,9 @@ Der Button-Text wurde von `Get Started` zu `Getting Started!` geändert und als 
 
 </Tabs>
 
-## Ausblendungen
+## Block-Outs
 
-Hier finden Sie ein Beispiel für Ausblendungen in Android NativeWebScreenshot und iOS, bei denen der Status+Adressbereich und die Symbolleiste ausgeblendet sind.
+Here you will find an example output for block-outs in Android NativeWebScreenshot and iOS where the status+address and toolbar are blocked out.
 
 <Tabs
 defaultValue="nativeWebScreenshot"
