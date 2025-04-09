@@ -238,7 +238,7 @@ See all Safaridriver options in the official [driver package](https://github.com
 
 ```ts
 {
-    browserName: 'chrome',    // or 'chromium'
+    browserName: 'chrome',   // or 'chromium'
     'goog:chromeOptions': {
         args: ['headless', 'disable-gpu']
     }
