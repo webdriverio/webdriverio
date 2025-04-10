@@ -84,6 +84,8 @@ describe('Stencil Component Testing', () => {
         await expect($('.text')).toHaveText('Hello! My name is Stencil.')
     })
 })
+    })
+})
 ```
 
 #### Render Options
