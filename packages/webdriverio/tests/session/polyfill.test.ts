@@ -39,7 +39,7 @@ describe('PolyfillManager', () => {
             on: vi.fn(),
             browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [{ context: '123' }, { context: '456', parent: '789' }] }),
             sessionSubscribe: vi.fn(),
-            scriptAddPreloadScript: vi.fn(),
+            scriptAddPreloadScript: vi.fn().mockResolvedValue({}),
             scriptCallFunction: vi.fn().mockResolvedValue({}),
             isEnabled: vi.fn().mockReturnValue(true),
             options: { automationProtocol: 'webdriver' }
