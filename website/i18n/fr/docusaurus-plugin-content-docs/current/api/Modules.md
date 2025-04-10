@@ -22,7 +22,7 @@ Démarre une nouvelle session avec des fonctionnalités spécifiques. Sur la bas
 
 ##### Retours
 
-- [Browser](/docs/api/browser) objet
+- [Browser](/docs/api/browser) object
 
 ##### Exemple
 
@@ -50,6 +50,7 @@ Attache à une session WebDriver ou DevTools en cours d'exécution.
 ##### Exemple
 
 ```js
+const client = await WebDriver.newSession({...})
 const client = await WebDriver.newSession({...})
 const clonedClient = await WebDriver.attachToSession(client)
 ```
@@ -84,7 +85,7 @@ Démarre une session WebdriverIO. L'instance contient toutes les commandes en ta
 
 ##### Retours
 
-- [Browser](/docs/api/browser) objet
+- [Browser](/docs/api/browser) object
 
 ##### Exemple
 
@@ -106,7 +107,7 @@ Attache à une session WebDriver ou DevTools en cours d'exécution.
 
 ##### Retours
 
-- [Browser](/docs/api/browser) objet
+- [Browser](/docs/api/browser) object
 
 ##### Exemple
 
@@ -127,7 +128,7 @@ Initie une instance multidistant qui vous permet de contrôler plusieurs session
 
 ##### Retours
 
-- [Browser](/docs/api/browser) objet
+- [Browser](/docs/api/browser) object
 
 ##### Exemple
 
