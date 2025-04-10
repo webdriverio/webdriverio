@@ -10,7 +10,7 @@ Cuando escriba pruebas es sólo cuestión de tiempo antes de que necesite crear 
 Para validar si cierto manejador de funciones es llamado como parte de las pruebas de sus componentes, el módulo `@wdio/browser-runner` exporta primitivos simuladores que puedes usar para probar, si estas funciones han sido llamadas. Puede importar estos métodos vía:
 
 ```js
-import { fn, spy } from '@wdio/browser-runner'
+import { fn, spyOn } from '@wdio/browser-runner'
 ```
 
 Al importar `fn` puede crear una función espía (simulación) para rastrear su ejecución y con `spyOn` seguir un método sobre un objeto ya creado.

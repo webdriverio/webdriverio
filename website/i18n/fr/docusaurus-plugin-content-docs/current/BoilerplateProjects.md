@@ -12,8 +12,8 @@ Over time, our community has developed several projects that you can use as insp
 Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you, so you can start writing feature files in your project right away.
 
 - Framework:
-    - Cucumber (v8)
-    - WebdriverIO (v8)
+    - Cucumber
+    - WebdriverIO
 - Features:
     - Over 150 predefined steps that cover almost everything you need
     - Integrates WebdriverIO's Multiremote functionality
@@ -23,11 +23,20 @@ Our very own boilerplate for Cucumber test suites. We created over 150 predefine
 Boilerplate project to run WebdriverIO tests with Jasmine using Babel features and the page objects pattern.
 
 - Frameworks
-    - WebdriverIO (v8)
-    - Jasmine (v4)
+    - WebdriverIO
+    - Jasmine
 - Features
     - Page Object Pattern
     - Sauce Labs integration
+
+## [webdriverio/electron-boilerplate](https://github.com/webdriverio/electron-boilerplate)
+Boilerplate project to run WebdriverIO tests on a minimal Electron application.
+
+- Frameworks
+    - WebdriverIO
+    - Mocha
+- Features
+    - Electron API mocking
 
 ## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
 
@@ -61,6 +70,9 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     - Gitlab pipelines for Gitlab repository
     - Github actions for Github repository
     - Docker compose for setting up the docker hub
+    - Accessibility testing using AXE
+    - Visual testing using Applitools
+    - Log mechansim
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 

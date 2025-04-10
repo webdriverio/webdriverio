@@ -3,7 +3,7 @@ id: githubactions
 title: जीथब क्रियाएँ
 ---
 
-यदि आपकी रिपॉजिटरी को जीथब पर होस्ट किया गया है, तो आप जीथब के बुनियादी ढांचे पर अपने परीक्षण चलाने के लिए [जीथब एक्शन](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) का उपयोग कर सकते हैं।
+If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions) to run your tests on Github's infrastructure.
 
 1. every time you push changes
 2. प्रत्येक पुल अनुरोध निर्माण पर
@@ -18,4 +18,4 @@ title: जीथब क्रियाएँ
 https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml
 ```
 
-कार्यप्रवाह फ़ाइलें बनाने के बारे में अधिक जानकारी के बारे में [Github दस्तावेज़](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) में पता करें।
+Find out in the [Github Docs](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow?tool=cli) on more information about creating workflow files.

@@ -31,6 +31,8 @@ Los objetos simulados proporcionan varios comandos, enumerados en la sección `s
 - [`abort`](/docs/api/mock/abort)
 - [`abortOnce`](/docs/api/mock/abortOnce)
 - [`clear`](/docs/api/mock/clear)
+- [`request`](/docs/api/mock/request)
+- [`requestOnce`](/docs/api/mock/requestOnce)
 - [`respond`](/docs/api/mock/respond)
 - [`respondOne`](/docs/api/mock/respondOnce)
 - [`restore`](/docs/api/mock/restore)

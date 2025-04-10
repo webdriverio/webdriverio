@@ -3,17 +3,19 @@ id: automationProtocols
 title: پروتکل های اتوماسیون
 ---
 
-با WebdriverIO، هنگام اجرای تست های E2E خود به صورت محلی یا در فضای ابری، می توانید بین چندین فناوری اتوماسیون یکی را انتخاب کنید. به طور پیش فرض WebdriverIO همیشه یک درایور مرورگر را بررسی می کند که با پروتکل WebDriver در `localhost:4444`مطابقت داشته باشد. اگر نتواند چنین درایوری را پیدا کند، به استفاده از ابزار توسعه کروم با استفاده از Puppeteer در لایه های زیرین بازمی‌گردد.
+با WebdriverIO، هنگام اجرای تست های E2E خود به صورت محلی یا در فضای ابری، می توانید بین چندین فناوری اتوماسیون یکی را انتخاب کنید. By default, WebdriverIO will attempt to start a local automation session using the [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol.
 
-تقریباً تمام مرورگرهای مدرنی که از [WebDriver](https://w3c.github.io/webdriver/) پشتیبانی می کنند، از رابط بومی دیگری به نام [DevTools](https://chromedevtools.github.io/devtools-protocol/) نیز پشتیبانی می کنند که می تواند برای اهداف اتوماسیون استفاده شود.
+## WebDriver Bidi Protocol
 
-هر دو بسته به مورد استفاده و همچنین بسته به محیط شما، مزایا و معایبی دارند.
+The [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) is an automation protocol to automate browsers using bi-directional communication. It's the successor of the [WebDriver](https://w3c.github.io/webdriver/) protocol and enables a lot more introspection capabilities for various testing use cases.
+
+This protocol is currently under development and new primitives might be added in the future. All browser vendors have committed to implementing this web standard and a lot of [primitives](https://wpt.fyi/results/webdriver/tests/bidi?label=experimental&label=master&aligned) have already been landed in browsers.
 
 ## پروتکل WebDriver
 
 > [WebDriver](https://w3c.github.io/webdriver/) یک رابط کنترل از راه دور است که امکان بررسی و کنترل user agent را فراهم می کند. این یک پروتکل خنثی نسبت به پلتفرم و زبان را به عنوان راهی برای برنامه های خارج از فرآیند ارائه می کند تا از راه دور رفتار مرورگرهای وب را آموزش دهند.
 
-پروتکل WebDriver برای خودکارسازی مرورگر از دیدگاه کاربر طراحی شده است، به این معنی که هر کاری که کاربر قادر به انجام آن است، شما می توانید با مرورگر انجام دهید. این پروتکل مجموعه ای از دستورات را ارائه می دهد که تعاملات رایج با یک برنامه کاربردی (مثلاً پیمایش، کلیک کردن، یا خواندن وضعیت یک عنصر) را انتزاعی می کند. از آنجایی که این یک استاندارد وب است، به خوبی در تمام سازندگان اصلی مرورگرها پشتیبانی می شود و همچنین به عنوان پروتکل زیربنایی برای اتوماسیون تلفن همراه با استفاده از [Appium](http://appium.io) استفاده می شود.
+پروتکل WebDriver برای خودکارسازی مرورگر از دیدگاه کاربر طراحی شده است، به این معنی که هر کاری که کاربر قادر به انجام آن است، شما می توانید با مرورگر انجام دهید. این پروتکل مجموعه ای از دستورات را ارائه می دهد که تعاملات رایج با یک برنامه کاربردی (مثلاً پیمایش، کلیک کردن، یا خواندن وضعیت یک عنصر) را انتزاعی می کند. Since it is a web standard, it is well supported across all major browser vendors and also is being used as an underlying protocol for mobile automation using [Appium](http://appium.io).
 
 برای استفاده از این پروتکل اتوماسیون، به یک سرور پراکسی نیاز دارید که تمام دستورات را ترجمه کرده و در محیط هدف (یعنی مرورگر یا اپلیکیشن موبایل) اجرا کند.
 

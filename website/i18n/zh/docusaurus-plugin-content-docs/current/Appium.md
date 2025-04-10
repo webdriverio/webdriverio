@@ -17,4 +17,4 @@ Setting up the right environment is not straight forward. Luckily the Appium eco
 $ npx appium-installer
 ```
 
-This will initiate the [appium-installer](https://github.com/AppiumTestDistribution/appium-installer) toolkit that guides you through the setup process.
+这将启动 [Appium-installer](https://github.com/AppiumTestDistribution/appium-installer) 工具包，该工具包将指导您完成安装过程。

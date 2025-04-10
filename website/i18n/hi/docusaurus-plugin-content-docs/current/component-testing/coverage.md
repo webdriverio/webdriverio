@@ -3,7 +3,7 @@ id: coverage
 title: कवरेज
 ---
 
-WebdriverIO [`istanbul`](https://istanbul.js.org/)के माध्यम से परीक्षण कवरेज रिपोर्टिंग का समर्थन करता है। टेस्टरनर स्वचालित रूप से आपके कोड को इंस्ट्रूमेंट करेगा और आपके लिए कोड कवरेज कैप्चर करेगा।
+WebdriverIO [`istanbul`](https://istanbul.js.org/)के माध्यम से परीक्षण कवरेज रिपोर्टिंग का समर्थन करता है। The testrunner will automatically instrument your code and capture code coverage for you.
 
 ## स्थापित करना
 

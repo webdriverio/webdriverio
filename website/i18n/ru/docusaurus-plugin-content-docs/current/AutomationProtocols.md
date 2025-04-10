@@ -3,17 +3,19 @@ id: automationProtocols
 title: Automation Protocols
 ---
 
-С помощью WebdriverIO вы можете выбирать из нескольких технологий автоматизации при запуске своих E2E тестов локально или в облаке. По умолчанию WebdriverIO всегда проверяет наличие драйвера браузера, совместимого с протоколом WebDriver, на `localhost:4444`. Если не удается найти такой драйвер, то используется Chrome DevTools с использованием Puppeteer.
+С помощью WebdriverIO вы можете выбирать из нескольких технологий автоматизации при запуске своих E2E тестов локально или в облаке. By default, WebdriverIO will attempt to start a local automation session using the [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol.
 
-Почти все современные браузеры, поддерживающие [WebDriver](https://w3c.github.io/webdriver/), также поддерживают [DevTools](https://chromedevtools.github.io/devtools-protocol/) - еще один нативный интерфейс, который может использоваться для автоматизации.
+## WebDriver Bidi Protocol
 
-Оба протокола имеют преимущества и недостатки, в зависимости от вашего варианта использования и окружения.
+The [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) is an automation protocol to automate browsers using bi-directional communication. It's the successor of the [WebDriver](https://w3c.github.io/webdriver/) protocol and enables a lot more introspection capabilities for various testing use cases.
+
+This protocol is currently under development and new primitives might be added in the future. All browser vendors have committed to implementing this web standard and a lot of [primitives](https://wpt.fyi/results/webdriver/tests/bidi?label=experimental&label=master&aligned) have already been landed in browsers.
 
 ## Протокол WebDriver
 
 > [WebDriver](https://w3c.github.io/webdriver/) - это интерфейс удаленного управления браузером, который позволяет получать информацию о нем и управлять его действиями через программный интерфейс. Он предоставляет независимый от платформы и языка протокол, позволяющий внешним программам удаленно управлять поведением веб-браузеров.
 
-Протокол WebDriver был разработан для автоматизации браузера с точки зрения пользователя, что означает, что все, что пользователь может сделать в браузере, можно сделать и при помощи автоматизации. WebDriver предоставляет набор команд, которые абстрагируют общие взаимодействия с приложением (например, навигация, клики или чтение состояния элемента). Поскольку это веб-стандарт, он хорошо поддерживается всеми основными поставщиками браузеров, а также используется в качестве базового протокола для мобильной автоматизации с использованием [Appium](http://appium.io).
+Протокол WebDriver был разработан для автоматизации браузера с точки зрения пользователя, что означает, что все, что пользователь может сделать в браузере, можно сделать и при помощи автоматизации. WebDriver предоставляет набор команд, которые абстрагируют общие взаимодействия с приложением (например, навигация, клики или чтение состояния элемента). Since it is a web standard, it is well supported across all major browser vendors and also is being used as an underlying protocol for mobile automation using [Appium](http://appium.io).
 
 Чтобы использовать этот протокол автоматизации, нужен прокси-сервер, который переводит все команды и выполняет их в целевой среде (то есть в браузере или мобильном приложении).
 

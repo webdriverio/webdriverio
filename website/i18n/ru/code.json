@@ -76,7 +76,7 @@
     "description": "The blog post button label to navigate to the older/next post"
   },
   "theme.blog.post.plurals": {
-    "message": "One post|{count} posts",
+    "message": "Одно сообщение|{count} сообщения",
     "description": "Pluralized label for \"{count} posts\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.blog.tagTitle": {
@@ -92,11 +92,11 @@
     "description": "The ARIA label for the home page in the breadcrumbs"
   },
   "theme.docs.breadcrumbs.navAriaLabel": {
-    "message": "Breadcrumbs",
+    "message": "Панировочные сухари",
     "description": "The ARIA label for the breadcrumbs"
   },
   "theme.docs.DocCard.categoryDescription": {
-    "message": "{count} items",
+    "message": "{count} элементы",
     "description": "The default description for a category card in the generated index about how many items this category includes"
   },
   "theme.colorToggle.ariaLabel": {
@@ -334,7 +334,7 @@
     "description": "The help text for error screen of search modal"
   },
   "theme.SearchModal.footer.selectText": {
-    "message": "to select",
+    "message": "выбрать",
     "description": "The explanatory text of the action for the enter key"
   },
   "theme.SearchModal.footer.selectKeyAriaLabel": {
@@ -346,11 +346,11 @@
     "description": "The explanatory text of the action for the Arrow up and Arrow down key"
   },
   "theme.SearchModal.footer.navigateUpKeyAriaLabel": {
-    "message": "Arrow up",
+    "message": "Стрелка вверх",
     "description": "The ARIA label for the Arrow up key button that makes the navigation"
   },
   "theme.SearchModal.footer.navigateDownKeyAriaLabel": {
-    "message": "Arrow down",
+    "message": "Стрелка вниз",
     "description": "The ARIA label for the Arrow down key button that makes the navigation"
   },
   "theme.SearchModal.footer.closeText": {
@@ -432,7 +432,7 @@
     "message": "Use WebdriverIO for full e2e or unit and component testing in the browser."
   },
   "WebdriverIO automatically waits for elements to appear before interacting with them.": {
-    "message": "WebdriverIO automatically waits for elements to appear before interacting with them."
+    "message": "WebdriverIO автоматически ждет появления элементов перед взаимодействием с ними."
   },
   "Get Started": {
     "message": "Начать"
@@ -462,7 +462,7 @@
     "message": "Watch Talks about WebdriverIO"
   },
   "homepage.hightlight.lighthouse": {
-    "message": "Google Lighthouse Integration"
+    "message": "Интеграция с Google Lighthouse"
   },
   "Integration to developer tools such as:": {
     "message": "Integration to developer tools such as:"
@@ -483,7 +483,7 @@
     "message": "Docusaurus 2 Versions page listing all documented site versions"
   },
   "WebdriverIO documentation versions": {
-    "message": "WebdriverIO documentation versions"
+    "message": "Версии документации WebdriverIO"
   },
   "The project team releases new major versions roughly on a yearly cadence. LTS release status is \"long-term support\", which typically guarantees that critical bugs will be fixed for a total of 12 months until a new major release is made.": {
     "message": "The project team releases new major versions roughly on a yearly cadence. LTS release status is \"long-term support\", which typically guarantees that critical bugs will be fixed for a total of 12 months until a new major release is made."
@@ -545,7 +545,7 @@
     "message": "WebdriverIO — это {allInOne} фреймворк для разработки вашего веб-приложения. Он позволяет запускать небольшие и легкие тесты компонентов, а также сценарии тестирования e2e в браузере или на мобильном устройстве. Это гарантирует, что вы будете проводить тестирование в среде {usedBy}."
   },
   "features.realEnvironments": {
-    "message": "Test in Real Environments"
+    "message": "Тест в реальном окружении"
   },
   "features.versatile": {
     "message": "Versatile and Feature Rich"

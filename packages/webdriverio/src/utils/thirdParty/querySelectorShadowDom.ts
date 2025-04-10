@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable brace-style */
+/* eslint-disable @stylistic/brace-style */
 /* eslint-disable camelcase */
 /* istanbul ignore file */
 /**

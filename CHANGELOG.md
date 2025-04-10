@@ -23,6 +23,62 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.12.4 (2025-04-05)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#14376](https://github.com/webdriverio/webdriverio/pull/14376) fix(webdriver): add timeout-related configurable options to ProxyAgent ([@mitya555](https://github.com/mitya555))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14373](https://github.com/webdriverio/webdriverio/pull/14373) refactor: Avoid making extra calls for eTag ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#14369](https://github.com/webdriverio/webdriverio/pull/14369) Migrate documentation parsing to comment-parser ([@Rondleysg](https://github.com/Rondleysg))
+* Other
+  * [#14366](https://github.com/webdriverio/webdriverio/pull/14366) [docs]: fix reference links ([@navin772](https://github.com/navin772))
+
+#### :house: Internal
+* `webdriverio`
+  * [#14361](https://github.com/webdriverio/webdriverio/pull/14361) fix(webdriverio): fix order of execution in session polyfill ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 5
+- Dmitriy Mukhin ([@mitya555](https://github.com/mitya555))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Navin Chandra ([@navin772](https://github.com/navin772))
+- Rondley Gregório ([@Rondleysg](https://github.com/Rondleysg))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
+## v9.12.3 (2025-04-03)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14360](https://github.com/webdriverio/webdriverio/pull/14360) fix(interception): Properly handle binary response data in WebDriverInterception ([@Norva-bugged](https://github.com/Norva-bugged))
+  * [#14338](https://github.com/webdriverio/webdriverio/pull/14338) fix: Fixes isDisplayed to always use default params for checkVisibility. ([@damencho](https://github.com/damencho))
+* Other
+  * [#14341](https://github.com/webdriverio/webdriverio/pull/14341) SDK-2064 A11y-Platform-Level-Support ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### :memo: Documentation
+* [#14357](https://github.com/webdriverio/webdriverio/pull/14357) fix(docs): resolving broken sumologic reporter link ([@rbronz](https://github.com/rbronz))
+* [#14353](https://github.com/webdriverio/webdriverio/pull/14353) fix broken link in docs. Closes [#14348](https://github.com/webdriverio/webdriverio/issues/14348) ([@harsha509](https://github.com/harsha509))
+
+#### :house: Internal
+* `wdio-allure-reporter`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-firefox-profile-service`, `wdio-jasmine-framework`, `wdio-lighthouse-service`, `wdio-mocha-framework`, `wdio-protocols`, `wdio-runner`, `wdio-types`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#14363](https://github.com/webdriverio/webdriverio/pull/14363) chore: bump @wdio/eslint and format ([@alcpereira](https://github.com/alcpereira))
+
+#### Committers: 8
+- Avron Souto ([@Norva-bugged](https://github.com/Norva-bugged))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- [@alcpereira](https://github.com/alcpereira)
+- [@fetsorn](https://github.com/fetsorn)
+- [@rbronz](https://github.com/rbronz)
+- Дамян Минков ([@damencho](https://github.com/damencho))
+
+
 ## v9.12.2 (2025-03-27)
 
 #### :rocket: New Feature

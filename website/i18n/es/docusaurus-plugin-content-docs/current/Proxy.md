@@ -10,55 +10,32 @@ Puede canalizar dos tipos diferentes de solicitud a través de un proxy:
 
 ## Proxy entre controlador y prueba
 
-Si su empresa tiene un proxy corporativo (por ejemplo, en `http://my.corp.proxy. om:9090`) para todas las solicitudes salientes, siga los siguientes pasos para instalar y configurar [global-agent](https://github.com/gajus/global-agent).
+If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests, follow the below steps to install and configure [undici](https://github.com/nodejs/undici).
 
-### Instalar agente global
+### Install undici
 
 ```bash npm2yarn
-npm install global-agent --save-dev
+npm install undici --save-dev
 ```
 
-### Añadir arranque global-agente a su archivo de configuración
+### Add undici setGlobalDispatcher to your config file
 
 Añada la siguiente instrucción requerir al principio de su archivo de configuración.
 
 ```js title="wdio.conf.js"
-import { bootstrap } from 'global-agent';
-bootstrap();
+import { setGlobalDispatcher, ProxyAgent } from 'undici';
+
+const dispatcher = new ProxyAgent({ uri: new URL(process.env.https_proxy).toString() });
+setGlobalDispatcher(dispatcher);
 
 export const config = {
     // ...
 }
 ```
 
-### Establecer variables de entorno de agentes globales
+Additional information about configuring the proxy can be located [here](https://github.com/nodejs/undici/blob/main/docs/docs/api/ProxyAgent.md).
 
-Antes de iniciar la prueba, asegúrese de que ha exportado la variable en la terminal, así:
-
-```sh
-export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-wdio wdio.conf.js
-```
-
-Puede excluir URLs del proxy exportando la variable, así:
-
-```sh
-export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-export GLOBAL_AGENT_NO_PROXY='.foo.com'
-wdio wdio.conf.js
-```
-
-Si es necesario, puede especificar `GLOBAL_AGENT_HTTPS_PROXY` para enrutar el tráfico HTTPS a través de un proxy diferente al tráfico HTTP.
-
-```sh
-export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-export GLOBAL_AGENT_HTTPS_PROXY=http://my.corp.proxy.com:9091
-wdio wdio.conf.js
-```
-
-`GLOBAL_AGENT_HTTP_PROXY` se utiliza para solicitudes HTTP y HTTPS si `GLOBAL_AGENT_HTTPS_PROXY` no está establecido.
-
-Si utiliza [Sauce Connect Proxy](https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy), inicia a través de:
+If you use [Sauce Connect Proxy](https://docs.saucelabs.com/secure-connections/sauce-connect-5), start it via:
 
 ```sh
 sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090

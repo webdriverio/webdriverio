@@ -69,7 +69,7 @@ export type GitMetaData = {
     last_tag: string | null;
     commits_since_last_tag: number;
     remotes: Array<{ name: string; url: string }>;
-};
+}
 
 export const DEFAULT_REQUEST_CONFIG = {
     headers: {
@@ -249,7 +249,7 @@ export async function nodeRequest(requestType: string, apiEndpoint: string, opti
     A class wrapper for error handling. The wrapper wraps all the methods of the class with a error handler function.
     If any exception occurs in any of the class method, that will get caught in the wrapper which logs and reports the error.
  */
-type ClassType = { new(...args: unknown[]): unknown; }; // A generic type for a class
+type ClassType = { new(...args: unknown[]): unknown; } // A generic type for a class
 export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     const prototype = errorClass.prototype
 
@@ -259,7 +259,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 
     Object.getOwnPropertyNames(prototype).forEach((methodName) => {
         const method = prototype[methodName]
-        if (typeof method === 'function' && methodName !== 'constructor') {
+        if (typeof method === 'function' && methodName !== 'constructor' && methodName !== 'commandWrapper') {
             // In order to preserve this context, need to define like this
             Object.defineProperty(prototype, methodName, {
                 writable: true,
@@ -1515,7 +1515,7 @@ type PollingResult = {
     data: any;
     headers: Record<string, any>;
     message?: string; // Optional message for timeout cases
-  };
+}
 
 export async function pollApi(
     url: string,

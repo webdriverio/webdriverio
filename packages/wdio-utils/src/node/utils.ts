@@ -282,7 +282,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     const hasChromedriverInstalled = await fsp.access(executablePath).then(() => true, () => false)
     if (!hasChromedriverInstalled) {
         log.info(`Downloading Chromedriver v${buildId}`)
-        const chromedriverInstallOpts: InstallOptions & {unpack?: true} = {
+        const chromedriverInstallOpts: InstallOptions & { unpack?: true } = {
             cacheDir,
             buildId,
             platform,

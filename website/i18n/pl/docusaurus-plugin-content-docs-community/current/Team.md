@@ -3,7 +3,6 @@ id: team
 title: Zespół
 ---
 
-
 Rozwój WebdriverIO jest prowadzony przez dedykowany zespół programistów i specjalistów SDET z różnych firm, a także kontrybutorów z całego świata.
 
 ## Techniczny Komitet Sterujący

@@ -55,7 +55,23 @@ it('should test something', (done) => {
 
 ### Opciones de Mocha
 
-Las siguientes opciones se pueden aplicar en su `wdio.conf.js` para configurar su entorno Mocha. __Nota:__ no todas las opciones son compatibles, p. ej. aplicar la opción `paralela` causará un error ya que el testrunner WDIO tiene su propia manera de ejecutar pruebas en paralelo. Se pueden ejecutar las siguientes acciones:
+Las siguientes opciones se pueden aplicar en su `wdio.conf.js` para configurar su entorno Mocha. __Nota:__ no todas las opciones son compatibles, p. ej. aplicar la opción `paralela` causará un error ya que el testrunner WDIO tiene su propia manera de ejecutar pruebas en paralelo. You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --mochaOpts.grep "my test" --mochaOpts.bail --no-mochaOpts.checkLeaks
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Mocha options are supported:
 
 #### require
 La opción `require` es útil cuando desea agregar o extender alguna funcionalidad básica (opción de framework WebdriverIo).
@@ -142,35 +158,25 @@ npm install @wdio/jasmine-framework --save-dev
 
 A continuación, puede configurar su entorno Jasmine configurando una propiedad `jasmineOpts` en su configuración. Puede encontrar una lista de todas las opciones en el sitio web [del proyecto Mocha](https://jasmine.github.io/api/3.5/Configuration.html).
 
-### Interceptar Aserción
-
-El framework de Jasmine le permite interceptar cada afirmación para registrar el estado de la aplicación o sitio web, dependiendo del resultado.
-
-Por ejemplo, es bastante práctico tomar una captura de pantalla cada vez que una afirmación falla. En tu `jasmineOpts` puedes añadir una propiedad llamada `expectationResultHandler` que toma una función para ejecutar. Los parámetros de la función proporcionan información acerca del resultado de la afirmación.
-
-El siguiente ejemplo muestra cómo tomar una captura de pantalla si una afirmación falla:
-
-```js
-jasmineOpts: {
-    defaultTimeoutInterval: 10000,
-    expectationResultHandler: function(passed, assertion) {
-        /**
-         * only take screenshot if assertion failed
-         */
-        if(passed) {
-            return
-        }
-
-        browser.saveScreenshot(`assertionError_${assertion.error.message}.png`)
-    }
-},
-```
-
-**Nota:** No se puede detener la ejecución de la prueba para hacer algo asíncrono. Puede suceder que el comando tome demasiado tiempo y el estado del sitio web haya cambiado. (Aunque normalmente, después de otros 2 comandos se hace la captura de pantalla de todos modos, lo que sigue proporcionando _alguna información valiosa sobre el error_)
-
 ### Opciones de Jasmine
 
-Las siguientes opciones pueden ser aplicadas en su `wdio.conf.js` para configurar su entorno de Jasmine utilizando la propiedad `jasmineOpts`. Para obtener más información sobre estas opciones de configuración, consulte la [documentación de Jasmine](https://jasmine.github.io/api/edge/Configuration).
+Las siguientes opciones pueden ser aplicadas en su `wdio.conf.js` para configurar su entorno de Jasmine utilizando la propiedad `jasmineOpts`. Para obtener más información sobre estas opciones de configuración, consulte la [documentación de Jasmine](https://jasmine.github.io/api/edge/Configuration). You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --jasmineOpts.grep "my test" --jasmineOpts.failSpecWithNoExpectations --no-jasmineOpts.random
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Jasmine options are supported:
 
 #### defaultTimeoutInterval
 Intervalo de tiempo de espera por defecto para las operaciones de Jasmin.
@@ -240,6 +246,21 @@ Para levantarse y funcionar rápidamente con Cupeber, échale un vistazo a nuest
 
 Las siguientes opciones pueden ser aplicadas en su `wdio.conf.js` para configurar su entorno de Jasmine utilizando la propiedad `jasmineOpts`:
 
+:::tip Adjusting options through the command line
+The `cucumberOpts`, such as custom `tags` for filtering tests, can be specified through the command line. This is accomplished by using the `cucumberOpts.{optionName}="value"` format.
+
+For example, if you want to run only the tests that are tagged with `@smoke`, you can use the following command:
+
+```sh
+# When you only want to run tests that hold the tag "@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.tags="@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.name="some scenario name" --cucumberOpts.failFast
+```
+
+This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that only tests with this tag are executed.
+
+:::
+
 #### backtrace
 Mostrar el backtrace completo para errores.
 
@@ -271,7 +292,7 @@ Abordar la ejecución en el primer fallo.
 
 Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### names
+#### name
 Ejecutar sólo los escenarios con el nombre que coincide con la expresión (repetible).
 
 Tipo: `String`<br /> Predeterminado: `localhost`
@@ -322,6 +343,26 @@ Type: `Number`<br /> Default: `0`
 Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
 
 Type: `RegExp`
+
+#### language
+Default language for your feature files
+
+Type: `String`<br /> Default: `en`
+
+#### order
+Run tests in defined / random order
+
+Type: `String`<br /> Default: `defined`
+
+#### format
+Name and output file path of formatter to use. WebdriverIO primarily supports only the [Formatters](https://github.com/cucumber/cucumber-js/blob/main/docs/formatters.md) that writes output to a file.
+
+Type: `string[]`<br />
+
+#### formatOptions
+Options to be provided to formatters
+
+Type: `object`<br />
 
 #### tagsInTitle
 Add cucumber tags to feature or scenario name
@@ -386,10 +427,45 @@ import { Given, When, Then } from '@cucumber/cucumber'
 Esto asegura que usted utilice los ayudantes adecuados dentro del framework WebdriverIO y le permite usar una versión independiente de Cupeber para otros tipos de pruebas.
 
 ```js
-import { Given, When, Then } from '@wdio/cucumber-framework'
+import { Given, When, Then, world, context } from '@wdio/cucumber-framework'
 ```
 
 This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independent Cucumber version for other types of testing.
+
+### Publishing Report
+
+Cucumber provides a feature to publish your test run reports to `https://reports.cucumber.io/`, which can be controlled either by setting the `publish` flag in `cucumberOpts` or by configuring the `CUCUMBER_PUBLISH_TOKEN` environment variable. However, when you use `WebdriverIO` for test execution, there's a limitation with this approach. It updates the reports separately for each feature file, making it difficult to view a consolidated report.
+
+To overcome this limitation, we've introduced a promise-based method called `publishCucumberReport` within `@wdio/cucumber-framework`. This method should be called in the `onComplete` hook, which is the optimal place to invoke it. `publishCucumberReport` requires the input of the report directory where cucumber message reports are stored.
+
+You can generate `cucumber message` reports by configuring the `format` option in your `cucumberOpts`. It's highly recommended to provide a dynamic file name within the `cucumber message` format option to prevent overwriting reports and ensure that each test run is accurately recorded.
+
+Before using this function, make sure to set the following environment variables:
+- CUCUMBER_PUBLISH_REPORT_URL: The URL where you want to publish the Cucumber report. If not provided, the default URL 'https://messages.cucumber.io/api/reports' will be used.
+- CUCUMBER_PUBLISH_REPORT_TOKEN: The authorization token required to publish the report. If this token is not set, the function will exit without publishing the report.
+
+Here's an example of the necessary configurations and code samples for implementation:
+
+```javascript
+import { v4 as uuidv4 } from 'uuid'
+import { publishCucumberReport } from '@wdio/cucumber-framework';
+
+export const config = {
+    // ... Other Configuration Options
+    cucumberOpts: {
+        // ... Cucumber Options Configuration
+        format: [
+            ['message', `./reports/${uuidv4()}.ndjson`],
+            ['json', './reports/test-report.json']
+        ]
+    },
+    async onComplete() {
+        await publishCucumberReport('./reports');
+    }
+}
+```
+
+Please note that `./reports/` is the directory where `cucumber message` reports will be stored.
 
 ## Using Serenity/JS
 

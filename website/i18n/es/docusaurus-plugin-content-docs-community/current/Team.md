@@ -3,7 +3,6 @@ id: team
 title: El equipo
 ---
 
-
 El desarrollo de WebdriverIO está dirigido por un equipo dedicado de desarrolladores y SDET de varias empresas, así como contribuciones de personas de todo el mundo.
 
 ## Comité Directivo Técnico

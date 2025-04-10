@@ -256,34 +256,11 @@ export const config = {
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
         scenarioLevelReporter: false // Enable this to make webdriver.io behave as if scenarios and not steps were the tests.
     },
-    // For convenience, if ts-node or @babel/register modules are detected
-    // they are automatically loaded for config parsing so that TypeScript and
-    // future ES features can be used in wdio configs, and are also
-    // automatically loaded for test running so that tests can be written
-    // using TypeScript and future ES features.
-    // Because this may not be ideal in every situation, the following options
-    // may be used to customize the loading for test running, incase it has
-    // other requirements.
-    autoCompileOpts: {
-        //
-        // To disable auto-loading entirely set this to false.
-        autoCompile: true, // <boolean> Disable this to turn off autoloading. Note: When disabling, you will need to handle calling any such libraries yourself.
-        //
-        // If you have ts-node installed, you can customize how options are passed to it here:
-        // Any valid ts-node config option is allowed. Alternatively the ENV Vars could also be used instead of this.
-        // See also: https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
-        // See also RegisterOptions in https://github.com/TypeStrong/ts-node/blob/master/src/index.ts
-        tsNodeOpts: {
-            transpileOnly: true,
-            project: 'tsconfig.json'
-        },
-        // If @babel/register is installed, you can customize how options are passed to it here:
-        // Any valid @babel/register config option is allowed.
-        // https://babeljs.io/docs/en/babel-register#specifying-options
-        babelOpts: {
-            ignore: []
-        },
-    },
+    // Specify a custom tsconfig path - WDIO uses `tsx` to compile TypeScript files
+    // Your TSConfig is automatically detected from the current working directory
+    // but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH env var
+    // See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
+    tsConfigPath: 'path/to/tsconfig.json',
     //
     // =====
     // Hooks
@@ -490,6 +467,22 @@ export const config = {
      * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     afterFeature: function (uri, feature) {
+    },
+    /**
+     * Runs before a WebdriverIO assertion library makes an assertion.
+     * @param commandName command name
+     * @param args        arguments that command would receive
+     */
+    beforeAssertion: function (params) {
+    },
+    /**
+     * Runs after a WebdriverIO command gets executed
+     * @param commandName  command name
+     * @param args         arguments that command would receive
+     * @param result       result of the command
+     * @param error        error in case something went wrong
+     */
+    afterAssertion: function (params) {
     }
 }
 ```

@@ -478,7 +478,7 @@ declare global {
      * @param timeout Custom timeout for an async spec.
      * @param retries Custom retry count for this single spec (WebdriverIO specific)
      */
-    function it(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function it(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void
 
     /**
      * A focused `it`. If suites or specs are focused, only those that are focused will be executed.
@@ -487,7 +487,7 @@ declare global {
      * @param timeout Custom timeout for an async spec.
      * @param retries Custom retry count for this single spec (WebdriverIO specific)
      */
-    function fit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function fit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void
 
     /**
      * A temporarily disabled `it`. The spec will report as pending and will not be executed.
@@ -496,7 +496,7 @@ declare global {
      * @param timeout Custom timeout for an async spec.
      * @param retries Custom retry count for this single spec (WebdriverIO specific)
      */
-    function xit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function xit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void
 
     /**
      * Run some shared setup before each of the specs in the describe in which it is called.
@@ -504,7 +504,7 @@ declare global {
      * @param timeout Custom timeout for an async beforeEach.
      * @param retries Custom retry count for this single hook (WebdriverIO specific)
      */
-    function beforeEach(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function beforeEach(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void
 
     /**
      * Run some shared teardown after each of the specs in the describe in which it is called.
@@ -512,7 +512,7 @@ declare global {
      * @param timeout Custom timeout for an async afterEach.
      * @param retries Custom retry count for this single hook (WebdriverIO specific)
      */
-    function afterEach(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function afterEach(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void
 
     /**
      * Run some shared setup once before all of the specs in the describe are run.
@@ -521,7 +521,7 @@ declare global {
      * @param timeout Custom timeout for an async beforeAll.
      * @param retries Custom retry count for this single hook (WebdriverIO specific)
      */
-    function beforeAll(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function beforeAll(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void
 
     /**
      * Run some shared teardown once before all of the specs in the describe are run.
@@ -530,7 +530,7 @@ declare global {
      * @param timeout Custom timeout for an async afterAll
      * @param retries Custom retry count for this single hook (WebdriverIO specific)
      */
-    function afterAll(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function afterAll(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void
 
     namespace WebdriverIO {
         interface JasmineOpts extends jasmineNodeOpts {}

@@ -54,14 +54,14 @@ export interface SnapshotResultMessage {
     origin: 'worker'
     name: 'snapshot'
     content: {
-       filepath: string
-       added: number
-       fileDeleted: boolean
-       matched: number
-       unchecked: number
-       uncheckedKeys: string[]
-       unmatched: number
-       updated: number
+        filepath: string
+        added: number
+        fileDeleted: boolean
+        matched: number
+        unchecked: number
+        uncheckedKeys: string[]
+        unmatched: number
+        updated: number
     }[]
 }
 

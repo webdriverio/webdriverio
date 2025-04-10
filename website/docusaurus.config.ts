@@ -34,7 +34,17 @@ const config: Config = {
     },
     i18n: {
         defaultLocale: 'en',
-        locales: ['en', 'de', 'es', 'hi', 'fr', 'uk', 'fa', 'ta'/*, 'zh-CN', 'ru' */],
+        locales: [
+            'en',
+            'de',
+            'es',
+            'hi',
+            'fr',
+            'uk',
+            'fa',
+            'ta',
+            'pt'
+        ],
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',

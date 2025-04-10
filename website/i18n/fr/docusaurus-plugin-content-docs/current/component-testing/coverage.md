@@ -3,7 +3,7 @@ id: coverage
 title: Couverture
 ---
 
-L'exécuteur du navigateur WebdriverIO prend en charge les rapports de couverture de code en utilisant [`istanbul`](https://istanbul.js.org/). Le testrunner vous permettra d'automatiser la couverture de votre code et de capturer le code pour vous.
+L'exécuteur du navigateur WebdriverIO prend en charge les rapports de couverture de code en utilisant [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code and capture code coverage for you.
 
 ## Configurer
 

@@ -88,7 +88,7 @@ Standardmäßig beträgt das Timeout 10 Sekunden, was bedeutet, dass ein einzeln
 Ein einzelner Test in Mocha sieht so aus:
 
 ```js
-it('should login into the application', () => {
+it('should login into the application', async () => {
     await browser.url('/login')
 
     const form = await $('form')

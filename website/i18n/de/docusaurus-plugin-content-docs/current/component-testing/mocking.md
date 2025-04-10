@@ -10,7 +10,7 @@ Beim Schreiben von Tests ist es nur eine Frage der Zeit, bis Sie eine „gefäls
 Um zu überprüfen, ob bestimmte Funktionshandler im Rahmen Ihrer Komponententests aufgerufen werden, exportiert das Modul `@wdio/browser-runner` Mocking Hilfsmittel, mit denen Sie testen können, ob diese Funktionen aufgerufen wurden. Sie können diese Methoden importieren über:
 
 ```js
-import { fn, spy } from '@wdio/browser-runner'
+import { fn, spyOn } from '@wdio/browser-runner'
 ```
 
 Durch den Import von `fn` können Sie eine Spionagefunktion (Mock) erstellen, um ihre Ausführung zu verfolgen, und mit `spyOn` eine Methode auf einem bereits erstellten Objekt verfolgen.

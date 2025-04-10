@@ -464,7 +464,7 @@ export interface ActionParameter {
     actions: Action[]
 }
 
-export type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
+export type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release'
 export interface TouchAction {
     action: ActionTypes,
     x?: number,
@@ -472,8 +472,8 @@ export interface TouchAction {
     element?: WebdriverIO.Element,
     ms?: number
 }
-export type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
-export type TouchActions = TouchActionParameter | TouchActionParameter[];
+export type TouchActionParameter = string | string[] | TouchAction | TouchAction[]
+export type TouchActions = TouchActionParameter | TouchActionParameter[]
 
 export type Matcher = {
     name: string,
@@ -578,7 +578,7 @@ type IosContextBundleId  = {
     bundleId?: string;
 }
 
-export type IosDetailedContext = AppiumDetailedContextInterface & IosContextBundleId;
+export type IosDetailedContext = AppiumDetailedContextInterface & IosContextBundleId
 
 export type AndroidDetailedContext = AppiumDetailedContextInterface & {
     androidWebviewData?: {
@@ -593,9 +593,9 @@ export type AndroidDetailedContext = AppiumDetailedContextInterface & {
     };
     packageName?: string;
     webviewPageId?: string;
-};
+}
 
-export type AppiumDetailedCrossPlatformContexts = (IosDetailedContext | AndroidDetailedContext)[];
+export type AppiumDetailedCrossPlatformContexts = (IosDetailedContext | AndroidDetailedContext)[]
 
 export type GetContextsOptions = {
     androidWebviewConnectionRetryTime?: number;
@@ -611,8 +611,8 @@ export type ActiveAppInfo = {
     bundleId: string;
     name: string;
     processArguments: {
-      args: string[];
-      env: Record<string, string>;
+        args: string[];
+        env: Record<string, string>;
     };
 }
 

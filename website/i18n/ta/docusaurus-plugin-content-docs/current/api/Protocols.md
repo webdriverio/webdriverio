@@ -24,7 +24,7 @@ $('#lst-ib').getText()
 
 [WebDriver](https://w3c.github.io/webdriver/#elements) நெறிமுறை என்பது பிரௌசரைத் தானியங்குபடுத்துவதற்கான ஒரு இணைய தரநிலையாகும். வேறுசில E2E கருவிகளுக்கு மாறாக, உங்கள் பயனர்கள் பயன்படுத்தும் உண்மையான பிரௌசரில் ஆட்டோமேஷனைச் செய்ய முடியும் என்று உத்தரவாதம் அளிக்கிறது, எ.கா. பயர்பாக்ஸ், சஃபாரி மற்றும் குரோம் மற்றும் எட்ஜ் போன்ற குரோமியம் அடிப்படையிலான பிரௌசர், மற்றும் பிரௌசர் இயந்திரங்களில் மட்டும் அல்ல, எ.கா. வெப்கிட், வேறுபட்டது.
 
-[Chrome DevTools](https://w3c.github.io/webdriver/#elements) போன்ற பிழைத்திருத்த நெறிமுறைகளுக்கு மாறாக WebDriver நெறிமுறையைப் பயன்படுத்துவதன் நன்மை என்னவென்றால், எல்லா பிரௌசரிலும் ஒரே மாதிரியாக தொடர்பு கொள்ள அனுமதிக்கும் குறிப்பிட்ட கட்டளைகளின் தொகுப்பு உங்களிடம் உள்ளது, இது சிதைவுக்கான வாய்ப்பைக் குறைக்கிறது. மேலும் [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) மற்றும் [others](https://github.com/christian-bromann/awesome-selenium#cloud-services)போன்ற கிளவுட் விற்பனையாளர்களைப் பயன்படுத்துவதன் மூலம் இந்த நெறிமுறை திறன்கள் பெருமளவு ஸ்கேலபிலிட்டியை வழங்குகிறது.
+[Chrome DevTools](https://w3c.github.io/webdriver/#elements) போன்ற பிழைத்திருத்த நெறிமுறைகளுக்கு மாறாக WebDriver நெறிமுறையைப் பயன்படுத்துவதன் நன்மை என்னவென்றால், எல்லா பிரௌசரிலும் ஒரே மாதிரியாக தொடர்பு கொள்ள அனுமதிக்கும் குறிப்பிட்ட கட்டளைகளின் தொகுப்பு உங்களிடம் உள்ளது, இது சிதைவுக்கான வாய்ப்பைக் குறைக்கிறது. Furthermore offers this protocol abilities for massive scalability by using cloud vendors such as [Sauce Labs](https://saucelabs.com/), [BrowserStack](https://www.browserstack.com/) and [others](https://github.com/christian-bromann/awesome-selenium#cloud-services).
 
 ## WebDriver Bidi Protocol
 
@@ -45,7 +45,7 @@ Appium [documentation](https://appium.github.io/appium.io/docs/en/about-appium/i
 
 ## Chromium
 
-Chromium நெறிமுறையானது WebDriver நெறிமுறையின் மேல் ஒரு சூப்பர் செட் கட்டளைகளை வழங்குகிறது, இது [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary)மூலம் தானியங்கு அமர்வை இயக்கும்போது மட்டுமே ஆதரிக்கப்படும்.
+The Chromium protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary) or [Edgedriver](https://developer.microsoft.com/fr-fr/microsoft-edge/tools/webdriver).
 
 ## Firefox
 

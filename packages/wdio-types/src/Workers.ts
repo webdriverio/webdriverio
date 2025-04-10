@@ -54,7 +54,7 @@ export interface WorkerMessage {
 
 export interface Worker
     extends Omit<TestrunnerOptions, 'capabilities' | 'specs' | 'rootDir'>,
-        EventEmitter {
+    EventEmitter {
     capabilities: WebdriverIO.Capabilities
     config: TestrunnerOptions,
     caps: WebdriverIO.Capabilities

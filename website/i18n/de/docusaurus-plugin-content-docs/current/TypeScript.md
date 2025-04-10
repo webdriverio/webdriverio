@@ -5,28 +5,28 @@ title: TypeScript-Setup
 
 Sie können Tests mit [TypeScript](http://www.typescriptlang.org) schreiben, um eine automatische Vervollständigung und Typsicherheit zu erhalten.
 
-Sie müssen dazu [`typescript`](https://github.com/microsoft/TypeScript) und [`ts-node`](https://github.com/TypeStrong/ts-node) als `devDependencies` installieren, via:
+You will need [`tsx`](https://github.com/privatenumber/tsx) installed in `devDependencies`, via:
 
 ```bash npm2yarn
-$ npm install typescript ts-node --save-dev
+$ npm install tsx --save-dev
 ```
 
-WebdriverIO erkennt automatisch, ob diese Abhängigkeiten installiert sind, und kompiliert Ihre Konfiguration und Tests für Sie. Stellen Sie sicher, dass sich eine `tsconfig.json` im selben Verzeichnis wie Ihre WDIO-Konfiguration befindet. Wenn Sie konfigurieren müssen, wie ts-node ausgeführt wird, verwenden Sie bitte die Umgebungsvariablen für [ts-node](https://www.npmjs.com/package/ts-node#options) oder verwenden Sie wdio config's [autoCompileOpts](configurationfile)  Option.
+WebdriverIO erkennt automatisch, ob diese Abhängigkeiten installiert sind, und kompiliert Ihre Konfiguration und Tests für Sie. Ensure to have a `tsconfig.json` in the same directory as your WDIO config.
 
-## Konfiguration
+#### Custom TSConfig
 
-You can provide custom `ts-node` options through the environment (by default it uses the tsconfig.json in the root relative to your wdio config if the file exists):
+If you need to set a different path for `tsconfig.json` please set the TSCONFIG_PATH environment variable with your desired path, or use wdio config's [tsConfigPath setting](/docs/configurationfile).
 
-```sh
-# run wdio testrunner with custom options
-TS_NODE_PROJECT=./config/tsconfig.e2e.json TS_NODE_TYPE_CHECK=true wdio run wdio.conf.ts
-```
+Alternatively, you can use the [environment variable](https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path) for `tsx`.
 
-Die minimale TypeScript-Version ist `v4.0.5`.
 
-## Framework-Setup
+#### Type Checking
 
-Ihre `tsconfig.json` benötigt Folgendes:
+Note that `tsx` does not support type-checking - if you wish to check your types then you will need to do this in a separate step with `tsc`.
+
+## Framework Setup
+
+Your `tsconfig.json` needs the following:
 
 ```json title="tsconfig.json"
 {
@@ -36,13 +36,13 @@ Ihre `tsconfig.json` benötigt Folgendes:
 }
 ```
 
-Bitte vermeiden Sie den expliziten Import von `webdriverio` oder `@wdio/sync`. `WebdriverIO` und `WebDriver` -Typen sind von überall aus zugänglich, sobald sie zu `types` in `tsconfig.json` hinzugefügt wurden. Wenn Sie zusätzliche WebdriverIO-Dienste, Plugins oder das Automatisierungspaket `devtools` verwenden, fügen Sie diese bitte auch der Liste `types` hinzu, da diese ebenfalls viele zusätzliche Typisierungen bereitstellen.
+Please avoid importing `webdriverio` or `@wdio/sync` explicitly. `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
 
-## Framework-Typen
+## Framework Types
 
-Je nach verwendetem Framework müssen Sie die Typen für dieses Framework zu Ihrer  `types` Eigenschaft in `tsconfig.json` hinzufügen und seine Typdefinitionen installieren. Dies ist besonders wichtig, wenn Sie Typunterstützung für die integrierte Assertion-Bibliothek [`Expect-Webdriverio`](https://www.npmjs.com/package/expect-webdriverio) haben möchten.
+Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions. This is especially important if you want to have type support for the built-in assertion library [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio).
 
-Wenn Sie sich beispielsweise für die Verwendung des Mocha-Frameworks entscheiden, müssen Sie `@types/mocha` installieren und wie folgt hinzufügen, um alle Typen global verfügbar zu haben:
+For instance, if you decide to use the Mocha framework, you need to install `@types/mocha` and add it like this to have all types globally available:
 
 <Tabs
   defaultValue="mocha"
@@ -104,21 +104,28 @@ Wenn Sie Dienste verwenden, die dem Browserbereich Befehle hinzufügen, müssen 
 }
 ```
 
-Das Hinzufügen von Diensten und Reportern zu Ihrer TypeScript-Konfiguration stärkt auch die Typsicherheit Ihrer WebdriverIO-Konfigurationsdatei.
+Adding services and reporters to your TypeScript config also strengthen the type safety of your WebdriverIO config file.
 
-## Typdefinitionen
+## Type Definitions
 
-Beim Ausführen von WebdriverIO-Befehlen werden normalerweise alle Eigenschaften typisiert, sodass Sie sich nicht mit dem Import zusätzlicher Typen befassen müssen. Es gibt jedoch Fälle, in denen Sie Variablen im Voraus definieren möchten. Um sicherzustellen, dass diese typsicher sind, können Sie alle im Paket [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) definierten Typen verwenden. Wenn Sie beispielsweise die Remote-Option für `webdriverio` definieren möchten, können Sie Folgendes tun:
+When running WebdriverIO commands all properties are usually typed so that you don't have to deal with importing additional types. However there are cases where you want to define variables upfront. To ensure that these are type safe you can use all types defined in the [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) package. For example if you like to define the remote option for `webdriverio` you can do:
 
 ```ts
 import type { Options } from '@wdio/types'
 
-const config: Options.WebdriverIO = {
+// Here is an example where you might want to import the types directly
+const remoteConfig: Options.WebdriverIO = {
     hostname: 'http://localhost',
     port: '4444' // Error: Type 'string' is not assignable to type 'number'.ts(2322)
     capabilities: {
         browserName: 'chrome'
     }
+}
+
+// For other cases, you can use the `WebdriverIO` namespace
+export const config: WebdriverIO.Config = {
+  ...remoteConfig
+  // Other configs options
 }
 ```
 

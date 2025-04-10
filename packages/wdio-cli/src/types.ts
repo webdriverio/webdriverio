@@ -142,17 +142,17 @@ export interface OnCompleteResult {
 /** Extracted from @types/lodash@4.14.168 */
 export type ValueKeyIteratee<T> =
     | ((value: T, key: string) => NotVoid)
-    | IterateeShorthand<T>;
+    | IterateeShorthand<T>
 type IterateeShorthand<T> =
     | PropertyName
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     | [PropertyName, any]
-    | PartialShallow<T>;
-type PropertyName = string | number | symbol;
+    | PartialShallow<T>
+type PropertyName = string | number | symbol
 type PartialShallow<T> = {
     [P in keyof T]?: T[P] extends object ? object : T[P];
-};
-type NotVoid = unknown;
+}
+type NotVoid = unknown
 
 export interface ProjectProps {
     esmSupported: boolean

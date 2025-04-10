@@ -217,3 +217,40 @@ When(/^User (.) types a message into the chat/, async (userId) => {
     await browser.getInstance(`user${userId}`).$('#send').click()
 })
 ```
+
+## Extending TypeScript Types
+
+If you are using TypeScript and like to access the driver instance from the multiremote object directly, you can also extend the multiremote types to do so. For example, given the following capabilities:
+
+```ts title=wdio.conf.ts
+export const config: WebdriverIO.MultiremoteConfig = {
+    // ...
+    capabilities: {
+        myAppiumDriver: {
+            // ...
+        },
+        myChromeDriver: {
+            // ...
+        }
+    }
+    // ...
+}
+```
+
+You can extend the multiremote instance by adding your custom driver names, e.g.:
+
+```ts title=wdio.d.ts
+declare namespace WebdriverIO {
+    interface MultiRemoteBrowser {
+        myAppiumDriver: WebdriverIO.Browser
+        myChromeDriver: WebdriverIO.Browser
+    }
+}
+```
+
+Now you can access the drivers directly via, e.g.:
+
+```ts
+multiremotebrowser.myAppiumDriver.$$(...)
+multiremotebrowser.myChromeDriver.$(...)
+```

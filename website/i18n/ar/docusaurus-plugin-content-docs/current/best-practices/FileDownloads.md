@@ -1,15 +1,15 @@
 ---
-id: file-download
-title: File Download
+id: تنزيل-الملف
+title: تنزيل الملف
 ---
 
-When automating file downloads in web testing, it's essential to handle them consistently across different browsers to ensure reliable test execution.
+عند أتمتة تنزيل الملف في اختبار الويب من الأساسي تنفيذها بشكل مستمر عبر متصفحات مختلفة للتأكد من موثوقية تنفيذ الاختبار.
 
-Here, we provide best practices for file downloads and demonstrate how to configure download directories for **Google Chrome**, **Mozilla Firefox**, and **Microsoft Edge**.
+هنا، نحن نوفر أفضل الممارسات لتنزيل الملفات ونوضح كيفية تكوين أدلة التحميل لـ **Google Chrome**، **Mozilla Firefox**، و **Microsoft Edge**.
 
-## Download Paths
+## مسارات التنزيل
 
-**Hardcoding** download paths in test scripts can lead to maintenance issues and portability problems. Utilize **relative paths** for download directories to ensure portability and compatibility across different environments.
+**الترميز الثابت** مسارات التنزيل في نص الاختبار يمكن أن يؤدي إلى مشاكل في الصيانة وإمكانية النقل. استخدام **المسارات النسبية** لمسارات التنزيل لضمان قابلية النقل والتوافق عبر البيئات المختلفة.
 
 ```javascript
 // 👎
@@ -21,7 +21,7 @@ const downloadPath = '/path/to/downloads';
 const downloadPath = path.join(__dirname, 'downloads');
 ```
 
-## Wait Strategies
+## إستراتيجيات الإنتظار
 
 Failing to implement proper wait strategies can lead to race conditions or unreliable tests, especially for download completion. Implement **explicit** wait strategies to wait for file downloads to complete, ensuring synchronization between test steps.
 
