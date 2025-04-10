@@ -2,6 +2,8 @@ import logger from '@wdio/logger'
 import { transformCommandLogResult, sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
+import { type RequestInit as UndiciRequestInit } from 'undici'
+
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
 import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
 import type { WebDriverResponse, RequestLibResponse, RequestOptions, RequestEventHandler } from './types.js'
@@ -124,12 +126,16 @@ export abstract class WebDriverRequest {
 
     protected async _libRequest (url: URL, opts: RequestInit): Promise<Options.RequestLibResponse> {
         try {
+
+            const dispatcher = (opts as UndiciRequestInit).dispatcher
+
             const response = await this.fetch(url, {
                 method: opts.method,
                 body: JSON.stringify(opts.body),
                 headers: opts.headers as Record<string, string>,
                 signal: opts.signal,
-                redirect: opts.redirect
+                redirect: opts.redirect,
+                ...(dispatcher ? { dispatcher } : {})
             })
 
             // Cloning the response to prevent body unusable error
