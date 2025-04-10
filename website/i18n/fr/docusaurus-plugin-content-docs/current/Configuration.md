@@ -235,8 +235,7 @@ export default class YourAutomationLibrary {
 }
 ```
 
-Type: `String`<br />
-Default: `webdriver`
+Type: `String`<br /> Default: `webdriver`
 
 ### baseUrl
 
@@ -352,21 +351,7 @@ Type: `Number`<br /> Default: `0`
 
 Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
-Type: `Boolean`<br />
-Default: `true`
-
-### groupLogsByTestSpec
-
-Choose the log output view.
-
-If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
-
-If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
-
-By default, it is set to `false` so logs are printed in real-time.
-
-Type: `Boolean`<br />
-Default: `false`
+Type: `Boolean`<br /> Default: `true`
 
 ### groupLogsByTestSpec
 
@@ -402,13 +387,13 @@ Type: `Object`<br /> Default: `{ timeout: 10000 }`
 
 List of cucumber features with line numbers (when [using cucumber framework](./Frameworks.md#using-cucumber)).
 
-Type: `String[]` Default: `[]`
+Type: `String[]`<br /> Default: `[]`
 
 ### reporters
 
 List of reporters to use. A reporter can be either a string, or an array of `['reporterName', { /* reporter options */}]` where the first element is a string with the reporter name and the second element an object with reporter options.
 
-Type: `String[]|Object[]`<br /> Default: `[]`
+Type: `Boolean`<br /> Default: `true`
 
 Example:
 
@@ -427,31 +412,31 @@ reporters: [
 
 Determines in which interval the reporter should check if they are synchronized if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
 
-Type: `Number`<br /> Default: `100` (ms)
+Type: `String[]` Default: `[]`
 
 ### reporterSyncTimeout
 
 Determines the maximum time reporters have to finish uploading all their logs until an error is being thrown by the testrunner.
 
-Type: `Number`<br /> Default: `5000` (ms)
+Type: `String[]|Object[]`<br /> Default: `[]`
 
 ### execArgv
 
 Node arguments to specify when launching child processes.
 
-Type: `String[]`<br /> Default: `null`
+Type: `String`<br /> Default: `null`
 
 ### filesToWatch
 
 A list of glob supporting string patterns that tell the testrunner to have it additionally watch other files, e.g. application files, when running it with the `--watch` flag. By default the testrunner already watches all spec files.
 
-Type: `String[]`<br /> Default: `[]`
+Type: `String[]`<br /> Default: `null`
 
 ### updateSnapshots
 
 Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
 
-Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
+Type: `Boolean`<br /> Default: `false`
 
 ### resolveSnapshotPath
 
@@ -471,7 +456,7 @@ WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically det
 
 See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
 
-Type: `String`<br /> Default: `null`<br />
+Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided<br />
 
 ## Hooks
 
