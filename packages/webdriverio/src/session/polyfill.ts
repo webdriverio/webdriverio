@@ -83,6 +83,10 @@ export class PolyfillManager extends SessionManager {
                 ? this.#browser.scriptAddPreloadScript({
                     functionDeclaration,
                     contexts: [context.context]
+                }).catch(() => {
+                    /**
+                     * this may fail if the context is already destroyed
+                     */
                 })
                 : Promise.resolve(),
             this.#browser.scriptCallFunction({
