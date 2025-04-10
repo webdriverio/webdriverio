@@ -118,11 +118,11 @@ Compare options are options that influence the way the comparison, by [ResembleJ
 :::info NOTE
 
 - All options from the [Save Options](#save-options) can be used for the Compare methods
-- All compare options can be used during service instantiation **or** for every single check method. If a method option has the same key as an option that has been set during the instantiation of the service, then the method compare option will override the service compare option value.
+- If a method option has the same key as an option that has been set during the instantiation of the service, then the method compare option will override the service compare option value. All compare options can be used during service instantiation **or** for every single check method.
 - All options can be used for:
-  - Web
-  - Hybrid App
-  - Native App
+    - Web
+    - Hybrid App
+    - Native App
 
 :::
 
