@@ -89,7 +89,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 
 ## Services
 
-Si utiliza servicios que añaden comandos al ámbito del navegador, también necesita incluirlos en su `tsconfig.json`. Por ejemplo, si utiliza `@wdio/lighthouse-service` asegúrese de añadirlo a los `tipos` también, por ejemplo.:
+If you use services that add commands to the browser scope you also need to include these into your `tsconfig.json`. For example if you use the `@wdio/lighthouse-service` ensure that you add it to the `types` as well, e.g.:
 
 ```json title="tsconfig.json"
 {
