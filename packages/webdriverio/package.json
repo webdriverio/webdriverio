@@ -102,7 +102,7 @@
     "webdriver": "workspace:*"
   },
   "peerDependencies": {
-    "puppeteer-core": "^22.3.0"
+    "puppeteer-core": ">=22.x || <=24.x"
   },
   "peerDependenciesMeta": {
     "puppeteer-core": {
