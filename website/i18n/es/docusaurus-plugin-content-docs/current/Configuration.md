@@ -47,7 +47,7 @@ Type: `String`<br /> Default: `undefined`
 
 ### key
 
-Su nombre de usuario de servicio en la nube (solo funciona para [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) o [cuentas LambdaTest](https://www.lambdatest.com)). Si se establece, WebdriverIO automáticamente establecerá las opciones de conexión para usted. Si no utiliza un proveedor de nube esto se puede utilizar para autenticar cualquier otro backend de WebDriver.
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). Si se establece, WebdriverIO automáticamente establecerá las opciones de conexión para usted. Si no utiliza un proveedor de nube esto se puede utilizar para autenticar cualquier otro backend de WebDriver.
 
 Type: `String`<br /> Default: `undefined`
 
@@ -68,7 +68,7 @@ Adicionalmente, una utilidad útil es el [Configurador Automatizado de Pruebas](
 
 Type: `Object`<br /> Default: `null`
 
-**Ejemplo:**
+**Example:**
 
 ```js
 {
@@ -134,7 +134,7 @@ const credentials = `${username}:${password}`;
 // Encode the credentials using Base64
 const encodedCredentials = Buffer.from(credentials).toString('base64');
 
-export const config: WebdriverIO.Config = {
+export const config: WebdriverIO. Config = {
     // ...
     headers: {
         Authorization: `Basic ${encodedCredentials}`
@@ -230,13 +230,12 @@ export default class YourAutomationLibrary {
      */
     static reloadSession(
         instance: Client,
-        newCapabilities?: WebdriverIO.Capabilitie
+        newCapabilities?: WebdriverIO. Capabilitie
     ): Promise<string>;
 }
 ```
 
-Type: `String`<br />
-Default: `webdriver`
+Type: `String`<br /> Default: `webdriver`
 
 ### baseUrl
 
@@ -248,7 +247,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
 
 To increase the timeout for a _test_, please see the framework docs.
 
@@ -332,7 +331,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
+If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
@@ -352,21 +351,7 @@ Type: `Number`<br /> Default: `0`
 
 Whether or not retried spec files should be retried immediately or deferred to the end of the queue.
 
-Type: `Boolean`<br />
-Default: `true`
-
-### groupLogsByTestSpec
-
-Choose the log output view.
-
-If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
-
-If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
-
-By default, it is set to `false` so logs are printed in real-time.
-
-Type: `Boolean`<br />
-Default: `false`
+Type: `Boolean`<br /> Default: `true`
 
 ### groupLogsByTestSpec
 
@@ -402,13 +387,13 @@ Type: `Object`<br /> Default: `{ timeout: 10000 }`
 
 List of cucumber features with line numbers (when [using cucumber framework](./Frameworks.md#using-cucumber)).
 
-Type: `String[]` Default: `[]`
+Type: `String[]`<br /> Default: `[]`
 
 ### reporters
 
 List of reporters to use. A reporter can be either a string, or an array of `['reporterName', { /* reporter options */}]` where the first element is a string with the reporter name and the second element an object with reporter options.
 
-Type: `String[]|Object[]`<br /> Default: `[]`
+Type: `Boolean`<br /> Default: `true`
 
 Example:
 
@@ -427,41 +412,41 @@ reporters: [
 
 Determines in which interval the reporter should check if they are synchronized if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
 
-Type: `Number`<br /> Default: `100` (ms)
+Type: `String[]` Default: `[]`
 
 ### reporterSyncTimeout
 
 Determines the maximum time reporters have to finish uploading all their logs until an error is being thrown by the testrunner.
 
-Type: `Number`<br /> Default: `5000` (ms)
+Type: `String[]|Object[]`<br /> Default: `[]`
 
 ### execArgv
 
 Node arguments to specify when launching child processes.
 
-Type: `String[]`<br /> Default: `null`
+Type: `String`<br /> Default: `null`
 
 ### filesToWatch
 
 A list of glob supporting string patterns that tell the testrunner to have it additionally watch other files, e.g. application files, when running it with the `--watch` flag. By default the testrunner already watches all spec files.
 
-Type: `String[]`<br /> Default: `[]`
+Type: `String[]`<br /> Default: `null`
 
 ### updateSnapshots
 
 Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
 
-Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
+Type: `Boolean`<br /> Default: `false`
 
 ### resolveSnapshotPath
 
 Overrides default snapshot path. For example, to store snapshots next to test files.
 
 ```ts title="wdio.conf.ts"
-export const config: WebdriverIO.Config = {
-    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
-}
+<code>test</code> (<code>object</code>): detalles de prueba
 ```
+ (object): detalles de prueba
+</code>
 
 Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
@@ -471,7 +456,7 @@ WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically det
 
 See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
 
-Type: `String`<br /> Default: `null`<br />
+Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided<br />
 
 ## Hooks
 
@@ -497,8 +482,8 @@ Gets executed before a worker process is spawned and can be used to initialize s
 Parameters:
 
 - `cid` (`string`): id de capacidad (por ejemplo, 0-0)
-- `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
-- `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
 - `argumentos` (`objeto`): objeto que se fusionará con la configuración principal una vez que se inicialice el trabajador
 - `execArgv` (`string[]`): lista de argumentos de cadena pasados al proceso de trabajo
 
@@ -510,7 +495,7 @@ Parameters:
 
 - `cid` (`string`): id de capacidad (por ejemplo, 0-0)
 - `exitCode` (`número`): 0 - éxito, 1 - error
-- `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
+- `specs` (`string[]`): specs to be run in the worker process
 - `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
 ### beforeSession
@@ -520,8 +505,8 @@ Gets executed just before initializing the webdriver session and test framework.
 Parameters:
 
 - `config` (`objeto`): objeto de configuración WebdriverIO
-- `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
-- `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
 
 ### before
 
@@ -547,7 +532,7 @@ Hook that gets executed *before* a hook within the suite starts (e.g. runs befor
 
 Parameters:
 
-- `test` (`object`): detalles de prueba
+- `test` (`object`): test details
 - `contexto` (`objeto`): contexto de prueba (representa el objeto del mundo en cupón)
 
 ### afterHook
@@ -556,7 +541,7 @@ Hook that gets executed *after* a hook within the suite ends (e.g. runs after ca
 
 Parameters:
 
-- `test` (`object`): detalles de prueba
+- `test` (`object`): test details
 - `contexto` (`objeto`): contexto de prueba (representa el objeto del mundo en cupón)
 - `resultado` (`objeto`): resultado de gancho (contiene `error`, `resultado`, `duración`, `pasado`, `reintentos` propiedades)
 
@@ -595,7 +580,7 @@ Function to be executed after a test (in Mocha/Jasmine) ends.
 
 Parameters:
 
-- `test` (`object`): detalles de prueba
+- `test` (`object`): test details
 - `contexto` (`objeto`): objeto de ámbito con el que se ejecutó la prueba
 - `result.error` (`Error`): objeto de error en caso de que la prueba falle, de lo contrario `indefinido`
 - `result.result` (`Any`): devuelve el objeto de la función de prueba
@@ -619,8 +604,8 @@ Gets executed after all tests are done. You still have access to all global vari
 Parameters:
 
 - `exitCode` (`número`): 0 - éxito, 1 - error
-- `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
-- `especificaciones` (`cadenas []`): especificaciones que se ejecutarán en el proceso de trabajo
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
 
 ### afterSession
 
@@ -640,7 +625,7 @@ Parameters:
 
 - `exitCode` (`número`): 0 - éxito, 1 - error
 - `config` (`objeto`): objeto de configuración WebdriverIO
-- `caps` (`object`): conteniendo capacidades para la sesión que aparecerán en el worker
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
 - `resultado` (`objeto`): objeto de resultados que contiene resultados de prueba
 
 ### onReload
@@ -677,7 +662,7 @@ Runs before a Cucumber Scenario.
 Parameters:
 
 - `mundo` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): objeto del mundo que contiene información sobre el ickle y paso de prueba
-- `contexto` (`objeto`): objeto Cucumber World
+- `context` (`object`): Cucumber World object
 
 ### afterScenario
 
@@ -690,7 +675,7 @@ Parameters:
 - `result.passed` (`boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
 - `result.error` (`string`): pila de errores si el escenario falló
 - `result.duration` (`number`): duración del escenario en milisegundos
-- `contexto` (`objeto`): objeto Cucumber World
+- `context` (`object`): Cucumber World object
 
 ### beforeStep
 
@@ -698,8 +683,8 @@ Runs before a Cucumber Step.
 
 Parameters:
 
-- `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): objeto de paso Cucumber
-- `paso` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): objeto de paso Cucumber
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
 - `context` (`object`): Cucumber World object
 
 ### afterStep
@@ -714,7 +699,7 @@ Parameters:
 - `result.passed` (`boolean`): verdadero si la prueba ha pasado, de lo contrario, falso
 - `result.error` (`string`): pila de errores si el escenario falló
 - `result.duration` (`number`): duración del escenario en milisegundos
-- `contexto` (`objeto`): objeto Cucumber World
+- `context` (`object`): Cucumber World object
 
 ### beforeAssertion
 
