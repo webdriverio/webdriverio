@@ -242,109 +242,109 @@ Tipo: `String`<br /> Padrão: `webdriver`
 
 Encurte chamadas de comando `url` definindo uma URL base.
 - Se o seu parâmetro `url` começar com `/`, então `baseUrl` será prefixado (exceto o caminho `baseUrl`, se houver um).
-- If your `url` parameter starts without a scheme or `/` (like `some/path`), then the full `baseUrl` is prepended directly.
+- Se o seu parâmetro `url` começa sem um esquema ou `/` (como `some/path`), então a URL `baseUrl` completa é precedida diretamente.
 
-Type: `String`<br /> Default: `null`
+Tipo: `String`<br /> Padrão: `null`
 
 ### waitforTimeout
 
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+Tempo limite padrão para todos os comandos `waitFor*`. (Observe o minúsculo `f` no nome da opção.) Este tempo limite __só__ afeta comandos que começam com `waitFor*` e seu tempo de espera padrão.
 
-To increase the timeout for a _test_, please see the framework docs.
+Para aumentar o tempo limite para um _teste_, consulte a documentação de framework.
 
-Type: `Number`<br /> Default: `5000`
+Tipo: `Número`<br /> Padrão: `5000`
 
 ### waitforInterval
 
-Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
+Intervalo padrão para todos os comandos `waitFor*` para verificar se um estado esperado (por exemplo, visibilidade) foi alterado.
 
-Type: `Number`<br /> Default: `100`
+Tipo: `Número`<br /> Padrão: `100`
 
 ### region
 
-If running on Sauce Labs, you can choose to run tests between different data centers: US or EU. To change your region to EU, add `region: 'eu'` to your config.
+Se funcionar no Sauce Labs, você pode optar por executar testes entre diferentes centros de dados: EUA ou UE. Para mudar sua região para EU, adicione `região: 'eu'` às suas configurações.
 
-__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
+__Nota:__ Isso só tem efeito se você fornecer as opções `user` e `key` que estão conectadas à sua conta Sauce Labs.
 
-Type: `String`<br /> Default: `us`
+Tipo: `String`<br /> Padrão: `en`
 
-*(only for vm and or em/simulators)*
+*(somente para vm e em/simuladores)*
 
 ---
 
 ## Testrunner Options
 
-The following options (including the ones listed above) are defined only for running WebdriverIO with the WDIO testrunner:
+As seguintes opções (incluindo as listadas acima) são definidas apenas para executar o WebdriverIO com o testrunner WDIO:
 
 ### specs
 
-Define specs for test execution. You can either specify a glob pattern to match multiple files at once or wrap a glob or set of paths into an array to run them within a single worker process. All paths are seen as relative from the config file path.
+Define especificações para a execução do teste. Você pode especificar um padrão glob para corresponder a vários arquivos de uma vez ou colocar um glob ou um conjunto de caminhos em um array para executá-los em um único processo worker Todos os caminhos são vistos como relativos do caminho do arquivo de configuração.
 
-Type: `(String | String[])[]`<br /> Default: `[]`
+Tipo: `String[]`<br /> Padrão: `[]`
 
 ### exclude
 
-Exclude specs from test execution. All paths are seen as relative from the config file path.
+Excluir especificações da execução do teste. Todos os caminhos são vistos como relativos no caminho do arquivo de configuração.
 
-Type: `String[]`<br /> Default: `[]`
+Tipo: `String[]`<br /> Padrão: `[]`
 
 ### suites
 
-An object describing various of suites, which you can then specify with the `--suite` option on the `wdio` CLI.
+Um objeto descrevendo várias conjuntos que você pode especificar com a opção `--suite` no CLI `wdio`.
 
-Type: `Object`<br /> Default: `{}`
+Tipo: `Object`<br /> Padrão: `{}`
 
 ### capabilities
 
-The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](/docs/multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
+O mesmo que a seção `capabilities` descrita acima exceto na opção de especificar um objeto [`multiremote`](/docs/multiremote) ou várias sessões WebDriver em um array para execução paralela.
 
-You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
+Você pode aplicar o mesmo fornecedor e recursos específicos do navegador como definidos [acima](/docs/configuration#capabilities).
 
-Type: `Object`|`Object[]`<br /> Default: `[{ 'wdio:maxInstances': 5, browserName: 'firefox' }]`
+Tipo: `Object`Object`Object[]`<br /> Padrão: `[{ 'wdio:maxInstances': 5, browserName: 'firefox' }]`
 
 ### maxInstances
 
-Maximum number of total parallel running workers.
+Número máximo de funcionários rodando em paralelo total.
 
-__Note:__ that it may be a number as high as `100`, when the tests are being performed on some external vendors such as Sauce Labs's machines. There, the tests are not tested on a single machine, but rather, on multiple VMs. If the tests are to be run on a local development machine, use a number that is more reasonable, such as `3`, `4`, or `5`. Essentially, this is the number of browsers that will be concurrently started and running your tests at the same time, so it depends on how much RAM there is on your machine, and how many other apps are running on your machine.
+__Nota:__ que pode ser um número tão alto quanto `100`, quando os testes estão a ser realizados em alguns fornecedores externos, como as máquinas de Sauce Labs. Lá, os testes não são testados em uma única máquina, mas sim em múltiplas VMs. Se quisermos que os testes sejam efectuados numa máquina de desenvolvimento local, utilizemos um número mais razoável, o que é mais razoável. como `3`, `4`, ou `5`. Essencialmente, este é o número de navegadores que serão simultaneamente iniciados e executando seus testes ao mesmo tempo, então depende de quanto RAM existe na sua máquina e quantos outros aplicativos estão sendo executados na sua máquina.
 
-You can also apply `maxInstances` within your capability objects using the `wdio:maxInstances` capability. This will limit the amount of parallel sessions for that particular capability.
+Você também pode aplicar `maxInstances` dentro de seus recursos usando a capacidade `wdio:maxInstances`. Isto limitará a quantidade de sessões paralelas para essa capacidade específica.
 
-Type: `Number`<br /> Default: `100`
+Tipo: `Number`<br /> Padrão: `100`
 
 ### maxInstancesPerCapability
 
-Maximum number of total parallel running workers per capability.
+Número máximo de trabalhadores rodando em paralelo por capacidade.
 
-Type: `Number`<br /> Default: `100`
+Tipo: `Number`<br /> Padrão: `100`
 
 ### injectGlobals
 
-Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment. If you set to `false`, you should import from `@wdio/globals`, e.g.:
+Insere os globais da WebdriverIO (por exemplo, `browser`, `$` e `$$`) no ambiente global. Se você definir como `false`, você deve importar do `@wdio/globals`, por exemplo:
 
 ```ts
 import { browser, $, $$, expect } from '@wdio/globals'
 ```
 
-Note: WebdriverIO doesn't handle injection of test framework specific globals.
+Nota: WebdriverIO não lida com a injeção do framework de teste globais específicos.
 
-Type: `Boolean`<br /> Default: `true`
+Tipo: `Boolean`<br /> Padrão: `true`
 
 ### bail
 
-If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) **Note:** A test in this context are all tests within a single spec file (when using Mocha or Jasmine) or all steps within a feature file (when using Cucumber). If you want to control the bail behavior within tests of a single test file, take a look at the available [framework](frameworks) options.
+Se você quiser que seu teste pare após um número específico de falhas no teste, use `basil`. (o padrão é `0`, que executa todos os testes, não importa o que.) **Nota:** Um teste neste contexto são todos os testes em um único arquivo de especificações (quando usando Mocha ou Jasmine) ou todas as etapas de um arquivo de recurso (quando usando Cucumber). Se você deseja controlar o comportamento de fiança dentro de testes de um único arquivo de teste, dê uma olhada nas opções disponíveis [framework](frameworks).
 
-Type: `Number`<br /> Default: `0` (don't bail; run all tests)
+Tipo: `Number`<br /> Padrão: `0` (não sacar; execute todos os testes)
 
 ### specFileRetries
 
-The number of times to retry an entire specfile when it fails as a whole.
+O número de vezes para tentar novamente uma especificação inteira quando ela falha como um todo.
 
-Type: `Number`<br /> Default: `0`
+Tipo: `Número`<br /> Padrão: `0`
 
 ### specFileRetriesDelay
 
-Delay in seconds between the spec file retry attempts
+Atraso em segundos entre as tentativas de tentativa de repetição de arquivo de especificação
 
 Tipo: `Número`<br /> Padrão: `0`
 
@@ -461,88 +461,88 @@ Tipo: `String`<br /> Padrão: `null`<br />
 
 ## Hooks
 
-O WDIO testrunner permite que você defina ganchos para serem acionados em momentos específicos do ciclo de vida do teste. This allows custom actions (e.g. take screenshot if a test fails).
+O WDIO testrunner permite que você defina ganchos para serem acionados em momentos específicos do ciclo de vida do teste. Isso permite ações personalizadas (por exemplo, fazer captura de tela se um teste falhar).
 
-Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
+Cada hook tem informações de parâmetro específico sobre o ciclo de vida (por exemplo, informações sobre a suíte ou o teste de teste). Leia mais sobre todas as propriedades de hook do [nosso exemplo de configuração](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
 
-**Note:** Some hooks (`onPrepare`, `onWorkerStart`, `onWorkerEnd` and `onComplete`) are executed in a different process and therefore can not share any global data with the other hooks that live in the worker process.
+**Nota:** Alguns hooks (`onPrepare`, `onWorkerStart`, `onWorkerEnd` e `onComplete`são executados em um processo diferente e, portanto, não podem compartilhar dados globais com os outros ganchos que vivem no processo do trabalhador.
 
 ### onPrepare
 
-Gets executed once before all workers get launched.
+Obtém executadas uma vez antes de todos os workers serem lançados.
 
-Parameters:
+Parâmetros:
 
-- `config` (`object`): WebdriverIO configuration object
-- `param` (`object[]`): list of capabilities details
+- `config` (`object`): Objeto de configuração do WebdriverIO
+- `param` (`object[]`): lista de detalhes do recurso
 
 ### onWorkerStart
 
-Gets executed before a worker process is spawned and can be used to initialize specific service for that worker as well as modify runtime environments in an async fashion.
+Obtém executadas antes de um processo worker ser gerado e pode ser usado para inicializar serviço específico para o trabalhador e também modificar os ambientes de tempo de execução de forma assíncrona.
 
-Parameters:
+Parâmetros:
 
 - `cid` (`string`): capability id (e.g 0-0)
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
-- `args` (`object`): object that will be merged with the main configuration once worker is initialized
-- `execArgv` (`string[]`): list of string arguments passed to the worker process
+- `caps` (`object`): contendo recursos para a sessão que serão gerados no worker
+- `specs` (`string[]`): especificações a serem executadas no processo de worker
+- `args` (`objeto`): objeto que será mesclado com a configuração principal quando o trabalhador for inicializado
+- `execArgv` (`string[]`): lista de argumentos de string passados ao processo do trabalhador
 
 ### onWorkerEnd
 
-Gets executed just after a worker process has exited.
+Obtém executada logo após o processo do trabalhador ter sido encerrado.
 
-Parameters:
+Parâmetros:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `exitCode` (`number`): 0 - success, 1 - fail
-- `specs` (`string[]`): specs to be run in the worker process
-- `retries` (`number`): number of spec level retries used as defined in [_"Add retries on a per-specfile basis"_](./Retry.md#add-retries-on-a-per-specfile-basis)
+- `specs` (`string[]`): especificações a serem executadas no processo de worker
+- `retries` (`number`): número de tentativas de nível de especificação usadas como definidas em [_"Adicionar tentativas por arquivo"_](./Retry.md#add-retries-on-a-per-specfile-basis)
 
 ### beforeSession
 
-Gets executed just before initializing the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
+Obtém executada antes de inicializar a sessão de webdriver e a estrutura de teste. Ele permite que você manipule configurações dependendo da capacidade ou especificação.
 
-Parameters:
+Parâmetros:
 
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `config` (`object`): Objeto de configuração do WebdriverIO
+- `caps` (`object`): contendo recursos para a sessão que serão gerados no trabalhador
+- `specs` (`string[]`): especificações a serem executadas no processo de trabalho
 
 ### before
 
-Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
+Obtém executado antes que a execução do teste comece. Nesse momento, você pode acessar todas as variáveis globais como o `browser`. É o lugar perfeito para definir comandos personalizados.
 
-Parameters:
+Parâmetros:
 
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
-- `browser` (`object`): instance of created browser/device session
+- `caps` (`objeto`): contendo recursos da sessão que será gerada no worker
+- `Especificações` (`string[]`): especificações a serem executadas no processo de worker
+- `browser` (`objeto`): instância da sessão de navegador/dispositivo criada
 
 ### beforeSuite
 
-Hook that gets executed before the suite starts (in Mocha/Jasmine only)
+Hook que é executado antes do suite começar (em Mocha/Jasmine apenas)
 
-Parameters:
+Parâmetros
 
-- `suite` (`object`): suite details
+- `suite` (`objeto`): detalhes da suite
 
 ### beforeHook
 
-Hook that gets executed *before* a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
+Hook que é executado *antes de* um hook dentro do suite iniciar (por exemplo, é executado antes de chamar beforeEach em Mocha)
 
-Parameters:
+Parâmetros
 
-- `test` (`object`): test details
-- `context` (`object`): test context (represents World object in Cucumber)
+- `test` (`objeto`): detalhes do teste
+- `context` (`object`): contexto de teste (representa objeto World em Cucumber)
 
 ### afterHook
 
-Hook that gets executed *after* a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
+Gancho que é executado *após* um gancho dentro do suite termina (por exemplo, é executado após a chamada depois de cada em Mocha)
 
-Parameters:
+Parâmetros
 
-- `test` (`object`): test details
+- `test` (`object`): detalhes do teste
 - `context` (`object`): test context (represents World object in Cucumber)
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
