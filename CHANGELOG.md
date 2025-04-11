@@ -23,6 +23,46 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.12.5 (2025-04-11)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#14379](https://github.com/webdriverio/webdriverio/pull/14379) feat(@wdio/protocols): Add "options" parameter to "terminateApp" command ([@Nyaran](https://github.com/Nyaran))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14406](https://github.com/webdriverio/webdriverio/pull/14406) fix(interception): Return raw non-binary responses without metadata wrapper ([@Norva-bugged](https://github.com/Norva-bugged))
+  * [#14401](https://github.com/webdriverio/webdriverio/pull/14401) fix(#14368): desync puppeteer-core peer-dep version ([@Badisi](https://github.com/Badisi))
+  * [#14402](https://github.com/webdriverio/webdriverio/pull/14402) fix: unexpected token '?' on older browsers ([@will-stone](https://github.com/will-stone))
+  * [#14403](https://github.com/webdriverio/webdriverio/pull/14403) fix(element): improve checkVisibility fallback handling in element.isDisplayed ([@paymand](https://github.com/paymand))
+* `webdriver`
+  * [#14391](https://github.com/webdriverio/webdriverio/pull/14391) fix(webdriver): undici fetch() failure with HTTPS_PROXY=<proxy_url> setup ([@mitya555](https://github.com/mitya555))
+* `wdio-browserstack-service`
+  * [#14393](https://github.com/webdriverio/webdriverio/pull/14393) fix: Failed hook reporting on observability ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#14392](https://github.com/webdriverio/webdriverio/pull/14392) fix(utils): fix not to judged as screenshot the arg of switch* ([@mato533](https://github.com/mato533))
+* `wdio-browserstack-service`
+  * [#14383](https://github.com/webdriverio/webdriverio/pull/14383) chore: ignore error handling for command wrapping ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#14387](https://github.com/webdriverio/webdriverio/pull/14387) docs: fixing deprecated tag display and returns ([@Rondleysg](https://github.com/Rondleysg))
+
+#### Committers: 10
+- Avron Souto ([@Norva-bugged](https://github.com/Norva-bugged))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmitriy Mukhin ([@mitya555](https://github.com/mitya555))
+- Luis ([@Nyaran](https://github.com/Nyaran))
+- Payman Delshad ([@paymand](https://github.com/paymand))
+- Rondley Gregório ([@Rondleysg](https://github.com/Rondleysg))
+- Will Stone ([@will-stone](https://github.com/will-stone))
+- [@Badisi](https://github.com/Badisi)
+- [@mato533](https://github.com/mato533)
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v9.12.4 (2025-04-05)
 
 #### :bug: Bug Fix
