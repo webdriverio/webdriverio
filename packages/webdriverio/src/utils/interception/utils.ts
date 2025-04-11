@@ -19,7 +19,7 @@ export function parseOverwrite<
         const bodyOverwrite = typeof overwrite.body === 'function'
             ? overwrite.body(request as local.NetworkBeforeRequestSentParameters)
             : overwrite.body
-        result.body = bodyOverwrite && (bodyOverwrite.type === 'string' || bodyOverwrite.type === 'base64')
+        result.body = bodyOverwrite?.type === 'string' || bodyOverwrite?.type === 'base64')
             ? bodyOverwrite
             : typeof bodyOverwrite === 'string'
                 ? { type: 'string', value: bodyOverwrite }
