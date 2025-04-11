@@ -129,19 +129,20 @@ export async function isDisplayed (
     let hadToFallback = false
     const [isDisplayed, displayProperty] = await Promise.all([
         browser.execute(function checkVisibility (elem, params) {
-            return elem.checkVisibility(params)
+            if (typeof elem.checkVisibility === 'function') {
+                return elem.checkVisibility(params)
+            }
+            // Fallback to legacy script if checkVisibility is not available
+            return null
         }, this as unknown as HTMLElement, {
             ...DEFAULT_PARAMS,
             ...commandParams
-        }).catch((err) => {
-            /**
-             * Fallback to legacy script if checkVisibility is not available
-             */
-            if (err.message.includes('checkVisibility is not a function')) {
+        }).then((result) => {
+            if (result === null) {
                 hadToFallback = true
                 return browser.execute(isElementDisplayedLegacyScript, this as unknown as HTMLElement)
             }
-            throw err
+            return result
         }),
         /**
          * don't fail if element is not existing
