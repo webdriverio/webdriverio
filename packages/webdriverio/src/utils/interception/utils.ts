@@ -19,22 +19,11 @@ export function parseOverwrite<
         const bodyOverwrite = typeof overwrite.body === 'function'
             ? overwrite.body(request as local.NetworkBeforeRequestSentParameters)
             : overwrite.body
-        result.body = typeof bodyOverwrite === 'string' ?
-            /**
-             * if body is a string we can pass it as is
-             */
-            {
-                type: 'string',
-                value: bodyOverwrite
-            }
-            :
-            /**
-             * if body is an object we need to encode it
-             */
-            {
-                type: 'base64',
-                value: Buffer.from(JSON.stringify(bodyOverwrite || '')).toString('base64')
-            }
+        result.body = bodyOverwrite && (bodyOverwrite.type === 'string' || bodyOverwrite.type === 'base64')
+            ? bodyOverwrite
+            : typeof bodyOverwrite === 'string'
+                ? { type: 'string', value: bodyOverwrite }
+                : { type: 'base64', value: Buffer.from(JSON.stringify(bodyOverwrite || '')).toString('base64') }
     }
 
     if ('headers' in overwrite) {
