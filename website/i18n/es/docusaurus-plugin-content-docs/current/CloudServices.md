@@ -115,12 +115,6 @@ Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (com
 
 Su página de soporte del túnel contiene la información necesaria para ponerla en marcha y funcionar.
 
-Si está utilizando el testrunner WDIO, descargue y configure la [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) en su `wdio.conf.js`. Ayudaa a que TestingBot funcione, y viene con funciones adicionales que integran mejor sus pruebas en el servicio TestingBot.
-
-### Pruebas locales
-
-Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesita usar [Local Testing](https://testingbot.com/support/other/tunnel). Testing Bot proporciona un túnel que le permite probar sitios web que no son accesibles desde Internet.
-
 Si está utilizando el testrunner WDIO, descargue y configure el [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) en su `wdio.conf.js`. Ayuda a ejecutar Testing Bot y viene con características adicionales que integran mejor sus pruebas en el servicio Testing Bot.
 
 ## Prueba de Lambda
@@ -131,7 +125,7 @@ El único requisito es establecer la clave `usuario` y `` en su configuración (
 
 También puede pasar cualquier [capacidades soportadas](https://www.lambdatest.com/capabilities-generator/) opcional como clave/valor en las capacidades de cualquier navegador. Si establece `visual` a `verdadero` grabará una captura de pantalla de la sesión, lo que puede ser útil.
 
-### Túnel para pruebas locales
+### Pruebas locales
 
 Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesita usar [Local Testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/).
 

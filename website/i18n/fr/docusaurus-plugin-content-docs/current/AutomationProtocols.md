@@ -32,16 +32,3 @@ Pour tout type d'automatisation mobile, vous devrez installer et configurer [App
 Il existe également de nombreux services qui vous permettent d'exécuter votre test d'automatisation dans le cloud à grande échelle. Au lieu d'avoir à configurer tous ces pilotes localement, vous pouvez simplement parler à ces services (par exemple [Sauce Labs](https://saucelabs.com)) dans le cloud et inspecter les résultats sur leur plate-forme. La communication entre le script de test et l'environnement d'automatisation se présentera comme suit :
 
 ![Configuration du pilote Web](/img/webdriver.png)
-
-### Avantages
-
-- Norme Web officielle du W3C, prise en charge par tous les principaux navigateurs
-- Protocole simplifié qui couvre les interactions courantes des utilisateurs
-- Prise en charge de l'automatisation mobile (et même des applications de bureau natives)
-- Peut être utilisé localement ainsi que dans le cloud grâce à des services tels que [Sauce Labs](https://saucelabs.com)
-
-### Inconvénients
-
-- Non conçu pour une analyse approfondie du navigateur (par exemple, le traçage ou l'interception d'événements réseau)
-- Ensemble limité de capacités d'automatisation (par exemple, pas de prise en charge de la limitation du processeur ou du réseau)
-- Effort supplémentaire pour configurer le pilote du navigateur avec selenium-standalone/chromedriver/etc

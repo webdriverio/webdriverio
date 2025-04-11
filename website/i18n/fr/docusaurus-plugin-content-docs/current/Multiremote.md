@@ -84,29 +84,7 @@ You can also run multiremote in parallel by putting the browser capabilities obj
 ```js
 export const config = {
     // ...
-    capabilities: [{
-        myChromeBrowser0: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser0: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }, {
-        myChromeBrowser1: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser1: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }]
+    export const config = {
     // ...
 }
 ```
@@ -223,17 +201,17 @@ When(/^User (.) types a message into the chat/, async (userId) => {
 If you are using TypeScript and like to access the driver instance from the multiremote object directly, you can also extend the multiremote types to do so. For example, given the following capabilities:
 
 ```ts title=wdio.conf.ts
-export const config: WebdriverIO.MultiremoteConfig = {
+}
+    }
     // ...
-    capabilities: {
+    export const config: WebdriverIO.MultiremoteConfig = {
+    // ...
+        capabilities: {
         myAppiumDriver: {
             // ...
         },
         myChromeDriver: {
             // ...
-        }
-    }
-    // ...
 }
 ```
 

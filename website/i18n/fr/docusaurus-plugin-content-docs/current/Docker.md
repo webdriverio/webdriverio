@@ -21,8 +21,8 @@ Make sure you don't include your `node_modules` in your Docker image and have th
 node_modules
 ```
 
-:::info
-We are using a Docker image here that comes with Selenium and Google Chrome pre-installed. There are various of images available with different browser setups and browser versions. Check out the images maintained by the Selenium project [on Docker Hub](https://hub.docker.com/u/selenium).
+There are various of images available with different browser setups and browser versions. Check out the images maintained by the Selenium project [on Docker Hub](https://hub.docker.com/u/selenium). :::info  
+We are using a Docker image here that comes with Selenium and Google Chrome pre-installed.
 :::
 
 As we can only run Google Chrome in headless mode in our Docker container we have to modify our `wdio.conf.js` to ensure we do that:

@@ -1,5 +1,5 @@
 ---
-id: clock
+id: reloj
 title: The Clock Object
 ---
 

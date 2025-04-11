@@ -15,10 +15,10 @@ La communauté WebdriverIO organise des ateliers dans le monde entier. N'hésite
 
 Si vous créez votre propre contenu WebdriverIO à des fins éducatives, n’hésitez pas à saisir ces éléments pour les inclure dans vos documents.
 
-### Logo robotique
+### Roboter Logo
 
 ![Roboter Logo](/img/materials/robot.svg "Roboter Logo") ![Roboter Logo White](/img/materials/robot-white.svg "Roboter Logo White")
 
-### Logo du projet
+### Project Logo
 
 ![Roboter Logo](/img/materials/logo.svg "Project Logo")

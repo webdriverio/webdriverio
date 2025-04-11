@@ -32,16 +32,3 @@ Para cualquier tipo de automatización móvil, necesitará instalar y configurar
 También hay muchos servicios que le permiten ejecutar la prueba de automatización en la nube a gran escala. En lugar de tener que configurar todos estos controladores a nivel local, puede hablar con estos servicios (e. . [Sauce Labs](https://saucelabs.com)) en la nube e inspecciona los resultados de su plataforma. La comunicación entre el script de prueba y el entorno de la automatización se verá así:
 
 ![Configurar WebDriver](/img/webdriver.png)
-
-### Ventajas
-
-- Estándar web oficial del W3C, soportado por los principales navegadores
-- Protocolo simple que cubre las interacciones comunes de usuario
-- Soporte para la automatización móvil (e incluso aplicaciones de escritorio nativos)
-- Se puede usar tanto localmente como en la nube a través de servicios como [Sauce Labs.](https://saucelabs.com)
-
-### Desventaja
-
-- No está diseñado para un análisis profundo del navegador (por ejemplo, rastrear o interceptar eventos de red)
-- Conjunto limitado de capacidades de automatización (por ejemplo, sin soporte para acelerar la CPU o la red)
-- Intento adicional de configurar el controlador del navegador con selenium-standalone/chromedriver/etc
