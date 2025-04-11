@@ -132,8 +132,12 @@ export default function isElementClickable (elem: HTMLElement) {
     function getViewportScrollPositions() {
         return {
             // Cross-browser compatibility
-            x: window.scrollX ?? window.pageXOffset,
-            y: window.scrollY ?? window.pageYOffset,
+            x: window.scrollX !== null && window.scrollX !== void 0
+                ? window.scrollX
+                : window.pageXOffset,
+            y: window.scrollY !== null && window.scrollY !== void 0
+                ? window.scrollY
+                : window.pageYOffset,
         }
     }
 
