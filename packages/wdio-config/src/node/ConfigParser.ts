@@ -303,9 +303,8 @@ export default class ConfigParser {
             : this._config.exclude || []
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
-        // only use capability excludes if (CLI) --exclude or config exclude are not defined
-        if (Array.isArray(capExclude) && exclude.length === 0) {
-            exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
+        if (Array.isArray(capExclude)) {
+            exclude = [...exclude, ...ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)]
         }
 
         // only use capability specs if (CLI) --spec is not defined
