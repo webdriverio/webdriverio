@@ -1,7 +1,8 @@
 import { EventEmitter } from 'node:events'
 import { describe, it, expect, vi } from 'vitest'
-import { type local } from 'webdriver'
+import { type local, type remote } from 'webdriver'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
+import logger from '@wdio/logger'
 
 describe('WebDriverInterception', () => {
     it('initiate', async () => {
@@ -253,10 +254,7 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
         expect(browser.networkProvideResponse).toHaveBeenCalledWith({
             request: 123,
-            body: {
-                type: 'base64',
-                value: Buffer.from(JSON.stringify({ type: 'string', value: JSON.stringify({ foo: 'bar' }) })).toString('base64')
-            }
+            body: '{"foo":"bar"}'
         })
         browser.emit('network.responseStarted', {
             isBlocked: true,
@@ -292,28 +290,93 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
         expect(browser.networkProvideResponse).toHaveBeenCalledWith({
             request: 123,
-            body: {
-                type: 'base64',
-                value: Buffer.from(JSON.stringify({ type: 'string', value: 'hello' })).toString('base64')
-            }
+            body: 'hello'
         })
         expect(mock.getBinaryResponse('123')).toBeNull()
     })
 
-    it('handles binary response and clear', () => {
-        const browserMock = Object.assign(new EventEmitter(), {
-            networkProvideResponse: vi.fn().mockResolvedValue(undefined)
-        }) as unknown as WebdriverIO.Browser
+    it('handles non-binary response correctly', async () => {
+        const browser: any = new EventEmitter()
+        browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' }))
 
-        const interception = new WebDriverInterception(
-            new URLPattern({ pathname: '/test/*' }),
-            'mock-id',
-            {},
-            browserMock
-        )
+        const mock = await WebDriverInterception.initiate('http://localhost/test/*', {}, browser)
+
+        const mockResponse = { data: { someProperty: 123 } }
+        mock.respond(mockResponse)
+
+        const mockRequest: local.NetworkResponseCompletedParameters = {
+            context: 'mock-context',
+            navigation: null,
+            redirectCount: 0,
+            timestamp: 0,
+            request: {
+                request: 'req-123',
+                url: 'http://localhost/test/api',
+                method: 'POST',
+                headers: [],
+                cookies: [],
+                headersSize: 0,
+                bodySize: 0,
+                timings: {
+                    timeOrigin: 0,
+                    requestTime: 0,
+                    redirectStart: 0,
+                    redirectEnd: 0,
+                    fetchStart: 0,
+                    dnsStart: 0,
+                    dnsEnd: 0,
+                    connectStart: 0,
+                    connectEnd: 0,
+                    tlsStart: 0,
+                    requestStart: 0,
+                    responseStart: 0,
+                    responseEnd: 0,
+                },
+            },
+            response: {
+                url: 'http://localhost/test/api',
+                status: 200,
+                headers: [],
+                mimeType: 'application/json',
+                bytesReceived: 0,
+                headersSize: 0,
+                bodySize: 0,
+                content: { size: 0 },
+                protocol: 'http',
+                statusText: 'OK',
+                fromCache: false,
+            },
+            isBlocked: true,
+        }
+
+        mock.simulateResponseStarted(mockRequest)
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse.mock.calls).toMatchInlineSnapshot(`
+        [
+          [
+            {
+              "body": "{"data":{"someProperty":123}}",
+              "request": "req-123",
+            },
+          ],
+        ]
+      `)
+        expect(mock.getBinaryResponse('req-123')).toBeNull()
+    })
+
+    it('handles binary response body and clear', async () => {
+        const browser: any = new EventEmitter()
+        browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' }))
+
+        const mock = await WebDriverInterception.initiate('http://localhost/test/*', {}, browser)
 
         const binaryData = Buffer.from('binary data')
-        interception.respond(binaryData)
+        mock.respond(binaryData)
 
         const mockRequest: local.NetworkResponseCompletedParameters = {
             context: 'mock-context',
@@ -341,31 +404,79 @@ describe('WebDriverInterception', () => {
                     tlsStart: 0,
                     requestStart: 0,
                     responseStart: 0,
-                    responseEnd: 0
-                }
+                    responseEnd: 0,
+                },
             },
             response: {
                 url: 'http://localhost/test/bin',
                 status: 200,
                 headers: [],
                 mimeType: 'application/octet-stream',
-                bytesReceived: 2,
+                bytesReceived: 0,
                 headersSize: 0,
                 bodySize: 0,
                 content: { size: 0 },
                 protocol: 'http',
                 statusText: 'OK',
-                fromCache: false
+                fromCache: false,
             },
-            isBlocked: true
+            isBlocked: true,
         }
 
-        interception.simulateResponseStarted(mockRequest)
+        mock.simulateResponseStarted(mockRequest)
 
-        console.log('DEBUG responseBodies:', interception.debugResponseBodies())
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        expect(browser.networkProvideResponse.mock.calls).toMatchInlineSnapshot(`
+        [
+          [
+            {
+              "body": {
+                "type": "base64",
+                "value": "YmluYXJ5IGRhdGE=",
+              },
+              "request": "req-123",
+            },
+          ],
+        ]
+      `)
+        expect(mock.getBinaryResponse('req-123')).toEqual(binaryData)
 
-        expect(interception.getBinaryResponse('req-123')).toEqual(binaryData)
-        interception.clear()
-        expect(interception.getBinaryResponse('req-123')).toBeNull()
+        mock.clear()
+        expect(mock.getBinaryResponse('req-123')).toBeNull()
+    })
+
+    it('handles invalid and unusual base64 data in getBinaryResponse', async () => {
+        const browser: any = new EventEmitter()
+        browser.sessionSubscribe = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkProvideResponse = vi.fn().mockReturnValue(Promise.resolve())
+        browser.networkAddIntercept = vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' }))
+
+        const mock = await WebDriverInterception.initiate('http://localhost/test/*', {}, browser)
+        const logWarnSpy = vi.spyOn(logger('WebDriverInterception'), 'warn')
+
+        mock.debugResponseBodies().set('req-123', { type: 'base64', value: 'invalid!' })
+        expect(mock.getBinaryResponse('req-123')).toBeNull()
+        expect(logWarnSpy).toHaveBeenCalledTimes(1)
+        expect(logWarnSpy.mock.calls).toMatchInlineSnapshot(`
+        [
+          [
+            "Invalid base64 data for request req-123",
+          ],
+        ]
+      `)
+
+        mock.debugResponseBodies().set('req-123', { type: 'string', value: 'text' })
+        expect(mock.getBinaryResponse('req-123')).toBeNull()
+        expect(logWarnSpy).toHaveBeenCalledTimes(1)
+
+        mock.debugResponseBodies().set('req-123', { type: 'base64', value: '' })
+        expect(mock.getBinaryResponse('req-123')).toEqual(Buffer.from(''))
+        expect(logWarnSpy).toHaveBeenCalledTimes(1)
+
+        mock.debugResponseBodies().set('req-123', { type: 'base64', value: '  YmluYXJ5IGRhdGE=  ' })
+        expect(mock.getBinaryResponse('req-123')).toEqual(Buffer.from('binary data'))
+        expect(logWarnSpy).toHaveBeenCalledTimes(1)
+
+        logWarnSpy.mockRestore()
     })
 })

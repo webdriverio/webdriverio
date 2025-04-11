@@ -207,9 +207,11 @@ export default class WebDriverInterception {
             if (responseData.body) {
                 this.#responseBodies.set(request.request.request, responseData.body)
             }
+            const bodyToSend = responseData.body?.type === 'string' ? responseData.body.value : responseData.body
             return this.#browser.networkProvideResponse({
                 request: request.request.request,
-                ...responseData
+                ...responseData,
+                body: bodyToSend as remote.NetworkBytesValue | undefined
             }).catch(this.#handleNetworkProvideResponseError)
         }
 
@@ -242,19 +244,14 @@ export default class WebDriverInterception {
      */
     getBinaryResponse(requestId: string): Buffer | null {
         const body = this.#responseBodies.get(requestId)
-        if (body?.type === 'base64') {
-            try {
-                const decoded = Buffer.from(body.value, 'base64').toString()
-                const parsed = JSON.parse(decoded)
-                if (parsed.type === 'base64' || parsed.base64Encoded) {
-                    return Buffer.from(parsed.value, 'base64')
-                }
-                return Buffer.from(parsed.value)
-            } catch {
-                return Buffer.from(body.value, 'base64')
-            }
+        if (body?.type !== 'base64') {
+            return null
         }
-        return null
+        if (/[^A-Za-z0-9+/=\s]/.test(body.value)) {
+            log.warn(`Invalid base64 data for request ${requestId}`)
+            return null
+        }
+        return Buffer.from(body.value, 'base64')
     }
 
     /**
