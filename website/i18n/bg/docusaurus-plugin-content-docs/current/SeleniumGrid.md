@@ -8,7 +8,7 @@ You can use WebdriverIO with your existing Selenium Grid instance. To connect yo
 Here is a code snippet from sample wdio.conf.ts.
 
 ```ts title=wdio.conf.ts
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
     // ...
     protocol: 'https',
     hostname: 'yourseleniumgridhost.yourdomain.com',
@@ -23,7 +23,7 @@ You need to provide the appropriate values for the protocol, hostname, port, and
 If you are running Selenium Grid on the same machine as your test scripts, here are some typical options:
 
 ```ts title=wdio.conf.ts
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
     // ...
     protocol: 'http',
     hostname: 'localhost',
