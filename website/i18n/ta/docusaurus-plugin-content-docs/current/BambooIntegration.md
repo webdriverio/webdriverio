@@ -8,36 +8,15 @@ WebdriverIO [Bamboo](https://www.atlassian.com/software/bamboo)போன்ற C
 1. JUnit டெஸ்ட் ரிப்போர்டரை நிறுவவும்: `$ npm install @wdio/junit-reporter --save-dev`)
 1. பேம்பூ உங்கள் ஜூனிட் முடிவுகளைச் சேமிக்க உங்கள் கட்டமைப்பைப் புதுப்பிக்கவும், (மற்றும் `junit` ரிப்போர்டரை குறிப்பிடவும்):
 
-```js
-// wdio.conf.js
-module.exports = {
-    // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './testresults/'
-        }]
-    ],
-    // ...
-}
+Example:
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration.js
 ```
 குறிப்பு: *டெஸ்ட் முடிவுகளை ரூட் போல்டரில் இருப்பதை விடத் தனி போல்டரில் வைத்திருப்பது எப்பொழுதும் நற்பயனைத் தரும்.*
 
-```js
-// wdio.conf.js - For tests running in parallel
-module.exports = {
-    // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './testresults/',
-            outputFileFormat: function (options) {
-                return `results-${options.cid}.xml`;
-            }
-        }]
-    ],
-    // ...
-}
+Example when running tests in parallel:
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration-parallel.js
 ```
 
 ரிபோர்டுகள் எல்லா பிரேம்வர்கிற்கும் ஒரே மாதிரியாக இருக்கும், மேலும் நீங்கள் எவையேனும் பயன்படுத்தலாம்: மோக்கா, ஜாஸ்மின் அல்லது குகும்பர்.

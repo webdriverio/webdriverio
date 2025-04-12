@@ -58,86 +58,22 @@ import { multiremote } from 'webdriverio'
 
 WDIO टेस्टरनर में मल्टीरेमोट का उपयोग करने के लिए, बस अपने `wdio.conf.js` में `capabilities` ऑब्जेक्ट को एक ऑब्जेक्ट के रूप में ब्राउज़र नामों के साथ कुंजी के रूप में परिभाषित करें (क्षमताओं की सूची के बजाय):
 
-```js
-export const config = {
-    // ...
-    capabilities: {
-        myChromeBrowser: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/multiremote/multiremote-local.js
 ```
 
 यह क्रोम और फ़ायरफ़ॉक्स के साथ दो वेबड्राइवर सत्र बनाएगा। केवल क्रोम और फ़ायरफ़ॉक्स के बजाय आप [एपियम](http://appium.io) या एक मोबाइल डिवाइस और एक ब्राउज़र का उपयोग करके दो मोबाइल डिवाइस भी बूट कर सकते हैं।
 
 You can also run multiremote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
 
-```js
-export const config = {
-    // ...
-    capabilities: [{
-        myChromeBrowser0: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser0: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }, {
-        myChromeBrowser1: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser1: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }]
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/multiremote/multiremote-parallel.js
 ```
 
 आप स्थानीय वेबड्राइवर/एपियम, या सेलेनियम स्टैंडअलोन उदाहरणों के साथ [क्लाउड सेवाओं में से एक बैकएंड](https://webdriver.io/docs/cloudservices.html) को बूट भी कर सकते हैं। WebdriverIO स्वचालित रूप से क्लाउड बैकएंड क्षमताओं का पता लगाता है यदि आपने ब्राउज़र क्षमताओं में `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), या `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) में से कोई भी निर्दिष्ट किया है।
 
-```js
-export const config = {
-    // ...
-    user: process.env.BROWSERSTACK_USERNAME,
-    key: process.env.BROWSERSTACK_ACCESS_KEY,
-    capabilities: {
-        myChromeBrowser: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myBrowserStackFirefoxBrowser: {
-            capabilities: {
-                browserName: 'firefox',
-                'bstack:options': {
-                    // ...
-                }
-            }
-        }
-    },
-    services: [
-        ['browserstack', 'selenium-standalone']
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/multiremote/multiremote-cloud.js
 ```
 
 किसी भी प्रकार का OS/ब्राउज़र संयोजन यहाँ संभव है (मोबाइल और डेस्कटॉप ब्राउज़र सहित)। `browser` चर के माध्यम से आपके परीक्षण कॉल के सभी आदेश प्रत्येक उदाहरण के साथ समानांतर में निष्पादित होते हैं। यह आपके एकीकरण परीक्षणों को सुव्यवस्थित करने और उनके निष्पादन को गति देने में मदद करता है।

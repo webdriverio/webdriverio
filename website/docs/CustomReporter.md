@@ -32,28 +32,8 @@ To use this reporter, all you need to do is assign it to the `reporter` property
 
 Your `wdio.conf.js` file should look like this:
 
-```js
-import { defineConfig } from '@wdio/config'
-import CustomReporter from './reporter/my.custom.reporter'
-
-export const config = defineConfig({
-    // ...
-    reporters: [
-        /**
-         * use imported reporter class
-         */
-        [CustomReporter, {
-            someOption: 'foobar'
-        }],
-        /**
-         * use absolute path to reporter
-         */
-        ['/path/to/reporter.js', {
-            someOption: 'foobar'
-        }]
-    ],
-    // ...
-})
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter.js
 ```
 
 You can also publish the reporter to NPM so everyone can use it. Name the package like other reporters `wdio-<reportername>-reporter`, and tag it with keywords like `wdio` or `wdio-reporter`.
@@ -175,15 +155,8 @@ To make reporter easier to consume and discover by the WebdriverIO community, pl
 
 Following the recommended naming pattern allows services to be added by name:
 
-```js
-// Add wdio-custom-reporter
-import { defineConfig } from '@wdio/config'
-
-export const config = defineConfig({
-    // ...
-    reporter: ['custom'],
-    // ...
-})
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter-npm.js
 ```
 
 ### Add Published Service to WDIO CLI and Docs

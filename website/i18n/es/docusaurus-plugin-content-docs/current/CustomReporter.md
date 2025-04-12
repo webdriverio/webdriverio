@@ -32,27 +32,8 @@ Para usar este reportero, todo lo que necesitas hacer es asignarlo a la propieda
 
 El archivo `mysite/urls.py` debería verse ahora así:
 
-```js
-import CustomReporter from './reporter/my.custom.reporter'
-
-export const config = {
-    // ...
-    reporters: [
-        /**
-         * use imported reporter class
-         */
-        [CustomReporter, {
-            someOption: 'foobar'
-        }],
-        /**
-         * use absolute path to reporter
-         */
-        ['/path/to/reporter.js', {
-            someOption: 'foobar'
-        }]
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter.js
 ```
 
 También puedes publicar el reportero en el NPM para que todos puedan usarlo. Nombra el paquete como otros reporteros `wdio-<reportername>-reportero`, y etiquetarlo con palabras clave como `wdio` o `wdio-reporter`.
@@ -176,11 +157,8 @@ Siguiendo el patrón de nomenclatura recomendado permite que los servicios se a�
 
 ```js
 // Add wdio-custom-reporter
-export const config = {
-    // ...
-    reporter: ['custom'],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter-npm.js
 ```
 
 ### Añadir Servicio Publicado a WDIO CLI y Docs

@@ -122,27 +122,8 @@ export default class CustomServiceLauncher {
 
 आपकी `wdio.conf.js` फ़ाइल इस तरह दिखनी चाहिए:
 
-```js
-import CustomService from './service/my.custom.service'
-
-export const config = {
-    // ...
-    services: [
-        /**
-         * use imported service class
-         */
-        [CustomService, {
-            someOption: true
-        }],
-        /**
-         * use absolute path to service
-         */
-        ['/path/to/service.js', {
-            someOption: true
-        }]
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service.js
 ```
 
 ## एनपीएम पर रिपोर्टर प्रकाशित करें
@@ -156,13 +137,8 @@ WebdriverIO समुदाय द्वारा रिपोर्टर क�
 
 अनुशंसित नामकरण पैटर्न के बाद सेवाओं को नाम से जोड़ा जा सकता है:
 
-```js
-// Add wdio-custom-service
-export const config = {
-    // ...
-    services: ['custom'],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service-npm.js
 ```
 
 ### WDIO CLI और डॉक्स में प्रकाशित सेवा जोड़ें

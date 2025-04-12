@@ -122,27 +122,8 @@ Lo único que hay que hacer ahora para usar este servicio es asignarlo a la prop
 
 Modifique su archivo `wdio.conf.js` para que se vea así:
 
-```js
-import CustomService from './service/my.custom.service'
-
-export const config = {
-    // ...
-    services: [
-        /**
-         * use imported service class
-         */
-        [CustomService, {
-            someOption: true
-        }],
-        /**
-         * use absolute path to service
-         */
-        ['/path/to/service.js', {
-            someOption: true
-        }]
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service.js
 ```
 
 ## Publicar servicio en NPM
@@ -156,13 +137,8 @@ Para facilitar el consumo y descubrimiento de servicios por parte de la comunida
 
 Siguiendo el patrón de nomenclatura recomendado permite que los servicios se añadan por nombre:
 
-```js
-// Add wdio-custom-service
-export const config = {
-    // ...
-    services: ['custom'],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service-npm.js
 ```
 
 ### Añadir Servicio Publicado a WDIO CLI y Docs

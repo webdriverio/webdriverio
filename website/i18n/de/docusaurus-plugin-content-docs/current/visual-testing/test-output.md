@@ -13,23 +13,8 @@ Für die Beispielbildausgabe wurde [diese WebdriverIO](https://guinea-pig.webdri
 
 Dies kann sowohl in den [Service-Optionen](./service-options#enablelayouttesting) als auch auf der [Methoden](./method-options)-Ebene eingestellt werden.
 
-```js
-// wdio.conf.(js|ts)
-export const config = {
-    // ...
-    // =====
-    // Setup
-    // =====
-    services: [
-        [
-            'visual',
-            {
-                enableLayoutTesting: true
-            }
-        ]
-    ]
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/enable-layout-testing.js
 ```
 
 Die Bildausgabe für die [Service-Optionen](./service-options#enablelayouttesting) ist identisch mit der [Methoden](./method-options)-Ebene, siehe unten.

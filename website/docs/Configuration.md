@@ -137,26 +137,8 @@ Default:
 
 Specify custom `headers` to pass into every WebDriver request. If your Selenium Grid requires Basic Authentification we recommend to pass in an `Authorization` header through this option to authenticate your WebDriver requests, e.g.:
 
-```ts wdio.conf.ts
-import { Buffer } from 'buffer';
-import { defineConfig } from '@wdio/config'
-
-// Read the username and password from environment variables
-const username = process.env.SELENIUM_GRID_USERNAME;
-const password = process.env.SELENIUM_GRID_PASSWORD;
-
-// Combine the username and password with a colon separator
-const credentials = `${username}:${password}`;
-// Encode the credentials using Base64
-const encodedCredentials = Buffer.from(credentials).toString('base64');
-
-export const config = defineConfig({
-    // ...
-    headers: {
-        Authorization: `Basic ${encodedCredentials}`
-    }
-    // ...
-})
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/headers.js
 ```
 
 Type: `Object`<br />
@@ -498,12 +480,8 @@ Default: `none` if not provided and tests run in CI, `new` if not provided, othe
 
 Overrides default snapshot path. For example, to store snapshots next to test files.
 
-```ts title="wdio.conf.ts"
-import { defineConfig } from '@wdio/config'
-
-export const config = defineConfig({
-    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
-})
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/resolve-snapshot-path.js
 ```
 
 Type: `(testPath: string, snapExtension: string) => string`<br />

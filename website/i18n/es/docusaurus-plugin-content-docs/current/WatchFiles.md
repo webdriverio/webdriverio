@@ -11,16 +11,8 @@ wdio wdio.conf.js --watch
 
 Por defecto, sólo observa cambios en sus `especificaciones` archivos. Sin embargo, configurando una propiedad `filesToWatch` en tu `wdio.conf. s` que contiene una lista de rutas de archivos (soportado por globping), también observará que estos ficheros se cambien para volver a ejecutar la suite completa. Esto es útil si desea volver a ejecutar automáticamente todas sus pruebas si ha cambiado el código de su aplicación, p.ej.
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    filesToWatch: [
-        // watch for all JS files in my app
-        './src/app/**/*.js'
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/files-to-watch.js
 ```
 
 :::info

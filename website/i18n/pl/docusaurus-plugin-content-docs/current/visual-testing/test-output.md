@@ -13,23 +13,8 @@ title: Test Output
 
 This can be set on the [Service Options](./service-options#enablelayouttesting) as well as on the [Method](./method-options) level.
 
-```js
-// wdio.conf.(js|ts)
-export const config = {
-    // ...
-    // =====
-    // Setup
-    // =====
-    services: [
-        [
-            'visual',
-            {
-                enableLayoutTesting: true
-            }
-        ]
-    ]
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/enable-layout-testing.js
 ```
 
 The image output for the [Service Options](./service-options#enablelayouttesting) is equal to the [Method](./method-options), see below.

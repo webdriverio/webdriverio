@@ -138,22 +138,8 @@ Aber bei allen Tests, die einen Status beinhalten (wie auf einem Server oder in 
 
 Für jede Test-Datei wird eine neue `browser` Session erstellt, was dies zu einem idealen Ort macht, um alle anderen Zustände (Server, Datenbanken) zu verknüpfen und einzurichten. Wiederholungen auf dieser Ebene bedeuten, dass der gesamte Setup-Prozess einfach wiederholt wird, als ob es sich um eine neue Spezifikationsdatei handeln würde.
 
-```js title="wdio.conf.js"
-export const config = {
-    // ...
-    /**
-     * The number of times to retry the entire specfile when it fails as a whole
-     */
-    specFileRetries: 1,
-    /**
-     * Delay in seconds between the spec file retry attempts
-     */
-    specFileRetriesDelay: 0,
-    /**
-     * Retried specfiles are inserted at the beginning of the queue and retried immediately
-     */
-    specFileRetriesDeferred: false
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/retry-per-spec.js
 ```
 
 ## Wiederholen spezifischer Tests

@@ -65,21 +65,8 @@ __Note:__ using render methods from Testing Library helps remove created compone
 
 You can set up your tests by running arbitrary scripts in Node.js or in the browser, e.g. injecting styles, mocking browser APIs or connecting to a 3rd party service. The WebdriverIO [hooks](/docs/configuration#hooks) can be used to run code in Node.js while the [`mochaOpts.require`](/docs/frameworks#require) allows you to import scripts into the browser before tests are loaded, e.g.:
 
-```js wdio.conf.js
-import { defineConfig } from '@wdio/config'
-
-export const config = defineConfig({
-    // ...
-    mochaOpts: {
-        ui: 'tdd',
-        // provide a setup script to run in the browser
-        require: './__fixtures__/setup.js'
-    },
-    before: () => {
-        // set up test environment in Node.js
-    }
-    // ...
-})
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/component-testing/component-testing.js
 ```
 
 For example, if you like to mock all [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) calls in your test with the following set-up script:
@@ -130,15 +117,8 @@ Press `Ctrl` or `Command` + `c` or enter `.exit` to continue with the test.
 
 If you have a [Selenium Grid](https://www.selenium.dev/documentation/grid/) set up and run your browser through that grid, you have to set the `host` browser runner option to allow the browser, to access the right host where the test files are being served, e.g.:
 
-```ts title=wdio.conf.ts
-import { defineConfig } from '@wdio/config'
-
-export const config = defineConfig({
-    runner: ['browser', {
-        // network IP of the machine that runs the WebdriverIO process
-        host: 'http://172.168.0.2'
-    }]
-})
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-grid/selenium-grid.js
 ```
 
 This will ensure the browser correctly opens the right server instance hosted on the instance that runs the WebdriverIO tests.

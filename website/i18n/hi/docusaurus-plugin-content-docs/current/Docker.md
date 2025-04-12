@@ -27,24 +27,8 @@ We are using a Docker image here that comes with Selenium and Google Chrome pre-
 
 जैसा कि हम अपने डॉकर कंटेनर में गूगल क्रोम को केवल हेडलेस मोड में चला सकते हैं, हमें यह सुनिश्चित करने के लिए अपने `wdio.conf.js` संशोधित करना होगा:
 
-```js title="wdio.conf.js"
-export const config = {
-    // ...
-    capabilities: [{
-        maxInstances: 1,
-        browserName: 'chrome',
-        'goog:chromeOptions': {
-            args: [
-                '--no-sandbox',
-                '--disable-infobars',
-                '--headless',
-                '--disable-gpu',
-                '--window-size=1440,735'
-            ],
-        }
-    }],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/docker.js
 ```
 
 As mentioned in [Automation Protocols](/docs/automationProtocols) you can run WebdriverIO using the WebDriver protocol or WebDriver BiDi protocol. Make sure that the Chrome version installed on your image matches the [Chromedriver](https://www.npmjs.com/package/chromedriver) version you have defined in your `package.json`.

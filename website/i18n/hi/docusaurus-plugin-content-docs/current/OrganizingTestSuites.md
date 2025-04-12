@@ -312,28 +312,7 @@ _**Note:** Mocha will filter the tests after the WDIO test runner creates the in
 
 यदि आपको अपनी कॉन्फ़िगरेशन फ़ाइल में इन दोनों क्षमताओं की आवश्यकता है, तो एंड्रॉइड डिवाइस केवल "एंड्रॉइड" नामस्थान के तहत परीक्षण चलाएगा, और आईओएस परीक्षण केवल "आईओएस" नामस्थान के तहत परीक्षण चलाएगा!
 
-```js
-//wdio.conf.js
-export const config = {
-    "specs": [
-        "tests/general/**/*.js"
-    ],
-    "capabilities": [
-        {
-            platformName: "Android",
-            specs: ["tests/android/**/*.js"],
-            //...
-        },
-        {
-            platformName: "iOS",
-            specs: ["tests/ios/**/*.js"],
-            //...
-        },
-        {
-            platformName: "Chrome",
-            //config level specs will be used
-        }
-    ]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/grouping/grouping-test-suites.js
 ```
 

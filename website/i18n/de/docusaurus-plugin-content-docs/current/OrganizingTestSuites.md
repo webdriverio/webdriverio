@@ -336,28 +336,7 @@ und dann per Capability specizifische Geräte-gebundene Testspezifikationen verw
 
 Wenn Sie beide Capabilities in Ihrer Konfigurationsdatei verwenden, führt das Android-Gerät nur die Tests unter dem Namensraum „android“ aus, und die iOS-Tests führen nur Tests unter dem Namensraum „ios“ aus!
 
-```js
-//wdio.conf.js
-export const config = {
-    "specs": [
-        "tests/general/**/*.js"
-    ],
-    "capabilities": [
-        {
-            platformName: "Android",
-            specs: ["tests/android/**/*.js"],
-            //...
-        },
-        {
-            platformName: "iOS",
-            specs: ["tests/ios/**/*.js"],
-            //...
-        },
-        {
-            platformName: "Chrome",
-            //config level specs will be used
-        }
-    ]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/grouping/grouping-test-suites.js
 ```
 

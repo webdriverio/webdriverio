@@ -53,20 +53,8 @@ export const config = {
 
 Wenn Sie `wdio:vscodeOptions` mit einem anderen `browserName` als `vscode` definieren, z.B. `chrome`, wird der Service die Erweiterung als Web-Erweiterung bereitstellen. Wenn Sie auf Chrome testen, ist kein zusätzlicher Treiber-Service erforderlich, z.B.:
 
-```js
-// wdio.conf.ts
-export const config = {
-    outputDir: 'trace',
-    // ...
-    capabilities: [{
-        browserName: 'chrome',
-        'wdio:vscodeOptions': {
-            extensionPath: __dirname
-        }
-    }],
-    services: ['vscode'],
-    // ...
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/vscode-extension/chrome.js
 ```
 
 _Hinweis:_ Beim Testen von Web-Erweiterungen können Sie nur zwischen `stable` oder `insiders` als `browserVersion` wählen.

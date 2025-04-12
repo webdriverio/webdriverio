@@ -138,22 +138,8 @@ Pero en cualquier prueba que involucre estado (como en un servidor o en una base
 
 Se crea una nueva instancia de `navegador` para cada específico, lo que hace que este sea un lugar ideal para enganchar y configurar cualquier otro estado (servidor, bases de datos). Las reintentos en este nivel significan que todo el proceso de configuración será simplemente repetido, como si fuera para un nuevo specfile.
 
-```js title="wdio.conf.js"
-export const config = {
-    // ...
-    /**
-     * The number of times to retry the entire specfile when it fails as a whole
-     */
-    specFileRetries: 1,
-    /**
-     * Delay in seconds between the spec file retry attempts
-     */
-    specFileRetriesDelay: 0,
-    /**
-     * Retried specfiles are inserted at the beginning of the queue and retried immediately
-     */
-    specFileRetriesDeferred: false
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/retry-per-spec.js
 ```
 
 ## Ejecutar una prueba específica varias veces

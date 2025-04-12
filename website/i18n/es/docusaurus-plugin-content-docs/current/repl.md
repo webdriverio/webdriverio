@@ -31,15 +31,8 @@ Si el archivo de configuración utiliza un objeto de capacidades, simplemente pa
 
 WebdriverIO con matriz de capacidades:
 
-```ts title="wdio.conf.ts example"
-export const config = {
-    // ...
-    capabilities:[{
-        browserName: 'chrome', // options: `chrome`, `edge`, `firefox`, `safari`, `chromium`
-        browserVersion: '27.0', // browser version
-        platformName: 'Windows 10' // OS platform
-    }]
-}
+``` reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/repl/repl.js
 ```
 
 ```sh
@@ -48,22 +41,8 @@ wdio repl "./path/to/wdio.config.js" 0 -p 9515
 
 WebdriverIO con objeto de capacidad [multiremoto](https://webdriver.io/docs/multiremote/):
 
-```ts title="wdio.conf.ts example"
-export const config = {
-    // ...
-    capabilities: {
-        myChromeBrowser: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }
-}
+``` reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/repl/repl-multiremote.js
 ```
 
 ```sh

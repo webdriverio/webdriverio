@@ -11,16 +11,8 @@ wdio wdio.conf.js --watch
 
 डिफ़ॉल्ट रूप से यह केवल आपकी `specs` फ़ाइलों में परिवर्तनों को देखता है। हालाँकि आपके `wdio.conf.js` में एक `filesToWatch` संपत्ति सेट करके जिसमें फ़ाइल पथों की एक सूची है (ग्लोबिंग समर्थित) यह पूरे सुइट को फिर से चलाने के लिए इन फ़ाइलों को बदलने के लिए भी देखेगा। यह उपयोगी है यदि आप अपने सभी परीक्षणों को स्वचालित रूप से फिर से चलाना चाहते हैं यदि आपने अपना एप्लिकेशन कोड बदल दिया है, उदाहरण के लिए
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    filesToWatch: [
-        // watch for all JS files in my app
-        './src/app/**/*.js'
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/files-to-watch.js
 ```
 
 :::जानकारी

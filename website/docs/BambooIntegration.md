@@ -8,40 +8,15 @@ WebdriverIO offers a tight integration to CI systems like [Bamboo](https://www.a
 1. Install the JUnit test reporter: `$ npm install @wdio/junit-reporter --save-dev`)
 1. Update your config to save your JUnit results where Bamboo can find them, (and specify the `junit` reporter):
 
-```js
-// wdio.conf.js
-import { defineConfig } from '@wdio/config'
-
-export const config = defineConfig({
-    // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './testresults/'
-        }]
-    ],
-    // ...
-})
+Example:
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration.js
 ```
 Note: *It's always a good standard to keep the test results in separate folder than in the root folder.*
 
-```js
-// wdio.conf.js - For tests running in parallel
-import { defineConfig } from '@wdio/config'
-
-export const config = defineConfig({
-    // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './testresults/',
-            outputFileFormat: function (options) {
-                return `results-${options.cid}.xml`;
-            }
-        }]
-    ],
-    // ...
-})
+Example when running tests in parallel:
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration-parallel.js
 ```
 
 The reports will be similar for all the frameworks and you can use anyone: Mocha, Jasmine or Cucumber.

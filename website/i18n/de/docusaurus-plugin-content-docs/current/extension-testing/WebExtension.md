@@ -19,23 +19,8 @@ Diese Dokumentation lässt Safari-Weberweiterungen aus, da ihre Unterstützung w
 
 Das Laden einer Web-Extension in Chrome kann durch Bereitstellen einer `base64` -codierten Zeichenfolge der `crx` Datei oder durch Bereitstellen eines Pfads zur Web-Extension erfolgen. The easiest is just to do the latter by defining your Chrome capabilities as following:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-
-export const config = {
-    // ...
-    capabilities: [{
-        browserName,
-        'goog:chromeOptions': {
-            // given your wdio.conf.js is in the root directory and your compiled
-            // web extension files are located in the `./dist` folder
-            args: [`--load-extension=${path.join(__dirname, '..', '..', 'dist')}`]
-        }
-    }]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/chrome.js
 ```
 
 :::info
@@ -46,46 +31,16 @@ Wenn Sie einen anderen Browser als Chrome automatisieren, z. B. Brave, Edge oder
 
 Wenn Sie Ihre Erweiterung als `.crx` -Datei kompilieren, indem Sie z. B. das [crx](https://www.npmjs.com/package/crx) NPM-Paket verwenden, können Sie die gebündelte Erweiterung auch einfügen über:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const extPath = path.join(__dirname, `web-extension-chrome.crx`)
-const chromeExtension = (await fs.readFile(extPath)).toString('base64')
-
-export const config = {
-    // ...
-    capabilities: [{
-        browserName,
-        'goog:chromeOptions': {
-            extensions: [chromeExtension]
-        }
-    }]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/crx.js
 ```
 
 ### Firefox
 
 Um ein Firefox-Profil zu erstellen, das Erweiterungen enthält, können Sie WebdriverIOs [Firefox-Profile Service](/docs/firefox-profile-service) verwenden, um Ihre Sitzung entsprechend einzurichten. Es können jedoch Probleme auftreten, bei denen Ihre lokal entwickelte Erweiterung aufgrund von Signaturproblemen nicht geladen werden kann. In diesem Fall können Sie auch eine Erweiterung in Ihrer Hook `before` über den Befehl [`installAddOn`](/docs/api/gecko#installaddon) laden, z.
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const extensionPath = path.resolve(__dirname, `web-extension.xpi`)
-
-export const config = {
-    // ...
-    before: async (capabilities) => {
-        const browserName = (capabilities as WebdriverIO.Capabilities).browserName
-        if (browserName === 'firefox') {
-            const extension = await fs.readFile(extensionPath)
-            await browser.installAddOn(extension.toString('base64'), true)
-        }
-    }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/firefox.js
 ```
 
 Um eine `.xpi` Datei zu generieren, wird empfohlen, das [`web-ext`](https://www.npmjs.com/package/web-ext) NPM Paket zu verwenden. Sie können Ihre Erweiterung mit dem folgenden Beispielbefehl bündeln:
@@ -136,17 +91,8 @@ declare global {
 
 In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
 
-```ts wdio.conf.ts
-import { browser } from '@wdio/globals'
-
-import { openExtensionPopup } from './support/customCommands'
-
-export const config: WebdriverIO.Config = {
-  // ...
-  before: () => {
-    browser.addCommand('openExtensionPopup', openExtensionPopup)
-  }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/popup-modal.js
 ```
 
 Now, in your test, you can access the popup page via:

@@ -122,27 +122,8 @@ Um den Service nutzen zu können, müssen Sie ihn jetzt nur noch der Eigenschaft
 
 Ihre Konfigurations-Datei sollte so aussehen:
 
-```js
-import CustomService from './service/my.custom.service'
-
-export const config = {
-    // ...
-    services: [
-        /**
-         * use imported service class
-         */
-        [CustomService, {
-            someOption: true
-        }],
-        /**
-         * use absolute path to service
-         */
-        ['/path/to/service.js', {
-            someOption: true
-        }]
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service.js
 ```
 
 ## Veröffentlichen Sie Service-Plugins auf NPM
@@ -156,13 +137,8 @@ Damit Services von der WebdriverIO-Community leichter genutzt und entdeckt werde
 
 Das Befolgen der empfohlenen Namenskonvention ermöglicht das Hinzufügen von Services nach Namen, z.B. wenn sie einen `wdio-custom-service` veröffentlichen, kann dieser folgendermaßen eingerichtet werden:
 
-```js
-// Add wdio-custom-service
-export const config = {
-    // ...
-    services: ['custom'],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service-npm.js
 ```
 
 ### Veröffentlichte Service-Plugins zum WDIO CLI und der Dokumentation hinzufügen

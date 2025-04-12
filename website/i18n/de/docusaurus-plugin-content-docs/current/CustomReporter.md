@@ -32,27 +32,8 @@ Um diesen Reporter zu verwenden, müssen Sie ihn lediglich der Eigenschaft `repo
 
 Ihre `wdio.conf.js` -Datei sollte so aussehen:
 
-```js
-import CustomReporter from './reporter/my.custom.reporter'
-
-export const config = {
-    // ...
-    reporters: [
-        /**
-         * use imported reporter class
-         */
-        [CustomReporter, {
-            someOption: 'foobar'
-        }],
-        /**
-         * use absolute path to reporter
-         */
-        ['/path/to/reporter.js', {
-            someOption: 'foobar'
-        }]
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter.js
 ```
 
 Sie können den Reporter auch in NPM veröffentlichen, damit jeder ihn verwenden kann. Benennen Sie das Paket wie ähnlich wie andere Reporter, z.B.: `wdio-<reportername>-reporter` und taggen Sie es mit Schlüsselwörtern wie `wdio` oder `wdio-reporter`.
@@ -176,11 +157,8 @@ Das Befolgen der empfohlenen Namenskonvention ermöglicht das Hinzufügen von Di
 
 ```js
 // Add wdio-custom-reporter
-export const config = {
-    // ...
-    reporter: ['custom'],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter-npm.js
 ```
 
 ### Veröffentlichte Reporter zum WDIO CLI und der Dokumentation hinzufügen

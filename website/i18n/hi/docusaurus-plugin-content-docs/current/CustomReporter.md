@@ -32,27 +32,8 @@ export default class CustomReporter extends WDIOReporter {
 
 आपकी `wdio.conf.js` फ़ाइल इस तरह दिखनी चाहिए:
 
-```js
-import CustomReporter from './reporter/my.custom.reporter'
-
-export const config = {
-    // ...
-    reporters: [
-        /**
-         * use imported reporter class
-         */
-        [CustomReporter, {
-            someOption: 'foobar'
-        }],
-        /**
-         * use absolute path to reporter
-         */
-        ['/path/to/reporter.js', {
-            someOption: 'foobar'
-        }]
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter.js
 ```
 
 आप रिपोर्टर को एनपीएम में भी प्रकाशित कर सकते हैं ताकि हर कोई इसका उपयोग कर सके। पैकेज को अन्य रिपोर्टर `wdio-<reportername>-reporter`की तरह नाम दें, और इसे `wdio` या `wdio-reporter`जैसे कीवर्ड के साथ टैग करें।
@@ -176,11 +157,8 @@ WebdriverIO समुदाय द्वारा रिपोर्टर क�
 
 ```js
 // Add wdio-custom-reporter
-export const config = {
-    // ...
-    reporter: ['custom'],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter-npm.js
 ```
 
 ### WDIO CLI और डॉक्स में प्रकाशित सेवा जोड़ें

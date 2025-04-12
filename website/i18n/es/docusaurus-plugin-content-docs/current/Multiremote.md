@@ -58,86 +58,22 @@ import { multiremote } from 'webdriverio'
 
 Para poder usar multiremoto en el testrunner WDIO, simplemente define el objeto `capacidades` en tu `wdio. onf.js` como un objeto con los nombres del navegador como claves (en vez de una lista de capacidades):
 
-```js
-export const config = {
-    // ...
-    capabilities: {
-        myChromeBrowser: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/multiremote/multiremote-local.js
 ```
 
 Esto creará dos sesiones de WebDriver con Chrome y Firefox. En lugar de solo Chrome y Firefox también puedes arrancar dos dispositivos móviles usando [Appium](http://appium.io) o un dispositivo móvil y un navegador.
 
 You can also run multiremote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
 
-```js
-export const config = {
-    // ...
-    capabilities: [{
-        myChromeBrowser0: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser0: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }, {
-        myChromeBrowser1: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser1: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }]
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/multiremote/multiremote-parallel.js
 ```
 
 Incluso puede iniciar uno de los [backend de los servicios en la nube](https://webdriver.io/docs/cloudservices.html) junto con instancias locales Webdriver/Appium, o Selenium Standalone instancias. WebdriverIO detecta automáticamente las capacidades de backend de la nube si especificas cualquiera de `bstack:options` ([Navegador](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), o `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) en las capacidades del navegador.
 
-```js
-export const config = {
-    // ...
-    user: process.env.BROWSERSTACK_USERNAME,
-    key: process.env.BROWSERSTACK_ACCESS_KEY,
-    capabilities: {
-        myChromeBrowser: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myBrowserStackFirefoxBrowser: {
-            capabilities: {
-                browserName: 'firefox',
-                'bstack:options': {
-                    // ...
-                }
-            }
-        }
-    },
-    services: [
-        ['browserstack', 'selenium-standalone']
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/multiremote/multiremote-cloud.js
 ```
 
 Aquí es posible cualquier tipo de combinación de OS/navegador (incluyendo los navegadores móviles y de escritorio). Todos los comandos que tu llamada de prueba a través de la variable `browser` son ejecutados en paralelo con cada instancia. Esto ayuda a optimizar tus pruebas de integración y a acelerar su ejecución.

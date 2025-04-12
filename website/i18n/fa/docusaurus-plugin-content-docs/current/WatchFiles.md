@@ -11,16 +11,8 @@ wdio wdio.conf.js --watch
 
 به‌طور پیش‌فرض، فقط تغییرات در فایل‌های `specs` شما مشاهده خواهد شد. با این حال، با تنظیم یک ویژگی `filesToWatch` در `wdio.conf.js` خود که حاوی لیستی از مسیرهای فایل است (پشتیبانی از globbing) این فایل ها نیز زیر نظر گرفته خواهند شد تا کل مجموعه تست دوباره اجرا شود. اگر می‌خواهید با تغییر کد برنامه خود، به طور خودکار همه تست ها مجددا اجرا شوند، این کار مفید است.
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    filesToWatch: [
-        // watch for all JS files in my app
-        './src/app/**/*.js'
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/files-to-watch.js
 ```
 
 :::info

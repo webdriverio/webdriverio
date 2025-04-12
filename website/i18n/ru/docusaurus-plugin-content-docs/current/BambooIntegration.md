@@ -8,36 +8,15 @@ WebdriverIO обеспечивает тесную интеграцию с так
 1. Install the JUnit test reporter: `$ npm install @wdio/junit-reporter --save-dev`)
 1. Update your config to save your JUnit results where Bamboo can find them, (and specify the `junit` reporter):
 
-```js
-// wdio.conf.js
-module.exports = {
-    // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './testresults/'
-        }]
-    ],
-    // ...
-}
+Example:
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration.js
 ```
 Примечание: *Всегда рекомендуется хранить результаты теста в отдельной папке, а не в корневой.*
 
-```js
-// wdio.conf.js - For tests running in parallel
-module.exports = {
-    // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './testresults/',
-            outputFileFormat: function (options) {
-                return `results-${options.cid}.xml`;
-            }
-        }]
-    ],
-    // ...
-}
+Example when running tests in parallel:
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration-parallel.js
 ```
 
 Отчеты будут одинаковыми для всех фреймворков и можно использовать любой: Mocha, Jasmine или Cucumber.

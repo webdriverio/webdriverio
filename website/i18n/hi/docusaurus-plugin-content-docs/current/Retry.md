@@ -138,22 +138,8 @@ Reruns को केवल आपकी स्टेप डेफिनिशन
 
 प्रत्येक विशिष्ट फ़ाइल के लिए एक नया `browser` उदाहरण बनाया गया है, जो इसे किसी भी अन्य राज्यों (सर्वर, डेटाबेस) को हुक और सेटअप करने के लिए एक आदर्श स्थान बनाता है। इस स्तर पर पुनर्प्रयास का मतलब है कि पूरी सेटअप प्रक्रिया को बस दोहराया जाएगा, जैसे कि यह एक नई युक्ति के लिए हो।
 
-```js title="wdio.conf.js"
-export const config = {
-    // ...
-    /**
-     * The number of times to retry the entire specfile when it fails as a whole
-     */
-    specFileRetries: 1,
-    /**
-     * Delay in seconds between the spec file retry attempts
-     */
-    specFileRetriesDelay: 0,
-    /**
-     * Retried specfiles are inserted at the beginning of the queue and retried immediately
-     */
-    specFileRetriesDeferred: false
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/retry-per-spec.js
 ```
 
 ## एक विशिष्ट परीक्षण कई बार चलाएं
