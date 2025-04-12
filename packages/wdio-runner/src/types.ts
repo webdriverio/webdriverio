@@ -1,4 +1,4 @@
-import type { Options, Capabilities, Services, Workers } from '@wdio/types'
+import type { Capabilities, Services, Workers } from '@wdio/types'
 import type BaseReporter from './reporter.js'
 
 export type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
@@ -6,7 +6,7 @@ export type AfterArgs = Parameters<Required<Services.HookFunctions>['after']>
 export type BeforeSessionArgs = Parameters<Required<Services.HookFunctions>['beforeSession']>
 export type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afterSession']>
 
-interface Args extends Partial<Options.Testrunner> {
+interface Args extends Partial<WebdriverIO.Config> {
     ignoredWorkerServices?: string[]
     watch?: boolean
 }
@@ -23,7 +23,7 @@ export type RunParams = {
 export interface TestFramework {
     init: (
         cid: string,
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         specs: string[],
         capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
         reporter: BaseReporter

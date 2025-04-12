@@ -2,7 +2,7 @@ import util from 'node:util'
 
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 import type { CoverageSummary } from 'istanbul-lib-coverage'
 
 import { COVERAGE_FACTORS, GLOBAL_TRESHOLD_REPORTING, FILE_TRESHOLD_REPORTING } from './constants.js'
@@ -57,7 +57,7 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: WebdriverIO.C
 /**
  * Open with devtools open when in watch mode
  */
-export function adjustWindowInWatchMode (config: Options.Testrunner, caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
+export function adjustWindowInWatchMode (config: WebdriverIO.Config, caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
     if (!config.watch) {
         return caps
     }
