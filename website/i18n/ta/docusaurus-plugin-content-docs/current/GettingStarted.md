@@ -6,7 +6,7 @@ title: தொடங்குதல்
 WebdriverIO ஆவணப்படுத்தலுக்கு வரவேற்கிறோம். விரைவாகத் தொடங்க இது உதவும். நீங்கள் சிக்கல்களைச் சந்திக்க நேர்ந்தால், எங்கள் [Discord Support Server](https://discord.webdriver.io) இல் உதவி மற்றும் பதில்களைக் காணலாம் அல்லது [Twitter](https://twitter.com/webdriverio)இல் எங்களை அணுகலாம்.
 
 :::info
-WebdriverIO இன் சமீபத்திய பதிப்பின் (__>=8.x__) ஆவணங்கள் இவை. நீங்கள் இன்னும் பழைய பதிப்பைப் பயன்படுத்துகிறீர்கள் என்றால், தயவுசெய்து [old documentation websites](/versions) யைப் பார்வையிடவும்!
+These are the docs for the latest version (__>=9.x__) of WebdriverIO. நீங்கள் இன்னும் பழைய பதிப்பைப் பயன்படுத்துகிறீர்கள் என்றால், தயவுசெய்து [old documentation websites](/versions) யைப் பார்வையிடவும்!
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="WebdriverIO உடன் தொடங்குதல்" />
@@ -29,18 +29,19 @@ WebdriverIO இன் சமீபத்திய பதிப்பின் (_
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio .
+npm init wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-npm init wdio ./path/to/new/project
+npm init wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
@@ -60,13 +61,26 @@ yarn create wdio ./path/to/new/project
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio .
+pnpm create wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-pnpm create wdio ./path/to/new/project
+pnpm create wdio@latest ./path/to/new/project
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest .
+```
+
+or if you want to create a new project:
+
+```sh
+bun create wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
@@ -84,12 +98,13 @@ pnpm create wdio ./path/to/new/project
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio . -- --yes
+npm init wdio@latest . -- --yes
 ```
 
 </TabItem>
@@ -103,7 +118,14 @@ yarn create wdio . --yes
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio . --yes
+pnpm create wdio@latest . --yes
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest . --yes
 ```
 
 </TabItem>
@@ -159,7 +181,7 @@ WebdriverIO உங்கள் டெஸ்ட் செயல்களைத்
 
 நீங்கள் [Node.js](http://nodejs.org) ஐ நிறுவ வேண்டும்.
 
-- குறைந்தது v16.x அல்லது அதற்கு மேற்பட்டவற்றை நிறுவவும் ஏனென்றால் இது தான் பழமையான செயலில் உள்ள LTS பதிப்பு என்பதால்
+- Install at least v18.20.0 or higher as this is the oldest active LTS version
 - LTS வெளியீடாக இருக்கும் அல்லது மாறும் வெளியீடுகள் மட்டுமே அதிகாரப்பூர்வமாக ஆதரிக்கப்படும்
 
 உங்கள் கணினியில் Node தற்போது நிறுவப்படவில்லை எனில், பல செயலில் உள்ள Node.js பதிப்புகளை நிர்வகிப்பதற்கு உதவ, [NVM](https://github.com/creationix/nvm) அல்லது [Volta](https://volta.sh/) போன்ற கருவியைப் பயன்படுத்தப் பரிந்துரைக்கிறோம். NVM ஒரு பிரபலமான தேர்வாகும், அதே சமயம் Voltaவும் ஒரு நல்ல மாற்றாகும்.

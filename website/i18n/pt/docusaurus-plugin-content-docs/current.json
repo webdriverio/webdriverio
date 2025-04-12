@@ -1,0 +1,56 @@
+{
+  "version.label": {
+    "message": "Próxima"
+  },
+  "sidebar.docs.category.Getting Started": {
+    "message": "Primeiros Passos"
+  },
+  "sidebar.docs.category.Core Concepts": {
+    "message": "Conceitos Fundamentais"
+  },
+  "sidebar.docs.category.Configuration": {
+    "message": "Configuração"
+  },
+  "sidebar.docs.category.Guides": {
+    "message": "Guias"
+  },
+  "sidebar.docs.category.Testrunner": {
+    "message": "Executor de Testes"
+  },
+  "sidebar.docs.category.Component Testing": {
+    "message": "Teste de Componentes"
+  },
+  "sidebar.docs.category.Framework Setup": {
+    "message": "Configuração do Framework"
+  },
+  "sidebar.docs.category.Migrate": {
+    "message": "Migração"
+  },
+  "sidebar.docs.category.Integration": {
+    "message": "Integração"
+  },
+  "sidebar.docs.category.Reporter": {
+    "message": "Relatórios"
+  },
+  "sidebar.docs.category.Services": {
+    "message": "Serviços"
+  },
+  "sidebar.api.category.Protocols": {
+    "message": "Protocolos"
+  },
+  "sidebar.api.category.browser": {
+    "message": "navegador"
+  },
+  "sidebar.api.category.element": {
+    "message": "elemento"
+  },
+  "sidebar.api.category.mock": {
+    "message": "simulação"
+  },
+  "sidebar.flowcharts.category.Flowcharts": {
+    "message": "Fluxogramas"
+  },
+  "sidebar.docs.category.Web Extension Testing": {
+    "message": "Teste de Extensões Web"
+  }
+}

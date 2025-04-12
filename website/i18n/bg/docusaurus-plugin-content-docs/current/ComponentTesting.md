@@ -42,6 +42,10 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 
 By defining different [capabilities](/docs/configuration#capabilities) you can run your tests in different browser, in parallel if desired.
 
+If you are still unsure how everything works, watch the following tutorial on how to get started with Component Testing in WebdriverIO:
+
+<LiteYouTubeEmbed id="5vp_3tGtnMc" title="Getting Started with Component Testing in WebdriverIO" />
+
 ## Test Harness
 
 It is totally up to you what you want to run in your tests and how you like to render the components. However we recommend to use the [Testing Library](https://testing-library.com/) as utility framework as it provides plugins for various of component frameworks, such as React, Preact, Svelte and Vue. It is very useful for rendering components into the test page and it automatically cleans up these components after every test.
@@ -116,6 +120,21 @@ You can now go into the browser or use the command line as REPL
 ```
 
 Press `Ctrl` or `Command` + `c` or enter `.exit` to continue with the test.
+
+## Run using a Selenium Grid
+
+If you have a [Selenium Grid](https://www.selenium.dev/documentation/grid/) set up and run your browser through that grid, you have to set the `host` browser runner option to allow the browser, to access the right host where the test files are being served, e.g.:
+
+```ts title=wdio.conf.ts
+export const config: WebdriverIO.Config = {
+    runner: ['browser', {
+        // network IP of the machine that runs the WebdriverIO process
+        host: 'http://172.168.0.2'
+    }]
+}
+```
+
+This will ensure the browser correctly opens the right server instance hosted on the instance that runs the WebdriverIO tests.
 
 ## Examples
 

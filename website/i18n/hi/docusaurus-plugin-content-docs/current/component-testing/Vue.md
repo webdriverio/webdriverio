@@ -65,7 +65,42 @@ export default {
 </script>
 ```
 
-अपने परीक्षण में परीक्षण पृष्ठ पर घटक संलग्न करने के लिए `@testing-library/vue` से `render` विधि का उपयोग करें। घटक के साथ बातचीत करने के लिए हम WebdriverIO कमांड का उपयोग करने की अनुशंसा करते हैं क्योंकि वे वास्तविक उपयोगकर्ता इंटरैक्शन के अधिक निकट व्यवहार करते हैं, उदाहरण के लिए:
+In your test render the component into the DOM and run assertions on it. We recommend to either use [`@vue/test-utils`](https://test-utils.vuejs.org/) or [`@testing-library/vue`](https://testing-library.com/docs/vue-testing-library/intro/) to attach the component to the test page. To interact with the component use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+
+<Tabs
+  defaultValue="utils"
+  values={[
+    {label: '@vue/test-utils', value: 'utils'},
+ {label: '@testing-library/vue', value: 'testinglib'}
+ ]
+}>
+<TabItem value="utils">
+
+```ts title="vue.test.js"
+import { $, expect } from '@wdio/globals'
+import { mount } from '@vue/test-utils'
+import Component from './components/Component.vue'
+
+describe('Vue Component Testing', () => {
+    it('increments value on click', async () => {
+        // The render method returns a collection of utilities to query your component.
+        const wrapper = mount(Component, { attachTo: document.body })
+        expect(wrapper.text()).toContain('Times clicked: 0')
+
+        const button = await $('aria/increment')
+
+        // Dispatch a native click event to our button element.
+        await button.click()
+        await button.click()
+
+        expect(wrapper.text()).toContain('Times clicked: 2')
+        await expect($('p=Times clicked: 2')).toExist() // same assertion with WebdriverIO
+    })
+})
+```
+
+</TabItem>
+<TabItem value="testinglib">
 
 ```ts title="vue.test.js"
 import { $, expect } from '@wdio/globals'
@@ -93,6 +128,9 @@ describe('Vue Component Testing', () => {
 })
 ```
 
+</TabItem>
+</Tabs>
+
 आप हमारे [उदाहरण भंडार](https://github.com/webdriverio/component-testing-examples/tree/main/vue-typescript-vite)में Vue.js के लिए WebdriverIO घटक परीक्षण सूट का एक पूर्ण उदाहरण पा सकते हैं।
 
 ## Testing Async Components in Vue3
@@ -110,7 +148,7 @@ const posts = await res.json()
 </template>
 ```
 
-We recommend to use [`@vue/test-utils`](https://www.npmjs.com/package/@vue/test-utils) and a little suspence wrapper to get the component rendered. Unfortunately [`@testing-library/vue`](https://github.com/testing-library/vue-testing-library/issues/230) has no support for this yet. Create a `helper.ts` file with the following content:
+We recommend to use [`@vue/test-utils`](https://www.npmjs.com/package/@vue/test-utils) and a little suspense wrapper to get the component rendered. Unfortunately [`@testing-library/vue`](https://github.com/testing-library/vue-testing-library/issues/230) has no support for this yet. Create a `helper.ts` file with the following content:
 
 ```ts
 import { mount, type VueWrapper as VueWrapperImport } from '@vue/test-utils'

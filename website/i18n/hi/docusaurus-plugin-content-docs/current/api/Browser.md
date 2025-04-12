@@ -13,16 +13,26 @@ __विस्तार:__ [इवेंटएमिटर](https://nodejs.org/a
 
 ब्राउज़र ऑब्जेक्ट में निम्नलिखित गुण होते हैं:
 
-| नाम                 | प्रकार     | विवरण                                                                                                                                    |
-| ------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `क्षमताएं`          | `वस्तु`    | दूरस्थ सर्वर से सौंपी गई क्षमता।<br /><b>उदाहरण:</b><pre>\{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: \{<br />    chromedriverVersion: '105.0.5195.52',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  \},<br />  'goog:chromeOptions': \{ debuggerAddress: 'localhost:64679' \},<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: \{},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: \{ implicit: 0, pageLoad: 300000, script: 30000 \},<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />\}</pre>                                           |
-| `अनुरोधित क्षमताएं` | `वस्तु`    | दूरस्थ सर्वर से अनुरोधित क्षमताएं।<br /><b>उदाहरण:</b><pre>\{ browserName: 'chrome' \}</pre>                                         |
-| `sessionId`         | `String`   | दूरस्थ सर्वर से निर्दिष्ट सत्र आईडी।                                                                                                     |
-| `options`           | `Object`   | WebdriverIO [विकल्प](/docs/configuration) ब्राउज़र ऑब्जेक्ट कैसे बनाया गया था इसके आधार पर। अधिक [सेटअप प्रकार देखें](/docs/setuptypes)। |
-| `commandList`       | `String[]` | ब्राउज़र उदाहरण के लिए पंजीकृत आदेशों की सूची                                                                                            |
-| `isMobile`          | `Boolean`  | एक मोबाइल सत्र का संकेत देता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                    |
-| `isIOS`             | `Boolean`  | एक आईओएस सत्र इंगित करता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                        |
-| `isAndroid`         | `Boolean`  | एक एंड्राइड सत्र का संकेत देता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                  |
+| नाम                 | प्रकार     | विवरण                                                                                                                                                                                                                                                                    |
+| ------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `क्षमताएं`          | `वस्तु`    | Assigned capabilities from the remote server.<br /><b>Example:</b><pre>\{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: \{<br />    chromedriverVersion: '105.0.5195.52',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  \},<br />  'goog:chromeOptions': \{ debuggerAddress: 'localhost:64679' \},<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: \{},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: \{ implicit: 0, pageLoad: 300000, script: 30000 \},<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />\}</pre>                                                                                                                                                              |
+| `अनुरोधित क्षमताएं` | `वस्तु`    | दूरस्थ सर्वर से अनुरोधित क्षमताएं।<br /><b>उदाहरण:</b><pre>\{ browserName: 'chrome' \}</pre>                                                                                                                                                                         |
+| `sessionId`         | `String`   | दूरस्थ सर्वर से निर्दिष्ट सत्र आईडी।                                                                                                                                                                                                                                     |
+| `options`           | `Object`   | WebdriverIO [विकल्प](/docs/configuration) ब्राउज़र ऑब्जेक्ट कैसे बनाया गया था इसके आधार पर। अधिक [सेटअप प्रकार देखें](/docs/setuptypes)।                                                                                                                                 |
+| `commandList`       | `String[]` | ब्राउज़र उदाहरण के लिए पंजीकृत आदेशों की सूची                                                                                                                                                                                                                            |
+| `isW3C`             | `Boolean`  | Indicates if this is a W3C session                                                                                                                                                                                                                                       |
+| `isChrome`          | `Boolean`  | Indicates if this Chrome instance                                                                                                                                                                                                                                        |
+| `isFirefox`         | `Boolean`  | Indicates if this Firefox instance                                                                                                                                                                                                                                       |
+| `isBidi`            | `Boolean`  | Indicates if this session uses Bidi                                                                                                                                                                                                                                      |
+| `isSauce`           | `Boolean`  | Indicates if this session is Running on Sauce Labs                                                                                                                                                                                                                       |
+| `isMacApp`          | `Boolean`  | Indicates if this session is Running for a native Mac App                                                                                                                                                                                                                |
+| `isWindowsApp`      | `Boolean`  | Indicates if this session is Running for a native Windows App                                                                                                                                                                                                            |
+| `isMobile`          | `Boolean`  | एक मोबाइल सत्र का संकेत देता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                                                                                                                                                    |
+| `isIOS`             | `Boolean`  | एक आईओएस सत्र इंगित करता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                                                                                                                                                        |
+| `isAndroid`         | `Boolean`  | एक एंड्राइड सत्र का संकेत देता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                                                                                                                                                  |
+| `isNativeContext`   | `Boolean`  | Indicates if the mobile is in the `NATIVE_APP` context. See more under [Mobile Flags](#mobile-flags).                                                                                                                                                                    |
+| `mobileContext`     | `string`   | The will provide the **current** context the driver is in, for example `NATIVE_APP`, `WEBVIEW_<packageName>` for Android or `WEBVIEW_<pid>` for iOS. It will save an extra WebDriver to `driver.getContext()`. See more under [Mobile Flags](#mobile-flags). |
+
 
 ## विधियां
 
@@ -50,7 +60,7 @@ __विस्तार:__ [इवेंटएमिटर](https://nodejs.org/a
 // wdio.conf.js
 export const config = {
     // ...
-    capabilities: {
+    capabilities: \\{
         platformName: 'iOS',
         app: 'net.company.SafariLauncher',
         udid: '123123123123abc',
@@ -110,6 +120,71 @@ describe('my test', () => {
 ब्राउज़र ऑब्जेक्ट एक EventEmitter है और आपके उपयोग के मामलों के लिए कुछ ईवेंट उत्सर्जित होते हैं।
 
 यहाँ घटनाओं की एक सूची है। ध्यान रखें कि यह अभी उपलब्ध घटनाओं की पूरी सूची नहीं है। यहां अधिक घटनाओं के विवरण जोड़कर दस्तावेज़ को अद्यतन करने में योगदान करने के लिए स्वतंत्र महसूस करें।
+
+#### `request.start`
+This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.
+
+```ts
+browser.on('request.start', (ev: RequestInit) => {
+    // ...
+})
+```
+
+#### `request.end`
+This event is fired once the request to the driver received a response. The event object either contains the response body as result or an error if the WebDriver command failed.
+
+```ts
+browser.on('request.end', (ev: { result: unknown, error?: Error }) => {
+    // ...
+})
+```
+
+#### `request.retry`
+The retry event can notify you when WebdriverIO attempts to retry running the command, e.g. due to a network issue. It contains information about the error that caused the retry and the amount of retries already done.
+
+```ts
+browser.on('request.retry', (ev: { error: Error, retryCount: number }) => {
+    // ...
+})
+```
+
+#### `command`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Classic command. It contains the following information:
+
+- `command`: the command name, e.g. `navigateTo`
+- `method`: the HTTP method used to send the command request, e.g. `POST`
+- `endpoint`: the command endpoint, e.g. `/session/fc8dbda381a8bea36a225bd5fd0c069b/url`
+- `body`: the command payload, e.g. `{ url: 'https://webdriver.io' }`
+
+#### `result`
+
+This event is emitted whenever WebdriverIO receives a result of a WebDriver Classic command. It contains the same information as the `command` event with the addition of the following information:
+
+- `result`: the command result
+
+#### `bidiCommand`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Bidi command to the browser driver. It contains information about:
+
+- `method`: WebDriver Bidi command method
+- `params`: associated command parameter (see [API](/docs/api/webdriverBidi))
+
+#### `bidiResult`
+
+In case of a successful command execution, the event payload will be:
+
+- `type`: `success`
+- `id`: the command id
+- `result`: the command result (see [API](/docs/api/webdriverBidi))
+
+In case of a command error, the event payload will be:
+
+- `type`: `error`
+- `id`: the command id
+- `error`: the error code, e.g. `invalid argument`
+- `message`: details about the error
+- `stacktrace`: a stack trace
 
 #### `request.start`
 This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.

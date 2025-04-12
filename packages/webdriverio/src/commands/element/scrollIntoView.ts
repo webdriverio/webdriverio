@@ -149,7 +149,7 @@ type MobileScrollUntilVisibleOptions = {
     scrollableElement?: WebdriverIO.Element | ChainablePromiseElement | null;
     duration?: number;
     percent?: number;
-};
+}
 
 async function mobileScrollUntilVisible({
     browser,
@@ -195,7 +195,7 @@ async function nativeMobileScrollIntoView({
     browser: WebdriverIO.Browser,
     element: WebdriverIO.Element,
     options: MobileScrollIntoViewOptions
-    }) {
+}) {
     const defaultOptions = {
         maxScrolls: 10,
         direction: MobileScrollDirection.Up,

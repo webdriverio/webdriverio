@@ -31,7 +31,10 @@ environment.value = {
     createBidiConnection,
     variables: {
         WEBDRIVER_CACHE_DIR: process.env.WEBDRIVER_CACHE_DIR || os.tmpdir(),
-        PROXY_URL: process.env.HTTP_PROXY || process.env.HTTPS_PROXY
+        PROXY_URL: process.env.HTTP_PROXY || process.env.HTTPS_PROXY,
+        NO_PROXY: process.env.NO_PROXY && process.env.NO_PROXY.trim()
+            ? process.env.NO_PROXY.trim().split(/[\s,;]+/)
+            : []
     }
 }
 

@@ -3,7 +3,7 @@ id: githubactions
 title: Github Actions
 ---
 
-Якщо ваш репозиторій на Github, ви можете використовувати [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) для запуску тестів в інфраструктурі Github.
+If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions) to run your tests on Github's infrastructure.
 
 1. every time you push changes
 2. при кожному створенні Pull Request
@@ -18,4 +18,4 @@ title: Github Actions
 https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml
 ```
 
-Дізнайтеся в [Github Docs](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) більше інформації про створення файлів Ci процесу.
+Find out in the [Github Docs](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow?tool=cli) on more information about creating workflow files.

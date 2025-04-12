@@ -33,7 +33,7 @@ export const config = {
     // ...
     capabilities: [{
         browserName: 'vscode',
-        browserVersion: '1.71.0', // "insiders" or "stable" for latest VSCode version
+        browserVersion: '1.71.0', // "insiders" або "stable" для останньої версії VSCode
         'wdio:vscodeOptions': {
             extensionPath: __dirname,
             userSettings: {
@@ -43,8 +43,8 @@ export const config = {
     }],
     services: ['vscode'],
     /**
-     * optionally you can define the path WebdriverIO stores all
-     * VSCode and Chromedriver binaries, e.g.:
+     * за бажанням ви можете вказати шлях, по якому WebdriverIO зберігає всі
+     * двійкові файли VSCode та Chromedriver, наприклад:
      * services: [['vscode', { cachePath: __dirname }]]
      */
     // ...
@@ -121,7 +121,7 @@ const notifs = await workbench.getNotifications()
 console.log(await notifs[0].getMessage()) // outputs: "I am an API call!"
 ```
 
-For the full page object documentation, check out the [docs](https://webdriverio-community.github.io/wdio-vscode-service/modules.html). You can find various usage examples in this [projects test suite](https://github.com/webdriverio-community/wdio-vscode-service/blob/main/test/specs/basic.e2e.ts).
+For the full page object documentation, check out the [docs](https://webdriverio-community.github.io/wdio-vscode-service/modules.html). You can find various usage examples in this [project's test suite](https://github.com/webdriverio-community/wdio-vscode-service/blob/main/test/specs).
 
 ## More Information
 

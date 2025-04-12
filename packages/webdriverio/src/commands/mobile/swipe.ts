@@ -109,7 +109,7 @@ async function calculateFromTo({
     direction: `${MobileScrollDirection}`,
     percentage?: number,
     scrollableElement: WebdriverIO.Element | ChainablePromiseElement
-    }): Promise<{ from: XY, to: XY }> {
+}): Promise<{ from: XY, to: XY }> {
     // 1. Determine the percentage of the scrollable container to be scrolled
     // The swipe percentage is the percentage of the scrollable container that should be scrolled
     // Never swipe from the exact top|bottom|left|right of the screen, you might trigger the notification bar or other OS/App features
@@ -204,7 +204,7 @@ await browser.swipe({ scrollableElement: $('#scrollable') });
     )
 }
 
-async function w3cSwipe({ browser, duration, from, to }: {browser: WebdriverIO.Browser, duration: number, from: XY, to: XY}) {
+async function w3cSwipe({ browser, duration, from, to }: { browser: WebdriverIO.Browser, duration: number, from: XY, to: XY }) {
     await browser
         // a. Create the event
         .action('pointer', {

@@ -82,7 +82,7 @@ Por defecto, el tiempo de espera es de 10 segundos, lo que significa que una sol
 Una única prueba en Mocha se ve como:
 
 ```js
-it('should login into the application', () => {
+it('should login into the application', async () => {
     await browser.url('/login')
 
     const form = await $('form')

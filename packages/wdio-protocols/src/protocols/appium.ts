@@ -507,6 +507,12 @@ export default {
                         'App ID (package ID for Android, bundle ID for iOS)',
                     required: true,
                 },
+                {
+                    name: 'options',
+                    type: 'object',
+                    description:
+                        'Command options. E.g. "timeout": (Only Android) Timeout to retry terminate the app (see more in Appium docs)',
+                },
             ],
             support: {
                 ios: {

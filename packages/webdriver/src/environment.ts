@@ -11,6 +11,7 @@ export const isNode = !!(typeof process !== 'undefined' && process.version)
 export interface EnvironmentVariables {
     WEBDRIVER_CACHE_DIR?: string
     PROXY_URL?: string
+    NO_PROXY?: string[]
 }
 
 export interface EnvironmentDependencies {

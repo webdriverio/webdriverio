@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "9.12.2",
+  "version": "9.12.5",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -102,7 +102,7 @@
     "webdriver": "workspace:*"
   },
   "peerDependencies": {
-    "puppeteer-core": "^22.3.0"
+    "puppeteer-core": ">=22.x || <=24.x"
   },
   "peerDependenciesMeta": {
     "puppeteer-core": {

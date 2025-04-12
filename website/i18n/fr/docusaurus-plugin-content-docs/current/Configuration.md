@@ -19,13 +19,13 @@ Type: `String`<br /> Default: `http`
 
 Host of your driver server.
 
-Type: `String`<br /> Default: `localhost`
+Type: `String`<br /> Default: `0.0.0.0`
 
 ### port
 
 Port your driver server is on.
 
-Type: `Number`<br /> Default: `4444`
+Type: `Number`<br /> Default: `undefined`
 
 ### path
 
@@ -37,19 +37,19 @@ Type: `String`<br /> Default: `/`
 
 Query parameters that are propagated to the driver server.
 
-Type: `Object`<br /> Default: `null`
+Type: `Object`<br /> Default: `undefined`
 
 ### user
 
 Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### key
 
 Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
 
-Type: `String`<br /> Default: `null`
+Type: `String`<br /> Default: `undefined`
 
 ### capabilities
 
@@ -258,7 +258,7 @@ Type: `Number`<br /> Default: `5000`
 
 Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
 
-Type: `Number`<br /> Default: `500`
+Type: `Number`<br /> Default: `100`
 
 ### region
 
@@ -296,7 +296,7 @@ Type: `Object`<br /> Default: `{}`
 
 ### capabilities
 
-The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
+The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](/docs/multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
 
 You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
 
@@ -368,6 +368,18 @@ By default, it is set to `false` so logs are printed in real-time.
 Type: `Boolean`<br />
 Default: `false`
 
+### groupLogsByTestSpec
+
+Choose the log output view.
+
+If set to `false` logs from different test files will be printed in real-time. Please note that this may result in the mixing of log outputs from different files when running in parallel.
+
+If set to `true` log outputs will be grouped by Test Spec and printed only when the Test Spec is completed.
+
+By default, it is set to `false` so logs are printed in real-time.
+
+Type: `Boolean`<br /> Default: `false`
+
 ### services
 
 Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
@@ -381,7 +393,6 @@ Defines the test framework to be used by the WDIO testrunner.
 Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
-
 
 Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks).
 
@@ -436,27 +447,31 @@ A list of glob supporting string patterns that tell the testrunner to have it ad
 
 Type: `String[]`<br /> Default: `[]`
 
-### autoCompileOpts
+### updateSnapshots
 
-Compiler options when using WebdriverIO with TypeScript or Babel.
+Set to true if you want to update your snapshots. Ideally used as part of a CLI parameter, e.g. `wdio run wdio.conf.js --s`.
 
-#### autoCompileOpts.autoCompile
+Type: `'new' | 'all' | 'none'`<br /> Default: `none` if not provided and tests run in CI, `new` if not provided, otherwise what's been provided
 
-If set to `true` the WDIO testrunner will automatically try to transpile the spec files.
+### resolveSnapshotPath
 
-Type: `Object` Default: `{ transpileOnly: true }`
+Overrides default snapshot path. For example, to store snapshots next to test files.
 
-#### autoCompileOpts.tsNodeOpts
+```ts title="wdio.conf.ts"
+export const config: WebdriverIO.Config = {
+    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
+}
+```
 
-Configure how [`ts-node`](https://www.npmjs.com/package/ts-node) is suppose to transpile the files.
+Type: `(testPath: string, snapExtension: string) => string`<br /> Default: stores snapshot files in `__snapshots__` directory next to test file
 
-Type: `Object` Default: `{ transpileOnly: true }`
+### tsConfigPath
 
-#### autoCompileOpts.babelOpts
+WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
 
-Configure how [@babel/register](https://www.npmjs.com/package/@babel/register) is suppose to transpile the files.
+See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
 
-Type: `Object` Default: `{}`
+Type: `String`<br /> Default: `null`<br />
 
 ## Hooks
 
@@ -723,4 +738,3 @@ Parameters:
 - `params.expectedValue`: value that is passed into the matcher
 - `params.options`: assertion options
 - `params.result`: assertion results
-

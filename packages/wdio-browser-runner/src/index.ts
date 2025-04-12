@@ -264,15 +264,15 @@ export function mocked<T>(item: T, deep?: false): MaybeMockedDeep<T>
 export function mocked<T>(item: T, options: {
     partial?: false;
     deep?: false;
-}): MaybeMocked<T>;
+}): MaybeMocked<T>
 export function mocked<T>(item: T, options: {
     partial?: false;
     deep: true;
-}): MaybeMockedDeep<T>;
+}): MaybeMockedDeep<T>
 export function mocked<T>(item: T, options: {
     partial: true;
     deep?: false;
-}): MaybePartiallyMocked<T>;
+}): MaybePartiallyMocked<T>
 export function mocked<T>(item: T, options: {
     partial: true;
     deep: true;

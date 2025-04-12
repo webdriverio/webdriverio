@@ -96,6 +96,48 @@ await browser.user$('foo').user$('bar').click()
 
 हम [पेज ऑब्जेक्ट](pageobjects)में कस्टम लॉजिक को परिभाषित करने की सलाह देते हैं, ताकि वे एक विशिष्ट पेज से बंधे रहें।
 
+### Multiremote
+
+`addCommand` works in a similar way for multiremote, except the new command will propagate down to the children instances. You have to be mindful when using `this` object since the multiremote `browser` and its children instances have different `this`.
+
+This example shows how to add a new command for multiremote.
+
+```js
+import { multiremotebrowser } from '@wdio/globals'
+
+multiremotebrowser.addCommand('getUrlAndTitle', async function (this: WebdriverIO.MultiRemoteBrowser, customVar: any) {
+    // `this` refers to:
+    //      - MultiRemoteBrowser scope for browser
+    //      - Browser scope for instances
+    return {
+        url: await this.getUrl(),
+        title: await this.getTitle(),
+        customVar: customVar
+    }
+})
+
+multiremotebrowser.getUrlAndTitle()
+/*
+{
+    url: [ 'https://webdriver.io/', 'https://webdriver.io/' ],
+    title: [
+        'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO',
+        'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO'
+    ],
+    customVar: undefined
+}
+*/
+
+multiremotebrowser.getInstance('browserA').getUrlAndTitle()
+/*
+{
+    url: 'https://webdriver.io/',
+    title: 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO',
+    customVar: undefined
+}
+*/
+```
+
 ## प्रकार परिभाषाएँ बढ़ाएँ
 
 टाइपस्क्रिप्ट के साथ, WebdriverIO इंटरफेस का विस्तार करना आसान है। इस तरह अपने कस्टम कमांड में प्रकार जोड़ें:

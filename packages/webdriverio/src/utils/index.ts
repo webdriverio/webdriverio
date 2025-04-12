@@ -719,7 +719,7 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
 
 type Entries<T> = {
     [K in keyof T]: [K, T[K]];
-}[keyof T][];
+}[keyof T][]
 
 /**
  * Enhance elements array with data required to refetch it

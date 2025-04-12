@@ -1,6 +1,6 @@
 {
   "name": "@wdio/concise-reporter",
-  "version": "9.12.2",
+  "version": "9.12.3",
   "description": "A concise reporter for WebdriverIO",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-concise-reporter",

@@ -3,7 +3,7 @@ id: testrunner
 title: اجرا کننده تست
 ---
 
-WebdriverIO با اجرا کننده تست خود به شما کمک می کند تا در سریع ترین زمان ممکن شروع به تست کنید. فرض بر این است که اجرا کننده تست تمام کارها را برای شما انجام می دهد، اجازه می دهد تا خدمات اشخاص ثالثی را نیز ادغام کنید، و به شما کمک می کند تا تست های خود را تا حد امکان بهینه اجرا کنید.
+WebdriverIO با اجرا کننده تست خود به شما کمک می کند تا در سریع ترین زمان ممکن شروع به تست کنید. It is supposed to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
 
 اجرا کننده تست WebdriverIO به طور جداگانه در بسته `@wdio/cli` در NPM قرار داده شده است.
 
@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-عالی! اکنون باید یک فایل پیکربندی تعریف کنید که در آن تمام اطلاعات مربوط به تست ها، قابلیت ها و تنظیمات شما تنظیم شده باشد. به بخش [Configuration File](configurationfile)  بروید تا ببینید این فایل چگونه باید باشد.
+عالی! اکنون باید یک فایل پیکربندی تعریف کنید که در آن تمام اطلاعات مربوط به تست ها، قابلیت ها و تنظیمات شما تنظیم شده باشد. Switch over to the [Configuration File](/docs/configuration)  section to see what that file should look like.
 
 با کمک پیکربندی `wdio` ، تولید فایل پیکربندی بسیار آسان است. فقط خط زیر را اجرا کنید:
 
@@ -112,20 +112,20 @@ wdio run ./wdio.conf.js --watch
 --waitforTimeout, -w  timeout for all waitForXXX commands             [number]
 --framework, -f       defines the framework (Mocha, Jasmine or Cucumber) to
                         run the specs                                   [string]
---reporters, -r       reporters to print out the results on stdout     [array]
+--reporters, -r       reporters to print out the results on stdout      [array]
 --suite               overwrites the specs attribute and runs the defined
                         suite                                            [array]
---spec                run only a certain spec file - overrides specs piped
+--spec                run a certain spec file or wildcards - overrides specs piped
                         from stdin                                       [array]
 --exclude             exclude spec file(s) from a run - overrides specs piped
                         from stdin                                       [array]
---repeat              Run one or more specs x amount of times            [number]
+--repeat              Repeat specific specs and/or suites N times        [number]
 --mochaOpts           Mocha options
 --jasmineOpts         Jasmine options
 --cucumberOpts        Cucumber options
 ```
 
-> توجه: کامپایل خودکار را می توان به راحتی با کتابخانه مناسب ENV Vars کنترل کرد. همچنین به عملکرد کامپایل خودکار Test Runner مستند شده در صفحات [TypeScript (ts-node)](typescript) و Babel (@babel/register) مراجعه کنید.
+> Note: Autocompiling can be easily controlled with `tsx` ENV Vars. See also the [TypeScript documentation](/docs/typescript).
 
 ### `wdio install`
 دستور `install` به شما این امکان را می دهد که گزارشگران و خدمات را از طریق CLI به پروژه های WebdriverIO خود اضافه کنید.

@@ -3,7 +3,7 @@ id: coverage
 title: Cobertura
 ---
 
-El corredor de navegador de WebdriverIO soporta informes de cobertura de código usando [`istanbul`](https://istanbul.js.org/). El testrunner automáticamente instrumentará su código y la cobertura de código para usted.
+El corredor de navegador de WebdriverIO soporta informes de cobertura de código usando [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code and capture code coverage for you.
 
 ## Configuración
 

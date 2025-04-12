@@ -256,34 +256,11 @@ export const config = {
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
         scenarioLevelReporter: false // Enable this to make webdriver.io behave as if scenarios and not steps were the tests.
     },
-    // For convenience, if ts-node or @babel/register modules are detected
-    // they are automatically loaded for config parsing so that TypeScript and
-    // future ES features can be used in wdio configs, and are also
-    // automatically loaded for test running so that tests can be written
-    // using TypeScript and future ES features.
-    // Because this may not be ideal in every situation, the following options
-    // may be used to customize the loading for test running, incase it has
-    // other requirements.
-    autoCompileOpts: {
-        //
-        // To disable auto-loading entirely set this to false.
-        autoCompile: true, // <boolean> Disable this to turn off autoloading. Note: When disabling, you will need to handle calling any such libraries yourself.
-        //
-        // If you have ts-node installed, you can customize how options are passed to it here:
-        // Any valid ts-node config option is allowed. Alternatively the ENV Vars could also be used instead of this.
-        // See also: https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
-        // See also RegisterOptions in https://github.com/TypeStrong/ts-node/blob/master/src/index.ts
-        tsNodeOpts: {
-            transpileOnly: true,
-            project: 'tsconfig.json'
-        },
-        // If @babel/register is installed, you can customize how options are passed to it here:
-        // Any valid @babel/register config option is allowed.
-        // https://babeljs.io/docs/en/babel-register#specifying-options
-        babelOpts: {
-            ignore: []
-        },
-    },
+    // Specify a custom tsconfig path - WDIO uses `tsx` to compile TypeScript files
+    // Your TSConfig is automatically detected from the current working directory
+    // but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH env var
+    // See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
+    tsConfigPath: 'path/to/tsconfig.json',
     //
     // =====
     // Hooks
@@ -349,23 +326,23 @@ export const config = {
      * (For example, this runs before calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.). In Cucumber `context` is the World object.
      *
      */
-    beforeHook: function (test, context) {
+    beforeHook: function (test, context, hookName) {
     },
     /**
      * Hook that gets executed _after_ every hook within the suite ends.
      * (For example, this runs after calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.). In Cucumber `context` is the World object.
      */
-     आफ्टरहुक: फ़ंक्शन (परीक्षण, संदर्भ, {त्रुटि, परिणाम, अवधि, उत्तीर्ण, पुनर्प्रयास}) {
-     },
-     /**
-      * परीक्षण से पहले क्रियान्वित होने वाला कार्य (केवल मोचा/जेसमीन में)
-      * @ param {object} टेस्ट टेस्ट ऑब्जेक्ट
-      * @param {object} संदर्भ स्कोप ऑब्जेक्ट परीक्षण के साथ निष्पादित किया गया था
-      */
-     पहले टेस्ट: फ़ंक्शन (परीक्षण, संदर्भ) {
-     },
-     /**
-      * WebdriverIO कमांड निष्पादित होने से पहले चलता है।
+    afterHook: function (test, context, { error, result, duration, passed, retries }, hookName) {
+    },
+    /**
+     * Function to be executed before a test (in Mocha/Jasmine only)
+     * @param {object} test    test object
+     * @param {object} context scope object the test was executed with
+     */
+    beforeTest: function (test, context) {
+    },
+    /**
+     * Runs before a WebdriverIO command is executed.
      * @param {string} commandName hook command name
      * @param {Array} args arguments that the command would receive
      */
@@ -486,11 +463,27 @@ export const config = {
      /**
       *
       * कुकुम्बर की विशेषता के बाद चलता है।
-     * @param {string}   यूरी   पाथ टू फीचर फाइल
-      * @param {GherkinDocument.IFeature} फीचर    कुकुम्बर फीचर ऑब्जेक्ट
-      */
-     afterFeature: फ़ंक्शन (यूरी, फ़ीचर) {
-     }
+     * @param {string}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
+     */
+    afterFeature: function (uri, feature) {
+    },
+    /**
+     * Runs before a WebdriverIO assertion library makes an assertion.
+     * @param commandName command name
+     * @param args        arguments that command would receive
+     */
+    beforeAssertion: function (params) {
+    },
+    /**
+     * Runs after a WebdriverIO command gets executed
+     * @param commandName  command name
+     * @param args         arguments that command would receive
+     * @param result       result of the command
+     * @param error        error in case something went wrong
+     */
+    afterAssertion: function (params) {
+    }
 }
 ```
 

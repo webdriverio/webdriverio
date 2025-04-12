@@ -9,7 +9,7 @@ Con WebdriverIOs [Navegador Runner](/docs/runner#browser-runner) puede ejecutar 
 
 El navegador Runner utiliza [Vite](https://vitejs.dev/) para renderizar una página de prueba e inicializar un framework de pruebas para ejecutar sus pruebas en el navegador. Actualmente solo soporta Mocha, pero Jasmine y Cucumber están [en el mapa de ruta](https://github.com/orgs/webdriverio/projects/1). Esto permite probar cualquier tipo de componentes, incluso para proyectos que no usan Vite.
 
-El servidor Vite es iniciado por el WebdriverIO testrunner y configurado para que pueda utilizar todos los reporteros y servicios como solía para las pruebas e2e normales. Además, inicializa una instancia de [`navegador`](/docs/api/browser) que le permite acceder a un subconjunto de la [API WebdriverIO](/docs/api) para interactuar con los elementos de la página. Similar a las pruebas e2e puede acceder a esa instancia a través de la variable `browser` conectada al ámbito global o importándola desde `@wdio/globals` dependiendo de cómo [`injectGlobals`](/docs/api/globals) se establezca.
+El servidor Vite es iniciado por el WebdriverIO testrunner y configurado para que pueda utilizar todos los reporteros y servicios como solía para las pruebas e2e normales. Furthermore it initializes a [`browser`](/docs/api/browser) instance that allows you to access a subset of the [WebdriverIO API](/docs/api) to interact with the any elements on the page. Similar a las pruebas e2e puede acceder a esa instancia a través de la variable `browser` conectada al ámbito global o importándola desde `@wdio/globals` dependiendo de cómo [`injectGlobals`](/docs/api/globals) se establezca.
 
 WebdriverIO has built-in support for the following frameworks:
 
@@ -41,6 +41,10 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 ```
 
 Definiendo diferentes [capacidades](/docs/configuration#capabilities) puede ejecutar sus pruebas en un navegador diferente, en paralelo si lo desea.
+
+If you are still unsure how everything works, watch the following tutorial on how to get started with Component Testing in WebdriverIO:
+
+<LiteYouTubeEmbed id="5vp_3tGtnMc" title="Getting Started with Component Testing in WebdriverIO" />
 
 ## Arnés de prueba
 
@@ -116,6 +120,21 @@ You can now go into the browser or use the command line as REPL
 ```
 
 Pulsa `Ctrl` o `Comando` + `c` o entra `.exit` para continuar con la prueba.
+
+## Run using a Selenium Grid
+
+If you have a [Selenium Grid](https://www.selenium.dev/documentation/grid/) set up and run your browser through that grid, you have to set the `host` browser runner option to allow the browser, to access the right host where the test files are being served, e.g.:
+
+```ts title=wdio.conf.ts
+export const config: WebdriverIO.Config = {
+    runner: ['browser', {
+        // network IP of the machine that runs the WebdriverIO process
+        host: 'http://172.168.0.2'
+    }]
+}
+```
+
+This will ensure the browser correctly opens the right server instance hosted on the instance that runs the WebdriverIO tests.
 
 ## Ejemplos:
 

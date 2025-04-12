@@ -6,7 +6,7 @@ title: はじめに
 WebdriverIO ドキュメントへようこそ。 ここではまずWebdriverIOを始めるための紹介をします。 なにか問題や分からないことがあった場合は、 [Discord サポート ](https://discord.webdriver.io) に問い合わせることで、サポートを受けることができます。 またはWebdriverIOの [X](https://twitter.com/webdriverio) への問い合わせも可能です。
 
 :::info
-これらは、WebdriverIO の最新バージョン (__>=8.x__) のドキュメントです。 もしもまだ古いバージョンを使用している場合は、 対象バージョンの[ドキュメント Web サイト](/versions)にアクセスしてください。
+These are the docs for the latest version (__>=9.x__) of WebdriverIO. もしもまだ古いバージョンを使用している場合は、 対象バージョンの[ドキュメント Web サイト](/versions)にアクセスしてください。
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="Getting Started with WebdriverIO" />
@@ -29,18 +29,19 @@ WebdriverIO に関する動画をお探しの場合は[公式チャンネル](ht
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio .
+npm init wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-npm init wdio ./path/to/new/project
+npm init wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
@@ -60,13 +61,26 @@ yarn create wdio ./path/to/new/project
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio .
+pnpm create wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-pnpm create wdio ./path/to/new/project
+pnpm create wdio@latest ./path/to/new/project
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest .
+```
+
+or if you want to create a new project:
+
+```sh
+bun create wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
@@ -84,12 +98,13 @@ pnpm create wdio ./path/to/new/project
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio . -- --yes
+npm init wdio@latest . -- --yes
 ```
 
 </TabItem>
@@ -103,7 +118,14 @@ yarn create wdio . --yes
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio . --yes
+pnpm create wdio@latest . --yes
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest . --yes
 ```
 
 </TabItem>
@@ -159,7 +181,7 @@ WebdriverIO は、画面上でテスト アクションを記録し、WebdriverI
 
 [Node.js](http://nodejs.org) がインストールされている必要があります。
 
-- すくなくとも現在一番古いLTS であるv16.x 以降をインストールしてください
+- Install at least v18.20.0 or higher as this is the oldest active LTS version
 - LTS リリースもしくはLTS リリースとなるリリースのみが正式にサポートされます。
 
 現在のシステムに Node がインストールされていない場合は、 [NVM](https://github.com/creationix/nvm) または [Volta](https://volta.sh/) などのバージョン管理ツールを利用して、複数のアクティブな Node.js バージョンの管理を支援することをお勧めします。 NVM は一般的な選択肢ですが、Volta も優れた代替手段です。

@@ -23,8 +23,15 @@ export class FetchRequest extends WebDriverRequest {
         /**
          * Use a proxy agent if we have a proxy url set
          */
-        const dispatcher = environment.value.variables.PROXY_URL
-            ? new ProxyAgent(environment.value.variables.PROXY_URL)
+        const { PROXY_URL, NO_PROXY } = environment.value.variables
+
+        const dispatcher = PROXY_URL && !NO_PROXY?.some((str) => url.hostname.endsWith(str))
+            ? new ProxyAgent({
+                uri: PROXY_URL,
+                connectTimeout: options.connectionRetryTimeout,
+                headersTimeout: options.connectionRetryTimeout,
+                bodyTimeout: options.connectionRetryTimeout,
+            })
             : new Agent({
                 connectTimeout: options.connectionRetryTimeout,
                 headersTimeout: options.connectionRetryTimeout,

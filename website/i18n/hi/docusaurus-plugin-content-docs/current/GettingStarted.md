@@ -6,7 +6,7 @@ title: शुरू करें
 WebdriverIO दस्तावेज़ीकरण में आपका स्वागत है। यह आपको तेजी से आरंभ करने में मदद करेगा। यदि आप समस्याओं में भाग लेते हैं, तो आप हमारे [डिसॉर्ड सपोर्ट सर्वर](https://discord.webdriver.io) पर सहायता और उत्तर पा सकते हैं या आप मुझे [ट्विटर](https://twitter.com/webdriverio)पर हिट कर सकते हैं।
 
 :::info
-ये WebdriverIO के नवीनतम संस्करण (__>=8.x__) के लिए दस्तावेज़ हैं। यदि आप अभी भी पुराने संस्करण का उपयोग कर रहे हैं, तो कृपया [पुरानी प्रलेखन वेबसाइटों पर जाएँ](/versions)!
+These are the docs for the latest version (__>=9.x__) of WebdriverIO. यदि आप अभी भी पुराने संस्करण का उपयोग कर रहे हैं, तो कृपया [पुरानी प्रलेखन वेबसाइटों पर जाएँ](/versions)!
 :::
 
 <LiteYouTubeEmbed id="rA4IFNyW54c" title="शुरू करें" />
@@ -29,18 +29,19 @@ You can find more videos around WebdriverIO on the [official YouTube channel](ht
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio .
+npm init wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-npm init wdio ./path/to/new/project
+npm init wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
@@ -60,13 +61,26 @@ yarn create wdio ./path/to/new/project
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio .
+pnpm create wdio@latest .
 ```
 
 or if you want to create a new project:
 
 ```sh
-pnpm create wdio ./path/to/new/project
+pnpm create wdio@latest ./path/to/new/project
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest .
+```
+
+or if you want to create a new project:
+
+```sh
+bun create wdio@latest ./path/to/new/project
 ```
 
 </TabItem>
@@ -84,12 +98,13 @@ pnpm create wdio ./path/to/new/project
     {label: 'NPM', value: 'npm'},
  {label: 'Yarn', value: 'yarn'},
  {label: 'pnpm', value: 'pnpm'},
+ {label: 'bun', value: 'bun'},
  ]
 }>
 <TabItem value="npm">
 
 ```sh
-npm init wdio . -- --yes
+npm init wdio@latest . -- --yes
 ```
 
 </TabItem>
@@ -103,7 +118,14 @@ yarn create wdio . --yes
 <TabItem value="pnpm">
 
 ```sh
-pnpm create wdio . --yes
+pnpm create wdio@latest . --yes
+```
+
+</TabItem>
+<TabItem value="bun">
+
+```sh
+bun create wdio@latest . --yes
 ```
 
 </TabItem>
@@ -163,7 +185,7 @@ WebdriverIO स्क्रीन पर अपनी परीक्षण क�
 
 रिकॉर्डर परीक्षण देखें।
 
-- कम से कम v16.x या उच्चतर स्थापित करें क्योंकि यह सबसे पुराना सक्रिय LTS संस्करण है
+- Install at least v18.20.0 or higher as this is the oldest active LTS version
 - केवल वे रिलीज़ जो LTS रिलीज़ हैं या बन जाएँगी आधिकारिक रूप से समर्थित हैं
 
 यदि नोड वर्तमान में आपके सिस्टम पर स्थापित नहीं है, तो हम कई सक्रिय Node.js संस्करणों के प्रबंधन में सहायता के लिए [NVM](https://github.com/creationix/nvm) या [Volta](https://volta.sh/) जैसे टूल का उपयोग करने का सुझाव देते हैं। एनवीएम एक लोकप्रिय विकल्प है, जबकि वोल्टा भी एक अच्छा विकल्प है।
