@@ -167,6 +167,7 @@ export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'before
     /**
      * Default interval for all `waitFor*` commands to check if an expected state (e.g.,
      * visibility) has been changed.
+     * @default 500
      */
     waitforInterval?: number
 }
@@ -304,19 +305,27 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * @default []
      */
     cucumberFeaturesWithLineNumbers?: string[]
+    // flags
     /**
-     * flags
+     * Toggle watch mode on/off
      */
     watch?: boolean
     /**
      * Shard tests and execute only the selected shard. Specify in the one-based form like `{ total: 5, current: 2 }`.
      */
     shard?: ShardOptions
+    // framework options
     /**
-     * framework options
+     * Mocha specific options
      */
     mochaOpts?: WebdriverIO.MochaOpts
+    /**
+     * Jasmine specific options
+     */
     jasmineOpts?: WebdriverIO.JasmineOpts
+    /**
+     * Cucumber specific options
+     */
     cucumberOpts?: WebdriverIO.CucumberOpts
     /**
      * TSX custom TSConfig path

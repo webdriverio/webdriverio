@@ -53,7 +53,7 @@ export function sanitizeCaps (
  * @return {Promise}               resolves with browser object
  */
 export async function initializeInstance (
-    config: ConfigWithSessionId | Options.Testrunner,
+    config: ConfigWithSessionId | WebdriverIO.Config,
     capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
     isMultiremote?: boolean
 ): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {

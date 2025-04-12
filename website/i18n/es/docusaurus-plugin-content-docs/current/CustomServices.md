@@ -89,7 +89,7 @@ export default class CustomWorkerService implements Services.ServiceInstance {
     constructor (
         private _options: MyServiceOptions,
         private _capabilities: Capabilities.RemoteCapability,
-        private _config: Options.Testrunner
+        private _config: WebdriverIO.Config,
     ) {
         // ...
     }

@@ -13,9 +13,6 @@ https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-gr
 You need to provide the appropriate values for the protocol, hostname, port, and path based on your Selenium Grid setup.
 If you are running Selenium Grid on the same machine as your test scripts, here are some typical options:
 
-```js reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-grid/selenium-grid-local.js
-```
 
 ### Basic authentication with protected Selenium Grid
 
