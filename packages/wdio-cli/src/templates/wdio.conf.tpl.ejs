@@ -1,74 +1,70 @@
-<% if (answers.isUsingTypeScript && answers.purpose === 'electron') { %>
-    /// <reference types="wdio-electron-service" />
-    <% }-%>
-    import { defineConfig } from '@wdio/config'
-    <%if (answers.isUsingTypeScript && answers.serenityAdapter) { -%>
-    import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
-    <% } -%>
-    
-    <%
-    if (answers.isUsingTypeScript) {
-        %>export const config: <%= answers.serenityAdapter ? 'WebdriverIOConfig' : 'WebdriverIO.Config' %> = defineConfig({<%
-    } else if (answers.esmSupport) {
-        %>export const config = defineConfig({<%
-    } else {
-        %>exports.config = defineConfig({<%
-    } %>
-        runner: <%
-        if (answers.runner === 'browser') {
-            if (answers.preset) {
-                %>['browser', {
+<% if (answers.isUsingTypeScript && answers.purpose === 'electron') {
+    %>/// <reference types="wdio-electron-service" />
+<% } -%>
+import { defineConfig } from '@wdio/config'
+<%if (answers.isUsingTypeScript && answers.serenityAdapter) {
+    %>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
+<% } -%> 
+<% if (answers.isUsingTypeScript) {
+    %>export const config: <%= answers.serenityAdapter ? 'WebdriverIOConfig' : 'WebdriverIO.Config' %> = defineConfig({<%
+} else if (answers.esmSupport) {
+    %>export const config = defineConfig({<%
+} else {
+    %>exports.config = defineConfig({<%
+} %>
+    runner: <%
+if (answers.runner === 'browser') {
+    if (answers.preset) {
+        %>['browser', {
             preset: '<%- answers.preset %>',
             headless: !Boolean(process.env.DEBUG)
         }]<%
-            } else {
-                %>'browser'<%
-            }
-        } else {
-            %>'local'<%
-        }
-        %>,<%
-        if (answers.isUsingTypeScript) { %>
-        tsConfigPath: '<%- answers.tsProject %>',
-        <% }
-        if (answers.expEnvAccessKey) { %>
-        hostname: '<%- answers.expEnvHostname %>',
-        <% if (answers.expEnvPort === '443') {%>protocol: 'https',
-        <%} else if (answers.expEnvPort === '80') {%>protocol: 'http',
-        <%} else { %>protocol: '<%- answers.expEnvProtocol %>',<%}%>
-        port: <%- answers.expEnvPort %>,
-        path: '/wd/hub',
-        <% } else if (answers.hostname && answers.port) { %>//
-        hostname: '<%- answers.hostname %>',
-        port: <%- answers.port %>,
-        path: '<%- answers.path %>',<% } else if (answers.services.includes('appium')) { %>
-        port: 4723,<% }
-        if (answers.env_user && answers.env_key) { %>
-        user: process.env.<%- answers.env_user %>,
-        key: process.env.<%- answers.env_key %>,
-        <% }
-        if (answers.headless) { %>headless: true,<% }
-        if (answers.region) { %>region: '<%- answers.region %>',<% } %>
-        specs: [
-            <%- answers.specs ? `'${answers.specs}'` : '// ToDo: define location for spec files here' %>
-        ],
-        maxInstances: 10,
-        <%- include('snippets/capabilities', { answers }) %>
-        logLevel: 'info',
-        bail: 0,
-        waitforTimeout: 10000,
-        connectionRetryTimeout: 120000,
-        connectionRetryCount: 3,
-    <%- include('snippets/services', { answers }) -%>
-    <%- include('snippets/reporters', { reporters: answers.reporters }) -%>
-        framework: '<%- answers.framework %>',
-    <% if (answers.framework === '@serenity-js/webdriverio') {
-        %><%- include('snippets/serenity', { answers }) -%><%
-    } -%>
-    <% ['mocha', 'jasmine', 'cucumber'].forEach(function(framework) {
-        if ([answers.serenityAdapter, answers.framework].includes(framework)) {
-            include('snippets/' + framework, { answers });
-        }
-    }); -%>
-    })
-    
+    } else {
+        %>'browser'<%
+    }
+} else {
+    %>'local'<%
+}
+%>,<%
+if (answers.isUsingTypeScript) { %>
+    tsConfigPath: '<%- answers.tsProject %>',<% }
+if (answers.expEnvAccessKey) { %>
+    hostname: '<%- answers.expEnvHostname %>',
+<% if (answers.expEnvPort === '443') {%>protocol: 'https',
+<%} else if (answers.expEnvPort === '80') {%>protocol: 'http',
+<%} else { %>protocol: '<%- answers.expEnvProtocol %>',<%}%>
+    port: <%- answers.expEnvPort %>,
+    path: '/wd/hub',
+<% } else if (answers.hostname && answers.port) { %>//
+    hostname: '<%- answers.hostname %>',
+    port: <%- answers.port %>,
+    path: '<%- answers.path %>',<% } else if (answers.services.includes('appium')) { %>
+    port: 4723,<% }
+if (answers.env_user && answers.env_key) { %>
+    user: process.env.<%- answers.env_user %>,
+    key: process.env.<%- answers.env_key %>,
+<% }
+if (answers.headless) { %>headless: true,<% }
+if (answers.region) { %>region: '<%- answers.region %>',<% } %>
+    specs: [
+        <%- `'${answers.specs}'` %>
+    ],
+    maxInstances: 10,
+    <%- include('snippets/capabilities', { answers }) -%>
+    logLevel: 'info',
+    bail: 0,
+    waitforTimeout: 10000,
+    connectionRetryTimeout: 120000,
+    connectionRetryCount: 3,
+<%- include('snippets/services', { answers }) -%>
+<%- include('snippets/reporters', { reporters: answers.reporters }) -%>
+    framework: '<%- answers.framework -%>',
+<% if (answers.framework === '@serenity-js/webdriverio') { -%>
+<%- include('snippets/serenity', { answers }) -%>
+<% } -%>
+<%- ['mocha', 'jasmine', 'cucumber'].forEach(function(framework) {
+    if ([answers.serenityAdapter, answers.framework].includes(framework)) {
+        include('snippets/' + framework, { answers });
+    }
+}); -%>
+})
