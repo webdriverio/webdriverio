@@ -50,6 +50,8 @@ import TestOpsConfig from './testOps/testOpsConfig.js'
 
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
+import { _fetch as fetch } from './fetchWrapper.js'
+
 const pGitconfig = promisify(gitconfig)
 
 export type GitMetaData = {

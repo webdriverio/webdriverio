@@ -11,6 +11,8 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 import { BStackLogger } from '../bstackLogger.js'
 
+import { _fetch as fetch } from '../fetchWrapper.js'
+
 class PercyBinary {
     #hostOS = process.platform
     #httpPath: string | null = null

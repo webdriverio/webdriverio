@@ -50,6 +50,8 @@ import AiHandler from './ai-handler.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
+import { _fetch as fetch } from './fetchWrapper.js'
+
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
     stop(callback: (err?: Error) => void): void

@@ -5,6 +5,8 @@ import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigfor
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 
+import { _fetch as fetch } from './fetchWrapper.js'
+
 type Dict = Record<string, string>
 
 export default class CrashReporter {
