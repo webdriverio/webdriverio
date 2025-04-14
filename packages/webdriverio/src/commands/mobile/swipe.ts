@@ -51,7 +51,7 @@ const SWIPE_DEFAULTS = {
  * </example>
  *
  * @alias element.scrollIntoView
- * @param {object|boolean=} options                   options for `browser.swipe()`. Default for desktop/mobile web: <br/> `{ direction: 'down', duration: 1500, percent: 0.95, scrollableElement: WebdriverIO.Element }`
+ * @param {object|boolean=} options                   options for `browser.swipe()`. Default for desktop/mobile web: <br/> `{ direction: 'up', duration: 1500, percent: 0.95, scrollableElement: WebdriverIO.Element }`
  * @param {string=}         options.direction         Can be one of `down`, `up`, `left` or `right`, default is `up`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @rowInfo Down    ::<strong>Starting Point:</strong><br/>You place your finger towards the top of the screen.<br/><strong>Movement:</strong><br/>You slide your finger downwards towards the bottom of the screen.<br/><strong>Action:</strong><br/>This also varies by context:<br />- On the home screen or in applications, it typically scrolls the content upwards.<br />- From the top edge, it often opens the notifications panel or quick settings.<br />- In browsers or reading apps, it can be used to scroll through content.
  * @rowInfo Left    ::<strong>Starting Point:</strong><br/>You place your finger on the right side of the screen.<br/><strong>Movement:</strong><br/>You slide your finger horizontally to the left.><br/><strong>Action:</strong><br/>The response to this gesture depends on the application:<br />- It can move to the next item in a carousel or a set of images.<br />- In a navigation context, it might go back to the previous page or close the current view.<br />- On the home screen, it usually switches to the next virtual desktop or screen.
