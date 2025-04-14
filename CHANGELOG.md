@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.44.1 (2025-04-14)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14404](https://github.com/webdriverio/webdriverio/pull/14404) fix: unexpected token '?' on older browsers ([@will-stone](https://github.com/will-stone))
+* `wdio-browserstack-service`
+  * [#14394](https://github.com/webdriverio/webdriverio/pull/14394) fix: Failed hook reporting on observability ([@sauravdas1997](https://github.com/sauravdas1997))
+
+#### Committers: 2
+- Will Stone ([@will-stone](https://github.com/will-stone))
+- [@sauravdas1997](https://github.com/sauravdas1997)
+
+
 ## v8.44.0 (2025-04-08)
 
 #### :eyeglasses: Spec Compliancy
