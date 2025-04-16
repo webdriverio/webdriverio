@@ -39,7 +39,8 @@ describe('testFnWrapper', () => {
             retries: {
                 limit: 0,
                 attempts: 0
-            }
+            },
+            skipped: false
         }])
     })
 
@@ -60,7 +61,8 @@ describe('testFnWrapper', () => {
             retries: {
                 limit: 11,
                 attempts: 0
-            }
+            },
+            skipped: false,
         }])
     })
 
@@ -90,7 +92,37 @@ describe('testFnWrapper', () => {
             retries: {
                 limit: 0,
                 attempts: 0
-            }
+            },
+            skipped: false,
+        }])
+    })
+
+    it('should not throw on error on skip test', async () => {
+        const args = buildArgs((mode: string, repeatTest: boolean, arg: any) => {
+            throw new Error('sync skip; aborting execution')
+        }, undefined, () => ['beforeFnArgs'], () => ['afterFnArgs'])
+
+        let error
+        try {
+            // @ts-expect-error
+            await testFnWrapper(...args)
+        } catch (err) {
+            error = err
+        }
+
+        expect(error).toBe(undefined)
+        expect(executeHooksWithArgs).toBeCalledTimes(2)
+        expect(executeHooksWithArgs).toBeCalledWith('beforeFoo', 'beforeFn', ['beforeFnArgs'])
+        expect(executeHooksWithArgs).toBeCalledWith('afterFoo', 'afterFn', ['afterFnArgs', {
+            duration: expect.any(Number),
+            error: undefined,
+            result: undefined,
+            passed: false,
+            retries: {
+                limit: 0,
+                attempts: 0
+            },
+            skipped: true,
         }])
     })
 
