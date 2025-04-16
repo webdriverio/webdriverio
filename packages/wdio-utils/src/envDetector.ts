@@ -95,14 +95,21 @@ function isFirefox(capabilities?: WebdriverIO.Capabilities) {
     )
 }
 
+// Some drivers (e.g. Appium for Windows) return capabilities with flattened,
+// non-namespaced keys like `automationName` instead of `appium:automationName`.
+// We extend the base type here to safely support those runtime shapes.
+interface ExtendedCapabilities extends WebdriverIO.Capabilities {
+    automationName?: string;
+}
+
 /**
  * get the automation name value of the session
  *
  * @param  {Object}  capabilities  capabilities
  * @return {Boolean}               true if platform is mobile device
  */
-function getAutomationName(capabilities: WebdriverIO.Capabilities) {
-    return capabilities['appium:options']?.automationName || capabilities['appium:automationName']
+function getAutomationName(capabilities: ExtendedCapabilities) {
+    return capabilities['appium:options']?.automationName || capabilities['appium:automationName'] || capabilities['automationName']
 }
 
 /**
