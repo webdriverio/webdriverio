@@ -104,6 +104,28 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeHeadlessShellCaps, requestedCapabilities }).isChrome).toBe(true)
     })
 
+    it('isWindowsApp', () => {
+        const requestedCapabilities = { browserName: '' }
+        const capabilities: WebdriverIO.Capabilities = {
+            platformName: 'windows',
+            'appium:automationName': 'windows',
+            'appium:deviceName': 'WindowsPC',
+        }
+        const {
+            isMobile,
+            isWindowsApp,
+            isMacApp,
+            isAndroid,
+            isIOS
+        } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+
+        expect(isMobile).toEqual(true)
+        expect(isWindowsApp).toEqual(true)
+        expect(isMacApp).toEqual(false)
+        expect(isAndroid).toEqual(false)
+        expect(isIOS).toEqual(false)
+    })
+
     it('isChromium', () => {
         const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isChromium).toBe(false)
