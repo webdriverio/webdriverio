@@ -23,6 +23,26 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.12.6 (2025-04-17)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#14417](https://github.com/webdriverio/webdriverio/pull/14417) Fix Windows Automation on WebDriverIO V9 ([@samuelfreiberg](https://github.com/samuelfreiberg))
+  * [#14412](https://github.com/webdriverio/webdriverio/pull/14412) Address skipping tests for mocha and jasmine in aftertest ([@ccharnkij](https://github.com/ccharnkij))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#14398](https://github.com/webdriverio/webdriverio/pull/14398) catching error from addPreloadScript ([@ccharnkij](https://github.com/ccharnkij))
+* `wdio-browserstack-service`
+  * [#14410](https://github.com/webdriverio/webdriverio/pull/14410) fix(@wdio/browserstack-service): node fetch() failure over HTTPS_PROXY=<proxy_url> setup ([@mitya555](https://github.com/mitya555))
+
+#### Committers: 4
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Dmitriy Mukhin ([@mitya555](https://github.com/mitya555))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Samuel Freiberg ([@samuelfreiberg](https://github.com/samuelfreiberg))
+
+
 ## v9.12.5 (2025-04-11)
 
 #### :eyeglasses: Spec Compliancy
