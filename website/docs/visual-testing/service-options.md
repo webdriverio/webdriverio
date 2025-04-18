@@ -412,7 +412,7 @@ The padding which needs to be added to the toolbar bar on iOS and Android to do 
 -   **Type:** `boolean`
 -   **Mandatory:** No
 -   **Default:** `false`
--   **Supported:** Web, Hybrid App (Webview)
+-   **Supported:** Web, Hybrid App (Webview) **Introduced in visual-service@7.0.0**
 
 By default, full-page screenshots on desktop web are captured using the WebDriver BiDi protocol, which enables fast, stable, and consistent screenshots without scrolling.
 When userBasedFullPageScreenshot is set to true, the screenshot process simulates a real user: scrolling through the page, capturing viewport-sized screenshots, and stitching them together. This method is useful for pages with lazy-loaded content or dynamic rendering that depends on scroll position.
