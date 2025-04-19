@@ -15,7 +15,10 @@ vi.mock('../../src/vite/plugins/worker.js', () => ({
     workerPlugin: vi.fn().mockReturnValue('worker plugin')
 }))
 vi.mock('../../src/vite/constants.js', () => ({
-    DEFAULT_VITE_CONFIG: { someDefault: 'config' },
+    DEFAULT_VITE_CONFIG: {
+        someDefault: 'config',
+        server: { host: '0.0.0.0' },
+    },
     PRESET_DEPENDENCIES: { lit: ['foobar', 'default', { bar: 'foo' }] }
 }))
 vi.mock('@wdio/utils', () => ({
