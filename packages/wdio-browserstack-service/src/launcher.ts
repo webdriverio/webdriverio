@@ -277,7 +277,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
 
         let buildStartResponse = null
-        if (this._options.testObservability || shouldSetupPercy) {
+        if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
             BStackLogger.debug('Sending launch start event')
 
             buildStartResponse = await launchTestSession(this._options, this._config, {
@@ -288,7 +288,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildIdentifier: this._buildIdentifier
             }, this.browserStackConfig)
 
-            if ( buildStartResponse !== null && buildStartResponse.accessibility !== null && buildStartResponse.accessibility !== undefined) {
+            if ( buildStartResponse !== null && buildStartResponse !== undefined && buildStartResponse.accessibility !== null && buildStartResponse.accessibility !== undefined) {
                 if (this.browserStackConfig.accessibility === null) {
                     this.browserStackConfig.accessibility = buildStartResponse.accessibility.success
                     this._accessibilityAutomation = buildStartResponse.accessibility.success
