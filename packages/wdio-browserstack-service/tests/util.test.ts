@@ -57,6 +57,7 @@ import {
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
 import * as testHubUtils from '../src/testHub/utils.js'
+import { mock } from '@wdio/browser-runner'
 
 const log = logger('test')
 
@@ -708,25 +709,22 @@ describe('stopBuildUpstream', () => {
 })
 
 describe('launchTestSession', () => {
+    const mockedGot = vi.mocked(got)
     vi.mocked(gitRepoInfo).mockReturnValue({} as any)
-    vi.spyOn(testHubUtils, 'getProductMap').mockReturnValue({} as any)
+    vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({
+        key1: false,
+        key2: true
+      })
+    
 
-    it('returns launch response when build is started successfully', async () => {
+    it('return undefined if completed', async () => {
         const mockResponse = { build_hashed_id: 'build_id', jwt: 'jwt' }
-        const fetchMock = vi.fn().mockResolvedValue({
-            json: vi.fn().mockResolvedValue(mockResponse)
-        })
-        vi.mocked(fetch).mockImplementation(fetchMock)
+        mockedGot.post = vi.fn().mockReturnValue({
+            json: () => Promise.resolve(mockResponse),
+        } as any)
 
-        vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({
-            key1: false,
-            key2: true
-        })
-
-        const result: any = await launchTestSession({ framework: 'framework' } as any, {}, {}, {})
-        expect(fetchMock).toHaveBeenCalledTimes(1)
-        const [, options] = fetchMock.mock.calls[0]
-        expect(options.method).toBe('POST')
+        const result: any = await launchTestSession( { framework: 'framework' } as any, { }, {}, {})
+        expect(got.post).toBeCalledTimes(1)
         expect(result).toEqual(mockResponse)
     })
 })
