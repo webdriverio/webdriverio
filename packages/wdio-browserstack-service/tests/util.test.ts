@@ -708,7 +708,6 @@ describe('stopBuildUpstream', () => {
 })
 
 describe('launchTestSession', () => {
-    const mockedGot = vi.mocked(got)
     vi.mocked(gitRepoInfo).mockReturnValue({} as any)
     vi.spyOn(testHubUtils, 'getProductMap').mockReturnValue({} as any)
 
@@ -726,7 +725,7 @@ describe('launchTestSession', () => {
 
         const result: any = await launchTestSession({ framework: 'framework' } as any, {}, {}, {})
         expect(fetchMock).toHaveBeenCalledTimes(1)
-        const [url, options] = fetchMock.mock.calls[0]
+        const [, options] = fetchMock.mock.calls[0]
         expect(options.method).toBe('POST')
         expect(result).toEqual(mockResponse)
     })
