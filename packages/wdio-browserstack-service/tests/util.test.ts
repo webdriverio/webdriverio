@@ -712,14 +712,23 @@ describe('launchTestSession', () => {
     vi.mocked(gitRepoInfo).mockReturnValue({} as any)
     vi.spyOn(testHubUtils, 'getProductMap').mockReturnValue({} as any)
 
-    it('return undefined if completed', async () => {
-        mockedGot.post = vi.fn().mockReturnValue({
-            json: () => Promise.resolve({ build_hashed_id: 'build_id', jwt: 'jwt' }),
-        } as any)
+    it('returns launch response when build is started successfully', async () => {
+        const mockResponse = { build_hashed_id: 'build_id', jwt: 'jwt' }
+        const fetchMock = vi.fn().mockResolvedValue({
+            json: vi.fn().mockResolvedValue(mockResponse)
+        })
+        vi.mocked(fetch).mockImplementation(fetchMock)
 
-        const result: any = await launchTestSession( { framework: 'framework' } as any, { }, {}, {})
-        expect(got.post).toBeCalledTimes(1)
-        expect(result).toEqual(undefined)
+        vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({
+            key1: false,
+            key2: true
+        })
+
+        const result: any = await launchTestSession({ framework: 'framework' } as any, {}, {}, {})
+        expect(fetchMock).toHaveBeenCalledTimes(1)
+        const [url, options] = fetchMock.mock.calls[0]
+        expect(options.method).toBe('POST')
+        expect(result).toEqual(mockResponse)
     })
 })
 
