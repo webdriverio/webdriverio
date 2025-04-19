@@ -122,7 +122,7 @@ const launcher = new Launcher('/path/to/config.file.js', {
 
 ## Espera hasta que `se sincronice`
 
-Si su reportero tiene que ejecutar operaciones asíncronas para reportar los datos (p. ej. carga de archivos de registro u otros activos) puede sobrescribir el método `isSynchronised` en su reportero personalizado para permitir al corredor WebdriverIO esperar hasta que lo haya calculado todo. Un ejemplo de esto se puede ver en la [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.ts):
+Si su reportero tiene que ejecutar operaciones asíncronas para reportar los datos (p. ej. carga de archivos de registro u otros activos) puede sobrescribir el método `isSynchronised` en su reportero personalizado para permitir al corredor WebdriverIO esperar hasta que lo haya calculado todo. An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.ts):
 
 ```js
 export default class SumoLogicReporter extends WDIOReporter {

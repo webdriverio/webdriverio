@@ -5,7 +5,7 @@ title: Elevate Your Visual Testing with Argos
 
 ## Introduction
 
-[Argos](https://argos-ci.com/?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation) is a powerful open-source visual testing platform that seamlessly integrates with WebdriverIO, enhancing your ability to maintain a flawless user interface across updates. By integrating Argos into your WebdriverIO projects, you can easily identify visual changes introduced by pull requests, confirm intentional modifications, and prevent unexpected regressions in your application.
+Argos is a powerful open-source visual testing platform that seamlessly integrates with WebdriverIO, enhancing your ability to maintain a flawless user interface across updates. By integrating Argos into your WebdriverIO projects, you can easily identify visual changes introduced by pull requests, confirm intentional modifications, and prevent unexpected regressions in your application.
 
 ### Why Choose Argos over Standard Visual Testing?
 
@@ -28,7 +28,7 @@ With Argos, you get more than just a visual diff tool:
 
 ## Quick Start Guide
 
-Integrating Argos with your WebdriverIO project is straightforward and quick. Start taking advantage of advanced visual testing today by following [the official Argos guide for WebdriverIO](https://argos-ci.com/docs/quickstart/webdriverio?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).
+Integrating Argos with your WebdriverIO project is straightforward and quick. Start taking advantage of advanced visual testing today by following the official Argos guide for WebdriverIO.
 
 ### In Just a Few Minutes, You Can:
 
@@ -36,4 +36,4 @@ Integrating Argos with your WebdriverIO project is straightforward and quick. St
 - **Identify and Review Changes**: Compare new screenshots against your baselines, quickly identifying any visual discrepancies.
 - **Streamline Approvals**: Use Argos’s intuitive review system to approve or reject changes, simplifying team collaboration and ensuring your UI stays consistent.
 
-Don’t just detect visual regressions—prevent them. [Start using Argos with WebdriverIO](https://argos-ci.com/?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation) and safeguard your UI today!
+Don’t just detect visual regressions—prevent them. Start using Argos with WebdriverIO and safeguard your UI today!

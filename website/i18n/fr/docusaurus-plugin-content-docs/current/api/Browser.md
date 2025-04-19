@@ -15,8 +15,8 @@ Un objet `browser` possède les propriétés suivantes :
 
 | Nom                   | Type       | Détails                                                                                                                                                                                                                                                                  |
 | --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `capacités`           | `Objet`    | Assigned capabilities from the remote server.<br /><b>Example:</b><pre>\{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: \{<br />    chromedriverVersion: '105.0.5195.52',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  \},<br />  'goog:chromeOptions': \{ debuggerAddress: 'localhost:64679' \},<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: \{},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: \{ implicit: 0, pageLoad: 300000, script: 30000 \},<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />\}</pre>                                                                                                                                                              |
-| `capacités demandées` | `Objet`    | Capacités demandées au serveur distant.<br /><b>Exemple :</b><pre>\{ browserName: 'chrome' \}</pre>                                                                                                                                                                    |
+| `capacités`           | `Object`   | Assigned capabilities from the remote server.<br /><b>Example:</b><pre>\{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: \{<br />    chromedriverVersion: '105.0.5195.52',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  \},<br />  'goog:chromeOptions': \{ debuggerAddress: 'localhost:64679' \},<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: \{},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: \{ implicit: 0, pageLoad: 300000, script: 30000 \},<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />\}</pre>                                                                                                                                                              |
+| `capacités demandées` | `Object`   | Capacités demandées au serveur distant.<br /><b>Exemple :</b><pre>\{ browserName: 'chrome' \}</pre>                                                                                                                                                                    |
 | `sessionId`           | `String`   | Id de session attribué à partir du serveur distant.                                                                                                                                                                                                                      |
 | `options`             | `Object`   | WebdriverIO [options](/docs/configuration) selon la façon dont l'objet navigateur a été créé. Voir plus [types de configuration](/docs/setuptypes).                                                                                                                      |
 | `commandList`         | `String[]` | Une liste de commandes enregistrées dans l'instance du navigateur                                                                                                                                                                                                        |
@@ -60,12 +60,9 @@ Par exemple, compte tenu de cette configuration :
 // wdio.conf.js
 export const config = {
     // ...
-    capabilities: \\{
-        platformName: 'iOS',
-        app: 'net.company.SafariLauncher',
-        udid: '123123123123abc',
-        deviceName: 'iPhone',
-        // ...
+    // wdio.conf.js
+export const config = {
+    // ...
     }
     // ...
 }
@@ -120,33 +117,6 @@ describe('my test', () => {
 L'objet `browser` est un EventEmitter et quelques événements sont émis pour vos cas d'utilisation.
 
 Voici une liste d'événements. Gardez à l'esprit qu'il ne s'agit pas de la liste complète des événements disponibles. N'hésitez pas à contribuer en mettant à jour le document et en ajoutant des descriptions des autres événements ici.
-
-#### `request.start`
-This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.
-
-```ts
-browser.on('request.start', (ev: RequestInit) => {
-    // ...
-})
-```
-
-#### `request.end`
-This event is fired once the request to the driver received a response. The event object either contains the response body as result or an error if the WebDriver command failed.
-
-```ts
-browser.on('request.end', (ev: { result: unknown, error?: Error }) => {
-    // ...
-})
-```
-
-#### `request.retry`
-The retry event can notify you when WebdriverIO attempts to retry running the command, e.g. due to a network issue. It contains information about the error that caused the retry and the amount of retries already done.
-
-```ts
-browser.on('request.retry', (ev: { error: Error, retryCount: number }) => {
-    // ...
-})
-```
 
 #### `command`
 

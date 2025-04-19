@@ -119,14 +119,10 @@ describe('Vue Component Testing', () => {
         const button = await $(getByText('increment'))
 
         // Dispatch a native click event to our button element.
-        await button.click()
-        await button.click()
+        const { getByText } = render(Component)
 
-        getByText('Times clicked: 2') // assert with Testing Library
-        await expect($('p=Times clicked: 2')).toExist() // assert with WebdriverIO
-    })
-})
-```
+        // getByText returns the first matching node for the provided text, and
+        // throws an error if no elements match or if more than one match is found.
 
 </TabItem>
 </Tabs>

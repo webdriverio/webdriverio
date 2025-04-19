@@ -103,7 +103,7 @@ If no baseline image is found during the comparison the image is automatically c
 - **Default:** `.path/to/testfile/__snapshots__/`
 - **Supported:** Web, Hybrid App (Webview), Native App
 
-The directory that will hold all the baseline images that are used during the comparison. If not set, the default value will be used which will store the files in a `__snapshots__/`-folder next to the spec that executes the visual tests. A function that returns a `string` can also be used to set the `baselineFolder` value:
+If not set, the default value will be used which will store the files in a `__snapshots__/`-folder next to the spec that executes the visual tests. The directory that will hold all the baseline images that are used during the comparison. A function that returns a `string` can also be used to set the `baselineFolder` value:
 
 ```js
 {
@@ -125,7 +125,7 @@ The directory that will hold all the baseline images that are used during the co
 - **Default:** `false`
 - **Supported:** Web, Hybrid App (Webview), Native App
 
-Delete runtime folder (`actual` & \`diff) on initialization
+Delete runtime folder (`actual` & \\`diff) on initialization
 
 :::info NOTE
 This will only work when the [`screenshotPath`](#screenshotpath) is set through the plugin options, and **WILL NOT WORK** when you set the folders in the methods
@@ -338,6 +338,12 @@ You can not provide custom paths/folders in the `formatImageName`. If you want t
 
 The timeout in milliseconds to wait after a scroll. This might help identify pages with lazy loading.
 
+:::info
+
+This will only work when the service/method option `userBasedFullPageScreenshot` is set to `true`, see also [`userBasedFullPageScreenshot`](/docs/visual-testing/service-options#userbasedbullpagescreenshot)
+
+:::
+
 ### `hideScrollBars`
 
 - **Type:** `boolean`
@@ -346,15 +352,6 @@ The timeout in milliseconds to wait after a scroll. This might help identify pag
 - **Supported:** Web, Hybrid App (Webview)
 
 Hide scrollbars in the application. If set to true all scrollbars will be disabled before taking a screenshot. This is set to default `true` to prevent extra issues.
-
-### `isHybridApp`
-
-- **Type:** `boolean`
-- **Mandatory:** No
-- **Default:** `false`
-- **Supported:** Hybrid App
-
-Tell the module if the used app is a Hybrid app, this will not calculate the address bar height because it is not there.
 
 ### `logLevel`
 
@@ -407,6 +404,18 @@ returns a string can also be used to set the screenshotPath value:
 - **Supported:** Web
 
 The padding which needs to be added to the toolbar bar on iOS and Android to do a proper cutout of the viewport.
+
+### `userBasedFullPageScreenshot`
+
+- **Type:** `boolean`
+- **Mandatory:** No
+- **Default:** `false`
+- **Supported:** Web, Hybrid App (Webview) **Introduced in visual-service@7.0.0**
+
+By default, full-page screenshots on desktop web are captured using the WebDriver BiDi protocol, which enables fast, stable, and consistent screenshots without scrolling.
+When userBasedFullPageScreenshot is set to true, the screenshot process simulates a real user: scrolling through the page, capturing viewport-sized screenshots, and stitching them together. This method is useful for pages with lazy-loaded content or dynamic rendering that depends on scroll position.
+
+Use this option if your page relies on content loading while scrolling or if you want to preserve the behavior of older screenshot methods.
 
 ### `waitForFontsLoaded`
 

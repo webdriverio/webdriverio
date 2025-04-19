@@ -245,7 +245,7 @@ describe('partial mock', () => {
 
 ## Masques manuelles
 
-Les mocks manuels sont définis en écrivant un module dans un sous-répertoire `__mocks__/` (voir aussi l'option `automockDir`). Si le module que vous utilisez est un module Node (par ex. `lodash`), le bouchon doit être placé dans le répertoire `__mocks__` et sera automatiquement bouché. Il n'est pas nécessaire d'appeler explicitement `mock('module_name')`.
+Lorsqu'un mock manuel existe pour un module donné, WebdriverIO utilisera ce module lors de l'appel explicite de `mock('moduleName')`. Cependant, lorsque automock est défini à true, l'implémentation manuelle du bouchon sera utilisée à la place du bouchon automatiquement créé, même si `mock('moduleName')` n'est pas appelé. Pour désactiver ce comportement, vous devrez appeler explicitement `unmock('moduleName')` dans les tests qui doivent utiliser l'implémentation réelle du module, par exemple :
 
 Les modules de portée (également appelés packages de portée) peuvent être simulés en créant un fichier dans une structure de répertoires qui correspond au nom du module de portée. Par exemple, pour simuler un module étendu appelé `@scope/project-name`, créez un fichier à `__mocks__/@scope/project-name.js`, en créant le répertoire `@scope/` en conséquence.
 
@@ -261,7 +261,7 @@ Les modules de portée (également appelés packages de portée) peuvent être s
 └── views
 ```
 
-Lorsqu'un mock manuel existe pour un module donné, WebdriverIO utilisera ce module lors de l'appel explicite de `mock('moduleName')`. Cependant, lorsque automock est défini à true, l'implémentation manuelle du bouchon sera utilisée à la place du bouchon automatiquement créé, même si `mock('moduleName')` n'est pas appelé. Pour désactiver ce comportement, vous devrez appeler explicitement `unmock('moduleName')` dans les tests qui doivent utiliser l'implémentation réelle du module, par exemple :
+Lorsqu'un mock manuel existe pour un module donné, WebdriverIO utilisera ce module lors de l'appel explicite de `mock('moduleName')`. Cependant, lorsque automock est défini à true, l'implémentation manuelle du bouchon sera utilisée à la place du bouchon automatiquement créé, même si `mock('moduleName')` n'est pas appelé. Il n'est pas nécessaire d'appeler explicitement `mock('module_name')`.
 
 ```js
 import { unmock } from '@wdio/browser-runner'
