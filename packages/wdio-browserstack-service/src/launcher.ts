@@ -132,7 +132,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION }
                             if (!isUndefined((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'])) {
                                 this._accessibilityAutomation ||= isTrue((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'])
-                                this.browserStackConfig.accessibility = this._accessibilityAutomation
                             } else if (isTrue(this._options.accessibility)) {
                                 (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (isTrue(this._options.accessibility)) }
                             }
@@ -276,18 +275,31 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this._updateObjectTypeCaps(capabilities, 'accessibilityOptions')
 
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
-        this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
 
-        if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
+        let buildStartResponse = null
+        if (this._options.testObservability || shouldSetupPercy) {
             BStackLogger.debug('Sending launch start event')
 
-            await launchTestSession(this._options, this._config, {
+            buildStartResponse = await launchTestSession(this._options, this._config, {
                 projectName: this._projectName,
                 buildName: this._buildName,
                 buildTag: this._buildTag,
                 bstackServiceVersion: BSTACK_SERVICE_VERSION,
                 buildIdentifier: this._buildIdentifier
             }, this.browserStackConfig)
+
+            if ( buildStartResponse !== null && buildStartResponse.accessibility !== null && buildStartResponse.accessibility !== undefined) {
+                if (this.browserStackConfig.accessibility === null) {
+                    this.browserStackConfig.accessibility = buildStartResponse.accessibility.success
+                    this._accessibilityAutomation = buildStartResponse.accessibility.success
+                    this._options.accessibility = buildStartResponse.accessibility.success
+                    if (buildStartResponse.accessibility.success === true) {
+                        this._setAccessibilityTrueInCapabilities(capabilities)
+                    }
+                }
+            }
+
+            this.browserStackConfig.accessibility = this.browserStackConfig.accessibility || this._accessibilityAutomation as boolean
 
             if (this._accessibilityAutomation && this._options.accessibilityOptions) {
                 const filteredOpts = Object.keys(this._options.accessibilityOptions)
@@ -848,4 +860,27 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.logToFile(`If facing any issues, please contact BrowserStack support with the Build Run Id - ${uuid}`, 'info')
         return uuid
     }
+
+    _setAccessibilityTrueInCapabilities(capabilities?: Capabilities.RemoteCapabilities) {
+        if (capabilities) {
+            if (Array.isArray(capabilities)) {
+                capabilities.forEach((cap: WebdriverIO.Capabilities) => {
+                    if (cap['bstack:options']) {
+                        cap['bstack:options'].accessibility = true
+                    } else {
+                        cap['browserstack.accessibility'] = true
+                    }
+                })
+            } else if (typeof capabilities === 'object') {
+                Object.values(capabilities as Capabilities.MultiRemoteCapabilities).forEach((cap) => {
+                    if ((cap.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
+                        (cap.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility = true
+                    } else {
+                        (cap.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'] = true
+                    }
+                })
+            }
+        }
+    }
+
 }
