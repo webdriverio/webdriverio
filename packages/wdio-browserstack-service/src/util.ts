@@ -347,6 +347,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
         processTestObservabilityResponse(response)
     }
     processAccessibilityResponse(response)
+}
 
 export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
