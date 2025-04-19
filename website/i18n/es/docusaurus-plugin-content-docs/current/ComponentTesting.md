@@ -62,19 +62,8 @@ __Nota:__ Utilizar métodos de renderizado de la Biblioteca de Pruebas ayuda a e
 
 Puede configurar sus pruebas ejecutando scripts arbitrarios en Node.js o en el navegador, por ejemplo, inyectando estilos, burlándose de las API del navegador o conectándose a un servicio de terceros. WebdriverIO [hooks](/docs/configuration#hooks) se puede usar para ejecutar código en Node.js, mientras que [`mochaOpts.require`](/docs/frameworks#require) le permite importar scripts al navegador antes de que se carguen las pruebas, por ejemplo:
 
-```js wdio.conf.js
-export const config = {
-    // ...
-    mochaOpts: {
-        ui: 'tdd',
-        // provide a setup script to run in the browser
-        require: './__fixtures__/setup.js'
-    },
-    before: () => {
-        // set up test environment in Node.js
-    }
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/component-testing/component-testing.js
 ```
 
 Por ejemplo, si desea simular todas las llamadas [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) en su prueba con el siguiente script de configuración:
@@ -125,13 +114,8 @@ Pulsa `Ctrl` o `Comando` + `c` o entra `.exit` para continuar con la prueba.
 
 If you have a [Selenium Grid](https://www.selenium.dev/documentation/grid/) set up and run your browser through that grid, you have to set the `host` browser runner option to allow the browser, to access the right host where the test files are being served, e.g.:
 
-```ts title=wdio.conf.ts
-export const config: WebdriverIO.Config = {
-    runner: ['browser', {
-        // network IP of the machine that runs the WebdriverIO process
-        host: 'http://172.168.0.2'
-    }]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-grid/selenium-grid.js
 ```
 
 This will ensure the browser correctly opens the right server instance hosted on the instance that runs the WebdriverIO tests.

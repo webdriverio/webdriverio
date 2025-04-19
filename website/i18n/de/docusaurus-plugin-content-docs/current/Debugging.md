@@ -50,22 +50,8 @@ Beachten Sie, dass `wdio.conf.js` JavaScript enthalten kann. Da Sie Ihren Timeou
 
 Mit dieser Technik können Sie die Konfiguration dynamisch ändern:
 
-```js
-const debug = process.env.DEBUG
-const defaultCapabilities = ...
-const defaultTimeoutInterval = ...
-const defaultSpecs = ...
-
-export const config = {
-    // ...
-    maxInstances: debug ? 1 : 100,
-    capabilities: debug ? [{ browserName: 'chrome' }] : defaultCapabilities,
-    execArgv: debug ? ['--inspect'] : [],
-    jasmineOpts: {
-      defaultTimeoutInterval: debug ? (24 * 60 * 60 * 1000) : defaultTimeoutInterval
-    }
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/debugging.js
 ```
 
 Sie können dann dem Befehl `wdio` die Umgebungsvariable `debug` voranstellen:

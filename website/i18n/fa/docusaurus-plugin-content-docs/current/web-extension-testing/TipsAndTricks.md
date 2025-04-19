@@ -43,17 +43,8 @@ declare global {
 
 در `wdio.conf.js` خود می توانید این فایل را وارد کنید و دستور سفارشی را در قلاب(hook) `before ` خود ثبت کنید، به عنوان مثال:
 
-```ts wdio.conf.ts
-import { browser } from '@wdio/globals'
-
-import { openExtensionPopup } from './support/customCommands'
-
-export const config: WebdriverIO.Config = {
-  // ...
-  before: () => {
-    browser.addCommand('openExtensionPopup', openExtensionPopup)
-  }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/popup-modal.js
 ```
 
 اکنون، در تست خود، می توانید از طریق زیر به popup دسترسی داشته باشید:

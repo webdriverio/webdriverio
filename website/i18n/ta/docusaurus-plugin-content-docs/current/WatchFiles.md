@@ -11,16 +11,8 @@ wdio wdio.conf.js --watch
 
 இயல்பாக, இது உங்கள் `specs` பைல்களில் ஏற்படும் மாற்றங்களை மட்டுமே பார்க்கிறது. இருப்பினும், உங்கள் `wdio.conf.js` இல் `filesToWatch` ப்ராபர்ட்டியை அமைப்பதன் மூலம், பைல் பாதைகளின் பட்டியலைக் கொண்டுள்ளது (குளோப்பிங் ஆதரிக்கப்படுகிறது) முழு தொகுப்பையும் மீண்டும் இயக்குவதற்காக இந்தக் பைல்கள் மாற்றப்படுவதையும் அது கண்காணிக்கும். உங்கள் அப்ப்ளிகேஷன் கோடை மாற்றியிருந்தால், உங்கள் எல்லா டெஸ்டுகளையும் தானாக மீண்டும் இயக்க விரும்பினால் இது பயனுள்ளதாக இருக்கும், எ.கா.
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    filesToWatch: [
-        // watch for all JS files in my app
-        './src/app/**/*.js'
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/files-to-watch.js
 ```
 
 :::info

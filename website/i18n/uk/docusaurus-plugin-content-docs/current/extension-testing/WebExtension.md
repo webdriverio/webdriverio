@@ -19,23 +19,8 @@ WebdriverIO — ідеальний інструмент для автомати�
 
 Завантажити веброзширення в Chrome можна, вказавши вміст скомпільованого `.crx` файлу, як рядок у `base64` форматі, або вказавши шлях до теки із веброзширенням. Найпростіше буде зробити останнє, визначивши ваші параметри Chrome таким чином:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-
-export const config = {
-    // ...
-    capabilities: [{
-        browserName,
-        'goog:chromeOptions': {
-            // given your wdio.conf.js is in the root directory and your compiled
-            // web extension files are located in the `./dist` folder
-            args: [`--load-extension=${path.join(__dirname, '..', '..', 'dist')}`]
-        }
-    }]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/chrome.js
 ```
 
 :::info
@@ -46,46 +31,16 @@ export const config = {
 
 Якщо ви скомпілюєте своє розширення як файл `.crx`, використовуючи, наприклад, NPM пакунок [crx](https://www.npmjs.com/package/crx), ви також можете додати розширення за допомогою наступних параметрів:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const extPath = path.join(__dirname, `web-extension-chrome.crx`)
-const chromeExtension = (await fs.readFile(extPath)).toString('base64')
-
-export const config = {
-    // ...
-    capabilities: [{
-        browserName,
-        'goog:chromeOptions': {
-            extensions: [chromeExtension]
-        }
-    }]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/crx.js
 ```
 
 ### Firefox
 
 Щоб створити профіль Firefox із розширеннями, ви можете скористатися [Службою профілів Firefox](/docs/firefox-profile-service), щоб налаштувати відповідно налаштувати сесію. Однак у вас можуть виникнути проблема, що ваше локально розроблене розширення не може бути встановлено через проблеми із підписом. У цьому випадку ви можете встановити розширення за допомогою хуку `before` використовуючи команду [`installAddOn`](/docs/api/gecko#installaddon), наприклад:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const extensionPath = path.resolve(__dirname, `web-extension.xpi`)
-
-export const config = {
-    // ...
-    before: async (capabilities) => {
-        const browserName = (capabilities as WebdriverIO.Capabilities).browserName
-        if (browserName === 'firefox') {
-            const extension = await fs.readFile(extensionPath)
-            await browser.installAddOn(extension.toString('base64'), true)
-        }
-    }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/firefox.js
 ```
 
 Щоб створити файл `.xpi`, рекомендується використовувати NPM пакунок [`web-ext`](https://www.npmjs.com/package/web-ext). Ви можете зібрати своє розширення за допомогою такої команди:
@@ -136,17 +91,8 @@ declare global {
 
 In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
 
-```ts wdio.conf.ts
-import { browser } from '@wdio/globals'
-
-import { openExtensionPopup } from './support/customCommands'
-
-export const config: WebdriverIO.Config = {
-  // ...
-  before: () => {
-    browser.addCommand('openExtensionPopup', openExtensionPopup)
-  }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/popup-modal.js
 ```
 
 Now, in your test, you can access the popup page via:

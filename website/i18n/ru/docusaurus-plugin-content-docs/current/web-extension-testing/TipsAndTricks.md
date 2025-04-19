@@ -43,17 +43,8 @@ declare global {
 
 В своем `wdio.conf.js` вы можете импортировать этот файл и зарегистрировать пользовательскую команду в своем хуке ` before `, например.:
 
-```ts wdio.conf.ts
-import { browser } from '@wdio/globals'
-
-import { openExtensionPopup } from './support/customCommands'
-
-export const config: WebdriverIO.Config = {
-  // ...
-  before: () => {
-    browser.addCommand('openExtensionPopup', openExtensionPopup)
-  }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/popup-modal.js
 ```
 
 Теперь в вашем тесте вы можете получить доступ к всплывающей странице через:

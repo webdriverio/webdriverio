@@ -87,14 +87,8 @@ npx wdio run wdio.conf.js
 
 In ähnlicher Weise kann die Konfigurationsdatei auch Umgebungsvariablen lesen, die über die Befehlszeile übergeben werden.
 
-```ts title=wdio.config.js
-export const config = {
-  // ...
-  baseURL: process.env.STAGING === '1'
-    ? 'http://staging.example.test/'
-    : 'http://example.test/',
-  // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/parameterize.js
 ```
 
 Jetzt kannst du Tests in einer Staging- oder Produktionsumgebung ausführen:

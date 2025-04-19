@@ -446,23 +446,8 @@ Before using this function, make sure to set the following environment variables
 
 Here's an example of the necessary configurations and code samples for implementation:
 
-```javascript
-import { v4 as uuidv4 } from 'uuid'
-import { publishCucumberReport } from '@wdio/cucumber-framework';
-
-export const config = {
-    // ... Other Configuration Options
-    cucumberOpts: {
-        // ... Cucumber Options Configuration
-        format: [
-            ['message', `./reports/${uuidv4()}.ndjson`],
-            ['json', './reports/test-report.json']
-        ]
-    },
-    async onComplete() {
-        await publishCucumberReport('./reports');
-    }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/publish-report.js
 ```
 
 Please note that `./reports/` is the directory where `cucumber message` reports will be stored.

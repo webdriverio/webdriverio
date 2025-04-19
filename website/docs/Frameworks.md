@@ -499,23 +499,8 @@ Before using this function, make sure to set the following environment variables
 
 Here's an example of the necessary configurations and code samples for implementation:
 
-```javascript
-import { v4 as uuidv4 } from 'uuid'
-import { publishCucumberReport } from '@wdio/cucumber-framework';
-
-export const config = {
-    // ... Other Configuration Options
-    cucumberOpts: {
-        // ... Cucumber Options Configuration
-        format: [
-            ['message', `./reports/${uuidv4()}.ndjson`],
-            ['json', './reports/test-report.json']
-        ]
-    },
-    async onComplete() {
-        await publishCucumberReport('./reports');
-    }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/publish-report.js
 ```
 
 Please note that `./reports/` is the directory where `cucumber message` reports will be stored.
@@ -559,9 +544,10 @@ To enable integration with Serenity/JS, configure WebdriverIO as follows:
 <TabItem value="wdio-conf-typescript" label="TypeScript" default>
 
 ```typescript title="wdio.conf.ts"
+import { defineConfig } from '@wdio/config'
 import { WebdriverIOConfig } from '@serenity-js/webdriverio';
 
-export const config: WebdriverIOConfig = {
+export const config = defineConfig({
 
     // Tell WebdriverIO to use Serenity/JS framework
     framework: '@serenity-js/webdriverio',
@@ -606,14 +592,16 @@ export const config: WebdriverIOConfig = {
     runner: 'local',
 
     // Any other WebdriverIO configuration
-};
+})
 ```
 
 </TabItem>
 <TabItem value="wdio-conf-javascript" label="JavaScript">
 
 ```typescript title="wdio.conf.js"
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
 
     // Tell WebdriverIO to use Serenity/JS framework
     framework: '@serenity-js/webdriverio',
@@ -653,7 +641,7 @@ export const config = {
     runner: 'local',
 
     // Any other WebdriverIO configuration
-};
+})
 ```
 
 </TabItem>

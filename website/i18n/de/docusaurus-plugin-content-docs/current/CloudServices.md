@@ -7,13 +7,8 @@ Using on-demand services like Sauce Labs, Browserstack, TestingBot, LambdaTest o
 
 Optional können Sie Ihren Test auch parametrisieren, indem Sie Cloud-spezifische Funktionen wie `build` Namen festlegen. Wenn Sie Cloud-Dienste nur in einer CI/CD Umgebung ausführen möchten, können Sie die Umgebungsvariable `CI` verwenden, um zu überprüfen, ob Sie sich in so einer Umgbeung befinden, und die Konfiguration entsprechend ändern.
 
-```js
-// wdio.conf.js
-export let config = {...}
-if (process.env.CI) {
-    config.user = process.env.SAUCE_USERNAME
-    config.key = process.env.SAUCE_ACCESS_KEY
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/env-variables.js
 ```
 
 ## Sauce Labs
@@ -165,19 +160,6 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 
 Wenn Sie wdio mit [`Perfecto`](https://www.perfecto.io)verwenden, müssen Sie für jeden Benutzer ein Sicherheitstoken erstellen und dieses (zusätzlich zu anderen Capabilities) wie folgt in die Funktionsstruktur einfügen:
 
-```js
-export const config = {
-  capabilities: [{
-    // ...
-    securityToken: "your security token"
-  }],
-```
-
-Darüber hinaus müssen Sie die Cloud-Konfiguration wie folgt hinzufügen:
-
-```js
-  hostname: "your_cloud_name.perfectomobile.com",
-  path: "/nexperience/perfectomobile/wd/hub",
-  port: 443,
-  protocol: "https",
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/cloud/perfecto.js
 ```

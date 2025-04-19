@@ -5,33 +5,15 @@ title: Selenium Grid
 
 You can use WebdriverIO with your existing Selenium Grid instance. To connect your tests to Selenium Grid, you just need to update the options in your test runner configurations.
 
-Here is a code snippet from sample wdio.conf.ts.
-
-```ts title=wdio.conf.ts
-export const config: Options.Testrunner = {
-    // ...
-    protocol: 'https',
-    hostname: 'yourseleniumgridhost.yourdomain.com',
-    port: 443,
-    path: '/wd/hub',
-    // ...
-
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-grid/selenium-grid-remote.js
 ```
 
 You need to provide the appropriate values for the protocol, hostname, port, and path based on your Selenium Grid setup.
 If you are running Selenium Grid on the same machine as your test scripts, here are some typical options:
 
-```ts title=wdio.conf.ts
-export const config: Options.Testrunner = {
-    // ...
-    protocol: 'http',
-    hostname: 'localhost',
-    port: 4444,
-    path: '/wd/hub',
-    // ...
-
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-grid/selenium-grid-local.js
 ```
 
 ### Basic authentication with protected Selenium Grid
@@ -59,20 +41,8 @@ When running test cases with a remote Selenium Grid, the browser runs on a remot
 
 For Chromium-based browsers, you can refer to the [Download file](https://webdriver.io/docs/api/browser/downloadFile) documentation. If your test scripts need to read the content of a downloaded file, you need to download it from the remote Selenium node to the test runner machine. Here is an example code snippet from the sample `wdio.conf.ts` configuration for the Chrome browser:
 
-```ts title=wdio.conf.ts
-export const config: WebdriverIO.Config = {
-    // ...
-    protocol: 'https',
-    hostname: 'yourseleniumgridhost.yourdomain.com',
-    port: 443,
-    path: '/wd/hub',
-    // ...
-    capabilities: [{
-        browserName: 'chrome',
-        'se:downloadsEnabled': true
-    }],
-    //...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/file-downloads.js
 ```
 
 ### File upload with remote Selenium Grid

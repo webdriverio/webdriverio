@@ -443,10 +443,8 @@ Tipo: `'new' | 'all' | 'none'`<br /> Padrão: `none` se não fornecido e os test
 
 Substitui o caminho padrão do instantâneo. Por exemplo, para armazenar instantâneos ao lado de arquivos de teste.
 
-```ts title="wdio.conf.ts"
-export const config: WebdriverIO.Config = {
-    resolveSnapshotPath: (testPath, snapExtension) => testPath + snapExtension,
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/resolve-snapshot-path.js
 ```
 
 Tipo: `(testPath: string, snapExtension: string) => string`<br /> Padrão: armazena arquivos de snapshot no diretório `__snapshots__` próximo ao arquivo de teste

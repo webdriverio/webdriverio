@@ -53,20 +53,8 @@ export const config = {
 
 If you define `wdio:vscodeOptions` with any other `browserName` but `vscode`, e.g. `chrome`, the service will serve the extension as web extension. If you test on Chrome no additional driver service is required, e.g.:
 
-```js
-// wdio.conf.ts
-export const config = {
-    outputDir: 'trace',
-    // ...
-    capabilities: [{
-        browserName: 'chrome',
-        'wdio:vscodeOptions': {
-            extensionPath: __dirname
-        }
-    }],
-    services: ['vscode'],
-    // ...
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/vscode-extension/chrome.js
 ```
 
 _Note:_ when testing web extensions you can only choose between `stable` or `insiders` as `browserVersion`.

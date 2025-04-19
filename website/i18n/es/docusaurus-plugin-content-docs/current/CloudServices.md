@@ -7,13 +7,8 @@ Utilizar servicios a la demanda como Sauce Labs, Browserstack, TestingBot, Lambd
 
 Opcionalmente, también puede parametrizar su prueba configurando capacidades específicas de la nube como `compilación`. Si sólo desea ejecutar servicios en la nube en Travis, puede utilizar la variable de entorno `CI` para verificar si está en Travis y modificar la configuración en consecuencia.
 
-```js
-// wdio.conf.js
-export let config = {...}
-if (process.env.CI) {
-    config.user = process.env.SAUCE_USERNAME
-    config.key = process.env.SAUCE_ACCESS_KEY
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/env-variables.js
 ```
 
 ## Sauce Labs
@@ -171,19 +166,6 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 
 Cuando utilice wdio con [`Perfecto`](https://www.perfecto.io), deberá crear un token de seguridad para cada usuario y añadirlo en la estructura de capacidades (además de otras capacidades), como se indica a continuación:
 
-```js
-export const config = {
-  capabilities: [{
-    // ...
-    securityToken: "your security token"
-  }],
-```
-
-Además, necesita añadir la configuración de la nube, como sigue:
-
-```js
-  hostname: "your_cloud_name.perfectomobile.com",
-  path: "/nexperience/perfectomobile/wd/hub",
-  port: 443,
-  protocol: "https",
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/cloud/perfecto.js
 ```

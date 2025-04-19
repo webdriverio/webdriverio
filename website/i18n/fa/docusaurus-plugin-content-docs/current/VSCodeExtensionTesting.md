@@ -33,47 +33,14 @@ For more information on how to install `WebdriverIO`, please check the [project 
 
 To use the service you need to add `vscode` to your list of services, optionally followed by a configuration object. This will make WebdriverIO download given VSCode binaries and appropiate Chromedriver version:
 
-```js
-// wdio.conf.ts
-export const config = {
-    outputDir: 'trace',
-    // ...
-    capabilities: [{
-        browserName: 'vscode',
-        browserVersion: '1.71.0', // "insiders" or "stable" for latest VSCode version
-        'wdio:vscodeOptions': {
-            extensionPath: __dirname,
-            userSettings: {
-                "editor.fontSize": 14
-            }
-        }
-    }],
-    services: ['vscode'],
-    /**
-     * optionally you can define the path WebdriverIO stores all
-     * VSCode and Chromedriver binaries, e.g.:
-     * services: [['vscode', { cachePath: __dirname }]]
-     */
-    // ...
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/vscode-extension/electron.js
 ```
 
 If you define `wdio:vscodeOptions` with any other `browserName` but `vscode`, e.g. `chrome`, the service will serve the extension as web extension. If you test on Chrome no additional driver service is required, e.g.:
 
-```js
-// wdio.conf.ts
-export const config = {
-    outputDir: 'trace',
-    // ...
-    capabilities: [{
-        browserName: 'chrome',
-        'wdio:vscodeOptions': {
-            extensionPath: __dirname
-        }
-    }],
-    services: ['vscode'],
-    // ...
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/vscode-extension/chrome.js
 ```
 
 _Note:_ when testing web extensions you can only choose between `stable` or `insiders` as `browserVersion`.
