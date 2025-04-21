@@ -23,6 +23,17 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.12.7 (2025-04-21)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14413](https://github.com/webdriverio/webdriverio/pull/14413) Returns full body for mock response ([@ccharnkij](https://github.com/ccharnkij))
+
+#### Committers: 2
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v9.12.6 (2025-04-17)
 
 #### :bug: Bug Fix
