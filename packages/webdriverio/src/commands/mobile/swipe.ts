@@ -21,6 +21,13 @@ const SWIPE_DEFAULTS = {
  * or [`mobile: scroll`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-scroll) for iOS command which is based on the Appium Driver protocol and is
  * only available for mobile platforms in the NATIVE context.
  *
+ * This command only works with the following up-to-date components:
+ *  - Appium server (version 2.0.0 or higher)
+ *  - `appium-uiautomator2-driver` (for Android)
+ *  - `appium-xcuitest-driver` (for iOS)
+ *
+ * Make sure your local or cloud-based Appium environment is regularly updated to avoid compatibility issues.
+ *
  * :::
  *
  * :::caution Swiping based on coordinates
