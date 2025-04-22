@@ -9,6 +9,11 @@ Testing mobile apps and mobile web applications comes with its own challenges, e
 
 To simplify the process, WebdriverIO introduces **custom and enhanced mobile commands** tailored specifically for mobile web and native app testing. These commands abstract away the intricacies of underlying Appium APIs, enabling you to write concise, intuitive, and platform-agnostic test scripts. By focusing on ease of use, we aim to reduce the extra load while developing Appium scripts and empower you to automate mobile apps effortlessly.
 
+<LiteYouTubeEmbed
+ id="tN0LmKgWjPw"
+ title="WebdriverIO Tutorials - Enhanced Mobile Commands"
+/>
+
 ## Why Custom Mobile Commands?
 
 ### 1. **Simplifying Complex APIs**
