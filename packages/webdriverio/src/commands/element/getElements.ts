@@ -17,6 +17,6 @@ import type { ChainablePromiseArray } from '../../types.js'
  * @type utility
  *
  */
-export async function getElements (this: WebdriverIO.ElementArray | ChainablePromiseArray): Promise<WebdriverIO.ElementArray> {
+export async function getElements (this: WebdriverIO.ElementArray | ChainablePromiseArray<WebdriverIO.Element>): Promise<WebdriverIO.ElementArray> {
     return this as WebdriverIO.ElementArray
 }

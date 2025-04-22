@@ -108,7 +108,7 @@ async function calculateFromTo({
     browser: WebdriverIO.Browser,
     direction: `${MobileScrollDirection}`,
     percentage?: number,
-    scrollableElement: WebdriverIO.Element | ChainablePromiseElement
+    scrollableElement: WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element>
     }): Promise<{ from: XY, to: XY }> {
     // 1. Determine the percentage of the scrollable container to be scrolled
     // The swipe percentage is the percentage of the scrollable container that should be scrolled

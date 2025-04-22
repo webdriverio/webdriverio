@@ -146,7 +146,7 @@ type MobileScrollUntilVisibleOptions = {
     element: WebdriverIO.Element;
     maxScrolls: number;
     direction: `${MobileScrollDirection}`;
-    scrollableElement?: WebdriverIO.Element | ChainablePromiseElement | null;
+    scrollableElement?: WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element> | null;
     duration?: number;
     percent?: number;
 };

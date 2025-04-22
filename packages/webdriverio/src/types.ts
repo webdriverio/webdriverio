@@ -33,9 +33,9 @@ type $ElementCommands = typeof ElementCommands
 type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
 type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
-    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement
+    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ThenArg<ReturnType<$ElementCommands[K]>>>
 } & {
-    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray
+    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<ThenArg<ReturnType<$ElementCommands[K]>>>
 }
 
 type AsyncElementProto = {
@@ -71,9 +71,10 @@ interface ChainablePromiseBaseElement {
      */
     getElement(): Promise<WebdriverIO.Element>
 }
-export interface ChainablePromiseElement extends
+export interface ChainablePromiseElement<T> extends
     ChainablePromiseBaseElement,
     AsyncElementProto,
+    Promise<T>,
     Omit<WebdriverIO.Element, keyof ChainablePromiseBaseElement | keyof AsyncElementProto> {}
 
 interface AsyncIterators<T> {
@@ -98,7 +99,7 @@ interface AsyncIterators<T> {
     entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>;
 }
 
-export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
+export interface ChainablePromiseArray<T> extends Promise<T>, AsyncIterators<T> {
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
     [Symbol.iterator](): IterableIterator<WebdriverIO.Element>
 
@@ -120,7 +121,7 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
     /**
      * allow to access a specific index of the element set
      */
-    [n: number]: ChainablePromiseElement
+    [n: number]: ChainablePromiseElement<WebdriverIO.Element | undefined>
     /**
      * get the `WebdriverIO.Element[]` list
      */
@@ -550,7 +551,7 @@ export type SwipeOptions = {
     duration?: number;
     from?: XY;
     percent?: number;
-    scrollableElement?: WebdriverIO.Element | ChainablePromiseElement ;
+    scrollableElement?: WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element> ;
     to?: XY;
 }
 

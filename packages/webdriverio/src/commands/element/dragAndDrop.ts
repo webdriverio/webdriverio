@@ -38,7 +38,7 @@ const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))
  */
 export async function dragAndDrop (
     this: WebdriverIO.Element,
-    target: WebdriverIO.Element | ChainablePromiseElement | Partial<DragAndDropCoordinate>,
+    target: WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element> | Partial<DragAndDropCoordinate>,
     options: DragAndDropOptions = {}
 ) {
     const moveToCoordinates = target as DragAndDropCoordinate
