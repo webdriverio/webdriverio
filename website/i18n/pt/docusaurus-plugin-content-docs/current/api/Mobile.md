@@ -9,6 +9,11 @@ Testar aplicativos móveis e aplicativos da web para dispositivos móveis traz s
 
 Para simplificar o processo, o WebdriverIO apresenta **comandos móveis personalizados e aprimorados** desenvolvidos especificamente para testes de aplicativos nativos e web móvel. Esses comandos abstraem as complexidades das APIs subjacentes do Appium, permitindo que você escreva scripts de teste concisos, intuitivos e independentes de plataforma. Ao focar na facilidade de uso, pretendemos reduzir a carga extra durante o desenvolvimento de scripts Appium e permitir que você automatize aplicativos móveis sem esforço.
 
+<LiteYouTubeEmbed
+ id="tN0LmKgWjPw"
+ title="WebdriverIO Tutorials - Enhanced Mobile Commands"
+/>
+
 ## Por que comandos mobile personalizados?
 
 ### 1. **Simplificando APIs complexas**
