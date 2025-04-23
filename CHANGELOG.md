@@ -96,6 +96,10 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ## v9.12.4 (2025-04-05)
 
+#### :rocket: New Feature
+* `webdriver`
+  * [14350](https://github.com/webdriverio/webdriverio/pull/14350) feat: introduce defineConfig function to create a typed configuration object ([@erwinheitzman](https://github.com/erwinheitzman))
+
 #### :bug: Bug Fix
 * `webdriver`
   * [#14376](https://github.com/webdriverio/webdriverio/pull/14376) fix(webdriver): add timeout-related configurable options to ProxyAgent ([@mitya555](https://github.com/mitya555))
@@ -103,6 +107,10 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 #### :nail_care: Polish
 * `wdio-browserstack-service`
   * [#14373](https://github.com/webdriverio/webdriverio/pull/14373) refactor: Avoid making extra calls for eTag ([@sauravdas1997](https://github.com/sauravdas1997))
+* `webdriverio`
+  * [14219](https://github.com/webdriverio/webdriverio/pull/14219) polish: performance improvements and some general code improvements ([@erwinheitzman](https://github.com/erwinheitzman)))
+* `@wdio/config`
+  * [14351](https://github.com/webdriverio/webdriverio/pull/14351) polish(@wdio/config): decrease waitforInterval from 500 to 100 to improve execution speed ([@erwinheitzman](https://github.com/erwinheitzman))
 
 #### :memo: Documentation
 * `webdriverio`
