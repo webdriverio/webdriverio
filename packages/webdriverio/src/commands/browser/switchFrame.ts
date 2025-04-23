@@ -67,9 +67,9 @@ const log = logger('webdriverio:switchFrame')
  */
 export async function switchFrame (
     this: WebdriverIO.Browser,
-    context: WebdriverIO.Element | ChainablePromiseElement | string | null | ((tree: FlatContextTree) => boolean | Promise<boolean>)
+    context: WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element> | string | null | ((tree: FlatContextTree) => boolean | Promise<boolean>)
 ) {
-    function isPossiblyUnresolvedElement(input: typeof context): input is WebdriverIO.Element | ChainablePromiseElement {
+    function isPossiblyUnresolvedElement(input: typeof context): input is WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element> {
         return Boolean(input) && typeof input === 'object' && typeof (input as WebdriverIO.Element).getElement === 'function'
     }
 
