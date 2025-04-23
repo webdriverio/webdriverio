@@ -7,6 +7,17 @@ import type { LongPressOptions } from '../../types.js'
  *
  * This issues a WebDriver `action` command for the selected element. It is based on the `click` command.
  *
+ * :::info
+ *
+ * This command only works with the following up-to-date components:
+ *  - Appium server (version 2.0.0 or higher)
+ *  - `appium-uiautomator2-driver` (for Android)
+ *  - `appium-xcuitest-driver` (for iOS)
+ *
+ * Make sure your local or cloud-based Appium environment is regularly updated to avoid compatibility issues.
+ *
+ * :::
+ *
  * <example>
     :longpress.offset.js
     it('should demonstrate a longPress using an offset on the iOS Contacts icon', async () => {
