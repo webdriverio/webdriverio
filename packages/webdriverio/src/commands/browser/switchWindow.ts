@@ -46,6 +46,13 @@ export async function switchWindow (
     }
 
     const currentWindow = await this.getWindowHandle()
+        /**
+         * in cases where a browser window was closed by e.g. clicking on a button
+         * this command may throws an "no such window: target window already closed"
+         * error. In this case we return `undefined` and determine the new window
+         * based on the command parameter.
+         */
+        .catch(() => undefined)
 
     // is the matcher a window handle, and are we in the right window already?
     if (typeof matcher === 'string' && currentWindow === matcher) {
