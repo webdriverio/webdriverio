@@ -17,8 +17,8 @@ const XPATH_SELECTOR_REGEXP = [
     /^([a-z0-9|-]*)/,
     // optional . or # + class or id
     /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
-    // optional [attribute-name="attribute-selector"]
-    /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-z0-9\-_. ]+)(?:"|'))?\])?/,
+    // optional [attribute-name="attribute-selector"]. "\p{L}" - all letters (case-insensitive), "\p{N}" - all numbers
+    /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([\p{L}\p{N}\-_. ]+)(?:"|'))?\])?/u,
     // optional case insensitive
     /(\.)?/,
     // *=query or =query
@@ -27,6 +27,12 @@ const XPATH_SELECTOR_REGEXP = [
 const IMAGEPATH_MOBILE_SELECTORS_ENDSWITH = [
     '.jpg', '.jpeg', '.gif', '.png', '.bmp', '.svg'
 ]
+
+// We can't use `\p{Lu}` of `\p{Ll}` here, because browsers only support XPath@1, in which the `translate` function supports only strings.
+// see https://developer.mozilla.org/en-US/docs/Web/XML/XPath/Reference/Functions/translate
+// Therefore, here we are just listing the main characters of different languages.
+export const UPPER_CASE_SYMBOLS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸĞİŞАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
+export const LOWER_CASE_SYMBOLS = 'abcdefghijklmnopqrstuvwxyzàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿğışабвгдеёжзийклмнопрстуфхцчшщъыьэюя'
 
 type SelectorStrategy = string | { name: string, args: string }
 
@@ -281,8 +287,8 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         if (insensitive) {
             conditions.push(
                 partial
-                    ? `contains(translate(., "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "${query.toLowerCase()}")${partialNot}`
-                    : `normalize-space(translate(text(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")) = "${query.toLowerCase()}"`)
+                    ? `contains(translate(., "${UPPER_CASE_SYMBOLS}", "${LOWER_CASE_SYMBOLS}"), "${query.toLowerCase()}")${partialNot}`
+                    : `normalize-space(translate(text(), "${UPPER_CASE_SYMBOLS}", "${LOWER_CASE_SYMBOLS}")) = "${query.toLowerCase()}"`)
         } else {
             conditions.push(partial ? `contains(., "${query}")${partialNot}` : `normalize-space(text()) = "${query}"`)
         }
