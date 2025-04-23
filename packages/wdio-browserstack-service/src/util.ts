@@ -1633,45 +1633,55 @@ export const getAccessibilityValue = (config: BrowserStackConfig, capabilities: 
         return config.accessibility
     }
 
+    let result: boolean | null = null
+
     if (Array.isArray(capabilities)) {
         for (const cap of capabilities) {
             if ('alwaysMatch' in cap) {
                 const alwaysMatch = cap.alwaysMatch as WebdriverIO.Capabilities
                 if (alwaysMatch['bstack:options']?.accessibility !== undefined) {
-                    return !!alwaysMatch['bstack:options'].accessibility
+                    const value = !!alwaysMatch['bstack:options'].accessibility
+                    result = result === null ? value : (result || value)
                 }
                 if (alwaysMatch['browserstack.accessibility'] !== undefined) {
-                    return !!alwaysMatch['browserstack.accessibility']
+                    const value = !!alwaysMatch['browserstack.accessibility']
+                    result = result === null ? value : (result || value)
                 }
             } else if (Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && c.capabilities)) {
                 for (const nestedCap of Object.values(cap).map((o) => o.capabilities)) {
                     if (nestedCap['bstack:options']?.accessibility !== undefined) {
-                        return !!nestedCap['bstack:options'].accessibility
+                        const value = !!nestedCap['bstack:options'].accessibility
+                        result = result === null ? value : (result || value)
                     }
                     if (nestedCap['browserstack.accessibility'] !== undefined) {
-                        return !!nestedCap['browserstack.accessibility']
+                        const value = !!nestedCap['browserstack.accessibility']
+                        result = result === null ? value : (result || value)
                     }
                 }
             } else {
                 const capability = cap as WebdriverIO.Capabilities
                 if (capability['bstack:options']?.accessibility !== undefined) {
-                    return !!capability['bstack:options'].accessibility
+                    const value = !!capability['bstack:options'].accessibility
+                    result = result === null ? value : (result || value)
                 }
                 if (capability['browserstack.accessibility'] !== undefined) {
-                    return !!capability['browserstack.accessibility']
+                    const value = !!capability['browserstack.accessibility']
+                    result = result === null ? value : (result || value)
                 }
             }
         }
     } else if (typeof capabilities === 'object') {
         for (const [, caps] of Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities)) {
             if ((caps.capabilities as WebdriverIO.Capabilities)['bstack:options']?.accessibility !== undefined) {
-                return !!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility
+                const value = !!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility
+                result = result === null ? value : (result || value)
             }
             if ((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'] !== undefined) {
-                return !!(caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility']
+                const value = !!(caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility']
+                result = result === null ? value : (result || value)
             }
         }
     }
 
-    return null
+    return result
 }
