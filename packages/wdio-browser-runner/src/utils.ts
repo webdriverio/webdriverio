@@ -54,28 +54,6 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: Capabilities.
     return caps
 }
 
-export function disablePasswordManagerLeakDetection (caps: WebdriverIO.Capabilities): WebdriverIO.Capabilities {
-    const capability = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
-    if (!capability.browserName) {
-        throw new Error(
-            'No "browserName" defined in capability object. It seems you are trying to run tests ' +
-            'in a non web environment, however WebdriverIOs browser runner only supports web environments'
-        )
-    }
-
-    if (capability.browserName === 'chrome') {
-        return deepmerge(capability, {
-            'goog:chromeOptions': {
-                prefs: {
-                    'profile.password_manager_leak_detection': false
-                }
-            }
-        })
-    }
-
-    return caps
-}
-
 /**
  * Open with devtools open when in watch mode
  */

@@ -89,7 +89,7 @@ describe('BrowserRunner', () => {
         expect(worker).toBeDefined()
         expect(LocalRunner.prototype.run).toBeCalledWith({
             args: { baseUrl: 'http://localhost:1234' },
-            caps: { browserName: 'chrome', 'goog:chromeOptions': { prefs: { 'profile.password_manager_leak_detection': false } } },
+            caps: { browserName: 'chrome' },
             command: 'run'
         })
         expect(runner['_servers'].size).toBe(1)

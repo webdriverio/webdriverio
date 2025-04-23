@@ -19,7 +19,7 @@ import {
 } from './constants.js'
 import updateViteConfig from './vite/frameworks/index.js'
 import { ServerWorkerCommunicator } from './communicator.js'
-import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode, disablePasswordManagerLeakDetection } from './utils.js'
+import { makeHeadless, getCoverageByFactor, adjustWindowInWatchMode } from './utils.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
 
 const log = logger('@wdio/browser-runner')
@@ -91,7 +91,6 @@ export default class BrowserRunner extends LocalRunner {
 
     async run (runArgs: RunArgs): Promise<WorkerInstance> {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
-        runArgs.caps = disablePasswordManagerLeakDetection(runArgs.caps)
         runArgs.caps = adjustWindowInWatchMode(this.#config, runArgs.caps)
 
         const server = new ViteServer(this.#options, this.#config, this.#viteOptimizations)
