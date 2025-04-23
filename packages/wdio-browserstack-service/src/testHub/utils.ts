@@ -2,7 +2,8 @@
 import { BROWSERSTACK_PERCY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBILITY } from '../constants.js'
 import type BrowserStackConfig from '../config.js'
 import { BStackLogger } from '../bstackLogger.js'
-import { isTrue } from '../util.js'
+import { isTrue, getAccessibilityValue } from '../util.js'
+import type { Capabilities } from '@wdio/types'
 
 interface ErrorType {
     key: string
@@ -73,10 +74,10 @@ export const logBuildError = (error: Errors | null, product: string = ''): void 
     }
 }
 
-export const getProductMapForBuildStartCall = (config: BrowserStackConfig): { [key: string]: boolean | null } => {
+export const getProductMapForBuildStartCall = (config: BrowserStackConfig, capabilities: Capabilities.TestrunnerCapabilities): { [key: string]: boolean | null } => {
     return {
         observability: config.testObservability.enabled,
-        accessibility: config.accessibility,
+        accessibility: getAccessibilityValue(config, capabilities),
         percy: config.percy,
         automate: config.automate,
         app_automate: config.appAutomate

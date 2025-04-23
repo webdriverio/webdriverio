@@ -39,6 +39,7 @@ import {
     ObjectsAreEqual, getBasicAuthHeader,
     isValidCapsForHealing,
     getBooleanValueFromString,
+    getAccessibilityValue,
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -291,10 +292,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildTag: this._buildTag,
                 bstackServiceVersion: BSTACK_SERVICE_VERSION,
                 buildIdentifier: this._buildIdentifier
-            }, this.browserStackConfig)
+            }, this.browserStackConfig, capabilities)
         }
         if (buildStartResponse?.accessibility) {
-            if (this.browserStackConfig.accessibility === null) {
+            if (getAccessibilityValue(this.browserStackConfig, capabilities as Capabilities.TestrunnerCapabilities) === null) {
                 this.browserStackConfig.accessibility = buildStartResponse.accessibility.success
                 this._accessibilityAutomation = buildStartResponse.accessibility.success
                 this._options.accessibility = buildStartResponse.accessibility.success

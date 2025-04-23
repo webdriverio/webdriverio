@@ -357,7 +357,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     processAccessibilityResponse(response)
 }
 
-export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, capabilities: Capabilities.TestrunnerCapabilities) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -393,7 +393,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
                 version: bsConfig.bstackServiceVersion
             }
         },
-        product_map: getProductMapForBuildStartCall(bStackConfig),
+        product_map: getProductMapForBuildStartCall(bStackConfig, capabilities),
         config: {}
     }
 
@@ -1626,4 +1626,52 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
         return false
     }
     return ['true'].includes(value.trim().toLowerCase())
+}
+
+export const getAccessibilityValue = (config: BrowserStackConfig, capabilities: Capabilities.TestrunnerCapabilities): boolean | null => {
+    if (config.accessibility !== null) {
+        return config.accessibility
+    }
+
+    if (Array.isArray(capabilities)) {
+        for (const cap of capabilities) {
+            if ('alwaysMatch' in cap) {
+                const alwaysMatch = cap.alwaysMatch as WebdriverIO.Capabilities
+                if (alwaysMatch['bstack:options']?.accessibility !== undefined) {
+                    return !!alwaysMatch['bstack:options'].accessibility
+                }
+                if (alwaysMatch['browserstack.accessibility'] !== undefined) {
+                    return !!alwaysMatch['browserstack.accessibility']
+                }
+            } else if (Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && c.capabilities)) {
+                for (const nestedCap of Object.values(cap).map((o) => o.capabilities)) {
+                    if (nestedCap['bstack:options']?.accessibility !== undefined) {
+                        return !!nestedCap['bstack:options'].accessibility
+                    }
+                    if (nestedCap['browserstack.accessibility'] !== undefined) {
+                        return !!nestedCap['browserstack.accessibility']
+                    }
+                }
+            } else {
+                const capability = cap as WebdriverIO.Capabilities
+                if (capability['bstack:options']?.accessibility !== undefined) {
+                    return !!capability['bstack:options'].accessibility
+                }
+                if (capability['browserstack.accessibility'] !== undefined) {
+                    return !!capability['browserstack.accessibility']
+                }
+            }
+        }
+    } else if (typeof capabilities === 'object') {
+        for (const [, caps] of Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities)) {
+            if ((caps.capabilities as WebdriverIO.Capabilities)['bstack:options']?.accessibility !== undefined) {
+                return !!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility
+            }
+            if ((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'] !== undefined) {
+                return !!(caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility']
+            }
+        }
+    }
+
+    return null
 }
