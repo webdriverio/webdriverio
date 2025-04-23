@@ -85,7 +85,7 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
             : await setupChromedriver(cacheDir, browserVersion)
 
         caps['goog:chromeOptions'] = deepmerge(
-            { binary: chromeExecuteablePath },
+            { binary: chromeExecuteablePath, prefs: { 'profile.password_manager_leak_detection': false } },
             caps['goog:chromeOptions'] || {}
         )
         chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
