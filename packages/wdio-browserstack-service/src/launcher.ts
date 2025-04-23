@@ -38,6 +38,7 @@ import {
     uploadLogs,
     ObjectsAreEqual, getBasicAuthHeader,
     isValidCapsForHealing,
+    getBooleanValueFromString,
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -292,18 +293,18 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildIdentifier: this._buildIdentifier
             }, this.browserStackConfig)
         }
-        if ( buildStartResponse !== null && buildStartResponse !== undefined && buildStartResponse.accessibility !== null && buildStartResponse.accessibility !== undefined) {
+        if (buildStartResponse?.accessibility) {
             if (this.browserStackConfig.accessibility === null) {
                 this.browserStackConfig.accessibility = buildStartResponse.accessibility.success
                 this._accessibilityAutomation = buildStartResponse.accessibility.success
                 this._options.accessibility = buildStartResponse.accessibility.success
                 if (buildStartResponse.accessibility.success === true) {
-                    this._setAccessibilityTrueInCapabilities(capabilities as Capabilities.TestrunnerCapabilities)
+                    this._updateCaps(capabilities as Capabilities.TestrunnerCapabilities, 'accessibility', 'true')
                 }
             }
         }
 
-        this.browserStackConfig.accessibility = this.browserStackConfig.accessibility || this._accessibilityAutomation as boolean
+        this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
 
         if (this._accessibilityAutomation && this._options.accessibilityOptions) {
             const filteredOpts = Object.keys(this._options.accessibilityOptions)
@@ -683,6 +684,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                                 capability['bstack:options'] = { testhubBuildUuid: TestOpsConfig.getInstance().buildHashedId }
                             } else if (capType === 'buildProductMap') {
                                 capability['bstack:options'] = { buildProductMap: getProductMap(this.browserStackConfig) }
+                            } else if (capType === 'accessibility') {
+                                capability['bstack:options'] = { accessibility: getBooleanValueFromString(value) }
                             }
                         } else if (capType === 'local'){
                             capability['browserstack.local'] = true
@@ -701,6 +704,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             capability['browserstack.testhubBuildUuid'] = TestOpsConfig.getInstance().buildHashedId
                         } else if (capType === 'buildProductMap') {
                             capability['browserstack.buildProductMap'] = getProductMap(this.browserStackConfig)
+                        } else if (capType === 'accessibility') {
+                            capability['browserstack.accessibility'] = getBooleanValueFromString(value)
                         }
                     } else if (capType === 'local') {
                         capability['bstack:options'].local = true
@@ -718,6 +723,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         capability['bstack:options'].testhubBuildUuid = TestOpsConfig.getInstance().buildHashedId
                     } else if (capType === 'buildProductMap') {
                         capability['bstack:options'].buildProductMap = getProductMap(this.browserStackConfig)
+                    } else if (capType === 'accessibility') {
+                        capability['bstack:options'].accessibility = getBooleanValueFromString(value)
                     }
                 })
         } else if (typeof capabilities === 'object') {
@@ -735,6 +742,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { testhubBuildUuid: TestOpsConfig.getInstance().buildHashedId }
                         } else if (capType === 'buildProductMap') {
                             (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { buildProductMap: getProductMap(this.browserStackConfig) }
+                        } else if (capType === 'accessibility') {
+                            (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { accessibility: getBooleanValueFromString(value) }
                         }
                     } else if (capType === 'local'){
                         (caps.capabilities as WebdriverIO.Capabilities)['browserstack.local'] = true
@@ -752,6 +761,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         (caps.capabilities as WebdriverIO.Capabilities)['browserstack.testhubBuildUuid'] = TestOpsConfig.getInstance().buildHashedId
                     } else if (capType === 'buildProductMap') {
                         (caps.capabilities as WebdriverIO.Capabilities)['browserstack.buildProductMap'] = getProductMap(this.browserStackConfig)
+                    } else if (capType === 'accessibility') {
+                        (caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'] = getBooleanValueFromString(value)
                     }
                 } else if (capType === 'local'){
                     (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.local = true
@@ -769,6 +780,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.testhubBuildUuid = TestOpsConfig.getInstance().buildHashedId
                 } else if (capType === 'buildProductMap') {
                     (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.buildProductMap = getProductMap(this.browserStackConfig)
+                } else if (capType === 'accessibility') {
+                    (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility = getBooleanValueFromString(value)
                 }
             })
         } else {

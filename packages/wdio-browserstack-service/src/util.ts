@@ -1620,3 +1620,10 @@ export async function executeAccessibilityScript<ReturnType>(
         })(${arg ? JSON.stringify(arg) : ''})`
     )
 }
+
+export function getBooleanValueFromString(value: string | undefined): boolean {
+    if (!value) {
+        return false
+    }
+    return ['true', '1', 'yes', 'y'].includes(value.trim().toLowerCase())
+}
