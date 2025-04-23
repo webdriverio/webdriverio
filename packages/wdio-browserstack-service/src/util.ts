@@ -1625,5 +1625,5 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
     if (!value) {
         return false
     }
-    return ['true', '1', 'yes', 'y'].includes(value.trim().toLowerCase())
+    return ['true'].includes(value.trim().toLowerCase())
 }
