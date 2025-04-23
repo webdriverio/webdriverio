@@ -897,26 +897,4 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         return uuid
     }
 
-    _setAccessibilityTrueInCapabilities(capabilities?: Capabilities.TestrunnerCapabilities) {
-        if (capabilities) {
-            if (Array.isArray(capabilities)) {
-                capabilities.forEach((cap: WebdriverIO.Capabilities) => {
-                    if (cap['bstack:options']) {
-                        cap['bstack:options'].accessibility = true
-                    } else {
-                        cap['browserstack.accessibility'] = true
-                    }
-                })
-            } else if (typeof capabilities === 'object') {
-                Object.values(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach((cap) => {
-                    if ((cap.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
-                        (cap.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility = true
-                    } else {
-                        (cap.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'] = true
-                    }
-                })
-            }
-        }
-    }
-
 }
