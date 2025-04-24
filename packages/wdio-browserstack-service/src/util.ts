@@ -357,7 +357,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     processAccessibilityResponse(response)
 }
 
-export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, capabilities: Capabilities.TestrunnerCapabilities) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -393,7 +393,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
                 version: bsConfig.bstackServiceVersion
             }
         },
-        product_map: getProductMapForBuildStartCall(bStackConfig, capabilities),
+        product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
         config: {}
     }
 
@@ -510,7 +510,7 @@ export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, t
     return false
 }
 
-export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string) => {
+export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string | null) => {
     try {
         const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
         return accessibilityFlag && hasA11yJwtToken
@@ -1628,60 +1628,3 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
     return ['true'].includes(value.trim().toLowerCase())
 }
 
-export const getAccessibilityValue = (config: BrowserStackConfig, capabilities: Capabilities.TestrunnerCapabilities): boolean | null => {
-    if (config.accessibility !== null) {
-        return config.accessibility
-    }
-
-    let result: boolean | null = null
-
-    if (Array.isArray(capabilities)) {
-        for (const cap of capabilities) {
-            if ('alwaysMatch' in cap) {
-                const alwaysMatch = cap.alwaysMatch as WebdriverIO.Capabilities
-                if (alwaysMatch['bstack:options']?.accessibility !== undefined) {
-                    const value = !!alwaysMatch['bstack:options'].accessibility
-                    result = result === null ? value : (result || value)
-                }
-                if (alwaysMatch['browserstack.accessibility'] !== undefined) {
-                    const value = !!alwaysMatch['browserstack.accessibility']
-                    result = result === null ? value : (result || value)
-                }
-            } else if (Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && c.capabilities)) {
-                for (const nestedCap of Object.values(cap).map((o) => o.capabilities)) {
-                    if (nestedCap['bstack:options']?.accessibility !== undefined) {
-                        const value = !!nestedCap['bstack:options'].accessibility
-                        result = result === null ? value : (result || value)
-                    }
-                    if (nestedCap['browserstack.accessibility'] !== undefined) {
-                        const value = !!nestedCap['browserstack.accessibility']
-                        result = result === null ? value : (result || value)
-                    }
-                }
-            } else {
-                const capability = cap as WebdriverIO.Capabilities
-                if (capability['bstack:options']?.accessibility !== undefined) {
-                    const value = !!capability['bstack:options'].accessibility
-                    result = result === null ? value : (result || value)
-                }
-                if (capability['browserstack.accessibility'] !== undefined) {
-                    const value = !!capability['browserstack.accessibility']
-                    result = result === null ? value : (result || value)
-                }
-            }
-        }
-    } else if (typeof capabilities === 'object') {
-        for (const [, caps] of Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities)) {
-            if ((caps.capabilities as WebdriverIO.Capabilities)['bstack:options']?.accessibility !== undefined) {
-                const value = !!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility
-                result = result === null ? value : (result || value)
-            }
-            if ((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'] !== undefined) {
-                const value = !!(caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility']
-                result = result === null ? value : (result || value)
-            }
-        }
-    }
-
-    return result
-}
