@@ -50,22 +50,8 @@ Note that `wdio.conf.js` can contain Javascript. Since you probably do not want 
 
 Using this technique, you can dynamically change the configuration:
 
-```js
-const debug = process.env.DEBUG
-const defaultCapabilities = ...
-const defaultTimeoutInterval = ...
-const defaultSpecs = ...
-
-export const config = {
-    // ...
-    maxInstances: debug ? 1 : 100,
-    capabilities: debug ? [{ browserName: 'chrome' }] : defaultCapabilities,
-    execArgv: debug ? ['--inspect'] : [],
-    jasmineOpts: {
-      defaultTimeoutInterval: debug ? (24 * 60 * 60 * 1000) : defaultTimeoutInterval
-    }
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/debugging.js
 ```
 
 You can then prefix the `wdio` command with the `debug` flag:

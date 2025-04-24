@@ -7,13 +7,8 @@ Using on-demand services like Sauce Labs, Browserstack, TestingBot, LambdaTest o
 
 वैकल्पिक रूप से, आप `build`जैसी क्लाउड-विशिष्ट क्षमताओं को सेट करके अपने परीक्षण को पैरामीट्रिज भी कर सकते हैं। यदि आप केवल ट्रैविस में क्लाउड सेवाएं चलाना चाहते हैं, तो आप ट्रैविस में हैं या नहीं यह जांचने के लिए `CI` पर्यावरण चर का उपयोग कर सकते हैं और तदनुसार कॉन्फ़िगरेशन को संशोधित कर सकते हैं।
 
-```js
-// wdio.conf.js
-export let config = {...}
-if (process.env.CI) {
-    config.user = process.env.SAUCE_USERNAME
-    config.key = process.env.SAUCE_ACCESS_KEY
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/env-variables.js
 ```
 
 ## Sauce Labs
@@ -165,19 +160,6 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 
 [`Perfecto`](https://www.perfecto.io)के साथ wdio का उपयोग करते समय, आपको प्रत्येक उपयोगकर्ता के लिए एक सुरक्षा टोकन बनाना होगा और इसे क्षमता संरचना (अन्य क्षमताओं के अतिरिक्त) में निम्नानुसार जोड़ना होगा:
 
-```js
-export const config = {
-  capabilities: [{
-    // ...
-    securityToken: "your security token"
-  }],
-```
-
-इसके अलावा, आपको निम्नानुसार क्लाउड कॉन्फ़िगरेशन जोड़ने की आवश्यकता है:
-
-```js
-  hostname: "your_cloud_name.perfectomobile.com",
-  path: "/nexperience/perfectomobile/wd/hub",
-  port: 443,
-  protocol: "https",
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/cloud/perfecto.js
 ```

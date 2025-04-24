@@ -11,13 +11,15 @@ To set up WebdriverIO within your Stencil project, follow the [instructions](/do
 
 ```js
 // wdio.conf.js
-export const config = {
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
     // ...
     runner: ['browser', {
         preset: 'stencil'
     }],
     // ...
-}
+})
 ```
 
 :::info

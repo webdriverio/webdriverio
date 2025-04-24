@@ -54,13 +54,8 @@ await browser.setTimeout({ 'implicit': 5000 })
 
 WebdriverIO proporciona múltiples comandos para esperar en elementos para alcanzar un cierto estado (por ejemplo, habilitado, visible, existente). Estos comandos toman un argumento de selector y un número de tiempo de espera, que determina cuánto debe esperar la instancia a que ese elemento llegue al estado. La opción `waitforTimeout` le permite establecer el tiempo de espera global para todos los comandos `waitFor*`, así que no necesita establecer el mismo tiempo de espera una y otra vez. _(Observe la minúscula `f`!)_
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    waitforTimeout: 5000,
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/waitforTimeout.js
 ```
 
 En sus pruebas, ahora puede hacer esto:
@@ -109,46 +104,22 @@ En Cucumber, el tiempo de espera se aplica a una definición de un solo paso. Si
 }>
 <TabItem value="mocha">
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    framework: 'mocha',
-    mochaOpts: {
-        timeout: 20000
-    },
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/mocha.js
 ```
 
 </TabItem>
 <TabItem value="jasmine">
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    framework: 'jasmine',
-    jasmineOpts: {
-        defaultTimeoutInterval: 20000
-    },
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/jasmine.js
 ```
 
 </TabItem>
 <TabItem value="cucumber">
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    framework: 'cucumber',
-    cucumberOpts: {
-        timeout: 20000
-    },
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/cucumber.js
 ```
 
 </TabItem>

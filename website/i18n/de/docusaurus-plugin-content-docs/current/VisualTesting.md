@@ -49,30 +49,8 @@ npm install --save-dev @wdio/visual-service
 
 `@wdio/visual-service` kann als normaler Service verwendet werden. Sie können ihn in Ihrer Konfigurationsdatei folgendermaßen einrichten:
 
-```js
-import path from "node:path";
-
-// wdio.conf.ts
-export const config = {
-    // ...
-    // =====
-    // Setup
-    // =====
-    services: [
-        [
-            "visual",
-            {
-                // Einige Optionen, siehe Docs für mehr
-                baselineFolder: path.join(process.cwd(), "tests", "baseline"),
-                formatImageName: "{tag}-{logName}-{width}x{height}",
-                screenshotPath: path.join(process.cwd(), "tmp"),
-                savePerInstance: true,
-                // ... weitere Optionen
-            },
-        ],
-    ],
-    // ...
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/service-options.js
 ```
 
 Weitere Service-Optionen finden Sie [hier](/docs/visual-testing/service-options).
@@ -87,44 +65,8 @@ Der `logName` ermöglicht es Ihnen, jeder Capability einen benutzerdefinierten N
 
 Um dies zu aktivieren, können Sie `logName` im Abschnitt `capabilities` definieren und sicherstellen, dass die Option `formatImageName` im Visual Testing-Service darauf verweist. So können Sie es einrichten:
 
-```js
-import path from "node:path";
-
-// wdio.conf.ts
-export const config = {
-    // ...
-    // =====
-    // Setup
-    // =====
-    capabilities: [
-        {
-            browserName: 'chrome',
-            'wdio-ics:options': {
-                logName: 'chrome-mac-15', // Benutzerdefinierter Log-Name für Chrome
-            },
-        }
-        {
-            browserName: 'firefox',
-            'wdio-ics:options': {
-                logName: 'firefox-mac-15', // Benutzerdefinierter Log-Name für Firefox
-            },
-        }
-    ],
-    services: [
-        [
-            "visual",
-            {
-                // Einige Optionen, siehe Docs für mehr
-                baselineFolder: path.join(process.cwd(), "tests", "baseline"),
-                screenshotPath: path.join(process.cwd(), "tmp"),
-                // Das Format unten verwendet den `logName` aus den Capabilities
-                formatImageName: "{tag}-{logName}-{width}x{height}",
-                // ... weitere Optionen
-            },
-        ],
-    ],
-    // ...
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/capabilities.js
 ```
 
 #### Wie es funktioniert
@@ -154,36 +96,8 @@ Capabilities hinzufügen, wie Sie unten sehen können. Dies stellt sicher, dass 
 
 [Das Schreiben Ihrer Tests](/docs/visual-testing/writing-tests) wird sich nicht von der Verwendung des [Testrunners](https://webdriver.io/docs/testrunner) unterscheiden
 
-```js
-// wdio.conf.js
-export const config = {
-    capabilities: {
-        chromeBrowserOne: {
-            capabilities: {
-                browserName: "chrome",
-                "goog:chromeOptions": {
-                    args: ["disable-infobars"],
-                },
-                // DIES!!!
-                "wdio-ics:options": {
-                    logName: "chrome-latest-one",
-                },
-            },
-        },
-        chromeBrowserTwo: {
-            capabilities: {
-                browserName: "chrome",
-                "goog:chromeOptions": {
-                    args: ["disable-infobars"],
-                },
-                // DIES!!!
-                "wdio-ics:options": {
-                    logName: "chrome-latest-two",
-                },
-            },
-        },
-    },
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/logs.js
 ```
 
 ### Programmatische Ausführung

@@ -11,16 +11,8 @@ wdio wdio.conf.js --watch
 
 Standardmäßig überwacht es nur Ihre `specs` Dateien auf Änderungen. Wenn Sie jedoch eine `filesToWatch` Eigenschaft in Ihrer `wdio.conf.js` festlegen, die eine Liste von Dateipfaden enthält (Globbing wird unterstützt), wird der Testrunner auch darauf achten, alle Tests neuzustarten, wenn auch diese Dateien geändert werden. Hier ein Beispiel, wie Sie Ihre Applikationsdateien angeben können:
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    filesToWatch: [
-        // watch for all JS files in my app
-        './src/app/**/*.js'
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/files-to-watch.js
 ```
 
 :::info

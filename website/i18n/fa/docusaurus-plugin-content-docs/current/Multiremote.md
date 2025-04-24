@@ -58,86 +58,22 @@ import { multiremote } from 'webdriverio'
 
 In order to use multiremote in the WDIO testrunner, just define the `capabilities` object in your `wdio.conf.js` as an object with the browser names as keys (instead of a list of capabilities):
 
-```js
-export const config = {
-    // ...
-    capabilities: {
-        myChromeBrowser: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/multiremote/multiremote-local.js
 ```
 
 This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io) or one mobile device and one browser.
 
 You can also run multiremote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
 
-```js
-export const config = {
-    // ...
-    capabilities: [{
-        myChromeBrowser0: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser0: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }, {
-        myChromeBrowser1: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser1: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }]
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/multiremote/multiremote-parallel.js
 ```
 
 You can even boot up one of the [cloud services backend](https://webdriver.io/docs/cloudservices.html) together with local Webdriver/Appium, or Selenium Standalone instances. WebdriverIO automatically detect cloud backend capabilities if you specified either of `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), or `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) in browser capabilities.
 
-```js
-export const config = {
-    // ...
-    user: process.env.BROWSERSTACK_USERNAME,
-    key: process.env.BROWSERSTACK_ACCESS_KEY,
-    capabilities: {
-        myChromeBrowser: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myBrowserStackFirefoxBrowser: {
-            capabilities: {
-                browserName: 'firefox',
-                'bstack:options': {
-                    // ...
-                }
-            }
-        }
-    },
-    services: [
-        ['browserstack', 'selenium-standalone']
-    ],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/multiremote/multiremote-cloud.js
 ```
 
 Any kind of OS/browser combination is possible here (including mobile and desktop browsers). All commands your tests call via the `browser` variable are executed in parallel with each instance. This helps streamline your integration tests and speed up their execution.

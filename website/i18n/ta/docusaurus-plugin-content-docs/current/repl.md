@@ -31,15 +31,8 @@ config பைல் capabilities ஆப்ஜெக்டை பயன்பட�
 
 WebdriverIO with capability array:
 
-```ts title="wdio.conf.ts example"
-export const config = {
-    // ...
-    capabilities:[{
-        browserName: 'chrome', // options: `chrome`, `edge`, `firefox`, `safari`, `chromium`
-        browserVersion: '27.0', // browser version
-        platformName: 'Windows 10' // OS platform
-    }]
-}
+``` reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/repl/repl.js
 ```
 
 ```sh
@@ -48,22 +41,8 @@ wdio repl "./path/to/wdio.config.js" 0 -p 9515
 
 WebdriverIO with [multiremote](https://webdriver.io/docs/multiremote/) capability object:
 
-```ts title="wdio.conf.ts example"
-export const config = {
-    // ...
-    capabilities: {
-        myChromeBrowser: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }
-}
+``` reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/repl/repl-multiremote.js
 ```
 
 ```sh

@@ -8,36 +8,15 @@ WebdriverIO सीआई सिस्टम जैसे [बांस](https://
 1. JUnit परीक्षण रिपोर्टर इंस्टाल करें: `$ npm install @wdio/junit-reporter --save-dev`)
 1. अपने JUnit परिणामों को सहेजने के लिए अपनी कॉन्फ़िगरेशन अपडेट करें जहां बांस उन्हें ढूंढ सकता है, (और `junit` रिपोर्टर निर्दिष्ट करें):
 
-```js
-// wdio.conf.js
-module.exports = {
-    // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './testresults/'
-        }]
-    ],
-    // ...
-}
+Example:
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration.js
 ```
 नोट: *परीक्षण परिणामों को रूट फ़ोल्डर की तुलना में अलग फ़ोल्डर में रखना हमेशा एक अच्छा मानक होता है।*
 
-```js
-// wdio.conf.js - For tests running in parallel
-module.exports = {
-    // ...
-    reporters: [
-        'dot',
-        ['junit', {
-            outputDir: './testresults/',
-            outputFileFormat: function (options) {
-                return `results-${options.cid}.xml`;
-            }
-        }]
-    ],
-    // ...
-}
+Example when running tests in parallel:
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration-parallel.js
 ```
 
 रिपोर्ट सभी फ्रेमवर्क के लिए समान होंगी और आप किसी का भी उपयोग कर सकते हैं: मोचा, जेसमीन या कुकुम्बर।

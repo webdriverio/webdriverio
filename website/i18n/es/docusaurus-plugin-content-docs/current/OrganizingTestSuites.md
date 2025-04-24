@@ -70,24 +70,8 @@ Puede agrupar especificaciones de prueba en suites y ejecutar suites individuale
 
 Primero, defina sus suites en su configuración WDIO:
 
-```js
-// wdio.conf.js
-export const config = {
-    // define all tests
-    specs: ['./test/specs/**/*.spec.js'],
-    // ...
-    // define specific suites
-    suites: {
-        login: [
-            './test/specs/login.success.spec.js',
-            './test/specs/login.failure.spec.js'
-        ],
-        otherFeature: [
-            // ...
-        ]
-    },
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/grouping/grouping-specs-in-suites.js
 ```
 
 Ahora, si sólo quiere ejecutar una sola suite, puede pasar el nombre de la suite como un argumento CLI:
@@ -312,28 +296,7 @@ pero luego, tendrá diferentes capacidades para sus dispositivos Android e iOS, 
 
 Si necesita ambas capacidades en su archivo de configuración, entonces el dispositivo Android solo ejecutará las pruebas bajo el espacio de nombres "android", y las pruebas de iOS solo ejecutarán las pruebas bajo el espacio de nombres "ios".
 
-```js
-//wdio.conf.js
-export const config = {
-    "specs": [
-        "tests/general/**/*.js"
-    ],
-    "capabilities": [
-        {
-            platformName: "Android",
-            specs: ["tests/android/**/*.js"],
-            //...
-        },
-        {
-            platformName: "iOS",
-            specs: ["tests/ios/**/*.js"],
-            //...
-        },
-        {
-            platformName: "Chrome",
-            //config level specs will be used
-        }
-    ]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/grouping/grouping-test-suites.js
 ```
 

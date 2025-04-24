@@ -43,17 +43,8 @@ declare global {
 
 У вашому `wdio.conf.js` ви можете імпортувати цей файл і зареєструвати спеціальну команду у хуку `before`, наприклад:
 
-```ts wdio.conf.ts
-import { browser } from '@wdio/globals'
-
-import { openExtensionPopup } from './support/customCommands'
-
-export const config: WebdriverIO.Config = {
-  // ...
-  before: () => {
-    browser.addCommand('openExtensionPopup', openExtensionPopup)
-  }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/popup-modal.js
 ```
 
 Тепер у вашому тесті ви можете отримати доступ до сторінки виринаючого вікна розширення за допомогою:

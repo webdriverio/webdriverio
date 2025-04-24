@@ -115,46 +115,22 @@ In Cucumber gilt das Timeout für eine Einzelschrittdefinition. Wenn Sie das Tim
 }>
 <TabItem value="mocha">
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    framework: 'mocha',
-    mochaOpts: {
-        timeout: 20000
-    },
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/mocha.js
 ```
 
 </TabItem>
 <TabItem value="jasmine">
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    framework: 'jasmine',
-    jasmineOpts: {
-        defaultTimeoutInterval: 20000
-    },
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/jasmine.js
 ```
 
 </TabItem>
 <TabItem value="cucumber">
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    framework: 'cucumber',
-    cucumberOpts: {
-        timeout: 20000
-    },
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/cucumber.js
 ```
 
 </TabItem>

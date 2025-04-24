@@ -22,15 +22,8 @@ npm install undici --save-dev
 
 Añada la siguiente instrucción requerir al principio de su archivo de configuración.
 
-```js title="wdio.conf.js"
-import { setGlobalDispatcher, ProxyAgent } from 'undici';
-
-const dispatcher = new ProxyAgent({ uri: new URL(process.env.https_proxy).toString() });
-setGlobalDispatcher(dispatcher);
-
-export const config = {
-    // ...
-}
+``` reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/proxying/proxy-between-driver-and-test.js
 ```
 
 Additional information about configuring the proxy can be located [here](https://github.com/nodejs/undici/blob/main/docs/docs/api/ProxyAgent.md).
@@ -47,23 +40,8 @@ Para canalizar la conexión entre el navegador e Internet, puede configurar un p
 
 Los parámetros del proxy `` se pueden aplicar a través de las capacidades estándar de la siguiente manera:
 
-```js title="wdio.conf.js"
-export const config = {
-    // ...
-    capabilities: [{
-        browserName: 'chrome',
-        // ...
-        proxy: {
-            proxyType: "manual",
-            httpProxy: "corporate.proxy:8080",
-            socksUsername: "codeceptjs",
-            socksPassword: "secret",
-            noProxy: "127.0.0.1,localhost"
-        },
-        // ...
-    }],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/proxying/proxy-between-browser-and-internet.js
 ```
 
 Para obtener más información, consulte la [especificación de WebDriver](https://w3c.github.io/webdriver/#proxy).

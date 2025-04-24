@@ -40,15 +40,8 @@ npm install --save-dev wdio-electron-service
 
 Dann können Sie die folgende Konfiguration verwenden:
 
-```ts
-// wdio.conf.ts
-export const config: WebdriverIO.Config = {
-    // ...
-    services: [['electron', {
-        appEntryPoint: './path/to/bundled/electron/main.bundle.js',
-        appArgs: [/** ... */],
-    }]]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/desktop-testing/electron.js
 ```
 
 Das war's 🎉

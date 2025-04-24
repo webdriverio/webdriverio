@@ -19,23 +19,8 @@ WebdriverIO ابزاری ایده آل برای خودکارسازی مرورگ�
 
 بارگیری یک برنامه افزودنی وب در کروم را می توان از طریق ارائه یک رشته رمزگذاری شده `base64` از فایل `crx` یا با ارائه مسیری به پوشه افزودنی وب انجام داد. The easiest is just to do the latter by defining your Chrome capabilities as following:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-
-export const config = {
-    // ...
-    capabilities: [{
-        browserName,
-        'goog:chromeOptions': {
-            // given your wdio.conf.js is in the root directory and your compiled
-            // web extension files are located in the `./dist` folder
-            args: [`--load-extension=${path.join(__dirname, '..', '..', 'dist')}`]
-        }
-    }]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/chrome.js
 ```
 
 :::info
@@ -46,46 +31,16 @@ export const config = {
 
 اگر افزودنی خود را به عنوان فایل `.crx` با استفاده از بسته [crx](https://www.npmjs.com/package/crx) در NPM به صورت فایل کامپایل کنید، می توانید افزودنی همراه را نیز از طریق زیر تزریق کنید:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const extPath = path.join(__dirname, `web-extension-chrome.crx`)
-const chromeExtension = (await fs.readFile(extPath)).toString('base64')
-
-export const config = {
-    // ...
-    capabilities: [{
-        browserName,
-        'goog:chromeOptions': {
-            extensions: [chromeExtension]
-        }
-    }]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/crx.js
 ```
 
 ### Firefox
 
 برای ایجاد نمایه فایرفاکس که شامل برنامه‌های افزودنی باشد، می‌توانید از سرویس [فایرفاکس پروفایل](/docs/firefox-profile-service) برای تنظیم session خود استفاده کنید. با این حال ممکن است با مشکلی مواجه شوید که برنامه افزودنی شما که محلی توسعه یافته است، به دلیل مشکلات امضا بارگیری نشود. در این حالت می‌توانید از طریق دستور [`installAddOn`](/docs/api/gecko#installaddon) یک افزونه را در هوک `before` بارگذاری کنید، به عنوان مثال:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const extensionPath = path.resolve(__dirname, `web-extension.xpi`)
-
-export const config = {
-    // ...
-    before: async (capabilities) => {
-        const browserName = (capabilities as WebdriverIO.Capabilities).browserName
-        if (browserName === 'firefox') {
-            const extension = await fs.readFile(extensionPath)
-            await browser.installAddOn(extension.toString('base64'), true)
-        }
-    }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/firefox.js
 ```
 
 برای تولید یک فایل `.xpi`، توصیه می شود از بسته [`web-ext`](https://www.npmjs.com/package/web-ext) NPM استفاده کنید. می توانید برای مثال برنامه افزودنی خود را با استفاده فرمان از زیر بسته بندی کنید:
@@ -136,17 +91,8 @@ declare global {
 
 In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
 
-```ts wdio.conf.ts
-import { browser } from '@wdio/globals'
-
-import { openExtensionPopup } from './support/customCommands'
-
-export const config: WebdriverIO.Config = {
-  // ...
-  before: () => {
-    browser.addCommand('openExtensionPopup', openExtensionPopup)
-  }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/popup-modal.js
 ```
 
 Now, in your test, you can access the popup page via:

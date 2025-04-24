@@ -49,30 +49,8 @@ npm install --save-dev @wdio/visual-service
 
 `@wdio/visual-service` can be used as a normal service. You can set it up in your configuration file with the following:
 
-```js
-import path from "node:path";
-
-// wdio.conf.ts
-export const config = {
-    // ...
-    // =====
-    // Setup
-    // =====
-    services: [
-        [
-            "visual",
-            {
-                // Some options, see the docs for more
-                baselineFolder: path.join(process.cwd(), "tests", "baseline"),
-                formatImageName: "{tag}-{logName}-{width}x{height}",
-                screenshotPath: path.join(process.cwd(), "tmp"),
-                savePerInstance: true,
-                // ... more options
-            },
-        ],
-    ],
-    // ...
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/config.js
 ```
 
 More service options can be found [here](/docs/visual-testing/service-options).
@@ -87,44 +65,8 @@ The `logName` allows you to assign a custom name to each capability, which can t
 
 To enable this, you can define `logName` in the `capabilities` section and ensure the `formatImageName` option in the Visual Testing service references it. Here's how you can set it up:
 
-```js
-import path from "node:path";
-
-// wdio.conf.ts
-export const config = {
-    // ...
-    // =====
-    // Setup
-    // =====
-    capabilities: [
-        {
-            browserName: 'chrome',
-            'wdio-ics:options': {
-                logName: 'chrome-mac-15', // Custom log name for Chrome
-            },
-        }
-        {
-            browserName: 'firefox',
-            'wdio-ics:options': {
-                logName: 'firefox-mac-15', // Custom log name for Firefox
-            },
-        }
-    ],
-    services: [
-        [
-            "visual",
-            {
-                // Some options, see the docs for more
-                baselineFolder: path.join(process.cwd(), "tests", "baseline"),
-                screenshotPath: path.join(process.cwd(), "tmp"),
-                // The format below will use the `logName` from capabilities
-                formatImageName: "{tag}-{logName}-{width}x{height}",
-                // ... more options
-            },
-        ],
-    ],
-    // ...
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/capabilities.js
 ```
 
 #### How it works
@@ -154,36 +96,8 @@ capabilities as you can see below. This will make sure that each screenshot will
 
 [Writing your tests](/docs/visual-testing/writing-tests) will not be any different in comparison to using the [testrunner](https://webdriver.io/docs/testrunner)
 
-```js
-// wdio.conf.js
-export const config = {
-    capabilities: {
-        chromeBrowserOne: {
-            capabilities: {
-                browserName: "chrome",
-                "goog:chromeOptions": {
-                    args: ["disable-infobars"],
-                },
-                // THIS!!!
-                "wdio-ics:options": {
-                    logName: "chrome-latest-one",
-                },
-            },
-        },
-        chromeBrowserTwo: {
-            capabilities: {
-                browserName: "chrome",
-                "goog:chromeOptions": {
-                    args: ["disable-infobars"],
-                },
-                // THIS!!!
-                "wdio-ics:options": {
-                    logName: "chrome-latest-two",
-                },
-            },
-        },
-    },
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/logs.js
 ```
 
 ### Running Programmatically
@@ -303,30 +217,8 @@ To ensure TypeScript recognizes the module types, add the following entry to the
 
 To enforce type checking on the service options, update your WebdriverIO configuration:
 
-```ts
-// wdio.conf.ts
-import { join } from 'node:path';
-// Import the type definition
-import type { VisualServiceOptions } from '@wdio/visual-service';
-
-export const config = {
-    // ...
-    // =====
-    // Setup
-    // =====
-    services: [
-        [
-            "visual",
-            {
-                // Service options
-                baselineFolder: join(process.cwd(), './__snapshots__/'),
-                formatImageName: '{tag}-{logName}-{width}x{height}',
-                screenshotPath: join(process.cwd(), '.tmp/'),
-            } satisfies VisualServiceOptions, // Ensures type safety
-        ],
-    ],
-    // ...
-};
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/service-options.js
 ```
 
 ## System Requirements

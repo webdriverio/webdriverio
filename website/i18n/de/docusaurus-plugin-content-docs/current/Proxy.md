@@ -22,15 +22,8 @@ npm install undici --save-dev
 
 Fügen Sie die folgende require-Anweisung am Anfang Ihrer Konfigurationsdatei hinzu.
 
-```js title="wdio.conf.js"
-import { setGlobalDispatcher, ProxyAgent } from 'undici';
-
-const dispatcher = new ProxyAgent({ uri: new URL(process.env.https_proxy).toString() });
-setGlobalDispatcher(dispatcher);
-
-export const config = {
-    // ...
-}
+``` reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/proxying/proxy-between-driver-and-test.js
 ```
 
 Additional information about configuring the proxy can be located [here](https://github.com/nodejs/undici/blob/main/docs/docs/api/ProxyAgent.md).
@@ -47,37 +40,8 @@ Um die Verbindung zwischen dem Browser und dem Internet zu tunneln, können Sie 
 
 Die `Proxy-` Parameter können wie folgt über die Standardfunktionen angewendet werden:
 
-```js title="wdio.conf.js"
-export const config = {
-    // ...
-    capabilities: [{
-        browserName: 'chrome',
-        // ...
-        proxy: {
-            proxyType: "manual",
-            httpProxy: "corporate.proxy:8080",
-            socksUsername: "codeceptjs",
-            socksPassword: "secret",
-            noProxy: "127.0.0.1,localhost"
-        },
-        // ...
-    }],
-    // ...
-}
-    capabilities: [{
-        browserName: 'chrome',
-        // ...
-        proxy: {
-            proxyType: "manual",
-            httpProxy: "corporate.proxy:8080",
-            socksUsername: "codeceptjs",
-            socksPassword: "secret",
-            noProxy: "127.0.0.1,localhost"
-        },
-        // ...
-    }],
-    // ...
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/proxying/proxy-between-browser-and-internet.js
 ```
 
 Weitere Informationen finden Sie in der [WebDriver-Spezifikation](https://w3c.github.io/webdriver/#proxy).

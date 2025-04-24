@@ -30,34 +30,8 @@ npm update @wdio/browserstack-service
 
 2. Update `wdio.conf.js` config file.
 
-```javascript
-exports.config = {
-    //...
-    user: ‘<browserstack_username>’ || process.env.BROWSERSTACK_USERNAME,
-    key: 'browserstack_access_key> || process.env.BROWSERSTACK_ACCESS_KEY,
-    commonCapabilities: {
-      'bstack:options': {
-        projectName: "Your static project name goes here",
-        buildName: "Your static build/job name goes here"
-      }
-    },
-    services: [
-      ['browserstack', {
-        accessibility: true,
-        // Optional configuration options
-        accessibilityOptions: {
-          'wcagVersion': 'wcag21a',
-          'includeIssueType': {
-            'bestPractice': false,
-            'needsReview': true
-          },
-          'includeTagsInTestingScope': ['Specify tags of test cases to be included'],
-          'excludeTagsInTestingScope': ['Specify tags of test cases to be excluded']
-        },
-      }]
-    ],
-    //...
-  };
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/cloud/browserstack.js
 ```
 
 You can view detailed instructions [here](https://www.browserstack.com/docs/accessibility/automated-tests/get-started/webdriverio?utm_source=webdriverio\&utm_medium=partnered\&utm_campaign=documentation).

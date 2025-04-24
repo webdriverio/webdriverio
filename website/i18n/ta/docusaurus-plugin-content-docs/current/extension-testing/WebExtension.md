@@ -19,23 +19,8 @@ WebdriverIO என்பது பிரௌசரைத் தானியக்
 
 Chrome இல் வெப் எக்ஸ்ட்டென்ஷனை ஏற்றுவது `crx` பைலின் `base64` குறியிடப்பட்ட ஸ்ட்ரிங்கை வழங்குவதன் மூலம் அல்லது வெப் எக்ஸ்ட்டென்ஷன் போல்டருக்கு ஒரு பாத்தை வழங்குவதன் மூலம் செய்யப்படலாம். The easiest is just to do the latter by defining your Chrome capabilities as following:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-
-export const config = {
-    // ...
-    capabilities: [{
-        browserName,
-        'goog:chromeOptions': {
-            // given your wdio.conf.js is in the root directory and your compiled
-            // web extension files are located in the `./dist` folder
-            args: [`--load-extension=${path.join(__dirname, '..', '..', 'dist')}`]
-        }
-    }]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/chrome.js
 ```
 
 :::info
@@ -46,23 +31,8 @@ export const config = {
 
 எ.கா. [crx](https://www.npmjs.com/package/crx) NPM தொகுப்பைப் பயன்படுத்தி உங்கள் எக்ஸ்டென்ஷனை `.crx` பைலாகத் தொகுத்தால், தொகுக்கப்பட்ட எக்ஸ்டென்ஷனை பின்வரும் வழிகளிலும் செலுத்தலாம்:
 
-```js wdio.conf.js
-import path from 'node:path'
-import url from 'node:url'
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const extPath = path.join(__dirname, `web-extension-chrome.crx`)
-const chromeExtension = (await fs.readFile(extPath)).toString('base64')
-
-export const config = {
-    // ...
-    capabilities: [{
-        browserName,
-        'goog:chromeOptions': {
-            extensions: [chromeExtension]
-        }
-    }]
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/crx.js
 ```
 
 ### Firefox
@@ -136,17 +106,8 @@ declare global {
 
 In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
 
-```ts wdio.conf.ts
-import { browser } from '@wdio/globals'
-
-import { openExtensionPopup } from './support/customCommands'
-
-export const config: WebdriverIO.Config = {
-  // ...
-  before: () => {
-    browser.addCommand('openExtensionPopup', openExtensionPopup)
-  }
-}
+```js reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/popup-modal.js
 ```
 
 Now, in your test, you can access the popup page via:
