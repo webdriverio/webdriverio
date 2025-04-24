@@ -349,7 +349,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     processAccessibilityResponse(response)
 }
 
-export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, capabilities: Capabilities.RemoteCapabilities) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -385,7 +385,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
                 version: bsConfig.bstackServiceVersion
             }
         },
-        product_map: getProductMapForBuildStartCall(bStackConfig, capabilities),
+        product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
         config: {}
     }
 
@@ -499,7 +499,7 @@ export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, t
     return false
 }
 
-export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string) => {
+export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string | null) => {
     try {
         const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
         return accessibilityFlag && hasA11yJwtToken
@@ -1574,40 +1574,3 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
     return ['true'].includes(value.trim().toLowerCase())
 }
 
-export const getAccessibilityValue = (config: BrowserStackConfig, capabilities?: Capabilities.RemoteCapabilities): boolean | null => {
-    if (config.accessibility !== null) {
-        return config.accessibility
-    }
-
-    let result: boolean | null = null
-    if (Array.isArray(capabilities)) {
-        for (const cap of capabilities.flatMap((c: Capabilities.DesiredCapabilities | Capabilities.MultiRemoteCapabilities) => {
-            if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
-                return Object.values(c).map((o: Options.WebdriverIO) => o.capabilities)
-            }
-            return c as Capabilities.DesiredCapabilities
-        })) {
-            if ((cap as WebdriverIO.Capabilities)['bstack:options']?.accessibility !== undefined) {
-                const value = !!(cap as WebdriverIO.Capabilities)['bstack:options']?.accessibility
-                result = result === null ? value : (result || value)
-            }
-            if ((cap as WebdriverIO.Capabilities)['browserstack.accessibility'] !== undefined) {
-                const value = !!(cap as WebdriverIO.Capabilities)['browserstack.accessibility']
-                result = result === null ? value : (result || value)
-            }
-        }
-    } else if (typeof capabilities === 'object' && capabilities !== null) {
-        for (const [, caps] of Object.entries(capabilities as Capabilities.MultiRemoteCapabilities)) {
-            if ((caps.capabilities as WebdriverIO.Capabilities)['bstack:options']?.accessibility !== undefined) {
-                const value = !!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']!.accessibility
-                result = result === null ? value : (result || value)
-            }
-            if ((caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility'] !== undefined) {
-                const value = !!(caps.capabilities as WebdriverIO.Capabilities)['browserstack.accessibility']
-                result = result === null ? value : (result || value)
-            }
-        }
-    }
-
-    return result
-}

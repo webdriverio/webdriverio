@@ -39,7 +39,6 @@ import {
     ObjectsAreEqual,
     isValidCapsForHealing,
     getBooleanValueFromString,
-    getAccessibilityValue,
 } from './util.js'
 import { getProductMap } from './testHub/utils.js'
 import CrashReporter from './crash-reporter.js'
@@ -66,7 +65,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _projectName?: string
     private _buildTag?: string
     private _buildIdentifier?: string
-    private _accessibilityAutomation?: boolean
+    private _accessibilityAutomation?: boolean | null = null
     private _percy?: Percy
     private _percyBestPlatformCaps?: Capabilities.DesiredCapabilities
     private readonly browserStackConfig: BrowserStackConfig
@@ -163,8 +162,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         PerformanceTester.startMonitoring('performance-report-launcher.csv')
 
-        this._accessibilityAutomation ||= isTrue(this._options.accessibility)
-        this._options.accessibility = this._accessibilityAutomation
+        if (!isUndefined(this._options.accessibility)) {
+            this._accessibilityAutomation ||= isTrue(this._options.accessibility)
+        }
+        this._options.accessibility = this._accessibilityAutomation as boolean
 
         // by default observability will be true unless specified as false
         this._options.testObservability = this._options.testObservability !== false
@@ -288,13 +289,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildTag: this._buildTag,
                 bstackServiceVersion: BSTACK_SERVICE_VERSION,
                 buildIdentifier: this._buildIdentifier
-            }, this.browserStackConfig, capabilities)
+            }, this.browserStackConfig, this._accessibilityAutomation)
 
             if (buildStartResponse?.accessibility) {
-                if (getAccessibilityValue(this.browserStackConfig, capabilities) === null) {
-                    this.browserStackConfig.accessibility = buildStartResponse.accessibility.success
-                    this._accessibilityAutomation = buildStartResponse.accessibility.success
-                    this._options.accessibility = buildStartResponse.accessibility.success
+                if (this._accessibilityAutomation === null) {
+                    this.browserStackConfig.accessibility = buildStartResponse.accessibility.success as boolean
+                    this._accessibilityAutomation = buildStartResponse.accessibility.success as boolean
+                    this._options.accessibility = buildStartResponse.accessibility.success as boolean
                     if (buildStartResponse.accessibility.success === true) {
                         this._updateCaps(capabilities, 'accessibility', 'true')
                     }
