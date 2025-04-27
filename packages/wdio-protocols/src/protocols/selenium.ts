@@ -104,7 +104,7 @@ export default {
         },
     },
     '/grid/api/proxy': {
-        GET: {
+        POST: {
             isHubCommand: true,
             command: 'gridProxyDetails',
             description: 'Get proxy details.',
