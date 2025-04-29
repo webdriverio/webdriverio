@@ -195,7 +195,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     exclude?: string[]
     /**
-     * An object describing various of suites, which you can then specify
+     * An object describing various suites, which you can then specify
      * with the --suite option on the wdio CLI.
      */
     suites?: Record<string, (string |string[])[] | string[][]>
