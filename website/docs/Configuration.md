@@ -319,7 +319,7 @@ Default: `[]`
 
 ### suites
 
-An object describing various of suites, which you can then specify with the `--suite` option on the `wdio` CLI.
+An object describing various suites, which you can then specify with the `--suite` option on the `wdio` CLI.
 
 Type: `Object`<br />
 Default: `{}`
