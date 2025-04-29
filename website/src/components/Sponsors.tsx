@@ -6,7 +6,11 @@ import ImageSwitcher from './ImageSwitcher.tsx'
 
 export default function Sponsors () {
     return <section className="sponsors">
-        <h1>Open Source and Open Governed</h1>
+        <h1>
+            <Translate id="sponsors.title">
+                Open Source and Open Governed
+            </Translate>
+        </h1>
         <p>
             <Translate id="sponsors.description.openSource" values={{
                 openJsFoundationLink: (
@@ -24,7 +28,11 @@ export default function Sponsors () {
         </p>
         <div className="sponsors-grid">
             <div className="premium">
-                <h3>💎 Premium Sponsors</h3>
+                <h3>
+                    <Translate id="sponsors.premiumSponsors">
+                        💎 Premium Sponsors
+                    </Translate>
+                </h3>
                 <div className="logos">
                     <ImageSwitcher
                         lightImageSrc="/img/sponsors/browserstack_black.svg"
@@ -37,7 +45,11 @@ export default function Sponsors () {
                 </div>
             </div>
             <div className="gold">
-                <h3>🥇 Gold Sponsors</h3>
+                <h3>
+                    <Translate id="sponsors.goldSponsors">
+                        🥇 Gold Sponsors
+                    </Translate>
+                </h3>
                 <div className="logos">
                     <ImageSwitcher
                         lightImageSrc="/img/sponsors/route4me.svg"
@@ -64,7 +76,11 @@ export default function Sponsors () {
                 id="sponsors.description.support"
                 values={{
                     becomeASponsor: (
-                        <Link to="/docs/sponsor">becoming a sponsor</Link>
+                        <Link to="/docs/sponsor">
+                            <Translate id="sponsors.becomeASponsor">
+                                becoming a sponsor
+                            </Translate>
+                        </Link>
                     )
                 }}>
                 {

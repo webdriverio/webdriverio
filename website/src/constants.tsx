@@ -84,7 +84,11 @@ export const features = [{
             id="homepage.features.support"
             values={{
                 supportChannelLink: (
-                    <Link to="https://discord.webdriver.io">support channel</Link>
+                    <Link to="https://discord.webdriver.io">
+                        <Translate id="sponsors.supportChannel">
+                            support channel
+                        </Translate>
+                    </Link>
                 )
             }}>
             {'Running a {supportChannelLink} with over 8k members and a rich ecosystem of community maintained plugins.'}

@@ -624,5 +624,20 @@
   "theme.tags.tagsPageTitle": {
     "message": "Tags",
     "description": "The title of the tag list page"
+  },
+  "sponsors.supportChannel": {
+    "message": "support channel"
+  },
+  "sponsors.title": {
+    "message": "Open Source and Open Governed"
+  },
+  "sponsors.premiumSponsors": {
+    "message": "💎 Premium Sponsors"
+  },
+  "sponsors.goldSponsors": {
+    "message": "🥇 Gold Sponsors"
+  },
+  "sponsors.becomeASponsor": {
+    "message": "becoming a sponsor"
   }
 }
