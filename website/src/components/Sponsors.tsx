@@ -1,15 +1,26 @@
 import React from 'react'
+import Link from '@docusaurus/Link'
+import Translate from '@docusaurus/Translate'
+
 import ImageSwitcher from './ImageSwitcher.tsx'
 
 export default function Sponsors () {
     return <section className="sponsors">
         <h1>Open Source and Open Governed</h1>
         <p>
-            We are an open source project with a strong commitment to transparency and community governance.
-            We are part of the <a href="https://openjsf.org/">OpenJS Foundation</a>, which is a part of
-            the <a href="https://linuxfoundation.org/">Linux Foundation</a>. The project is entirely run by volunteers
-            and funded by invested companies that want to see the project succeed. The project team is grateful
-            for the generous sponsorship of these companies.
+            <Translate id="sponsors.description.openSource" values={{
+                openJsFoundationLink: (
+                    <a href="https://openjsf.org/">OpenJS Foundation</a>
+                ),
+                linuxFoundationLink: (
+                    <a href="https://linuxfoundation.org/">Linux Foundation</a>
+                )
+            }}>{`
+                We are an open source project with a strong commitment to transparency and community governance.
+                We are part of the {openJsFoundationLink} which is a part of the {linuxFoundationLink}. The project
+                is entirely run by volunteers and funded by invested companies that want to see the project succeed.
+                The project team is grateful for the generous sponsorship of these companies.
+            `}</Translate>
         </p>
         <div className="sponsors-grid">
             <div className="premium">
@@ -49,8 +60,18 @@ export default function Sponsors () {
             </div>
         </div>
         <p>
-            If you use WebdriverIO within your organization, please consider supporting the project by <a href="/docs/sponsor">becoming a sponsor</a>.
-            It will help us to keep the project running and evolving.
+            <Translate
+                id="sponsors.description.support"
+                values={{
+                    becomeASponsor: (
+                        <Link to="/docs/sponsor">becoming a sponsor</Link>
+                    )
+                }}>
+                {
+                    'If you use WebdriverIO within your organization, please consider supporting the project by {becomeASponsor}. ' +
+                    'It will help us to keep the project running and evolving.'
+                }
+            </Translate>
         </p>
     </section>
 }
