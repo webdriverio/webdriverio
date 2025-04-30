@@ -1,0 +1,80 @@
+.grid {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.grid-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: center;
+  height: 100%;
+  margin: .0187rem;
+}
+
+.circle {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ff8800;
+}
+
+.md-text {
+    font-size: large;
+}
+
+.fade-horizontal {
+    position: relative;
+    padding: 1rem;
+    color: black;
+
+    -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
+.intro {
+    font-size: 1.3rem;
+    line-height: 1.6;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    max-width: 600px;
+    word-wrap: break-word;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+@media (max-width: 700px) {
+.circle {
+    width: 14px;
+    height: 14px;
+}
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+    .circle {
+      width: 17px;
+      height: 17px;
+    }
+  }
+
+@media (min-width: 1025px) and (max-width: 1440px) {
+        .circle {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+@media (min-width: 1441px) {
+    .circle {
+        width: 31px;
+        height: 31px;
+    }
+    .grid-item {
+        margin: 0;
+    }
+}
