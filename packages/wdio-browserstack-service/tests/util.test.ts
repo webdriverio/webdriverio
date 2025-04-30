@@ -710,16 +710,20 @@ describe('stopBuildUpstream', () => {
 describe('launchTestSession', () => {
     const mockedGot = vi.mocked(got)
     vi.mocked(gitRepoInfo).mockReturnValue({} as any)
-    vi.spyOn(testHubUtils, 'getProductMap').mockReturnValue({} as any)
+    vi.spyOn(testHubUtils, 'getProductMapForBuildStartCall').mockReturnValue({
+        key1: false,
+        key2: true
+    })
 
     it('return undefined if completed', async () => {
+        const mockResponse = { build_hashed_id: 'build_id', jwt: 'jwt' }
         mockedGot.post = vi.fn().mockReturnValue({
-            json: () => Promise.resolve({ build_hashed_id: 'build_id', jwt: 'jwt' }),
+            json: () => Promise.resolve(mockResponse),
         } as any)
 
         const result: any = await launchTestSession( { framework: 'framework' } as any, { }, {}, {})
         expect(got.post).toBeCalledTimes(1)
-        expect(result).toEqual(undefined)
+        expect(result).toEqual(mockResponse)
     })
 })
 

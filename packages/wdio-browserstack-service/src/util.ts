@@ -21,7 +21,7 @@ import { performance } from 'node:perf_hooks'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
-import { getProductMap, logBuildError, handleErrorForObservability, handleErrorForAccessibility } from './testHub/utils.js'
+import { logBuildError, handleErrorForObservability, handleErrorForAccessibility, getProductMapForBuildStartCall } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, TOStopData } from './types.js'
@@ -346,12 +346,10 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     if (options.testObservability) {
         processTestObservabilityResponse(response)
     }
-    if (options.accessibility) {
-        processAccessibilityResponse(response)
-    }
+    processAccessibilityResponse(response)
 }
 
-export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -387,7 +385,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
                 version: bsConfig.bstackServiceVersion
             }
         },
-        product_map: getProductMap(bStackConfig),
+        product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
         config: {}
     }
 
@@ -420,12 +418,13 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         }
         processLaunchBuildResponse(response, options)
         launchBuildUsage.success()
+        return response
     } catch (error: any) {
         if (!error.success) {
             launchBuildUsage.failed(error)
             logBuildError(error)
-            return
         }
+        return null
     }
 }))
 
@@ -500,7 +499,7 @@ export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, t
     return false
 }
 
-export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string) => {
+export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string | null) => {
     try {
         const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
         return accessibilityFlag && hasA11yJwtToken
@@ -1567,3 +1566,11 @@ export async function pollApi(
         }
     }
 }
+
+export function getBooleanValueFromString(value: string | undefined): boolean {
+    if (!value) {
+        return false
+    }
+    return ['true'].includes(value.trim().toLowerCase())
+}
+
