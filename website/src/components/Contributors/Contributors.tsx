@@ -15,10 +15,7 @@ const ContributorList: React.FC = () => {
 
     useEffect(() => {
         const fetchContributors = async () => {
-            const octokit = new Octokit({
-                auth: '' //TODO Here you can pass github token to increase number of requests
-
-            })
+            const octokit = new Octokit()
             try {
                 const response = await octokit.request('GET /repos/{owner}/{repo}/contributors?per_page=90', {
                     owner: 'webdriverio',
