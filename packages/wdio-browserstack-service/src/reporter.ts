@@ -15,7 +15,9 @@ import {
     getGitMetaData,
     removeAnsiColors,
     getHookType,
-    getPlatformVersion
+    getPlatformVersion,
+    isObjectEmpty,
+    generateHashCodeFromFields
 } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
@@ -35,6 +37,8 @@ class _TestReporter extends WDIOReporter {
     public static currentTest: CurrentRunInfo = {}
     private _userCaps?: Capabilities.ResolvedTestrunnerCapabilities = {}
     private listener = Listener.getInstance()
+    public static hashCodeToHandleTestSkip: Record<string, string> = {}
+
 
     async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as WebdriverIO.Capabilities
@@ -213,7 +217,25 @@ class _TestReporter extends WDIOReporter {
 
         testStats.start ||= new Date()
         testStats.end ||= new Date()
-        this.listener.testFinished(await this.getRunData(testStats, 'TestRunSkipped'))
+        var testData = await this.getRunData(testStats, 'TestRunSkipped')
+        const testFinishHashCode = generateHashCodeFromFields(
+            [testData.integrations?.browserstack?.browser ?? '', 
+                testData.integrations?.browserstack?.browser_version ?? '', 
+                testData.integrations?.browserstack?.platform ?? '', 
+                testData.integrations?.browserstack?.session_id ?? '', 
+                testData.integrations?.capabilities ?? {}, 
+                testData.file_name ?? '', 
+                testData.scopes ?? [], 
+                testData.name ?? ''
+            ]
+        )
+        if (_TestReporter.hashCodeToHandleTestSkip != null && !isObjectEmpty(_TestReporter.hashCodeToHandleTestSkip) && testFinishHashCode in _TestReporter.hashCodeToHandleTestSkip) {
+            if (_TestReporter.hashCodeToHandleTestSkip[testFinishHashCode] != '') {
+                testData.uuid = _TestReporter.hashCodeToHandleTestSkip[testFinishHashCode]
+            }
+        }
+
+        this.listener.testFinished(testData)
     }
 
     async getRunData(testStats: TestStats | HookStats, eventType: string) {
