@@ -21,8 +21,8 @@ class BrowserStackConfig {
     public testObservability: TestOpsConfig
     public percy: boolean
     public percyCaptureMode?: string
-    public accessibility: boolean
-    public app?: string|AppConfig
+    public accessibility: boolean | null
+    public app?: string | AppConfig
     private static _instance: BrowserStackConfig
     public appAutomate: boolean
     public automate: boolean
@@ -37,7 +37,7 @@ class BrowserStackConfig {
         this.accessKey = config.key
         this.testObservability = new TestOpsConfig(options.testObservability !== false, !isUndefined(options.testObservability))
         this.percy = options.percy || false
-        this.accessibility = options.accessibility || false
+        this.accessibility = options.accessibility !== undefined ? options.accessibility : null
         this.app = options.app
         this.appAutomate = !isUndefined(options.app)
         this.automate = !this.appAutomate
