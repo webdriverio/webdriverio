@@ -38,6 +38,40 @@ Boilerplate project to run WebdriverIO tests on a minimal Electron application.
 - Features
     - Electron API mocking
 
+## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/gherkin-to-webdriverIO-test-generator)
+Automatically generate WebdriverIO Page Object classes and Mocha test specs from Gherkin .feature files — reducing manual effort, improving consistency, and speeding up QA automation.
+- Requirements
+  - WebdriverIO 8+
+- How It Works
+- The process follows a two-step automation:
+- Step 1: Gherkin to stepMap (Generate stepMap.json Files)
+  - Generate stepMap.json Files:
+    - Parses .feature files written in Gherkin syntax.
+    - Extracts scenarios and steps.
+    - Produces a structured .stepMap.json file containing:
+      - action to perform (e.g., click, setText, assertVisible)
+      - selectorName for logical mapping
+      - selector for the DOM element
+      - note for values or assertion
+- Step 2: stepMap to Code (Generate WebdriverIO Code).
+  Uses stepMap.json to generate:
+  - Generate a base page.js class with shared methods and browser.url() setup.
+  - Generate WebdriverIO-compatible Page Object Model (POM) classes per feature inside test/pageobjects/.
+  - Generate Mocha-based test specs.
+- Directory Structure
+```
+project-root/
+├── features/               # Gherkin feature files
+├── stepMaps/               # Generated step maps (JSON)
+├── test/
+│   ├── pageobjects/        # Generated Page Object classes
+│   └── specs/              # Generated test specs
+├── generateStepMap.js      # StepMap generator script
+├── generateTestsFromMap.js # PageObject + test spec generator script
+├── package.json
+├── README.md
+└── wdio.conf.js
+```
 ## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
 
 This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, followed by the page objects pattern.
