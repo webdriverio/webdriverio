@@ -1,6 +1,9 @@
 .grid {
   display: grid;
   grid-template-rows: repeat(2, 1fr);
+  flex-wrap: nowrap;
+  overflow: hidden;
+  place-items: center;
 }
 
 .grid-item {
@@ -9,7 +12,11 @@
   justify-content: space-around;
   align-items: center;
   height: 100%;
-  margin: .0187rem;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  min-width: 80vh;
+
 }
 
 .circle {
@@ -26,7 +33,6 @@
 
 .fade-horizontal {
     position: relative;
-    padding: 1rem;
     color: black;
 
     -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
@@ -37,7 +43,6 @@
   }
 
 .intro {
-    font-size: 1.3rem;
     line-height: 1.6;
     font-weight: 500;
     margin-bottom: 1.5rem;
@@ -52,6 +57,7 @@
 .circle {
     width: 14px;
     height: 14px;
+    margin: 0 6px;
 }
 }
 
@@ -59,6 +65,7 @@
     .circle {
       width: 17px;
       height: 17px;
+      margin: 0 8px;
     }
   }
 
@@ -67,6 +74,7 @@
             width: 28px;
             height: 28px;
         }
+
     }
 
 @media (min-width: 1441px) {

@@ -10,21 +10,33 @@ type Contributor = {
     avatar_url: string
 }
 
-const ContributorList: React.FC = () => {
-    const [contributors, setContributors] = useState<Contributor>([])
+// per page max 99 items
+type ContibutorProps = {
+    contributorsPerPage: number;
+    contributorsIgnore: Array<string>;
+}
 
+const defaultIgnoreContributors: string[] = ['wdio-bot', 'dependabot']
+const ContributorList: React.FC = ({ contributorsPerPage = 99, contributorsIgnore = defaultIgnoreContributors }:ContibutorProps) => {
+    const [contributors, setContributors] = useState<Contributor>([])
     useEffect(() => {
         const fetchContributors = async () => {
             const octokit = new Octokit()
             try {
-                const response = await octokit.request('GET /repos/{owner}/{repo}/contributors?per_page=90', {
+                const response = await octokit.request(`GET /repos/{owner}/{repo}/contributors?per_page=${contributorsPerPage + contributorsIgnore.length}`, {
                     owner: 'webdriverio',
                     repo: 'webdriverio',
                     headers: {
                         'X-GitHub-Api-Version': '2022-11-28'
                     }
                 })
-                setContributors(response.data)
+                const filteredContributors = response.data.filter((contribuidor: Contributor) =>
+                    !contributorsIgnore.some(element =>
+                        contribuidor.login.toLowerCase().includes(element.toLowerCase())
+                    )
+                )
+
+                setContributors(filteredContributors)
             } catch (error) {
                 console.error('Error fetching contributors:', error)
             }
@@ -41,30 +53,31 @@ const ContributorList: React.FC = () => {
                         id="contributors.thankYouMessage"
                         description="Thank you message for contributors"
                         values={{
-                            toolName: <a href="https://webdriver.io"><i>WebdriverIO</i></a>,
+                            toolName: <a href="https://webdriver.io"><i>WebdriverIO</i></a>
                         }}
                     >
                         {'We’d like to extend our heartfelt thanks to all the contributors who have helped make {toolName} the powerful tool it is today. Your dedication and effort are truly appreciated!'}
                     </Translate>
                 </p>
-                <div className="grid fade-horizontal">
-                    {contributors.map((_, index) => {
-                        if (index % 45 === 0) {
-                            return (
-                                <div className="grid-item" key={index}>
-                                    {contributors.slice(index, index + 45).map((contributor) => (
-                                        <a href={contributor.html_url} target="_blank">
-                                            <img className="circle"
-                                                key={contributor.login}
-                                                src={contributor.avatar_url}
-                                                alt={`${contributor.login}'s avatar`}
-                                            />
-                                        </a>
-                                    ))}
-                                </div>
-                            )
-                        }
-                        return null
+                <div className="grid">
+                    {[0, 1].map((value) => {
+                        const middle = Math.ceil(contributors.length / 2)
+                        const start = value === 0 ? 0 : middle
+                        const end = value === 0 ? middle : contributors.length
+
+                        return (
+                            <div className="grid-item fade-horizontal" key={value}>
+                                {contributors.slice(start, end).map((contributor) => (
+                                    <a href={contributor.html_url} target="_blank" key={contributor.login}>
+                                        <img
+                                            className="circle"
+                                            src={contributor.avatar_url}
+                                            alt={`${contributor.login}'s avatar`}
+                                        />
+                                    </a>
+                                ))}
+                            </div>
+                        )
                     })}
                 </div>
             </div>
