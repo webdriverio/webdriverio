@@ -41,7 +41,7 @@ const ContributorList: React.FC = () => {
                         id="contributors.thankYouMessage"
                         description="Thank you message for contributors"
                         values={{
-                            toolName: <a href="https://developers.google.com/web/tools/lighthouse"><i>Webdriver.io</i></a>,
+                            toolName: <a href="https://webdriver.io"><i>WebdriverIO</i></a>,
                         }}
                     >
                         {'We’d like to extend our heartfelt thanks to all the contributors who have helped make {toolName} the powerful tool it is today. Your dedication and effort are truly appreciated!'}
