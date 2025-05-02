@@ -50,6 +50,7 @@ const config: Config = {
             'sv',
             'ta',
             'uk',
+            'vi',
             'zh',
         ],
     },

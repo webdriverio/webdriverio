@@ -24,9 +24,11 @@ type LogoState = {
 }
 
 export default class LogoCarousel extends React.Component<LogoProps, LogoState> {
-    containerRef: React.RefObject<any>
+    containerRef: React.RefObject<HTMLDivElement>
     list: () => React.JSX.Element
     buttons: () => React.JSX.Element[]
+
+    state: LogoState
 
     constructor(props: LogoProps) {
         super(props)
@@ -101,7 +103,7 @@ export default class LogoCarousel extends React.Component<LogoProps, LogoState> 
         return (
             <div className={styles.companyUsage} ref={this.containerRef}>
                 <h3>
-                    <Translate>Who is using WebdriverIO?</Translate>
+                    <Translate id="homepage.logoCarousel.title">Who is using WebdriverIO?</Translate>
                 </h3>
                 <div className={clsx(styles.logos)}>
                     {this.list()}
