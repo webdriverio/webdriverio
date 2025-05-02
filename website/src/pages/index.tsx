@@ -312,7 +312,9 @@ function Home() {
                 <Section>
                     <Sponsors />
                 </Section>
-                <ContributorList />
+                <Section isDark={true}>
+                    <ContributorList />
+                </Section>
             </main>
         </Layout>
     )
