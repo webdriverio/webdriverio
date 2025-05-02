@@ -10,17 +10,27 @@
   justify-content: center;
   align-items: center;
   flex-wrap: nowrap;
+  width: 100%;
+  overflow: hidden;
 }
 
 .circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 35px;
   height: 35px;
   border-radius: 50%;
   aspect-ratio: 1 / 1;
   object-fit: cover;
-  border: 1px solid #ff8800;
-  margin: 0 6px;
 }
+
+.circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1px solid #ff8800;
+  }
 
 .md-text {
     font-size: large;
@@ -43,6 +53,8 @@
     justify-content: center;
     flex-wrap: nowrap;
     align-items: center;
+    width: 100%;
+    max-width: 100vw;
 }
 
 .intro {
@@ -60,7 +72,6 @@
 .circle {
     width: 14px;
     height: 14px;
-    margin: 0 6px;
 }
 }
 
@@ -68,7 +79,6 @@
     .circle {
       width: 17px;
       height: 17px;
-      margin: 0 8px;
     }
   }
 
@@ -76,7 +86,6 @@
         .circle {
             width: 28px;
             height: 28px;
-            margin: 0 10px;
         }
 
     }
@@ -85,8 +94,5 @@
     .circle {
         width: 31px;
         height: 31px;
-    }
-    .grid-item {
-        margin: 0 10px;
     }
 }

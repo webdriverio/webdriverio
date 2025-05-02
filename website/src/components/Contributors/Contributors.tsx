@@ -68,13 +68,16 @@ const ContributorList: React.FC = ({ contributorsPerPage = 99, contributorsIgnor
                         return (
                             <div className="grid-item fade-horizontal" key={value}>
                                 {contributors.slice(start, end).map((contributor) => (
-                                    <a href={contributor.html_url} target="_blank" key={contributor.login}>
-                                        <img
-                                            className="circle"
-                                            src={contributor.avatar_url}
-                                            alt={`${contributor.login}'s avatar`}
-                                        />
-                                    </a>
+                                    <div className="circle">
+                                        <a href={contributor.html_url} target="_blank" key={contributor.login}>
+                                            <img
+                                                className="circle"
+                                                src={contributor.avatar_url}
+                                                alt={`${contributor.login}'s avatar`}
+                                            />
+                                        </a>
+                                    </div>
+
                                 ))}
                             </div>
                         )
