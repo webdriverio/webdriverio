@@ -47,7 +47,7 @@ const ContributorList: React.FC = ({ contributorsPerPage = 99, contributorsIgnor
 
     return (
         <>
-            <div>
+            <div className='father-flex-div'>
                 <p className='intro'>
                     <Translate
                         id="contributors.thankYouMessage"

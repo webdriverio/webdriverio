@@ -1,30 +1,25 @@
 .grid {
   display: grid;
   grid-template-rows: repeat(2, 1fr);
-  flex-wrap: nowrap;
   overflow: hidden;
   place-items: center;
 }
 
 .grid-item {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  align-items: center;
-  height: 100%;
-  flex-wrap: nowrap;
-  align-items: center;
   justify-content: center;
-  min-width: 80vh;
-
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
 .circle {
   width: 35px;
   height: 35px;
   border-radius: 50%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   border: 1px solid #ff8800;
+  margin: 0 6px;
 }
 
 .md-text {
@@ -41,6 +36,14 @@
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
   }
+
+.father-flex-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-wrap: nowrap;
+    align-items: center;
+}
 
 .intro {
     line-height: 1.6;
@@ -61,7 +64,7 @@
 }
 }
 
-@media (min-width: 701px) and (max-width: 900px) {
+@media (min-width: 701px) and (max-width: 1024px) {
     .circle {
       width: 17px;
       height: 17px;
@@ -73,6 +76,7 @@
         .circle {
             width: 28px;
             height: 28px;
+            margin: 0 10px;
         }
 
     }
@@ -83,6 +87,6 @@
         height: 31px;
     }
     .grid-item {
-        margin: 0;
+        margin: 0 10px;
     }
 }
