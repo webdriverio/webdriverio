@@ -42,7 +42,7 @@ describe('dismiss', () => {
 
         // simulate a *different* active context
         mockContextManager.getCurrentContext = vi.fn().mockResolvedValue('ctx-B')
-        await dialog.accept('foo')
+        await dialog.dismiss()
 
         expect(browseStub).not.toHaveBeenCalled()
     })
@@ -65,6 +65,7 @@ describe('dismiss', () => {
             accept: false,
             context: 'ctx-A'
         })
+        expect(browseStub).toHaveBeenCalledTimes(1)
     })
 
     it('should call getCurrentContext once', async () => {
@@ -86,5 +87,6 @@ describe('dismiss', () => {
             accept: false,
             context: 'ctx-A',
         })
+        expect(browseStub).toHaveBeenCalledTimes(1)
     })
 })
