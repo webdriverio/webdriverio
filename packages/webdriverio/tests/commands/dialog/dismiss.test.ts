@@ -8,7 +8,7 @@ vi.mock('../../../src/session/context.js', () => ({
 }))
 import { getContextManager } from '../../../src/session/context.js'
 
-describe('accept', () => {
+describe('dismiss', () => {
     let browser: WebdriverIO.Browser
     let dialog: Dialog
     let mockContextManager: { getCurrentContext: () => Promise<string> }
@@ -33,9 +33,9 @@ describe('accept', () => {
     it('should NOT call browsingContextHandleUserPrompt if contexts differ', async () => {
         const fakeEvent = {
             context: 'ctx-A',
-            message: 'ignored',
+            message: 'some message',
             defaultValue: '',
-            type: 'alert',
+            type: 'confirm',
         } as BrowsingContextUserPromptOpenedParameters
 
         dialog = new Dialog(fakeEvent, browser)
@@ -50,25 +50,24 @@ describe('accept', () => {
     it('should call browsingContextHandleUserPrompt if contexts match', async () => {
         const fakeEvent = {
             context: 'ctx-A',
-            message: 'ignored',
+            message: 'some message',
             defaultValue: '',
-            type: 'prompt',
+            type: 'confirm',
         } as BrowsingContextUserPromptOpenedParameters
 
         dialog = new Dialog(fakeEvent, browser)
 
         // simulate *same* active context
         mockContextManager.getCurrentContext = vi.fn().mockResolvedValue('ctx-A')
-        await dialog.accept('my input')
+        await dialog.dismiss()
 
         expect(browseStub).toHaveBeenCalledWith({
-            accept: true,
-            context: 'ctx-A',
-            userText: 'my input'
+            accept: false,
+            context: 'ctx-A'
         })
     })
 
-    it('should call getCurrentContext once and pass undefined userText when none provided', async () => {
+    it('should call getCurrentContext once', async () => {
         const fakeEvent = {
             context: 'ctx-A',
             message: 'msg',
@@ -79,36 +78,13 @@ describe('accept', () => {
         dialog = new Dialog(fakeEvent, browser)
         mockContextManager.getCurrentContext = vi.fn().mockResolvedValue('ctx-A')
 
-        await dialog.accept()
+        await dialog.dismiss()
 
         expect(mockContextManager.getCurrentContext).toHaveBeenCalledTimes(1)
 
         expect(browseStub).toHaveBeenCalledWith({
-            accept: true,
+            accept: false,
             context: 'ctx-A',
-            userText: undefined
         })
-    })
-
-    it('should handle any dialog type the same way when contexts match', async () => {
-        for (const type of ['alert', 'confirm', 'prompt', 'beforeunload'] as const) {
-            const fakeEvent = {
-                context: 'ctx-X',
-                message: 'm',
-                defaultValue: '',
-                type: type,
-            } as BrowsingContextUserPromptOpenedParameters
-
-            dialog = new Dialog(fakeEvent, browser)
-            mockContextManager.getCurrentContext = vi.fn().mockResolvedValue('ctx-X')
-            browseStub.mockClear()
-
-            await dialog.accept('foo')
-            expect(browseStub).toHaveBeenCalledWith({
-                accept: true,
-                context: 'ctx-X',
-                userText: 'foo'
-            })
-        }
     })
 })
