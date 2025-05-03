@@ -1,5 +1,6 @@
 import { type local } from 'webdriver'
 import { SessionManager } from './session.js'
+import { getContextManager } from './context.js'
 
 export function getDialogManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, DialogManager)
@@ -111,6 +112,13 @@ export class Dialog {
      * @returns {Promise<void>}
      */
     async accept(userText?: string) {
+        const contextManager = getContextManager(this.#browser)
+        const context = await contextManager.getCurrentContext()
+
+        if (this.#context !== context) {
+            return
+        }
+
         await this.#browser.browsingContextHandleUserPrompt({
             accept: true,
             context: this.#context,
