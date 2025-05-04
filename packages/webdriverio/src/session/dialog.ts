@@ -127,6 +127,13 @@ export class Dialog {
     }
 
     async dismiss() {
+        const contextManager = getContextManager(this.#browser)
+        const context = await contextManager.getCurrentContext()
+
+        if (this.#context !== context) {
+            return
+        }
+
         await this.#browser.browsingContextHandleUserPrompt({
             accept: false,
             context: this.#context
