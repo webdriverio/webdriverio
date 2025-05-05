@@ -1,4 +1,5 @@
-import {SuiteStats, RunnerStats, getBrowserName} from '@wdio/reporter'
+import type { SuiteStats, RunnerStats } from '@wdio/reporter'
+import { getBrowserName } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
