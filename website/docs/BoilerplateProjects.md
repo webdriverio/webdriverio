@@ -5,7 +5,7 @@ title: Boilerplate Projects
 
 Over time, our community has developed several projects that you can use as inspiration to set up your own test suite.
 
-# v8 Boilerplate Projects
+# v9 Boilerplate Projects
 
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
@@ -38,41 +38,41 @@ Boilerplate project to run WebdriverIO tests on a minimal Electron application.
 - Features
     - Electron API mocking
 
-## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
+## [amiya-pattnaik/gherkin-to-webdriverIO-test-generator](https://github.com/amiya-pattnaik/gherkin-to-webdriverIO-test-generator)
+Automatically generate WebdriverIO Page Object classes and Mocha test specs from Gherkin .feature files — reducing manual effort, improving consistency, and speeding up QA automation. This project not only produces codes compatible with webdriver.io but also enhances all functionalities of webdriver.io.
 
-This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, followed by the page objects pattern.
-
-- Frameworks:
-    - WebdriverIO v8
-    - Cucumber v8
-
-- Features:
-    - Typescript v5
-    - Page Object Pattern
-    - Prettier
-    - Multi browser support
-      - Chrome
-      - Firefox
-      - Edge
-      - Safari
-      - Standalone
-    - Crossbrowser parallel execution
-    - Appium
-    - Cloud testing Integration with BrowserStack & Sauce Labs
-    - Docker service
-    - Share data service
-    - Separate config files for each service
-    - Testdata management & read by user type
-    - Reporting
-      - Dot
-      - Spec
-      - Multiple cucumber html report with failure screenshots
-    - Gitlab pipelines for Gitlab repository
-    - Github actions for Github repository
-    - Docker compose for setting up the docker hub
-    - Accessibility testing using AXE
-    - Visual testing using Applitools
-    - Log mechansim
+***How It Works?***
+- The process follows a two-step automation:
+- Step 1: Gherkin to stepMap (Generate stepMap.json Files)
+  - Generate stepMap.json Files:
+    - Parses .feature files written in Gherkin syntax.
+    - Extracts scenarios and steps.
+    - Produces a structured .stepMap.json file containing:
+      - action to perform (e.g., click, setText, assertVisible)
+      - selectorName for logical mapping
+      - selector for the DOM element
+      - note for values or assertion
+- Step 2: stepMap to Code (Generate WebdriverIO Code).
+  Uses stepMap.json to generate:
+  - Generate a base page.js class with shared methods and browser.url() setup.
+  - Generate WebdriverIO-compatible Page Object Model (POM) classes per feature inside test/pageobjects/.
+  - Generate Mocha-based test specs.
+- Directory Structure
+```
+project-root/
+├── features/               # Input Gherkin feature files
+├── stepMaps/               # Generated step maps (JSON)
+├── test/
+│   ├── pageobjects/        # Generated base Page class, Page Object classes
+│   └── specs/              # Generated test specs
+├── generateStepMap.js      # StepMap generator script
+├── generateTestsFromMap.js # PageObject + test spec generator script
+├── package.json
+├── README.md
+└── wdio.conf.js
+```
+---
+# v8 Boilerplate Projects
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
@@ -113,6 +113,43 @@ This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, f
     -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
     -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
     -  BrowserStack, Sauce Labs, LambdaTest and Appium specific `.config` file ( for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+
+## [syamphaneendra/webdriverio-web-mobile-boilerplate](https://github.com/syamphaneendra/webdriverio-web-mobile-boilerplate)
+
+This boilerplate project has WebdriverIO 8 tests with cucumber and typescript, followed by the page objects pattern.
+
+- Frameworks:
+    - WebdriverIO v8
+    - Cucumber v8
+
+- Features:
+    - Typescript v5
+    - Page Object Pattern
+    - Prettier
+    - Multi browser support
+      - Chrome
+      - Firefox
+      - Edge
+      - Safari
+      - Standalone
+    - Crossbrowser parallel execution
+    - Appium
+    - Cloud testing Integration with BrowserStack & Sauce Labs
+    - Docker service
+    - Share data service
+    - Separate config files for each service
+    - Testdata management & read by user type
+    - Reporting
+      - Dot
+      - Spec
+      - Multiple cucumber html report with failure screenshots
+    - Gitlab pipelines for Gitlab repository
+    - Github actions for Github repository
+    - Docker compose for setting up the docker hub
+    - Accessibility testing using AXE
+    - Visual testing using Applitools
+    - Log mechansim
+
 
 ## [klassijs/klassi-js (cucumber-template)](https://github.com/klassijs/klassi-example-test-suite.git)
 
@@ -177,6 +214,7 @@ Boilerplate project to run WebdriverIO tests in Headspin Cloud (https://www.head
     - Integrated cucumber html reports
 
 # v7 Boilerplate Projects
+---
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
 
