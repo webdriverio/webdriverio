@@ -244,7 +244,7 @@ export default class AllureReporter extends WDIOReporter {
         if (!this._isMultiremote) {
             const caps = this._capabilities
             // @ts-expect-error outdated JSONWP capabilities
-            const { _, desired, device } = caps
+            const { desired, device } = caps
             // @ts-expect-error outdated JSONWP capabilities
             const deviceName = (desired || {}).deviceName || (desired || {})['appium:deviceName'] || caps.deviceName || caps['appium:deviceName']
             let targetName = getBrowserName(caps) || cid
