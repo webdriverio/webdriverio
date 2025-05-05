@@ -35,6 +35,7 @@ html[data-theme=dark] {
     .navbar__toggle {
         margin-left: 1rem;
     }
+
 }
 
 .header-github-link:hover,
@@ -129,6 +130,22 @@ body .react-toggle-thumb {
     }
 
     .header-discord-link:before {
+        transform: scale(0.65) translateY(3px) translateX(-10px);
+    }
+}
+
+@media (max-width: 996px) {
+    .header-discord-link:before {
         transform: scale(0.65) translateY(-10px) translateX(-10px);
     }
 }
+
+
+.dropdown-version-item {
+    font-weight: bold;
+    font-size: large;
+  }
+
+  .dropdown-version-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
