@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import path from 'node:path'
 
 import { EventEmitter } from 'node:events'
 import HookStats from '../../packages/wdio-reporter/src/stats/hook.ts'
@@ -82,4 +83,15 @@ export default class WDIOReporter extends EventEmitter {
     onRunnerEnd () {}
 }
 
-export { HookStats, RunnerStats, SuiteStats, TestStats }
+function getBrowserName(caps: any) {
+    const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
+    const appName = (
+        caps['appium:bundleId'] ||
+        caps['appium:appPackage'] ||
+        caps['appium:appActivity'] ||
+        (path.isAbsolute(app) ? path.basename(app) : app)
+    )
+    return caps.browserName || caps.browser || appName
+}
+
+export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName }
