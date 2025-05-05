@@ -1,7 +1,7 @@
 import { stringify } from 'csv-stringify/sync'
-import type {
+import {
     SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
-    AfterCommandArgs, Argument
+    AfterCommandArgs, Argument, getBrowserName
 } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
@@ -243,13 +243,13 @@ export default class AllureReporter extends WDIOReporter {
         if (!this._isMultiremote) {
             const caps = this._capabilities
             // @ts-expect-error outdated JSONWP capabilities
-            const { browserName, desired, device } = caps
+            const { _, desired, device } = caps
             // @ts-expect-error outdated JSONWP capabilities
             const deviceName = (desired || {}).deviceName || (desired || {})['appium:deviceName'] || caps.deviceName || caps['appium:deviceName']
-            let targetName = device || browserName || deviceName || cid
+            let targetName = getBrowserName(caps) || cid
             // custom mobile grids can have device information in a `desired` cap
             if (desired && deviceName && desired['appium:platformVersion']) {
-                targetName = `${device || deviceName} ${desired['appium:platformVersion']}`
+                targetName = `${getBrowserName(caps)} ${desired['appium:platformVersion']}`
             }
             // @ts-expect-error outdated JSONWP capabilities
             const browserstackVersion = caps.os_version || caps.osVersion
