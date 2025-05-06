@@ -1613,3 +1613,59 @@ export async function executeAccessibilityScript<ReturnType>(
         })(${arg ? JSON.stringify(arg) : ''})`
     )
 }
+
+export function isNullOrEmpty(string: any): Boolean {
+    return !string || string.trim() === "";
+}
+
+export function isHash(entity: any) {
+    return Boolean(entity && typeof(entity) === 'object' && !Array.isArray(entity));
+}
+
+export function nestedKeyValue(hash: any, keys: Array<string>) {
+    return keys.reduce((hash, key) => (isHash(hash) ? hash[key] : undefined), hash);
+}
+
+export function removeDir(dir: string) {
+    var list = fs.readdirSync(dir);
+    for (var i = 0; i < list.length; i++) {
+        var filename = path.join(dir, list[i]);
+        var stat = fs.statSync(filename);
+
+        if (filename === '.' || filename === '..') {
+            // pass these files
+        } else if (stat.isDirectory()) {
+            // rmdir recursively
+            removeDir(filename);
+        } else {
+            // rm filename
+            fs.unlinkSync(filename);
+        }
+    }
+    fs.rmdirSync(dir);
+};
+
+export function createDir(dir: string) {
+    if (fs.existsSync(dir)){
+        removeDir(dir);
+    }
+    fs.mkdirSync(dir, { recursive: true });
+};
+
+export function isWritable(dirPath: string): Boolean {
+    try {
+        fs.accessSync(dirPath, fs.constants.W_OK);
+        return true;
+    } catch (err) {
+        return false;
+    }
+}
+
+export function setReadWriteAccess(dirPath: string) {
+    try {
+        fs.chmodSync(dirPath, 0o666);
+        BStackLogger.debug(`Directory ${dirPath} is now read/write accessible.`);
+    } catch (err: any) {
+        BStackLogger.error(`Failed to set directory access: ${err.stack}`);
+    }
+}

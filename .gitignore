@@ -95,6 +95,8 @@ website/docs/api/**/*.md
 website/docs/docs/**/*.md
 website/docs/_*.md
 
+packages/wdio-browserstack-service/src/generated
+
 # Editor files
 .idea
 !.vscode/extensions.json

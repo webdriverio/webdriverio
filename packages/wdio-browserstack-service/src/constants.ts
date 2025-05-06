@@ -43,6 +43,8 @@ export const DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS = 5000 // 5s
 export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms
 export const BSTACK_SERVICE_VERSION = bstackServiceVersion
 
+export const UPDATED_CLI_ENDPOINT =  'sdk/v1/update_cli'
+
 export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
 
 export const LOGS_FILE = 'logs/bstack-wdio-service.log'
@@ -69,6 +71,7 @@ export const LOG_KIND_USAGE_MAP = {
     'HTTP': 'http'
 }
 
+export const BROWSERSTACK_API_URL = 'https://api.browserstack.com'
 export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'
 
 export const EDS_URL = 'https://eds.browserstack.com'
