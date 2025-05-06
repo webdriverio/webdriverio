@@ -1,9 +1,9 @@
 import { stringify } from 'csv-stringify/sync'
 import type {
     SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
-    AfterCommandArgs, Argument } from '@wdio/reporter'
-import { getBrowserName
+    AfterCommandArgs, Argument
 } from '@wdio/reporter'
+import { getBrowserName } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 import type { Label, MetadataMessage } from 'allure-js-commons'
