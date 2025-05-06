@@ -1,5 +1,4 @@
 import { vi } from 'vitest'
-import path from 'node:path'
 
 import { EventEmitter } from 'node:events'
 import HookStats from '../../packages/wdio-reporter/src/stats/hook.ts'
