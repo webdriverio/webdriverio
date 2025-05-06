@@ -14,6 +14,7 @@ import Highlight from '../components/Highlight.tsx'
 import Robot from '../components/Robot.tsx'
 import Sponsors from '../components/Sponsors.tsx'
 import { CreateProjectAnimation } from '../components/CreateProjectAnimation.tsx'
+import ContributorList from '../components/Contributors/Contributors.tsx'
 
 import styles from './styles.module.css'
 import { logos, features, LHIntregrationExample, SetupExample, ComponentTestingExample } from '../constants.tsx'
@@ -311,6 +312,9 @@ function Home() {
                 </Section>
                 <Section>
                     <Sponsors />
+                </Section>
+                <Section isDark={true}>
+                    <ContributorList />
                 </Section>
             </main>
         </Layout>

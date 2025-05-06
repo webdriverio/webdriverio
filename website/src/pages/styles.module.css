@@ -41,6 +41,7 @@ html[data-theme=dark] .heroBanner  {
     align-items: center;
     justify-content: center;
     margin: 30px 0 0;
+    gap: 3px;
 }
 
 body .getStarted {
