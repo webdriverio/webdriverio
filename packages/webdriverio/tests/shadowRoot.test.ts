@@ -3,6 +3,7 @@ import { describe, it, vi, expect, beforeEach } from 'vitest'
 import { getShadowRootManager, ShadowRootTree } from '../src/session/shadowRoot.js'
 
 const defaultBrowser = {
+    sessionId: '123',
     sessionSubscribe: vi.fn().mockResolvedValue({}),
     on: vi.fn(),
     scriptAddPreloadScript: vi.fn(),
@@ -28,6 +29,7 @@ describe('ShadowRootManager', () => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
         const browser = { ...defaultBrowser, isBidi: true, options: { capabilities: { webSocketUrl: './' } } } as any
+        browser.sessionId = '234'
         const manager = getShadowRootManager(browser)
         process.env.WDIO_UNIT_TESTS = wid
         expect(await manager.initialize()).toBe(true)
@@ -38,6 +40,7 @@ describe('ShadowRootManager', () => {
 
     it('should not register event listeners if not in bidi mode', async () => {
         const browser = { ...defaultBrowser } as any
+        browser.sessionId = '345'
         const manager = getShadowRootManager(browser)
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(0)
@@ -47,6 +50,7 @@ describe('ShadowRootManager', () => {
 
     it('should not register event listeners if not using webdriver as automation protocol', async () => {
         const browser = { ...defaultBrowser, isBidi: true, automationProtocol: './protocol-stub.js' } as any
+        browser.sessionId = '456'
         const manager = getShadowRootManager(browser)
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(0)

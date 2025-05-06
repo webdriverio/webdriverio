@@ -21,7 +21,7 @@
  * </example>
  *
  * @alias element.setValue
- * @param {string | number}  value  value to be added
+ * @param {string|number}  value  value to be added
  *
  */
 export async function setValue (

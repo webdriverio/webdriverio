@@ -5,7 +5,8 @@ import { themes } from 'prism-react-renderer'
 import remark from '@docusaurus/remark-plugin-npm2yarn'
 import type { Config } from '@docusaurus/types'
 import type { ThemeConfig } from '@docusaurus/preset-classic'
-
+import './docusaurusVersions'
+import pastVersions from './docusaurusVersions'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const organizationName = 'webdriverio' // Usually your GitHub org/user name.
@@ -34,7 +35,25 @@ const config: Config = {
     },
     i18n: {
         defaultLocale: 'en',
-        locales: ['en', 'de', 'es', 'hi', 'fr', 'uk', 'fa', 'ta'/*, 'zh-CN', 'ru' */],
+        locales: [
+            'en',
+            'ar',
+            'de',
+            'es',
+            'fa',
+            'fr',
+            'hi',
+            'it',
+            'ja',
+            'pl',
+            'pt',
+            'ru',
+            'sv',
+            'ta',
+            'uk',
+            'vi',
+            'zh',
+        ],
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',
@@ -94,7 +113,11 @@ const config: Config = {
             }, {
                 label: 'v9',
                 position: 'right',
-                to: '/versions'
+                items: pastVersions.map(v => ({
+                    label: v.label,
+                    href: v.path,
+                    className: 'dropdown-version-item'
+                }))
             }, {
                 type: 'localeDropdown',
                 position: 'right',

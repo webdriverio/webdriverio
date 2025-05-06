@@ -226,10 +226,26 @@ function manageSessionAbortions (this: BaseClient): {
     cleanup: () => void
 } {
     const abort = new AbortController()
+    const abortOnSessionEnd = (result: WebDriverResultEvent) => {
+        if (result.command !== 'deleteSession') {
+            return
+        }
+        const abortListeners = sessionAbortListeners.get(this.sessionId)
+        if (abortListeners) {
+            for (const abortListener of abortListeners) {
+                abortListener.abort()
+            }
+            abortListeners.clear()
+            sessionAbortListeners.set(this.sessionId, null)
+        }
+
+    }
+
     let abortListenerForCurrentSession = sessionAbortListeners.get(this.sessionId)
     if (typeof abortListenerForCurrentSession === 'undefined') {
         abortListenerForCurrentSession = new Set()
         sessionAbortListeners.set(this.sessionId, abortListenerForCurrentSession)
+        this.on('result', abortOnSessionEnd)
     }
 
     /**
@@ -243,16 +259,7 @@ function manageSessionAbortions (this: BaseClient): {
      * listen for session deletion and abort all requests
      */
     abortListenerForCurrentSession.add(abort)
-    const abortOnSessionEnd = (result: WebDriverResultEvent) => {
-        if (result.command === 'deleteSession') {
-            for (const abortListener of abortListenerForCurrentSession) {
-                abortListener.abort()
-            }
-            abortListenerForCurrentSession.clear()
-            sessionAbortListeners.set(this.sessionId, null)
-        }
-    }
-    this.on('result', abortOnSessionEnd)
+
     return {
         isAborted: false,
         abortSignal: abort.signal,

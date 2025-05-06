@@ -48,6 +48,9 @@ export class PolyfillManager extends SessionManager {
             return
         }
 
+        // start listening for browsingContext.contextCreated
+        this.#browser.on('browsingContext.contextCreated', this.#registerScripts.bind(this))
+
         /**
          * apply polyfill script for upcoming as well as current execution context
          */
@@ -59,12 +62,11 @@ export class PolyfillManager extends SessionManager {
                 events: ['browsingContext.contextCreated']
             })
         ]).then(() => true, () => false)
-
-        this.#browser.on('browsingContext.contextCreated', this.#registerScripts.bind(this))
     }
 
     removeListeners() {
         super.removeListeners()
+        // stop listening for browsingContext.contextCreated
         this.#browser.off('browsingContext.contextCreated', this.#registerScripts.bind(this))
     }
 
@@ -81,6 +83,15 @@ export class PolyfillManager extends SessionManager {
                 ? this.#browser.scriptAddPreloadScript({
                     functionDeclaration,
                     contexts: [context.context]
+                }).catch(() => {
+                    /**
+                     * In case the context is already destroyed before this promise is finished
+                     * For example:
+                     *   - an unsuspecting window (context) is opened
+                     *   - registerScripts is triggered
+                     *   - that window closes before the bidi call starts
+                     *   - bidi call sends the request and gets something like `call rejected because the connection has been closed` error back
+                     */
                 })
                 : Promise.resolve(),
             this.#browser.scriptCallFunction({

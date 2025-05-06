@@ -13,6 +13,6 @@
  *
  * @alias clock.setSystemTime
  * @param   { Date | number } date The new date to set the system time to.
- * @returns { Promise<void> }
+ * @returns { `Promise<void>` }
  */
 // actual implementation is located in packages/webdriverio/src/clock.ts

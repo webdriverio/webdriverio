@@ -25,6 +25,8 @@ A browser object has the following properties:
 | `isFirefox` | `Boolean` | Indicates if this Firefox instance |
 | `isBidi` | `Boolean` | Indicates if this session uses Bidi |
 | `isSauce` | `Boolean` | Indicates if this session is Running on Sauce Labs |
+| `isMacApp` | `Boolean` | Indicates if this session is Running for a native Mac App |
+| `isWindowsApp` | `Boolean` | Indicates if this session is Running for a native Windows App |
 | `isMobile` | `Boolean` | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags). |
 | `isIOS` | `Boolean` | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags). |
 | `isAndroid` | `Boolean` | Indicates an Android session. See more under [Mobile Flags](#mobile-flags). |
@@ -139,7 +141,7 @@ This event is emitted whenever WebdriverIO receives a result of a WebDriver Clas
 
 This event is emitted whenever WebdriverIO sends a WebDriver Bidi command to the browser driver. It contains information about:
 
-- `method`: WebDriver Bidi command methid
+- `method`: WebDriver Bidi command method
 - `params`: associated command parameter (see [API](/docs/api/webdriverBidi))
 
 #### `bidiResult`

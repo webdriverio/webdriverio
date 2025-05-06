@@ -108,6 +108,46 @@ describe('isDisplayed test', () => {
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
+    it('should allow to check if element is displayed in mobile mode for Windows Apps', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                // @ts-ignore mock feature
+                keepBrowserName: true,
+                mobileMode: true,
+                windowsAppMode: true,
+            } as any
+        })
+        elem = await browser.$('#foo')
+        vi.mocked(fetch).mockClear()
+        expect(await elem.isDisplayed()).toBe(true)
+        // Due to mobileMode being enabled we will have extra calls to fetch
+        expect(fetch).toBeCalledTimes(1)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+    })
+
+    it('should allow to check if element is displayed in mobile mode for Mac Apps', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                // @ts-ignore mock feature
+                keepBrowserName: true,
+                mobileMode: true,
+                macAppMode: true,
+            } as any
+        })
+        elem = await browser.$('#foo')
+        vi.mocked(fetch).mockClear()
+        expect(await elem.isDisplayed()).toBe(true)
+        // Due to mobileMode being enabled we will have extra calls to fetch
+        expect(fetch).toBeCalledTimes(1)
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+    })
+
     it('should throw if displayed check within viewport is done for native mobile apps', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',

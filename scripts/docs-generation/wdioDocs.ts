@@ -2,8 +2,7 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-// @ts-expect-error no type definition
-import dox from 'dox'
+import { parse } from 'comment-parser'
 import { Eta } from 'eta'
 import type { NavbarItem } from '../../website/node_modules/@docusaurus/theme-common/lib/index.js'
 
@@ -59,7 +58,7 @@ export async function generateWdioDocs (sidebars: any) {
 
             const raw = fs.readFileSync(filepath, 'utf-8')
             const data = compiler(raw)
-            const doc = dox.parseComments(data, { raw: true })
+            const doc = parse(data, { spacing: 'preserve' })
             const docfile = {
                 filename: filepath,
                 javadoc: doc,

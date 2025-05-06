@@ -104,6 +104,28 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeHeadlessShellCaps, requestedCapabilities }).isChrome).toBe(true)
     })
 
+    it('isWindowsApp', () => {
+        const requestedCapabilities = { browserName: '' }
+        const capabilities: WebdriverIO.Capabilities = {
+            platformName: 'windows',
+            'appium:automationName': 'windows',
+            'appium:deviceName': 'WindowsPC',
+        }
+        const {
+            isMobile,
+            isWindowsApp,
+            isMacApp,
+            isAndroid,
+            isIOS
+        } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+
+        expect(isMobile).toEqual(true)
+        expect(isWindowsApp).toEqual(true)
+        expect(isMacApp).toEqual(false)
+        expect(isAndroid).toEqual(false)
+        expect(isIOS).toEqual(false)
+    })
+
     it('isChromium', () => {
         const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isChromium).toBe(false)
@@ -266,14 +288,30 @@ describe('sessionEnvironmentDetector', () => {
             platformName: 'WINDOWS',
             'ms:experimental-webdriver': true,
             'ms:waitForAppLaunch': 10,
-            app: 'C:\\Program Files\\foo\\bar.exe',
-            appArguments: '-noCloseConfirmationPopUp -shouldDisplayDiesToTake'
+            'appium:app': 'C:\\Program Files\\foo\\bar.exe',
+            'appium:appArguments': '-noCloseConfirmationPopUp -shouldDisplayDiesToTake',
+            'appium:automationName': 'Windows'
         }
         const requestedCapabilities = { browserName: '' }
-        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        const { isMobile, isIOS, isAndroid, isWindowsApp } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)
         expect(isAndroid).toEqual(false)
+        expect(isWindowsApp).toEqual(true)
+    })
+
+    it('should detect a Mac application automated through Appium', () => {
+        const capabilities: any = {
+            platformName: 'mac',
+            'appium:appPath': '/Applications/MyAppName.app',
+            'appium:automationName': 'mac2'
+        }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid, isMacApp } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(true)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+        expect(isMacApp).toEqual(true)
     })
 
     it('should detect Android mobile app', function () {

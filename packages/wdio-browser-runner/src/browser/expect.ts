@@ -8,7 +8,7 @@ import { WDIO_EVENT_NAME } from '../constants.js'
 
 declare type RawMatcherFn<Context extends MatcherContext = MatcherContext> = {
     (this: Context, actual: unknown, ...expected: Array<unknown>): ExpectationResult;
-};
+}
 
 interface MatcherPayload {
     resolve: (result: SyncExpectationResult) => void

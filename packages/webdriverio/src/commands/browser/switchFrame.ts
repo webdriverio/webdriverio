@@ -63,7 +63,7 @@ const log = logger('webdriverio:switchFrame')
  *
  * @alias browser.switchFrame
  * @param {string|object|function} context
- * @returns {Promise<string>} the current active context id
+ * @returns {`Promise<string>`} the current active context id
  */
 export async function switchFrame (
     this: WebdriverIO.Browser,

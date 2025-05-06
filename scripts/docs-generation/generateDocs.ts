@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 
-import sidebars from '../../website/_sidebars.json' assert { type: 'json' }
+import sidebars from '../../website/_sidebars.json' with { type: 'json' }
 import { generateProtocolDocs } from './protocolDocs.js'
 import { generateWdioDocs } from './wdioDocs.js'
 import { generateReportersAndServicesDocs } from './packagesDocs.js'
@@ -12,6 +12,7 @@ import { generateElectronDocs } from './electronDocs.js'
 import { generateEventDocs } from './eventDocs.js'
 import { copyContributingDocs } from './copyContributingDocs.js'
 import { downloadAwesomeResources } from './downloadAwesomeResources.js'
+import { downloadDocsTranslations } from './downloadDocsTranslations.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -49,6 +50,8 @@ try {
     await copyContributingDocs()
     print('Copy over Awesome Resources')
     await downloadAwesomeResources()
+    print('Download docs translations')
+    await downloadDocsTranslations()
 
     writeSidebars(sidebars)
 

@@ -5,7 +5,7 @@ const appiumKeys = ['app', 'bundleId', 'appPackage', 'appActivity', 'appWaitActi
 type AppiumKeysType = typeof appiumKeys[number]
 
 export function getNativeContext({ capabilities, isMobile }:
-    { capabilities: WebdriverIO.Capabilities, isMobile: boolean }
+{ capabilities: WebdriverIO.Capabilities, isMobile: boolean }
 ): boolean {
     if (!capabilities || typeof capabilities !== 'object' || !isMobile) {
         return false
@@ -31,7 +31,7 @@ export function getNativeContext({ capabilities, isMobile }:
 }
 
 export function getMobileContext({ capabilities, isAndroid, isNativeContext }:
-    { capabilities: WebdriverIO.Capabilities, isAndroid: boolean, isNativeContext: boolean }
+{ capabilities: WebdriverIO.Capabilities, isAndroid: boolean, isNativeContext: boolean }
 ): string | undefined {
     return isNativeContext ? 'NATIVE_APP' :
     // Android webviews are always WEBVIEW_<package_name>, Chrome will always be CHROMIUM
@@ -41,7 +41,7 @@ export function getMobileContext({ capabilities, isAndroid, isNativeContext }:
 }
 
 export function calculateAndroidPinchAndZoomSpeed({ browser, duration, scale }:
-    { browser: WebdriverIO.Browser, duration: number, scale: number }
+{ browser: WebdriverIO.Browser, duration: number, scale: number }
 ): number {
     // @ts-expect-error
     const deviceScreenSize = (browser.capabilities?.deviceScreenSize || '1080x2400').split('x').reduce((a, b) => a * b)
@@ -55,7 +55,7 @@ export function calculateAndroidPinchAndZoomSpeed({ browser, duration, scale }:
 }
 
 export function validatePinchAndZoomOptions({ browser, gesture, options }:
-    { browser: WebdriverIO.Browser, gesture: 'pinch' | 'zoom', options: Partial<PinchAndZoomOptions> }
+{ browser: WebdriverIO.Browser, gesture: 'pinch' | 'zoom', options: Partial<PinchAndZoomOptions> }
 ): { scale: number, duration: number } {
     if (typeof options !== 'undefined' && (typeof options !== 'object' || Array.isArray(options))) {
         throw new TypeError('Options must be an object')

@@ -51,7 +51,7 @@ const log = logger('webdriverio')
  * </example>
  *
  * @alias browser.reloadSession
- * @param newCapabilities new capabilities to create a session with
+ * @param {WebdriverIO.Capabilities=} newCapabilities new capabilities to create a session with
  * @type utility
  *
  */

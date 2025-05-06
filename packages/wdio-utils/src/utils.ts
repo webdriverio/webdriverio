@@ -98,6 +98,12 @@ export function commandCallStructure (commandName: string, args: unknown[], unfu
              * include a command check in here.
              */
             !commandName.startsWith('findElement') &&
+            /**
+             * the isBase64 method returns for the argument value like
+             * "9A562133B0552E0ECB7628F2E8A09E86" a true value which is
+             * why we should include a command check in here.
+             */
+            !commandName.startsWith('switch') &&
             isBase64(arg)
         ) {
             arg = SCREENSHOT_REPLACEMENT

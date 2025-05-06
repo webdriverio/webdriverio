@@ -17,7 +17,7 @@ import { performance } from 'node:perf_hooks'
 import logPatcher from './logPatcher.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
-import { getProductMap, logBuildError, handleErrorForObservability, handleErrorForAccessibility } from './testHub/utils.js'
+import { logBuildError, handleErrorForObservability, handleErrorForAccessibility, getProductMapForBuildStartCall } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
 import type { Errors } from './testHub/utils.js'
 
@@ -50,6 +50,8 @@ import TestOpsConfig from './testOps/testOpsConfig.js'
 
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 
+import { _fetch as fetch } from './fetchWrapper.js'
+
 const pGitconfig = promisify(gitconfig)
 
 export type GitMetaData = {
@@ -69,7 +71,7 @@ export type GitMetaData = {
     last_tag: string | null;
     commits_since_last_tag: number;
     remotes: Array<{ name: string; url: string }>;
-};
+}
 
 export const DEFAULT_REQUEST_CONFIG = {
     headers: {
@@ -249,7 +251,7 @@ export async function nodeRequest(requestType: string, apiEndpoint: string, opti
     A class wrapper for error handling. The wrapper wraps all the methods of the class with a error handler function.
     If any exception occurs in any of the class method, that will get caught in the wrapper which logs and reports the error.
  */
-type ClassType = { new(...args: unknown[]): unknown; }; // A generic type for a class
+type ClassType = { new(...args: unknown[]): unknown; } // A generic type for a class
 export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     const prototype = errorClass.prototype
 
@@ -259,7 +261,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 
     Object.getOwnPropertyNames(prototype).forEach((methodName) => {
         const method = prototype[methodName]
-        if (typeof method === 'function' && methodName !== 'constructor') {
+        if (typeof method === 'function' && methodName !== 'constructor' && methodName !== 'commandWrapper') {
             // In order to preserve this context, need to define like this
             Object.defineProperty(prototype, methodName, {
                 writable: true,
@@ -352,12 +354,10 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     if (options.testObservability) {
         processTestObservabilityResponse(response)
     }
-    if (options.accessibility) {
-        processAccessibilityResponse(response)
-    }
+    processAccessibilityResponse(response)
 }
 
-export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig) {
+export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
     const launchBuildUsage = UsageStats.getInstance().launchBuildUsage
     launchBuildUsage.triggered()
 
@@ -393,7 +393,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
                 version: bsConfig.bstackServiceVersion
             }
         },
-        product_map: getProductMap(bStackConfig),
+        product_map: getProductMapForBuildStartCall(bStackConfig, accessibilityAutomation),
         config: {}
     }
 
@@ -431,12 +431,13 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         }
         processLaunchBuildResponse(jsonResponse, options)
         launchBuildUsage.success()
+        return jsonResponse
     } catch (error: unknown) {
         BStackLogger.debug(`TestHub build start failed: ${format(error)}`)
         if (!(error as Error & { success: boolean }).success) {
             launchBuildUsage.failed(error)
             logBuildError(error as Errors)
-            return
+            return null
         }
     }
 }))
@@ -509,7 +510,7 @@ export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, t
     return false
 }
 
-export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string) => {
+export const isAccessibilityAutomationSession = (accessibilityFlag?: boolean | string | null) => {
     try {
         const hasA11yJwtToken = typeof process.env.BSTACK_A11Y_JWT === 'string' && process.env.BSTACK_A11Y_JWT.length > 0 && process.env.BSTACK_A11Y_JWT !== 'null' && process.env.BSTACK_A11Y_JWT !== 'undefined'
         return accessibilityFlag && hasA11yJwtToken
@@ -1395,18 +1396,24 @@ export const ObjectsAreEqual = (object1: object, object2: object) => {
     return true
 }
 
-export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: WebdriverIO.Capabilities) {
-    if (!caps) {
+export const getPlatformVersion = o11yErrorHandler(function getPlatformVersion(caps: WebdriverIO.Capabilities, userCaps: WebdriverIO.Capabilities) {
+    if (!caps && !userCaps) {
         return undefined
     }
-    const bstackOptions = (caps)?.['bstack:options']
+
+    const bstackOptions = (userCaps)?.['bstack:options']
     const keys = ['platformVersion', 'platform_version', 'osVersion', 'os_version']
 
     for (const key of keys) {
-        if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+        if (caps?.[key as keyof WebdriverIO.Capabilities]) {
+            BStackLogger.debug(`Got ${key} from driver caps`)
+            return String(caps?.[key as keyof WebdriverIO.Capabilities])
+        } else if (bstackOptions && bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities]) {
+            BStackLogger.debug(`Got ${key} from user bstack options`)
             return String(bstackOptions?.[key as keyof Capabilities.BrowserStackCapabilities])
-        } else if (caps[key as keyof WebdriverIO.Capabilities]) {
-            return String(caps[key as keyof WebdriverIO.Capabilities])
+        } else if (userCaps[key as keyof WebdriverIO.Capabilities]) {
+            BStackLogger.debug(`Got ${key} from user caps`)
+            return String(userCaps[key as keyof WebdriverIO.Capabilities])
         }
     }
     return undefined
@@ -1509,7 +1516,7 @@ type PollingResult = {
     data: any;
     headers: Record<string, any>;
     message?: string; // Optional message for timeout cases
-  };
+}
 
 export async function pollApi(
     url: string,
@@ -1612,6 +1619,13 @@ export async function executeAccessibilityScript<ReturnType>(
             });
         })(${arg ? JSON.stringify(arg) : ''})`
     )
+}
+
+export function getBooleanValueFromString(value: string | undefined): boolean {
+    if (!value) {
+        return false
+    }
+    return ['true'].includes(value.trim().toLowerCase())
 }
 
 export function isNullOrEmpty(string: any): Boolean {

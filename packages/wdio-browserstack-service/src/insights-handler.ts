@@ -688,6 +688,9 @@ class _InsightsHandler {
         }
 
         if (eventType === 'TestRunSkipped') {
+            if (this._hooks[fullTitle]) {
+                testData.hooks = this._hooks[fullTitle]
+            }
             testData.result = 'skipped'
             eventType = 'TestRunFinished'
         }
@@ -871,7 +874,7 @@ class _InsightsHandler {
             browser_version: caps?.browserVersion,
             platform: caps?.platformName,
             product: this._platformMeta?.product,
-            platform_version: getPlatformVersion(this._userCaps as WebdriverIO.Capabilities)
+            platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities)
         }
     }
 
