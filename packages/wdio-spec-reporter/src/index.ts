@@ -1,10 +1,9 @@
-import path from 'node:path'
 import { format } from 'node:util'
 
 import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
-import WDIOReporter, { TestStats } from '@wdio/reporter'
+import WDIOReporter, { TestStats, getBrowserName } from '@wdio/reporter'
 import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
@@ -660,16 +659,7 @@ export default class SpecReporter extends WDIOReporter {
         }
         const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
         const device = caps['appium:deviceName']
-        // @ts-expect-error outdated JSONWP capabilities
-        const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
-        const appName = (
-            caps['appium:bundleId'] ||
-            caps['appium:appPackage'] ||
-            caps['appium:appActivity'] ||
-            (path.isAbsolute(app) ? path.basename(app) : app)
-        )
-        // @ts-expect-error outdated JSONWP capabilities
-        const browser = caps.browserName || caps.browser || appName
+        const browser = getBrowserName(caps)
         /**
          * fallback to different capability types:
          * browserVersion: W3C format
@@ -690,7 +680,7 @@ export default class SpecReporter extends WDIOReporter {
 
         // Mobile capabilities
         if (device) {
-            const program = appName || caps.browserName
+            const program = getBrowserName(caps)
             const executing = program ? `executing ${program}` : ''
             if (!verbose) {
                 return `${device} ${platform} ${version}`
