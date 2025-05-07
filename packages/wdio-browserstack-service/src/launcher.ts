@@ -14,7 +14,7 @@ import TestOpsConfig from './testOps/testOpsConfig.js'
 import type { Capabilities, Services, Options } from '@wdio/types'
 
 import { startPercy, stopPercy, getBestPlatformForPercySnapshot } from './Percy/PercyHelper.js'
-import { BrowserstackCLI } from './cli/index.js';
+import { BrowserstackCLI } from './cli/index.js'
 
 import type { BrowserstackConfig, BrowserstackOptions, App, AppConfig, AppUploadResponse, UserConfig } from './types.js'
 import {
@@ -210,10 +210,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         await sendStart(this.browserStackConfig)
 
         try {
-            await BrowserstackCLI.getInstance().bootstrap();
-            BStackLogger.debug("Is CLI running " + BrowserstackCLI.getInstance().isRunning());
-        } catch(err: any) {
-            BStackLogger.error(err);
+            BStackLogger.debug('Is CLI running ' + BrowserstackCLI.getInstance().isRunning())
+            await BrowserstackCLI.getInstance().bootstrap()
+            BStackLogger.debug('Is CLI running ' + BrowserstackCLI.getInstance().isRunning())
+        } catch (err) {
+            BStackLogger.error(`Error while starting CLI ${err}`)
         }
 
         // Setting up healing for those sessions where we don't add the service version capability as it indicates that the session is not being run on BrowserStack
@@ -405,10 +406,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.debug('Sending stop launch event')
 
         try {
-            await BrowserstackCLI.getInstance().stop();
-            BStackLogger.debug("Is CLI running " + BrowserstackCLI.getInstance().isRunning());
-        } catch(err: any) {
-            BStackLogger.error(err);
+            await BrowserstackCLI.getInstance().stop()
+            BStackLogger.debug('Is CLI running ' + BrowserstackCLI.getInstance().isRunning())
+        } catch (err) {
+            BStackLogger.error(`Error while stoping CLI ${err}`)
         }
 
         await stopBuildUpstream()

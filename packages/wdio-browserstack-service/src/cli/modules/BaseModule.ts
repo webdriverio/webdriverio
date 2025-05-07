@@ -1,23 +1,23 @@
-import { BStackLogger } from '../cliLogger.js';
+import { BStackLogger } from '../cliLogger.js'
 
 /**
  * Base class for BrowserStack modules
  */
 export class BaseModule {
-    name: string;
-    binSessionId: string|null;
-    platformIndex: number;
-    config: any;
-    client: any;
+    name: string
+    binSessionId: string|null
+    platformIndex: number
+    config: Record<string, unknown>
+    client: unknown
     /**
      * Create a new BaseModule
      */
     constructor() {
-        this.name = 'BaseModule';
-        this.binSessionId = null;
-        this.platformIndex = 0;
-        this.config = {};
-        this.client = null;
+        this.name = 'BaseModule'
+        this.binSessionId = null
+        this.platformIndex = 0
+        this.config = {}
+        this.client = null
     }
 
     /**
@@ -26,7 +26,7 @@ export class BaseModule {
      */
     ensureBinSession() {
         if (!this.binSessionId) {
-            throw new Error('Missing binSessionId');
+            throw new Error('Missing binSessionId')
         }
     }
 
@@ -35,7 +35,7 @@ export class BaseModule {
      * @returns {string} The module name
      */
     getModuleName() {
-        return this.name;
+        return this.name
     }
 
     /**
@@ -45,12 +45,12 @@ export class BaseModule {
      * @param {Object} client - The gRPC client service
      * @param {Object} config - Configuration options
      */
-    configure(binSessionId: string, platformIndex: number, client: any, config = {}) {
-        this.binSessionId = binSessionId;
-        this.platformIndex = platformIndex;
-        this.client = client;
-        this.config = config;
+    configure(binSessionId: string, platformIndex: number, client: unknown, config = {}) {
+        this.binSessionId = binSessionId
+        this.platformIndex = platformIndex
+        this.client = client
+        this.config = config
 
-        BStackLogger.debug(`Configured module ${this.getModuleName()} with binSessionId=${binSessionId}, platformIndex=${platformIndex}`);
+        BStackLogger.debug(`Configured module ${this.getModuleName()} with binSessionId=${binSessionId}, platformIndex=${platformIndex}`)
     }
 }

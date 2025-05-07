@@ -1,15 +1,21 @@
-import * as fs from 'fs';
+import * as fs from 'node:fs'
 import { platform, arch, homedir } from 'node:os'
+import module from 'node:module'
 import path from 'node:path'
 import util from 'node:util'
 import url from 'node:url'
 import { exec } from 'node:child_process'
-import yauzl, { ZipFile } from 'yauzl'
-import pkg from 'follow-redirects';
-const { https } = pkg;
+import type { ZipFile } from 'yauzl'
+import type { IncomingMessage } from 'node:http'
+import yauzl from 'yauzl'
+import pkg from 'follow-redirects'
+const { https } = pkg
 
-import PerformanceTester from '../instrumentation/performance/performance-tester.js';
-import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js';
+const require = module.createRequire(import.meta.url)
+const pkgJSON = require('../package.json')
+
+import PerformanceTester from '../instrumentation/performance/performance-tester.js'
+import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import {
     isNullOrEmpty,
     nestedKeyValue,
@@ -20,149 +26,149 @@ import {
     nodeRequest,
     getBrowserStackUser,
     getBrowserStackKey,
-} from '../util.js';
-import { BStackLogger } from './cliLogger.js';
-import { UPDATED_CLI_ENDPOINT, BROWSERSTACK_API_URL } from '../constants.js';
-const logger = BStackLogger;
+} from '../util.js'
+import { BStackLogger } from './cliLogger.js'
+import { UPDATED_CLI_ENDPOINT, BROWSERSTACK_API_URL } from '../constants.js'
+import type { Options } from '@wdio/types'
+const logger = BStackLogger
 
 export class CLIUtils {
-    static automationFrameworkDetail = {};
+    static automationFrameworkDetail = {}
     static testFrameworkDetail = {}
 
     static isDevelopmentEnv() {
-        return process.env.BROWSERSTACK_CLI_ENV === 'development';
+        return process.env.BROWSERSTACK_CLI_ENV === 'development'
     }
 
-    static getCLIParamsForDevEnv() {
+    static getCLIParamsForDevEnv(): Record<string, string> {
         return {
-            id: process.env.BROWSERSTACK_CLI_ENV, 
+            id: process.env.BROWSERSTACK_CLI_ENV || '',
             listen: `unix:/tmp/sdk-platform-${process.env.BROWSERSTACK_CLI_ENV}.sock`
         }
     }
 
-
     static getSdkVersion() {
-        return require("../../package.json").version;
+        return pkgJSON.version
     }
 
     static getSdkLanguage() {
-        return "node";
+        return 'node'
     }
 
-    static async setupCliPath(config: any): Promise<string|null> {
-        logger.debug("Configuring Cli path.");
-        const developmentBinaryPath = process.env.SDK_CLI_BIN_PATH || null;
+    static async setupCliPath(config: Options.Testrunner): Promise<string|null> {
+        logger.debug('Configuring Cli path.')
+        const developmentBinaryPath = process.env.SDK_CLI_BIN_PATH || null
         if (!isNullOrEmpty(developmentBinaryPath)) {
-            logger.debug(`Development Cli Path: ${developmentBinaryPath}`);
-            return developmentBinaryPath;
+            logger.debug(`Development Cli Path: ${developmentBinaryPath}`)
+            return developmentBinaryPath
         }
 
         try {
-            const cliDir = this.getCliDir();
+            const cliDir = this.getCliDir()
             if (isNullOrEmpty(cliDir)) {
-                throw new Error("No writable directory available for the CLI");
+                throw new Error('No writable directory available for the CLI')
             }
-            const existingCliPath = this.getExistingCliPath(cliDir);
-            const finalBinaryPath = await this.checkAndUpdateCli(existingCliPath, cliDir, config);
-            logger.debug(`Resolved binary path: ${finalBinaryPath}`);
-            return finalBinaryPath;
+            const existingCliPath = this.getExistingCliPath(cliDir)
+            const finalBinaryPath = await this.checkAndUpdateCli(existingCliPath, cliDir, config)
+            logger.debug(`Resolved binary path: ${finalBinaryPath}`)
+            return finalBinaryPath
         } catch (err) {
-            logger.debug(`Error in setting up cli path directory, Exception: ${util.format(err)}`);
+            logger.debug(`Error in setting up cli path directory, Exception: ${util.format(err)}`)
         }
-        return null;
+        return null
     };
 
-    static async checkAndUpdateCli(existingCliPath: string, cliDir: string, config: any): Promise<string|null> {
-        PerformanceTester.start(PerformanceEvents.SDK_CLI_CHECK_UPDATE);
-        logger.info(`Current CLI Path Found: ${existingCliPath}`);
-        const queryParams: any = {
+    static async checkAndUpdateCli(existingCliPath: string, cliDir: string, config: Options.Testrunner): Promise<string|null> {
+        PerformanceTester.start(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
+        logger.info(`Current CLI Path Found: ${existingCliPath}`)
+        const queryParams: Record<string, string> = {
             sdk_version: CLIUtils.getSdkVersion(),
-            os: platform,
-            os_arch: arch,
-            cli_version: "0",
+            os: platform(),
+            os_arch: arch(),
+            cli_version: '0',
             sdk_language: this.getSdkLanguage(),
-        };
+        }
         if (!isNullOrEmpty(existingCliPath)) {
-            queryParams.cli_version = await this.runShellCommand(`${existingCliPath} version`);
+            queryParams.cli_version = await this.runShellCommand(`${existingCliPath} version`)
         }
-        const response = await this.requestToUpdateCLI(queryParams, config);
+        const response = await this.requestToUpdateCLI(queryParams, config)
         if (nestedKeyValue(response, ['updated_cli_version'])) {
-            logger.debug(`Need to update binary, current binary version: ${queryParams.cli_version}`);
-            const finalBinaryPath = await this.downloadLatestBinary(nestedKeyValue(response, ['url']), cliDir);
-            PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE);
-            return finalBinaryPath;
+            logger.debug(`Need to update binary, current binary version: ${queryParams.cli_version}`)
+            const finalBinaryPath = await this.downloadLatestBinary(nestedKeyValue(response, ['url']), cliDir)
+            PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
+            return finalBinaryPath
         }
-        PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE);
-        return existingCliPath;
+        PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
+        return existingCliPath
     }
 
     static getCliDir() {
-        const writableDir = this.getWritableDir();
+        const writableDir = this.getWritableDir()
         try {
             if (isNullOrEmpty(writableDir)) {
-                throw new Error("No writable directory available for the CLI");
+                throw new Error('No writable directory available for the CLI')
             }
-            const cliDirPath = path.join(writableDir!, "cli");
+            const cliDirPath = path.join(writableDir!, 'cli')
             if (!fs.existsSync(cliDirPath)) {
-                createDir(cliDirPath);
+                createDir(cliDirPath)
             }
-            return cliDirPath;
+            return cliDirPath
         } catch (err) {
-            logger.error(`Error in getting writable directory, writableDir=${util.format(err)}`);
-            return "";
+            logger.error(`Error in getting writable directory, writableDir=${util.format(err)}`)
+            return ''
         }
     }
 
     static getWritableDir() {
         const writableDirOptions = [
             process.env.BROWSERSTACK_FILES_DIR,
-            path.join(homedir(), ".browserstack"),
-            path.join("tmp", ".browserstack"),
-        ];
+            path.join(homedir(), '.browserstack'),
+            path.join('tmp', '.browserstack'),
+        ]
 
         for (const path of writableDirOptions) {
             if (isNullOrEmpty(path)) {
-                continue;
+                continue
             }
             try {
                 if (fs.existsSync(path!)) {
-                    logger.debug(`File ${path} already exist`);
+                    logger.debug(`File ${path} already exist`)
                     if (!isWritable(path!)) {
-                        logger.debug(`Giving write permission to ${path}`);
-                        const success = setReadWriteAccess(path!);
+                        logger.debug(`Giving write permission to ${path}`)
+                        const success = setReadWriteAccess(path!)
                         if (!isTrue(success)) {
-                            logger.warn(`Unable to provide write permission to ${path}`);
+                            logger.warn(`Unable to provide write permission to ${path}`)
                         }
                     }
                 } else {
-                    logger.debug(`File does not exist: ${path}`);
-                    createDir(path!);
-                    logger.debug(`Giving write permission to ${path}`);
-                    const success = setReadWriteAccess(path!);
+                    logger.debug(`File does not exist: ${path}`)
+                    createDir(path!)
+                    logger.debug(`Giving write permission to ${path}`)
+                    const success = setReadWriteAccess(path!)
                     if (!isTrue(success)) {
-                        logger.warn(`Unable to provide write permission to ${path}`);
+                        logger.warn(`Unable to provide write permission to ${path}`)
                     }
                 }
-                return path;
+                return path
             } catch (err) {
-                logger.error(`Unable to get writable directory, exception ${util.format(err)}`);
+                logger.error(`Unable to get writable directory, exception ${util.format(err)}`)
             }
         }
-        return null;
+        return null
     }
 
     static getExistingCliPath(cliDir: string) {
         try {
             // Check if the path exists and is a directory
             if (!fs.existsSync(cliDir) || !fs.statSync(cliDir).isDirectory()) {
-                return "";
+                return ''
             }
 
             // List all files in the directory that start with "binary-"
             const allBinaries = fs
                 .readdirSync(cliDir)
                 .map((file: string) => path.join(cliDir, file))
-                .filter((filePath: string) => fs.statSync(filePath).isFile() && path.basename(filePath).startsWith("binary-"));
+                .filter((filePath: string) => fs.statSync(filePath).isFile() && path.basename(filePath).startsWith('binary-'))
 
             if (allBinaries.length > 0) {
                 // Get the latest binary by comparing the last modified time
@@ -171,182 +177,181 @@ export class CLIUtils {
                         filePath,
                         mtime: fs.statSync(filePath).mtime,
                     }))
-                    .reduce((latest:any, current:any) => {
+                    .reduce((latest: { filePath: string; mtime: Date } | null, current: { filePath: string; mtime: Date }) => {
                         if (!latest || !latest.mtime) {
-                            return current;
+                            return current
                         }
 
                         if (current.mtime > latest.mtime) {
-                            return current;
+                            return current
                         }
 
-                        return latest;
-                    }, {});
-                return latestBinary ? latestBinary.filePath : "";
+                        return latest
+                    }, null)
+                return latestBinary ? latestBinary.filePath : ''
             }
 
-            return ""; // No binary present
+            return '' // No binary present
         } catch (err) {
-            logger.error(`Error while reading CLI path: ${util.format(err)}`);
-            return "";
+            logger.error(`Error while reading CLI path: ${util.format(err)}`)
+            return ''
         }
     }
 
-    static requestToUpdateCLI = async (queryParams: any, config: any) => {
-        const params = new URLSearchParams(queryParams);
+    static requestToUpdateCLI = async (queryParams: Record<string, string>, config: Options.Testrunner) => {
+        const params = new URLSearchParams(queryParams)
         const requestInit: RequestInit = {
             headers: {
                 Authorization: `Basic ${Buffer.from(`${getBrowserStackUser(config)}:${getBrowserStackKey(config)}`).toString('base64')}`,
             },
         }
         const response = await nodeRequest(
-            "GET",
+            'GET',
             `${UPDATED_CLI_ENDPOINT}?${params.toString()}`,
             requestInit,
             BROWSERSTACK_API_URL
-        );
-        logger.debug(`response ${JSON.stringify(response)}`);
-        return response;
-    };
+        )
+        logger.debug(`response ${JSON.stringify(response)}`)
+        return response
+    }
 
-    static runShellCommand(cmdCommand: string, workingDir = "") {
-        return new Promise((resolve, reject) => {
+    static runShellCommand(cmdCommand: string, workingDir = ''): Promise<string> {
+        return new Promise((resolve) => {
             const process = exec(
                 cmdCommand,
                 { cwd: workingDir, timeout: 5000 },
                 (error: Error, stdout: string, stderr: string) => {
                     if (error) {
-                        resolve(stderr.trim() || "SHELL_EXECUTE_ERROR");
+                        resolve(stderr.trim() || 'SHELL_EXECUTE_ERROR')
                     } else {
-                        resolve(stdout.trim());
+                        resolve(stdout.trim())
                     }
                 }
-            );
+            )
 
             // Ensure the process is killed if it exceeds the timeout
-            process.on("error", () => {
-                resolve("SHELL_EXECUTE_ERROR");
-            });
-        });
+            process.on('error', () => {
+                resolve('SHELL_EXECUTE_ERROR')
+            })
+        })
     }
 
     static downloadLatestBinary = async (binDownloadUrl: string, cliDir: string): Promise<string|null> => {
-        PerformanceTester.start(PerformanceEvents.SDK_CLI_DOWNLOAD);
-        logger.debug(`Downloading SDK binary from: ${binDownloadUrl}`);
+        PerformanceTester.start(PerformanceEvents.SDK_CLI_DOWNLOAD)
+        logger.debug(`Downloading SDK binary from: ${binDownloadUrl}`)
         try {
-            const options = url.parse(binDownloadUrl);
-            const zipFilePath = path.join(cliDir, "downloaded_file.zip");
-            const downloadedFileStream = fs.createWriteStream(zipFilePath);
+            const options = url.parse(binDownloadUrl)
+            const zipFilePath = path.join(cliDir, 'downloaded_file.zip')
+            const downloadedFileStream = fs.createWriteStream(zipFilePath)
             return new Promise<string|null>((resolve, reject) => {
-                https.get(options, function (response: any) {
-                    let binaryName = null;
-                    response.pipe(downloadedFileStream);
-                    response.on("error", function (err: Error) {
-                        logger.error("Got Error in percy binary download response" + err);
-                        PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err));
-                        reject(err);
-                    });
-                    downloadedFileStream.on("error", function (err: Error) {
-                        logger.error("Got Error while downloading percy binary file" + err);
-                        PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err));
-                        reject(err);
-                    });
-                    CLIUtils.downloadFileStream(downloadedFileStream, binaryName, zipFilePath, cliDir, resolve, reject);
-                    PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD);
+                https.get(options, function (response: IncomingMessage) {
+                    const binaryName = null
+                    response.pipe(downloadedFileStream)
+                    response.on('error', function (err: Error) {
+                        logger.error('Got Error in percy binary download response' + err)
+                        PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
+                        reject(err)
+                    })
+                    downloadedFileStream.on('error', function (err: Error) {
+                        logger.error('Got Error while downloading percy binary file' + err)
+                        PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
+                        reject(err)
+                    })
+                    CLIUtils.downloadFileStream(downloadedFileStream, binaryName, zipFilePath, cliDir, resolve, reject)
+                    PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD)
 
                 })
-                .on("error", function (err: Error) {
-                    logger.error(`Got Error in percy binary downloading request ${util.format(err)}`);
-                    PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err));
-                    reject(err);
-                });
-            });
+                    .on('error', function (err: Error) {
+                        logger.error(`Got Error in percy binary downloading request ${util.format(err)}`)
+                        PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
+                        reject(err)
+                    })
+            })
         } catch (err) {
-            PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err));
-            logger.debug(`Failed to download binary, Exception: ${util.format(err)}`);
-            return null;
+            PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
+            logger.debug(`Failed to download binary, Exception: ${util.format(err)}`)
+            return null
         }
-    };
+    }
 
     static downloadFileStream(downloadedFileStream: fs.WriteStream, binaryName: string|null, zipFilePath: string, cliDir: string, resolve: (path: string) => void, reject: (reason?: Error) => void) {
-        downloadedFileStream.on("close", function () {
+        downloadedFileStream.on('close', function () {
             yauzl.open( zipFilePath, { lazyEntries: true },
                 function (err: Error, zipfile: ZipFile) {
                     if (err) {
-                        reject(err);
+                        reject(err)
                     }
-                    zipfile.readEntry();
-                    zipfile.on("entry", (entry) => {
-                        if (!binaryName)
-                            binaryName = entry.fileName;
+                    zipfile.readEntry()
+                    zipfile.on('entry', (entry) => {
+                        if (!binaryName) {binaryName = entry.fileName}
                         if (/\/$/.test(entry.fileName)) {
                             // Directory file names end with '/'.
-                            zipfile.readEntry();
+                            zipfile.readEntry()
                         } else {
                             // file entry
-                            const writeStream = fs.createWriteStream(path.join(cliDir,entry.fileName));
+                            const writeStream = fs.createWriteStream(path.join(cliDir, entry.fileName))
                             zipfile.openReadStream(entry,
                                 function (zipErr, readStream) {
                                     if (zipErr) {
-                                        reject(err);
+                                        reject(err)
                                     }
                                     readStream.on(
-                                        "end",
+                                        'end',
                                         function () {
-                                            writeStream.close();
-                                            zipfile.readEntry();
+                                            writeStream.close()
+                                            zipfile.readEntry()
                                         }
-                                    );
+                                    )
                                     readStream.pipe(
                                         writeStream
-                                    );
+                                    )
                                 }
-                            );
+                            )
 
                             if (entry.fileName === binaryName) {
-                                zipfile.close();
+                                zipfile.close()
                             }
                         }
-                    });
+                    })
 
-                    zipfile.on("error", (zipErr) => {
-                        reject(zipErr);
-                    });
+                    zipfile.on('error', (zipErr) => {
+                        reject(zipErr)
+                    })
 
-                    zipfile.once("end", () => {
+                    zipfile.once('end', () => {
                         fs.unlink(zipFilePath, (err: Error) => {
                             if (err) {
-                                logger.warn(`Failed to delete zip file: ${zipFilePath}`);
+                                logger.warn(`Failed to delete zip file: ${zipFilePath}`)
                             }
-                        });
-                        fs.chmod(`${cliDir}/${binaryName}`,"0755",
+                        })
+                        fs.chmod(`${cliDir}/${binaryName}`, '0755',
                             function (zipErr: Error) {
                                 if (zipErr) {
-                                    reject(zipErr);
+                                    reject(zipErr)
                                 }
                                 resolve(
                                     `${cliDir}/${binaryName}`
-                                );
+                                )
                             }
-                        );
-                        zipfile.close();
-                    });
+                        )
+                        zipfile.close()
+                    })
                 }
-            );
-        });
+            )
+        })
     }
 
     static getTestFrameworkDetail() {
         if (process.env.BROWSERSTACK_TEST_FRAMEWORK_DETAIL) {
-            return JSON.parse(process.env.BROWSERSTACK_TEST_FRAMEWORK_DETAIL);
+            return JSON.parse(process.env.BROWSERSTACK_TEST_FRAMEWORK_DETAIL)
         }
-        return this.testFrameworkDetail;
+        return this.testFrameworkDetail
     }
 
     static getAutomationFrameworkDetail() {
         if (process.env.BROWSERSTACK_AUTOMATION_FRAMEWORK_DETAIL) {
-            return JSON.parse(process.env.BROWSERSTACK_AUTOMATION_FRAMEWORK_DETAIL);
+            return JSON.parse(process.env.BROWSERSTACK_AUTOMATION_FRAMEWORK_DETAIL)
         }
-        return this.automationFrameworkDetail;
+        return this.automationFrameworkDetail
     }
 }

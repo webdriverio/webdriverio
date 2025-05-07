@@ -1,13 +1,17 @@
 import util from 'node:util'
 import { spawn } from 'node:child_process'
 
-import PerformanceTester from '../instrumentation/performance/performance-tester.js';
-import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js';
-import { CLIUtils } from './cliUtils.js';
-import { BStackLogger } from './cliLogger.js';
-import { GrpcClient } from './grpcClient.js';
+import PerformanceTester from '../instrumentation/performance/performance-tester.js'
+import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
+import { CLIUtils } from './cliUtils.js'
+import { BStackLogger } from './cliLogger.js'
+import { GrpcClient } from './grpcClient.js'
+import { TestHubModule } from './modules/TestHubModule.js'
 
-import type BrowserStackConfig from '../config.js';
+import type { ChildProcess } from 'node:child_process'
+import type BrowserStackConfig from '../config.js'
+import type { StartBinSessionResponse } from 'src/generated/sdk-messages.js'
+import type { BaseModule } from './modules/BaseModule.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -16,28 +20,28 @@ import type BrowserStackConfig from '../config.js';
  * throughout the application lifecycle.
  */
 export class BrowserstackCLI {
-    static #instance: BrowserstackCLI|null = null;
-    static enabled = false;
-    initialized:Boolean;
-    config:Object;
-    cliArgs:Object;
-    browserstackConfig: BrowserStackConfig|{};
-    process: any = null;
-    isMainConnected = false;
-    isChildConnected = false;
-    binSessionId = null;
-    modules: any = {};
-    testFramework = null;
-    cliParams = null;
-    automationFramework = null;
-    SDK_CLI_BIN_PATH: string | null = null;
-    logger = BStackLogger;
+    static #instance: BrowserstackCLI|null = null
+    static enabled = false
+    initialized:boolean
+    config:object
+    cliArgs:object
+    browserstackConfig: BrowserStackConfig|{}
+    process: ChildProcess | null = null
+    isMainConnected = false
+    isChildConnected = false
+    binSessionId: string | null = null
+    modules: Record<string, BaseModule> = {}
+    testFramework = null
+    cliParams: Record<string, string> | null = null
+    automationFramework = null
+    SDK_CLI_BIN_PATH: string | null = null
+    logger = BStackLogger
 
     constructor() {
-        this.initialized = false;
-        this.config = {};
-        this.cliArgs = {};
-        this.browserstackConfig = {};
+        this.initialized = false
+        this.config = {}
+        this.cliArgs = {}
+        this.browserstackConfig = {}
     }
 
     /**
@@ -46,9 +50,9 @@ export class BrowserstackCLI {
      */
     static getInstance() {
         if (!BrowserstackCLI.#instance) {
-            BrowserstackCLI.#instance = new BrowserstackCLI();
+            BrowserstackCLI.#instance = new BrowserstackCLI()
         }
-        return BrowserstackCLI.#instance;
+        return BrowserstackCLI.#instance
     }
 
     /**
@@ -57,24 +61,25 @@ export class BrowserstackCLI {
      * @returns {Promise<void>}
      */
     async bootstrap() {
-        PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_BOOTSTRAP);
-        BrowserstackCLI.enabled = true;
+        PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_BOOTSTRAP)
+        BrowserstackCLI.enabled = true
         try {
-            const binSessionId = process.env.BROWSERSTACK_CLI_BIN_SESSION_ID || null;
-            this.setupAutomationFramework();
-            this.setupTestFramework();
+            const binSessionId = process.env.BROWSERSTACK_CLI_BIN_SESSION_ID || null
+            this.setupAutomationFramework()
+            this.setupTestFramework()
 
             if (binSessionId) {
-                await this.startChild(binSessionId);
-                PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_BOOTSTRAP);
-                return;
+                await this.startChild(binSessionId)
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_BOOTSTRAP)
+                return
             }
 
-            await this.startMain();
-        } catch (error: any) {
-            this.logger.error(`bootstrap: failed to bootstrap=${error.stack || error}`);
-            await this.stop();
-            PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_BOOTSTRAP, false, util.format(error));
+            await this.startMain()
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.stack || error.message : String(error)
+            this.logger.error(`bootstrap: failed to bootstrap ${errorMessage}`)
+            await this.stop()
+            PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_BOOTSTRAP, false, util.format(error))
 
         }
     }
@@ -84,10 +89,10 @@ export class BrowserstackCLI {
      * @returns {Promise<void>}
      */
     async startMain() {
-        this.logger.info('startMain: Starting main process');
-        await this.start();
-        this.logger.debug("startMain: main-process started");
-        this.isMainConnected = true;
+        this.logger.info('startMain: Starting main process')
+        await this.start()
+        this.logger.debug('startMain: main-process started')
+        this.isMainConnected = true
 
     }
 
@@ -95,25 +100,23 @@ export class BrowserstackCLI {
      * Load modules
      * @param {Object} startBinResponse - StartBinSession response
      */
-    loadModules(startBinResponse: any) {
+    loadModules(startBinResponse: StartBinSessionResponse) {
         // Defer imports to avoid circular dependencies
-        const TestHubModule = require('./modules/testhubModule.js');
+        this.logger.info('loadModules: Loading modules')
+        this.binSessionId = startBinResponse.binSessionId
+        this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
-        this.logger.info('loadModules: Loading modules');
-        this.binSessionId = startBinResponse.getBinSessionId();
-        this.logger.info(`loadModules: binSessionId=${this.binSessionId}`);
-
-        this.setConfig(startBinResponse);
+        this.setConfig(startBinResponse)
 
         if (!this.isChildConnected) {
-            this.setCliArgs(startBinResponse);
+            // this.setCliArgs(startBinResponse)
         }
 
-        if (startBinResponse.getTesthub()) {
-            this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.getTesthub());
+        if (startBinResponse.testhub) {
+            this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
         }
 
-        this.configureModules();
+        this.configureModules()
     }
 
     /**
@@ -121,11 +124,11 @@ export class BrowserstackCLI {
      * @returns {Promise<void>}
      */
     async configureModules() {
-        this.logger.info('configureModules: Configuring modules');
+        this.logger.info('configureModules: Configuring modules')
         for (const moduleName in this.modules) {
-            const module = this.modules[moduleName];
-            this.logger.info(`configureModules: Configuring module=${moduleName}`);
-            await module.configure(this.binSessionId, 0, GrpcClient.getInstance().client, this.config);
+            const module = this.modules[moduleName]
+            this.logger.info(`configureModules: Configuring module=${moduleName}`)
+            await module.configure(this.binSessionId!, 0, GrpcClient.getInstance().client, this.config)
         }
     }
 
@@ -135,87 +138,86 @@ export class BrowserstackCLI {
      * @throws {Error} If the process fails to start
      */
     async start() {
-        PerformanceTester.start(PerformanceEvents.SDK_CLI_START);
-        if(CLIUtils.isDevelopmentEnv()) {
-            this.loadCliParams(CLIUtils.getCLIParamsForDevEnv());
-            PerformanceTester.end(PerformanceEvents.SDK_CLI_START);
-            return Promise.resolve();
+        PerformanceTester.start(PerformanceEvents.SDK_CLI_START)
+        if (CLIUtils.isDevelopmentEnv()) {
+            this.loadCliParams(CLIUtils.getCLIParamsForDevEnv())
+            PerformanceTester.end(PerformanceEvents.SDK_CLI_START)
+            return Promise.resolve()
         }
 
         // Skip if process is already running
         if (this.process && this.process.connected) {
-            PerformanceTester.end(PerformanceEvents.SDK_CLI_START);
-            return Promise.resolve();
+            PerformanceTester.end(PerformanceEvents.SDK_CLI_START)
+            return Promise.resolve()
         }
 
-        const SDK_CLI_BIN_PATH = await this.getCliBinPath();
-        const cmd:Array<string> = [SDK_CLI_BIN_PATH, "sdk"];
-        this.logger.info(`spawning command='${cmd}'`);
+        const SDK_CLI_BIN_PATH = await this.getCliBinPath()
+        const cmd:Array<string> = [SDK_CLI_BIN_PATH, 'sdk']
+        this.logger.info(`spawning command='${cmd}'`)
         // Create a child process
         this.process = spawn(cmd[0], cmd.slice(1), {
             env: process.env
-        });
+        })
 
         // Check if process started successfully
         if (!this.process.pid) {
-            throw new Error("failed to start CLI, no PID found");
+            throw new Error('failed to start CLI, no PID found')
         }
 
         // Return a promise that resolves when CLI is ready
         return new Promise<void>((resolve, reject) => {
-            const cliOut: any = {};
+            const cliOut: Record<string, string> = {}
 
-            this.process.stdout.on('data', (data: any) => {
-                const lines = data.toString().trim().split('\n');
+            this.process!.stdout!.on('data', (data: Buffer) => {
+                const lines = data.toString().trim().split('\n')
 
                 for (const line of lines) {
                     // Parse key=value pairs
                     if (/^(id|listen|port)=.*$/.test(line)) {
-                        const [key, value] = line.split('=', 2);
+                        const [key, value] = line.split('=', 2)
                         if (value !== undefined) {
-                            cliOut[key] = value;
+                            cliOut[key] = value
                         }
                     }
 
                     // Check for ready message
                     if (line.toLowerCase().includes('ready')) {
-                        this.loadCliParams(cliOut);
-                        PerformanceTester.end(PerformanceEvents.SDK_CLI_START);
-                        resolve();
-                        return;
+                        this.loadCliParams(cliOut)
+                        PerformanceTester.end(PerformanceEvents.SDK_CLI_START)
+                        resolve()
+                        return
                     }
                 }
-            });
+            })
 
-            this.process.stderr.on('data', (data: any) => {
-                this.logger.error(`CLI stderr: ${data.toString().trim()}`);
-            });
+            this.process!.stderr!.on('data', (data: Buffer) => {
+                this.logger.error(`CLI stderr: ${data.toString().trim()}`)
+            })
 
-            this.process.on('error', (err: Error) => {
-                cliOut.error = `Error in start: ${err.message}`;
-                PerformanceTester.end(PerformanceEvents.SDK_CLI_START, false, err);
-                reject(new Error(`Failed to start CLI process: ${err.message}`));
-            });
+            this.process!.on('error', (err: Error) => {
+                cliOut.error = `Error in start: ${err.message}`
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_START, false, err)
+                reject(new Error(`Failed to start CLI process: ${err.message}`))
+            })
 
-            this.process.on('close', (code: number) => {
+            this.process!.on('close', (code: number) => {
                 if (code !== 0) {
-                    reject(new Error(`CLI process exited with code ${code}`));
+                    reject(new Error(`CLI process exited with code ${code}`))
                 }
-            });
-        });
+            })
+        })
     }
-
 
     /**
      * Stop the CLI
      * @returns {Promise<void>}
      */
     async stop() {
-        PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_STOP);
-        this.logger.info('stop: CLI stop triggered');
+        PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_STOP)
+        this.logger.info('stop: CLI stop triggered')
         try {
 
-            await this.unConfigureModules();
+            await this.unConfigureModules()
 
             //   grpc channel close
             //   if (this.channel) {
@@ -231,36 +233,37 @@ export class BrowserstackCLI {
             //   }
 
             if (this.process && this.process.pid) {
-                this.logger.info('stop: shutting down CLI');
-                this.process.kill();
+                this.logger.info('stop: shutting down CLI')
+                this.process.kill()
 
                 // Wait for process to fully exit
                 await new Promise<void>((resolve) => {
-                    let exited = false;
+                    let exited = false
 
                     // Listen for exit event
-                    this.process.on('exit', () => {
-                        this.logger.info('stop: CLI process exited');
-                        exited = true;
-                        PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP);
+                    this.process!.on('exit', () => {
+                        this.logger.info('stop: CLI process exited')
+                        exited = true
+                        PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP)
 
-                        resolve();
-                    });
+                        resolve()
+                    })
 
                     // Set a timeout in case process doesn't exit cleanly
                     setTimeout(() => {
                         if (!exited) {
-                            this.logger.warn('stop: process exit timeout, forcing kill');
-                            this.process.kill('SIGKILL');
-                            PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP);
-                            resolve();
+                            this.logger.warn('stop: process exit timeout, forcing kill')
+                            this.process!.kill('SIGKILL')
+                            PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP)
+                            resolve()
                         }
-                    }, 3000);
-                });
+                    }, 3000)
+                })
             }
-        } catch (error: any) {
-            PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP, false, util.format(error));
-            this.logger.error(`stop: error in stop session exception=${error.stack || error}`);
+        } catch (error: unknown) {
+            PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP, false, util.format(error))
+            const errorMessage = error instanceof Error ? error.stack || error.message : String(error)
+            this.logger.error(`stop: error in stop session exception=${errorMessage}`)
         }
     }
 
@@ -270,7 +273,7 @@ export class BrowserstackCLI {
      * @private
      */
     async unConfigureModules() {
-        this.logger.info('Unconfiguring modules');
+        this.logger.info('Unconfiguring modules')
         // Add implementation based on your requirements
     }
 
@@ -279,10 +282,10 @@ export class BrowserstackCLI {
      * @param {Object} params - Parameters parsed from CLI output
      * @private
      */
-    loadCliParams(params: any) {
-        this.logger.info(`CLI params loaded: ${JSON.stringify(params)}`);
-        this.cliParams = params;
-        GrpcClient.getInstance().init(params);
+    loadCliParams(params: Record<string, string>) {
+        this.logger.info(`CLI params loaded: ${JSON.stringify(params)}`)
+        this.cliParams = params
+        GrpcClient.getInstance().init(params)
     }
 
     /**
@@ -291,15 +294,15 @@ export class BrowserstackCLI {
      * @returns {Promise<void>}
      */
     async startChild(binSessionId: string) {
-        PerformanceTester.start(PerformanceEvents.SDK_CONNECT_BIN_SESSION);
+        PerformanceTester.start(PerformanceEvents.SDK_CONNECT_BIN_SESSION)
         try {
-            this.logger.info(`Starting as child process with session ID: ${binSessionId}`);
-            GrpcClient.getInstance().connect();
-            this.isChildConnected = true;
-            PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION);
+            this.logger.info(`Starting as child process with session ID: ${binSessionId}`)
+            GrpcClient.getInstance().connect()
+            this.isChildConnected = true
+            PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION)
         } catch (error) {
-            PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION, false, util.format(error));
-            this.logger.error(`Failed to start as child process: ${util.format(error)}`);
+            PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION, false, util.format(error))
+            this.logger.error(`Failed to start as child process: ${util.format(error)}`)
         }
     }
 
@@ -312,10 +315,10 @@ export class BrowserstackCLI {
             // is Dev mode
             CLIUtils.isDevelopmentEnv() ||
             // Main process connection check
-            (this.isMainConnected && this.process !== null && this.process.exitCode === null && GrpcClient.getInstance().getClient() !== null && !GrpcClient.getInstance().getChannel().isClosed) ||
+            (this.isMainConnected && this.process !== null && this.process.exitCode === null && GrpcClient.getInstance().getClient() !== null && GrpcClient.getInstance()!.getChannel()!.getConnectivityState(false) !== 4) ||
             // Child process connection check
-            (this.isChildConnected && GrpcClient.getInstance().getChannel() !== null && !GrpcClient.getInstance().getChannel().isClosed)
-        );
+            (this.isChildConnected && GrpcClient.getInstance().getChannel() !== null && GrpcClient.getInstance()!.getChannel()!.getConnectivityState(false) !== 4)
+        )
     }
 
     /**
@@ -323,7 +326,7 @@ export class BrowserstackCLI {
      * @returns {Object} The Browserstack configuration
      */
     getBrowserstackConfig() {
-        return this.browserstackConfig;
+        return this.browserstackConfig
     }
 
     /**
@@ -332,7 +335,7 @@ export class BrowserstackCLI {
      * @returns {void}
      */
     setBrowserstackConfig(browserstackConfig:BrowserStackConfig) {
-        this.browserstackConfig = browserstackConfig;
+        this.browserstackConfig = browserstackConfig
     }
 
     /**
@@ -340,10 +343,10 @@ export class BrowserstackCLI {
      * @returns {string} The CLI binary path
      */
     async getCliBinPath() {
-        if(!this.SDK_CLI_BIN_PATH) {
-            this.SDK_CLI_BIN_PATH = await CLIUtils.setupCliPath(this.browserstackConfig);
+        if (!this.SDK_CLI_BIN_PATH) {
+            this.SDK_CLI_BIN_PATH = await CLIUtils.setupCliPath(this.browserstackConfig)
         }
-        return this.SDK_CLI_BIN_PATH || ""; // TODO: Type hack
+        return this.SDK_CLI_BIN_PATH || '' // TODO: Type hack
     }
 
     /**
@@ -351,7 +354,7 @@ export class BrowserstackCLI {
      * @returns {boolean} True if the CLI is enabled
      */
     isCliEnabled() {
-        return BrowserstackCLI.enabled;
+        return BrowserstackCLI.enabled
     }
 
     /**
@@ -359,43 +362,21 @@ export class BrowserstackCLI {
      * @returns {Object} The configuration
      */
     getConfig() {
-        return this.config;
+        return this.config
     }
 
     /**
-    * Set the configuration 
+    * Set the configuration
     * @param {Object}
     * @returns {void}
     */
-    setConfig(response: any) {
+    setConfig(response: StartBinSessionResponse) {
         try {
-            this.config = JSON.parse(response.getConfig());
-            this.logger.info(`loadModules: config=${JSON.stringify(this.config)}`);
+            this.config = JSON.parse(response.config)
+            this.logger.info(`loadModules: config=${JSON.stringify(this.config)}`)
         } catch (error) {
-            this.logger.error(`setConfig: error=${util.format(error)}`);
+            this.logger.error(`setConfig: error=${util.format(error)}`)
         }
-    }
-
-    /**
-     * Get the CLI parameters
-     * @returns {Object} The CLI parameters
-     */
-    setCliArgs(response: any) {
-        try {;
-            this.cliArgs = response.getCliArgs().split(',');
-            this.logger.info(`setCliArgs: cliArgs=${JSON.stringify(this.cliArgs)}`);
-        }
-        catch (error) {
-            this.logger.error(`setCliArgs: error=${util.format(error)}`);
-        }
-    }
-
-    /**
-    * Get the CLI parameters
-    * @returns {Object} The CLI parameters
-    */
-    getCliArgs() {
-        return this.cliArgs;
     }
 
     /**
@@ -403,7 +384,7 @@ export class BrowserstackCLI {
      * @returns {void}
      */
     setupTestFramework() {
-        const testFrameworkDetail = CLIUtils.getTestFrameworkDetail();
+        // const testFrameworkDetail = CLIUtils.getTestFrameworkDetail()
     }
 
     /**
@@ -411,7 +392,7 @@ export class BrowserstackCLI {
      * @returns {void}
      */
     setupAutomationFramework() {
-        const automationFrameworkDetail = CLIUtils.getAutomationFrameworkDetail();
+        // const automationFrameworkDetail = CLIUtils.getAutomationFrameworkDetail()
     }
 
     /**
@@ -419,7 +400,7 @@ export class BrowserstackCLI {
      * @returns {Object} The test framework
      */
     getTestFramework() {
-        return this.testFramework;
+        return this.testFramework
     }
 
     /**
@@ -427,6 +408,6 @@ export class BrowserstackCLI {
      * @returns {Object} The automation framework
      */
     getAutomationFramework() {
-        return this.automationFramework;
+        return this.automationFramework
     }
 }
