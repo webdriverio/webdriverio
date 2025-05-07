@@ -10,7 +10,7 @@ import { TestHubModule } from './modules/TestHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
 import type BrowserStackConfig from '../config.js'
-import type { StartBinSessionResponse } from 'src/generated/sdk-messages.js'
+import type { StartBinSessionResponse } from '../generated/sdk-messages.js'
 import type { BaseModule } from './modules/BaseModule.js'
 
 /**
