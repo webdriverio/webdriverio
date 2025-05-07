@@ -405,13 +405,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         BStackLogger.debug('Sending stop launch event')
 
-        try {
-            await BrowserstackCLI.getInstance().stop()
-            BStackLogger.debug('Is CLI running ' + BrowserstackCLI.getInstance().isRunning())
-        } catch (err) {
-            BStackLogger.error(`Error while stoping CLI ${err}`)
-        }
-
         await stopBuildUpstream()
         if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
             console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
@@ -442,6 +435,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.percy) {
             await this.stopPercy()
             PercyLogger.clearLogger()
+        }
+
+        try {
+            await BrowserstackCLI.getInstance().stop()
+        } catch (err) {
+            BStackLogger.error(`Error while stoping CLI ${err}`)
         }
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
