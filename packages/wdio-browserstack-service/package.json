@@ -65,9 +65,7 @@
     "@types/follow-redirects": "^1.14.4",
     "@types/node": "^20.1.0",
     "@types/yauzl": "^2.10.3",
-    "@wdio/globals": "workspace:*",
-    "grpc-tools": "^1.13.0",
-    "ts-proto": "^2.7.0"
+    "@wdio/globals": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

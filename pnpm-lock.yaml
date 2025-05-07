@@ -134,6 +134,9 @@ importers:
       globals:
         specifier: ^15.12.0
         version: 15.14.0
+      grpc-tools:
+        specifier: ^1.13.0
+        version: 1.13.0(encoding@0.1.13)
       husky:
         specifier: ^9.1.4
         version: 9.1.7
@@ -176,6 +179,9 @@ importers:
       tempy:
         specifier: ^3.1.0
         version: 3.1.0
+      ts-proto:
+        specifier: ^2.7.0
+        version: 2.7.0
       tsd:
         specifier: ^0.31.1
         version: 0.31.2
@@ -744,12 +750,6 @@ importers:
       '@wdio/globals':
         specifier: workspace:*
         version: link:../wdio-globals
-      grpc-tools:
-        specifier: ^1.13.0
-        version: 1.13.0(encoding@0.1.13)
-      ts-proto:
-        specifier: ^2.7.0
-        version: 2.7.0
 
   packages/wdio-cli:
     dependencies:
