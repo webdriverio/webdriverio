@@ -12,7 +12,7 @@ import pkg from 'follow-redirects'
 const { https } = pkg
 
 const require = module.createRequire(import.meta.url)
-const pkgJSON = require('../package.json')
+const pkgJSON = require('../../package.json')
 
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
