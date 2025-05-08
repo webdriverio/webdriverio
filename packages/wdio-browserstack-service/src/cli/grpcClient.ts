@@ -3,9 +3,9 @@ import util from 'node:util'
 import type { ServiceError } from '@grpc/grpc-js'
 import grpc from '@grpc/grpc-js'
 
-import { SDKClient } from '../generated/sdk.js'
-import type { ConnectBinSessionResponse, StartBinSessionResponse, StopBinSessionResponse } from '../generated/sdk-messages.js'
-import { StartBinSessionRequest, StopBinSessionRequest, ConnectBinSessionRequest } from '../generated/sdk-messages.js'
+import { SDKClient } from '../proto/sdk.js'
+import type { ConnectBinSessionResponse, StartBinSessionResponse, StopBinSessionResponse } from '../proto/sdk-messages.js'
+import { StartBinSessionRequest, StopBinSessionRequest, ConnectBinSessionRequest } from '../proto/sdk-messages.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { CLIUtils } from './cliUtils.js'
@@ -97,7 +97,7 @@ export class GrpcClient {
 
     async startBinSession() {
         PerformanceTester.start(PerformanceEvents.SDK_START_BIN_SESSION)
-        this.logger.info('startBinSession: Calling startBinSession')
+        this.logger.debug('startBinSession: Calling startBinSession')
 
         try {
             if (!this.client) {
@@ -170,7 +170,7 @@ export class GrpcClient {
      */
     async connectBinSession() {
         PerformanceTester.start(PerformanceEvents.SDK_CONNECT_BIN_SESSION)
-        this.logger.info('Connecting bin session')
+        this.logger.debug('Connecting bin session')
 
         try {
             if (!this.client) {
@@ -213,7 +213,7 @@ export class GrpcClient {
      */
     async stopBinSession() {
         PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_STOP)
-        this.logger.info('Stopping bin session')
+        this.logger.debug('Stopping bin session')
 
         try {
             if (!this.binSessionId) {

@@ -10,7 +10,7 @@ import { TestHubModule } from './modules/TestHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
 import type BrowserStackConfig from '../config.js'
-import type { StartBinSessionResponse } from '../generated/sdk-messages.js'
+import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
 import type { BaseModule } from './modules/BaseModule.js'
 
 /**
@@ -102,7 +102,6 @@ export class BrowserstackCLI {
      */
     loadModules(startBinResponse: StartBinSessionResponse) {
         // Defer imports to avoid circular dependencies
-        this.logger.info('loadModules: Loading modules')
         this.binSessionId = startBinResponse.binSessionId
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
@@ -124,10 +123,10 @@ export class BrowserstackCLI {
      * @returns {Promise<void>}
      */
     async configureModules() {
-        this.logger.info('configureModules: Configuring modules')
+        this.logger.debug('configureModules: Configuring modules')
         for (const moduleName in this.modules) {
             const module = this.modules[moduleName]
-            this.logger.info(`configureModules: Configuring module=${moduleName}`)
+            this.logger.debug(`configureModules: Configuring module=${moduleName}`)
             await module.configure(this.binSessionId!, 0, GrpcClient.getInstance().client, this.config)
         }
     }
@@ -153,7 +152,7 @@ export class BrowserstackCLI {
 
         const SDK_CLI_BIN_PATH = await this.getCliBinPath()
         const cmd:Array<string> = [SDK_CLI_BIN_PATH, 'sdk']
-        this.logger.info(`spawning command='${cmd}'`)
+        this.logger.debug(`spawning command='${cmd}'`)
         // Create a child process
         this.process = spawn(cmd[0], cmd.slice(1), {
             env: process.env
@@ -214,7 +213,7 @@ export class BrowserstackCLI {
      */
     async stop() {
         PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_STOP)
-        this.logger.info('stop: CLI stop triggered')
+        this.logger.debug('stop: CLI stop triggered')
         try {
 
             await this.unConfigureModules()
@@ -233,7 +232,7 @@ export class BrowserstackCLI {
             //   }
 
             if (this.process && this.process.pid) {
-                this.logger.info('stop: shutting down CLI')
+                this.logger.debug('stop: shutting down CLI')
                 this.process.kill()
 
                 // Wait for process to fully exit
@@ -242,7 +241,7 @@ export class BrowserstackCLI {
 
                     // Listen for exit event
                     this.process!.on('exit', () => {
-                        this.logger.info('stop: CLI process exited')
+                        this.logger.debug('stop: CLI process exited')
                         exited = true
                         PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP)
 
@@ -273,7 +272,7 @@ export class BrowserstackCLI {
      * @private
      */
     async unConfigureModules() {
-        this.logger.info('Unconfiguring modules')
+        this.logger.debug('Unconfiguring modules')
         // Add implementation based on your requirements
     }
 
@@ -283,7 +282,7 @@ export class BrowserstackCLI {
      * @private
      */
     loadCliParams(params: Record<string, string>) {
-        this.logger.info(`CLI params loaded: ${JSON.stringify(params)}`)
+        this.logger.debug(`CLI params loaded: ${JSON.stringify(params)}`)
         this.cliParams = params
         GrpcClient.getInstance().init(params)
     }
@@ -373,7 +372,7 @@ export class BrowserstackCLI {
     setConfig(response: StartBinSessionResponse) {
         try {
             this.config = JSON.parse(response.config)
-            this.logger.info(`loadModules: config=${JSON.stringify(this.config)}`)
+            this.logger.debug(`loadModules: config=${JSON.stringify(this.config)}`)
         } catch (error) {
             this.logger.error(`setConfig: error=${util.format(error)}`)
         }
