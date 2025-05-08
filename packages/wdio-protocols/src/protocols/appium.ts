@@ -1,4 +1,15 @@
+import Chromium from './chromium.js'
+
+const getLogTypes = '/session/:sessionId/se/log/types' as const
+const getLog = '/session/:sessionId/se/log' as const
+
+const chromiumLogCommands = {
+    [getLogTypes]: Chromium[getLogTypes],
+    [getLog]: Chromium[getLog],
+}
+
 export default {
+    ...chromiumLogCommands,
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
