@@ -25,7 +25,7 @@
     "compile:all:all": "pnpm -r --filter=@wdio/compiler run build",
     "generate": "run-s generate:*",
     "generate:bidi": "tsx ./scripts/bidi/index.ts && pnpm eslint --fix packages/webdriver/src/bidi/",
-    "generate:browserstack-proto": "mkdir -p ./packages/wdio-browserstack-service/src/generated && ./node_modules/.bin/grpc_tools_node_protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./packages/wdio-browserstack-service/src/generated --ts_proto_opt=outputServices=grpc-js --proto_path=./packages/wdio-browserstack-service/src/proto/browserstack/sdk/v1/ --ts_proto_opt=importSuffix=.js ./packages/wdio-browserstack-service/src/proto/browserstack/sdk/v1/*.proto",
+    "generate:browserstack-proto": "mkdir -p ./packages/wdio-browserstack-service/src/generated; ./node_modules/.bin/grpc_tools_node_protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./packages/wdio-browserstack-service/src/generated --ts_proto_opt=outputServices=grpc-js --proto_path=./packages/wdio-browserstack-service/src/proto/browserstack/sdk/v1/ --ts_proto_opt=importSuffix=.js ./packages/wdio-browserstack-service/src/proto/browserstack/sdk/v1/*.proto",
     "pushReleaseTag": "tsx ./scripts/pushTags.ts",
     "setup": "run-s clean build",
     "docs": "run-s docs:*",
