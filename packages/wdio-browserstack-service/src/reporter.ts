@@ -218,18 +218,19 @@ class _TestReporter extends WDIOReporter {
         testStats.end ||= new Date()
         const testData = await this.getRunData(testStats, 'TestRunSkipped')
         const testFinishHashCode = generateHashCodeFromFields(
-            [testData.integrations?.browserstack?.browser ?? '', 
-                testData.integrations?.browserstack?.browser_version ?? '', 
-                testData.integrations?.browserstack?.platform ?? '', 
-                testData.integrations?.browserstack?.session_id ?? '', 
-                testData.integrations?.capabilities ?? {}, 
-                testData.file_name ?? '', 
-                testData.scopes ?? [], 
+            [
+                testData.integrations?.browserstack?.browser ?? '',
+                testData.integrations?.browserstack?.browser_version ?? '',
+                testData.integrations?.browserstack?.platform ?? '',
+                testData.integrations?.browserstack?.session_id ?? '',
+                testData.integrations?.capabilities ?? {},
+                testData.file_name ?? '',
+                testData.scopes ?? [],
                 testData.name ?? ''
             ]
         )
-        if (_TestReporter.hashCodeToHandleTestSkip != null && !isObjectEmpty(_TestReporter.hashCodeToHandleTestSkip) && testFinishHashCode in _TestReporter.hashCodeToHandleTestSkip) {
-            if (_TestReporter.hashCodeToHandleTestSkip[testFinishHashCode] != '') {
+        if (_TestReporter.hashCodeToHandleTestSkip !== null && !isObjectEmpty(_TestReporter.hashCodeToHandleTestSkip) && testFinishHashCode in _TestReporter.hashCodeToHandleTestSkip) {
+            if (_TestReporter.hashCodeToHandleTestSkip[testFinishHashCode] !== '') {
                 testData.uuid = _TestReporter.hashCodeToHandleTestSkip[testFinishHashCode]
             }
         }
