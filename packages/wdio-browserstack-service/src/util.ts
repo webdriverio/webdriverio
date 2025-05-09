@@ -1,5 +1,5 @@
 import { hostname, platform, type, version, arch } from 'node:os'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import zlib from 'node:zlib'
 import { format, promisify } from 'node:util'
