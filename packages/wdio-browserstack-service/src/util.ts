@@ -1629,7 +1629,7 @@ export function generateHashCodeFromFields(fields: Array<string | object>) {
             return JSON.stringify(value, Object.keys(value).sort())
         }
         return String(value)
-    };
+    }
 
     const serialized = fields.map(serialize).join('|')
     return crypto.createHash('sha256').update(serialized).digest('hex')
