@@ -396,16 +396,17 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         this.flushCBTDataQueue()
-        var testData = this.getRunData(test, 'TestRunFinished', result)
+        const testData = this.getRunData(test, 'TestRunFinished', result)
         this.listener.testFinished(testData)
         const testFinishHashCode = generateHashCodeFromFields(
-            [testData.integrations?.browserstack?.browser ?? '', 
-                testData.integrations?.browserstack?.browser_version ?? '', 
-                testData.integrations?.browserstack?.platform ?? '', 
-                testData.integrations?.browserstack?.session_id ?? '', 
-                testData.integrations?.capabilities ?? {}, 
-                testData.file_name ?? '', 
-                testData.scopes ?? [], 
+            [
+                testData.integrations?.browserstack?.browser ?? '',
+                testData.integrations?.browserstack?.browser_version ?? '',
+                testData.integrations?.browserstack?.platform ?? '',
+                testData.integrations?.browserstack?.session_id ?? '',
+                testData.integrations?.capabilities ?? {},
+                testData.file_name ?? '',
+                testData.scopes ?? [],
                 testData.name ?? ''
             ]
         )

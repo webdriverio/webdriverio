@@ -39,7 +39,6 @@ class _TestReporter extends WDIOReporter {
     private listener = Listener.getInstance()
     public static hashCodeToHandleTestSkip: Record<string, string> = {}
 
-
     async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as WebdriverIO.Capabilities
         this._userCaps = this.getUserCaps(runnerStats)
@@ -217,7 +216,7 @@ class _TestReporter extends WDIOReporter {
 
         testStats.start ||= new Date()
         testStats.end ||= new Date()
-        var testData = await this.getRunData(testStats, 'TestRunSkipped')
+        const testData = await this.getRunData(testStats, 'TestRunSkipped')
         const testFinishHashCode = generateHashCodeFromFields(
             [testData.integrations?.browserstack?.browser ?? '', 
                 testData.integrations?.browserstack?.browser_version ?? '', 
