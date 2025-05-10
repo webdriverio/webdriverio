@@ -677,6 +677,13 @@ export interface SaveScreenshotOptions {
     }
 }
 
+/**
+ * Additional options outside of the WebDriver spec exclusively for WebdriverIO only for runtime and not send to appium
+ */
+export interface WdioOptions {
+    mask?: boolean
+}
+
 declare global {
     namespace WebdriverIO {
         /**
@@ -734,3 +741,4 @@ declare global {
         interface Dialog extends DialogImport {}
     }
 }
+
