@@ -20,13 +20,13 @@ export default function (
 ) {
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return async function protocolCommand (this: BaseClient, ...args: unknown[]): Promise<WebDriverResponse | BidiResponses | void> {
+    return async function protocolCommand (this: BaseClient, ...unmaskedArgs: unknown[]): Promise<WebDriverResponse | BidiResponses | void> {
 
         let runtimeOptions = {}
-        if (commandInfo.parameters.length < args.length && typeof args[args.length-1] === 'object') {
+        if (commandInfo.parameters.length < unmaskedArgs.length && typeof unmaskedArgs[unmaskedArgs.length-1] === 'object') {
             console.log('Popping runtime options')
             // Popping the additional options to not have `Wrong parameters applied` thrown
-            runtimeOptions = args.pop() as CommandRuntimeOptions
+            runtimeOptions = unmaskedArgs.pop() as CommandRuntimeOptions
         }
 
         const isBidiCommand = BIDI_COMMANDS.includes(command as BidiCommands)
@@ -41,7 +41,6 @@ export default function (
 
         const commandUsage = `${command}(${commandParams.map((p) => p.name).join(', ')})`
         const moreInfo = `\n\nFor more info see ${ref}\n`
-        const body: Record<string, unknown> = {}
 
         /**
          * log deprecation warning if command is deprecated
@@ -73,7 +72,7 @@ export default function (
          * parameter check
          */
         const minAllowedParams = commandParams.filter((param) => param.required).length
-        if (args.length < minAllowedParams || args.length > commandParams.length) {
+        if (unmaskedArgs.length < minAllowedParams || unmaskedArgs.length > commandParams.length) {
             const parameterDescription = commandParams.length
                 ? `\n\nProperty Description:\n${commandParams.map((p) => `  "${p.name}" (${p.type}): ${p.description}`).join('\n')}`
                 : ''
@@ -89,7 +88,8 @@ export default function (
         /**
          * parameter type check
          */
-        for (const [it, arg] of Object.entries(args)) {
+        const unmaskedBody: Record<string, unknown> = {}
+        for (const [it, arg] of Object.entries(unmaskedArgs)) {
             if (isBidiCommand) {
                 break
             }
@@ -127,13 +127,13 @@ export default function (
             /**
              * rest of args are part of body payload
              */
-            body[commandParams[i].name] = arg
+            unmaskedBody[commandParams[i].name] = arg
         }
 
         /**
-        * Masking text value when having the parameter mask set to true
-        */
-        const { maskedBody, maskedArgs } = mask(commandInfo, runtimeOptions, body, args)
+         * Until this point the body and args should not be logged or emit in anyway. Used the masked version to do so.
+         */
+        const { maskedBody, maskedArgs, wasMasked } = mask(commandInfo, runtimeOptions, unmaskedBody, unmaskedArgs)
 
         /**
          * Make sure we pass along an abort signal to the request class so we
@@ -147,21 +147,21 @@ export default function (
         const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
         const requiresSession = endpointUri.includes('/:sessionId/')
         if (isAborted && command !== 'deleteSession' && requiresSession) {
-            throw new Error(`Trying to run command "${commandCallStructure(command, maskedArgs || args)}" after session has been deleted, aborting request without executing it`)
+            throw new Error(`Trying to run command "${commandCallStructure(command, maskedArgs)}" after session has been deleted, aborting request without executing it`)
         }
 
-        const request = new environment.value.Request(method, endpoint, body, abortSignal, isHubCommand, {
+        const request = new environment.value.Request(method, endpoint, unmaskedBody, abortSignal, isHubCommand, {
             onPerformance: (data) => this.emit('request.performance', { ...data, request: {
                 ...data.request,
-                body: maskedBody || data.request.body
+                body: wasMasked ? maskedBody : data.request.body
             } }),
-            onRequest: (data) => this.emit('request.start', { ...data, body: maskedBody || data.body }),
+            onRequest: (data) => this.emit('request.start', { ...data, body: wasMasked ? maskedBody : data.body }),
             onResponse: (data) => this.emit('request.end', data),
             onRetry: (data) => this.emit('request.retry', data),
-            onLogData: (data) => log.info('DATA', transformCommandLogResult((maskedBody || data) as Record<string, unknown>))
+            onLogData: (data) => log.info('DATA', transformCommandLogResult((wasMasked ? maskedBody : data) as Record<string, unknown>))
         })
-        this.emit('command', { command, method, endpoint, body: maskedBody || body })
-        log.info('COMMAND', commandCallStructure(command, maskedArgs || args))
+        this.emit('command', { command, method, endpoint, body: maskedBody })
+        log.info('COMMAND', commandCallStructure(command, maskedArgs))
 
         const options = maskedBody ? { ...this.options, headers: { ['x-appium-is-sensitive']: 'true' } } : this.options
 
@@ -174,14 +174,14 @@ export default function (
 
                 if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
                     resultLog = `${result.value.slice(0, 61)}...`
-                } else if (command === 'executeScript' && typeof body.script === 'string' && body.script.includes('(() => window.__wdioEvents__)')) {
+                } else if (command === 'executeScript' && typeof unmaskedBody.script === 'string' && unmaskedBody.script.includes('(() => window.__wdioEvents__)')) {
                     resultLog = `[${(result.value as unknown[]).length} framework events captured]`
                 }
 
                 log.info('RESULT', resultLog)
             }
 
-            this.emit('result', { command, method, endpoint, body: maskedBody || body, result })
+            this.emit('result', { command, method, endpoint, body: maskedBody, result })
 
             if (command === 'deleteSession') {
                 /**
@@ -190,7 +190,7 @@ export default function (
                 const browser = this as { _bidiHandler?: BidiHandler }
                 browser._bidiHandler?.close()
 
-                const shutdownDriver = (body.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
+                const shutdownDriver = (unmaskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
                 /**
                  * kill driver process if there is one
                  */
@@ -228,7 +228,7 @@ export default function (
 
             return result.value as WebDriverResponse | BidiResponses
         }).catch((error) => {
-            this.emit('result', { command, method, endpoint, body: maskedBody || body, result: { error } })
+            this.emit('result', { command, method, endpoint, body: maskedBody, result: { error } })
             throw error
         }).finally(() => {
             cleanup()
