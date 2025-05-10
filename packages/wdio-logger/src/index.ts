@@ -231,7 +231,7 @@ getLogger.setMaskingPatterns = (maskingPatternsStringPerLoggerName: Record<strin
     /**
      * set the environment variable for masking patterns
      */
-    if (process.env.WDIO_LOG_MASKING_PATTERNS === undefined) {
+    if (!process.env.WDIO_LOG_MASKING_PATTERNS) {
         process.env.WDIO_LOG_MASKING_PATTERNS = wdioDefault
     }
 
