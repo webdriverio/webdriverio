@@ -34,7 +34,7 @@ const VALID_TYPES = ['string', 'number']
 export function addValue (
     this: WebdriverIO.Element,
     value: string | number,
-    options: WdioOptions = {}
+    options?: WdioOptions
 ) {
     /**
      * The JSONWireProtocol allowed array values and use of special characters when adding a value to an input.
@@ -48,9 +48,10 @@ export function addValue (
         )
     }
 
-    if (options.mask) {
-        // @ts-ignore bypassing typing until we can find a better solution
+    if (options) {
+        // @ts-ignore bypassing typing to pass the third parameter until we can find a better solution
         return this.elementSendKeys(this.elementId, value.toString(), options satisfies CommandRuntimeOptions)
     }
+    // Have this call separated so at least one of the two code line is typed checked
     return this.elementSendKeys(this.elementId, value.toString())
 }
