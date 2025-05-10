@@ -235,13 +235,12 @@ getLogger.setMaskingPatterns = (maskingPatternsStringPerLoggerName: Record<strin
         process.env.WDIO_LOG_MASKING_PATTERNS = wdioDefault
     }
 
-    maskingPatternsConfig = {}
-
     /**
      * build maskingPatternsConfig object
      */
-    Object.entries(maskingPatternsStringPerLoggerName).forEach(([logName, maskingPatternsString]) => {
-        maskingPatternsConfig[logName] = parseMaskingPatterns(maskingPatternsString)
+    maskingPatternsConfig = Object.entries(maskingPatternsStringPerLoggerName).reduce(([logName, maskingPatternsString], prev) => {
+        prev[logName] = parseMaskingPatterns(maskingPatternsString)
+        return prev
     })
 
     /**
