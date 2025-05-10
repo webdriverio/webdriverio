@@ -138,13 +138,10 @@ export abstract class WebDriverRequest {
                 ...(dispatcher ? { dispatcher } : {})
             })
 
-            // Cloning the response to prevent body unusable error
-            const resp = response.clone()
-
             return {
-                statusCode: resp.status,
-                body: await resp.json() ?? {},
-            } as Options.RequestLibResponse
+                statusCode: response.status,
+                body: await response.json() ?? {},
+            } satisfies Options.RequestLibResponse
         } catch (err) {
             if (!(err instanceof Error)) {
                 throw new WebDriverRequestError(
