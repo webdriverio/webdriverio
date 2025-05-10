@@ -6,7 +6,7 @@ import '../src/browser.js'
 
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
-    startWebDriverSession, setupDirectConnect, validateCapabilities,
+    startWebDriverSession, setupDirectConnect, validateCapabilities
 } from '../src/utils.js'
 import type { Client, RemoteConfig } from '../src/types.js'
 
