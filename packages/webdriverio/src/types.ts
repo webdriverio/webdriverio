@@ -678,7 +678,7 @@ export interface SaveScreenshotOptions {
 }
 
 /**
- * Additional options outside of the WebDriver spec exclusively for WebdriverIO only for runtime and not send to appium
+ * Additional options outside of the WebDriver spec, exclusively for Webdriverio, only for runtime, and not sent to appium
  */
 export interface WdioOptions {
     mask?: boolean
