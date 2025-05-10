@@ -456,6 +456,10 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
     }
 }
 
+/**
+* Masking the text value, if the command as a text parameter, when having the options mask set to true.
+* If nothing to mask, it returns the original body and args.
+*/
 export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOptions, body: Record<string, unknown>, args: unknown[]) {
 
     if (options.mask) {
@@ -472,10 +476,11 @@ export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOption
                 const maskedArgs = args.slice(0, textValueArgsIndex).concat(maskedBody).concat(args.slice(textValueArgsIndex + 1))
                 return {
                     maskedBody: maskedBody,
-                    maskedArgs: maskedArgs
+                    maskedArgs: maskedArgs,
+                    wasMasked: true,
                 }
             }
         }
     }
-    return { maskedBody: undefined, maskedArgs: undefined }
+    return { maskedBody: body, maskedArgs: args, wasMasked: false }
 }
