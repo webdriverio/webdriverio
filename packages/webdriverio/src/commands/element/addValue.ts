@@ -1,3 +1,6 @@
+import type { WdioOptions } from 'src/types.js'
+import type { CommandRuntimeOptions } from 'webdriver'
+
 const VALID_TYPES = ['string', 'number']
 
 /**
@@ -25,12 +28,13 @@ const VALID_TYPES = ['string', 'number']
  *
  * @alias element.addValue
  * @param {string|number}  value  value to be added
+ * @param {WdioOptions} options additional exclusive to webdriverio
  *
  */
 export function addValue (
     this: WebdriverIO.Element,
     value: string | number,
-    mask?: boolean
+    options: WdioOptions = {}
 ) {
     /**
      * The JSONWireProtocol allowed array values and use of special characters when adding a value to an input.
@@ -44,6 +48,9 @@ export function addValue (
         )
     }
 
-    // @ts-ignore allow sending the mask parameter without being declared officially in the protocol until we can pass it in another way
-    return this.elementSendKeys(this.elementId, value.toString(), { mask } satisfies CommandRuntimeOptions)
+    if (options.mask) {
+        // @ts-ignore bypassing typing until we can find a better solution
+        return this.elementSendKeys(this, value.toString(), options satisfies CommandRuntimeOptions)
+    }
+    return this.elementSendKeys(this.elementId, value.toString())
 }
