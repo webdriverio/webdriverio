@@ -1,3 +1,5 @@
+export { SENSITIVE_DATA_REPLACER } from './utils.js'
+
 import fs from 'node:fs'
 import util from 'node:util'
 
@@ -6,6 +8,7 @@ import type { ColorName } from 'chalk'
 import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 import ansiStrip from 'strip-ansi'
+import { mask, parseMaskingPatterns } from './utils.js'
 
 prefix.reg(log)
 
@@ -33,29 +36,31 @@ const SERIALIZERS = [{
     /**
      * display error stack
      */
-    matches: (err: unknown) => err instanceof Error,
+    matches: (err: unknown): err is Error => err instanceof Error,
     serialize: (err: Error) => err.stack
 }, {
     /**
      * color commands blue
      */
-    matches: (log: string) => log === matches.COMMAND || log === matches.BIDICOMMAND,
+    matches: (log: unknown): log is string => log === matches.COMMAND || log === matches.BIDICOMMAND,
     serialize: (log: string) => chalk.magenta(log)
 }, {
     /**
      * color data yellow
      */
-    matches: (log: string) => log === matches.DATA,
+    matches: (log: unknown): log is string => log === matches.DATA,
     serialize: (log: string) => chalk.yellow(log)
 }, {
     /**
      * color result cyan
      */
-    matches: (log: string) => log === matches.RESULT || log === matches.BIDIRESULT,
+    matches: (log: unknown): log is string => log === matches.RESULT || log === matches.BIDIRESULT,
     serialize: (log: string) => chalk.cyan(log)
 }]
 
 interface LoggerInterface extends log.Logger {
+    setMaskingPatternsConfig: () => RegExp[] | undefined
+    maskingPatterns: RegExp[] | undefined
     progress(...msg: string[]): void;
 }
 
@@ -65,13 +70,14 @@ interface Loggers {
 
 const loggers: Loggers = log.getLoggers() as Loggers
 let logLevelsConfig: Record<string, log.LogLevelDesc> = {}
+let maskingPatternsConfig: Record<string, RegExp[] | undefined> = {}
 const logCache = new Set()
 let logFile: fs.WriteStream | null
 
 const originalFactory = log.methodFactory
-const wdioLoggerMethodFactory = function (this: log.Logger, methodName: log.LogLevelNames, logLevel: log.LogLevelNumbers, loggerName: string) {
+const wdioLoggerMethodFactory = (wdioLogger: LoggerInterface) => function (this: log.Logger, methodName: log.LogLevelNames, logLevel: log.LogLevelNumbers, loggerName: string) {
     const rawMethod = originalFactory(methodName, logLevel, loggerName)
-    return (...args: string[]) => {
+    return (...args: [string, string?, ...unknown[]]) => {
         /**
          * create logFile lazily
          */
@@ -80,23 +86,23 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: log.LogL
         }
 
         /**
-         * split `prefixer: value` sting to `prefixer: ` and `value`
+         * split `prefixer: value` string to `prefixer: ` and `value`
          * so that SERIALIZERS can match certain string
          */
         const match = Object.values(matches).filter(x => args[0].endsWith(`: ${x}`))[0]
         if (match) {
-            const prefixStr = args.shift()!.slice(0, -match.length - 1)
+            const prefixStr = (args.shift() as string[]).slice(0, -match.length - 1)
             args.unshift(prefixStr, match)
         }
 
         args = args.map((arg) => {
             for (const s of SERIALIZERS) {
                 if (s.matches(arg)) {
-                    return s.serialize(arg as Error & string) as string
+                    return mask(s.serialize(arg as Error & string), wdioLogger.maskingPatterns)
                 }
             }
-            return arg
-        })
+            return mask(arg, wdioLogger.maskingPatterns)
+        }) as [string, string?, ...unknown[]]
 
         const logText = ansiStrip(`${util.format.apply(this, args as [format: string, ...params: string[]])}\n`)
         if (logFile && logFile.writable) {
@@ -151,16 +157,21 @@ export default function getLogger (name: string) {
     }
 
     loggers[name] = log.getLogger(name) as LoggerInterface
-    loggers[name].setLevel(logLevel)
-    loggers[name].methodFactory = wdioLoggerMethodFactory
-    loggers[name].progress = progress
-    prefix.apply(loggers[name], {
+    const logger = loggers[name]
+
+    logger.setLevel(logLevel)
+    logger.maskingPatterns = maskingPatternsConfig[name] ?? parseMaskingPatterns(process.env.WDIO_LOG_MASKING_PATTERNS)
+    logger.progress = progress
+
+    logger.methodFactory = wdioLoggerMethodFactory(logger)
+
+    prefix.apply(logger, {
         template: '%t %l %n:',
         timestampFormatter: (date) => chalk.gray(date.toISOString()),
         levelFormatter: (level: string) => chalk[COLORS[level]](level.toUpperCase()),
         nameFormatter: (name) => chalk.whiteBright(name)
     })
-    return loggers[name]
+    return logger
 }
 /**
  * Wait for writable stream to be flushed.
@@ -213,6 +224,36 @@ getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}
         const logLevel = typeof logLevelsConfig[logLevelName] !== 'undefined' ? logLevelsConfig[logLevelName] : process.env.WDIO_LOG_LEVEL as log.LogLevelDesc
 
         loggers[logName].setLevel(logLevel)
+    })
+}
+getLogger.setMaskingPatterns = (maskingPatternsStringPerLoggerName: Record<string, string | undefined> = {}, wdioDefault = undefined) => {
+
+    /**
+     * set the environment variable for masking patterns
+     */
+    if (process.env.WDIO_LOG_MASKING_PATTERNS === undefined) {
+        process.env.WDIO_LOG_MASKING_PATTERNS = wdioDefault
+    }
+
+    maskingPatternsConfig = {}
+
+    /**
+     * build maskingPatternsConfig object
+     */
+    Object.entries(maskingPatternsStringPerLoggerName).forEach(([logName, maskingPatternsString]) => {
+        maskingPatternsConfig[logName] = parseMaskingPatterns(maskingPatternsString)
+    })
+
+    /**
+     * set masking patterns for each logger
+     */
+    Object.keys(loggers).forEach(logName => {
+        /**
+         * either apply maskingPatterns or use the global one
+         */
+        const maskingPatterns = maskingPatternsConfig[logName] ?? parseMaskingPatterns(process.env.WDIO_LOG_LEVEL)
+
+        loggers[logName].maskingPatterns = maskingPatterns
     })
 }
 const getLogLevelName = (logName: string) => logName.split(':').shift() as log.LogLevelDesc
