@@ -30,7 +30,7 @@ import type { WdioOptions } from 'src/types.js'
 export async function setValue (
     this: WebdriverIO.Element,
     value: string | number,
-    options: WdioOptions = {},
+    options?: WdioOptions,
 ) {
     await this.clearValue()
     return this.addValue(value, options)

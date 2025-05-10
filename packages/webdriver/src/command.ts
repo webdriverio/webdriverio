@@ -24,7 +24,6 @@ export default function (
 
         let runtimeOptions = {}
         if (commandInfo.parameters.length < unmaskedArgs.length && typeof unmaskedArgs[unmaskedArgs.length-1] === 'object') {
-            console.log('Popping runtime options')
             // Popping the additional options to not have `Wrong parameters applied` thrown
             runtimeOptions = unmaskedArgs.pop() as CommandRuntimeOptions
         }
