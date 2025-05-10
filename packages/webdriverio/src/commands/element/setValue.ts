@@ -24,7 +24,7 @@ import type { WdioOptions } from 'src/types.js'
  *
  * @alias element.setValue
  * @param {string|number}  value  value to be added
- * @param {WdioOptions} options additional exclusive to webdriverio
+ * @param {WdioOptions}  options additional exclusive to webdriverio
  *
  */
 export async function setValue (
