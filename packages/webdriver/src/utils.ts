@@ -14,7 +14,7 @@ import command from './command.js'
 import { environment } from './environment.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
-import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
+import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig, CommandRuntimeOptions } from './types.js'
 
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })
@@ -456,15 +456,11 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
     }
 }
 
-export function mask(commandInfo: CommandEndpoint, body: Record<string, unknown>, args: unknown[]) {
-    const commandMaskParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'mask')
+export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOptions, body: Record<string, unknown>, args: unknown[]) {
 
-    // Continue process if the command has the mask parameter
-    if (commandMaskParamIndex !== -1) {
+    if (options.mask) {
         const textValueParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'text')
-        const maskValueIndexInArgs = (commandInfo.variables?.length ?? 0) + commandMaskParamIndex
-
-        if (textValueParamIndex !== -1 && args[maskValueIndexInArgs] === true ) {
+        if (textValueParamIndex !== -1 ) {
             const textValueIndexInArgs = (commandInfo.variables?.length ?? 0) + textValueParamIndex
             const text = args[textValueIndexInArgs]
             if (text && typeof text === 'string') {

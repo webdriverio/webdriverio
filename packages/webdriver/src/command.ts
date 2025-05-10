@@ -5,7 +5,7 @@ import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 import { environment } from './environment.js'
 import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
-import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent } from './types.js'
+import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent, CommandRuntimeOptions } from './types.js'
 import { mask } from './utils.js'
 
 const log = logger('webdriver')
@@ -21,6 +21,14 @@ export default function (
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
     return async function protocolCommand (this: BaseClient, ...args: unknown[]): Promise<WebDriverResponse | BidiResponses | void> {
+
+        let runtimeOptions = {}
+        if (commandInfo.parameters.length < args.length && typeof args[args.length-1] === 'object') {
+            console.log('Popping runtime options')
+            // Popping the additional options to not have `Wrong parameters applied` thrown
+            runtimeOptions = args.pop() as CommandRuntimeOptions
+        }
+
         const isBidiCommand = BIDI_COMMANDS.includes(command as BidiCommands)
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
@@ -123,6 +131,11 @@ export default function (
         }
 
         /**
+        * Masking text value when having the parameter mask set to true
+        */
+        const { maskedBody, maskedArgs } = mask(commandInfo, runtimeOptions, body, args)
+
+        /**
          * Make sure we pass along an abort signal to the request class so we
          * can abort the request as well as any retries in case the session is
          * deleted.
@@ -134,13 +147,8 @@ export default function (
         const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
         const requiresSession = endpointUri.includes('/:sessionId/')
         if (isAborted && command !== 'deleteSession' && requiresSession) {
-            throw new Error(`Trying to run command "${commandCallStructure(command, args)}" after session has been deleted, aborting request without executing it`)
+            throw new Error(`Trying to run command "${commandCallStructure(command, maskedArgs || args)}" after session has been deleted, aborting request without executing it`)
         }
-
-        /**
-        * Masking text value when having the parameter mask set to true
-        */
-        const { maskedBody, maskedArgs } = mask(commandInfo, body, args)
 
         const request = new environment.value.Request(method, endpoint, body, abortSignal, isHubCommand, {
             onPerformance: (data) => this.emit('request.performance', { ...data, request: {

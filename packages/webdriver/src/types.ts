@@ -96,3 +96,8 @@ export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.We
     // original requested capabilities
     requestedCapabilities?: Capabilities.WithRequestedCapabilities['capabilities']
 }
+
+export interface CommandRuntimeOptions {
+    // mask the text parameter value of the command
+    mask?: boolean
+}
