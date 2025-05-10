@@ -44,5 +44,6 @@ export function addValue (
         )
     }
 
-    return this.elementSendKeys(this.elementId, value.toString(), mask)
+    // @ts-ignore allow sending the mask parameter without being declared officially in the protocol until we can pass it in another way
+    return this.elementSendKeys(this.elementId, value.toString(), { mask } satisfies CommandRuntimeOptions)
 }
