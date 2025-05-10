@@ -274,7 +274,7 @@ describe('command wrapper', () => {
         const text = 'mySecretPassword'
         const runtimeOptionsWithMasking = { mask: true }
 
-        it('should do a the http request with the unmasked text when masking is requested', async () => {
+        it('should do the http request with the unmasked text when masking is requested', async () => {
             const commandFn = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
 
             await commandFn.call(scope, elementId, text, runtimeOptionsWithMasking)
