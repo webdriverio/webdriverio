@@ -50,7 +50,7 @@ export function addValue (
 
     if (options.mask) {
         // @ts-ignore bypassing typing until we can find a better solution
-        return this.elementSendKeys(this, value.toString(), options satisfies CommandRuntimeOptions)
+        return this.elementSendKeys(this.elementId, value.toString(), options satisfies CommandRuntimeOptions)
     }
     return this.elementSendKeys(this.elementId, value.toString())
 }

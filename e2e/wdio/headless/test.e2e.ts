@@ -6,6 +6,7 @@ import path from 'node:path'
 import { browser, $, expect } from '@wdio/globals'
 
 import { imageSize } from 'image-size'
+import type { WdioOptions } from 'webdriverio'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -20,7 +21,7 @@ describe('main suite 1', () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
         const firstInput = await $('input')
-        await firstInput.setValue('Hello World', true)
+        await firstInput.setValue('Hello World', { mask: true } satisfies WdioOptions)
 
         const inputValue = await firstInput.getValue()
         expect(inputValue).toBe('Hello World')
