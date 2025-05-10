@@ -8,6 +8,7 @@ export class TestHubModule extends BaseModule {
 
     logger = BStackLogger
     testhubConfig: unknown
+    name: string
     static MODULE_NAME = 'TestHubModule'
     static KEY_TEST_DEFERRED = 'test_deferred'
 
@@ -18,8 +19,6 @@ export class TestHubModule extends BaseModule {
         super()
         this.name = 'TestHubModule'
         this.testhubConfig = testhubConfig
-
-        // AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.PRE, this.onBeforePageCreate.bind(this));
     }
 
     /**
@@ -28,8 +27,5 @@ export class TestHubModule extends BaseModule {
      */
     getModuleName() {
         return TestHubModule.MODULE_NAME
-    }
-
-    onBeforePageCreate() {
     }
 }

@@ -44,6 +44,7 @@ export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms
 export const BSTACK_SERVICE_VERSION = bstackServiceVersion
 
 export const UPDATED_CLI_ENDPOINT =  'sdk/v1/update_cli'
+export const CLI_STOP_TIMEOUT = 3000
 
 export const NOT_ALLOWED_KEYS_IN_CAPS = ['includeTagsInTestingScope', 'excludeTagsInTestingScope']
 

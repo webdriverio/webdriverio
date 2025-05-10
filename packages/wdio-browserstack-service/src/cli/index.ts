@@ -12,6 +12,7 @@ import type { ChildProcess } from 'node:child_process'
 import type BrowserStackConfig from '../config.js'
 import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
 import type { BaseModule } from './modules/BaseModule.js'
+import { CLI_STOP_TIMEOUT } from 'src/constants.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -65,8 +66,6 @@ export class BrowserstackCLI {
         BrowserstackCLI.enabled = true
         try {
             const binSessionId = process.env.BROWSERSTACK_CLI_BIN_SESSION_ID || null
-            this.setupAutomationFramework()
-            this.setupTestFramework()
 
             if (binSessionId) {
                 await this.startChild(binSessionId)
@@ -106,10 +105,6 @@ export class BrowserstackCLI {
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
         this.setConfig(startBinResponse)
-
-        if (!this.isChildConnected) {
-            // this.setCliArgs(startBinResponse)
-        }
 
         if (startBinResponse.testhub) {
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
@@ -218,19 +213,6 @@ export class BrowserstackCLI {
 
             await this.unConfigureModules()
 
-            //   grpc channel close
-            //   if (this.channel) {
-            //     // In Node.js, we would use something like:
-            //     await new Promise((resolve) => {
-            //       this.channel.close(() => {
-            //         this.logger.info('stop: channel closed');
-            //         resolve();
-            //       });
-            //     });
-            //     // Allow 5 seconds for shutdown like in Java
-            //     await new Promise(resolve => setTimeout(resolve, 5000));
-            //   }
-
             if (this.process && this.process.pid) {
                 this.logger.debug('stop: shutting down CLI')
                 this.process.kill()
@@ -256,7 +238,7 @@ export class BrowserstackCLI {
                             PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP)
                             resolve()
                         }
-                    }, 3000)
+                    }, CLI_STOP_TIMEOUT)
                 })
             }
         } catch (error: unknown) {
@@ -376,22 +358,6 @@ export class BrowserstackCLI {
         } catch (error) {
             this.logger.error(`setConfig: error=${util.format(error)}`)
         }
-    }
-
-    /**
-     * Setup the test framework
-     * @returns {void}
-     */
-    setupTestFramework() {
-        // const testFrameworkDetail = CLIUtils.getTestFrameworkDetail()
-    }
-
-    /**
-     * Setup the automation framework
-     * @returns {void}
-     */
-    setupAutomationFramework() {
-        // const automationFrameworkDetail = CLIUtils.getAutomationFrameworkDetail()
     }
 
     /**

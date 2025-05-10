@@ -1,4 +1,4 @@
-import * as fs from 'node:fs'
+import fs from 'node:fs'
 import { platform, arch, homedir } from 'node:os'
 import module from 'node:module'
 import path from 'node:path'

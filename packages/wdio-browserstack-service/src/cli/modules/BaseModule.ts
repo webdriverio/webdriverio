@@ -4,7 +4,7 @@ import { BStackLogger } from '../cliLogger.js'
  * Base class for BrowserStack modules
  */
 export class BaseModule {
-    name: string
+    #name: string
     binSessionId: string|null
     platformIndex: number
     config: Record<string, unknown>
@@ -13,7 +13,7 @@ export class BaseModule {
      * Create a new BaseModule
      */
     constructor() {
-        this.name = 'BaseModule'
+        this.#name = 'BaseModule'
         this.binSessionId = null
         this.platformIndex = 0
         this.config = {}
@@ -35,7 +35,7 @@ export class BaseModule {
      * @returns {string} The module name
      */
     getModuleName() {
-        return this.name
+        return this.#name
     }
 
     /**

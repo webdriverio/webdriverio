@@ -107,7 +107,6 @@ export class GrpcClient {
             const packageInfo = CLIUtils.getSdkVersion()
             const automationFrameworkDetail = CLIUtils.getAutomationFrameworkDetail()
             const framework = automationFrameworkDetail.name
-            // const frameworkVersion = automationFrameworkDetail.version
 
             // Create StartBinSessionRequest
             const request = StartBinSessionRequest.create({
@@ -120,28 +119,6 @@ export class GrpcClient {
                 language: CLIUtils.getSdkLanguage(),
                 testFramework: framework,
             })
-            // request.setBinSessionId(this.binSessionId!);
-            // request.setSdkLanguage(CLIUtils.getSdkLanguage());
-            // request.setSdkVersion(packageInfo.version);
-            // request.setPathProject(process.cwd());
-            // request.setPathConfig(path.resolve(process.cwd(), 'browserstack.yml'));
-
-            // const envVarsMap = request.envVarsMap();
-            // Object.entries(process.env).forEach(([key, value]) => {
-            //     if (value !== undefined && value !== null) {
-            //         envVarsMap.set(key, value);
-            //     }
-            // });
-
-            // request.setCliArgsList(process.argv.slice(2));
-            // request.setLanguage(CLIUtils.getSdkLanguage());
-            // request.setTestFramework(framework);
-
-            // const frameworkVersionsMap = request.getFrameworkVersionsMap();
-            // frameworkVersionsMap.set(framework, frameworkVersion || '');
-
-            // request.addFrameworks(framework, frameworkVersion);
-            // request.setFrameworksList([framework]);
 
             return new Promise((resolve, reject) => {
                 this.client!.startBinSession(request, (error: ServiceError, response: StartBinSessionResponse) => {
@@ -180,7 +157,6 @@ export class GrpcClient {
             const request = ConnectBinSessionRequest.create({
                 binSessionId: this.binSessionId,
             })
-            // request.setBinSessionId(this.binSessionId!);
 
             const response = await new Promise((resolve, reject) => {
                 this.client!.connectBinSession(request, (error: ServiceError, response: ConnectBinSessionResponse) => {
@@ -227,7 +203,6 @@ export class GrpcClient {
             const request = StopBinSessionRequest.create({
                 binSessionId: this.binSessionId
             })
-            // request.setBinSessionId(this.binSessionId);
 
             // Get response from gRPC call
             const response = await new Promise((resolve, reject) => {
