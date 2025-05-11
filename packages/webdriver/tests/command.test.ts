@@ -395,10 +395,13 @@ describe('command wrapper', () => {
             await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
             expect(makeRequestMock).toHaveBeenCalledWith(expect.objectContaining(
                 { headers: {
-                    ...scope.options.headers,
-                    ['x-appium-is-sensitive']: 'true'
+                    'custom-header': 'custom-value',
+                    'x-appium-is-sensitive': 'true'
                 } }
             ), expect.any(String))
+            expect(scope.options.headers).toEqual({
+                'custom-header': 'custom-value',
+            })
         })
 
     })
