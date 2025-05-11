@@ -458,7 +458,7 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
 
 export const APPIUM_MASKING_HEADER = { 'x-appium-is-sensitive': 'true' }
 /**
-* Masking the text value, if the command as a text parameter, when having the options mask set to true.
+* Masking the text value, if the command has a text parameter, when the options mask is set to true.
 * If nothing to mask, it returns the original body and args.
 */
 export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOptions, body: Record<string, unknown>, args: unknown[]) {
