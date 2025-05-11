@@ -157,7 +157,7 @@ export default function (
             onRequest: (data) => this.emit('request.start', { ...data, body: isMasked ? maskedBody : data.body }),
             onResponse: (data) => this.emit('request.end', data),
             onRetry: (data) => this.emit('request.retry', data),
-            onLogData: (data) => log.info('DATA', transformCommandLogResult((isMasked ? maskedBody : data) as Record<string, unknown>))
+            onLogData: (data) => log.info('DATA', transformCommandLogResult((isMasked ? maskedBody : data)))
         })
         this.emit('command', { command, method, endpoint, body: maskedBody })
         log.info('COMMAND', commandCallStructure(command, maskedArgs))
@@ -178,7 +178,7 @@ export default function (
 
                 if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
                     resultLog = `${result.value.slice(0, 61)}...`
-                } else if (command === 'executeScript' && typeof unmaskedBody.script === 'string' && unmaskedBody.script.includes('(() => window.__wdioEvents__)')) {
+                } else if (command === 'executeScript' && typeof maskedBody.script === 'string' && maskedBody.script.includes('(() => window.__wdioEvents__)')) {
                     resultLog = `[${(result.value as unknown[]).length} framework events captured]`
                 }
 

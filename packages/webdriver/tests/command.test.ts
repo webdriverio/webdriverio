@@ -386,7 +386,6 @@ describe('command wrapper', () => {
 
             await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
 
-            // TODO how to see the masked version here?
             expect(log.info).toBeCalledWith('COMMAND', 'elementSendKeys("123", "**MASKED**")')
         })
 
