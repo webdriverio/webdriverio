@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { EventEmitter, on } from 'node:events'
+import { EventEmitter } from 'node:events'
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
@@ -8,9 +8,10 @@ import type { Options } from '@wdio/types'
 
 import '../src/browser.js'
 // @ts-expect-error mock feature
-import { WebDriverRequest as RequestMock, thenMock, catchMock } from '../src/request/request.js'
+import { WebDriverRequest as RequestMock, thenMock, catchMock, makeRequestMock, getCapturedRequestHandler } from '../src/request/request.js'
 import commandWrapper from '../src/command.js'
 import type { BaseClient } from '../src/types.js'
+import type { RequestEventHandler } from '../build/request/types.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fetch')
@@ -63,17 +64,28 @@ vi.mock('../src/request/request', () => {
     const catchMock = vi.fn().mockReturnValue({ finally: finallyMock })
 
     const promise = { then: thenMock, catch: catchMock, finally: finallyMock }
-    const WebDriverRequest = vi.fn().mockReturnValue({
-        makeRequest: () => (promise),
-        on: vi.fn()
+
+    const makeRequestMock = vi.fn().mockReturnValue(promise)
+    thenMock.mockReturnValue(promise)
+
+    let capturedRequestEventHandler: RequestEventHandler | undefined
+
+    // Mock the constructor
+    const WebDriverRequest = vi.fn().mockImplementation((
+        _method, _endpoint, _body, _abortSignal, _isHubCommand, requestEventHandler: RequestEventHandler
+    ) =>{
+        capturedRequestEventHandler = requestEventHandler
+        return { makeRequest: makeRequestMock }
     })
 
-    thenMock.mockReturnValue(promise)
     return {
         thenMock,
         catchMock,
         finallyMock,
         WebDriverRequest,
+        makeRequestMock,
+        getCapturedRequestHandler: () => capturedRequestEventHandler
+
     }
 })
 
@@ -111,6 +123,7 @@ describe('command wrapper', () => {
         vi.mocked(scope.on).mockClear()
         vi.mocked(thenMock).mockClear()
         vi.mocked(catchMock).mockClear()
+
     })
 
     it('should fail if wrong arguments are passed in', async () => {
@@ -291,24 +304,96 @@ describe('command wrapper', () => {
             )
         })
 
-        it('should emit result with masked text', async () => {
+        it('should emit "result" with masked text on success', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            const test = await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            vi.mocked(scope.emit).mockClear()
+            const thenCallback = thenMock.mock.calls[0][0]
+
+            thenCallback({})
+
+            expect(scope.emit).toBeCalledWith('result', expect.objectContaining({
+                body: { text: '**MASKED**' },
+            }))
+        })
+
+        it('should emit "result" with masked text on error', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            const test = await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            vi.mocked(scope.emit).mockClear()
+            const errorCallback = catchMock.mock.calls[0][0]
+
+            const error = new Error('Request failed')
+            expect(() => errorCallback(error)).toThrow(error)
+            expect(scope.emit).toBeCalledWith('result', expect.objectContaining({
+                body: { text: '**MASKED**' },
+            }))
+        })
+
+        it('should emit "command" with masked text', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+
+            expect(scope.emit).toBeCalledWith('command', expect.objectContaining({
+                body: { text: '**MASKED**' },
+            }))
+        })
+
+        it('should emit "request.performance" with masked text when using the RequestEventHandler.onPerformance', async () => {
             const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
 
             await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
             vi.mocked(scope.emit).mockClear()
-            const thenCallback = thenMock.mock.calls[0][0]
-            vi.mocked(thenMock).mockClear()
+            getCapturedRequestHandler().onPerformance({ data: 'data', request: { body: { text: 'mySecretPassword' } } })
 
-            thenCallback({})
-
-            expect(scope.emit).toBeCalledWith('result', {
-                command: 'elementSendKeys',
-                method: expect.any(String),
-                endpoint: expect.any(String),
-                body: { text: '**MASKED**' },
-                result: {}
-            })
+            expect(scope.emit).toBeCalledWith('request.performance', expect.objectContaining({
+                request: { body: { text: '**MASKED**' } },
+            }))
         })
+
+        it('should emit "request.start" with masked text when using the RequestEventHandler.onRequest', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            vi.mocked(scope.emit).mockClear()
+            getCapturedRequestHandler().onRequest({ data: 'data',  body: { text: 'mySecretPassword' }  })
+
+            expect(scope.emit).toBeCalledWith('request.start', expect.objectContaining(
+                { body: { text: '**MASKED**' } }
+            ))
+        })
+
+        it('should log "DATA" with masked text when using the RequestEventHandle.onLogData', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            vi.mocked(scope.emit).mockClear()
+            getCapturedRequestHandler().onLogData({ text: 'mySecretPassword' })
+
+            expect(log.info).toBeCalledWith('DATA', { text: '**MASKED**' })
+        })
+
+        it.only('should log "COMMAND" with masked text', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+
+            // TODO how to see the masked version here?
+            expect(log.info).toBeCalledWith('COMMAND', 'elementSendKeys("123", "**MASKED**")')
+        })
+
+        it('should makeRequest with the appium header for sensitive data', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            expect(makeRequestMock).toHaveBeenCalledWith(expect.objectContaining(
+                { headers: { ['x-appium-is-sensitive']: 'true' } }
+            ), expect.any(String))
+        })
+
     })
 })
 

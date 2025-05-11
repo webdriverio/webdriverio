@@ -473,7 +473,7 @@ export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOption
                     text: SENSITIVE_DATA_REPLACER
                 }
                 const textValueArgsIndex = textValueParamIndex + (commandInfo.variables?.length ?? 0)
-                const maskedArgs = args.slice(0, textValueArgsIndex).concat(maskedBody).concat(args.slice(textValueArgsIndex + 1))
+                const maskedArgs = args.slice(0, textValueArgsIndex).concat(SENSITIVE_DATA_REPLACER).concat(args.slice(textValueArgsIndex + 1))
                 return {
                     maskedBody: maskedBody,
                     maskedArgs: maskedArgs,
