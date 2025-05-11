@@ -162,17 +162,12 @@ export default function (
         this.emit('command', { command, method, endpoint, body: maskedBody })
         log.info('COMMAND', commandCallStructure(command, maskedArgs))
 
-        if (isMasked) {
-            this.options.headers = {
-                ...this.options.headers,
-                ...APPIUM_MASKING_HEADER
-            }
-        }
+        const options = isMasked ? { ...this.options,  headers: { ...this.options.headers, ...APPIUM_MASKING_HEADER } } : this.options
 
         /**
          * use then here so we can better unit test what happens before and after the request
          */
-        return request.makeRequest(this.options, this.sessionId).then((result) => {
+        return request.makeRequest(options, this.sessionId).then((result) => {
             if (typeof result.value !== 'undefined') {
                 let resultLog = result.value
 
