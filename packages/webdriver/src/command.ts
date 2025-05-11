@@ -130,7 +130,7 @@ export default function (
         }
 
         /**
-         * Until this point the body and args should not be logged or emit in anyway. Used the masked version to do so.
+         * Until this point, the body and args should not be logged or emitted in any way. Used the masked version to do so.
          */
         const { maskedBody, maskedArgs, isMasked } = mask(commandInfo, runtimeOptions, unmaskedBody, unmaskedArgs)
 

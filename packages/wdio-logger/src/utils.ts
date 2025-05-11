@@ -4,7 +4,6 @@ const skipError = (aFunction: Function) => {
     try {
         return aFunction()
     } catch {
-        console.error(new Error('skipError: error while parsing regex').stack)
         return undefined
     }
 }
@@ -16,7 +15,7 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
     return regexStrings?.map((regexStr) => {
         const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
         if (!regexParts) {
-            // When passing only a simple string without `/` or flags aka `(--key=)([^ ]*)`
+            // When passing only a simple string without `/` or flags, aka `(--key=)([^ ]*)`
             return skipError(() => new RegExp(regexStr))
         } else if (regexParts?.[1]) {
             // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
@@ -32,10 +31,10 @@ export const mask = <T = unknown>(possibleText: T, maskingPatterns: RegExp[] | u
 
     let maskedText = possibleText as string
     maskingPatterns.forEach((maskingRegex) => {
-        // Using the below allow supporting the 'g' flags easier else using 'g' with text.match(regExp) does not output proper capturing groups
+        // Using the below allows supporting the 'g' flags easier, else using 'g' with text.match(regExp) does not output proper capturing groups
         const groupCount = (maskingRegex.source.match(/\((?!\?)/g) || []).length
 
-        // Supporting from 0 to 2 capturing groups where when having 2 only the second group is masked to cover cases like `--key=VALUE` for BrowserStack secret key
+        // Supporting from 0 to 2 capturing groups, where when having two, only the second group is masked to cover cases like `--key=VALUE` for BrowserStack secret key
         maskedText = maskedText.replace(maskingRegex, groupCount < 2 ? SENSITIVE_DATA_REPLACER: `$1${SENSITIVE_DATA_REPLACER}`)
     })
     return maskedText

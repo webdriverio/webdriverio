@@ -28,7 +28,7 @@ const VALID_TYPES = ['string', 'number']
  *
  * @alias element.addValue
  * @param {string|number}  value  value to be added
- * @param {WdioOptions} options additional exclusive to webdriverio
+ * @param {WdioOptions} additional options, exclusive to Webdriverio
  *
  */
 export function addValue (
@@ -52,6 +52,6 @@ export function addValue (
         // @ts-ignore bypassing typing to pass the third parameter until we can find a better solution
         return this.elementSendKeys(this.elementId, value.toString(), options satisfies CommandRuntimeOptions)
     }
-    // Have this call separated so at least one of the two code line is typed checked
+    // Have this call separated so at least one of the two code lines is typed checked
     return this.elementSendKeys(this.elementId, value.toString())
 }
