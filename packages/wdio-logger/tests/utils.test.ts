@@ -93,6 +93,30 @@ describe('wdio-logger utils', () => {
 
             expect(patterns).toEqual([/(TOKEN=)([^ ]*)/i])
         })
+        it('empty when all invalid', () => {
+            const stringPatterns = '(--key=)([^ ]*'
+
+            const patterns = parseMaskingPatterns(stringPatterns)
+
+            expect(patterns).toEqual([])
+        })
+
+        it('undefined when wrong type', () => {
+            const stringPatterns = [] as unknown as string
+
+            const patterns = parseMaskingPatterns(stringPatterns)
+
+            expect(patterns).toEqual(undefined)
+        })
+
+        it('empty when invalid empty pattern string ', () => {
+            const stringPatterns = '//'
+
+            const patterns = parseMaskingPatterns(stringPatterns)
+
+            expect(patterns).toEqual([])
+        })
+
     })
 
     describe('mask', () => {

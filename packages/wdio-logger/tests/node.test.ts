@@ -221,44 +221,124 @@ describe('wdio-logger node', () => {
             expect(write.mock.results[3].value).toContain('test-logFile4: Error: bar')
         })
 
-        it('masked sensitive information with one pattern', () => {
-            process.env.WDIO_LOG_PATH = 'wdio.test.log'
-            process.env.WDIO_LOG_MASKING_PATTERNS = '--key=[^ ]*'
+        describe('making patterns', () => {
+            beforeEach(() => {
+                delete process.env.WDIO_LOG_MASKING_PATTERNS
+            })
 
-            const log = nodeLogger('test-maskedLogPatternNoFlag')
-            log.info('wdio.conf.ts --user= --key=mySecretKey --spec template.test.ts')
+            describe('given a WDIO_LOG_MASKING_PATTERNS value', () => {
+                it('masked sensitive information with one pattern', () => {
+                    process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '--key=[^ ]*'
 
-            expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** --spec template.test.ts')
-        })
+                    const log = nodeLogger('test-maskedLogPatternNoFlag')
+                    log.info('wdio.conf.ts --user= --key=mySecretKey --spec template.test.ts')
 
-        it('masked sensitive information with one pattern having 0 group and global flag', () => {
-            process.env.WDIO_LOG_PATH = 'wdio.test.log'
-            process.env.WDIO_LOG_MASKING_PATTERNS = '/--key=[^ ]*/gi'
+                    expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** --spec template.test.ts')
+                })
 
-            const log = nodeLogger('test-maskedLogFile0Group')
-            log.info('wdio.conf.ts --user= --KEY=mySecretKey --key=mySecretKey --spec template.test.ts')
+                it('masked sensitive information with one pattern having 0 group and global flag', () => {
+                    process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '/--key=[^ ]*/gi'
 
-            expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** **MASKED** --spec template.test.ts')
-        })
+                    const log = nodeLogger('test-maskedLogFile0Group')
+                    log.info('wdio.conf.ts --user= --KEY=mySecretKey --key=mySecretKey --spec template.test.ts')
 
-        it('masked sensitive information with one pattern having 2 group', () => {
-            process.env.WDIO_LOG_PATH = 'wdio.test.log'
-            process.env.WDIO_LOG_MASKING_PATTERNS = '(--key=)([^ ]*)'
+                    expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** **MASKED** --spec template.test.ts')
+                })
 
-            const log = nodeLogger('test-maskedLogFile2Group')
-            log.info('wdio.conf.ts --user= --key=mySecretKey --spec template.test.ts')
+                it('masked sensitive information with one pattern having 2 group', () => {
+                    process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '(--key=)([^ ]*)'
 
-            expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= --key=**MASKED** --spec template.test.ts')
-        })
+                    const log = nodeLogger('test-maskedLogFile2Group')
+                    log.info('wdio.conf.ts --user= --key=mySecretKey --spec template.test.ts')
 
-        it('masked sensitive information with two patterns having 2 groups each', () => {
-            process.env.WDIO_LOG_PATH = 'wdio.test.log'
-            process.env.WDIO_LOG_MASKING_PATTERNS = '(--key=)([^ ]*),/(TOKEN=)([^ ]*)/i'
+                    expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= --key=**MASKED** --spec template.test.ts')
+                })
 
-            const log = nodeLogger('test-masked2RegExHaving2Group')
-            log.info('TOKEN=mySecretToken wdio.conf.ts --user=myUser --key=mySecretKey --spec template.test.ts')
+                it('masked sensitive information with two patterns having 2 groups each', () => {
+                    process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '(--key=)([^ ]*),/(TOKEN=)([^ ]*)/i'
 
-            expect(write.mock.results[0].value).toContain('TOKEN=**MASKED** wdio.conf.ts --user=myUser --key=**MASKED** --spec template.test.ts')
+                    const log = nodeLogger('test-masked2RegExHaving2Group')
+                    log.info('TOKEN=mySecretToken wdio.conf.ts --user=myUser --key=mySecretKey --spec template.test.ts')
+
+                    expect(write.mock.results[0].value).toContain('TOKEN=**MASKED** wdio.conf.ts --user=myUser --key=**MASKED** --spec template.test.ts')
+                })
+
+                describe('given call to getLogger.setMaskingPatterns', () => {
+                    const pattern = '(--key=)([^ ]*)'
+                    const expectedPatterns = [/(--key=)([^ ]*)/]
+
+                    const scenarios: {
+                        name: string
+                        logger: string
+                        config: Record<string, string | undefined> | undefined
+                        expectedPatterns: RegExp[] | undefined
+                    }[] = [{
+                        name: 'should be possible to set masking pattern in config',
+                        logger: 'scenarios-setMaskingPatterns-3',
+                        config: { 'scenarios-setMaskingPatterns-3': pattern },
+                        expectedPatterns
+                    }, {
+                        name: 'should be possible to set masking pattern in WDIO_LOG_MASKING_PATTERNS',
+                        logger: 'scenarios-setMaskingPatterns-4',
+                        get config() {
+                            process.env.WDIO_LOG_MASKING_PATTERNS = pattern
+                            return undefined
+                        },
+                        expectedPatterns
+                    }, {
+                        name: 'should be possible to override WDIO_LOG_MASKING_PATTERNS in config',
+                        logger: 'scenarios-setMaskingPatterns-5',
+                        get config() {
+                            process.env.WDIO_LOG_MASKING_PATTERNS = 'info'
+                            return { 'scenarios-setMaskingPatterns-5': pattern }
+                        },
+                        expectedPatterns
+                    }, {
+                        name: 'should be possible to set multiple patterns in config for one logger',
+                        logger: 'scenarios-setMaskingPatterns-6',
+                        get config() {
+                            process.env.WDIO_LOG_MASKING_PATTERNS = 'info'
+                            return { 'scenarios-setMaskingPatterns-6': `${pattern},info` }
+                        },
+                        expectedPatterns: [expectedPatterns[0], /info/]
+                    },
+                        // TODO dprevost fix this test
+                    /*, {
+                        name: 'should be possible to set logLevel in config for all sub levels',
+                        logger: 'test-setMaskingPatterns-7:foo',
+                        config: { 'test-setMaskingPatterns-7:bar': pattern },
+                        expectPattern
+                    }*/]
+
+                    scenarios.forEach((scenario) => {
+                        it(scenario.name, () => {
+                            nodeLogger.setMaskingPatterns(scenario.config)
+
+                            const log = nodeLogger(scenario.logger)
+                            expect(log.maskingPatterns).toEqual(scenario.expectedPatterns)
+                        })
+                    })
+
+                    it('should be possible to set patterns in config for multiple loggers', () => {
+                        const config = { 'test-setMaskingPatterns-1': pattern,  'test-setMaskingPatterns-2': 'info' }
+
+                        nodeLogger.setMaskingPatterns(config)
+
+                        expect(nodeLogger('test-setMaskingPatterns-1').maskingPatterns).toEqual(expectedPatterns)
+                        expect(nodeLogger('test-setMaskingPatterns-2').maskingPatterns).toEqual([/info/])
+                    })
+
+                    it('should be possible to pass a default', () => {
+                        nodeLogger.setMaskingPatterns(undefined, pattern)
+
+                        expect(nodeLogger('test-setMaskingPatterns-3').maskingPatterns).toEqual(expectedPatterns)
+                    })
+                })
+            })
         })
 
         it('is not confused by multiple copies of source code', () => {
