@@ -1,4 +1,4 @@
-import type { WdioOptions } from 'src/types.js'
+import type { WdioOptions } from '../../types.js'
 import type { CommandRuntimeOptions } from 'webdriver'
 
 const VALID_TYPES = ['string', 'number']
