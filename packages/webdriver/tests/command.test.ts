@@ -68,13 +68,13 @@ vi.mock('../src/request/request', () => {
     const makeRequestMock = vi.fn().mockReturnValue(promise)
     thenMock.mockReturnValue(promise)
 
-    let capturedRequestEventHandler: RequestEventHandler | undefined
+    const capturedRequestEventHandler = vi.fn<() => RequestEventHandler>()
 
     // Mock the constructor
     const WebDriverRequest = vi.fn().mockImplementation((
         _method, _endpoint, _body, _abortSignal, _isHubCommand, requestEventHandler: RequestEventHandler
     ) =>{
-        capturedRequestEventHandler = requestEventHandler
+        capturedRequestEventHandler.mockReturnValue(requestEventHandler)
         return { makeRequest: makeRequestMock }
     })
 
@@ -84,7 +84,7 @@ vi.mock('../src/request/request', () => {
         finallyMock,
         WebDriverRequest,
         makeRequestMock,
-        getCapturedRequestHandler: () => capturedRequestEventHandler
+        getCapturedRequestHandler: capturedRequestEventHandler
 
     }
 })
@@ -123,7 +123,7 @@ describe('command wrapper', () => {
         vi.mocked(scope.on).mockClear()
         vi.mocked(thenMock).mockClear()
         vi.mocked(catchMock).mockClear()
-
+        vi.mocked(getCapturedRequestHandler).mockClear()
     })
 
     it('should fail if wrong arguments are passed in', async () => {
@@ -376,7 +376,7 @@ describe('command wrapper', () => {
             expect(log.info).toBeCalledWith('DATA', { text: '**MASKED**' })
         })
 
-        it.only('should log "COMMAND" with masked text', async () => {
+        it('should log "COMMAND" with masked text', async () => {
             const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
 
             await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
