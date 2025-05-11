@@ -226,12 +226,12 @@ getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}
         loggers[logName].setLevel(logLevel)
     })
 }
-getLogger.setMaskingPatterns = (maskingPatternsStringPerLoggerName: Record<string, string | undefined> = {}, wdioDefault = undefined) => {
+getLogger.setMaskingPatterns = (maskingPatternsStringPerLoggerName: Record<string, string | undefined> = {}, wdioDefault:string|undefined = undefined) => {
 
     /**
      * set the environment variable for masking patterns
      */
-    if (!process.env.WDIO_LOG_MASKING_PATTERNS) {
+    if (process.env.WDIO_LOG_MASKING_PATTERNS === undefined) {
         process.env.WDIO_LOG_MASKING_PATTERNS = wdioDefault
     }
 
@@ -250,7 +250,7 @@ getLogger.setMaskingPatterns = (maskingPatternsStringPerLoggerName: Record<strin
         /**
          * either apply maskingPatterns or use the global one
          */
-        const maskingPatterns = maskingPatternsConfig[logName] ?? parseMaskingPatterns(process.env.WDIO_LOG_LEVEL)
+        const maskingPatterns = maskingPatternsConfig[logName] ?? parseMaskingPatterns(process.env.WDIO_LOG_MASKING_PATTERNS)
 
         loggers[logName].maskingPatterns = maskingPatterns
     })

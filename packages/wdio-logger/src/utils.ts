@@ -4,11 +4,13 @@ const skipError = (aFunction: Function) => {
     try {
         return aFunction()
     } catch {
+        console.error(new Error('skipError: error while parsing regex').stack)
         return undefined
     }
 }
 
 export const parseMaskingPatterns = (maskingRegexString: string | undefined) => {
+    if (typeof maskingRegexString !== 'string') { return undefined }
     const regexStrings = maskingRegexString?.split(',').filter((regexStr) => regexStr.trim() !== '')
 
     return regexStrings?.map((regexStr) => {
@@ -16,15 +18,13 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
         if (!regexParts) {
             // When passing only a simple string without `/` or flags aka `(--key=)([^ ]*)`
             return skipError(() => new RegExp(regexStr))
-        }
-        if (regexParts?.[1]) {
+        } else if (regexParts?.[1]) {
             // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
             return skipError(() => regexParts[2] ? new RegExp(regexParts[1], regexParts[2]) : new RegExp(regexParts[1]))
         }
         return undefined
 
     }).filter((regex) => regex !== undefined)
-
 }
 
 export const mask = <T = unknown>(possibleText: T, maskingPatterns: RegExp[] | undefined) => {
