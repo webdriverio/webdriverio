@@ -6,7 +6,7 @@ import { environment } from './environment.js'
 import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent, CommandRuntimeOptions } from './types.js'
-import { mask } from './utils.js'
+import { APPIUM_MASKING_HEADER, mask } from './utils.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
@@ -132,7 +132,7 @@ export default function (
         /**
          * Until this point the body and args should not be logged or emit in anyway. Used the masked version to do so.
          */
-        const { maskedBody, maskedArgs, wasMasked } = mask(commandInfo, runtimeOptions, unmaskedBody, unmaskedArgs)
+        const { maskedBody, maskedArgs, isMasked } = mask(commandInfo, runtimeOptions, unmaskedBody, unmaskedArgs)
 
         /**
          * Make sure we pass along an abort signal to the request class so we
@@ -152,22 +152,27 @@ export default function (
         const request = new environment.value.Request(method, endpoint, unmaskedBody, abortSignal, isHubCommand, {
             onPerformance: (data) => this.emit('request.performance', { ...data, request: {
                 ...data.request,
-                body: wasMasked ? maskedBody : data.request.body
+                body: isMasked ? maskedBody : data.request.body
             } }),
-            onRequest: (data) => this.emit('request.start', { ...data, body: wasMasked ? maskedBody : data.body }),
+            onRequest: (data) => this.emit('request.start', { ...data, body: isMasked ? maskedBody : data.body }),
             onResponse: (data) => this.emit('request.end', data),
             onRetry: (data) => this.emit('request.retry', data),
-            onLogData: (data) => log.info('DATA', transformCommandLogResult((wasMasked ? maskedBody : data) as Record<string, unknown>))
+            onLogData: (data) => log.info('DATA', transformCommandLogResult((isMasked ? maskedBody : data) as Record<string, unknown>))
         })
         this.emit('command', { command, method, endpoint, body: maskedBody })
         log.info('COMMAND', commandCallStructure(command, maskedArgs))
 
-        const options = maskedBody ? { ...this.options, headers: { ['x-appium-is-sensitive']: 'true' } } : this.options
+        if (isMasked) {
+            this.options.headers = {
+                ...this.options.headers,
+                ...APPIUM_MASKING_HEADER
+            }
+        }
 
         /**
          * use then here so we can better unit test what happens before and after the request
          */
-        return request.makeRequest(options, this.sessionId).then((result) => {
+        return request.makeRequest(this.options, this.sessionId).then((result) => {
             if (typeof result.value !== 'undefined') {
                 let resultLog = result.value
 

@@ -12,6 +12,7 @@ import { WebDriverRequest as RequestMock, thenMock, catchMock, makeRequestMock, 
 import commandWrapper from '../src/command.js'
 import type { BaseClient } from '../src/types.js'
 import type { RequestEventHandler } from '../build/request/types.js'
+import type { RequestOptions } from '../src/request/types.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fetch')
@@ -107,8 +108,11 @@ class FakeClient extends EventEmitter {
     capabilities = {}
     requestedCapabilities = {}
     options = {
-        logLevel: 'warn' as Options.WebDriverLogTypes
-    } as any
+        logLevel: 'warn' as Options.WebDriverLogTypes,
+        headers: {
+            'custom-header': 'custom-value'
+        },
+    } as Partial<RequestOptions>
     emit = vi.fn()
     on = vi.fn()
 }
@@ -119,6 +123,7 @@ type mockResponse = (...args: any[]) => any
 describe('command wrapper', () => {
     beforeEach(() => {
         vi.mocked(log.warn).mockClear()
+        vi.mocked(log.info).mockClear()
         vi.mocked(scope.emit).mockClear()
         vi.mocked(scope.on).mockClear()
         vi.mocked(thenMock).mockClear()
@@ -390,7 +395,10 @@ describe('command wrapper', () => {
 
             await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
             expect(makeRequestMock).toHaveBeenCalledWith(expect.objectContaining(
-                { headers: { ['x-appium-is-sensitive']: 'true' } }
+                { headers: {
+                    ...scope.options.headers,
+                    ['x-appium-is-sensitive']: 'true'
+                } }
             ), expect.any(String))
         })
 
