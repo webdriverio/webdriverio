@@ -238,10 +238,10 @@ getLogger.setMaskingPatterns = (maskingPatternsStringPerLoggerName: Record<strin
     /**
      * build maskingPatternsConfig object
      */
-    maskingPatternsConfig = Object.entries(maskingPatternsStringPerLoggerName).reduce(([logName, maskingPatternsString], prev) => {
-        prev[logName] = parseMaskingPatterns(maskingPatternsString)
-        return prev
-    })
+    maskingPatternsConfig = Object.entries(maskingPatternsStringPerLoggerName).reduce((acc, [logName, maskingPatternsString]) => {
+        acc[logName] = parseMaskingPatterns(maskingPatternsString)
+        return acc
+    }, maskingPatternsConfig)
 
     /**
      * set masking patterns for each logger
