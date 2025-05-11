@@ -1,4 +1,4 @@
-import type { WdioOptions } from 'src/types.js'
+import type { WdioOptions } from '../../types.js'
 
 /**
  * Send a sequence of key strokes to an element after the input has been cleared before. If the element doesn't need
