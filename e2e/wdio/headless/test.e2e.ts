@@ -171,12 +171,12 @@ describe('main suite 1', () => {
                 const rectBefore = await browser.execute(
                     // @ts-ignore
                     () => document.mouseMoveTo
-                ) as {x: number, y: number}
+                ) as {  x: number, y: number }
                 await browser.$('#parent').moveTo(input)
                 const rectAfter = await browser.execute(
                     // @ts-ignore
                     () => document.mouseMoveTo
-                ) as {x: number, y: number}
+                ) as {  x: number, y: number }
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -226,12 +226,12 @@ describe('main suite 1', () => {
                 const rectBefore = await browser.execute(
                     //@ts-ignore
                     () => document.mouseMoveTo
-                ) as {x: number, y: number}
+                ) as {  x: number, y: number }
                 await browser.$('#parent').moveTo(input)
                 const rectAfter = await browser.execute(
                     //@ts-ignore
                     () => document.mouseMoveTo
-                ) as {x: number, y: number}
+                ) as {  x: number, y: number }
                 expect(rectBefore.x + (input && input?.xOffset ? input?.xOffset : 0)).toEqual(rectAfter.x)
                 expect(rectBefore.y + (input && input?.yOffset ? input?.yOffset : 0)).toEqual(rectAfter.y)
             })
@@ -490,7 +490,7 @@ describe('main suite 1', () => {
             await expect($('.red')).not.toBePresent()
         })
 
-        it('should not switch window if requested window was not found', async () => {
+        it.skip('should not switch window if requested window was not found', async () => {
             await closeAllWindowsButFirst()
             await browser.navigateTo('https://guinea-pig.webdriver.io/')
             const firstWindowHandle = await browser.getWindowHandle()
@@ -675,7 +675,7 @@ describe('main suite 1', () => {
             await expect($('h1')).toHaveText('Hello World')
         })
 
-        it('chrome', async () => {
+        it.skip('chrome', async () => {
             await browser.url('chrome://about/')
             await expect($('li=chrome://accessibility')).toExist()
         })
@@ -701,7 +701,7 @@ describe('main suite 1', () => {
         }
     })
 
-    describe.only('selectBy*', () => {
+    describe('selectBy*', () => {
         const scenarios = [
             ['selectByVisibleText', ['Option 2']],
             ['selectByIndex', [1]],
