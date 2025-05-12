@@ -1,11 +1,11 @@
 import fs from 'node:fs'
+import fsp from 'node:fs/promises'
 import { platform, arch, homedir } from 'node:os'
 import module from 'node:module'
 import path from 'node:path'
-import util from 'node:util'
+import util, { promisify } from 'node:util'
 import url from 'node:url'
 import { exec } from 'node:child_process'
-import type { ZipFile } from 'yauzl'
 import type { IncomingMessage } from 'node:http'
 import yauzl from 'yauzl'
 import pkg from 'follow-redirects'
@@ -275,69 +275,62 @@ export class CLIUtils {
     }
 
     static downloadFileStream(downloadedFileStream: fs.WriteStream, binaryName: string|null, zipFilePath: string, cliDir: string, resolve: (path: string) => void, reject: (reason?: Error) => void) {
-        downloadedFileStream.on('close', function () {
-            yauzl.open( zipFilePath, { lazyEntries: true },
-                function (err: Error, zipfile: ZipFile) {
-                    if (err) {
-                        reject(err)
-                    }
-                    zipfile.readEntry()
-                    zipfile.on('entry', (entry) => {
-                        if (!binaryName) {binaryName = entry.fileName}
-                        if (/\/$/.test(entry.fileName)) {
-                            // Directory file names end with '/'.
-                            zipfile.readEntry()
-                        } else {
-                            // file entry
-                            const writeStream = fs.createWriteStream(path.join(cliDir, entry.fileName))
-                            zipfile.openReadStream(entry,
-                                function (zipErr, readStream) {
-                                    if (zipErr) {
-                                        reject(err)
-                                    }
-                                    readStream.on(
-                                        'end',
-                                        function () {
-                                            writeStream.close()
-                                            zipfile.readEntry()
-                                        }
-                                    )
-                                    readStream.pipe(
-                                        writeStream
-                                    )
+        downloadedFileStream.on('close', async function () {
+            const yauzlOpenPromise = promisify(yauzl.open)
+            try {
+                const zipfile = await yauzlOpenPromise(zipFilePath)
+                zipfile.readEntry()
+                zipfile.on('entry', async (entry) => {
+                    if (!binaryName) {binaryName = entry.fileName}
+                    if (/\/$/.test(entry.fileName)) {
+                        // Directory file names end with '/'.
+                        zipfile.readEntry()
+                    } else {
+                        // file entry
+                        const writeStream = fs.createWriteStream(path.join(cliDir, entry.fileName))
+                        const openReadStreamPromise = promisify(zipfile.openReadStream)
+                        try {
+                            const readStream = await openReadStreamPromise(entry)
+                            readStream.on(
+                                'end',
+                                function () {
+                                    writeStream.close()
+                                    zipfile.readEntry()
                                 }
                             )
-
-                            if (entry.fileName === binaryName) {
-                                zipfile.close()
-                            }
+                            readStream.pipe(
+                                writeStream
+                            )
+                        } catch (zipErr) {
+                            reject(zipErr as Error)
                         }
-                    })
 
-                    zipfile.on('error', (zipErr) => {
-                        reject(zipErr)
-                    })
+                        if (entry.fileName === binaryName) {
+                            zipfile.close()
+                        }
+                    }
+                })
 
-                    zipfile.once('end', () => {
-                        fs.unlink(zipFilePath, (err: Error) => {
-                            if (err) {
-                                logger.warn(`Failed to delete zip file: ${zipFilePath}`)
-                            }
+                zipfile.on('error', (zipErr) => {
+                    reject(zipErr as Error)
+                })
+
+                zipfile.once('end', () => {
+                    fsp.unlink(zipFilePath)
+                        .catch(() => {
+                            logger.warn(`Failed to delete zip file: ${zipFilePath}`)
                         })
-                        fs.chmod(`${cliDir}/${binaryName}`, '0755',
-                            function (zipErr: Error) {
-                                if (zipErr) {
-                                    reject(zipErr)
-                                }
-                                resolve(
-                                    `${cliDir}/${binaryName}`
-                                )
-                            }
-                        )
-                        zipfile.close()
-                    })
-                }
-            )
+                    fsp.chmod(`${cliDir}/${binaryName}`, '0755')
+                        .then(() => {
+                            resolve(`${cliDir}/${binaryName}`)
+                        }).catch((err) => {
+                            reject(err)
+                        })
+                    zipfile.close()
+                })
+            } catch (err) {
+                reject(err as Error)
+            }
         })
     }
 

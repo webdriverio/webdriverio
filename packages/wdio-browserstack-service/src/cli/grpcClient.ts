@@ -1,10 +1,8 @@
 import path from 'node:path'
-import util from 'node:util'
-import type { ServiceError } from '@grpc/grpc-js'
+import util, { promisify } from 'node:util'
 import grpc from '@grpc/grpc-js'
 
 import { SDKClient } from '../proto/sdk.js'
-import type { ConnectBinSessionResponse, StartBinSessionResponse, StopBinSessionResponse } from '../proto/sdk-messages.js'
 import { StartBinSessionRequest, StopBinSessionRequest, ConnectBinSessionRequest } from '../proto/sdk-messages.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
@@ -120,20 +118,17 @@ export class GrpcClient {
                 testFramework: framework,
             })
 
-            return new Promise((resolve, reject) => {
-                this.client!.startBinSession(request, (error: ServiceError, response: StartBinSessionResponse) => {
-                    if (error) {
-                        this.logger.error(`StartBinSession error: ${error.message}`)
-                        reject(error)
-                        PerformanceTester.end(PerformanceEvents.SDK_START_BIN_SESSION, false, util.format(error))
-                        return
-                    }
-
-                    this.logger.info('StartBinSession successful')
-                    PerformanceTester.end(PerformanceEvents.SDK_START_BIN_SESSION)
-                    resolve(response)
-                })
-            })
+            const startBinSessionPromise = promisify(this.client!.startBinSession).bind(this.client!)
+            try {
+                const response = await startBinSessionPromise(request)
+                this.logger.info('StartBinSession successful')
+                PerformanceTester.end(PerformanceEvents.SDK_START_BIN_SESSION)
+                return response
+            } catch (error: unknown) {
+                this.logger.error(`StartBinSession error: ${util.format(error)}`)
+                PerformanceTester.end(PerformanceEvents.SDK_START_BIN_SESSION, false, util.format(error))
+                throw error
+            }
         } catch (error) {
             this.logger.error(`Error in startBinSession: ${util.format(error)}`)
             PerformanceTester.end(PerformanceEvents.SDK_START_BIN_SESSION, false, util.format(error))
@@ -158,23 +153,18 @@ export class GrpcClient {
                 binSessionId: this.binSessionId,
             })
 
-            const response = await new Promise((resolve, reject) => {
-                this.client!.connectBinSession(request, (error: ServiceError, response: ConnectBinSessionResponse) => {
-                    if (error) {
-                        this.logger.error(`ConnectBinSession error: ${error.message}`)
-                        reject(error)
-                        PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION, false, util.format(error))
-                        return
-                    }
-
-                    this.logger.info('ConnectBinSession successful')
-                    PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION)
-                    resolve(response)
-                })
-            })
-
-            this.logger.debug(`connect-bin-session response: ${util.format(response)}`)
-            return response
+            const connectBinSessionPromise = promisify(this.client!.connectBinSession).bind(this.client!)
+            try {
+                const response =  await connectBinSessionPromise(request)
+                this.logger.info('ConnectBinSession successful')
+                PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION)
+                return response
+            } catch (error: unknown) {
+                const errorMessage = util.format(error)
+                this.logger.error(`ConnectBinSession error: ${errorMessage}`)
+                PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION, false, errorMessage)
+                throw error
+            }
         } catch (error) {
             PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION, false, util.format(error))
             this.logger.error(`Error in connectBinSession: ${util.format(error)}`)
@@ -205,23 +195,18 @@ export class GrpcClient {
             })
 
             // Get response from gRPC call
-            const response = await new Promise((resolve, reject) => {
-                this.client!.stopBinSession(request, (error: ServiceError, response: StopBinSessionResponse) => {
-                    if (error) {
-                        this.logger.error(`StopBinSession error: ${error.message}`)
-                        reject(error)
-                        PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP, false, util.format(error))
-                        return
-                    }
-
-                    this.logger.info('StopBinSession successful')
-                    PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP)
-                    resolve(response)
-                })
-            })
-
-            this.logger.debug(`stop-bin-session response: ${util.format(response)}`)
-            return response
+            const stopBinSessionPromise = promisify(this.client!.stopBinSession).bind(this.client!)
+            try {
+                const response = await stopBinSessionPromise(request)
+                this.logger.info('StopBinSession successful')
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP)
+                return response
+            } catch (error: unknown) {
+                const errorMessage = util.format(error)
+                this.logger.error(`StopBinSession error: ${errorMessage}`)
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP, false, errorMessage)
+                throw error
+            }
         } catch (error) {
             PerformanceTester.end(PerformanceEvents.SDK_CLI_ON_STOP, false, util.format(error))
             this.logger.error(`Error in stopBinSession: ${util.format(error)}`)
