@@ -271,7 +271,7 @@ export async function url (
                 timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
             }
         ).catch(() => {
-            return {} as any
+            return {} as WebdriverIO.Request
         })
         return request
     }
