@@ -36,7 +36,23 @@ import type { TransformElement } from '../../types.js'
                 done(elem.textContent + a + b + c + d)
             }, 3000);
         }, 1, 2, 3, 4);
+
         // node.js context - client and console are available
+        console.log(text); // outputs "Hello World1234"
+    });
+
+    :executeAsync.ts
+    it('should wait for the element to exist, then executes async javascript on the page with the element as first argument', async () => {
+        await browser.setTimeout({ script: 5000 })
+
+        // explicitly type the return value of the script to ensure type safety
+        const text: number = await $('div').execute((elem, a, b, c, d) => {
+            // browser context - you may not access client or console
+            setTimeout(() => {
+                done(elem.textContent + a + b + c + d)
+            }, 3000);
+        }, 1, 2, 3, 4);
+
         // node.js context - client and console are available
         console.log(text); // outputs "Hello World1234"
     });
