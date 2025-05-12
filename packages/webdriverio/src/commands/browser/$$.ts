@@ -1,12 +1,11 @@
 import type { ElementReference } from '@wdio/protocols'
 
 import { findElements, isElement, findElement } from '../../utils/index.js'
-import { getElements, getElement } from '../../utils/getElementObject.js'
+import { getElements } from '../../utils/getElementObject.js'
 import { findDeepElements } from '../../utils/index.js'
-import { WebdriverIOElementArray } from '../../element/array.js'
+import { ElementArray } from '../../element/array.js'
 import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
-
 /**
  * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
  * It returns a `ChainablePromiseArray` containing a set of WebdriverIO elements.
@@ -50,7 +49,7 @@ import type { Selector } from '../../types.js'
 export function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
-): WebdriverIOElementArray {
+): WebdriverIO.ElementArray {
     /**
      * do a deep lookup if
      * - we are using Bidi
@@ -63,7 +62,7 @@ export function $$ (
          */
         if (globalThis.wdio?.execute) {
             const command = '$$' as const
-            return WebdriverIOElementArray.fromAsyncCallback(async () => {
+            return ElementArray.fromAsyncCallback(async () => {
                 const res = 'elementId' in this
                     ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as unknown as ElementReference[]
                     : await globalThis.wdio.execute(command, selector) as unknown as ElementReference[]
@@ -75,7 +74,7 @@ export function $$ (
             })
         }
 
-        return WebdriverIOElementArray.fromAsyncCallback(async () => {
+        return ElementArray.fromAsyncCallback(async () => {
             const res = await findDeepElements.call(this, selector)
             const elements = await getElements.call(this, selector as Selector, res)
             return elements
@@ -85,7 +84,7 @@ export function $$ (
         })
     }
 
-    return WebdriverIOElementArray.fromAsyncCallback(async () => {
+    return ElementArray.fromAsyncCallback(async () => {
         let res: (ElementReference | Error)[] = Array.isArray(selector)
             ? selector as ElementReference[]
             : await findElements.call(this, selector)
@@ -109,22 +108,4 @@ export function $$ (
         selector: selector as Selector,
         parent: this
     })
-}
-
-function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: ElementReference[]) {
-    /**
-     * Define scope of element. In most cases it is `this` but if we pass through
-     * an element object from the browser runner we have to look into the parent
-     * provided by the selector object. Since these objects are passed through
-     * as raw objects without any prototype we have to check if the `$` or `$$`
-     * is defined on the object itself and if not, create a new element object.
-     */
-    let parent = res.length > 0 ? (res[0] as WebdriverIO.Element).parent || this : this
-    if (typeof parent.$ === 'undefined') {
-        parent = 'selector' in parent
-            ? getElement.call(this, parent.selector, parent)
-            : this
-    }
-
-    return parent
 }

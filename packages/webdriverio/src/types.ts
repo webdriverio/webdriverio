@@ -6,6 +6,7 @@ import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
 import type { Dialog as DialogImport } from './session/dialog.js'
+import type { ElementArray as ElementArrayImport } from './element/array.js'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
@@ -153,37 +154,6 @@ export type MultiRemoteElementCommandsType = {
 export type MultiRemoteProtocolCommandsType = {
     [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
 }
-
-interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof AsyncIterators<WebdriverIO.Element>>, AsyncIterators<WebdriverIO.Element> {
-    /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a function if element was found via e.g. `$(() => document.body)`
-     */
-    selector: Selector
-    /**
-     * parent of the element if fetched via `$(parent).$(child)`
-     */
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    /**
-     * command name with which this element was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`
-     */
-    foundWith: string
-    /**
-     * properties of the fetched elements
-     */
-    props: any[]
-    /**
-     * Amount of element fetched.
-     */
-    length: number
-    /**
-     * get the `WebdriverIO.Element[]` list
-     */
-    getElements(): Promise<WebdriverIO.ElementArray>
-}
-export type ElementArray = ElementArrayExport
 
 type AddCommandFnScoped<
     InstanceType = WebdriverIO.Browser,
@@ -712,7 +682,7 @@ declare global {
          * the parent element, selector and properties of the fetched elements. This is useful to
          * e.g. re-fetch the set in case no elements got returned.
          */
-        interface ElementArray extends ElementArrayExport {}
+        interface ElementArray extends ElementArrayImport {}
         /**
          * WebdriverIO multiremote browser object
          * A multiremote browser instance is a property on the global WebdriverIO browser object that

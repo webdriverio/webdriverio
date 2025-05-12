@@ -4,7 +4,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, asyncIterators, getBrowserObject } from '@wdio/utils'
+import { UNICODE_CHARACTERS, getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'

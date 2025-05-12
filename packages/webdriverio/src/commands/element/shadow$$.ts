@@ -37,7 +37,7 @@ import type { Selector } from '../../types.js'
 export function shadow$$ (
     this: WebdriverIO.Element,
     selector: string
-): ElementArray {
+): WebdriverIO.ElementArray {
     const browser = getBrowserObject(this)
 
     return ElementArray.fromAsyncCallback(async () => {
