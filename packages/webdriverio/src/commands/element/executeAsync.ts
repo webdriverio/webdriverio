@@ -68,6 +68,14 @@ import type { TransformElement } from '../../types.js'
  * @deprecated Please use `execute` instead
  */
 export async function executeAsync<ReturnValue, InnerArguments extends unknown[]> (
+    /**
+     * `this` has to be typed `unknown` as we can't otherwise assign it to the element, due to:
+     * ```
+     * The 'this' context of type 'ChainablePromiseElement' is not assignable to method's 'this' of type 'Element'.
+     *   Types of property 'parent' are incompatible.
+     *     Type 'Promise<Browser | Element | MultiRemoteBrowser>' is not assignable to type 'Browser | Element'.
+     * ```
+     */
     this: unknown,
     script:
         string |
