@@ -8,8 +8,8 @@ const log = logger('@wdio/utils:shim')
 let inCommandHook = false
 
 const ELEMENT_QUERY_COMMANDS = [
-    '$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
-    'react$$', 'nextElement', 'previousElement', 'parentElement'
+    '$', 'custom$', 'shadow$', 'react$',
+    'nextElement', 'previousElement', 'parentElement'
 ]
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
@@ -218,7 +218,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                      * await $('foo').$('bar')
                      * ```
                      */
-                    if (ELEMENT_QUERY_COMMANDS.includes(prop) || prop.endsWith('$')) {
+                    if (ELEMENT_QUERY_COMMANDS.includes(prop)) {
                         // this: WebdriverIO.Element
                         return wrapCommand(prop, function (this: Record<string, Function>, ...args: unknown[]) {
                             // eslint-disable-next-line prefer-spread
@@ -296,9 +296,9 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
          * if the command suppose to return an element, we apply `chainElementQuery` to allow
          * chaining of these promises.
          */
-        const command = ELEMENT_QUERY_COMMANDS.includes(commandName) || commandName === '$'
+        const command = ELEMENT_QUERY_COMMANDS.includes(commandName)
             ? chainElementQuery
-            : ACTION_COMMANDS.includes(commandName) || commandName === '$$'
+            : ACTION_COMMANDS.includes(commandName) || commandName.endsWith('$$')
                 /**
                  * actions commands are a bit special as they return their own
                  * sync interface
