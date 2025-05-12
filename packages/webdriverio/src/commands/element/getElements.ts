@@ -1,5 +1,3 @@
-import type { ChainablePromiseArray } from '../../types.js'
-
 /**
  *
  * Access `WebdriverIO.ElementArray` properties like `length` or `selector` from the elements reference.
@@ -15,8 +13,8 @@ import type { ChainablePromiseArray } from '../../types.js'
  * @alias element.getElements
  * @return {WebdriverIO.ElementArray}
  * @type utility
- *
+ * @deprecated
  */
-export async function getElements (this: WebdriverIO.ElementArray | ChainablePromiseArray): Promise<WebdriverIO.ElementArray> {
+export async function getElements (this: WebdriverIO.ElementArray): Promise<WebdriverIO.ElementArray> {
     return this as WebdriverIO.ElementArray
 }

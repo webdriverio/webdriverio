@@ -28,13 +28,30 @@ export class ElementArray implements Iterable<WebdriverIO.Element> {
         }
     }
 
-    async #getItems () {
+    async #getItems (): Promise<WebdriverIO.Element[]> {
         if (Array.isArray(this.#items)) {
             return this.#items
         }
 
         this.#items = await this.#items
-        return this.#items as WebdriverIO.Element[]
+        return this.#items
+    }
+
+    /**
+     * selector used to fetch this element, can be
+     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
+     * - a string if `findElement` was used and a reference was found
+     * - or a function if element was found via e.g. `$(() => document.body)`
+     */
+    get selector() {
+        return this.#metadata.selector
+    }
+
+    /**
+     * parent of the element if fetched via `$(parent).$(child)`
+     */
+    get parent() {
+        return this.#metadata.parent
     }
 
     /**
@@ -128,6 +145,18 @@ export class ElementArray implements Iterable<WebdriverIO.Element> {
         for (const item of items) {
             yield item
         }
+    }
+
+    /**
+     * Get an iterator over the elements in the array
+     * @returns An iterator over the elements in the array
+     */
+    entries(): IterableIterator<[number, WebdriverIO.Element]> {
+        if (!Array.isArray(this.#items)) {
+            throw new Error('Cannot get entries of the array because it is not yet resolved')
+        }
+
+        return this.#items.entries()
     }
 
     /**

@@ -6,9 +6,10 @@ import { findDeepElements } from '../../utils/index.js'
 import { ElementArray } from '../../element/array.js'
 import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
+
 /**
  * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
- * It returns a `ChainablePromiseArray` containing a set of WebdriverIO elements.
+ * It returns a `WebdriverIO.ElementArray` containing an array of WebdriverIO elements.
  *
  * Using the wdio testrunner this command is a global variable, see [Globals](https://webdriver.io/docs/api/globals)
  * for more information. Using WebdriverIO within a [standalone](https://webdriver.io/docs/setuptypes#standalone-mode)
