@@ -29,11 +29,8 @@ type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
 
 type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
-type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
     [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement
-} & {
-    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray
 }
 
 type AsyncElementProto = {
@@ -73,62 +70,6 @@ export interface ChainablePromiseElement extends
     ChainablePromiseBaseElement,
     AsyncElementProto,
     Omit<WebdriverIO.Element, keyof ChainablePromiseBaseElement | keyof AsyncElementProto> {}
-
-interface AsyncIterators<T> {
-    /**
-     * Unwrap the nth element of the element list.
-     */
-    forEach: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: T) => Promise<void>
-    forEachSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: T) => Promise<void>
-    map: <U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: T) => Promise<U[]>
-    mapSeries: <T, U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: T) => Promise<U[]>;
-    find: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<T>;
-    findSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<T>;
-    findIndex: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<number>;
-    findIndexSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<number>;
-    some: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<boolean>;
-    someSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<boolean>;
-    every: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<boolean>;
-    everySeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<boolean>;
-    filter: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<WebdriverIO.Element[]>;
-    filterSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<WebdriverIO.Element[]>;
-    reduce: <T, U>(callback: (accumulator: U, currentValue: WebdriverIO.Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
-    entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>;
-}
-
-export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
-    [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
-    [Symbol.iterator](): IterableIterator<WebdriverIO.Element>
-
-    /**
-     * Amount of element fetched.
-     */
-    length: Promise<number>
-    /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a function if element was found via e.g. `$(() => document.body)`
-     */
-    selector: Promise<Selector>
-    /**
-     * parent of the element if fetched via `$(parent).$(child)`
-     */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
-    /**
-     * allow to access a specific index of the element set
-     */
-    [n: number]: ChainablePromiseElement
-    /**
-     * get the `WebdriverIO.Element[]` list
-     */
-    getElements(): Promise<WebdriverIO.ElementArray>
-
-    /**
-     * Returns an async iterator of key/value pairs for every index in the array.
-     */
-    entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>
-}
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
 export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
