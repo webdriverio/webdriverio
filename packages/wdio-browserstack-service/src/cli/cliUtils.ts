@@ -1,18 +1,14 @@
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import { platform, arch, homedir } from 'node:os'
-import module from 'node:module'
 import path from 'node:path'
 import util, { promisify } from 'node:util'
-import url from 'node:url'
 import { exec } from 'node:child_process'
-import type { IncomingMessage } from 'node:http'
+import type { ZipFile, Options as yauzlOptions } from 'yauzl'
 import yauzl from 'yauzl'
-import pkg from 'follow-redirects'
-const { https } = pkg
+import { fetch } from 'undici'
 
-const require = module.createRequire(import.meta.url)
-const pkgJSON = require('../../package.json')
+import pkgJSON from '../../package.json' with { type: 'json' }
 
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
@@ -30,6 +26,7 @@ import {
 import { BStackLogger } from './cliLogger.js'
 import { UPDATED_CLI_ENDPOINT, BROWSERSTACK_API_URL } from '../constants.js'
 import type { Options } from '@wdio/types'
+import { Readable } from 'node:stream'
 const logger = BStackLogger
 
 export class CLIUtils {
@@ -240,32 +237,34 @@ export class CLIUtils {
         PerformanceTester.start(PerformanceEvents.SDK_CLI_DOWNLOAD)
         logger.debug(`Downloading SDK binary from: ${binDownloadUrl}`)
         try {
-            const options = url.parse(binDownloadUrl)
             const zipFilePath = path.join(cliDir, 'downloaded_file.zip')
             const downloadedFileStream = fs.createWriteStream(zipFilePath)
             return new Promise<string|null>((resolve, reject) => {
-                https.get(options, function (response: IncomingMessage) {
-                    const binaryName = null
-                    response.pipe(downloadedFileStream)
-                    response.on('error', function (err: Error) {
-                        logger.error('Got Error in percy binary download response' + err)
-                        PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
-                        reject(err)
-                    })
-                    downloadedFileStream.on('error', function (err: Error) {
-                        logger.error('Got Error while downloading percy binary file' + err)
-                        PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
-                        reject(err)
-                    })
-                    CLIUtils.downloadFileStream(downloadedFileStream, binaryName, zipFilePath, cliDir, resolve, reject)
-                    PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD)
+                fetch(binDownloadUrl, {
+                    redirect: 'follow'
+                }).then((response) => {
+                    if (response.ok && response.body) {
+                        const binaryName = null
+                        Readable.fromWeb(response.body).pipe(downloadedFileStream)
 
-                })
-                    .on('error', function (err: Error) {
-                        logger.error(`Got Error in percy binary downloading request ${util.format(err)}`)
-                        PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
+                        downloadedFileStream.on('error', function (err: Error) {
+                            logger.error('Got Error while downloading percy binary file' + err)
+                            PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
+                            reject(err)
+                        })
+                        CLIUtils.downloadFileStream(downloadedFileStream, binaryName, zipFilePath, cliDir, resolve, reject)
+                    } else {
+                        const err = 'Got Error in cli binary download response' + response.status
+                        logger.error(err)
+                        PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, err)
                         reject(err)
-                    })
+                    }
+                }).catch((err) => {
+                    logger.error(`Got Error in cli binary downloading request ${util.format(err)}`)
+                    PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
+                    reject(err)
+                })
+                PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD)
             })
         } catch (err) {
             PerformanceTester.end(PerformanceEvents.SDK_CLI_DOWNLOAD, false, util.format(err))
@@ -276,9 +275,9 @@ export class CLIUtils {
 
     static downloadFileStream(downloadedFileStream: fs.WriteStream, binaryName: string|null, zipFilePath: string, cliDir: string, resolve: (path: string) => void, reject: (reason?: Error) => void) {
         downloadedFileStream.on('close', async function () {
-            const yauzlOpenPromise = promisify(yauzl.open)
+            const yauzlOpenPromise = promisify(yauzl.open) as (path: string, options: yauzlOptions) => Promise<ZipFile>
             try {
-                const zipfile = await yauzlOpenPromise(zipFilePath)
+                const zipfile = await yauzlOpenPromise(zipFilePath, { lazyEntries: true })
                 zipfile.readEntry()
                 zipfile.on('entry', async (entry) => {
                     if (!binaryName) {binaryName = entry.fileName}
@@ -288,7 +287,7 @@ export class CLIUtils {
                     } else {
                         // file entry
                         const writeStream = fs.createWriteStream(path.join(cliDir, entry.fileName))
-                        const openReadStreamPromise = promisify(zipfile.openReadStream)
+                        const openReadStreamPromise = promisify(zipfile.openReadStream).bind(zipfile)
                         try {
                             const readStream = await openReadStreamPromise(entry)
                             readStream.on(

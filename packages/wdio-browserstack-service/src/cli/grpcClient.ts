@@ -102,7 +102,7 @@ export class GrpcClient {
                 this.logger.info('No gRPC client not initialized.')
             }
 
-            const packageInfo = CLIUtils.getSdkVersion()
+            const packageVersion = CLIUtils.getSdkVersion()
             const automationFrameworkDetail = CLIUtils.getAutomationFrameworkDetail()
             const framework = automationFrameworkDetail.name
 
@@ -110,7 +110,7 @@ export class GrpcClient {
             const request = StartBinSessionRequest.create({
                 binSessionId: this.binSessionId,
                 sdkLanguage: CLIUtils.getSdkLanguage(),
-                sdkVersion: packageInfo.version,
+                sdkVersion: packageVersion,
                 pathProject: process.cwd(),
                 pathConfig: path.resolve(process.cwd(), 'browserstack.yml'),
                 cliArgs: process.argv.slice(2),
