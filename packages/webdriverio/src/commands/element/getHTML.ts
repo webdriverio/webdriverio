@@ -141,9 +141,8 @@ export async function getHTML(
         /**
          * then get the HTML of the element and its shadow roots
          */
-        const { html, shadowElementHTML } = await browser.execute(
+        const { html, shadowElementHTML } = await this.execute(
             getHTMLShadowScript,
-            { [ELEMENT_KEY]: this.elementId } as unknown as HTMLElement,
             includeSelectorTag,
             elementsWithShadowRootAndIdVerified
         )
