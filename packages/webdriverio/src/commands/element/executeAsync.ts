@@ -1,5 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
-
+import type { TransformElement } from '../../types.js'
 /**
  * :::warning
  * The `executeAsync` command is deprecated and will be removed in a future version.
@@ -52,12 +52,21 @@ import { getBrowserObject } from '@wdio/utils'
  * @deprecated Please use `execute` instead
  */
 export async function executeAsync<ReturnValue, InnerArguments extends unknown[]> (
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: unknown,
     script:
         string |
-        ((...args: [...innerArgs: [WebdriverIO.Element, ...InnerArguments], callback: (result?: ReturnValue) => void]) => void),
+        (
+            (
+                ...args: [
+                    element: HTMLElement,
+                    ...innerArgs: { [K in keyof InnerArguments]: TransformElement<InnerArguments[K]> },
+                    callback: (result?: TransformElement<ReturnValue>) => void
+                ]
+            ) => void
+        ),
     ...args: InnerArguments
 ): Promise<ReturnValue> {
-    const browser = getBrowserObject(this)
-    return browser.executeAsync(script, this, ...args)
+    const scope = this as WebdriverIO.Element
+    const browser = getBrowserObject(scope)
+    return browser.executeAsync(script, scope, ...args)
 }
