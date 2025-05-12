@@ -34,7 +34,7 @@ export function custom$$ (
     this: WebdriverIO.Element,
     strategyName: string,
     ...strategyArguments: unknown[]
-): ElementArray {
+): WebdriverIO.ElementArray {
     const browserObject = getBrowserObject(this)
     const strategy = browserObject.strategies.get(strategyName) as CustomStrategyFunction
 

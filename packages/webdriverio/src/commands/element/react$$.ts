@@ -44,7 +44,7 @@ export function react$$(
     this: WebdriverIO.Element,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
-): ElementArray {
+): WebdriverIO.ElementArray {
     return ElementArray.fromAsyncCallback(async () => {
         const browser = await getBrowserObject(this)
         await this.executeScript(resqScript.toString(), [])
