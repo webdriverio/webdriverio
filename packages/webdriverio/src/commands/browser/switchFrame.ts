@@ -265,6 +265,33 @@ export async function switchFrame (
         await element.waitForExist({
             timeoutMsg: `Can't switch to frame with selector ${element.selector} because it doesn't exist`
         })
+
+        // If this is an element from a collection (has index property)
+        if (element.index !== undefined && element.selector) {
+            try {
+                // CSS :nth-child and XPath position() are 1-based
+                const index = element.index + 1
+                let selector: string
+
+                if (element.locator?.type === 'xpath') {
+                    const baseXpath = element.locator.value || element.selector
+                    selector = `(${baseXpath})[${index}]`
+                } else {
+                    selector = `${element.selector}:nth-child(${index})`
+                }
+
+                const specificElement = this.$(selector)
+                await specificElement.waitForExist({
+                    timeoutMsg: `Can't switch to frame at index ${element.index} because it doesn't exist`
+                })
+
+                const frameElement = await specificElement.getElement()
+                return switchToFrameUsingElement(this, frameElement)
+            } catch (error) {
+                log.warn(`Failed to locate frame element at index ${element.index}: ${(error as Error).message}`)
+            }
+        }
+
         return switchToFrameUsingElement(this, element)
     }
 
