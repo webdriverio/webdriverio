@@ -1755,6 +1755,15 @@ export interface BrowserStackCapabilities {
      */
     maskCommands?: string,
 
+
+    /**
+     * Enables the camera image injection feature.
+     *
+     * Real Devices only.
+     * @see https://www.browserstack.com/docs/app-automate/appium/advanced-features/camera-image-injection
+     */
+    enableCameraImageInjection?: boolean
+
     testhubBuildUuid?: string,
     buildProductMap?: { [key: string]: boolean }
 }
