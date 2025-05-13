@@ -141,5 +141,89 @@ describe('switchFrame command', () => {
             await browser.switchFrame(null)
             expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')
         })
+
+        it('should handle element from collection with CSS selector', async () => {
+            // Create a mock element with index property and CSS selector
+            const elem = await browser.$('iframe')
+            Object.defineProperty(elem, 'index', { value: 2 })
+            Object.defineProperty(elem, 'selector', { value: '.frame-class' })
+            vi.spyOn(elem, 'waitForExist').mockResolvedValue(true)
+
+            // Mock the $ method to return a specific element
+            const specificElement = {
+                waitForExist: vi.fn().mockResolvedValue(true),
+                getElement: vi.fn().mockResolvedValue({
+                    [ELEMENT_KEY]: 'specific-elem-456'
+                })
+            }
+            const dollarSign = vi.spyOn(browser, '$')
+            dollarSign.mockReturnValue(specificElement as any)
+
+            // Mock the execute method
+            vi.spyOn(browser, 'execute').mockResolvedValue({
+                context: 'FRAME_CONTEXT_ID'
+            })
+
+            // Mock the switchToFrame method
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame')
+            switchToFrame.mockResolvedValue(undefined)
+
+            // Call the method
+            const result = await browser.switchFrame(elem)
+
+            // Verify critical aspects of the function's behavior
+            expect(dollarSign).toHaveBeenCalledWith('.frame-class:nth-child(3)')
+            expect(specificElement.getElement).toHaveBeenCalled()
+            expect(switchToFrame).toHaveBeenCalledWith({
+                [ELEMENT_KEY]: 'specific-elem-456'
+            })
+            expect(contextManager.setCurrentContext).toHaveBeenCalledWith('FRAME_CONTEXT_ID')
+            expect(result).toBe('FRAME_CONTEXT_ID')
+        })
+
+        it('should handle element from collection with XPath selector', async () => {
+            // Create a mock element with index property and XPath locator
+            const elem = await browser.$('iframe')
+            Object.defineProperty(elem, 'index', { value: 1 })
+            Object.defineProperty(elem, 'selector', { value: '//iframe' })
+            Object.defineProperty(elem, 'locator', {
+                value: {
+                    type: 'xpath',
+                    value: '//iframe'
+                }
+            })
+            vi.spyOn(elem, 'waitForExist').mockResolvedValue(true)
+
+            // Mock the $ method to return a specific element
+            const specificElement = {
+                waitForExist: vi.fn().mockResolvedValue(true),
+                getElement: vi.fn().mockResolvedValue({
+                    [ELEMENT_KEY]: 'xpath-elem-789'
+                })
+            }
+            const dollarSign = vi.spyOn(browser, '$')
+            dollarSign.mockReturnValue(specificElement as any)
+
+            // Mock the execute method
+            vi.spyOn(browser, 'execute').mockResolvedValue({
+                context: 'XPATH_FRAME_CONTEXT'
+            })
+
+            // Mock the switchToFrame method
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame')
+            switchToFrame.mockResolvedValue(undefined)
+
+            // Call the method
+            const result = await browser.switchFrame(elem)
+
+            // Verify critical aspects of the function's behavior
+            expect(dollarSign).toHaveBeenCalledWith('(//iframe)[2]')
+            expect(specificElement.getElement).toHaveBeenCalled()
+            expect(switchToFrame).toHaveBeenCalledWith({
+                [ELEMENT_KEY]: 'xpath-elem-789'
+            })
+            expect(contextManager.setCurrentContext).toHaveBeenCalledWith('XPATH_FRAME_CONTEXT')
+            expect(result).toBe('XPATH_FRAME_CONTEXT')
+        })
     })
 })
