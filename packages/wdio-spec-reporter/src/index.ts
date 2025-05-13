@@ -380,7 +380,7 @@ export default class SpecReporter extends WDIOReporter {
 
             // Display file path of spec
             if (suite.file && !specFileReferences.includes(suite.file)) {
-                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '')}`)
+                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '').slice(1)}`)
                 specFileReferences.push(suite.file)
             }
 
