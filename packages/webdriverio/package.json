@@ -1,7 +1,7 @@
 {
   "name": "@testplane/webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "9.5.17",
+  "version": "9.5.18",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
