@@ -43,12 +43,12 @@ export type JsUint = number
 export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'invalid web extension' | 'move target out of bounds' | 'no such alert' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such node' | 'no such request' | 'no such script' | 'no such storage partition' | 'no such user context' | 'no such web extension' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation'
 export type SessionResult = SessionNewResult | SessionStatusResult | SessionSubscribeResult
 
-export interface SessionCapabilitiesRequest extends Extensible {
+export interface SessionCapabilitiesRequest {
     alwaysMatch?: SessionCapabilityRequest;
     firstMatch?: SessionCapabilityRequest[];
 }
 
-export interface SessionCapabilityRequest {
+export interface SessionCapabilityRequest extends Extensible {
     acceptInsecureCerts?: boolean;
     browserName?: string;
     browserVersion?: string;
@@ -651,12 +651,12 @@ export interface ScriptWorkletRealmInfo extends ScriptBaseRealmInfo {
 export type ScriptRealmType = 'window' | 'dedicated-worker' | 'shared-worker' | 'service-worker' | 'worker' | 'paint-worklet' | 'audio-worklet' | 'worklet'
 export type ScriptRemoteReference = ScriptSharedReference | ScriptRemoteObjectReference
 
-export interface ScriptSharedReference {
+export interface ScriptSharedReference extends Extensible {
     sharedId: ScriptSharedId;
     handle?: ScriptHandle;
 }
 
-export interface ScriptRemoteObjectReference {
+export interface ScriptRemoteObjectReference extends Extensible {
     handle: ScriptHandle;
     sharedId?: ScriptSharedId;
 }
@@ -875,7 +875,7 @@ export interface ScriptRealmDestroyedParameters {
 
 export type StorageResult = StorageDeleteCookiesResult | StorageGetCookiesResult | StorageSetCookieResult
 
-export interface StoragePartitionKey {
+export interface StoragePartitionKey extends Extensible {
     userContext?: string;
     sourceOrigin?: string;
 }
