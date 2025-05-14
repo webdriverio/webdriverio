@@ -29,19 +29,19 @@ export interface ErrorResponse extends Extensible {
     stacktrace?: string;
 }
 
-export type ResultData = BrowsingContextResult | EmptyResult | NetworkResult | ScriptResult | SessionResult | StorageResult
+export type ResultData = BrowsingContextResult | EmptyResult | NetworkResult | ScriptResult | SessionResult | StorageResult | WebExtensionResult
 export interface EmptyResult extends Extensible {}
 
 export interface Event extends Extensible {
     type: 'event';
 }
 
-export type EventData = BrowsingContextEvent | LogEvent | NetworkEvent | ScriptEvent
 export type Extensible = Record<string, unknown>
+export type EventData = BrowsingContextEvent | InputEvent | LogEvent | NetworkEvent | ScriptEvent
 export type JsInt = number
 export type JsUint = number
-export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'move target out of bounds' | 'no such alert' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such node' | 'no such request' | 'no such script' | 'no such storage partition' | 'no such user context' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation'
-export type SessionResult = SessionNewResult | SessionStatusResult
+export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'invalid web extension' | 'move target out of bounds' | 'no such alert' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such node' | 'no such request' | 'no such script' | 'no such storage partition' | 'no such user context' | 'no such web extension' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation'
+export type SessionResult = SessionNewResult | SessionStatusResult | SessionSubscribeResult
 
 export interface SessionCapabilitiesRequest {
     alwaysMatch?: SessionCapabilityRequest;
@@ -54,7 +54,7 @@ export interface SessionCapabilityRequest extends Extensible {
     browserVersion?: string;
     platformName?: string;
     proxy?: SessionProxyConfiguration;
-    webSocketUrl?: boolean;
+    unhandledPromptBehavior?: SessionUserPromptHandler;
 }
 
 export type SessionProxyConfiguration = SessionAutodetectProxyConfiguration | SessionDirectProxyConfiguration | SessionManualProxyConfiguration | SessionPacProxyConfiguration | SessionSystemProxyConfiguration
@@ -89,6 +89,18 @@ export interface SessionSystemProxyConfiguration extends Extensible {
     proxyType: 'system';
 }
 
+export interface SessionUserPromptHandler {
+    alert?: SessionUserPromptHandlerType;
+    beforeUnload?: SessionUserPromptHandlerType;
+    confirm?: SessionUserPromptHandlerType;
+    default?: SessionUserPromptHandlerType;
+    file?: SessionUserPromptHandlerType;
+    prompt?: SessionUserPromptHandlerType;
+}
+
+export type SessionUserPromptHandlerType = 'accept' | 'dismiss' | 'ignore'
+export type SessionSubscription = string
+
 export interface SessionStatusResult {
     ready: boolean;
     message: string;
@@ -104,11 +116,28 @@ export interface SessionNewResult {
         setWindowRect: boolean;
         userAgent: string;
         proxy?: SessionProxyConfiguration;
+        unhandledPromptBehavior?: SessionUserPromptHandler;
         webSocketUrl?: string;
     };
 }
 
+export interface SessionSubscribeResult {
+    subscription: SessionSubscription;
+}
+
 export type BrowserResult = BrowserCreateUserContextResult | BrowserGetUserContextsResult
+export type BrowserClientWindow = string
+
+export interface BrowserClientWindowInfo {
+    active: boolean;
+    clientWindow: BrowserClientWindow;
+    height: JsUint;
+    state: 'fullscreen' | 'maximized' | 'minimized' | 'normal';
+    width: JsUint;
+    x: JsInt;
+    y: JsInt;
+}
+
 export type BrowserUserContext = string
 
 export interface BrowserUserContextInfo {
@@ -117,24 +146,30 @@ export interface BrowserUserContextInfo {
 
 export type BrowserCreateUserContextResult = BrowserUserContextInfo
 
+export interface BrowserGetClientWindowsResult {
+    clientWindows: BrowserClientWindowInfo[];
+}
+
 export interface BrowserGetUserContextsResult {
     userContexts: BrowserUserContextInfo[];
 }
 
 export type BrowsingContextResult = BrowsingContextCaptureScreenshotResult | BrowsingContextCreateResult | BrowsingContextGetTreeResult | BrowsingContextLocateNodesResult | BrowsingContextNavigateResult | BrowsingContextPrintResult | BrowsingContextTraverseHistoryResult
-export type BrowsingContextEvent = BrowsingContextContextCreated | BrowsingContextContextDestroyed | BrowsingContextDomContentLoaded | BrowsingContextDownloadWillBegin | BrowsingContextFragmentNavigated | BrowsingContextLoad | BrowsingContextNavigationAborted | BrowsingContextNavigationFailed | BrowsingContextNavigationStarted | BrowsingContextUserPromptClosed | BrowsingContextUserPromptOpened
+export type BrowsingContextEvent = BrowsingContextContextCreated | BrowsingContextContextDestroyed | BrowsingContextDomContentLoaded | BrowsingContextDownloadWillBegin | BrowsingContextFragmentNavigated | BrowsingContextHistoryUpdated | BrowsingContextLoad | BrowsingContextNavigationAborted | BrowsingContextNavigationCommitted | BrowsingContextNavigationFailed | BrowsingContextNavigationStarted | BrowsingContextUserPromptClosed | BrowsingContextUserPromptOpened
 export type BrowsingContextBrowsingContext = string
 export type BrowsingContextInfoList = (BrowsingContextInfo)[]
 
 export interface BrowsingContextInfo {
     children: BrowsingContextInfoList | null;
+    clientWindow: BrowserClientWindow;
     context: BrowsingContextBrowsingContext;
+    originalOpener: BrowsingContextBrowsingContext | null;
     url: string;
     userContext: BrowserUserContext;
     parent?: BrowsingContextBrowsingContext | null;
 }
 
-export type BrowsingContextLocator = BrowsingContextAccessibilityLocator | BrowsingContextCssLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator
+export type BrowsingContextLocator = BrowsingContextAccessibilityLocator | BrowsingContextCssLocator | BrowsingContextContextLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator
 
 export interface BrowsingContextAccessibilityLocator {
     type: 'accessibility';
@@ -147,6 +182,13 @@ export interface BrowsingContextAccessibilityLocator {
 export interface BrowsingContextCssLocator {
     type: 'css';
     value: string;
+}
+
+export interface BrowsingContextContextLocator {
+    type: 'context';
+    value: {
+        context: BrowsingContextBrowsingContext;
+    };
 }
 
 export interface BrowsingContextInnerTextLocator {
@@ -164,12 +206,15 @@ export interface BrowsingContextXPathLocator {
 
 export type BrowsingContextNavigation = string
 
-export interface BrowsingContextNavigationInfo {
+export interface BrowsingContextBaseNavigationInfo {
     context: BrowsingContextBrowsingContext;
     navigation: BrowsingContextNavigation | null;
     timestamp: JsUint;
     url: string;
 }
+
+export interface BrowsingContextNavigationInfo extends BrowsingContextBaseNavigationInfo {}
+export type BrowsingContextUserPromptType = 'alert' | 'beforeunload' | 'confirm' | 'prompt'
 
 export interface BrowsingContextCaptureScreenshotResult {
     data: string;
@@ -218,6 +263,16 @@ export interface BrowsingContextFragmentNavigated {
     params: BrowsingContextNavigationInfo;
 }
 
+export interface BrowsingContextHistoryUpdated {
+    method: 'browsingContext.historyUpdated';
+    params: BrowsingContextHistoryUpdatedParameters;
+}
+
+export interface BrowsingContextHistoryUpdatedParameters {
+    context: BrowsingContextBrowsingContext;
+    url: string;
+}
+
 export interface BrowsingContextDomContentLoaded {
     method: 'browsingContext.domContentLoaded';
     params: BrowsingContextNavigationInfo;
@@ -230,11 +285,20 @@ export interface BrowsingContextLoad {
 
 export interface BrowsingContextDownloadWillBegin {
     method: 'browsingContext.downloadWillBegin';
-    params: BrowsingContextNavigationInfo;
+    params: BrowsingContextDownloadWillBeginParams;
+}
+
+export interface BrowsingContextDownloadWillBeginParams extends BrowsingContextBaseNavigationInfo {
+    suggestedFilename: string;
 }
 
 export interface BrowsingContextNavigationAborted {
     method: 'browsingContext.navigationAborted';
+    params: BrowsingContextNavigationInfo;
+}
+
+export interface BrowsingContextNavigationCommitted {
+    method: 'browsingContext.navigationCommitted';
     params: BrowsingContextNavigationInfo;
 }
 
@@ -251,6 +315,7 @@ export interface BrowsingContextUserPromptClosed {
 export interface BrowsingContextUserPromptClosedParameters {
     context: BrowsingContextBrowsingContext;
     accepted: boolean;
+    type: BrowsingContextUserPromptType;
     userText?: string;
 }
 
@@ -261,8 +326,9 @@ export interface BrowsingContextUserPromptOpened {
 
 export interface BrowsingContextUserPromptOpenedParameters {
     context: BrowsingContextBrowsingContext;
-    type: 'alert' | 'confirm' | 'prompt' | 'beforeunload';
+    handler: SessionUserPromptHandlerType;
     message: string;
+    type: BrowsingContextUserPromptType;
     defaultValue?: string;
 }
 
@@ -298,7 +364,7 @@ export interface NetworkBase64Value {
 
 export type NetworkSameSite = 'strict' | 'lax' | 'none'
 
-export interface NetworkCookie extends Extensible {
+export interface NetworkCookie {
     name: string;
     value: NetworkBytesValue;
     domain: string;
@@ -332,11 +398,11 @@ export interface NetworkHeader {
 }
 
 export interface NetworkInitiator {
-    type: 'parser' | 'script' | 'preflight' | 'other';
     columnNumber?: JsUint;
     lineNumber?: JsUint;
-    stackTrace?: ScriptStackTrace;
     request?: NetworkRequest;
+    stackTrace?: ScriptStackTrace;
+    type?: 'parser' | 'script' | 'preflight' | 'other';
 }
 
 export type NetworkIntercept = string
@@ -350,6 +416,8 @@ export interface NetworkRequestData {
     cookies: NetworkCookie[];
     headersSize: JsUint;
     bodySize: JsUint | null;
+    destination: string;
+    initiatorType: string | null;
     timings: NetworkFetchTimingInfo;
 }
 
@@ -391,7 +459,7 @@ export interface NetworkBeforeRequestSent {
 }
 
 export interface NetworkBeforeRequestSentParameters extends NetworkBaseParameters {
-    initiator: NetworkInitiator;
+    initiator?: NetworkInitiator;
 }
 
 export interface NetworkFetchError {
@@ -460,13 +528,15 @@ export interface ScriptExceptionDetails {
 
 export type ScriptHandle = string
 export type ScriptInternalId = string
-export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValue | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValue | ScriptSetLocalValue
+export type ScriptLocalValue = ScriptRemoteReference | ScriptPrimitiveProtocolValue | ScriptChannelValue | ScriptArrayLocalValue | ScriptDateLocalValueMap | ScriptMapLocalValue | ScriptObjectLocalValue | ScriptRegExpLocalValueMap | ScriptSetLocalValue
 export type ScriptListLocalValue = (ScriptLocalValue)[]
 
 export interface ScriptArrayLocalValue {
     type: 'array';
     value: ScriptListLocalValue;
 }
+
+export interface ScriptDateLocalValueMap extends ScriptDateLocalValue {}
 
 export interface ScriptDateLocalValue {
     type: 'date';
@@ -489,6 +559,8 @@ export interface ScriptRegExpValue {
     pattern: string;
     flags?: string;
 }
+
+export interface ScriptRegExpLocalValueMap extends ScriptRegExpLocalValue {}
 
 export interface ScriptRegExpLocalValue {
     type: 'regexp';
@@ -850,4 +922,24 @@ export interface LogJavascriptLogEntry extends LogBaseLogEntry {
 export interface LogEntryAdded {
     method: 'log.entryAdded';
     params: LogEntry;
+}
+
+export interface InputEvent extends InputFileDialogOpened {}
+
+export interface InputFileDialogOpened {
+    method: 'input.fileDialogOpened';
+    params: InputFileDialogInfo;
+}
+
+export interface InputFileDialogInfo {
+    context: BrowsingContextBrowsingContext;
+    element?: ScriptSharedReference;
+    multiple: boolean;
+}
+
+export interface WebExtensionResult extends WebExtensionInstallResult {}
+export type WebExtensionExtension = string
+
+export interface WebExtensionInstallResult {
+    extension: WebExtensionExtension;
 }
