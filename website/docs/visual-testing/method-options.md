@@ -27,6 +27,16 @@ and reset when done
 En/Disable all CSS animations in the application. If set to `true` all animations will be disabled before taking a screenshot
 and reset when done
 
+### `enableLegacyScreenshotMethod`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported:** Web, Hybrid App (Webview)
+
+Use this option to switch back to the "older" screenshot method based on the W3C-WebDriver protocol. This can be helpful if your tests rely on existing baseline images or if you're running in environments that don’t fully support the newer BiDi-based screenshots.
+Note that enabling this may produce screenshots with slightly different resolution or quality.
+
 ### `enableLayoutTesting`
 
 -   **Type:** `boolean`
@@ -81,6 +91,17 @@ This method can _remove_ 1 or multiple elements by adding the property `display:
 
 An object that needs to hold a `top`, `right`, `bottom` and `left` amount of pixels that need to make the element cutout bigger.
 
+### `userBasedFullPageScreenshot`
+
+* **Type:** `boolean`
+* **Mandatory:** No
+* **Default:** `false`
+* **Supported:** Web, Hybrid App (Webview)
+
+When set to `true`, this option enables the **scroll-and-stitch strategy** to capture full-page screenshots.
+Instead of using the browser’s native screenshot capabilities, it scrolls through the page manually and stitches multiple screenshots together.
+This method is especially useful for pages with **lazy-loaded content** or complex layouts that require scrolling to fully render.
+
 ### `fullPageScrollTimeout`
 
 -   **Type:** `number`
@@ -91,6 +112,8 @@ An object that needs to hold a `top`, `right`, `bottom` and `left` amount of pix
 
 The timeout in milliseconds to wait after a scroll. This might help identify pages with lazy loading.
 
+> **NOTE:** This only works when `userBasedFullPageScreenshot` is set to `true`
+
 ### `hideAfterFirstScroll`
 
 -   **Type:** `array`
@@ -100,6 +123,8 @@ The timeout in milliseconds to wait after a scroll. This might help identify pag
 
 This method will hide one or multiple elements by adding the property `visibility: hidden` to them by providing an array of elements.
 This will be handy when a page for example holds sticky elements that will scroll with the page if the page is scrolled but will give an annoying effect when a full-page screenshot is made
+
+> **NOTE:** This only works when `userBasedFullPageScreenshot` is set to `true`
 
 ### `waitForFontsLoaded`
 

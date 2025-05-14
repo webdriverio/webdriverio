@@ -23,6 +23,59 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.13.0 (2025-05-12)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#14431](https://github.com/webdriverio/webdriverio/pull/14431) change gridProxyDetails request from GET to POST method ([@ArtMathArt](https://github.com/ArtMathArt))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#14463](https://github.com/webdriverio/webdriverio/pull/14463) fix(webdriver): stop cloning request so `await response.json()` can abort properly ([@dprevost-LMI](https://github.com/dprevost-LMI))
+  * [#14437](https://github.com/webdriverio/webdriverio/pull/14437) Fix avoid misleading BiDi connection failure message ([@Rondleysg](https://github.com/Rondleysg))
+* `webdriverio`
+  * [#14449](https://github.com/webdriverio/webdriverio/pull/14449) fix(bidi-dialog): only dismiss dialogs in active browsing context ([@Rondleysg](https://github.com/Rondleysg))
+  * [#14448](https://github.com/webdriverio/webdriverio/pull/14448) fix(bidi-dialog): only accept dialogs in active browsing context ([@Rondleysg](https://github.com/Rondleysg))
+* `wdio-utils`
+  * [#14427](https://github.com/webdriverio/webdriverio/pull/14427) fix: disable Chrome's password manager leak detection as it can block test execution ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-junit-reporter`
+  * [#14422](https://github.com/webdriverio/webdriverio/pull/14422) Add suite and test field of skipped test to xml report ([@ccharnkij](https://github.com/ccharnkij))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`, `wdio-concise-reporter`, `wdio-reporter`, `wdio-spec-reporter`
+  * [#14454](https://github.com/webdriverio/webdriverio/pull/14454) feat(reporter): add browserName function and use where required ([@Delta456](https://github.com/Delta456))
+* `wdio-browserstack-service`
+  * [#14438](https://github.com/webdriverio/webdriverio/pull/14438) Auto enable accessibility [v9] ([@rounak610](https://github.com/rounak610))
+
+#### :memo: Documentation
+* Other
+  * [#14467](https://github.com/webdriverio/webdriverio/pull/14467) Update method-options.md ([@wswebcreation](https://github.com/wswebcreation))
+  * [#14451](https://github.com/webdriverio/webdriverio/pull/14451) Update BoilerplateProjects.md ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+  * [#14452](https://github.com/webdriverio/webdriverio/pull/14452) Fix: button alignment, update Twitter icon to X,. feat: add version dropdown ([@Kauanldsbarbosa](https://github.com/Kauanldsbarbosa))
+  * [#14442](https://github.com/webdriverio/webdriverio/pull/14442) feature: contributor components in the index ([@Kauanldsbarbosa](https://github.com/Kauanldsbarbosa))
+* `wdio-types`
+  * [#14435](https://github.com/webdriverio/webdriverio/pull/14435) docs: fix typo ([@fetsorn](https://github.com/fetsorn))
+* `webdriverio`
+  * [#14424](https://github.com/webdriverio/webdriverio/pull/14424) chore: update mobile docs ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :house: Internal
+* [#14464](https://github.com/webdriverio/webdriverio/pull/14464) chore: reenable headless/test.e2e.ts tests ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 12
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Artem Sukhinin ([@ArtMathArt](https://github.com/ArtMathArt))
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Kauan Barbosa ([@Kauanldsbarbosa](https://github.com/Kauanldsbarbosa))
+- Rondley Gregório ([@Rondleysg](https://github.com/Rondleysg))
+- Rounak Bhatia ([@rounak610](https://github.com/rounak610))
+- Swastik Baranwal ([@Delta456](https://github.com/Delta456))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@fetsorn](https://github.com/fetsorn)
+
+
 ## v9.12.7 (2025-04-21)
 
 #### :bug: Bug Fix

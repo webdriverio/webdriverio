@@ -16,7 +16,7 @@ export interface Errors {
 export const getProductMap = (config: BrowserStackConfig): { [key: string]: boolean } => {
     return {
         observability: config.testObservability.enabled,
-        accessibility: config.accessibility,
+        accessibility: config.accessibility as boolean,
         percy: config.percy,
         automate: config.automate,
         app_automate: config.appAutomate
@@ -70,5 +70,15 @@ export const logBuildError = (error: Errors | null, product: string = ''): void 
                 BStackLogger.error(errorMessage)
             }
         }
+    }
+}
+
+export const getProductMapForBuildStartCall = (config: BrowserStackConfig, accessibilityAutomation: boolean | null): { [key: string]: boolean | null } => {
+    return {
+        observability: config.testObservability.enabled,
+        accessibility: accessibilityAutomation,
+        percy: config.percy,
+        automate: config.automate,
+        app_automate: config.appAutomate
     }
 }
