@@ -90,7 +90,7 @@ const protocol = {
             "returns": {
                 "type": "Object",
                 "name": "local.SessionNewResult",
-                "description": "Command return value with the following interface:\n   ```ts\n   {\n     sessionId: string;\n     capabilities: {\n       acceptInsecureCerts: boolean;\n       browserName: string;\n       browserVersion: string;\n       platformName: string;\n       setWindowRect: boolean;\n       userAgent: string;\n       proxy?: SessionProxyConfiguration;\n       webSocketUrl?: string;\n     };\n   }\n   ```"
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     sessionId: string;\n     capabilities: {\n       acceptInsecureCerts: boolean;\n       browserName: string;\n       browserVersion: string;\n       platformName: string;\n       setWindowRect: boolean;\n       userAgent: string;\n       proxy?: SessionProxyConfiguration;\n       unhandledPromptBehavior?: SessionUserPromptHandler;\n       webSocketUrl?: string;\n     };\n   }\n   ```"
             }
         }
     },
@@ -118,10 +118,15 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.SessionSubscriptionRequest`",
-                    "description": "<pre>\\{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
                     "required": true
                 }
-            ]
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.SessionSubscribeResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     subscription: SessionSubscription;\n   }\n   ```"
+            }
         }
     },
     "session.unsubscribe": {
@@ -132,8 +137,8 @@ const protocol = {
             "parameters": [
                 {
                     "name": "params",
-                    "type": "`remote.SessionSubscriptionRequest`",
-                    "description": "<pre>\\{<br />  events: string[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />\\}</pre>",
+                    "type": "`remote.SessionUnsubscribeParameters`",
+                    "description": "<pre>\\\\}</pre>",
                     "required": true
                 }
             ]
@@ -162,8 +167,8 @@ const protocol = {
             "parameters": [
                 {
                     "name": "params",
-                    "type": "`remote.EmptyParams`",
-                    "description": "<pre>\\{\\}</pre>",
+                    "type": "`remote.BrowserCreateUserContextParameters`",
+                    "description": "<pre>\\{<br />  acceptInsecureCerts?: boolean;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -171,6 +176,26 @@ const protocol = {
                 "type": "Object",
                 "name": "local.BrowserCreateUserContextResult",
                 "description": "Command return value with the following interface:\n   ```ts\n   ;\n   ```"
+            }
+        }
+    },
+    "browser.getClientWindows": {
+        "socket": {
+            "command": "browserGetClientWindows",
+            "description": "WebDriver Bidi command to send command method \"browser.getClientWindows\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-getClientWindows",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmptyParams`",
+                    "description": "<pre>\\{\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.BrowserGetClientWindowsResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     clientWindows: BrowserClientWindowInfo[];\n   }\n   ```"
             }
         }
     },
@@ -204,6 +229,21 @@ const protocol = {
                     "name": "params",
                     "type": "`remote.BrowserRemoveUserContextParameters`",
                     "description": "<pre>\\{<br />  userContext: BrowserUserContext;<br />\\}</pre>",
+                    "required": true
+                }
+            ]
+        }
+    },
+    "browser.setClientWindowState": {
+        "socket": {
+            "command": "browserSetClientWindowState",
+            "description": "WebDriver Bidi command to send command method \"browser.setClientWindowState\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-browser-setClientWindowState",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.BrowserSetClientWindowStateParameters`",
+                    "description": "<pre>\\{<br />  clientWindow: BrowserClientWindow;<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -398,7 +438,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.BrowsingContextSetViewportParameters`",
-                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  viewport?: BrowsingContextViewport &#124; null;<br />  devicePixelRatio?: number &#124; null;<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  context?: BrowsingContextBrowsingContext;<br />  viewport?: BrowsingContextViewport &#124; null;<br />  devicePixelRatio?: number &#124; null;<br />  userContexts?: BrowserUserContext[];<br />\\}</pre>",
                     "required": true
                 }
             ]
@@ -414,6 +454,21 @@ const protocol = {
                     "name": "params",
                     "type": "`remote.BrowsingContextTraverseHistoryParameters`",
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  delta: JsInt;<br />\\}</pre>",
+                    "required": true
+                }
+            ]
+        }
+    },
+    "emulation.setGeolocationOverride": {
+        "socket": {
+            "command": "emulationSetGeolocationOverride",
+            "description": "WebDriver Bidi command to send command method \"emulation.setGeolocationOverride\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-emulation-setGeolocationOverride",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.EmulationSetGeolocationOverrideParameters`",
+                    "description": "<pre>\\\\}</pre>",
                     "required": true
                 }
             ]
@@ -529,6 +584,21 @@ const protocol = {
             ]
         }
     },
+    "network.setCacheBehavior": {
+        "socket": {
+            "command": "networkSetCacheBehavior",
+            "description": "WebDriver Bidi command to send command method \"network.setCacheBehavior\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-network-setCacheBehavior",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.NetworkSetCacheBehaviorParameters`",
+                    "description": "<pre>\\{<br />  cacheBehavior: \"default\" &#124; \"bypass\";<br />  contexts?: BrowsingContextBrowsingContext[];<br />\\}</pre>",
+                    "required": true
+                }
+            ]
+        }
+    },
     "script.addPreloadScript": {
         "socket": {
             "command": "scriptAddPreloadScript",
@@ -538,7 +608,7 @@ const protocol = {
                 {
                     "name": "params",
                     "type": "`remote.ScriptAddPreloadScriptParameters`",
-                    "description": "<pre>\\{<br />  functionDeclaration: string;<br />  arguments?: ScriptChannelValue[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  sandbox?: string;<br />\\}</pre>",
+                    "description": "<pre>\\{<br />  functionDeclaration: string;<br />  arguments?: ScriptChannelValue[];<br />  contexts?: BrowsingContextBrowsingContext[];<br />  userContexts?: BrowserUserContext[];<br />  sandbox?: string;<br />\\}</pre>",
                     "required": true
                 }
             ],
@@ -734,6 +804,56 @@ const protocol = {
                     "name": "params",
                     "type": "`remote.InputSetFilesParameters`",
                     "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  element: ScriptSharedReference;<br />  files: string[];<br />\\}</pre>",
+                    "required": true
+                }
+            ]
+        }
+    },
+    "input.fileDialogOpened": {
+        "socket": {
+            "command": "inputFileDialogOpened",
+            "description": "WebDriver Bidi command to send command method \"input.fileDialogOpened\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-input-fileDialogOpened",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.InputFileDialogInfo`",
+                    "description": "<pre>\\{<br />  context: BrowsingContextBrowsingContext;<br />  element?: ScriptSharedReference;<br />  multiple: boolean;<br />\\}</pre>",
+                    "required": true
+                }
+            ]
+        }
+    },
+    "webExtension.install": {
+        "socket": {
+            "command": "webExtensionInstall",
+            "description": "WebDriver Bidi command to send command method \"webExtension.install\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-webExtension-install",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.WebExtensionInstallParameters`",
+                    "description": "<pre>\\{<br />  extensionData: WebExtensionExtensionData;<br />\\}</pre>",
+                    "required": true
+                }
+            ],
+            "returns": {
+                "type": "Object",
+                "name": "local.WebExtensionInstallResult",
+                "description": "Command return value with the following interface:\n   ```ts\n   {\n     extension: WebExtensionExtension;\n   }\n   ```"
+            }
+        }
+    },
+    "webExtension.uninstall": {
+        "socket": {
+            "command": "webExtensionUninstall",
+            "description": "WebDriver Bidi command to send command method \"webExtension.uninstall\" with parameters.",
+            "ref": "https://w3c.github.io/webdriver-bidi/#command-webExtension-uninstall",
+            "parameters": [
+                {
+                    "name": "params",
+                    "type": "`remote.WebExtensionUninstallParameters`",
+                    "description": "<pre>\\{<br />  extension: WebExtensionExtension;<br />\\}</pre>",
                     "required": true
                 }
             ]
