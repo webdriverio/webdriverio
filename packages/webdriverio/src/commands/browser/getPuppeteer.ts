@@ -1,7 +1,6 @@
 import logger from '@testplane/wdio-logger'
-import { userImport } from '@testplane/wdio-utils'
+import puppeteer, { type Browser as PuppeteerBrowser } from 'puppeteer-core'
 import type { Capabilities } from '@testplane/wdio-types'
-import type { Puppeteer, Browser as PuppeteerBrowser } from 'puppeteer-core'
 
 import { FF_REMOTE_DEBUG_ARG } from '../../constants.js'
 
@@ -56,15 +55,6 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
      */
     if (globalThis.wdio) {
         throw new Error('Puppeteer is not supported in browser runner')
-    }
-
-    const puppeteer = await userImport<Puppeteer>('puppeteer-core')
-
-    if (!puppeteer) {
-        throw new Error(
-            'You need to install "puppeteer-core" package as a dependency ' +
-            'in order to use the "getPuppeteer" method'
-        )
     }
 
     /**
