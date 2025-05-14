@@ -12,7 +12,7 @@ import type { ChildProcess } from 'node:child_process'
 import type BrowserStackConfig from '../config.js'
 import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
 import type { BaseModule } from './modules/BaseModule.js'
-import { CLI_STOP_TIMEOUT } from 'src/constants.js'
+import { CLI_STOP_TIMEOUT } from '../constants.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
