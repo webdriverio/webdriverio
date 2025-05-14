@@ -534,13 +534,13 @@ export class BidiHandler extends BidiCore {
      * @param params `remote.ScriptCallFunctionParameters` {@link https://w3c.github.io/webdriver-bidi/#command-script-callFunction | command parameter}
      * @returns `Promise<local.EmptyResult>`
      **/
-    async scriptCallFunction(params: remote.ScriptCallFunctionParameters): Promise<local.EmptyResult> {
+    async scriptCallFunction(params: remote.ScriptCallFunctionParameters): Promise<local.ScriptEvaluateResult> {
         const result = await this.send({
             method: 'script.callFunction',
             params
         })
 
-        return result.result as local.EmptyResult
+        return result.result as local.ScriptEvaluateResult
     }
 
     /**
@@ -672,21 +672,6 @@ export class BidiHandler extends BidiCore {
     async inputSetFiles(params: remote.InputSetFilesParameters): Promise<local.EmptyResult> {
         const result = await this.send({
             method: 'input.setFiles',
-            params
-        })
-
-        return result.result as local.EmptyResult
-    }
-
-    /**
-     * WebDriver Bidi command to send command method "input.fileDialogOpened" with parameters.
-     * @url https://w3c.github.io/webdriver-bidi/#command-input-fileDialogOpened
-     * @param params `remote.InputFileDialogInfo` {@link https://w3c.github.io/webdriver-bidi/#command-input-fileDialogOpened | command parameter}
-     * @returns `Promise<local.EmptyResult>`
-     **/
-    async inputFileDialogOpened(params: remote.InputFileDialogInfo): Promise<local.EmptyResult> {
-        const result = await this.send({
-            method: 'input.fileDialogOpened',
             params
         })
 

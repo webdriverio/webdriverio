@@ -1282,11 +1282,6 @@ export interface InputSetFilesParameters {
     files: string[];
 }
 
-export interface InputFileDialogOpened extends Command {
-    method: 'input.fileDialogOpened';
-    params: InputFileDialogInfo;
-}
-
 export interface InputFileDialogInfo {
     context: BrowsingContextBrowsingContext;
     element?: ScriptSharedReference;

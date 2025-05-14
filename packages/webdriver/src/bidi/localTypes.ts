@@ -15,13 +15,13 @@
 
 export type Message = CommandResponse | ErrorResponse | Event
 
-export interface CommandResponse {
+export interface CommandResponse extends Extensible {
     type: 'success';
     id: JsUint;
     result: ResultData;
 }
 
-export interface ErrorResponse {
+export interface ErrorResponse extends Extensible {
     type: 'error';
     id: JsUint | null;
     error: ErrorCode;
@@ -30,15 +30,20 @@ export interface ErrorResponse {
 }
 
 export type ResultData = BrowsingContextResult | EmptyResult | NetworkResult | ScriptResult | SessionResult | StorageResult | WebExtensionResult
-export interface EmptyResult {}
+export interface EmptyResult extends Extensible {}
 
+export interface Event extends Extensible {
+    type: 'event';
+}
+
+export type Extensible = Record<string, unknown>
 export type EventData = BrowsingContextEvent | InputEvent | LogEvent | NetworkEvent | ScriptEvent
 export type JsInt = number
 export type JsUint = number
 export type ErrorCode = 'invalid argument' | 'invalid selector' | 'invalid session id' | 'invalid web extension' | 'move target out of bounds' | 'no such alert' | 'no such element' | 'no such frame' | 'no such handle' | 'no such history entry' | 'no such intercept' | 'no such node' | 'no such request' | 'no such script' | 'no such storage partition' | 'no such user context' | 'no such web extension' | 'session not created' | 'unable to capture screen' | 'unable to close browser' | 'unable to set cookie' | 'unable to set file input' | 'underspecified storage partition' | 'unknown command' | 'unknown error' | 'unsupported operation'
 export type SessionResult = SessionNewResult | SessionStatusResult | SessionSubscribeResult
 
-export interface SessionCapabilitiesRequest {
+export interface SessionCapabilitiesRequest extends Extensible {
     alwaysMatch?: SessionCapabilityRequest;
     firstMatch?: SessionCapabilityRequest[];
 }
@@ -54,15 +59,15 @@ export interface SessionCapabilityRequest {
 
 export type SessionProxyConfiguration = SessionAutodetectProxyConfiguration | SessionDirectProxyConfiguration | SessionManualProxyConfiguration | SessionPacProxyConfiguration | SessionSystemProxyConfiguration
 
-export interface SessionAutodetectProxyConfiguration {
+export interface SessionAutodetectProxyConfiguration extends Extensible {
     proxyType: 'autodetect';
 }
 
-export interface SessionDirectProxyConfiguration {
+export interface SessionDirectProxyConfiguration extends Extensible {
     proxyType: 'direct';
 }
 
-export interface SessionManualProxyConfiguration extends SessionSocksProxyConfiguration {
+export interface SessionManualProxyConfiguration extends SessionSocksProxyConfiguration, Extensible {
     proxyType: 'manual';
     ftpProxy?: string;
     httpProxy?: string;
@@ -75,12 +80,12 @@ export interface SessionSocksProxyConfiguration {
     socksVersion: number;
 }
 
-export interface SessionPacProxyConfiguration {
+export interface SessionPacProxyConfiguration extends Extensible {
     proxyType: 'pac';
     proxyAutoconfigUrl: string;
 }
 
-export interface SessionSystemProxyConfiguration {
+export interface SessionSystemProxyConfiguration extends Extensible {
     proxyType: 'system';
 }
 
