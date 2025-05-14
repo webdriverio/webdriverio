@@ -3,6 +3,7 @@ import type { ClientOptions, RawData, WebSocket } from 'ws'
 
 import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
+import type * as local from './localTypes.js'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
@@ -162,9 +163,10 @@ export class BidiCore {
         })
 
         if (payload.type === 'error' || 'error' in payload) {
-            failError.message += ` with error: ${payload.error} - ${payload.message}`
-            if (payload.stacktrace && typeof payload.stacktrace === 'string') {
-                const driverStack = payload.stacktrace
+            const error = payload as local.ErrorResponse
+            failError.message += ` with error: ${payload.error} - ${error.message}`
+            if (error.stacktrace && typeof error.stacktrace === 'string') {
+                const driverStack = error.stacktrace
                     .split('\n')
                     .filter(Boolean)
                     .map((line: string) => `    at ${line}`)
