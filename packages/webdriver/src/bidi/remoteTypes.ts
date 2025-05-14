@@ -17,6 +17,7 @@ export interface Command {
     id: JsUint;
 }
 
+export type Extensible = Record<string, unknown>
 export type CommandData = BrowserCommand | BrowsingContextCommand | EmulationCommand | InputCommand | NetworkCommand | ScriptCommand | SessionCommand | StorageCommand | WebExtensionCommand
 export interface EmptyParams {}
 export type JsInt = number
@@ -28,7 +29,7 @@ export interface SessionCapabilitiesRequest {
     firstMatch?: SessionCapabilityRequest[];
 }
 
-export interface SessionCapabilityRequest {
+export interface SessionCapabilityRequest extends Extensible {
     acceptInsecureCerts?: boolean;
     browserName?: string;
     browserVersion?: string;
@@ -39,15 +40,15 @@ export interface SessionCapabilityRequest {
 
 export type SessionProxyConfiguration = SessionAutodetectProxyConfiguration | SessionDirectProxyConfiguration | SessionManualProxyConfiguration | SessionPacProxyConfiguration | SessionSystemProxyConfiguration
 
-export interface SessionAutodetectProxyConfiguration {
+export interface SessionAutodetectProxyConfiguration extends Extensible {
     proxyType: 'autodetect';
 }
 
-export interface SessionDirectProxyConfiguration {
+export interface SessionDirectProxyConfiguration extends Extensible {
     proxyType: 'direct';
 }
 
-export interface SessionManualProxyConfiguration extends SessionSocksProxyConfiguration {
+export interface SessionManualProxyConfiguration extends SessionSocksProxyConfiguration, Extensible {
     proxyType: 'manual';
     ftpProxy?: string;
     httpProxy?: string;
@@ -55,17 +56,17 @@ export interface SessionManualProxyConfiguration extends SessionSocksProxyConfig
     noProxy?: string[];
 }
 
-export interface SessionSocksProxyConfiguration {
+export interface SessionSocksProxyConfiguration extends Extensible {
     socksProxy: string;
     socksVersion: number;
 }
 
-export interface SessionPacProxyConfiguration {
+export interface SessionPacProxyConfiguration extends Extensible {
     proxyType: 'pac';
     proxyAutoconfigUrl: string;
 }
 
-export interface SessionSystemProxyConfiguration {
+export interface SessionSystemProxyConfiguration extends Extensible {
     proxyType: 'system';
 }
 
@@ -791,7 +792,7 @@ export interface ScriptBigIntValue {
 export type ScriptRealmType = 'window' | 'dedicated-worker' | 'shared-worker' | 'service-worker' | 'worker' | 'paint-worklet' | 'audio-worklet' | 'worklet'
 export type ScriptRemoteReference = ScriptSharedReference | ScriptRemoteObjectReference
 
-export interface ScriptSharedReference {
+export interface ScriptSharedReference extends Extensible {
     sharedId: ScriptSharedId;
     handle?: ScriptHandle;
 }
@@ -1070,7 +1071,7 @@ export interface StorageGetCookies extends Command {
     params: StorageGetCookiesParameters;
 }
 
-export interface StorageCookieFilter {
+export interface StorageCookieFilter extends Extensible {
     name?: string;
     value?: NetworkBytesValue;
     domain?: string;
@@ -1087,7 +1088,7 @@ export interface StorageBrowsingContextPartitionDescriptor {
     context: BrowsingContextBrowsingContext;
 }
 
-export interface StorageStorageKeyPartitionDescriptor {
+export interface StorageStorageKeyPartitionDescriptor extends Extensible {
     type: 'storageKey';
     userContext?: string;
     sourceOrigin?: string;
@@ -1105,7 +1106,7 @@ export interface StorageSetCookie extends Command {
     params: StorageSetCookieParameters;
 }
 
-export interface StoragePartialCookie {
+export interface StoragePartialCookie extends Extensible {
     name: string;
     value: NetworkBytesValue;
     domain: string;
