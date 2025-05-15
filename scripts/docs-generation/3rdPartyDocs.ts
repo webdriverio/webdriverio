@@ -6,7 +6,7 @@ import path from 'node:path'
 import { downloadFromGitHub } from '../utils/index.js'
 import { buildPreface } from '../utils/helpers.js'
 
-import reporters3rdParty from './3rd-party/reporters.json' assert{ type: 'json' }
+import reporters3rdParty from './3rd-party/reporters.json' assert { type: 'json' }
 import services3rdParty from './3rd-party/services.json' assert { type: 'json' }
 import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
 
