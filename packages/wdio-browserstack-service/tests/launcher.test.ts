@@ -16,6 +16,7 @@ import * as FunnelInstrumentation from '../src/instrumentation/funnelInstrumenta
 import { RERUN_TESTS_ENV, BROWSERSTACK_TESTHUB_UUID, RERUN_ENV } from '../src/constants.js'
 import * as thUtils from '../src/testHub/utils.js'
 import TestOpsConfig from '../src/testOps/testOpsConfig.js'
+import { BrowserstackCLI } from '../src/cli/index.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('browserstack-local')
@@ -40,6 +41,12 @@ const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
 vi.spyOn(FunnelInstrumentation, 'sendFinish').mockImplementation(async () => {})
 vi.spyOn(FunnelInstrumentation, 'sendStart').mockImplementation(async () => {})
+
+vi.spyOn(BrowserstackCLI.getInstance(), 'bootstrap').mockImplementation(async () => {})
+vi.spyOn(BrowserstackCLI.getInstance(), 'isRunning').mockImplementation(() => {
+    return true
+})
+vi.spyOn(BrowserstackCLI.getInstance(), 'stop').mockImplementation(async () => {})
 
 vi.spyOn(bstackLogger.BStackLogger, 'clearLogFile').mockImplementation(() => {})
 
