@@ -2,7 +2,8 @@ import { getContextManager } from '../../session/context.js'
 
 /**
  *
- * Switch focus to a particular tab / window.
+ * Switch focus to a particular tab / window. It is recommended to use the `WebdriverIO.BrowsingContext` object
+ * returned by commands like `browser.url` or `browser.newWindow` instead of using this command.
  *
  * <example>
     :switchWindow.js
@@ -38,6 +39,10 @@ export async function switchWindow (
     this: WebdriverIO.Browser,
     matcher: string | RegExp
 ) {
+    if (globalThis.wdio) {
+        throw new Error('"switchWindow" command is not supported when using browser runner')
+    }
+
     /**
      * parameter check
      */

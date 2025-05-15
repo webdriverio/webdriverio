@@ -49,7 +49,7 @@ import type { SaveScreenshotOptions } from '../../types.js'
  *
  */
 export async function saveScreenshot (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     filepath: string,
     options?: SaveScreenshotOptions
 ) {

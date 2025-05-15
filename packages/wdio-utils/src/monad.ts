@@ -6,7 +6,8 @@ import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser () {},
-    element: /* istanbul ignore next */ function Element () {}
+    element: /* istanbul ignore next */ function Element () {},
+    browsingContext: /* istanbul ignore next */ function BrowsingContext () {}
 }
 
 interface PropertiesObject {
@@ -204,6 +205,8 @@ export default function WebDriver (options: object, modifier?: Function, propert
                     resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
                 } else if (res instanceof SCOPE_TYPES.browser) {
                     resultLog = 'WebdriverIO.Browser'
+                } else if (res instanceof SCOPE_TYPES.browsingContext) {
+                    resultLog = 'WebdriverIO.BrowsingContext'
                 }
 
                 log.info('RESULT', resultLog)

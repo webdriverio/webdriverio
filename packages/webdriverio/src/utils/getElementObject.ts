@@ -41,7 +41,7 @@ class WebDriverError extends Error {
  * @return {Object}           WDIO element object
  */
 export function getElement(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext,
     selector?: Selector,
     res?: ElementReference | ExtendedElementReference | Error,
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
@@ -62,8 +62,8 @@ export function getElement(
         scope: { value: 'element' }
     }
 
-    propertiesObject.emit = { value: this.emit.bind(this) }
-    const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
+    propertiesObject.emit = { value: browser.emit.bind(browser) }
+    const element = webdriverMonad(browser.options, (client: WebdriverIO.Element) => {
         const elementId = getElementFromResponse(res as ElementReference)
 
         if (elementId) {
@@ -81,7 +81,7 @@ export function getElement(
              * Attach locator if element was fetched with WebDriver Bidi.
              * This allows to later re-fetch the element within the same conditions.
              */
-            if (res && this.isBidi && 'locator' in res) {
+            if (res && browser.isBidi && 'locator' in res) {
                 client.locator = res.locator
             }
         } else {
@@ -98,7 +98,7 @@ export function getElement(
         return client
     }, propertiesObject)
 
-    const elementInstance = element(this.sessionId as string, elementErrorHandler(wrapCommand))
+    const elementInstance = element(browser.sessionId as string, elementErrorHandler(wrapCommand))
 
     const origAddCommand = elementInstance.addCommand.bind(elementInstance)
     elementInstance.addCommand = (name: string, fn: Function) => {
@@ -116,7 +116,7 @@ export function getElement(
  * @return {Array}            array of WDIO elements
  */
 export const getElements = function getElements(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     elemResponse: (ElementReference | ExtendedElementReference | Error | WebDriverError)[],
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
@@ -149,8 +149,8 @@ export const getElements = function getElements(
         }
 
         propertiesObject.scope = { value: 'element' }
-        propertiesObject.emit = { value: this.emit.bind(this) }
-        const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
+        propertiesObject.emit = { value: browser.emit.bind(browser) }
+        const element = webdriverMonad(browser.options, (client: WebdriverIO.Element) => {
             const elementId = getElementFromResponse(res as ElementReference)
 
             if (elementId) {
@@ -168,7 +168,7 @@ export const getElements = function getElements(
                  * Attach locator if element was fetched with WebDriver Bidi.
                  * This allows to later re-fetch the element within the same conditions.
                  */
-                if (res && this.isBidi && 'locator' in res) {
+                if (res && browser.isBidi && 'locator' in res) {
                     client.locator = res.locator
                 }
             } else {

@@ -61,7 +61,13 @@ declare global {
             /**
              * parent of the element if fetched via `$(parent).$(child)`
              */
-            parent: WebdriverIO.Element | WebdriverIO.Browser
+            parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.BrowsingContext
+        }
+        interface BrowsingContext {
+            /**
+             * parent of the browsing context if fetched via `$(parent).$(child)`
+             */
+            parent: WebdriverIO.BrowsingContext | WebdriverIO.Browser
         }
         interface MultiRemoteElement {}
         interface ElementArray {}

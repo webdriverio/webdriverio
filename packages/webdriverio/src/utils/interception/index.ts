@@ -2,22 +2,37 @@ import logger from '@wdio/logger'
 import type { JsonCompatible } from '@wdio/types'
 import { type local, type remote } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
+import { getBrowserObject } from '@wdio/utils'
 
 import Timer from '../Timer.js'
 import { parseOverwrite, getPatternParam } from './utils.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
+import { isBrowsingContext } from '../../utils/index.js'
 import type { MockFilterOptions, RequestWithOptions, RespondWithOptions } from './types.js'
 import type { WaitForOptions } from '../../types.js'
 
 const log = logger('WebDriverInterception')
-
-let hasSubscribedToEvents = false
+const hasContextSubscribedToEvents = new Set<string>()
 
 type RespondBody = string | JsonCompatible | Buffer
 interface Overwrite {
     overwrite?: RequestWithOptions | RespondWithOptions
     once?: boolean
     abort?: boolean
+}
+
+function hasSubscribedToEvents(scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext) {
+    const identifier = isBrowsingContext(scope) ? scope.contextId : 'global'
+    return hasContextSubscribedToEvents.has(identifier)
+}
+
+function setHasSubscribedToEvents(scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext, value: boolean) {
+    const identifier = isBrowsingContext(scope) ? scope.contextId : 'global'
+    if (value) {
+        hasContextSubscribedToEvents.add(identifier)
+    } else {
+        hasContextSubscribedToEvents.delete(identifier)
+    }
 }
 
 /**
@@ -60,18 +75,22 @@ export default class WebDriverInterception {
     static async initiate(
         url: string,
         filterOptions: MockFilterOptions,
-        browser: WebdriverIO.Browser
+        scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext
     ) {
+        const browser = getBrowserObject(scope)
         const pattern = parseUrlPattern(url)
-        if (!hasSubscribedToEvents) {
+        if (!hasSubscribedToEvents(scope)) {
             await browser.sessionSubscribe({
                 events: [
                     'network.beforeRequestSent',
                     'network.responseStarted'
-                ]
+                ],
+                contexts: isBrowsingContext(scope)
+                    ? [scope.contextId]
+                    : undefined
             })
             log.info('subscribed to network events')
-            hasSubscribedToEvents = true
+            setHasSubscribedToEvents(scope, true)
         }
 
         /**
@@ -79,6 +98,9 @@ export default class WebDriverInterception {
          */
         const interception = await browser.networkAddIntercept({
             phases: ['beforeRequestSent', 'responseStarted'],
+            contexts: isBrowsingContext(scope)
+                ? [scope.contextId]
+                : undefined,
             urlPatterns: [{
                 type: 'pattern',
                 protocol: getPatternParam(pattern, 'protocol'),

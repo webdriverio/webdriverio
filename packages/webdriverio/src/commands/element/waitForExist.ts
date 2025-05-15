@@ -65,7 +65,7 @@ export async function waitForExist (
      * calling `waitForExist`.
      */
     if (!reverse && isExisting && typeof this.selector === 'string') {
-        this.elementId = await this.parent.$(this.selector).elementId
+        this.elementId = await (this.parent as WebdriverIO.Browser).$(this.selector).elementId
         this[ELEMENT_KEY] = this.elementId
         delete this.error
     }

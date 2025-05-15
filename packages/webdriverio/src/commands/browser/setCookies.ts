@@ -55,9 +55,11 @@ import type { Cookie } from '@wdio/protocols'
  *
  */
 export async function setCookies(
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     cookieObjs: Cookie | Cookie[]
 ) {
+    const isPage = 'contextId' in this
+    const browser = isPage ? this.browser : this
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
 
     if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {
@@ -67,8 +69,8 @@ export async function setCookies(
     /**
      * if session doesn't use Bidi, use WebDriver Classic command
      */
-    if (!this.isBidi) {
-        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
+    if (!browser.isBidi) {
+        await Promise.all(cookieObjsList.map(cookieObj => browser.addCookie(cookieObj)))
         return
     }
 
@@ -77,11 +79,15 @@ export async function setCookies(
      */
     let url = new URL('http://localhost')
     if (cookieObjsList.some((cookie) => typeof cookie.domain !== 'string')) {
-        url = new URL(await this.getUrl())
+        url = new URL(await browser.getUrl())
     }
 
     await Promise.all(cookieObjsList.map((cookie) => (
-        this.storageSetCookie({
+        browser.storageSetCookie({
+            partition: isPage ? {
+                type: 'context',
+                context: this.contextId
+            } : undefined,
             cookie: {
                 ...cookie,
                 domain: cookie.domain || url.hostname,

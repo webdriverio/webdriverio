@@ -1,6 +1,7 @@
 import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager } from '../../session/networkManager.js'
 import { getContextManager } from '../../session/context.js'
+import { getPage } from '../../browsingContext/index.js'
 import type { InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
@@ -154,7 +155,11 @@ export async function url (
     this: WebdriverIO.Browser,
     path: string,
     options: UrlCommandOptions = {}
-): Promise<WebdriverIO.Request | void> {
+): Promise<WebdriverIO.BrowsingContext> {
+    if (globalThis.wdio) {
+        throw new Error('"url" command is not supported when using browser runner')
+    }
+
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')
     }
@@ -163,115 +168,11 @@ export async function url (
         path = (new URL(path, this.options.baseUrl)).href
     }
 
+    const contextManager = getContextManager(this)
+    const context = await contextManager.getCurrentContext()
     if (this.isBidi && path.startsWith('http')) {
-        let resetPreloadScript: InitScript | undefined
-        const contextManager = getContextManager(this)
-        const context = await contextManager.getCurrentContext()
-
-        /**
-         * set up preload script if `onBeforeLoad` option is provided
-         */
-        if (options.onBeforeLoad) {
-            if (typeof options.onBeforeLoad !== 'function') {
-                throw new Error(`Option "onBeforeLoad" must be a function, but received: ${typeof options.onBeforeLoad}`)
-            }
-
-            resetPreloadScript = await this.addInitScript(options.onBeforeLoad as (() => void))
-        }
-
-        if (options.auth) {
-            options.headers = {
-                ...(options.headers || {}),
-                Authorization: `Basic ${btoa(`${options.auth.user}:${options.auth.pass}`)}`
-            }
-        }
-
-        let mock: WebdriverIO.Mock | undefined
-        if (options.headers) {
-            mock = await this.mock(path)
-            mock.requestOnce({ headers: options.headers })
-        }
-
-        /**
-         * WebDriver Classic allowed to provide a `pageLoadStrategy` capability.
-         * To ensure backwards combatibility, we need to map the `pageLoadStrategy`
-         * to the WebDriver Bidi spec.
-         *
-         * see https://www.w3.org/TR/webdriver2/#navigation
-         */
-        const classicPageLoadStrategy = this.capabilities.pageLoadStrategy === 'none'
-            ? 'none'
-            : this.capabilities.pageLoadStrategy === 'normal'
-                ? 'complete'
-                : this.capabilities.pageLoadStrategy === 'eager'
-                    ? 'interactive'
-                    : undefined
-
-        const wait = options.wait === 'networkIdle'
-            ? 'complete'
-            : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
-        const navigation = await this.browsingContextNavigate({
-            context,
-            url: path,
-            wait
-        }).catch((err) => {
-            /**
-             * It seems that WebDriver Bidi runs into issue with concurrent navigation.
-             * @see https://github.com/w3c/webdriver-bidi/issues/878
-             */
-            if (
-                // Chrome error message
-                err.message.includes('navigation canceled by concurrent navigation') ||
-                // Firefox error message
-                err.message.includes('failed with error: unknown error')
-            ) {
-                return this.navigateTo(validateUrl(path))
-            }
-
-            throw err
-        })
-
-        if (mock) {
-            await mock.restore()
-        }
-
-        const network = getNetworkManager(this)
-
-        if (options.wait === 'networkIdle') {
-            const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
-            await this.waitUntil(async () => {
-                return network.getPendingRequests(context).length === 0
-            }, {
-                timeout,
-                timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(context).length} (${network.getPendingRequests(context).map((r) => r.url).join(', ')}) pending requests`
-            })
-        }
-
-        /**
-         * clear up preload script
-         */
-        if (resetPreloadScript) {
-            await resetPreloadScript.remove()
-        }
-
-        if (!navigation) {
-            return
-        }
-
-        /**
-         * wait until we have a request object
-         */
-        const request = await this.waitUntil(
-            () => network.getRequestResponseData(navigation.navigation as string),
-            /**
-             * set a short interval to immediately return once the first request payload comes in
-             */
-            {
-                interval: 1,
-                timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
-            }
-        )
-        return request
+        const request = await navigateContext.call(this, path, context, options)
+        return getPage.call(this, context, { isIframe: false, isTab: false, isWindow: true, request })
     }
 
     if (Object.keys(options).length > 0) {
@@ -279,9 +180,10 @@ export async function url (
     }
 
     await this.navigateTo(validateUrl(path))
+    return getPage.call(this, context, { isIframe: false, isTab: false, isWindow: true, request: undefined })
 }
 
-interface UrlCommandOptions {
+export interface UrlCommandOptions {
     /**
      * The desired state the requested resource should be in before finishing the command.
      * It supports the following states:
@@ -325,4 +227,118 @@ interface UrlCommandOptions {
      * Checkout `browser.addPreloadScript` for a more versatile way to mock the environment.
      */
     onBeforeLoad?: () => unknown
+}
+
+export async function navigateContext (
+    this: WebdriverIO.Browser,
+    path: string,
+    contextId: string,
+    options: UrlCommandOptions = {}
+) {
+    let resetPreloadScript: InitScript | undefined
+
+    /**
+     * set up preload script if `onBeforeLoad` option is provided
+     */
+    if (options.onBeforeLoad) {
+        if (typeof options.onBeforeLoad !== 'function') {
+            throw new Error(`Option "onBeforeLoad" must be a function, but received: ${typeof options.onBeforeLoad}`)
+        }
+
+        resetPreloadScript = await this.addInitScript(options.onBeforeLoad as (() => void))
+    }
+
+    if (options.auth) {
+        options.headers = {
+            ...(options.headers || {}),
+            Authorization: `Basic ${btoa(`${options.auth.user}:${options.auth.pass}`)}`
+        }
+    }
+
+    let mock: WebdriverIO.Mock | undefined
+    if (options.headers) {
+        mock = await this.mock(path)
+        mock.requestOnce({ headers: options.headers })
+    }
+
+    /**
+     * WebDriver Classic allowed to provide a `pageLoadStrategy` capability.
+     * To ensure backwards combatibility, we need to map the `pageLoadStrategy`
+     * to the WebDriver Bidi spec.
+     *
+     * see https://www.w3.org/TR/webdriver2/#navigation
+     */
+    const classicPageLoadStrategy = this.capabilities.pageLoadStrategy === 'none'
+        ? 'none'
+        : this.capabilities.pageLoadStrategy === 'normal'
+            ? 'complete'
+            : this.capabilities.pageLoadStrategy === 'eager'
+                ? 'interactive'
+                : undefined
+
+    const wait = options.wait === 'networkIdle'
+        ? 'complete'
+        : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
+    const navigation = await this.browsingContextNavigate({
+        context: contextId,
+        url: path,
+        wait
+    }).catch((err) => {
+        /**
+         * It seems that WebDriver Bidi runs into issue with concurrent navigation.
+         * @see https://github.com/w3c/webdriver-bidi/issues/878
+         */
+        if (
+            // Chrome error message
+            err.message.includes('navigation canceled by concurrent navigation') ||
+            // Firefox error message
+            err.message.includes('failed with error: unknown error')
+        ) {
+            return this.navigateTo(validateUrl(path))
+        }
+
+        throw err
+    })
+
+    if (mock) {
+        await mock.restore()
+    }
+
+    const network = getNetworkManager(this)
+
+    if (options.wait === 'networkIdle') {
+        const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
+        await this.waitUntil(async () => {
+            return network.getPendingRequests(contextId).length === 0
+        }, {
+            timeout,
+            timeoutMsg: `Navigation to '${path}' timed out after ${timeout}ms with ${network.getPendingRequests(contextId).length} (${network.getPendingRequests(contextId).map((r) => r.url).join(', ')}) pending requests`
+        })
+    }
+
+    /**
+     * clear up preload script
+     */
+    if (resetPreloadScript) {
+        await resetPreloadScript.remove()
+    }
+
+    if (!navigation) {
+        return
+    }
+
+    /**
+     * wait until we have a request object
+     */
+    const request = await this.waitUntil(
+        () => network.getRequestResponseData(navigation.navigation as string),
+        /**
+         * set a short interval to immediately return once the first request payload comes in
+         */
+        {
+            interval: 1,
+            timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
+        }
+    )
+    return request
 }

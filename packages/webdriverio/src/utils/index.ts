@@ -9,6 +9,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
+import * as browsingContextCommands from '../commands/browsingContext.js'
 import elementContains from '../scripts/elementContains.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
@@ -27,14 +28,17 @@ declare global {
     interface Window { __wdio_element: Record<string, HTMLElement> }
 }
 
+type Scopes = 'browser' | 'element' | 'browsingContext'
+
 const scopes = {
     browser: browserCommands,
-    element: elementCommands
+    element: elementCommands,
+    browsingContext: browsingContextCommands
 }
 
 const applyScopePrototype = (
     prototype: Record<string, PropertyDescriptor>,
-    scope: 'browser' | 'element') => {
+    scope: Scopes) => {
     Object.entries(scopes[scope])
         .filter(([exportName]) => !IGNORED_COMMAND_FILE_EXPORTS.includes(exportName))
         .forEach(([commandName, command]) => {
@@ -45,7 +49,7 @@ const applyScopePrototype = (
 /**
  * enhances objects with element commands
  */
-export const getPrototype = (scope: 'browser' | 'element') => {
+export const getPrototype = (scope: Scopes) => {
     const prototype: Record<string, PropertyDescriptor> = {
         /**
          * used to store the puppeteer instance in the browser scope
@@ -205,12 +209,12 @@ export function checkUnicode (value: string) {
 
 function fetchElementByJSFunction (
     selector: ElementFunction,
-    scope: WebdriverIO.Browser | WebdriverIO.Element,
+    scope: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext,
     referenceId?: string
 ): Promise<ElementReference | ElementReference[]> {
     if (!('elementId' in scope)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return scope.execute(selector as any, referenceId)
+        return (scope as WebdriverIO.Browser).execute(selector as any, referenceId)
     }
     /**
      * use a regular function because IE does not understand arrow functions
@@ -304,19 +308,21 @@ export function transformClassicToBidiSelector (using: string, value: string): r
  * @returns a list of shadow root ids with their corresponding matches or undefined if not found
  */
 export async function findDeepElement(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext | WebdriverIO.Element,
     selector: Selector
 ): Promise<ElementReference | Error> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
     const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
+    const context = isBrowsingContext(this)
+        ? this.contextId
+        : await contextManager.getCurrentContext()
 
     const shadowRoots = shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    const { using, value } = findStrategy(selector as string, browser.isW3C, browser.isMobile)
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -374,19 +380,21 @@ export async function findDeepElement(
  * @returns a list of shadow root ids with their corresponding matches or undefined if not found
  */
 export async function findDeepElements(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext,
     selector: Selector
 ): Promise<ElementReference[]> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
     const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
+    const context = isBrowsingContext(this)
+        ? this.contextId
+        : await contextManager.getCurrentContext()
 
     const shadowRoots = shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    const { using, value } = findStrategy(selector as string, browser.isW3C, browser.isMobile)
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -440,12 +448,16 @@ function returnUniqueNodes(nodes: ExtendedElementReference[]): ExtendedElementRe
     return nodes.filter((node) => !ids.has(node[ELEMENT_KEY]) && ids.add(node[ELEMENT_KEY]))
 }
 
+export function isBrowsingContext (elem: WebdriverIO.Browser | WebdriverIO.BrowsingContext | WebdriverIO.Element): elem is WebdriverIO.BrowsingContext {
+    return 'contextId' in elem
+}
+
 /**
  * logic to find an element
  * Note: the order of if statements matters
  */
 export async function findElement(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext | WebdriverIO.Element,
     selector: Selector
 ) {
     const browserObject = getBrowserObject(this)
@@ -458,14 +470,15 @@ export async function findElement(
      * - that is not a deep selector
      * - and we are not in an iframe (because it is currently not supported to locate nodes in an iframe via Bidi)
      */
-    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !shadowRootManager.isWithinFrame()) {
+    if (
+        browserObject.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !shadowRootManager.isWithinFrame()) {
         return findDeepElement.call(this, selector)
     }
 
     /**
      * check if shadow DOM integration is used
      */
-    if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+    if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR) && !isBrowsingContext(this)) {
         const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
         let elem: ElementReference | ElementReference[] = await browserObject.execute(
             querySelectorAllDeep,
@@ -481,7 +494,7 @@ export async function findElement(
     /**
      * fetch element using custom strategy function
      */
-    if (selector && typeof selector === 'object' && typeof (selector as CustomStrategyReference).strategy === 'function') {
+    if (selector && typeof selector === 'object' && typeof (selector as CustomStrategyReference).strategy === 'function' && !isBrowsingContext(this)) {
         const { strategy, strategyName, strategyArguments } = selector as CustomStrategyReference
         const notFoundError = new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
         let elem = await browserObject.execute(strategy, ...strategyArguments)
@@ -492,12 +505,12 @@ export async function findElement(
     /**
      * fetch element using regular protocol command
      */
-    if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    if (typeof selector === 'string' || isPlainObject(selector) && !isBrowsingContext(this)) {
+        const { using, value } = findStrategy(selector as string, browserObject.isW3C, browserObject.isMobile)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference
-            : this.findElement(using, value) as unknown as ElementReference
+            ? browserObject.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference
+            : browserObject.findElement(using, value) as unknown as ElementReference
     }
 
     /**
@@ -543,7 +556,7 @@ export async function findElement(
  * logic to find a elements
  */
 export async function findElements(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext | WebdriverIO.Element,
     selector: Selector
 ) {
     const browserObject = getBrowserObject(this)
@@ -551,7 +564,7 @@ export async function findElements(
     /**
      * check if shadow DOM integration is used
      */
-    if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+    if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR) && !isBrowsingContext(this)) {
         const elems: ElementReference | ElementReference[] = await browserObject.execute(
             querySelectorAllDeep,
             true,
@@ -577,11 +590,11 @@ export async function findElements(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+        const { using, value } = findStrategy(selector as string, browserObject.isW3C, browserObject.isMobile)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference[]
-            : this.findElements(using, value) as unknown as ElementReference[]
+            ? browserObject.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference[]
+            : browserObject.findElements(using, value) as unknown as ElementReference[]
     }
 
     /**
@@ -689,7 +702,7 @@ export async function hasElementId (element: WebdriverIO.Element) {
     /*
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
-    if (!element.elementId) {
+    if (!element.elementId && !isBrowsingContext(element.parent)) {
         const command = element.isReactElement
             ? element.parent.react$.bind(element.parent)
             : element.isShadowElement
@@ -732,7 +745,7 @@ type Entries<T> = {
  */
 export const enhanceElementsArray = (
     elements: WebdriverIO.Element[],
-    parent: WebdriverIO.Browser | WebdriverIO.Element,
+    parent: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
     foundWith = '$$',
     props: unknown[] = []

@@ -1,5 +1,5 @@
 import type { UNICODE_CHARACTERS } from '@wdio/utils'
-
+import { getBrowserObject } from '@wdio/utils'
 import { checkUnicode } from '../../utils/index.js'
 
 /**
@@ -24,9 +24,10 @@ import { checkUnicode } from '../../utils/index.js'
  *
  */
 export async function keys (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     value: string | string[]
 ) {
+    const browser = getBrowserObject(this)
     let keySequence: string[] = []
 
     /**
@@ -43,16 +44,14 @@ export async function keys (
         throw new Error('"keys" command requires a string or array of strings as parameter')
     }
 
-    /**
-     * W3C way of handle it key actions
-     */
-    const keyAction = this.action('key')
+    const keyAction = (this as WebdriverIO.BrowsingContext).action('key')
     keySequence.forEach((value) => keyAction.down(value))
+
     /**
      * XCTest API only allows to send keypresses (e.g. keydown+keyup).
      * There is no way to "split" them
      */
-    if (!this.isIOS){
+    if (!browser.isIOS){
         keyAction.pause(10)
     }
     keySequence.forEach((value) => keyAction.up(value))

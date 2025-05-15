@@ -8,6 +8,7 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 import type { Dialog as DialogImport } from './session/dialog.js'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
+import type * as BrowsingContextCommands from './commands/browsingContext.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
 import type WebDriverInterception from './utils/interception/index.js'
 
@@ -26,7 +27,7 @@ export { InitScript } from './commands/browser/addInitScript.js'
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
-
+type $BrowsingContextCommands = typeof BrowsingContextCommands
 type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
 type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
@@ -47,7 +48,7 @@ interface ChainablePromiseBaseElement {
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.BrowsingContext | WebdriverIO.MultiRemoteBrowser>
     /**
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
@@ -165,7 +166,7 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.BrowsingContext | WebdriverIO.MultiRemoteBrowser
     /**
      * command name with which this element was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`
      */
@@ -677,6 +678,37 @@ export interface SaveScreenshotOptions {
     }
 }
 
+export interface BrowsingContextBase extends $BrowsingContextCommands {
+    /**
+     * context id of the browsing context
+     */
+    contextId: string
+    /**
+     * true, if the browsing context is an iframe
+     */
+    isIframe: boolean
+    /**
+     * true, if the browsing context is a tab
+     */
+    isTab: boolean
+    /**
+     * true, if the browsing context is a window
+     */
+    isWindow: boolean
+    /**
+     * if the browsing context is an iframe, the parent browsing context
+     */
+    parent?: WebdriverIO.BrowsingContext | WebdriverIO.Browser
+    /**
+     * browser instance
+     */
+    browser: WebdriverIO.Browser
+    /**
+     * the associated network request, if not defined, no network data was captured
+     */
+    request?: WebdriverIO.Request
+}
+
 declare global {
     namespace WebdriverIO {
         /**
@@ -689,6 +721,11 @@ declare global {
          * @see https://webdriver.io/docs/api/element
          */
         interface Element extends ElementBase, ProtocolCommands, ElementCommandsType {}
+        /**
+         * WebdriverIO browsing context object
+         * @see https://webdriver.io/docs/api/browsingContext
+         */
+        interface BrowsingContext extends BrowsingContextBase {}
         /**
          * WebdriverIO element array
          * When fetching elements via `$$`, `custom$$` or `shadow$$` commands an array of elements

@@ -101,7 +101,7 @@ export const ERROR_REASON = [
 /**
  * store all preload scripts in a map (per instance) so that we can easily remove them
  */
-export const restoreFunctions = new Map<WebdriverIO.Browser, RestoreMap>()
+export const restoreFunctions = new Map<string, RestoreMap>()
 
 /**
  * Special Characters

@@ -2,6 +2,7 @@ import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getContextManager } from '../../session/context.js'
+import { getBasePage } from '../../browsingContext/index.js'
 import type { NewWindowOptions } from '../../types.js'
 import logger from '@wdio/logger'
 const log = logger('webdriverio:newWindow')
@@ -73,7 +74,11 @@ export async function newWindow (
     this: WebdriverIO.Browser,
     url: string,
     { type = 'window', windowName = '', windowFeatures = '' }: NewWindowOptions = {}
-): Promise<{ handle: string, type: 'tab' | 'window' }> {
+): Promise<{ handle: string, type: 'tab' | 'window' } | WebdriverIO.BrowsingContext> {
+    if (globalThis.wdio) {
+        throw new Error('"newWindow" command is not supported when using browser runner')
+    }
+
     /**
      * parameter check
      */
@@ -102,13 +107,13 @@ export async function newWindow (
     const tabsBefore = await this.getWindowHandles()
 
     if (this.isBidi) {
+        const page = await getBasePage.call(this)
         const contextManager = getContextManager(this)
-        const { context } = await this.browsingContextCreate({ type })
-        contextManager.setCurrentContext(context)
-        await this.browsingContextNavigate({ context, url })
-    } else {
-        await this.execute(newWindowHelper, url, windowName, windowFeatures)
+        const newPage = await page.newWindow(url, { type })
+        contextManager.setCurrentContext(newPage.contextId)
+        return newPage
     }
+    await this.execute(newWindowHelper, url, windowName, windowFeatures)
 
     /**
      * if tests are run in DevTools there might be a delay until

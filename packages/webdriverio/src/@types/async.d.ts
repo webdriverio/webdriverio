@@ -8,10 +8,11 @@
 type BrowserImport = import('../types.js').Browser
 type ElementImport = import('../types.js').Element
 type MultiRemoteBrowserImport = import('../types.js').MultiRemoteBrowser
-
+type BrowsingContextImport = import('../types.js').BrowsingContext
 declare namespace WebdriverIO {
     interface Browser extends BrowserImport { }
     interface Element extends ElementImport { }
+    interface BrowsingContext extends BrowsingContextImport { }
     interface MultiRemoteBrowser extends MultiRemoteBrowserImport { }
 }
 
