@@ -2,8 +2,8 @@ import os from 'node:os'
 import ws from 'ws'
 
 import WebDriver from './index.js'
-import { FetchRequest } from './request/node.js'
-import { FetchRequest as WebFetchRequest } from './request/web.js'
+import { NodeJSRequest } from './request/node.js'
+import { WebRequest } from './request/web.js'
 import { createBidiConnection } from './node/bidi.js'
 import type { BrowserSocket } from './bidi/socket.js'
 
@@ -22,11 +22,11 @@ environment.value = {
          */
         process.env.WDIO_USE_NATIVE_FETCH ||
         /**
-         * For unit tests we use the WebFetchRequest implementation as we can better mock the
+         * For unit tests we use the WebRequest implementation as we can better mock the
          * requests in the unit tests.
          */
         process.env.WDIO_UNIT_TESTS
-    ) ? WebFetchRequest : FetchRequest,
+    ) ? WebRequest : NodeJSRequest,
     Socket: ws as unknown as typeof BrowserSocket,
     createBidiConnection,
     variables: {
@@ -34,4 +34,3 @@ environment.value = {
         PROXY_URL: process.env.HTTP_PROXY || process.env.HTTPS_PROXY
     }
 }
-

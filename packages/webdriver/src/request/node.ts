@@ -1,37 +1,42 @@
 import dns from 'node:dns'
-import { fetch, Agent, type RequestInit as UndiciRequestInit, ProxyAgent } from 'undici'
+import http from 'node:http'
+import https from 'node:https'
+import { performance } from 'node:perf_hooks'
+import type { URL } from 'node:url'
 
-import { environment } from '../environment.js'
-import { WebDriverRequest } from './request.js'
-import type { RequestOptions } from './types.js'
+import got, { type OptionsOfTextResponseBody } from 'got'
+import type { Options } from '@testplane/wdio-types'
+
+import WebDriverRequest, { RequestLibError } from './index.js'
 
 // As per this https://github.com/node-fetch/node-fetch/issues/1624#issuecomment-1407717012 we are setting ipv4first as default IP resolver.
 // This can be removed when we drop Node18 support.
 dns.setDefaultResultOrder('ipv4first')
 
-/**
- * Node implementation of WebDriverRequest using undici fetch
- */
-export class FetchRequest extends WebDriverRequest {
-    fetch (url: URL, opts: RequestInit) {
-        return fetch(url, opts as UndiciRequestInit) as unknown as Promise<Response>
+const agents: Options.Agents = {
+    http: new http.Agent({ keepAlive: true }),
+    https: new https.Agent({ keepAlive: true })
+}
+
+export class NodeJSRequest extends WebDriverRequest {
+    constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false) {
+        super(method, endpoint, body, isHubCommand)
+        this.defaultAgents = agents
     }
 
-    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false) {
-        const { url, requestOptions } = await super.createOptions(options, sessionId, isBrowser)
+    protected async _libRequest (url: URL, opts: Options.RequestLibOptions) {
+        try {
+            return (await got(url, opts as OptionsOfTextResponseBody)) as Options.RequestLibResponse
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            if (!(err instanceof Error)) {
+                throw new RequestLibError(err.message || err)
+            }
+            throw err
+        }
+    }
 
-        /**
-         * Use a proxy agent if we have a proxy url set
-         */
-        const dispatcher = environment.value.variables.PROXY_URL
-            ? new ProxyAgent(environment.value.variables.PROXY_URL)
-            : new Agent({
-                connectTimeout: options.connectionRetryTimeout,
-                headersTimeout: options.connectionRetryTimeout,
-                bodyTimeout: options.connectionRetryTimeout,
-            })
-
-        ;(requestOptions as UndiciRequestInit).dispatcher = dispatcher
-        return { url, requestOptions }
+    protected _libPerformanceNow(): number {
+        return performance.now()
     }
 }

@@ -1,10 +1,34 @@
+import type http from 'node:http'
+import type https from 'node:https'
+import type { URL } from 'node:url'
+
 import type { Hooks, ServiceEntry } from './Services.js'
 import type { ReporterEntry } from './Reporters.js'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
+export type Agents = { http?: unknown, https?: unknown }
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
+
+export interface RequestLibOptions {
+    agent?: Agents
+    followRedirect?: boolean
+    headers?: Record<string, string | string[] | undefined>
+    https?: Record<string, unknown>
+    json?: Record<string, unknown>
+    method?: Method
+    responseType?: 'json' | 'buffer' | 'text'
+    retry?: { limit: number, methods?: Method[], calculateDelay?: (retryOptions: { computedValue: number }) => number }
+    searchParams?: Record<string, string | number | boolean | null | undefined> | URLSearchParams
+    throwHttpErrors?: boolean
+    timeout?: { response: number }
+    url?: URL
+    path?: string
+    username?: string
+    password?: string
+    body?: unknown
+}
 
 export interface RequestLibResponse<Body = unknown> {
     statusCode: number
@@ -105,13 +129,28 @@ export interface WebDriver extends Connection {
         [name: string]: string
     }
     /**
+     * Allows you to use a custom http/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
+     *
+     * @default
+     * ```js
+     * {
+     *     http: new http.Agent({ keepAlive: true }),
+     *     https: new https.Agent({ keepAlive: true })
+     * }
+     * ```
+     */
+    agent?: {
+        http: http.Agent,
+        https: https.Agent
+    }
+    /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
      */
-    transformRequest?: (requestOptions: RequestInit) => RequestInit
+    transformRequest?: (requestOptions: RequestLibOptions) => RequestLibOptions
     /**
      * Function intercepting HTTP response objects after a WebDriver response has arrived.
      */
-    transformResponse?: (response: RequestLibResponse, requestOptions: RequestInit) => RequestLibResponse
+    transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse
 
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)

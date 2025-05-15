@@ -36,14 +36,16 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@testplane/wdio-config": "workspace:*",
+    "@testplane/wdio-logger": "workspace:*",
     "@testplane/wdio-protocols": "workspace:*",
     "@testplane/wdio-types": "workspace:*",
     "@testplane/wdio-utils": "workspace:*",
     "@types/node": "^20.1.0",
     "@types/ws": "^8.5.3",
-    "@testplane/wdio-config": "workspace:*",
-    "@testplane/wdio-logger": "workspace:*",
     "deepmerge-ts": "^7.0.3",
+    "got": "12.6.1",
+    "ky": "0.33.0",
     "undici": "6.12.0",
     "ws": "^8.8.0"
   }
