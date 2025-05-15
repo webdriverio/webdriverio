@@ -1,14 +1,15 @@
 import type { ElementReference } from '@wdio/protocols'
 
-import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
-import { getElements, getElement } from '../../utils/getElementObject.js'
+import { findElements, isElement, findElement } from '../../utils/index.js'
+import { getElements } from '../../utils/getElementObject.js'
 import { findDeepElements } from '../../utils/index.js'
+import { ElementArray } from '../../element/array.js'
 import { DEEP_SELECTOR } from '../../constants.js'
 import type { Selector } from '../../types.js'
 
 /**
  * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
- * It returns a `ChainablePromiseArray` containing a set of WebdriverIO elements.
+ * It returns a `WebdriverIO.ElementArray` containing an array of WebdriverIO elements.
  *
  * Using the wdio testrunner this command is a global variable, see [Globals](https://webdriver.io/docs/api/globals)
  * for more information. Using WebdriverIO within a [standalone](https://webdriver.io/docs/setuptypes#standalone-mode)
@@ -46,10 +47,10 @@ import type { Selector } from '../../types.js'
  * @type utility
  *
  */
-export async function $$ (
+export function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
-): Promise<WebdriverIO.ElementArray> {
+): WebdriverIO.ElementArray {
     /**
      * do a deep lookup if
      * - we are using Bidi
@@ -62,53 +63,50 @@ export async function $$ (
          */
         if (globalThis.wdio?.execute) {
             const command = '$$' as const
-            const res = 'elementId' in this
-                ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as unknown as ElementReference[]
-                : await globalThis.wdio.execute(command, selector) as unknown as ElementReference[]
-            const elements = await getElements.call(this, selector as Selector, res)
-            return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
+            return ElementArray.fromAsyncCallback(async () => {
+                const res = 'elementId' in this
+                    ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as unknown as ElementReference[]
+                    : await globalThis.wdio.execute(command, selector) as unknown as ElementReference[]
+                const elements = await getElements.call(this, selector as Selector, res)
+                return elements
+            }, {
+                selector: selector as Selector,
+                parent: this
+            })
         }
 
-        const res = await findDeepElements.call(this, selector)
-        const elements = await getElements.call(this, selector as Selector, res)
-        return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
+        return ElementArray.fromAsyncCallback(async () => {
+            const res = await findDeepElements.call(this, selector)
+            const elements = await getElements.call(this, selector as Selector, res)
+            return elements
+        }, {
+            selector: selector as Selector,
+            parent: this
+        })
     }
 
-    let res: (ElementReference | Error)[] = Array.isArray(selector)
-        ? selector as ElementReference[]
-        : await findElements.call(this, selector)
+    return ElementArray.fromAsyncCallback(async () => {
+        let res: (ElementReference | Error)[] = Array.isArray(selector)
+            ? selector as ElementReference[]
+            : await findElements.call(this, selector)
 
-    /**
-     * allow user to transform a set of HTMLElements into a set of WebdriverIO elements
-     */
-    if (Array.isArray(selector) && isElement(selector[0])) {
-        res = []
-        for (const el of selector) {
-            const $el = await findElement.call(this, el)
-            if ($el) {
-                res.push($el)
+        /**
+         * allow user to transform a set of HTMLElements into a set of WebdriverIO elements
+         */
+        if (Array.isArray(selector) && isElement(selector[0])) {
+            res = []
+            for (const el of selector) {
+                const $el = await findElement.call(this, el)
+                if ($el) {
+                    res.push($el)
+                }
             }
         }
-    }
 
-    const elements = await getElements.call(this, selector as Selector, res)
-    return enhanceElementsArray(elements, getParent.call(this, res), selector as Selector) as WebdriverIO.ElementArray
-}
-
-function getParent (this: WebdriverIO.Browser | WebdriverIO.Element, res: ElementReference[]) {
-    /**
-     * Define scope of element. In most cases it is `this` but if we pass through
-     * an element object from the browser runner we have to look into the parent
-     * provided by the selector object. Since these objects are passed through
-     * as raw objects without any prototype we have to check if the `$` or `$$`
-     * is defined on the object itself and if not, create a new element object.
-     */
-    let parent = res.length > 0 ? (res[0] as WebdriverIO.Element).parent || this : this
-    if (typeof parent.$ === 'undefined') {
-        parent = 'selector' in parent
-            ? getElement.call(this, parent.selector, parent)
-            : this
-    }
-
-    return parent
+        const elements = await getElements.call(this, selector as Selector, res)
+        return elements
+    }, {
+        selector: selector as Selector,
+        parent: this
+    })
 }
