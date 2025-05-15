@@ -127,7 +127,7 @@ function normalizeDoc(readme: string, githubUrl: string, branch: string, preface
      */
     let sliceIdx = 0
     for (let i = 0; i < readmeHeaderLines && sliceIdx === 0; i++) {
-        if (readmeHeaders.some(x => readmeArr[i].startsWith(x))) {
+        if (typeof readmeArr[i] === 'string' && readmeHeaders.some(x => readmeArr[i].startsWith(x))) {
             sliceIdx = i + 1
         }
     }

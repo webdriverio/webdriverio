@@ -1755,7 +1755,6 @@ export interface BrowserStackCapabilities {
      */
     maskCommands?: string,
 
-
     /**
      * Enables the camera image injection feature.
      *
