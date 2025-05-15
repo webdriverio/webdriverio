@@ -45,6 +45,7 @@ const config: Config = {
             'hi',
             'it',
             'ja',
+            'ko',
             'pl',
             'pt',
             'ru',
