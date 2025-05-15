@@ -25,6 +25,7 @@ export class BrowserstackCLI {
     static enabled = false
     initialized:boolean
     config:object
+    wdioConfig: string
     cliArgs:object
     browserstackConfig: BrowserStackConfig|{}
     process: ChildProcess | null = null
@@ -43,6 +44,7 @@ export class BrowserstackCLI {
         this.config = {}
         this.cliArgs = {}
         this.browserstackConfig = {}
+        this.wdioConfig = ''
     }
 
     /**
@@ -61,7 +63,7 @@ export class BrowserstackCLI {
      * Initializes and starts the CLI based on environment settings
      * @returns {Promise<void>}
      */
-    async bootstrap() {
+    async bootstrap(wdioConfig: string) {
         PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_BOOTSTRAP)
         BrowserstackCLI.enabled = true
         try {
@@ -73,6 +75,7 @@ export class BrowserstackCLI {
                 return
             }
 
+            this.wdioConfig = wdioConfig
             await this.startMain()
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.stack || error.message : String(error)
@@ -91,6 +94,8 @@ export class BrowserstackCLI {
         this.logger.info('startMain: Starting main process')
         await this.start()
         this.logger.debug('startMain: main-process started')
+        const response = await GrpcClient.getInstance().startBinSession(this.wdioConfig)
+        BStackLogger.debug(`start: startBinSession response=${JSON.stringify(response)}`)
         this.isMainConnected = true
 
     }
@@ -210,6 +215,10 @@ export class BrowserstackCLI {
         PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_STOP)
         this.logger.debug('stop: CLI stop triggered')
         try {
+            if (this.isMainConnected) {
+                const response = await GrpcClient.getInstance().stopBinSession()
+                BStackLogger.debug(`stop: stopBinSession response=${JSON.stringify(response)}`)
+            }
 
             await this.unConfigureModules()
 
@@ -279,6 +288,8 @@ export class BrowserstackCLI {
         try {
             this.logger.info(`Starting as child process with session ID: ${binSessionId}`)
             GrpcClient.getInstance().connect()
+            const response = await GrpcClient.getInstance().connectBinSession()
+            this.logger.info(`Connected to bin session: ${JSON.stringify(response)}`)
             this.isChildConnected = true
             PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION)
         } catch (error) {

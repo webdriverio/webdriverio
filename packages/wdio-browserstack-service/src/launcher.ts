@@ -53,6 +53,7 @@ import PerformanceTester from './instrumentation/performance/performance-tester.
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 import { _fetch as fetch } from './fetchWrapper.js'
+import { CLIUtils } from './cli/cliUtils.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -211,7 +212,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         try {
             BStackLogger.debug('Is CLI running ' + BrowserstackCLI.getInstance().isRunning())
-            await BrowserstackCLI.getInstance().bootstrap()
+            CLIUtils.setFrameworkDetail('selenium', 'selenium') // TODO: make this constant
+            const binconfig = CLIUtils.getBinConfig(this._config, capabilities, this._options)
+            await BrowserstackCLI.getInstance().bootstrap(binconfig)
             BStackLogger.debug('Is CLI running ' + BrowserstackCLI.getInstance().isRunning())
         } catch (err) {
             BStackLogger.error(`Error while starting CLI ${err}`)

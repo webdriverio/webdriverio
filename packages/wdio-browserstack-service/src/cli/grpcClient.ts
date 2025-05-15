@@ -93,7 +93,7 @@ export class GrpcClient {
         this.logger.info(`Connected to gRPC server at ${listenAddress}`)
     }
 
-    async startBinSession() {
+    async startBinSession(wdioConfig: string) {
         PerformanceTester.start(PerformanceEvents.SDK_START_BIN_SESSION)
         this.logger.debug('startBinSession: Calling startBinSession')
 
@@ -116,6 +116,7 @@ export class GrpcClient {
                 cliArgs: process.argv.slice(2),
                 language: CLIUtils.getSdkLanguage(),
                 testFramework: framework,
+                wdioConfig: wdioConfig,
             })
 
             const startBinSessionPromise = promisify(this.client!.startBinSession).bind(this.client!)

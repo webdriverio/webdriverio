@@ -85,6 +85,7 @@ message StartBinSessionRequest {
     string language = 10;
     optional string language_version = 11;
     string test_framework = 12;
+    optional string wdio_config = 13;
 }
 
 message StartBinSessionResponse {

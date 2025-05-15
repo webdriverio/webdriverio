@@ -25,8 +25,9 @@ import {
 } from '../util.js'
 import { BStackLogger } from './cliLogger.js'
 import { UPDATED_CLI_ENDPOINT, BROWSERSTACK_API_URL } from '../constants.js'
-import type { Options } from '@wdio/types'
+import type { Options, Capabilities } from '@wdio/types'
 import { Readable } from 'node:stream'
+import type { BrowserstackConfig, BrowserstackOptions } from 'src/types.js'
 const logger = BStackLogger
 
 export class CLIUtils {
@@ -44,12 +45,55 @@ export class CLIUtils {
         }
     }
 
+    /**
+     * Build config object for binary session request
+     * @returns {string}
+     * @throws {Error}
+     */
+    static getBinConfig(config: Options.Testrunner, capabilities: Capabilities.TestrunnerCapabilities | WebdriverIO.Capabilities, options: BrowserstackConfig & BrowserstackOptions) {
+        const modifiedOpts: Record<string, unknown> = { ...options }
+        if (modifiedOpts.opts) {
+            modifiedOpts.browserstackLocalOptions = modifiedOpts.opts
+            delete modifiedOpts.opts
+        }
+        const binconfig = {
+            userName: config.user,
+            accessKey: config.key,
+            platforms: [],
+            ...modifiedOpts,
+            ...(config.commonCapabilities['bstack:options'] ?? {}),
+        }
+        if (Array.isArray(capabilities)) {
+            for (const capability of capabilities) {
+                const platform: Record<string, unknown> = {}
+                Object.keys(capability)
+                    .filter((key) => (key !== 'bstack:options'))
+                    .forEach((key) => {
+                        if (binconfig[key] === undefined) {
+                            platform[key] = capability[key]
+                        }
+                    })
+
+                Object.keys(capability['bstack:options'])
+                    .forEach((key) => {
+                        if (binconfig[key] === undefined) {
+                            platform[key] = capability['bstack:options'][key]
+                        }
+                    })
+                binconfig.platforms.push(platform)
+            }
+        }
+        // BStackLogger.debug('--------bin config-----------')
+        BStackLogger.debug(JSON.stringify(binconfig))
+        return JSON.stringify(binconfig)
+    }
+
     static getSdkVersion() {
         return pkgJSON.version
     }
 
     static getSdkLanguage() {
-        return 'node'
+        return 'wdio'
     }
 
     static async setupCliPath(config: Options.Testrunner): Promise<string|null> {
@@ -345,5 +389,24 @@ export class CLIUtils {
             return JSON.parse(process.env.BROWSERSTACK_AUTOMATION_FRAMEWORK_DETAIL)
         }
         return this.automationFrameworkDetail
+    }
+
+    static setFrameworkDetail(testFramework: string, automationFramework: string) {
+        if (!testFramework || !automationFramework) {
+            logger.debug(`Test or Automation framework not provided testFramework=${testFramework}, automationFramework=${automationFramework}`)
+        }
+
+        this.testFrameworkDetail = {
+            name: testFramework,
+            version: { [testFramework]: 'latest' }, // TODO: update static value
+        }
+
+        this.automationFrameworkDetail = {
+            name: automationFramework,
+            version: 'latest', // TODO: update static value
+        }
+
+        process.env.BROWSERSTACK_AUTOMATION_FRAMEWORK_DETAIL = JSON.stringify(this.automationFrameworkDetail)
+        process.env.BROWSERSTACK_TEST_FRAMEWORK_DETAIL = JSON.stringify(this.testFrameworkDetail)
     }
 }

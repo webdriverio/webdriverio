@@ -27,6 +27,7 @@ import PerformanceTester from './instrumentation/performance/performance-tester.
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 
 import { _fetch as fetch } from './fetchWrapper.js'
+import { BrowserstackCLI } from './cli/index.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -99,7 +100,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeSession' })
-    beforeSession (config: Options.Testrunner) {
+    async beforeSession (config: Options.Testrunner) {
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
         // will fail
@@ -113,6 +114,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
         this._config.user = config.user
         this._config.key = config.key
+        await BrowserstackCLI.getInstance().bootstrap()
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'before' })
