@@ -39,6 +39,8 @@ import {
     ObjectsAreEqual, getBasicAuthHeader,
     isValidCapsForHealing,
     getBooleanValueFromString,
+    validateCapsWithNonBstackA11y,
+    mergeChromeOptions
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -50,7 +52,7 @@ import { sendFinish, sendStart } from './instrumentation/funnelInstrumentation.j
 import AiHandler from './ai-handler.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
-
+import accessibilityScripts from './scripts/accessibility-scripts.js'
 import { _fetch as fetch } from './fetchWrapper.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
@@ -295,6 +297,35 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildIdentifier: this._buildIdentifier
             }, this.browserStackConfig, this._accessibilityAutomation)
         }
+
+        if (isAccessibilityAutomationSession(this._accessibilityAutomation) && (process.env.BROWSERSTACK_TURBOSCALE || !shouldAddServiceVersion(this._config, this._options.testObservability))){
+            if (Array.isArray(capabilities)) {
+                capabilities
+                    .flatMap((c) => {
+
+                        if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
+                            return Object.values(c).map((o) => o.capabilities) as WebdriverIO.Capabilities[]
+                        }
+                        return c as WebdriverIO.Capabilities
+                    })
+                    .forEach((capability: WebdriverIO.Capabilities) => {
+                        if (validateCapsWithNonBstackA11y(capability['browserName'], capability['browserVersion'] )){
+                            const chromeOptions =  capability['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
+                            const overrideOptions: Partial<Capabilities.ChromeOptions> = accessibilityScripts.ChromeExtension
+                            if (chromeOptions){
+
+                                const finalChromeOptions = mergeChromeOptions(chromeOptions, overrideOptions)
+                                capability['goog:chromeOptions'] = finalChromeOptions
+                            } else {
+                                capability['goog:chromeOptions'] = overrideOptions
+
+                            }
+
+                        }
+                    })
+            }
+        }
+
         if (buildStartResponse?.accessibility) {
             if (this._accessibilityAutomation === null) {
                 this.browserStackConfig.accessibility = buildStartResponse.accessibility.success as boolean

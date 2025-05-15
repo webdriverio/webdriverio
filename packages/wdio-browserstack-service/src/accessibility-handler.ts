@@ -1,6 +1,8 @@
 import util from 'node:util'
 
-import type { Capabilities, Frameworks } from '@wdio/types'
+import type { Capabilities, Frameworks, Options } from '@wdio/types'
+
+import type { BrowserstackConfig, BrowserstackOptions } from './types.js'
 
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 
@@ -19,6 +21,8 @@ import {
     o11yClassErrorHandler,
     shouldScanTestForAccessibility,
     validateCapsWithA11y,
+    shouldAddServiceVersion,
+    validateCapsWithNonBstackA11y,
     isTrue,
     validateCapsWithAppA11y,
     getAppA11yResults,
@@ -35,6 +39,9 @@ class _AccessibilityHandler {
     private _caps: Capabilities.ResolvedTestrunnerCapabilities
     private _suiteFile?: string
     private _accessibility?: boolean
+    private _turboscale?: boolean
+    private _options: BrowserstackConfig & BrowserstackOptions
+    private _config: Options.Testrunner
     private _accessibilityOptions?: { [key: string]: unknown; }
     private _testMetadata: { [key: string]: unknown; } = {}
     private static _a11yScanSessionMap: { [key: string]: unknown; } = {}
@@ -44,9 +51,12 @@ class _AccessibilityHandler {
     constructor (
         private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
         _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
+        _options : BrowserstackConfig & BrowserstackOptions,
         private isAppAutomate: boolean,
+        _config : Options.Testrunner,
         private _framework?: string,
         _accessibilityAutomation?: boolean | string,
+        _turboscale?: boolean | string,
         _accessibilityOpts?: { [key: string]: unknown; }
     ) {
         const caps = (this._browser as WebdriverIO.Browser).capabilities as WebdriverIO.Capabilities
@@ -64,6 +74,9 @@ class _AccessibilityHandler {
         this._caps = _capabilities
         this._accessibility = isTrue(_accessibilityAutomation)
         this._accessibilityOptions = _accessibilityOpts
+        this._options = _options
+        this._config= _config
+        this._turboscale = isTrue(_turboscale)
     }
 
     setSuiteFile(filename: string) {
@@ -103,7 +116,11 @@ class _AccessibilityHandler {
         this._sessionId = sessionId
         this._accessibility = isTrue(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
 
-        if (isBrowserstackSession(this._browser)) {
+        if (isAccessibilityAutomationSession(this._accessibility) && (this._turboscale || !shouldAddServiceVersion(this._config, this._options.testObservability))){
+            if (validateCapsWithNonBstackA11y(this._platformA11yMeta.browser_name as string, this._platformA11yMeta?.browser_version as string)){
+                this._accessibility = true
+            }
+        } else {
             if (isAccessibilityAutomationSession(this._accessibility) && !this.isAppAutomate) {
                 const deviceName = this._getCapabilityValue(this._caps, 'deviceName', 'device')
                 const chromeOptions = this._getCapabilityValue(this._caps, 'goog:chromeOptions', '') as Capabilities.ChromeOptions
@@ -356,7 +373,7 @@ class _AccessibilityHandler {
         if (!browser) {
             return false
         }
-        return isBrowserstackSession(browser) && isAccessibilityAutomationSession(isAccessibility)
+        return isAccessibilityAutomationSession(isAccessibility)
     }
 
     private async checkIfPageOpened(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, testIdentifier: string, shouldScanTest?: boolean) {
