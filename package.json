@@ -94,7 +94,7 @@
     "@wdio/eslint": "^0.1.1",
     "@wdio/repl": "workspace:*",
     "camelcase": "^8.0.0",
-    "cddl": "^0.8.5",
+    "cddl": "^0.12.0",
     "cddl2ts": "^0.2.2",
     "chalk": "^5.3.0",
     "cheerio": "1.0.0",

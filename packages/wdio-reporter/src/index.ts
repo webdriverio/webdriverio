@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
@@ -293,7 +294,25 @@ export default class WDIOReporter extends EventEmitter {
     onRunnerEnd(_runnerStats: RunnerStats) { }
 }
 
+/**
+ * Returns the browser name from the capabilities
+ * @param caps WebdriverIO Capabilities
+ * @returns {string} Browser name
+ */
+function getBrowserName(caps: WebdriverIO.Capabilities) {
+    // @ts-expect-error outdated JSONWP capabilities
+    const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
+    const appName = (
+        caps['appium:bundleId'] ||
+        caps['appium:appPackage'] ||
+        caps['appium:appActivity'] ||
+        (path.isAbsolute(app) ? path.basename(app) : app)
+    )
+    // @ts-expect-error outdated JSONWP capabilities
+    return caps.browserName || caps.browser || appName
+}
+
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, Argument, Test
+    AfterCommandArgs, CommandArgs, Argument, Test, getBrowserName
 }
