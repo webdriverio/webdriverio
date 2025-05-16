@@ -597,10 +597,6 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
 }
 
 export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
-    if (!isBrowserStackSession) {
-        BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
-        return [] // since we are running only on Automate as of now
-    }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
@@ -680,9 +676,6 @@ const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, 
 }
 
 export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
-    if (!isBrowserStackSession) {
-        return {} // since we are running only on Automate as of now
-    }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
