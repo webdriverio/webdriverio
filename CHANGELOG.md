@@ -23,6 +23,34 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.14.0 (2025-05-15)
+
+#### :rocket: New Feature
+* `wdio-protocols`, `webdriver`, `webdriverio`
+  * [#14478](https://github.com/webdriverio/webdriverio/pull/14478) feat(protocol): WebDriver Bidi Protocol update ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#14472](https://github.com/webdriverio/webdriverio/pull/14472) chore(@wdio/spec-reporter): file name print format ([@unickq](https://github.com/unickq))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#14474](https://github.com/webdriverio/webdriverio/pull/14474) add browserstack camera-image-injection to wdio-types capabilities ([@DoreyKiss](https://github.com/DoreyKiss))
+* `wdio-browserstack-service`
+  * [#14466](https://github.com/webdriverio/webdriverio/pull/14466) Added changes to skip tests for mocha framework for browserstack session ([@pri-gadhiya](https://github.com/pri-gadhiya))
+
+#### :house: Internal
+* `wdio-types`
+  * [#14481](https://github.com/webdriverio/webdriverio/pull/14481) feat: adding check in normalizeDoc function to make sure readmeArr is of string type ([@Kauanldsbarbosa](https://github.com/Kauanldsbarbosa))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dory ([@DoreyKiss](https://github.com/DoreyKiss))
+- Kauan Barbosa ([@Kauanldsbarbosa](https://github.com/Kauanldsbarbosa))
+- Mykyta Chursin ([@unickq](https://github.com/unickq))
+- Priyanka Gadhiya ([@pri-gadhiya](https://github.com/pri-gadhiya))
+
+
 ## v9.13.0 (2025-05-12)
 
 #### :eyeglasses: Spec Compliancy
