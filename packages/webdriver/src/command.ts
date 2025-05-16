@@ -130,20 +130,17 @@ export default function (
          *   - `deleteSession` calls which should go through in case we retry the command.
          *   - requests that don't require a session.
          */
-        const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
+        const { isAborted, cleanup } = manageSessionAbortions.call(this)
         const requiresSession = endpointUri.includes('/:sessionId/')
         if (isAborted && command !== 'deleteSession' && requiresSession) {
             throw new Error(`Trying to run command "${commandCallStructure(command, args)}" after session has been deleted, aborting request without executing it`)
         }
 
-        const request = new environment.value.Request(method, endpoint, body, abortSignal, isHubCommand, {
-            onPerformance: (data) => this.emit('request.performance', data),
-            onRequest: (data) => this.emit('request.start', data),
-            onResponse: (data) => this.emit('request.end', data),
-            onRetry: (data) => this.emit('request.retry', data)
-        })
+        const request = new environment.value.Request(method, endpoint, body, isHubCommand)
+        request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { command, method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
+
         /**
          * use then here so we can better unit test what happens before and after the request
          */

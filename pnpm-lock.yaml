@@ -1517,6 +1517,12 @@ importers:
       deepmerge-ts:
         specifier: ^7.0.3
         version: 7.1.4
+      got:
+        specifier: 12.6.1
+        version: 12.6.1
+      ky:
+        specifier: 0.33.0
+        version: 0.33.0
       undici:
         specifier: 6.12.0
         version: 6.12.0
@@ -10017,6 +10023,10 @@ packages:
 
   kolorist@1.8.0:
     resolution: {integrity: sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ==}
+
+  ky@0.33.0:
+    resolution: {integrity: sha512-peKzuOlN/q3Q3jOgi4t0cp6DOgif5rVnmiSIsjsmkiOcdnSjkrKSUqQmRWYCTqjUtR9b3xQQr8aj7KwSW1r49A==}
+    engines: {node: '>=14.16'}
 
   ky@0.33.3:
     resolution: {integrity: sha512-CasD9OCEQSFIam2U8efFK81Yeg8vNMTBUqtMOHlrcWQHqUX3HeCl9Dr31u4toV7emlH8Mymk5+9p0lL6mKb/Xw==}
@@ -25012,6 +25022,8 @@ snapshots:
 
   kolorist@1.8.0: {}
 
+  ky@0.33.0: {}
+
   ky@0.33.3:
     optional: true
 
@@ -27741,7 +27753,6 @@ snapshots:
       typed-query-selector: 2.12.0
       ws: 8.18.0
     transitivePeerDependencies:
-      - bare-buffer
       - bufferutil
       - supports-color
       - utf-8-validate

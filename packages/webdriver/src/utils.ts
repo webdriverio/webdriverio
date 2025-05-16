@@ -8,12 +8,15 @@ import {
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@testplane/wdio-protocols'
 import { CAPABILITY_KEYS } from '@testplane/wdio-protocols'
+import { transformCommandLogResult } from '@testplane/wdio-utils'
 import type { Options } from '@testplane/wdio-types'
 
-import command from './command.js'
 import { environment } from './environment.js'
+import command from './command.js'
 import { BidiHandler } from './bidi/handler.js'
+import { REG_EXPS } from './constants.js'
 import type { Event } from './bidi/localTypes.js'
+import type { WebDriverResponse } from './request/types.js'
 import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
 
 const log = logger('webdriver')
@@ -79,6 +82,7 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
     }
 
     validateCapabilities(w3cCaps.alwaysMatch)
+
     const sessionRequest = new environment.value.Request(
         'POST',
         '/session',
@@ -276,6 +280,68 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
 }
 
 /**
+ * helper method to determine the error from webdriver response
+ * @param  {Object} body body object
+ * @return {Object} error
+ */
+export function getErrorFromResponseBody (body: unknown, requestOptions: unknown) {
+    if (!body) {
+        return new Error('Response has empty body')
+    }
+
+    if (typeof body === 'string' && body.length) {
+        return new Error(body)
+    }
+
+    if (typeof body !== 'object') {
+        return new Error('Unknown error')
+    }
+
+    return new CustomRequestError(body as WebDriverResponse, requestOptions)
+}
+
+//Exporting for testability
+export class CustomRequestError extends Error {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    constructor (body: WebDriverResponse, requestOptions: any) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const errorObj = (body.value || body) as any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let errorMessage = errorObj.message || errorObj.class || 'unknown error'
+
+        /**
+         * Improve Chromedriver's error message for an invalid selector
+         *
+         * Chrome:
+         *  error: 'invalid argument'
+         * message: 'invalid argument: invalid locator\n  (Session info: chrome=122.0.6261.94)'
+         * Firefox:
+         *  error: 'invalid selector'
+         *  message: 'Given xpath expression "//button" is invalid: NotSupportedError: Operation is not supported'
+         * Safari:
+         *  error: 'timeout'
+         *  message: ''
+         */
+        if (typeof errorObj.message === 'string' && errorObj.message.includes('invalid locator')) {
+            errorMessage = (
+                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid!`
+            )
+        }
+
+        super(errorMessage)
+        if (errorObj.error) {
+            this.name = errorObj.error
+        } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
+            this.name = 'stale element reference'
+        } else {
+            this.name = errorObj.name || 'WebDriver Error'
+        }
+
+        Error.captureStackTrace(this, CustomRequestError)
+    }
+}
+
+/**
  * return all supported flags and return them in a format so we can attach them
  * to the instance protocol
  * @param  {Object} options   driver instance or option object containing these flags
@@ -384,6 +450,49 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
     }
 
     return err.message
+}
+
+/**
+ * return timeout error with information about the executing command on which the test hangs
+ */
+export const getTimeoutError = (error: Error, requestOptions: Options.RequestLibOptions): Error => {
+    const cmdName = getExecCmdName(requestOptions)
+    const cmdArgs = getExecCmdArgs(requestOptions)
+
+    const cmdInfoMsg = `when running "${cmdName}" with method "${requestOptions.method}"`
+    const cmdArgsMsg = cmdArgs ? ` and args ${cmdArgs}` : ''
+
+    const timeoutErr = new Error(`${error.message} ${cmdInfoMsg}${cmdArgsMsg}`)
+    return Object.assign(timeoutErr, error)
+}
+
+function getExecCmdName(requestOptions: Options.RequestLibOptions): string {
+    const { href } = requestOptions.url as URL
+    const res = href.match(REG_EXPS.commandName) || []
+
+    return res[1] || href
+}
+
+function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
+    const { json: cmdJson } = requestOptions
+
+    if (typeof cmdJson !== 'object') {
+        return ''
+    }
+
+    const transformedRes = transformCommandLogResult(cmdJson)
+
+    if (typeof transformedRes === 'string') {
+        return transformedRes
+    }
+
+    if (typeof cmdJson.script === 'string') {
+        const scriptRes = cmdJson.script.match(REG_EXPS.execFn) || []
+
+        return `"${scriptRes[1] || cmdJson.script}"`
+    }
+
+    return Object.keys(cmdJson).length ? `"${JSON.stringify(cmdJson)}"` : ''
 }
 
 /**

@@ -3,7 +3,7 @@ import type { WebSocket } from 'ws'
 
 import WebDriver from './index.js'
 import { BrowserSocket } from './bidi/socket.js'
-import { FetchRequest } from './request/web.js'
+import { WebRequest } from './request/web.js'
 
 export default WebDriver
 export * from './index.js'
@@ -13,7 +13,7 @@ import { environment } from './environment.js'
 const log = logger('webdriver')
 
 environment.value = {
-    Request: FetchRequest,
+    Request: WebRequest,
     Socket: BrowserSocket,
     createBidiConnection: (webSocketUrl: string, options: unknown) => {
         log.info(`Connecting to webSocketUrl ${webSocketUrl}`)

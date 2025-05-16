@@ -1,8 +1,8 @@
 import type WebSocket from 'ws'
 
 import type { BrowserSocket } from './bidi/socket.js'
-import type { FetchRequest } from './request/web.js'
-
+import type { WebRequest } from './request/web.js'
+import type { NodeJSRequest } from './request/node.js'
 /**
  * @internal
  */
@@ -14,7 +14,7 @@ export interface EnvironmentVariables {
 }
 
 export interface EnvironmentDependencies {
-    Request: typeof FetchRequest,
+    Request: typeof WebRequest | typeof NodeJSRequest,
     Socket: typeof BrowserSocket,
     createBidiConnection: (wsUrl?: string, options?: unknown) => Promise<WebSocket | undefined>,
     variables: EnvironmentVariables

@@ -1,6 +1,6 @@
-import type { Options } from '@testplane/wdio-types'
-
 import { environment } from './environment.js'
+
+import type { Options } from '@testplane/wdio-types'
 import type { RemoteConfig } from './types.js'
 
 export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
@@ -95,6 +95,12 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
     /**
      * Override default agent
      */
+    agent: {
+        type: 'object'
+    },
+    /**
+     * Override default agent
+     */
     logLevels: {
         type: 'object'
     },
@@ -109,7 +115,7 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
      */
     transformRequest: {
         type: 'function',
-        default: (requestOptions: RequestInit) => requestOptions
+        default: (requestOptions: Options.RequestLibOptions) => requestOptions
     },
     /**
      * Function transforming the response object after it is received
@@ -142,6 +148,11 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
         type: 'string',
         default: environment.value.variables.WEBDRIVER_CACHE_DIR
     }
+}
+
+export const REG_EXPS = {
+    commandName: /.*\/session\/[0-9a-f-]+\/(.*)/,
+    execFn: /return \(([\s\S]*)\)\.apply\(null, arguments\)/
 }
 
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
