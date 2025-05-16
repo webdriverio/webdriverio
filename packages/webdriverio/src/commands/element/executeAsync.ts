@@ -1,5 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
-
+import type { TransformElement } from '../../types.js'
 /**
  * :::warning
  * The `executeAsync` command is deprecated and will be removed in a future version.
@@ -36,7 +36,23 @@ import { getBrowserObject } from '@wdio/utils'
                 done(elem.textContent + a + b + c + d)
             }, 3000);
         }, 1, 2, 3, 4);
+
         // node.js context - client and console are available
+        console.log(text); // outputs "Hello World1234"
+    });
+
+    :executeAsync.ts
+    it('should wait for the element to exist, then executes async javascript on the page with the element as first argument', async () => {
+        await browser.setTimeout({ script: 5000 })
+
+        // explicitly type the return value of the script to ensure type safety
+        const text: number = await $('div').execute((elem, a, b, c, d) => {
+            // browser context - you may not access client or console
+            setTimeout(() => {
+                done(elem.textContent + a + b + c + d)
+            }, 3000);
+        }, 1, 2, 3, 4);
+
         // node.js context - client and console are available
         console.log(text); // outputs "Hello World1234"
     });
@@ -52,12 +68,29 @@ import { getBrowserObject } from '@wdio/utils'
  * @deprecated Please use `execute` instead
  */
 export async function executeAsync<ReturnValue, InnerArguments extends unknown[]> (
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    /**
+     * `this` has to be typed `unknown` as we can't otherwise assign it to the element, due to:
+     * ```
+     * The 'this' context of type 'ChainablePromiseElement' is not assignable to method's 'this' of type 'Element'.
+     *   Types of property 'parent' are incompatible.
+     *     Type 'Promise<Browser | Element | MultiRemoteBrowser>' is not assignable to type 'Browser | Element'.
+     * ```
+     */
+    this: unknown,
     script:
         string |
-        ((...args: [...innerArgs: [WebdriverIO.Element, ...InnerArguments], callback: (result?: ReturnValue) => void]) => void),
+        (
+            (
+                ...args: [
+                    element: HTMLElement,
+                    ...innerArgs: { [K in keyof InnerArguments]: TransformElement<InnerArguments[K]> },
+                    callback: (result?: TransformElement<ReturnValue>) => void
+                ]
+            ) => void
+        ),
     ...args: InnerArguments
 ): Promise<ReturnValue> {
-    const browser = getBrowserObject(this)
-    return browser.executeAsync(script, this, ...args)
+    const scope = this as WebdriverIO.Element
+    const browser = getBrowserObject(scope)
+    return browser.executeAsync(script, scope, ...args)
 }

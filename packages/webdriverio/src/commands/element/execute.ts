@@ -1,4 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
+import type { TransformElement, TransformReturn } from '../../types.js'
 
 /**
  *
@@ -37,11 +38,20 @@ import { getBrowserObject } from '@wdio/utils'
  *
  */
 export async function execute<ReturnValue, InnerArguments extends unknown[]> (
-    this: WebdriverIO.Element,
-    script: string | ((...innerArgs: [WebdriverIO.Element, ...InnerArguments]) => ReturnValue),
+    /**
+     * `this` has to be typed `unknown` as we can't otherwise assign it to the element, due to:
+     * ```
+     * The 'this' context of type 'ChainablePromiseElement' is not assignable to method's 'this' of type 'Element'.
+     *   Types of property 'parent' are incompatible.
+     *     Type 'Promise<Browser | Element | MultiRemoteBrowser>' is not assignable to type 'Browser | Element'.
+     * ```
+     */
+    this: unknown,
+    script: string | ((...innerArgs: TransformElement<[WebdriverIO.Element, ...InnerArguments]>) => ReturnValue),
     ...args: InnerArguments
-): Promise<ReturnValue> {
-    const browser = getBrowserObject(this)
-    await this.waitForExist()
-    return browser.execute(script, this, ...args)
+): Promise<TransformReturn<ReturnValue>> {
+    const scope = this as WebdriverIO.Element
+    const browser = getBrowserObject(scope)
+    await scope.waitForExist()
+    return browser.execute(script, scope, ...args)
 }
