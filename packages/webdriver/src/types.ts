@@ -96,3 +96,11 @@ export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.We
     // original requested capabilities
     requestedCapabilities?: Capabilities.WithRequestedCapabilities['capabilities']
 }
+
+/**
+ * Additional options outside of the WebDriver spec, exclusively for Webdriverio, only for runtime, and not sent to appium
+ */
+export interface CommandRuntimeOptions {
+    // mask the text parameter value of the command
+    mask?: boolean
+}

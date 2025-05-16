@@ -1,8 +1,8 @@
 import type { EventEmitter } from 'node:events'
 import { deepmergeCustom } from 'deepmerge-ts'
 
-import logger from '@wdio/logger'
-import type { Protocol } from '@wdio/protocols'
+import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
+import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
@@ -14,7 +14,7 @@ import command from './command.js'
 import { environment } from './environment.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
-import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
+import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig, CommandRuntimeOptions } from './types.js'
 
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })
@@ -454,4 +454,34 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
     } catch (err) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
     }
+}
+
+export const APPIUM_MASKING_HEADER = { 'x-appium-is-sensitive': 'true' }
+/**
+* Masking the text value, if the command has a text parameter, when the options mask is set to true.
+* If nothing to mask, it returns the original body and args.
+*/
+export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOptions, body: Record<string, unknown>, args: unknown[]) {
+
+    if (options.mask) {
+        const textValueParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'text')
+        if (textValueParamIndex !== -1 ) {
+            const textValueIndexInArgs = (commandInfo.variables?.length ?? 0) + textValueParamIndex
+            const text = args[textValueIndexInArgs]
+            if (text && typeof text === 'string') {
+                const maskedBody = {
+                    ...body,
+                    text: SENSITIVE_DATA_REPLACER
+                } satisfies Record<string, unknown> as Record<string, unknown>
+                const textValueArgsIndex = textValueParamIndex + (commandInfo.variables?.length ?? 0)
+                const maskedArgs = args.slice(0, textValueArgsIndex).concat(SENSITIVE_DATA_REPLACER).concat(args.slice(textValueArgsIndex + 1))
+                return {
+                    maskedBody: maskedBody,
+                    maskedArgs: maskedArgs,
+                    isMasked: true,
+                }
+            }
+        }
+    }
+    return { maskedBody: body, maskedArgs: args, isMasked: false }
 }
