@@ -45,6 +45,7 @@ const config: Config = {
             'hi',
             'it',
             'ja',
+            'ko',
             'pl',
             'pt',
             'ru',
@@ -125,8 +126,8 @@ const config: Config = {
                     type: 'html',
                     value: '<hr style="margin: 0.3rem 0;">',
                 }, {
-                    href: 'https://github.com/webdriverio/webdriverio/issues/10261',
-                    label: 'Help Us Translate',
+                    href: 'https://github.com/webdriverio/i18n#supported-languages',
+                    label: 'Add your language',
                 }]
             }, {
                 href: repoUrl,
