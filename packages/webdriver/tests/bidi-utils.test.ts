@@ -1,8 +1,7 @@
 import crypto from 'node:crypto'
 import { describe, it, expect, vi } from 'vitest'
 
-// @ts-expect-error: TypeScript doesn't recognize the .js extension with .ts files in ESM
-import { isBase64Safe } from '../src/bidi/utils.ts'
+import { isBase64Safe } from '../src/bidi/utils.js'
 
 // Helper functions for the tests
 const generateBase64 = (length: number): string => {
