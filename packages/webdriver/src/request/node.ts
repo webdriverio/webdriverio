@@ -1,5 +1,5 @@
 import dns from 'node:dns'
-import { fetch, Agent, type RequestInit as UndiciRequestInit, ProxyAgent } from 'undici'
+import { fetch, Agent, type RequestInit as UndiciRequestInit, ProxyAgent, type Dispatcher } from 'undici'
 
 import { environment } from '../environment.js'
 import { WebDriverRequest } from './request.js'
@@ -9,6 +9,9 @@ import type { RequestOptions } from './types.js'
 // This can be removed when we drop Node18 support.
 dns.setDefaultResultOrder('ipv4first')
 
+const { PROXY_URL, NO_PROXY } = environment.value.variables
+let SESSION_DISPATCHER: Dispatcher | undefined = undefined
+
 /**
  * Node implementation of WebDriverRequest using undici fetch
  */
@@ -17,28 +20,36 @@ export class FetchRequest extends WebDriverRequest {
         return fetch(url, opts as UndiciRequestInit) as unknown as Promise<Response>
     }
 
-    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false) {
-        const { url, requestOptions } = await super.createOptions(options, sessionId, isBrowser)
+    private getDispatcher(url: URL, options: RequestOptions): Dispatcher {
+        if (SESSION_DISPATCHER) {
+            return SESSION_DISPATCHER
+        }
 
         /**
          * Use a proxy agent if we have a proxy url set
          */
-        const { PROXY_URL, NO_PROXY } = environment.value.variables
+        const shouldUseProxy =
+            PROXY_URL && !NO_PROXY?.some((str) => url.hostname.endsWith(str))
 
-        const dispatcher = PROXY_URL && !NO_PROXY?.some((str) => url.hostname.endsWith(str))
-            ? new ProxyAgent({
-                uri: PROXY_URL,
+        SESSION_DISPATCHER = shouldUseProxy ? new ProxyAgent({
+            uri: PROXY_URL,
+            connectTimeout: options.connectionRetryTimeout,
+            headersTimeout: options.connectionRetryTimeout,
+            bodyTimeout: options.connectionRetryTimeout,
+        }) :
+            new Agent({
                 connectTimeout: options.connectionRetryTimeout,
                 headersTimeout: options.connectionRetryTimeout,
                 bodyTimeout: options.connectionRetryTimeout,
             })
-            : new Agent({
-                connectTimeout: options.connectionRetryTimeout,
-                headersTimeout: options.connectionRetryTimeout,
-                bodyTimeout: options.connectionRetryTimeout,
-            })
 
-        ;(requestOptions as UndiciRequestInit).dispatcher = dispatcher
+        return SESSION_DISPATCHER
+    }
+
+    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false) {
+        const { url, requestOptions } = await super.createOptions(options, sessionId, isBrowser)
+
+        ;(requestOptions as UndiciRequestInit).dispatcher = this.getDispatcher(url, options)
         return { url, requestOptions }
     }
 }
