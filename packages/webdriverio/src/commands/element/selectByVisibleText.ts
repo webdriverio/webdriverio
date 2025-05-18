@@ -60,7 +60,7 @@ export async function selectByVisibleText (
         `./optgroup/option${spaceFormat}`,
     ]
 
-    const optionElement = await this.$(selections.join('|')).getElement()
+    const optionElement = await this.$(selections.join('|'))
     await optionElement.waitForExist({
         timeoutMsg: `Option with text "${text}" not found.`
     })

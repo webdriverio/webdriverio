@@ -35,7 +35,9 @@ type ChainablePrototype = {
     [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray
 }
 
-type AsyncElementProto = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
+type AsyncElementProto = {
+    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
+} & ChainablePrototype
 
 interface ChainablePromiseBaseElement {
     /**

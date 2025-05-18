@@ -38,15 +38,7 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  *
  */
 export async function execute<ReturnValue, InnerArguments extends unknown[]> (
-    /**
-     * `this` has to be typed `unknown` as we can't otherwise assign it to the element, due to:
-     * ```
-     * The 'this' context of type 'ChainablePromiseElement' is not assignable to method's 'this' of type 'Element'.
-     *   Types of property 'parent' are incompatible.
-     *     Type 'Promise<Browser | Element | MultiRemoteBrowser>' is not assignable to type 'Browser | Element'.
-     * ```
-     */
-    this: unknown,
+    this: WebdriverIO.Element,
     script: string | ((...innerArgs: TransformElement<[WebdriverIO.Element, ...InnerArguments]>) => ReturnValue),
     ...args: InnerArguments
 ): Promise<TransformReturn<ReturnValue>> {
