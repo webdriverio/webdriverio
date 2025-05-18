@@ -10,7 +10,7 @@ import type { RequestOptions } from './types.js'
 dns.setDefaultResultOrder('ipv4first')
 
 const { PROXY_URL, NO_PROXY } = environment.value.variables
-let SESSION_DISPATCHER: Dispatcher | undefined = undefined
+const SESSION_DISPATCHERS: Map<string, Dispatcher> = new Map()
 
 /**
  * Node implementation of WebDriverRequest using undici fetch
@@ -20,9 +20,9 @@ export class FetchRequest extends WebDriverRequest {
         return fetch(url, opts as UndiciRequestInit) as unknown as Promise<Response>
     }
 
-    private getDispatcher(url: URL, options: RequestOptions): Dispatcher {
-        if (SESSION_DISPATCHER) {
-            return SESSION_DISPATCHER
+    private getDispatcher(url: URL, options: RequestOptions, sessionId?: string): Dispatcher {
+        if (sessionId && SESSION_DISPATCHERS.has(sessionId)) {
+            return SESSION_DISPATCHERS.get(sessionId)!
         }
 
         /**
@@ -31,7 +31,7 @@ export class FetchRequest extends WebDriverRequest {
         const shouldUseProxy =
             PROXY_URL && !NO_PROXY?.some((str) => url.hostname.endsWith(str))
 
-        SESSION_DISPATCHER = shouldUseProxy ? new ProxyAgent({
+        const dispatcher = shouldUseProxy ? new ProxyAgent({
             uri: PROXY_URL,
             connectTimeout: options.connectionRetryTimeout,
             headersTimeout: options.connectionRetryTimeout,
@@ -43,7 +43,11 @@ export class FetchRequest extends WebDriverRequest {
                 bodyTimeout: options.connectionRetryTimeout,
             })
 
-        return SESSION_DISPATCHER
+        if (sessionId){
+            SESSION_DISPATCHERS.set(sessionId, dispatcher)
+        }
+
+        return dispatcher
     }
 
     async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false) {
