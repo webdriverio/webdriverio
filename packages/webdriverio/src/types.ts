@@ -677,6 +677,22 @@ export interface SaveScreenshotOptions {
     }
 }
 
+export type TransformElement<T> =
+    T extends WebdriverIO.Element ? HTMLElement :
+        T extends ChainablePromiseElement ? HTMLElement :
+            T extends WebdriverIO.Element[] ? HTMLElement[] :
+                T extends ChainablePromiseArray ? HTMLElement[] :
+                    T extends [infer First, ...infer Rest] ? [TransformElement<First>, ...TransformElement<Rest>] :
+                        T extends Array<infer U> ? Array<TransformElement<U>> :
+                            T
+
+export type TransformReturn<T> =
+    T extends HTMLElement ? WebdriverIO.Element :
+        T extends HTMLElement[] ? WebdriverIO.Element[] :
+            T extends [infer First, ...infer Rest] ? [TransformReturn<First>, ...TransformReturn<Rest>] :
+                T extends Array<infer U> ? Array<TransformReturn<U>> :
+                    T
+
 declare global {
     namespace WebdriverIO {
         /**
