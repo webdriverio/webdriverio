@@ -59,16 +59,27 @@ export class CLIUtils {
             modifiedOpts.browserstackLocalOptions = modifiedOpts.opts
             delete modifiedOpts.opts
         }
-        const binconfig = {
+
+        const commonBstackOptions = (config.commonCapabilities &&
+            config.commonCapabilities['bstack:options']) || {};
+
+        const binconfig: Record<string, unknown> = {
             userName: config.user,
             accessKey: config.key,
             platforms: [],
             ...modifiedOpts,
-            ...(config.commonCapabilities['bstack:options'] ?? {}),
+            ...commonBstackOptions,
         }
-        if (Array.isArray(capabilities)) {
-            for (const capability of capabilities) {
+
+        let caps = capabilities
+        if (capabilities && !Array.isArray(capabilities)) {
+            caps = [capabilities]
+        }
+        if (Array.isArray(caps)) {
+            for (const cap of caps) {
                 const platform: Record<string, unknown> = {}
+                const capability = cap as Record<string, any>
+
                 Object.keys(capability)
                     .filter((key) => (key !== 'bstack:options'))
                     .forEach((key) => {
@@ -77,17 +88,17 @@ export class CLIUtils {
                         }
                     })
 
-                Object.keys(capability['bstack:options'])
-                    .forEach((key) => {
-                        if (binconfig[key] === undefined) {
-                            platform[key] = capability['bstack:options'][key]
-                        }
-                    })
-                binconfig.platforms.push(platform)
+                if (capability['bstack:options']) {
+                    Object.keys(capability['bstack:options'])
+                        .forEach((key) => {
+                            if (binconfig[key] === undefined) {
+                                platform[key] = capability['bstack:options'][key]
+                            }
+                        })
+                }
+                (binconfig.platforms as Array<unknown>).push(platform)
             }
         }
-        // BStackLogger.debug('--------bin config-----------')
-        BStackLogger.debug(JSON.stringify(binconfig))
         return JSON.stringify(binconfig)
     }
 
