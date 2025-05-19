@@ -3,30 +3,13 @@ import type { local } from 'webdriver'
 
 import { SessionManager } from './session.js'
 import { createFunctionDeclarationFromString } from '../utils/index.js'
+import { polyfillFn } from '../scripts/polyfill.js'
 
 export function getPolyfillManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, PolyfillManager)
 }
 
 const log = logger('webdriverio:PolyfillManager')
-
-/**
- * A polyfill to set `__name` to the global scope which is needed for WebdriverIO to properly
- * execute custom (preload) scripts. When using `tsx` Esbuild runs some optimizations which
- * assume that the file contains these global variables. This is a workaround until this issue
- * is fixed.
- *
- * @see https://github.com/evanw/esbuild/issues/2605
- */
-export const polyfillFn = function webdriverioPolyfill () {
-    const __defProp = Object.defineProperty
-    const __name = function (target: unknown, value: unknown) {
-        return __defProp(target, 'name', { value: value, configurable: true })
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const __globalThis = (typeof globalThis === 'object' && globalThis) || (typeof window === 'object' && window) as any
-    __globalThis.__name = __name
-}
 
 /**
  * This class is responsible for setting polyfill scripts in the browser.
