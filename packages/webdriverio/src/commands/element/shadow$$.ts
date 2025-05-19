@@ -48,6 +48,7 @@ export function shadow$$ (
         return elements
     }, {
         selector,
+        foundWith: 'shadow$$',
         parent: this
     })
 }

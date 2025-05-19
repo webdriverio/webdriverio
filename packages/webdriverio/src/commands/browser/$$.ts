@@ -48,47 +48,51 @@ import type { Selector } from '../../types.js'
  *
  */
 export function $$ (
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: unknown,
     selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
 ): WebdriverIO.ElementArray {
+    const self = this as WebdriverIO.Browser | WebdriverIO.Element
+
     /**
      * do a deep lookup if
      * - we are using Bidi
      * - have a string selector
      * - that is not a deep selector
      */
-    if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
+    if (self.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR)) {
         /**
          * run this in Node.js land if we are using browser runner
          */
         if (globalThis.wdio?.execute) {
             const command = '$$' as const
             return ElementArray.fromAsyncCallback(async () => {
-                const res = 'elementId' in this
-                    ? await globalThis.wdio.executeWithScope(command, this.elementId, selector) as unknown as ElementReference[]
+                const res = 'elementId' in self
+                    ? await globalThis.wdio.executeWithScope(command, self.elementId, selector) as unknown as ElementReference[]
                     : await globalThis.wdio.execute(command, selector) as unknown as ElementReference[]
-                const elements = await getElements.call(this, selector as Selector, res)
+                const elements = await getElements.call(self, selector as Selector, res)
                 return elements
             }, {
                 selector: selector as Selector,
-                parent: this
+                foundWith: '$$',
+                parent: self
             })
         }
 
         return ElementArray.fromAsyncCallback(async () => {
-            const res = await findDeepElements.call(this, selector)
-            const elements = await getElements.call(this, selector as Selector, res)
+            const res = await findDeepElements.call(self, selector)
+            const elements = await getElements.call(self, selector as Selector, res)
             return elements
         }, {
             selector: selector as Selector,
-            parent: this
+            foundWith: '$$',
+            parent: self
         })
     }
 
     return ElementArray.fromAsyncCallback(async () => {
         let res: (ElementReference | Error)[] = Array.isArray(selector)
             ? selector as ElementReference[]
-            : await findElements.call(this, selector)
+            : await findElements.call(self, selector)
 
         /**
          * allow user to transform a set of HTMLElements into a set of WebdriverIO elements
@@ -96,17 +100,18 @@ export function $$ (
         if (Array.isArray(selector) && isElement(selector[0])) {
             res = []
             for (const el of selector) {
-                const $el = await findElement.call(this, el)
+                const $el = await findElement.call(self, el)
                 if ($el) {
                     res.push($el)
                 }
             }
         }
 
-        const elements = await getElements.call(this, selector as Selector, res)
+        const elements = await getElements.call(self, selector as Selector, res)
         return elements
     }, {
         selector: selector as Selector,
-        parent: this
+        foundWith: '$$',
+        parent: self
     })
 }

@@ -71,6 +71,7 @@ export function custom$$ (
         return elements
     }, {
         selector: strategyName,
+        foundWith: 'custom$$',
         parent: this
     })
 }

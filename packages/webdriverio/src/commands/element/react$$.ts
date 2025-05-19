@@ -58,6 +58,7 @@ export function react$$(
         return elements
     }, {
         selector,
+        foundWith: 'react$$',
         parent: this
     })
 }

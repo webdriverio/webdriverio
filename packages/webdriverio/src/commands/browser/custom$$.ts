@@ -57,6 +57,7 @@ export function custom$$ (
         return res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
     }, {
         selector: strategyName,
+        foundWith: 'custom$$',
         parent: this
     })
 }
