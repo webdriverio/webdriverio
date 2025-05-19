@@ -10,14 +10,24 @@ import type { RequestOptions } from './types.js'
 dns.setDefaultResultOrder('ipv4first')
 
 const { PROXY_URL, NO_PROXY } = environment.value.variables
-const SESSION_DISPATCHERS: Map<string, Dispatcher> = new Map()
+export const SESSION_DISPATCHERS: Map<string, Dispatcher> = new Map()
 
 /**
  * Node implementation of WebDriverRequest using undici fetch
  */
 export class FetchRequest extends WebDriverRequest {
-    fetch (url: URL, opts: RequestInit) {
-        return fetch(url, opts as UndiciRequestInit) as unknown as Promise<Response>
+    async fetch (url: URL, opts: RequestInit) {
+        const response = await fetch(url, opts as UndiciRequestInit) as unknown as Promise<Response>
+        if (opts.method === 'DELETE') {
+            // regex should only target the delete session request, not other
+            // delete requests, full list: https://www.w3.org/TR/webdriver2/#endpoints
+            const match = url.pathname.match(/\/session\/([^/]+)$/)
+            const sessionId = match?.[1]
+            if (sessionId) {
+                this.cleanupSessionDispatcher(sessionId)
+            }
+        }
+        return response
     }
 
     private getDispatcher(url: URL, options: RequestOptions, sessionId?: string): Dispatcher {
@@ -48,6 +58,15 @@ export class FetchRequest extends WebDriverRequest {
         }
 
         return dispatcher
+    }
+
+    private cleanupSessionDispatcher(sessionId: string) {
+        const dispatcher = SESSION_DISPATCHERS.get(sessionId)
+        if (dispatcher && typeof dispatcher.close === 'function') {
+            // Close the dispatcher to free up resources
+            dispatcher.close()
+        }
+        SESSION_DISPATCHERS.delete(sessionId)
     }
 
     async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false) {
