@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package browserstack.sdk.v1;
+
+import "sdk-messages-observability.proto";
+import "sdk-messages-testhub.proto";
+
+message Accessibility {
+    bool success = 1;
+    optional AccessibilityOptions options = 2;
+    optional string error_trace_id = 3;
+    optional string code = 4;
+    repeated KeyMessage errors = 5;
+    optional bool is_app_accessibility = 6;
+
+    message AccessibilityOptions {
+        optional string status = 1;
+        repeated AccessibilityCapability capabilities = 2;
+        repeated AccessibilityScript scripts = 3;
+        optional AccessibilityCommandsToWrap commands_to_wrap = 4;
+
+        message AccessibilityCommandsToWrap {
+            repeated string scripts_to_run = 1;
+            repeated AccessibilityCommand commands = 2;
+        }
+
+        message AccessibilityCommand {
+            string name = 1;
+            string library = 2;
+            string module = 3;
+            string class = 4;
+            string method = 5;
+        }
+
+        message AccessibilityScript {
+            string name = 1;
+            string command = 2;
+        }
+
+        message AccessibilityCapability {
+            string name = 1;
+            string value = 2;
+        }
+    }
+}
+
+message AccessibilityConfigRequest {
+    string bin_session_id = 1;
+    uint32 platform_index = 2;
+    string framework_name = 3;
+    string framework_version = 4;
+    string hub_url = 5;
+}
+
+message AccessibilityConfigResponse {
+    bool success = 1;
+    optional TestHub testhub = 2;
+    optional Accessibility accessibility = 3;
+}
+
+message AccessibilityResultRequest {
+    string bin_session_id = 1;
+    string test_run_id = 2;
+    string session_id = 3;
+    string result_type = 4;
+}
+
+message AccessibilityResultResponse {
+    bool success = 1;
+    bytes result_response = 2;
+}

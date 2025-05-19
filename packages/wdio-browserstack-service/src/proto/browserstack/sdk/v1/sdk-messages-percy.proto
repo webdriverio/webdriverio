@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package browserstack.sdk.v1;
+
+message Percy {
+    bool success = 1;
+    string percy_capture_mode = 2;
+    string percy_build_id = 3;
+    bool is_percy_auto_enabled = 4;
+}
