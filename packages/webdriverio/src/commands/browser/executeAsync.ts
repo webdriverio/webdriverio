@@ -5,7 +5,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../session/context.js'
-import { polyfillFn } from '../../session/polyfill.js'
+import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement } from '../../types.js'
 
 /**
