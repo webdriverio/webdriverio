@@ -7,8 +7,7 @@ import type { Options } from '@wdio/types'
 
 import '../src/browser.js'
 import { FetchRequest as WebFetchRequest } from '../src/request/web.js'
-import { FetchRequest } from '../src/request/node.js'
-import { SESSION_DISPATCHERS } from '../src/request/node.js'
+import { FetchRequest, SESSION_DISPATCHERS } from '../src/request/node.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fetch')
