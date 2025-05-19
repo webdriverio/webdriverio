@@ -1,4 +1,15 @@
+import Chromium from './chromium.js'
+
+const getLogTypes = '/session/:sessionId/se/log/types' as const
+const getLog = '/session/:sessionId/se/log' as const
+
+const chromiumLogCommands = {
+    [getLogTypes]: Chromium[getLogTypes],
+    [getLog]: Chromium[getLog],
+}
+
 export default {
+    ...chromiumLogCommands,
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
@@ -2221,56 +2232,6 @@ export default {
                     required: true,
                 },
             ],
-            support: {
-                android: {
-                    UiAutomator: '4.2+',
-                },
-                ios: {
-                    XCUITest: '9.3+',
-                },
-            },
-        },
-    },
-    '/session/:sessionId/log': {
-        POST: {
-            command: 'getLogs',
-            description:
-                'Get the log for a given log type. Log buffer is reset after each request.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            parameters: [
-                {
-                    name: 'type',
-                    type: 'string',
-                    description: 'the log type',
-                    required: true,
-                },
-            ],
-            returns: {
-                type: 'Object[]',
-                name: 'logs',
-                description: 'The list of log entries.',
-            },
-            support: {
-                android: {
-                    UiAutomator: '4.2+',
-                },
-                ios: {
-                    XCUITest: '9.3+',
-                },
-            },
-        },
-    },
-    '/session/:sessionId/log/types': {
-        GET: {
-            command: 'getLogTypes',
-            description: 'Get available log types.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            parameters: [],
-            returns: {
-                type: 'String[]',
-                name: 'logTypes',
-                description: 'The list of available log types.',
-            },
             support: {
                 android: {
                     UiAutomator: '4.2+',
