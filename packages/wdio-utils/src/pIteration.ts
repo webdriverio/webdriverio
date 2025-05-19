@@ -10,8 +10,9 @@
  */
 export const forEach = async <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => void,
-    thisArg?: T
+    callback: (value: Awaited<T>, index: number, array: T[]) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    thisArg?: any
 ) => {
     const promiseArray = []
     for (let i = 0; i < array.length; i++) {
@@ -34,8 +35,9 @@ export const forEach = async <T>(
  */
 export const forEachSeries = async <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => void,
-    thisArg?: T
+    callback: (value: Awaited<T>, index: number, array: T[]) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    thisArg?: any
 ): Promise<void> => {
     for (let i = 0; i < array.length; i++) {
         if (i in array) {
@@ -57,7 +59,7 @@ export const forEachSeries = async <T>(
  */
 export const map = async <T, U>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => U,
+    callback: (value: Awaited<T>, index: number, array: T[]) => Promise<U> | U,
     thisArg?: T
 ): Promise<U[]> => {
     const promiseArray = []
@@ -80,7 +82,7 @@ export const map = async <T, U>(
  */
 export const mapSeries = async <T, U>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => U,
+    callback: (value: Awaited<T>, index: number, array: T[]) => Promise<U> | U,
     thisArg?: T
 ): Promise<U[]> => {
     const result = []
@@ -104,7 +106,7 @@ export const mapSeries = async <T, U>(
  */
 export const find = <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => boolean | Promise<boolean>,
+    callback: (value: Awaited<T>, index: number, array: T[]) => boolean | Promise<boolean>,
     thisArg?: T
 ): Promise<T | undefined> => {
     return new Promise<T | undefined>((resolve, reject) => {
@@ -138,7 +140,7 @@ export const find = <T>(
  */
 export const findSeries = async <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => boolean | Promise<boolean>,
+    callback: (value: Awaited<T>, index: number, array: T[]) => boolean | Promise<boolean>,
     thisArg?: T
 ): Promise<T | undefined> => {
     for (let i = 0; i < array.length; i++) {
@@ -160,7 +162,7 @@ export const findSeries = async <T>(
  */
 export const findIndex = <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => boolean | Promise<boolean>,
+    callback: (value: Awaited<T>, index: number, array: T[]) => boolean | Promise<boolean>,
     thisArg?: T
 ): Promise<number> => {
     return new Promise((resolve, reject) => {
@@ -194,7 +196,7 @@ export const findIndex = <T>(
  */
 export const findIndexSeries = async <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => boolean | Promise<boolean>,
+    callback: (value: Awaited<T>, index: number, array: T[]) => boolean | Promise<boolean>,
     thisArg?: T
 ): Promise<number> => {
     for (let i = 0; i < array.length; i++) {
@@ -218,7 +220,7 @@ export const findIndexSeries = async <T>(
  */
 export const some = <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => boolean | Promise<boolean>,
+    callback: (value: Awaited<T>, index: number, array: T[]) => boolean | Promise<boolean>,
     thisArg?: T
 ): Promise<boolean> => {
     return new Promise((resolve, reject) => {
@@ -256,7 +258,7 @@ export const some = <T>(
  */
 export const someSeries = async <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => boolean | Promise<boolean>,
+    callback: (value: Awaited<T>, index: number, array: T[]) => boolean | Promise<boolean>,
     thisArg?: T
 ): Promise<boolean> => {
     for (let i = 0; i < array.length; i++) {
@@ -279,7 +281,7 @@ export const someSeries = async <T>(
  */
 export const every = <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => boolean | Promise<boolean>,
+    callback: (value: Awaited<T>, index: number, array: T[]) => boolean | Promise<boolean>,
     thisArg?: T
 ): Promise<boolean> => {
     return new Promise<boolean>((resolve, reject) => {
@@ -317,7 +319,7 @@ export const every = <T>(
  */
 export const everySeries = async <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => boolean | Promise<boolean>,
+    callback: (value: Awaited<T>, index: number, array: T[]) => boolean | Promise<boolean>,
     thisArg?: T
 ): Promise<boolean> => {
     for (let i = 0; i < array.length; i++) {
@@ -339,7 +341,7 @@ export const everySeries = async <T>(
  */
 export const filter = <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => Promise<boolean | undefined> | boolean | undefined,
+    callback: (value: Awaited<T>, index: number, array: T[]) => Promise<boolean | undefined> | boolean | undefined,
     thisArg?: T
 ): Promise<T[]> => {
     return new Promise((resolve, reject) => {
@@ -349,13 +351,12 @@ export const filter = <T>(
                 filterResults[i] = Promise.resolve(array[i])
                     .then((currentValue) => callback.call(thisArg || this, currentValue, i, array))
                     .then((result) => result !== undefined ? !!result : false)
-                    .catch(() => false)
             }
         }
 
         return Promise.all(filterResults).then((results) => {
             return array.filter((_, i) => results[i])
-        }).then(resolve, reject)
+        }).then(async (returnVal) => resolve(await Promise.all(returnVal)), reject)
     })
 }
 
@@ -367,7 +368,7 @@ export const filter = <T>(
  */
 export const filterSeries = async <T>(
     array: T[],
-    callback: (value: T, index: number, array: T[]) => Promise<boolean> | boolean,
+    callback: (value: Awaited<T>, index: number, array: T[]) => Promise<boolean> | boolean,
     thisArg?: T
 ): Promise<T[]> => {
     const result = []
@@ -387,25 +388,60 @@ export const filterSeries = async <T>(
  * @param {Object} [initialValue] - Used as first argument to the first call of `callback`.
  * @return {Promise} - Returns a Promise with the resultant value from the reduction.
  */
-export const reduce = async <T, U>(
+export async function reduce<T, U>(
     array: U[],
     callback: (
-        accumulator: T,
+        previousValue: unknown,
+        currentValue: U,
+        currentIndex: number,
+        array: U[]
+    ) => unknown
+): Promise<T>
+export async function reduce<T, U>(
+    array: U[],
+    callback: (
+        previousValue: T,
         currentValue: U,
         currentIndex: number,
         array: U[]
     ) => Promise<T> | T,
-    initialValue: T
-): Promise<T> => {
+    initialValue: T | Promise<T>
+): Promise<T>
+export async function reduce<T, U>(
+    array: U[],
+    callback: (
+        previousValue: T,
+        currentValue: U,
+        currentIndex: number,
+        array: U[]
+    ) => T,
+    initialValue?: T
+): Promise<T> {
     if (array.length === 0) {
-        return initialValue
+        if (typeof initialValue === 'undefined') {
+            throw new Error('Reduce of empty array with no initial value')
+        }
+
+        return initialValue as T
     }
 
-    let previousValue = initialValue
+    if (typeof initialValue === 'undefined' && array.length === 1) {
+        return array[0] as unknown as T
+    }
+
+    let previousValue = await (typeof initialValue === 'undefined' ? array[0] : initialValue) as T
     for (let i = 0; i < array.length; i++) {
+        /**
+         * If the initial value is not provided, we skip the first element
+         * because it's already used as the initial value
+         */
+        if (typeof initialValue === 'undefined' && i === 0) {
+            continue
+        }
+
         if (i in array) {
-            previousValue = await callback(previousValue, array[i], i, array)
+            previousValue = await callback(previousValue as T, await array[i], i, array)
         }
     }
-    return previousValue
+    return previousValue as T
 }

@@ -32,6 +32,9 @@ type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
 type ChainablePrototype = {
     [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement
 }
+type ElementArrayProxy = ElementArrayImport & {
+    [index: number]: WebdriverIO.Element | undefined
+}
 
 type AsyncElementProto = {
     [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
@@ -623,7 +626,7 @@ declare global {
          * the parent element, selector and properties of the fetched elements. This is useful to
          * e.g. re-fetch the set in case no elements got returned.
          */
-        interface ElementArray extends ElementArrayImport {}
+        interface ElementArray extends ElementArrayProxy {}
         /**
          * WebdriverIO multiremote browser object
          * A multiremote browser instance is a property on the global WebdriverIO browser object that
