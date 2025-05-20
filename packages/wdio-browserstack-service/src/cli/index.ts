@@ -1,17 +1,16 @@
 import util from 'node:util'
 import { spawn } from 'node:child_process'
 
+import { CLIUtils } from './cliUtils.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
-import { CLIUtils } from './cliUtils.js'
 import { BStackLogger } from './cliLogger.js'
 import { GrpcClient } from './grpcClient.js'
-import { TestHubModule } from './modules/TestHubModule.js'
+import TestHubModule from './modules/TestHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
-import type BrowserStackConfig from '../config.js'
 import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
-import type { BaseModule } from './modules/BaseModule.js'
+import type BaseModule from './modules/BaseModule.js'
 import { CLI_STOP_TIMEOUT } from '../constants.js'
 import type { Options } from '@wdio/types'
 

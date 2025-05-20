@@ -7,14 +7,12 @@ import { exec } from 'node:child_process'
 import type { ZipFile, Options as yauzlOptions } from 'yauzl'
 import yauzl from 'yauzl'
 import { fetch } from 'undici'
-import { threadId } from 'worker_threads';
+import { threadId } from 'node:worker_threads'
 
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const { version: bstackServiceVersion } = require('../../package.json')
 
-import PerformanceTester from '../instrumentation/performance/performance-tester.js'
-import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import {
     isNullOrEmpty,
     nestedKeyValue,
@@ -26,12 +24,13 @@ import {
     getBrowserStackUser,
     getBrowserStackKey,
 } from '../util.js'
-import { BStackLogger } from './cliLogger.js'
+import PerformanceTester from '../instrumentation/performance/performance-tester.js'
+import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
+import { BStackLogger as logger } from './cliLogger.js'
 import { UPDATED_CLI_ENDPOINT, BROWSERSTACK_API_URL } from '../constants.js'
 import type { Options, Capabilities } from '@wdio/types'
 import { Readable } from 'node:stream'
 import type { BrowserstackConfig, BrowserstackOptions } from 'src/types.js'
-const logger = BStackLogger
 
 export class CLIUtils {
     static automationFrameworkDetail = {}
@@ -61,7 +60,7 @@ export class CLIUtils {
         }
 
         const commonBstackOptions = (config.commonCapabilities &&
-            config.commonCapabilities['bstack:options']) || {};
+            config.commonCapabilities['bstack:options']) || {}
 
         const binconfig: Record<string, unknown> = {
             userName: config.user,
@@ -131,7 +130,7 @@ export class CLIUtils {
             logger.debug(`Error in setting up cli path directory, Exception: ${util.format(err)}`)
         }
         return null
-    };
+    }
 
     static async checkAndUpdateCli(existingCliPath: string, cliDir: string, config: Options.Testrunner): Promise<string|null> {
         PerformanceTester.start(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
@@ -429,6 +428,6 @@ export class CLIUtils {
      * @returns {string}
      */
     static getCurrentInstanceName() {
-        return `${process.pid}:${threadId}`;
+        return `${process.pid}:${threadId}`
     }
 }

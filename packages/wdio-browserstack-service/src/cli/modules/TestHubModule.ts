@@ -1,10 +1,10 @@
-import { BaseModule } from './BaseModule.js'
+import BaseModule from './BaseModule.js'
 import { BStackLogger } from '../cliLogger.js'
 
 /**
  * TestHub Module for BrowserStack
  */
-export class TestHubModule extends BaseModule {
+export default class TestHubModule extends BaseModule {
 
     logger = BStackLogger
     testhubConfig: unknown

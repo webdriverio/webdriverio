@@ -208,7 +208,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         try {
             BStackLogger.debug('Is CLI running ' + BrowserstackCLI.getInstance().isRunning())
-            BrowserstackCLI.getInstance().setBrowserstackConfig(config);
+            BrowserstackCLI.getInstance().setBrowserstackConfig(config)
             CLIUtils.setFrameworkDetail('selenium', 'selenium') // TODO: make this constant
             const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options)
             await BrowserstackCLI.getInstance().bootstrap(binconfig)

@@ -2,11 +2,11 @@ import path from 'node:path'
 import util, { promisify } from 'node:util'
 import grpc from '@grpc/grpc-js'
 
+import { CLIUtils } from './cliUtils.js'
 import { SDKClient } from '../proto/sdk.js'
 import { StartBinSessionRequest, StopBinSessionRequest, ConnectBinSessionRequest } from '../proto/sdk-messages.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
-import { CLIUtils } from './cliUtils.js'
 import { BStackLogger } from './cliLogger.js'
 
 /**

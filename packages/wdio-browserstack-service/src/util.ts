@@ -1603,14 +1603,14 @@ export function removeDir(dir: string) {
         }
     }
     fs.rmdirSync(dir)
-};
+}
 
 export function createDir(dir: string) {
     if (fs.existsSync(dir)){
         removeDir(dir)
     }
     fs.mkdirSync(dir, { recursive: true })
-};
+}
 
 export function isWritable(dirPath: string): boolean {
     try {

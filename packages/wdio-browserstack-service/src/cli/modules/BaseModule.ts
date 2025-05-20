@@ -3,7 +3,7 @@ import { BStackLogger } from '../cliLogger.js'
 /**
  * Base class for BrowserStack modules
  */
-export class BaseModule {
+export default class BaseModule {
     #name: string
     binSessionId: string|null
     platformIndex: number
