@@ -7,6 +7,8 @@ import { ConfigParser } from '@wdio/config/node'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setOptions, SnapshotService } from 'expect-webdriverio'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
+import { BaseReporter } from '../src/reporter.js' // adjust path if needed
 
 import WDIORunner from '../src/index.js'
 
@@ -60,6 +62,15 @@ describe('wdio-runner', () => {
             expect(runner['_browser'].deleteSession).toBeCalledTimes(1)
             expect(!runner['_browser'].sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
+            expect(process.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: IPC_MESSAGE_TYPES.sessionEnded,
+                    value: expect.objectContaining({
+                        origin: 'worker',
+                        name: 'sessionEnded',
+                        cid: ''
+                    })
+                }))
         })
 
         it('should do nothing when triggered by run method without session', async () => {
@@ -101,6 +112,16 @@ describe('wdio-runner', () => {
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('foo').sessionId).toBe(true)
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('bar').sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
+            expect(process.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: IPC_MESSAGE_TYPES.sessionEnded,
+                    value: expect.objectContaining({
+                        origin: 'worker',
+                        name: 'sessionEnded',
+                        cid: ''
+                    })
+                })
+            )
         })
 
         it('should do nothing when triggered by run method without session in multiremote', async () => {
@@ -242,11 +263,15 @@ describe('wdio-runner', () => {
                 updateState: 'do it',
                 resolveSnapshotPath: 'resolve me'
             })
-            expect(process.send).toBeCalledWith({
-                origin: 'worker',
-                name: 'snapshot',
-                content: ['foobar']
-            })
+            expect(process.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: IPC_MESSAGE_TYPES.snapshotResultMessage,
+                    value: expect.objectContaining({
+                        origin: 'worker',
+                        name: 'snapshot'
+                    })
+                })
+            )
         })
 
         it('should set failures to 1 in case of error', async () => {
@@ -347,6 +372,76 @@ describe('wdio-runner', () => {
             // browser session is started
             expect(runner['_reporter']?.caps).toEqual(caps)
         })
+
+        it('should send correct IPC messages during framework initialization and session start', async () => {
+            const runner = new WDIORunner()
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                runner: 'local',
+                updateSnapshots: 'do it',
+                resolveSnapshotPath: 'resolve me'
+            }
+
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            vi.spyOn(ConfigParser.prototype, 'addService')
+
+            runner['_browser'] = { url: vi.fn(url => url) } as unknown as BrowserObject
+            runner['_startSession'] = vi.fn().mockReturnValue({})
+            runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
+
+            await runner.run({
+                args: { watch: true },
+                caps: {},
+                configFile: '/foo/bar'
+            } as any)
+
+            expect(process.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: IPC_MESSAGE_TYPES.testFrameworkInitMessage,
+                    value: expect.objectContaining({
+                        cid: undefined,
+                        caps: {},
+                        specs: undefined,
+                        hasTests: true,
+                    }),
+                })
+            )
+
+            expect(process.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: IPC_MESSAGE_TYPES.sessionStartedMessage,
+                    value: expect.objectContaining({
+                        automationProtocol: undefined,
+                        sessionId: undefined,
+                        isW3C: undefined,
+                        protocol: undefined,
+                        hostname: undefined,
+                        port: undefined,
+                        path: undefined,
+                        queryParams: undefined,
+                        isMultiremote: false,
+                        instances: undefined,
+                        capabilities: undefined,
+                        injectGlobals: undefined,
+                        headers: undefined
+                    }),
+                })
+            )
+
+            expect(process.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: IPC_MESSAGE_TYPES.snapshotResultMessage,
+                    value: expect.objectContaining({
+                        origin: 'worker',
+                        name: 'snapshot',
+                        content: ['foobar'],
+                    }),
+                })
+            )
+        })
+
     })
 
     describe('_initSession', () => {

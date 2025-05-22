@@ -2,6 +2,8 @@ import type { ChildProcess } from 'node:child_process'
 import type { ReplConfig } from '@wdio/repl'
 
 import WDIORepl from './repl.js'
+import type { IPCMessage } from '@wdio/types'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
 
 interface Repl {
     childProcess: ChildProcess
@@ -37,9 +39,12 @@ export default class ReplQueue {
 
         onStart()
         runningRepl.start().then(() => {
-            const ev = {
-                origin: 'debugger',
-                name: 'stop'
+            const ev: IPCMessage<IPC_MESSAGE_TYPES.debuggerMessage> = {
+                type: IPC_MESSAGE_TYPES.debuggerMessage,
+                value: {
+                    origin: 'debugger',
+                    name: 'stop'
+                }
             }
             runningRepl.childProcess.send(ev)
             onEnd(ev)

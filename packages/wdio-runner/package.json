@@ -40,10 +40,14 @@
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "expect-webdriverio": "^5.1.0",
+    "istanbul-lib-coverage": "^3.2.2",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/istanbul-lib-coverage": "^2.0.6"
   }
 }

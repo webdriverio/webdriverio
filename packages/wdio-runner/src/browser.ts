@@ -1,13 +1,28 @@
 import url from 'node:url'
 import path from 'node:path'
 
+import type { ChainablePromiseArray } from 'webdriverio'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, isWSMessage } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
-import { type Workers, type Services, MESSAGE_TYPES } from '@wdio/types'
-
+import type {
+    AnyWSMessage,
+    IPCMessage,
+    LogMessage,
+    TestState,
+    WDIOErrorEvent,
+    WSMessage,
+    WSMessageValue
+} from '@wdio/types'
+import {
+    IPC_MESSAGE_TYPES,
+    type Services,
+    WS_MESSAGE_TYPES,
+    type Workers
+} from '@wdio/types'
+import type { CoverageMapData } from 'istanbul-lib-coverage'
 import { transformExpectArgs } from './utils.js'
 import type BaseReporter from './reporter.js'
 import type { TestFramework, WorkerResponseMessage } from './types.js'
@@ -16,28 +31,6 @@ const log = logger('@wdio/runner')
 const sep = '\n  - '
 const ERROR_CHECK_INTERVAL = 500
 const DEFAULT_TIMEOUT = 60 * 1000
-
-type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
-
-interface Event {
-    type: string
-    title: string
-    fullTitle: string
-    specs: string[]
-}
-interface TestState {
-    failures: number
-    events: Event[]
-    errors?: WDIOErrorEvent[]
-    hasViteError?: boolean
-}
-
-interface LogMessage {
-    level: string
-    message: string
-    source: string
-    timestamp: number
-}
 
 declare global {
     interface Window {
@@ -89,11 +82,15 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             }
 
             log.error(`Failed to run browser tests with cid ${this._cid}: ${err.stack}`)
-            process.send!({
-                origin: 'worker',
-                name: 'error',
-                content: { name: err.name, message: err.message, stack: err.stack }
-            })
+            const errorMessage: IPCMessage<IPC_MESSAGE_TYPES.errorMessage> = {
+                type: IPC_MESSAGE_TYPES.errorMessage,
+                value: {
+                    origin: 'worker',
+                    name: 'error',
+                    content: { name: err.name, message: err.message, stack: err.stack }
+                }
+            }
+            process.send!(errorMessage)
             return 1
         }
     }
@@ -166,14 +163,15 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          */
         if (this.#runnerOptions.coverage?.enabled && process.send) {
             const coverageMap = await browser.execute(
-                () => (window.__coverage__ || {}))
+                () => (window.__coverage__ || {})) as unknown as CoverageMapData
+            const coverageMessage: WSMessage<WS_MESSAGE_TYPES.coverageMap> = {
+                type: WS_MESSAGE_TYPES.coverageMap,
+                value: coverageMap
+            }
             const workerEvent: Workers.WorkerEvent = {
                 origin: 'worker',
                 name: 'workerEvent',
-                args: {
-                    type: MESSAGE_TYPES.coverageMap,
-                    value: coverageMap
-                }
+                args: coverageMessage
             }
             process.send(workerEvent)
         }
@@ -204,11 +202,15 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const { name, message, stack } = new Error(state.hasViteError
                 ? `Test failed due to the following error: ${errors.join('\n\n')}`
                 : `Test failed due to following error(s):${sep}${errors.join(sep)}`)
-            process.send!({
-                origin: 'worker',
-                name: 'error',
-                content: { name, message, stack }
-            })
+            const errorMessage: IPCMessage<IPC_MESSAGE_TYPES.errorMessage> = {
+                type: IPC_MESSAGE_TYPES.errorMessage,
+                value: {
+                    origin: 'worker',
+                    name: 'error',
+                    content: { name, message, stack }
+                }
+            }
+            process.send!(errorMessage)
             return 1
         }
 
@@ -235,27 +237,27 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         const { message, id } = cmd.args
-        if (message.type === MESSAGE_TYPES.hookTriggerMessage) {
+        if (isWSMessage(message, WS_MESSAGE_TYPES.hookTriggerMessage)) {
             return this.#handleHook(id, message.value)
         }
 
-        if (message.type === MESSAGE_TYPES.consoleMessage) {
+        if (isWSMessage(message, WS_MESSAGE_TYPES.consoleMessage)) {
             return this.#handleConsole(message.value)
         }
 
-        if (message.type === MESSAGE_TYPES.commandRequestMessage) {
+        if (isWSMessage(message, WS_MESSAGE_TYPES.commandRequestMessage)) {
             return this.#handleCommand(id, message.value)
         }
 
-        if (message.type === MESSAGE_TYPES.expectRequestMessage) {
+        if (isWSMessage(message, WS_MESSAGE_TYPES.expectRequestMessage)) {
             return this.#handleExpectation(id, message.value)
         }
 
-        if (message.type === MESSAGE_TYPES.browserTestResult) {
+        if (isWSMessage(message, WS_MESSAGE_TYPES.browserTestResult)) {
             return this.#handleTestFinish(message.value)
         }
 
-        if (message.type === MESSAGE_TYPES.expectMatchersRequest) {
+        if (message.type === WS_MESSAGE_TYPES.expectMatchersRequest) {
             return this.#sendWorkerResponse(
                 id,
                 this.#expectMatcherResponse({ matchers: Array.from(matchers.keys()) })
@@ -263,7 +265,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
     }
 
-    async #handleHook (id: number, payload: Workers.HookTriggerEvent) {
+    async #handleHook (
+        id: number,
+        payload: WSMessageValue[WS_MESSAGE_TYPES.hookTriggerMessage]
+    ) {
         const error: Error | undefined = await executeHooksWithArgs(
             payload.name,
             this._config[payload.name as keyof Services.HookFunctions],
@@ -277,21 +282,23 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         return this.#sendWorkerResponse(id, this.#hookResponse({ id: payload.id, error }))
     }
 
-    #expectMatcherResponse (value: Workers.ExpectMatchersResponse): Workers.SocketMessage {
+    #expectMatcherResponse (value: WSMessageValue[WS_MESSAGE_TYPES.expectMatchersResponse])
+        : WSMessage<WS_MESSAGE_TYPES.expectMatchersResponse> {
         return {
-            type: MESSAGE_TYPES.expectMatchersResponse,
+            type: WS_MESSAGE_TYPES.expectMatchersResponse,
             value
         }
     }
 
-    #hookResponse (value: Workers.HookResultEvent): Workers.SocketMessage {
+    #hookResponse (value: WSMessageValue[WS_MESSAGE_TYPES.hookResultMessage])
+        : WSMessage<WS_MESSAGE_TYPES.hookResultMessage> {
         return {
-            type: MESSAGE_TYPES.hookResultMessage,
+            type: WS_MESSAGE_TYPES.hookResultMessage,
             value
         }
     }
 
-    #sendWorkerResponse (id: number, message: Workers.SocketMessage) {
+    #sendWorkerResponse (id: number, message: AnyWSMessage) {
         if (!process.send) {
             return
         }
@@ -309,7 +316,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
      * @param message console.log message args
      * @returns void
      */
-    #handleConsole (message: Workers.ConsoleEvent) {
+    #handleConsole (message: WSMessageValue[WS_MESSAGE_TYPES.consoleMessage]) {
         const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]') && message.type !== 'error')
         if (message.name !== 'consoleEvent' || isWDIOLog) {
             return
@@ -317,7 +324,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         console[message.type](...(message.args || []))
     }
 
-    async #handleCommand (id: number, payload: Workers.CommandRequestEvent) {
+    async #handleCommand (
+        id: number,
+        payload: WSMessageValue[WS_MESSAGE_TYPES.commandRequestMessage]
+    ) {
         log.debug(`Received browser message: ${JSON.stringify(payload)}`)
         const cid = payload.cid
         if (typeof cid !== 'string') {
@@ -374,9 +384,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
     }
 
-    #commandResponse (value: Workers.CommandResponseEvent): Workers.SocketMessage {
+    #commandResponse (value: WSMessageValue[WS_MESSAGE_TYPES.commandResponseMessage])
+        : WSMessage<WS_MESSAGE_TYPES.commandResponseMessage> {
         return {
-            type: MESSAGE_TYPES.commandResponseMessage,
+            type: WS_MESSAGE_TYPES.commandResponseMessage,
             value
         }
     }
@@ -387,7 +398,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
      * @param payload information about the expectation to run
      * @returns void
      */
-    async #handleExpectation (id: number, payload: Workers.ExpectRequestEvent) {
+    async #handleExpectation (
+        id: number,
+        payload: WSMessageValue[WS_MESSAGE_TYPES.expectRequestMessage]
+    ) {
         log.debug(`Received expectation message: ${JSON.stringify(payload)}`)
         const cid = payload.cid
         /**
@@ -408,19 +422,29 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         try {
-            const context = payload.element
-                ? Array.isArray(payload.element)
-                    ? await browser.$$(payload.element)
+            let context: WebdriverIO.Browser | ChainablePromiseElement | ChainablePromiseElement[] |ChainablePromiseArray
+
+            if (payload.element) {
+                if (Array.isArray(payload.element)) {
+                    // Element is an array, assume it's a selector list and resolve it with $$.
+                    context = await browser.$$(payload.element)
+                } else {
+                    const elementId = await payload.element.elementId
                     /**
-                     * check if element contains an `elementId` property, if so the element was already
-                     * found, so we can transform it into an `WebdriverIO.Element` object, if not we
-                     * need to find it first, so we pass in the selector.
+                     * If the element has already been resolved (i.e., it has an elementId),
+                     * we can reuse it directly. Otherwise, we attempt to resolve it via its selector.
                      */
-                    : payload.element.elementId
+                    context = elementId
                         ? await browser.$(payload.element)
-                        : await browser.$(payload.element.selector)
-                : payload.context || browser
+                        : await browser.$(await payload.element.selector)
+                }
+            } else {
+                // Fallback to provided context or global browser
+                context = payload.context || browser
+            }
+
             const result = await matcher.apply(payload.scope, [context, ...payload.args.map(transformExpectArgs)])
+
             return this.#sendWorkerResponse(id, this.#expectResponse({
                 id: payload.id,
                 pass: result.pass,
@@ -433,15 +457,20 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
     }
 
-    #expectResponse (value: Workers.ExpectResponseEvent): Workers.SocketMessage {
+    #expectResponse(
+        value: WSMessageValue[WS_MESSAGE_TYPES.expectResponseMessage]
+    ): WSMessage<WS_MESSAGE_TYPES.expectResponseMessage> {
         return {
-            type: MESSAGE_TYPES.expectResponseMessage,
+            type: WS_MESSAGE_TYPES.expectResponseMessage,
             value
         }
     }
 
-    #handleTestFinish (payload: Workers.BrowserTestResults) {
-        this.#resolveTestStatePromise!({ failures: payload.failures, events: payload.events })
+    #handleTestFinish (payload: WSMessageValue[WS_MESSAGE_TYPES.browserTestResult]) {
+        this.#resolveTestStatePromise!({
+            failures: payload.failures,
+            events: payload.events
+        })
     }
 
     #onTestTimeout (message: string) {

@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
-import { MESSAGE_TYPES } from '@wdio/types'
+import { WS_MESSAGE_TYPES } from '@wdio/types'
 
 import { ServerWorkerCommunicator } from '../../src/communicator.js'
 import { SESSIONS } from '../../src/constants.js'
@@ -30,7 +30,7 @@ describe('ServerWorkerCommunicator', () => {
         await onWorkerMessage({ name: 'sessionEnded', cid: '0-0' }, {}, {})
         expect(SESSIONS.size).toBe(0)
         expect(communicator.coverageMaps).toHaveLength(0)
-        await onWorkerMessage({ name: 'workerEvent', args: { type: MESSAGE_TYPES.coverageMap } }, {}, {})
+        await onWorkerMessage({ name: 'workerEvent', args: { type: WS_MESSAGE_TYPES.coverageMap } }, {}, {})
         expect(communicator.coverageMaps).toHaveLength(1)
 
         const onBrowserEvent = server.onBrowserEvent.mock.calls[0][0]

@@ -4,6 +4,7 @@ import { beforeAll, expect, test, afterAll, vi } from 'vitest'
 
 // @ts-ignore mock exports instances, package doesn't
 import { instances } from '@wdio/runner'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
 
 vi.mock('@wdio/runner', () => import(path.join(process.cwd(), '__mocks__', '@wdio/runner')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -36,11 +37,16 @@ test('should have registered runner listener', () => {
     expect(instances[0].on).toHaveBeenCalledWith('exit', expect.any(Function))
     expect(instances[0].on).toHaveBeenCalledWith('error', expect.any(Function))
     instances[0].on.mock.calls[1][1]({ name: 'name', message: 'message', stack: 'stack' })
-    expect(process.send).toHaveBeenCalledWith({
-        origin: 'worker',
-        name: 'error',
-        content: { name: 'name', message: 'message', stack: 'stack' }
-    })
+    expect(process.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+            type: IPC_MESSAGE_TYPES.errorMessage,
+            value: expect.objectContaining({
+                origin: 'worker',
+                name: 'error',
+                content: { name: 'name', message: 'message', stack: 'stack' }
+            })
+        })
+    )
 })
 
 test('should not call runner if message is undefined', () => {
@@ -55,11 +61,14 @@ test('should call runner command on process message', async () => {
     })
     expect(instances[0].run).toHaveBeenCalledTimes(1)
     await new Promise((resolve) => setTimeout(resolve, 10))
-    expect(process.send).toHaveBeenCalledWith({
-        origin: 'worker',
-        name: 'finishedCommand',
-        content: { command: 'run', result: { foo: 'bar' } }
-    })
+    expect(process.send).toHaveBeenCalledWith( expect.objectContaining({
+        type: IPC_MESSAGE_TYPES.finishedCommandMessage,
+        value: expect.objectContaining({
+            origin: 'worker',
+            name: 'finishedCommand',
+            content: { command: 'run', result: { foo: 'bar' } }
+        })
+    }))
 })
 
 test('should exit process if failing to execute', async () => {
@@ -87,6 +96,18 @@ test('exitHookFn should call callback after shutdown timeout', async () => {
     expect(cb).toHaveBeenCalledTimes(0)
     await sleep()
     expect(cb).toHaveBeenCalledTimes(1)
+})
+
+test('should send readyEvent IPC message when runner is initialized', () => {
+    expect(process.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+            type: IPC_MESSAGE_TYPES.readyEventMessage,
+            value: expect.objectContaining({
+                origin: 'worker',
+                name: 'ready'
+            })
+        })
+    )
 })
 
 afterAll(() => {

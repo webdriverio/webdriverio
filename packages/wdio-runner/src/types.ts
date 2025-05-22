@@ -1,4 +1,5 @@
-import type { Capabilities, Services, Workers } from '@wdio/types'
+import type { Capabilities, Services } from '@wdio/types'
+import type { AnyWSMessage } from '@wdio/types'
 import type BaseReporter from './reporter.js'
 
 export type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
@@ -50,25 +51,10 @@ export interface SessionStartedMessage {
     cid?: string
 }
 
-export interface SnapshotResultMessage {
-    origin: 'worker'
-    name: 'snapshot'
-    content: {
-        filepath: string
-        added: number
-        fileDeleted: boolean
-        matched: number
-        unchecked: number
-        uncheckedKeys: string[]
-        unmatched: number
-        updated: number
-    }[]
-}
-
 export interface SessionEndedMessage {
     origin: 'worker'
     name: 'sessionEnded',
-    cid: string
+    cid: string | undefined
 }
 
 export interface WorkerResponseMessage {
@@ -76,6 +62,6 @@ export interface WorkerResponseMessage {
     name: 'workerResponse',
     args: {
         id: number
-        message: Workers.SocketMessage
+        message: AnyWSMessage
     }
 }

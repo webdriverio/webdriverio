@@ -4,12 +4,14 @@ import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-li
 import logger from '@wdio/logger'
 import type { WebSocketClient } from 'vite'
 import type { WorkerInstance } from '@wdio/local-runner'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import type { AnyWSMessage, Workers } from '@wdio/types'
+import { WS_MESSAGE_TYPES } from '@wdio/types'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
 
 import { SESSIONS } from './constants.js'
 import { WDIO_EVENT_NAME } from './constants.js'
 import type { ViteServer } from './vite/server.js'
+import { isWSMessage } from '@wdio/utils'
 
 const log = logger('@wdio/browser-runner')
 
@@ -57,18 +59,18 @@ export class ServerWorkerCommunicator {
             })
         }
 
-        if (payload.name === 'sessionEnded') {
+        if (payload.name === 'sessionEnded'&& typeof payload.cid === 'string') {
             SESSIONS.delete(payload.cid)
         }
 
-        if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.coverageMap) {
+        if (payload.name === 'workerEvent' && isWSMessage(payload.args, WS_MESSAGE_TYPES.coverageMap)) {
             const coverageMapData = payload.args.value as CoverageMapData
             this.coverageMaps.push(
                 await this.#mapStore.transformCoverage(libCoverage.createCoverageMap(coverageMapData))
             )
         }
 
-        if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.customCommand) {
+        if (payload.name === 'workerEvent' && isWSMessage(payload.args, WS_MESSAGE_TYPES.customCommand) ) {
             const { commandName, cid } = payload.args.value
             if (!this.#customCommands.has(cid)) {
                 this.#customCommands.set(cid, new Set())
@@ -88,13 +90,13 @@ export class ServerWorkerCommunicator {
         }
     }
 
-    #onBrowserEvent (message: Workers.SocketMessage, client: WebSocketClient, worker: WorkerInstance) {
+    #onBrowserEvent (message: AnyWSMessage, client: WebSocketClient, worker: WorkerInstance) {
         /**
          * some browser events don't need to go through the worker process
          */
-        if (message.type === MESSAGE_TYPES.initiateBrowserStateRequest) {
-            const result: Workers.SocketMessage = {
-                type: MESSAGE_TYPES.initiateBrowserStateResponse,
+        if (isWSMessage(message, WS_MESSAGE_TYPES.initiateBrowserStateRequest)) {
+            const result: AnyWSMessage = {
+                type: WS_MESSAGE_TYPES.initiateBrowserStateResponse,
                 value: {
                     customCommands: [...(this.#customCommands.get(message.value.cid) || [])]
                 }

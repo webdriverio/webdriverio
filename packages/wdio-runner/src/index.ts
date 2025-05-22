@@ -9,14 +9,14 @@ import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
+import { IPC_MESSAGE_TYPES, type IPCMessage } from '@wdio/types'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
 import { initializeInstance, getInstancesData } from './utils.js'
 import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
-    TestFramework, SessionStartedMessage, SessionEndedMessage, SnapshotResultMessage
-} from './types.js'
+    TestFramework } from './types.js'
 
 const log = logger('@wdio/runner')
 
@@ -124,7 +124,16 @@ export default class Runner extends EventEmitter {
          * initialize framework
          */
         this._framework = await this.#initFramework(cid, this._config, this._caps, this._reporter, specs)
-        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() } })
+        const initMessage: IPCMessage<IPC_MESSAGE_TYPES.testFrameworkInitMessage> = {
+            type: IPC_MESSAGE_TYPES.testFrameworkInitMessage,
+            value: {
+                cid,
+                caps: this._caps,
+                specs,
+                hasTests: this._framework.hasTests()
+            }
+        }
+        process.send!(initMessage)
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
         }
@@ -189,16 +198,25 @@ export default class Runner extends EventEmitter {
         const { protocol, hostname, port, path, queryParams, automationProtocol, headers } = browser.options
         const { isW3C, sessionId } = browser
         const instances = getInstancesData(browser, isMultiremote)
-        process.send!(<SessionStartedMessage>{
-            origin: 'worker',
-            name: 'sessionStarted',
-            content: {
-                automationProtocol, sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances,
+        const sessionStartedMessage: IPCMessage<IPC_MESSAGE_TYPES.sessionStartedMessage> = {
+            type: IPC_MESSAGE_TYPES.sessionStartedMessage,
+            value: {
+                automationProtocol,
+                sessionId,
+                isW3C,
+                protocol,
+                hostname,
+                port,
+                path,
+                queryParams,
+                isMultiremote,
+                instances,
                 capabilities: browser.capabilities,
                 injectGlobals: this._config.injectGlobals,
                 headers
             }
-        })
+        }
+        process.send!(sessionStartedMessage)
 
         /**
          * kick off tests in framework
@@ -222,11 +240,15 @@ export default class Runner extends EventEmitter {
         /**
          * send snapshot result upstream
          */
-        process.send!(<SnapshotResultMessage>{
-            origin: 'worker',
-            name: 'snapshot',
-            content: snapshotService.results
-        })
+        const snapshotMessage: IPCMessage<IPC_MESSAGE_TYPES.snapshotResultMessage> = {
+            type: IPC_MESSAGE_TYPES.snapshotResultMessage,
+            value: {
+                origin: 'worker',
+                name: 'snapshot',
+                content: snapshotService.results
+            }
+        }
+        process.send!(snapshotMessage)
 
         return this._shutdown(failures, retries)
     }
@@ -472,11 +494,23 @@ export default class Runner extends EventEmitter {
         }
 
         await this._browser?.deleteSession()
-        process.send!(<SessionEndedMessage>{
-            origin: 'worker',
-            name: 'sessionEnded',
-            cid: this._cid
-        })
+
+        /** Ensure `cid` is set before sending the sessionEnded message.
+         *This prevents sending an invalid or empty session ID, which could
+         *break downstream reporting, result tracking, or session cleanup logic.
+         * */
+        if (!this._cid) {
+            throw new Error('Cannot send sessionEnded message without cid')
+        }
+        const sessionEndedMessage: IPCMessage<IPC_MESSAGE_TYPES.sessionEnded> ={
+            type : IPC_MESSAGE_TYPES.sessionEnded,
+            value : {
+                origin: 'worker',
+                name: 'sessionEnded',
+                cid: this._cid
+            }
+        }
+        process.send!(sessionEndedMessage)
 
         /**
          * delete session(s)
