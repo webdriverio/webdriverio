@@ -696,7 +696,7 @@ export type TransformReturn<T> =
 /**
  * Additional options outside of the WebDriver spec, exclusively for Webdriverio, only for runtime, and not sent to appium
  */
-export interface WdioOptions {
+export interface InputOptions {
     mask?: boolean
 }
 

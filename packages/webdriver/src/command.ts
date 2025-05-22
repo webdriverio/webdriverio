@@ -5,8 +5,10 @@ import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 import { environment } from './environment.js'
 import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
-import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent, CommandRuntimeOptions } from './types.js'
-import { APPIUM_MASKING_HEADER, mask } from './utils.js'
+import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent } from './types.js'
+import { CommandRuntimeOptions } from './types.js'
+import { mask } from './utils.js'
+import { APPIUM_MASKING_HEADER } from './constants.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
@@ -23,7 +25,7 @@ export default function (
     return async function protocolCommand (this: BaseClient, ...unmaskedArgs: unknown[]): Promise<WebDriverResponse | BidiResponses | void> {
 
         let runtimeOptions = {}
-        if (commandInfo.parameters.length < unmaskedArgs.length && typeof unmaskedArgs[unmaskedArgs.length-1] === 'object') {
+        if (unmaskedArgs.length > 0 && unmaskedArgs[unmaskedArgs.length - 1] instanceof CommandRuntimeOptions ) {
             // Popping the additional options to not have `Wrong parameters applied` thrown
             runtimeOptions = unmaskedArgs.pop() as CommandRuntimeOptions
         }

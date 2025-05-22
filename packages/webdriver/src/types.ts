@@ -100,7 +100,12 @@ export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.We
 /**
  * Additional options outside of the WebDriver spec, exclusively for Webdriverio, only for runtime, and not sent to appium
  */
-export interface CommandRuntimeOptions {
+export class CommandRuntimeOptions {
+
     // mask the text parameter value of the command
     mask?: boolean
+
+    constructor (options: { mask?: boolean }) {
+        this.mask = options.mask
+    }
 }

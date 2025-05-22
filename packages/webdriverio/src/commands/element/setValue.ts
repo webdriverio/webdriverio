@@ -1,4 +1,4 @@
-import type { WdioOptions } from '../../types.js'
+import type { InputOptions } from '../../types.js'
 
 /**
  * Send a sequence of key strokes to an element after the input has been cleared before. If the element doesn't need
@@ -24,13 +24,13 @@ import type { WdioOptions } from '../../types.js'
  *
  * @alias element.setValue
  * @param {string|number}  value  value to be added
- * @param {WdioOptions} additional options, exclusive to Webdriverio
+ * @param {InputOptions} additional options, exclusive to Webdriverio
  *
  */
 export async function setValue (
     this: WebdriverIO.Element,
     value: string | number,
-    options?: WdioOptions,
+    options?: InputOptions,
 ) {
     await this.clearValue()
     return this.addValue(value, options)

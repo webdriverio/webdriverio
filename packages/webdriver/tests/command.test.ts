@@ -11,6 +11,7 @@ import '../src/browser.js'
 import { WebDriverRequest as RequestMock, thenMock, catchMock, makeRequestMock, getCapturedRequestHandler } from '../src/request/request.js'
 import commandWrapper from '../src/command.js'
 import type { BaseClient } from '../src/types.js'
+import { CommandRuntimeOptions } from '../src/types.js'
 import type { RequestEventHandler } from '../build/request/types.js'
 import type { RequestOptions } from '../src/request/types.js'
 
@@ -290,7 +291,7 @@ describe('command wrapper', () => {
         }
         const elementId = '123'
         const text = 'mySecretPassword'
-        const runtimeOptionsWithMasking = { mask: true }
+        const runtimeOptionsWithMasking = new CommandRuntimeOptions({ mask: true })
 
         it('should do the http request with the unmasked text when masking is requested', async () => {
             const commandFn = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
