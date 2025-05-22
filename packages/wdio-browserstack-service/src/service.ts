@@ -119,7 +119,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
             // Get the nearest hub and update it in config
             const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
-            this._config.hostname = new URL(hubUrl).hostname
+            if (hubUrl) {
+                this._config.hostname = new URL(hubUrl).hostname
+            }
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
         }
