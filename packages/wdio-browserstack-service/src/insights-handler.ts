@@ -36,6 +36,9 @@ import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
 import Listener from './testOps/listener.js'
 import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
+import { BrowserstackCLI } from './cli/index.js'
+import { TestFrameworkState } from './cli/states/testFrameworkState.js'
+import { HookState } from './cli/states/hookState.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -392,8 +395,10 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         BStackLogger.debug('calling testFinished')
+        const testData = this.getRunData(test, 'TestRunFinished', result)
+        await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, testData)
         this.flushCBTDataQueue()
-        this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
+        this.listener.testFinished(testData)
     }
 
     /**

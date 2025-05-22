@@ -411,12 +411,12 @@ export class CLIUtils {
 
         this.testFrameworkDetail = {
             name: testFramework,
-            version: { [testFramework]: 'latest' }, // TODO: update static value
+            version: { [testFramework]: CLIUtils.getSdkVersion() },
         }
 
         this.automationFrameworkDetail = {
             name: automationFramework,
-            version: 'latest', // TODO: update static value
+            version: { [automationFramework]: CLIUtils.getSdkVersion() },
         }
 
         process.env.BROWSERSTACK_AUTOMATION_FRAMEWORK_DETAIL = JSON.stringify(this.automationFrameworkDetail)
@@ -429,5 +429,15 @@ export class CLIUtils {
      */
     static getCurrentInstanceName() {
         return `${process.pid}:${threadId}`
+    }
+
+    /**
+     *
+     * @param {TestFrameworkState | AutomationFrameworkState} frameworkState
+     * @param {HookState} hookState
+     * @returns {string}
+     */
+    static getHookRegistryKey(frameworkState: State, hookState: State) {
+        return `${frameworkState}:${hookState}`
     }
 }

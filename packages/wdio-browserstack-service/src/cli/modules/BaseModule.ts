@@ -45,7 +45,7 @@ export default class BaseModule {
      * @param {Object} client - The gRPC client service
      * @param {Object} config - Configuration options
      */
-    configure(binSessionId: string, platformIndex: number, client: unknown, config = {}) {
+    configure(binSessionId: string|null, platformIndex: number, client: unknown, config = {}) {
         this.binSessionId = binSessionId
         this.platformIndex = platformIndex
         this.client = client

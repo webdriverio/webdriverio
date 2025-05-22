@@ -1,5 +1,8 @@
 import BaseModule from './BaseModule.js'
 import { BStackLogger } from '../cliLogger.js'
+import TestFramework from '../frameworks/testFramework.js'
+import { TestFrameworkState } from '../states/testFrameworkState.js'
+import { HookState } from '../states/hookState.js'
 
 /**
  * TestHub Module for BrowserStack
@@ -19,6 +22,8 @@ export default class TestHubModule extends BaseModule {
         super()
         this.name = 'TestHubModule'
         this.testhubConfig = testhubConfig
+
+        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
     }
 
     /**
@@ -27,5 +32,9 @@ export default class TestHubModule extends BaseModule {
      */
     getModuleName() {
         return TestHubModule.MODULE_NAME
+    }
+
+    onAfterTest() {
+        this.logger.debug('onAfterTest: Called after test hook from cli configured module!!!')
     }
 }

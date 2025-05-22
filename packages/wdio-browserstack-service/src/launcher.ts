@@ -209,7 +209,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         try {
             BStackLogger.debug('Is CLI running ' + BrowserstackCLI.getInstance().isRunning())
             BrowserstackCLI.getInstance().setBrowserstackConfig(config)
-            CLIUtils.setFrameworkDetail('selenium', 'selenium') // TODO: make this constant
+            CLIUtils.setFrameworkDetail('WebdriverIO-' + config.framework, 'WebdriverIO') // TODO: make this constant
             const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options)
             await BrowserstackCLI.getInstance().bootstrap(binconfig)
             BStackLogger.debug('Is CLI running ' + BrowserstackCLI.getInstance().isRunning())
@@ -293,7 +293,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
 
         let buildStartResponse = null
-        if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
+        if (!BrowserstackCLI.getInstance().isRunning() && (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy)) {
             BStackLogger.debug('Sending launch start event')
 
             buildStartResponse = await launchTestSession(this._options, this._config, {
@@ -406,7 +406,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         BStackLogger.debug('Inside OnComplete hook..')
 
         BStackLogger.debug('Sending stop launch event')
-        await stopBuildUpstream()
+
+        try {
+            await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
+        } catch (err) {
+            BStackLogger.error(`Error while stoping CLI ${err}`)
+        }
         if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
             console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
@@ -432,12 +437,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         BStackLogger.clearLogger()
-
-        try {
-            await BrowserstackCLI.getInstance().stop()
-        } catch (err) {
-            BStackLogger.error(`Error while stoping CLI ${err}`)
-        }
 
         if (this._options.percy) {
             await this.stopPercy()

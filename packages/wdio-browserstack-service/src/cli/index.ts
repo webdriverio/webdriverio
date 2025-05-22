@@ -11,8 +11,11 @@ import TestHubModule from './modules/TestHubModule.js'
 import type { ChildProcess } from 'node:child_process'
 import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
 import type BaseModule from './modules/BaseModule.js'
-import { CLI_STOP_TIMEOUT } from '../constants.js'
+import { BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_TESTHUB_UUID, CLI_STOP_TIMEOUT, TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_SCREENSHOT_ENV } from '../constants.js'
 import type { Options } from '@wdio/types'
+import TestOpsConfig from '../testOps/testOpsConfig.js'
+import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
+import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -33,9 +36,9 @@ export class BrowserstackCLI {
     isChildConnected = false
     binSessionId: string | null = null
     modules: Record<string, BaseModule> = {}
-    testFramework = null
+    testFramework: WdioMochaTestFramework|null = null
     cliParams: Record<string, string> | null = null
-    automationFramework = null
+    automationFramework: WdioAutomationFramework|null = null
     SDK_CLI_BIN_PATH: string | null = null
     logger = BStackLogger
 
@@ -96,6 +99,7 @@ export class BrowserstackCLI {
         this.logger.debug('startMain: main-process started')
         const response = await GrpcClient.getInstance().startBinSession(this.wdioConfig)
         BStackLogger.debug(`start: startBinSession response=${JSON.stringify(response)}`)
+        this.loadModules(response)
         this.isMainConnected = true
 
     }
@@ -111,7 +115,25 @@ export class BrowserstackCLI {
 
         this.setConfig(startBinResponse)
 
+        this.setupTestFramework()
+        this.setupAutomationFramework()
+
         if (startBinResponse.testhub) {
+            process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
+            if (startBinResponse.testhub.jwt) {
+                process.env[BROWSERSTACK_TESTHUB_JWT] = startBinResponse.testhub.jwt
+            }
+            if (startBinResponse.testhub.buildHashedId) {
+                process.env[BROWSERSTACK_TESTHUB_UUID] = startBinResponse.testhub.buildHashedId
+                TestOpsConfig.getInstance().buildHashedId = startBinResponse.testhub.buildHashedId
+            }
+
+            if (startBinResponse.observability?.success) {
+                process.env[BROWSERSTACK_OBSERVABILITY] = 'true'
+                if (startBinResponse.observability.options?.allowScreenshots) {
+                    process.env[TESTOPS_SCREENSHOT_ENV] = startBinResponse.observability.options.allowScreenshots.toString()
+                }
+            }
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
         }
 
@@ -264,7 +286,10 @@ export class BrowserstackCLI {
      */
     async unConfigureModules() {
         this.logger.debug('Unconfiguring modules')
-        // Add implementation based on your requirements
+        for (const moduleName in this.modules) {
+            const module = this.modules[moduleName]
+            await module.configure(null, 0, GrpcClient.getInstance().client)
+        }
     }
 
     /**
@@ -290,6 +315,7 @@ export class BrowserstackCLI {
             GrpcClient.getInstance().connect()
             const response = await GrpcClient.getInstance().connectBinSession()
             this.logger.info(`Connected to bin session: ${JSON.stringify(response)}`)
+            this.loadModules(response)
             this.isChildConnected = true
             PerformanceTester.end(PerformanceEvents.SDK_CONNECT_BIN_SESSION)
         } catch (error) {
@@ -368,6 +394,28 @@ export class BrowserstackCLI {
             this.logger.debug(`loadModules: config=${JSON.stringify(this.config)}`)
         } catch (error) {
             this.logger.error(`setConfig: error=${util.format(error)}`)
+        }
+    }
+
+    /**
+     * Setup the test framework
+     * @returns {void}
+     */
+    setupTestFramework() {
+        const testFrameworkDetail = CLIUtils.getTestFrameworkDetail()
+        if (testFrameworkDetail.name.toLowerCase() === 'webdriverio-mocha') {
+            this.testFramework = new WdioMochaTestFramework([testFrameworkDetail.name], testFrameworkDetail.version, this.binSessionId as string)
+        }
+    }
+
+    /**
+     * Setup the automation framework
+     * @returns {void}
+     */
+    setupAutomationFramework() {
+        const automationFrameworkDetail = CLIUtils.getAutomationFrameworkDetail()
+        if (automationFrameworkDetail.name.toLowerCase() === 'webdriverio') {
+            this.automationFramework = new WdioAutomationFramework(automationFrameworkDetail.name, automationFrameworkDetail.version)
         }
     }
 

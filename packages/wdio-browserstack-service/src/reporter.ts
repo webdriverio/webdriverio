@@ -20,6 +20,9 @@ import {
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
 import Listener from './testOps/listener.js'
+import { BrowserstackCLI } from './cli/index.js'
+import { TestFrameworkState } from './cli/states/testFrameworkState.js'
+import { HookState } from './cli/states/hookState.js'
 
 class _TestReporter extends WDIOReporter {
     private _capabilities: WebdriverIO.Capabilities = {}
@@ -145,9 +148,11 @@ class _TestReporter extends WDIOReporter {
         if (testStats.fullTitle === '<unknown test>') {
             return
         }
+        const testData = await this.getRunData(testStats, 'TestRunFinished')
+        await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, testData)
 
         testStats.end ||= new Date()
-        this.listener.testFinished(await this.getRunData(testStats, 'TestRunFinished'))
+        this.listener.testFinished(testData)
     }
 
     async onTestStart(testStats: TestStats) {

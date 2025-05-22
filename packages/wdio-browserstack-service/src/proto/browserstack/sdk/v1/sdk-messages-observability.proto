@@ -11,7 +11,7 @@ message KeyMessage {
 
 message Observability {
     bool success = 1;
-    optional bytes options = 2;
+    optional ObservabilityOptions options = 2;
     optional string error_trace_id = 3;
     optional string code = 4;
     repeated KeyMessage errors = 5;

@@ -8,6 +8,7 @@ import { StartBinSessionRequest, StopBinSessionRequest, ConnectBinSessionRequest
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
+import type { ConnectBinSessionResponse, StartBinSessionResponse } from 'src/proto/sdk-messages.js'
 
 /**
  * GrpcClient - Singleton class for managing gRPC client connections
@@ -104,7 +105,11 @@ export class GrpcClient {
 
             const packageVersion = CLIUtils.getSdkVersion()
             const automationFrameworkDetail = CLIUtils.getAutomationFrameworkDetail()
-            const framework = automationFrameworkDetail.name
+            const testFrameworkDetail = CLIUtils.getTestFrameworkDetail()
+            const frameworkVersions = {
+                ...automationFrameworkDetail.version,
+                ...testFrameworkDetail.version
+            }
 
             // Create StartBinSessionRequest
             const request = StartBinSessionRequest.create({
@@ -114,12 +119,14 @@ export class GrpcClient {
                 pathProject: process.cwd(),
                 pathConfig: path.resolve(process.cwd(), 'browserstack.yml'),
                 cliArgs: process.argv.slice(2),
+                frameworks: [automationFrameworkDetail.name, testFrameworkDetail.name],
+                frameworkVersions,
                 language: CLIUtils.getSdkLanguage(),
-                testFramework: framework,
+                testFramework: testFrameworkDetail.name,
                 wdioConfig: wdioConfig,
             })
 
-            const startBinSessionPromise = promisify(this.client!.startBinSession).bind(this.client!)
+            const startBinSessionPromise = promisify(this.client!.startBinSession).bind(this.client!) as (arg0: StartBinSessionRequest) => Promise<StartBinSessionResponse>
             try {
                 const response = await startBinSessionPromise(request)
                 this.logger.info('StartBinSession successful')
@@ -154,7 +161,7 @@ export class GrpcClient {
                 binSessionId: this.binSessionId,
             })
 
-            const connectBinSessionPromise = promisify(this.client!.connectBinSession).bind(this.client!)
+            const connectBinSessionPromise = promisify(this.client!.connectBinSession).bind(this.client!) as (arg0: ConnectBinSessionRequest) => Promise<ConnectBinSessionResponse>
             try {
                 const response =  await connectBinSessionPromise(request)
                 this.logger.info('ConnectBinSession successful')
