@@ -27,7 +27,7 @@ export class BrowserstackCLI {
     static #instance: BrowserstackCLI|null = null
     static enabled = false
     initialized:boolean
-    config:object
+    config:Record<string, unknown>
     wdioConfig: string
     cliArgs:object
     browserstackConfig: Options.Testrunner|{}

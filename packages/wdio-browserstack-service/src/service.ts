@@ -112,7 +112,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
         this._config.user = config.user
         this._config.key = config.key
-        await BrowserstackCLI.getInstance().bootstrap()
+
+        try {
+            // Connect to Browserstack CLI from worker
+            await BrowserstackCLI.getInstance().bootstrap()
+
+            // Get the nearest hub and update it in config
+            const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
+            this._config.hostname = new URL(hubUrl).hostname
+        } catch (err) {
+            BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
+        }
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'before' })
