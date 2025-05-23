@@ -1,5 +1,5 @@
 import type { InputOptions } from '../../types.js'
-import type { CommandRuntimeOptions } from 'webdriver'
+import { CommandRuntimeOptions } from 'webdriver'
 
 const VALID_TYPES = ['string', 'number']
 
