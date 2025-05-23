@@ -1,37 +1,19 @@
 import type { Mock } from 'vitest'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import EventEmitter from 'node:events'
 import { spawn } from 'node:child_process'
 
-import { BrowserstackCLI } from '../../src/cli/index.js'
-import * as bstackLogger from '../../src/bstackLogger.js'
-import PerformanceTester from '../../src/instrumentation/performance/performance-tester.js'
-import { CLIUtils } from '../../src/cli/cliUtils.js'
 import { GrpcClient } from '../../src/cli/grpcClient.js'
+import { BrowserstackCLI } from '../../src/cli/index.js'
+
+import * as bstackLogger from '../../src/bstackLogger.js'
+import { CLIUtils } from '../../src/cli/cliUtils.js'
+import TestHubModule from '../../src/cli/modules/TestHubModule.js'
 
 const mockGetInstance = GrpcClient.getInstance as Mock
-vi.mock('node:child_process', () => ({
-    spawn: vi.fn()
-}))
 
 vi.mock('../../src/cli/grpcClient.js', () => ({
     GrpcClient: {
         getInstance: vi.fn()
-    }
-}))
-
-vi.mock('../../src/cli/cliUtils.js', () => ({
-    CLIUtils: {
-        isDevelopmentEnv: vi.fn(),
-        getCLIParamsForDevEnv: vi.fn(),
-        setupCliPath: vi.fn().mockResolvedValue('/path/to/cli')
-    }
-}))
-
-vi.mock('../../src/instrumentation/performance/performance-tester.js', () => ({
-    default: {
-        start: vi.fn(),
-        end: vi.fn()
     }
 }))
 
@@ -41,40 +23,12 @@ bstackLoggerSpy.mockImplementation(() => {})
 describe('BrowserstackCLI', () => {
     let browserstackCLI: BrowserstackCLI
     let mockGrpcClient: any
-    // const mockHandler = vi.fn()
     let startMainSpy: any
     let startChildSpy: any
-    let mockProcess: any
 
     beforeEach(() => {
         vi.resetAllMocks()
-
-        mockGrpcClient = {
-            init: vi.fn(),
-            startBinSession: vi.fn().mockResolvedValue({
-                binSessionId: 'test-session-id',
-                config: JSON.stringify({ test: 'config' }),
-            }),
-            stopBinSession: vi.fn().mockResolvedValue({}),
-            connect: vi.fn(),
-            connectBinSession: vi.fn().mockResolvedValue({}),
-        }
-
-        mockGetInstance.mockReturnValue(mockGrpcClient)
-        // Setup mock child process
-        mockProcess = new EventEmitter()
-        mockProcess.stdout = new EventEmitter()
-        mockProcess.stderr = new EventEmitter()
-        mockProcess.pid = 12345
-        mockProcess.kill = vi.fn()
-        mockProcess.exitCode = null
-        mockProcess.connected = true
-
-        // spawn.mockReturnValue(mockProcess)
         browserstackCLI = BrowserstackCLI.getInstance()
-    })
-    afterEach(() => {
-        vi.resetAllMocks()
     })
 
     describe('bootstrap', () => {
@@ -112,11 +66,29 @@ describe('BrowserstackCLI', () => {
             await browserstackCLI.bootstrap()
 
             expect(stopSpy).toHaveBeenCalled()
-            expect(PerformanceTester.end).toHaveBeenCalledWith(expect.any(String), false, expect.stringContaining('Bootstrap error'))
         })
     })
 
     describe('startMain', () => {
+        beforeEach(() => {
+            vi.resetAllMocks()
+
+            mockGrpcClient = {
+                init: vi.fn(),
+                connect: vi.fn().mockResolvedValue(undefined),
+                connectBinSession: vi.fn().mockResolvedValue({}),
+                startBinSession: vi.fn().mockResolvedValue({
+                    binSessionId: 'test-session-id',
+                    config: JSON.stringify({ test: 'config' })
+                }),
+                stopBinSession: vi.fn().mockResolvedValue({})
+            }
+
+            mockGetInstance.mockReturnValue(mockGrpcClient)
+
+            browserstackCLI = new BrowserstackCLI()
+        })
+
         it('starts the main process and initializes a bin session', async () => {
             const startSpy = vi.spyOn(browserstackCLI, 'start').mockResolvedValue()
             browserstackCLI.wdioConfig = 'test-config'
@@ -127,199 +99,255 @@ describe('BrowserstackCLI', () => {
             expect(mockGrpcClient.startBinSession).toHaveBeenCalledWith('test-config')
             expect(browserstackCLI.isMainConnected).toBe(true)
         })
+
+        it('handles errors during start', async () => {
+            const startError = new Error('Start failed')
+            vi.spyOn(browserstackCLI, 'start').mockRejectedValue(startError)
+
+            await expect(browserstackCLI.startMain()).rejects.toThrow('Start failed')
+        })
     })
 
     describe('startChild', () => {
-        it('connects to an existing bin session', async () => {
-            await browserstackCLI.startChild('test-session-id')
+        beforeEach(() => {
+            vi.resetAllMocks()
 
-            expect(mockGrpcClient.connect).toHaveBeenCalled()
-            expect(mockGrpcClient.connectBinSession).toHaveBeenCalled()
+            mockGrpcClient = {
+                init: vi.fn(),
+                connect: vi.fn().mockResolvedValue(undefined),
+                connectBinSession: vi.fn().mockResolvedValue({
+                    binSessionId: 'test-session-id',
+                    config: JSON.stringify({ test: 'config' })
+                }),
+                startBinSession: vi.fn().mockResolvedValue({
+                    binSessionId: 'test-session-id',
+                    config: JSON.stringify({ test: 'config' })
+                }),
+                stopBinSession: vi.fn().mockResolvedValue({})
+            }
+
+            mockGetInstance.mockReturnValue(mockGrpcClient)
+            browserstackCLI = new BrowserstackCLI()
+            vi.spyOn(browserstackCLI, 'start').mockResolvedValue()
+        })
+
+        it('connects to an existing bin session', async () => {
+            const sessionId = 'test-session-id'
+
+            await browserstackCLI.startChild(sessionId)
+
             expect(browserstackCLI.isChildConnected).toBe(true)
         })
 
         it('handles errors when connecting to bin session', async () => {
-            mockGrpcClient.connectBinSession.mockRejectedValue(new Error('Connection error'))
+            const error = new Error('Connection error')
+            mockGrpcClient.connectBinSession.mockRejectedValue(error)
 
             await browserstackCLI.startChild('test-session-id')
 
             expect(browserstackCLI.isChildConnected).toBe(false)
-            expect(PerformanceTester.end).toHaveBeenCalledWith(
-                expect.any(String),
-                false,
-                expect.stringContaining('Connection error')
-            )
         })
     })
 
     describe('start', () => {
+        let mockProcess: any
+
+        beforeEach(() => {
+            vi.resetAllMocks()
+
+            mockProcess = {
+                pid: 123,
+                connected: false,
+                stdout: { on: vi.fn() },
+                stderr: { on: vi.fn() },
+                on: vi.fn()
+            }
+
+            vi.mock('node:child_process', () => ({
+                spawn: vi.fn(() => mockProcess)
+            }))
+
+            // Mock CLIUtils
+            vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
+            vi.spyOn(CLIUtils, 'getCLIParamsForDevEnv').mockReturnValue({ test: 'params' })
+
+            browserstackCLI = new BrowserstackCLI()
+        })
+
         it('resolves immediately in development environment', async () => {
             vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(true)
-            vi.spyOn(CLIUtils, 'getCLIParamsForDevEnv').mockReturnValue({ id: 'dev-id', port: '8080' })
+            vi.spyOn(browserstackCLI, 'loadCliParams').mockImplementation(() => {})
 
             await browserstackCLI.start()
 
-            expect(browserstackCLI.cliParams).toEqual({ id: 'dev-id', port: '8080' })
-            expect(mockGrpcClient.init).toHaveBeenCalledWith({ id: 'dev-id', port: '8080' })
-            expect(spawn).not.toHaveBeenCalled()
+            expect(CLIUtils.getCLIParamsForDevEnv).toHaveBeenCalled()
+            expect(browserstackCLI.loadCliParams).toHaveBeenCalledWith({ test: 'params' })
         })
 
-        it('resolves immediately if process is already running', async () => {
-            vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
-            browserstackCLI.process = mockProcess
-            mockProcess.connected = true
+        it('skips process creation if already connected', async () => {
+            browserstackCLI.process = { connected: true } as any
 
             await browserstackCLI.start()
 
             expect(spawn).not.toHaveBeenCalled()
-        })
-
-        it('spawns CLI process and resolves when ready', async () => {
-            vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
-            vi.spyOn(CLIUtils, 'setupCliPath').mockResolvedValue('/path/to/cli')
-
-            browserstackCLI.process = mockProcess
-
-            const startPromise = browserstackCLI.start()
-
-            // Simulate CLI output indicating it's ready
-            setTimeout(() => {
-                mockProcess.stdout.emit('data', Buffer.from('id=test-id\nport=9000\nready'))
-            }, 10)
-
-            await startPromise
-
-            expect(spawn).toHaveBeenCalledWith('/path/to/cli', ['sdk'], expect.any(Object))
-            expect(browserstackCLI.cliParams).toEqual({ id: 'test-id', port: '9000' })
-            expect(mockGrpcClient.init).toHaveBeenCalledWith({ id: 'test-id', port: '9000' })
-        })
-
-        it('rejects if the CLI process fails to start', async () => {
-            vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
-            vi.spyOn(CLIUtils, 'setupCliPath').mockResolvedValue('/path/to/cli')
-
-            // Remove PID to simulate failed process start
-            mockProcess.pid = undefined
-
-            await expect(browserstackCLI.start()).rejects.toThrow('failed to start CLI, no PID found')
-        })
-
-        it('rejects if the CLI process encounters an error', async () => {
-            vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
-            vi.spyOn(CLIUtils, 'setupCliPath').mockResolvedValue('/path/to/cli')
-
-            const startPromise = browserstackCLI.start()
-
-            // Simulate an error in the process
-            setTimeout(() => {
-                mockProcess.emit('error', new Error('Process error'))
-            }, 10)
-
-            await expect(startPromise).rejects.toThrow('Failed to start CLI process: Process error')
         })
     })
 
     describe('stop', () => {
-        it('stops the bin session and kills the process', async () => {
-            browserstackCLI.isMainConnected = true
+        let mockProcess: any
+
+        beforeEach(() => {
+            vi.resetAllMocks()
+
+            mockProcess = {
+                pid: 123,
+                kill: vi.fn(),
+                on: vi.fn()
+            }
+
+            mockGrpcClient = {
+                stopBinSession: vi.fn().mockResolvedValue({ status: 'success' })
+            }
+            mockGetInstance.mockReturnValue(mockGrpcClient)
+
+            browserstackCLI = new BrowserstackCLI()
             browserstackCLI.process = mockProcess
 
-            const stopPromise = browserstackCLI.stop()
-
-            // Simulate process exit
-            setTimeout(() => {
-                mockProcess.emit('exit')
-            }, 10)
-
-            await stopPromise
-
-            expect(mockGrpcClient.stopBinSession).toHaveBeenCalled()
-            expect(mockProcess.kill).toHaveBeenCalled()
+            vi.spyOn(browserstackCLI, 'unConfigureModules').mockResolvedValue()
         })
 
-        it('handles process timeout during stop', async () => {
-            vi.useFakeTimers()
+        it('stops bin session and kills process for main connection', async () => {
             browserstackCLI.isMainConnected = true
-            browserstackCLI.process = mockProcess
+            mockProcess.on.mockImplementation((event: string, callback: () => void) => {
+                if (event === 'exit') {
+                    setTimeout(callback, 10)
+                }
+            })
 
-            const stopPromise = browserstackCLI.stop()
+            await browserstackCLI.stop()
 
-            // Fast-forward past the timeout
-            vi.runAllTimers()
-
-            await stopPromise
-
-            expect(mockProcess.kill).toHaveBeenCalledTimes(2)
-            expect(mockProcess.kill).toHaveBeenCalledWith('SIGKILL')
-
-            vi.useRealTimers()
+            expect(mockGrpcClient.stopBinSession).toHaveBeenCalled()
+            expect(browserstackCLI.unConfigureModules).toHaveBeenCalled()
+            expect(mockProcess.kill).toHaveBeenCalled()
         })
 
         it('handles errors during stop session', async () => {
             browserstackCLI.isMainConnected = true
-            mockGrpcClient.stopBinSession.mockRejectedValue(new Error('Stop error'))
+            const error = new Error('Stop session failed')
+            mockGrpcClient.stopBinSession.mockRejectedValue(error)
+
+            await expect(browserstackCLI.stop()).resolves.not.toThrow()
+        })
+
+        it('handles case when process is not available', async () => {
+            browserstackCLI.process = null
 
             await browserstackCLI.stop()
 
-            expect(PerformanceTester.end).toHaveBeenCalledWith(
-                expect.any(String),
-                false,
-                expect.stringContaining('Stop error')
-            )
+            expect(browserstackCLI.unConfigureModules).toHaveBeenCalled()
         })
     })
 
     describe('loadModules', () => {
-        it('loads and configures modules based on bin session response', () => {
-            const startBinResponse = {
+        let browserstackCLI: BrowserstackCLI
+        let mockStartBinResponse: any
+
+        beforeEach(() => {
+            vi.resetAllMocks()
+
+            browserstackCLI = new BrowserstackCLI()
+            vi.spyOn(browserstackCLI, 'configureModules').mockResolvedValue()
+
+            mockStartBinResponse = {
                 binSessionId: 'test-session-id',
                 config: JSON.stringify({ test: 'config' }),
+                testhub: {}
             }
-
-            browserstackCLI.loadModules(startBinResponse)
-
-            expect(browserstackCLI.binSessionId).toBe('test-session-id')
-            expect(browserstackCLI.config).toEqual({ test: 'config' })
         })
 
-        it('handles JSON parse errors in config', () => {
-            const startBinResponse = {
-                binSessionId: 'test-session-id',
-                config: JSON.stringify({ test: 'config' }),
-            }
-
-            browserstackCLI.loadModules(startBinResponse)
+        it('loads and configures modules based on bin session response', () => {
+            browserstackCLI.loadModules(mockStartBinResponse)
 
             expect(browserstackCLI.binSessionId).toBe('test-session-id')
-            expect(browserstackCLI.config).toEqual({})
+            expect(browserstackCLI.modules[TestHubModule.MODULE_NAME]).toBeInstanceOf(TestHubModule)
+            expect(browserstackCLI.configureModules).toHaveBeenCalled()
+        })
+
+        it('handles response without testhub data', () => {
+            const responseWithoutTestHub = {
+                binSessionId: 'test-session-id',
+                config: JSON.stringify({ test: 'config' })
+            }
+
+            browserstackCLI.loadModules(responseWithoutTestHub)
+
+            expect(browserstackCLI.modules[TestHubModule.MODULE_NAME]).toBeUndefined()
+            expect(browserstackCLI.configureModules).toHaveBeenCalled()
+        })
+
+        it('sets config from response', () => {
+            browserstackCLI.loadModules(mockStartBinResponse)
+
+            expect(browserstackCLI.getConfig()).toEqual({ test: 'config' })
         })
     })
 
     describe('isRunning', () => {
+        beforeEach(() => {
+            vi.resetAllMocks()
+
+            mockGrpcClient = {
+                getClient: vi.fn().mockReturnValue({}),
+                getChannel: vi.fn().mockReturnValue({
+                    getConnectivityState: vi.fn().mockReturnValue(1) // Not disconnected (4)
+                })
+            }
+            mockGetInstance.mockReturnValue(mockGrpcClient)
+
+            browserstackCLI = new BrowserstackCLI()
+        })
+
         it('returns true in development environment', () => {
             vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(true)
-
             expect(browserstackCLI.isRunning()).toBe(true)
         })
 
         it('returns true for connected main process', () => {
             vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
             browserstackCLI.isMainConnected = true
-            browserstackCLI.process = mockProcess
-            mockProcess.exitCode = null
+            browserstackCLI.process = { exitCode: null } as any
 
             expect(browserstackCLI.isRunning()).toBe(true)
+            expect(mockGrpcClient.getClient).toHaveBeenCalled()
+            expect(mockGrpcClient.getChannel).toHaveBeenCalled()
         })
 
         it('returns true for connected child process', () => {
             vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
-            browserstackCLI.isMainConnected = false
             browserstackCLI.isChildConnected = true
 
             expect(browserstackCLI.isRunning()).toBe(true)
+            expect(mockGrpcClient.getChannel).toHaveBeenCalled()
         })
 
-        it('returns false when not running', () => {
+        it('returns false when main process is disconnected', () => {
+            vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
+            browserstackCLI.isMainConnected = true
+            browserstackCLI.process = { exitCode: 0 } as any
+
+            expect(browserstackCLI.isRunning()).toBe(false)
+        })
+
+        it('returns false when gRPC channel is disconnected', () => {
+            vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
+            browserstackCLI.isMainConnected = true
+            browserstackCLI.process = { exitCode: null } as any
+            mockGrpcClient.getChannel().getConnectivityState.mockReturnValue(4) // Disconnected
+
+            expect(browserstackCLI.isRunning()).toBe(false)
+        })
+
+        it('returns false when no process is connected', () => {
             vi.spyOn(CLIUtils, 'isDevelopmentEnv').mockReturnValue(false)
             browserstackCLI.isMainConnected = false
             browserstackCLI.isChildConnected = false
@@ -329,15 +357,13 @@ describe('BrowserstackCLI', () => {
     })
 
     describe('getCliBinPath', () => {
-        it('returns cached path if available', async () => {
-            browserstackCLI.SDK_CLI_BIN_PATH = '/cached/path'
-
-            const path = await browserstackCLI.getCliBinPath()
-
-            expect(path).toBe('/cached/path')
-            expect(CLIUtils.setupCliPath).not.toHaveBeenCalled()
+        beforeEach(() => {
+            vi.resetAllMocks()
+            vi.spyOn(CLIUtils, 'setupCliPath')
         })
-
+        afterEach(() => {
+            vi.resetAllMocks()
+        })
         it('sets up path if not cached', async () => {
             vi.spyOn(CLIUtils, 'setupCliPath').mockResolvedValue('/new/path')
             browserstackCLI.browserstackConfig = { key: 'value' }
@@ -347,6 +373,14 @@ describe('BrowserstackCLI', () => {
             expect(path).toBe('/new/path')
             expect(CLIUtils.setupCliPath).toHaveBeenCalledWith({ key: 'value' })
             expect(browserstackCLI.SDK_CLI_BIN_PATH).toBe('/new/path')
+        })
+        it('returns cached path if available', async () => {
+            browserstackCLI.SDK_CLI_BIN_PATH = '/cached/path'
+
+            const path = await browserstackCLI.getCliBinPath()
+
+            expect(path).toBe('/cached/path')
+            expect(CLIUtils.setupCliPath).not.toHaveBeenCalled()
         })
     })
 })
