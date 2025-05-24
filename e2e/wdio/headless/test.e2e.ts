@@ -21,10 +21,11 @@ describe('main suite 1', () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
         const firstInput = await $('input')
-        await firstInput.setValue('Hello World', { mask: true } satisfies InputOptions)
+        await firstInput.setValue('mySecretPassword', { mask: true } satisfies InputOptions)
 
+        // Note: Doing the below will expose the password in the logs, check to support this command one day!
         const inputValue = await firstInput.getValue()
-        expect(inputValue).toBe('Hello World')
+        expect(inputValue).toBe('mySecretPassword')
     })
 
     it('should allow to check for PWA', async () => {
