@@ -148,8 +148,9 @@ export class BrowserstackCLI {
         this.logger.debug('configureModules: Configuring modules')
         for (const moduleName in this.modules) {
             const module = this.modules[moduleName]
-            this.logger.debug(`configureModules: Configuring module=${moduleName}`)
-            await module.configure(this.binSessionId!, 0, GrpcClient.getInstance().client, this.config)
+            const platformIndex = process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0
+            this.logger.debug(`configureModules: Configuring module=${moduleName} platformIndex=${platformIndex}`)
+            await module.configure(this.binSessionId!, platformIndex, GrpcClient.getInstance().client, this.config)
         }
     }
 
@@ -288,7 +289,8 @@ export class BrowserstackCLI {
         this.logger.debug('Unconfiguring modules')
         for (const moduleName in this.modules) {
             const module = this.modules[moduleName]
-            await module.configure(null, 0, GrpcClient.getInstance().client)
+            const platformIndex = process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0
+            await module.configure(null, platformIndex, GrpcClient.getInstance().client)
         }
     }
 
