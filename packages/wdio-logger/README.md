@@ -100,5 +100,13 @@ const log = logger('internal');
 process.env.WDIO_LOG_MASKING_PATTERNS='/--key=([^ ]*)/i,/--secrets=([^ ]*)/i'
 ```
 
-Using capabilities, we can also pass masking patterns
- - TODO dprevost add example
+Using capabilities, we can also configure masking patterns
+```javascript
+export const config: WebdriverIO.Config = {
+    /**
+     * test configurations
+     */
+    logLevel: 'debug',
+    maskingPatterns: '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i',
+}
+```

@@ -139,6 +139,14 @@ export interface WebDriver extends Connection {
      * when attempting to start a session.
      */
     cacheDir?: string
+
+    /**
+     * Mask sensitive data in logs by replacing matching string or all captured groups for the provided regular expressions as string
+     * It replaces the matched string or the capture groups with `**MASKED**`
+     * Useful for masking sensitive data like cloud provider credentials for example with '/--key=([^ ]*)/'
+     * Use comma separated strings to use multiple patterns.
+     */
+    maskingPatterns?: string
 }
 
 export type SauceRegions = 'us' | 'eu' | 'us-west-1' | 'us-east-4' | 'eu-central-1' | 'staging'
