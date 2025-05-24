@@ -139,7 +139,7 @@ class MochaAdapter {
             this._runner.suite.beforeAll(this.wrapHook('beforeSuite'))
             this._runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
-        await executeHooksWithArgs('after', this._config.after as Function, [runtimeError || result, this._capabilities, this._specs])
+        await executeHooksWithArgs('after', this._config.after as Function, [runtimeError || this._specLoadError || result, this._capabilities, this._specs])
 
         /**
          * in case the spec has a runtime error throw after the wdio hook
