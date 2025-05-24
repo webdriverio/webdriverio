@@ -247,9 +247,9 @@ describe('wdio-logger node', () => {
                     expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** **MASKED** --spec template.test.ts')
                 })
 
-                it('masked sensitive information with one pattern having 2 group', () => {
+                it('masked sensitive information with one pattern having 1 group', () => {
                     process.env.WDIO_LOG_PATH = 'wdio.test.log'
-                    process.env.WDIO_LOG_MASKING_PATTERNS = '(--key=)([^ ]*)'
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '--key=([^ ]*)'
 
                     const log = nodeLogger('test-maskedLogFile2Group')
                     log.info('wdio.conf.ts --user= --key=mySecretKey --spec template.test.ts')
@@ -257,9 +257,9 @@ describe('wdio-logger node', () => {
                     expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= --key=**MASKED** --spec template.test.ts')
                 })
 
-                it('masked sensitive information with two patterns having 2 groups each', () => {
+                it('masked sensitive information with two patterns having 1 groups each', () => {
                     process.env.WDIO_LOG_PATH = 'wdio.test.log'
-                    process.env.WDIO_LOG_MASKING_PATTERNS = '(--key=)([^ ]*),/(TOKEN=)([^ ]*)/i'
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '--key=([^ ]*),/TOKEN=([^ ]*)/i'
 
                     const log = nodeLogger('test-masked2RegExHaving2Group')
                     log.info('TOKEN=mySecretToken wdio.conf.ts --user=myUser --key=mySecretKey --spec template.test.ts')
