@@ -1,3 +1,6 @@
+import type { InputOptions } from '../../types.js'
+import { CommandRuntimeOptions } from 'webdriver'
+
 const VALID_TYPES = ['string', 'number']
 
 /**
@@ -25,11 +28,13 @@ const VALID_TYPES = ['string', 'number']
  *
  * @alias element.addValue
  * @param {string|number}  value  value to be added
+ * @param {InputOptions} additional options, exclusive to Webdriverio
  *
  */
 export function addValue (
     this: WebdriverIO.Element,
-    value: string | number
+    value: string | number,
+    options?: InputOptions
 ) {
     /**
      * The JSONWireProtocol allowed array values and use of special characters when adding a value to an input.
@@ -43,5 +48,10 @@ export function addValue (
         )
     }
 
+    if (options) {
+        // @ts-ignore bypassing typing to pass the third parameter until we can find a better solution
+        return this.elementSendKeys(this.elementId, value.toString(), new CommandRuntimeOptions(options))
+    }
+    // Have this call separated so at least one of the two code lines is typed checked
     return this.elementSendKeys(this.elementId, value.toString())
 }
