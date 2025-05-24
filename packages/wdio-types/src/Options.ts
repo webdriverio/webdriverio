@@ -49,7 +49,7 @@ export interface Connection {
      */
     path?: string
     /**
-     * Query paramaters that are propagated to the driver server.
+     * Query parameters that are propagated to the driver server.
      */
     queryParams?: {
         [name: string]: string
