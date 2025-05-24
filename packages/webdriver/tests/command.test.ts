@@ -87,7 +87,6 @@ vi.mock('../src/request/request', () => {
         WebDriverRequest,
         makeRequestMock,
         getCapturedRequestHandler: capturedRequestEventHandler
-
     }
 })
 
