@@ -59,7 +59,6 @@ const SERIALIZERS = [{
 }]
 
 interface LoggerInterface extends log.Logger {
-    setMaskingPatternsConfig: () => RegExp[] | undefined
     maskingPatterns: RegExp[] | undefined
     progress(...msg: string[]): void;
 }

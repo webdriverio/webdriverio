@@ -1,4 +1,4 @@
-import { it, describe, expect, vi, afterEach, beforeEach, afterAll } from 'vitest'
+import { it, describe, expect } from 'vitest'
 import { mask, parseMaskingPatterns } from '../src/utils.js'
 
 describe('wdio-logger utils', () => {
@@ -166,36 +166,27 @@ describe('wdio-logger utils', () => {
             expect(maskedValue).toEqual('before **MASKED** after')
         })
 
-        it('should mask when having one capturing group', () => {
+        it('should mask the captured group only when having one capturing group', () => {
             const arg = 'before --key=mySecretKey after'
             const patterns = [/--key=([^ ]*)/]
-
-            const maskedValue = mask(arg, patterns)
-
-            expect(maskedValue).toEqual('before **MASKED** after')
-        })
-
-        it('should mask the second capturing group only when having 2 groups', () => {
-            const arg = 'before --key=mySecretKey after'
-            const patterns = [/(--key=)([^ ]*)/]
 
             const maskedValue = mask(arg, patterns)
 
             expect(maskedValue).toEqual('before --key=**MASKED** after')
         })
 
-        it('should "work" ish when having more than 2 groups', () => {
+        it('should mask all captured groups when having 2 groups', () => {
             const arg = 'before --key=mySecretKey after'
-            const patterns = [/(--key)(=)([^ ]*)/]
+            const patterns = [/(--key)=([^ ]*)/]
 
             const maskedValue = mask(arg, patterns)
 
-            expect(maskedValue).toEqual('before --key**MASKED** after')
+            expect(maskedValue).toEqual('before **MASKED**=**MASKED** after')
         })
 
         it('should also work with global flag', () => {
             const arg = 'before --key=mySecretKey after'
-            const patterns = [/(--key=)([^ ]*)/g]
+            const patterns = [/--key=([^ ]*)/g]
 
             const maskedValue = mask(arg, patterns)
 
@@ -204,7 +195,7 @@ describe('wdio-logger utils', () => {
 
         it('should masked multiple occurrences with the global flag', () => {
             const arg = 'before --key=mySecretKey1 --key=mySecretKey2 after'
-            const patterns = [/(--key=)([^ ]*)/g]
+            const patterns = [/--key=([^ ]*)/g]
 
             const maskedValue = mask(arg, patterns)
 
@@ -213,7 +204,7 @@ describe('wdio-logger utils', () => {
 
         it('should masked properly when having case insensitive flag', () => {
             const arg = 'before --KEY=mySecretKey1 --key=mySecretKey2 after'
-            const patterns = [/(--key=)([^ ]*)/ig]
+            const patterns = [/--key=([^ ]*)/ig]
 
             const maskedValue = mask(arg, patterns)
 
