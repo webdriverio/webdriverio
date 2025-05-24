@@ -141,6 +141,13 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
     cacheDir: {
         type: 'string',
         default: environment.value.variables.WEBDRIVER_CACHE_DIR
+    },
+    /**
+     * Mask sensitive data in logs by replacing matching string or all captured groups for the provided regular expressions as string
+     */
+    maskingPatterns: {
+        type: 'string',
+        default : undefined,
     }
 }
 
