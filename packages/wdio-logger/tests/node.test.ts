@@ -237,6 +237,16 @@ describe('wdio-logger node', () => {
                     expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** --spec template.test.ts')
                 })
 
+                it('masked sensitive information and keep ending new line even when capturing the whole line', () => {
+                    process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '/RESULT ([^ ]*)/'
+
+                    const log = nodeLogger('test-logFile-maskedEverythingButKeepNewLine')
+                    log.info('RESULT test')
+
+                    expect(write.mock.results[0].value).toContain('**MASKED**\n')
+                })
+
                 it('masked sensitive information with one pattern having 0 group and global flag', () => {
                     process.env.WDIO_LOG_PATH = 'wdio.test.log'
                     process.env.WDIO_LOG_MASKING_PATTERNS = '/--key=[^ ]*/gi'

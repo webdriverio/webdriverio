@@ -219,5 +219,14 @@ describe('wdio-logger utils', () => {
 
             expect(maskedValue).toEqual('before --KEY=**MASKED** --key=**MASKED** after')
         })
+
+        it('should keep trailing new line if one existed', () => {
+            const arg = 'RESULT test\n'
+            const patterns = [/RESULT ([^ ]*)/]
+
+            const maskedValue = mask(arg, patterns)
+
+            expect(maskedValue).toEqual('RESULT **MASKED**\n')
+        })
     })
 })

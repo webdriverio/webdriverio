@@ -46,6 +46,7 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
 export const mask = (text: string, maskingPatterns: RegExp[] | undefined) => {
     if (!maskingPatterns || typeof text !== 'string') { return text }
 
+    const endsWithNewline = text.endsWith('\n')
     let maskedText = text
     maskingPatterns.forEach((maskingRegex) => {
 
@@ -64,5 +65,11 @@ export const mask = (text: string, maskingPatterns: RegExp[] | undefined) => {
             return matchedMaskedText
         })
     })
+
+    // Ensure a trailing newline is preserved if present in the original text
+    if (endsWithNewline && !maskedText.endsWith('\n')) {
+        maskedText += '\n'
+    }
+
     return maskedText
 }
