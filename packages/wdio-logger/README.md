@@ -81,8 +81,8 @@ For example, we can replace `--key=MySecretKey` with `--key=**MASKED**` to hide 
  - If no capturing group is provided, the entire matching string of the pattern is masked
  - If one or more capturing groups are provided, we replace all the matching groups with `**MASKED**`
  - If there are multiple matches for a single group, we replace them all, too
- - Support both masking in a file and in the console
-    - Note: In console, when masking some color get stripped which is a known limitation
+ - Support both masking in a file and the console
+    - Note: In the console, when masking, some colours get stripped, which is a known limitation
 
 `setMaskingPatterns` example
  ```javascript
@@ -100,19 +100,22 @@ Using wdio config from a `conf.ts` file, we can also configure masking patterns
 ```javascript
 export const config: WebdriverIO.Config = {
     /**
-     * test configurations
-     */
+ * test configurations
+ */
     logLevel: 'debug',
     maskingPatterns: '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i',
 }
 ```
 
+The above examples can miss early initialized loggers, so if needed, use it with the `WDIO_LOG_MASKING_PATTERNS` environment variable.
+
+In the code directly
 ```javascript
 // Using environment variable in code
 process.env.WDIO_LOG_MASKING_PATTERNS = '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i'
 ```
 
-The above examples can missed early initialized loggers, so if needed use it on the command line
+Or before your command line
 ```shell
 WDIO_LOG_MASKING_PATTERNS='RESULT ([^ ]*)' npx wdio run ./wdio/wdio.conf.ts
 ```
