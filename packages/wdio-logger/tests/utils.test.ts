@@ -93,6 +93,15 @@ describe('wdio-logger utils', () => {
 
             expect(patterns).toEqual([/(TOKEN=)([^ ]*)/i])
         })
+
+        it('should support human error with comma-space separation', () => {
+            const stringPatterns = '(--key=)([^ ]*), /(TOKEN=)([^ ]*)/i'
+
+            const patterns = parseMaskingPatterns(stringPatterns)
+
+            expect(patterns).toEqual([/(--key=)([^ ]*)/, /(TOKEN=)([^ ]*)/i])
+        })
+
         it('empty when all invalid', () => {
             const stringPatterns = '(--key=)([^ ]*'
 

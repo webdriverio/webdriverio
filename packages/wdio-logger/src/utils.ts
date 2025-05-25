@@ -17,7 +17,7 @@ const skipError = (aFunction: Function) => {
  */
 export const parseMaskingPatterns = (maskingRegexString: string | undefined) => {
     if (typeof maskingRegexString !== 'string') { return undefined }
-    const regexStrings = maskingRegexString?.split(',').filter((regexStr) => regexStr.trim() !== '')
+    const regexStrings = maskingRegexString?.split(/,\s*/).filter((regexStr) => regexStr.trim() !== '')
 
     return regexStrings?.map((regexStr) => {
         const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
