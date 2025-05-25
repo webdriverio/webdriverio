@@ -13,8 +13,9 @@ export default {
     '/session/:sessionId': {
         GET: {
             command: 'getSession',
-            description: 'Retrieve the capabilities of the specified session.',
+            description: 'Retrieve the capabilities of the current session.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `getAppiumSessionCapabilities` instead',
             parameters: [],
             returns: {
                 type: 'Object',
@@ -58,6 +59,47 @@ export default {
                 name: 'contexts',
                 description:
                     "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",
+            },
+        },
+    },
+    '/session/:sessionId/appium/commands': {
+        GET: {
+            command: 'getAppiumCommands',
+            description: 'Retrieve the endpoints and BiDi commands supported in the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'commands',
+                description:
+                    'Supported endpoints and BiDi commands, each grouped into common, driver-specific, and plugin-specific endpoints/commands.',
+            },
+        },
+    },
+    '/session/:sessionId/appium/extensions': {
+        GET: {
+            command: 'getAppiumExtensions',
+            description: 'Retrieve the extension commands supported in the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'commands',
+                description:
+                    'Supported extension commands, grouped into driver-specific and plugin-specific commands.',
+            },
+        },
+    },
+    '/session/:sessionId/appium/capabilities': {
+        GET: {
+            command: 'getAppiumSessionCapabilities',
+            description: 'Retrieve the capabilities of the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'capabilities',
+                description: "An object describing the session's capabilities.",
             },
         },
     },
