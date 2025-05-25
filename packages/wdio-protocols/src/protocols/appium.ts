@@ -10,6 +10,20 @@ const chromiumLogCommands = {
 
 export default {
     ...chromiumLogCommands,
+    '/session/:sessionId': {
+        GET: {
+            command: 'getSession',
+            description: 'Retrieve the capabilities of the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `getAppiumSessionCapabilities` instead',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'capabilities',
+                description: "An object describing the session's capabilities.",
+            },
+        },
+    },
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
@@ -45,6 +59,47 @@ export default {
                 name: 'contexts',
                 description:
                     "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",
+            },
+        },
+    },
+    '/session/:sessionId/appium/commands': {
+        GET: {
+            command: 'getAppiumCommands',
+            description: 'Retrieve the endpoints and BiDi commands supported in the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'commands',
+                description:
+                    'Supported endpoints and BiDi commands, each grouped into common, driver-specific, and plugin-specific endpoints/commands.',
+            },
+        },
+    },
+    '/session/:sessionId/appium/extensions': {
+        GET: {
+            command: 'getAppiumExtensions',
+            description: 'Retrieve the extension commands supported in the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'commands',
+                description:
+                    'Supported extension commands, grouped into driver-specific and plugin-specific commands.',
+            },
+        },
+    },
+    '/session/:sessionId/appium/capabilities': {
+        GET: {
+            command: 'getAppiumSessionCapabilities',
+            description: 'Retrieve the capabilities of the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'capabilities',
+                description: "An object describing the session's capabilities.",
             },
         },
     },
@@ -2240,6 +2295,33 @@ export default {
                     XCUITest: '9.3+',
                 },
             },
+        },
+    },
+    '/session/:sessionId/location': {
+        GET: {
+            command: 'getGeoLocation',
+            description: 'Get the current geo location.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'location',
+                description: 'The current geo location.',
+            },
+        },
+        POST: {
+            command: 'setGeoLocation',
+            description: 'Set the current geo location.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'location',
+                    type: 'object',
+                    description:
+                        'the new location (`{latitude: number, longitude: number, altitude: number}`)',
+                    required: true,
+                },
+            ],
         },
     },
 }
