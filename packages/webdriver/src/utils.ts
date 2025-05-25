@@ -457,33 +457,49 @@ export function parseBidiMessage (this: EventEmitter, data: Buffer) {
 }
 
 /**
-* Masking the text value, if the command has a text parameter, when the options mask is set to true.
-* If nothing to mask, it returns the original body and args.
-*/
+ * Masks the `text` parameter in a WebDriver command if masking is enabled in the options.
+ *
+ * - If `options.mask` is not set or the command does not have a `text` parameter, returns the original body and args.
+ * - If masking is enabled and a `text` parameter is present and non-empty, replaces its value with the mask in both the body and args.
+ *
+ * @param {CommandEndpoint} commandInfo - The command endpoint metadata, including parameters and variables.
+ * @param {CommandRuntimeOptions} options - Runtime options for the command, including the `mask` flag.
+ * @param {Record<string, unknown>} body - The request body object to potentially mask.
+ * @param {unknown[]} args - The arguments array to potentially mask.
+ * @returns {{
+ *   maskedBody: Record<string, unknown>,
+ *   maskedArgs: unknown[],
+ *   isMasked: boolean
+ * }} An object containing the (possibly) masked body and args, and a flag indicating if masking was applied.
+ */
 export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOptions, body: Record<string, unknown>, args: unknown[]) {
-
-    if (options.mask) {
-        const textValueParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'text')
-        if (textValueParamIndex !== -1 ) {
-            const textValueIndexInArgs = (commandInfo.variables?.length ?? 0) + textValueParamIndex
-            const text = args[textValueIndexInArgs]
-
-            if (text && typeof text === 'string') {
-                const maskedBody = {
-                    ...body,
-                    text: SENSITIVE_DATA_REPLACER
-                } satisfies Record<string, unknown> as Record<string, unknown>
-
-                const textValueArgsIndex = textValueParamIndex + (commandInfo.variables?.length ?? 0)
-                const maskedArgs = args.slice(0, textValueArgsIndex).concat(SENSITIVE_DATA_REPLACER).concat(args.slice(textValueArgsIndex + 1))
-
-                return {
-                    maskedBody: maskedBody,
-                    maskedArgs: maskedArgs,
-                    isMasked: true,
-                }
-            }
-        }
+    const unmaskedResult = { maskedBody: body, maskedArgs: args, isMasked: false }
+    if (!options.mask) {
+        return unmaskedResult
     }
-    return { maskedBody: body, maskedArgs: args, isMasked: false }
+
+    const textValueParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'text')
+    if (textValueParamIndex === -1 ) {
+        return unmaskedResult
+    }
+
+    const textValueIndexInArgs = (commandInfo.variables?.length ?? 0) + textValueParamIndex
+    const text = args[textValueIndexInArgs]
+    if (typeof text !== 'string' || !text) {
+        return unmaskedResult
+    }
+
+    const maskedBody = {
+        ...body,
+        text: SENSITIVE_DATA_REPLACER
+    } satisfies Record<string, unknown> as Record<string, unknown>
+
+    const textValueArgsIndex = textValueParamIndex + (commandInfo.variables?.length ?? 0)
+    const maskedArgs = args.slice(0, textValueArgsIndex).concat(SENSITIVE_DATA_REPLACER).concat(args.slice(textValueArgsIndex + 1))
+
+    return {
+        maskedBody,
+        maskedArgs,
+        isMasked: true,
+    }
 }
