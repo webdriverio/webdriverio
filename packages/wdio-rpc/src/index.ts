@@ -1,6 +1,8 @@
+import type { ClientFunctions, ServerFunctions } from './types.js'
 import type { BirpcReturn } from 'birpc'
-import type { RunnerFunctions, WorkerFunctions } from './types.js'
-export { createWorkerRpc } from './createWorkerRpc.js'
 
-// Runner calls WorkerFunctions, exposes RunnerFunctions
-export type RpcInstance = BirpcReturn<WorkerFunctions, RunnerFunctions>
+export * from './createClientRpc.js'
+export * from './createServerRpc.js'
+export * from './types.js'
+
+export type RunnerRpcInstance = BirpcReturn<ServerFunctions, ClientFunctions>

@@ -39,6 +39,7 @@
     "@puppeteer/browsers": "^2.2.0",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
+    "@wdio/rpc": "workspace:*",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^7.0.3",
     "edgedriver": "^6.1.1",

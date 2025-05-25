@@ -9,7 +9,7 @@ import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
-import { IPC_MESSAGE_TYPES, type IPCMessage } from '@wdio/types'
+import { createClientRpc, type RunnerRpcInstance } from '@wdio/rpc'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
@@ -34,6 +34,7 @@ export default class Runner extends EventEmitter {
     private _specs?: string[]
     private _caps?: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     private _sessionInitError?: Error
+    private _rpc?: RunnerRpcInstance
 
     /**
      * run test suite
@@ -49,6 +50,11 @@ export default class Runner extends EventEmitter {
         this._configParser = new ConfigParser(configFile, args)
         this._cid = cid
         this._specs = specs
+        this._rpc = createClientRpc(
+            {}, // no local exposed methods from runner
+            msg => process.send?.(msg),
+            fn => process.on('message', (data) => fn(data))
+        )
 
         /**
          * add config file
@@ -124,16 +130,13 @@ export default class Runner extends EventEmitter {
          * initialize framework
          */
         this._framework = await this.#initFramework(cid, this._config, this._caps, this._reporter, specs)
-        const initMessage: IPCMessage<IPC_MESSAGE_TYPES.testFrameworkInitMessage> = {
-            type: IPC_MESSAGE_TYPES.testFrameworkInitMessage,
-            value: {
-                cid,
-                caps: this._caps,
-                specs,
-                hasTests: this._framework.hasTests()
-            }
-        }
-        process.send!(initMessage)
+
+        this._rpc?.testFrameworkInitMessage({
+            cid,
+            caps: this._caps as Capabilities.RequestedStandaloneCapabilities,
+            specs,
+            hasTests: this._framework!.hasTests()
+        })
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
         }
@@ -198,25 +201,21 @@ export default class Runner extends EventEmitter {
         const { protocol, hostname, port, path, queryParams, automationProtocol, headers } = browser.options
         const { isW3C, sessionId } = browser
         const instances = getInstancesData(browser, isMultiremote)
-        const sessionStartedMessage: IPCMessage<IPC_MESSAGE_TYPES.sessionStartedMessage> = {
-            type: IPC_MESSAGE_TYPES.sessionStartedMessage,
-            value: {
-                automationProtocol,
-                sessionId,
-                isW3C,
-                protocol,
-                hostname,
-                port,
-                path,
-                queryParams,
-                isMultiremote,
-                instances,
-                capabilities: browser.capabilities,
-                injectGlobals: this._config.injectGlobals,
-                headers
-            }
-        }
-        process.send!(sessionStartedMessage)
+        this._rpc?.sessionStarted({
+            path,
+            automationProtocol,
+            sessionId,
+            isW3C,
+            protocol,
+            hostname,
+            port,
+            isMultiremote,
+            queryParams,
+            instances,
+            capabilities: browser.capabilities,
+            injectGlobals: this._config!.injectGlobals,
+            headers
+        })
 
         /**
          * kick off tests in framework
@@ -240,16 +239,11 @@ export default class Runner extends EventEmitter {
         /**
          * send snapshot result upstream
          */
-        const snapshotMessage: IPCMessage<IPC_MESSAGE_TYPES.snapshotResultMessage> = {
-            type: IPC_MESSAGE_TYPES.snapshotResultMessage,
-            value: {
-                origin: 'worker',
-                name: 'snapshot',
-                content: snapshotService.results
-            }
-        }
-        process.send!(snapshotMessage)
-
+        this._rpc?.snapshotResults({
+            origin: 'worker',
+            name: 'snapshot',
+            content: snapshotService.results
+        })
         return this._shutdown(failures, retries)
     }
 
@@ -499,19 +493,11 @@ export default class Runner extends EventEmitter {
          *This prevents sending an invalid or empty session ID, which could
          *break downstream reporting, result tracking, or session cleanup logic.
          * */
-        if (!this._cid) {
-            throw new Error('Cannot send sessionEnded message without cid')
-        }
-        const sessionEndedMessage: IPCMessage<IPC_MESSAGE_TYPES.sessionEnded> ={
-            type : IPC_MESSAGE_TYPES.sessionEnded,
-            value : {
-                origin: 'worker',
-                name: 'sessionEnded',
-                cid: this._cid
-            }
-        }
-        process.send!(sessionEndedMessage)
-
+        this._rpc?.sessionEnded({
+            origin: 'worker',
+            name: 'sessionEnded',
+            cid: this._cid!
+        })
         /**
          * delete session(s)
          */

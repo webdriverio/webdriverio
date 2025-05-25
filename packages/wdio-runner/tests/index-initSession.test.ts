@@ -21,7 +21,7 @@ vi.mock('../src/utils', () => ({
     }
 }))
 
-const config: Options.WebdriverIO = { capabilities: {} }
+const config: Options.WebdriverIO & { capabilities: WebdriverIO.Capabilities } = { capabilities: {} }
 const capability: WebdriverIO.Capabilities = { browserName: 'foo' }
 
 describe('wdio-runner', () => {

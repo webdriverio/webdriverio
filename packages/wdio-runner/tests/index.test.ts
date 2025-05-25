@@ -7,11 +7,17 @@ import { ConfigParser } from '@wdio/config/node'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setOptions, SnapshotService } from 'expect-webdriverio'
-import { IPC_MESSAGE_TYPES } from '@wdio/types'
-import { BaseReporter } from '../src/reporter.js' // adjust path if needed
+import BaseReporter from '../src/reporter.js' // adjust path if needed
+import * as rpcModule from '@wdio/rpc'
 
 import WDIORunner from '../src/index.js'
 
+const mockRpc = {
+    sessionEnded: vi.fn(),
+    snapshotResults: vi.fn(),
+    testFrameworkInitMessage: vi.fn(),
+    sessionStarted: vi.fn()
+}
 vi.mock('fs/promises', async (orig) => ({
     ...(await orig()) as any,
     default: { writeFile: vi.fn() }
@@ -51,9 +57,11 @@ describe('wdio-runner', () => {
             runner['_browser'] = {
                 deleteSession: vi.fn(),
                 sessionId: '123',
-                config: { afterSession: [hook] }
+                config: { afterSession: [hook] },
+                cid: '1-2'
             } as unknown as BrowserObject
             runner['_config'] = { logLevel: 'info', afterSession: [hook] } as any
+            runner['_rpc'] = mockRpc as any
             await runner.endSession()
             expect(executeHooksWithArgs).toBeCalledWith(
                 'afterSession',
@@ -62,15 +70,13 @@ describe('wdio-runner', () => {
             expect(runner['_browser'].deleteSession).toBeCalledTimes(1)
             expect(!runner['_browser'].sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
-            expect(process.send).toHaveBeenCalledWith(
+            expect(mockRpc.sessionEnded).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    type: IPC_MESSAGE_TYPES.sessionEnded,
-                    value: expect.objectContaining({
-                        origin: 'worker',
-                        name: 'sessionEnded',
-                        cid: ''
-                    })
-                }))
+                    origin: 'worker',
+                    name: 'sessionEnded',
+                    cid: undefined
+                })
+            )
         })
 
         it('should do nothing when triggered by run method without session', async () => {
@@ -86,6 +92,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             runner['_isMultiremote'] = true
             runner['_shutdown'] = vi.fn()
+            runner['_rpc'] = mockRpc as any
             runner['_browser'] = {
                 deleteSession: vi.fn(),
                 instances: ['foo', 'bar'],
@@ -112,14 +119,11 @@ describe('wdio-runner', () => {
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('foo').sessionId).toBe(true)
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('bar').sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
-            expect(process.send).toHaveBeenCalledWith(
+            expect(mockRpc.sessionEnded).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    type: IPC_MESSAGE_TYPES.sessionEnded,
-                    value: expect.objectContaining({
-                        origin: 'worker',
-                        name: 'sessionEnded',
-                        cid: ''
-                    })
+                    origin: 'worker',
+                    name: 'sessionEnded',
+                    cid: undefined
                 })
             )
         })
@@ -216,6 +220,8 @@ describe('wdio-runner', () => {
             }
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
+            runner['_framework'] = { hasTests: () => true, run: vi.fn().mockReturnValue(0) } as any
+            runner['_reporter'] = new BaseReporter({ reporterSyncTimeout: 1000, reporterSyncInterval: 100 }, '0-0', {})
             const failures = await runner.run({ args: {}, caps: {}, configFile: '/bar/foo' } as any)
 
             expect(failures).toBe(0)
@@ -254,7 +260,9 @@ describe('wdio-runner', () => {
             runner['_browser'] = { url: vi.fn(url => url) } as unknown as BrowserObject
             runner['_startSession'] = vi.fn().mockReturnValue({ })
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
-            await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)
+            vi.spyOn(rpcModule, 'createClientRpc').mockReturnValue(mockRpc as any)
+            vi.spyOn(ConfigParser.prototype as any, 'addConfigFile').mockImplementation(() => {})
+            await runner.run({ args: { watch: true }, caps: {}, configFile: 'foo/bar' } as any)
 
             expect(addServiceSpy).toBeCalledWith({
                 results: ['foobar']
@@ -263,13 +271,11 @@ describe('wdio-runner', () => {
                 updateState: 'do it',
                 resolveSnapshotPath: 'resolve me'
             })
-            expect(process.send).toHaveBeenCalledWith(
+            expect(mockRpc.snapshotResults).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    type: IPC_MESSAGE_TYPES.snapshotResultMessage,
-                    value: expect.objectContaining({
-                        origin: 'worker',
-                        name: 'snapshot'
-                    })
+                    origin: 'worker',
+                    name: 'snapshot',
+                    content: ['foobar'],
                 })
             )
         })
@@ -397,47 +403,38 @@ describe('wdio-runner', () => {
                 configFile: '/foo/bar'
             } as any)
 
-            expect(process.send).toHaveBeenCalledWith(
+            expect(mockRpc.testFrameworkInitMessage).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    type: IPC_MESSAGE_TYPES.testFrameworkInitMessage,
-                    value: expect.objectContaining({
-                        cid: undefined,
-                        caps: {},
-                        specs: undefined,
-                        hasTests: true,
-                    }),
+                    cid: undefined,
+                    caps: {},
+                    specs: undefined,
+                    hasTests: true,
                 })
             )
 
-            expect(process.send).toHaveBeenCalledWith(
+            expect(mockRpc.sessionStarted).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    type: IPC_MESSAGE_TYPES.sessionStartedMessage,
-                    value: expect.objectContaining({
-                        automationProtocol: undefined,
-                        sessionId: undefined,
-                        isW3C: undefined,
-                        protocol: undefined,
-                        hostname: undefined,
-                        port: undefined,
-                        path: undefined,
-                        queryParams: undefined,
-                        isMultiremote: false,
-                        instances: undefined,
-                        capabilities: undefined,
-                        injectGlobals: undefined,
-                        headers: undefined
-                    }),
+                    automationProtocol: undefined,
+                    sessionId: undefined,
+                    isW3C: undefined,
+                    protocol: undefined,
+                    hostname: undefined,
+                    port: undefined,
+                    path: undefined,
+                    queryParams: undefined,
+                    isMultiremote: false,
+                    instances: undefined,
+                    capabilities: undefined,
+                    injectGlobals: undefined,
+                    headers: undefined
                 })
             )
 
-            expect(process.send).toHaveBeenCalledWith(
+            expect(mockRpc.snapshotResults).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    type: IPC_MESSAGE_TYPES.snapshotResultMessage,
-                    value: expect.objectContaining({
-                        origin: 'worker',
-                        name: 'snapshot',
-                        content: ['foobar'],
-                    }),
+                    origin: 'worker',
+                    name: 'snapshot',
+                    content: ['foobar']
                 })
             )
         })
@@ -479,19 +476,19 @@ describe('wdio-runner', () => {
 
             const beforeListener = vi.mocked(browser!.on).mock.calls[0]
             expect(beforeListener[0]).toBe('command')
-            beforeListener[1]({ foo: 'bar' })
+            beforeListener[1].call(browser, { type: 'command', id: '1', result: { foo: 'bar' } } as any)
             expect(reporter.emit).toBeCalledWith(
                 'client:beforeCommand',
-                { foo: 'bar', sessionId: 'fakeid' })
+                { type: 'command', id: '1', result: { foo: 'bar' }, sessionId: 'fakeid' })
 
             reporter.emit.mockClear()
 
             const afterListener = vi.mocked(browser!.on).mock.calls[1]
             expect(afterListener[0]).toBe('result')
-            afterListener[1]({ bar: 'foo' })
+            afterListener[1].call(browser, { type: 'command', id: '2', result: { bar: 'foo' } } as any)
             expect(reporter.emit).toBeCalledWith(
                 'client:afterCommand',
-                { bar: 'foo', sessionId: 'fakeid' })
+                { type: 'command', id: '2', result: { bar: 'foo' }, sessionId: 'fakeid' })
         })
 
         it('should return null if initiating session fails', async () => {

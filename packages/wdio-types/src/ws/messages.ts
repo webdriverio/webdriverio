@@ -15,7 +15,8 @@ export enum WS_MESSAGE_TYPES {
     customCommand,
     initiateBrowserStateRequest,
     initiateBrowserStateResponse,
-    browserTestResult
+    browserTestResult,
+    workerResponseMessage
 }
 
 export type WSMessageValue = {
@@ -33,6 +34,7 @@ export type WSMessageValue = {
     [WS_MESSAGE_TYPES.initiateBrowserStateRequest]: BrowserStateRequest
     [WS_MESSAGE_TYPES.initiateBrowserStateResponse]: BrowserState
     [WS_MESSAGE_TYPES.browserTestResult]: BrowserTestResults
+    [WS_MESSAGE_TYPES.workerResponseMessage]: WorkerResponseMessage
 }
 
 export type WSMessage<T extends WS_MESSAGE_TYPES> = {
@@ -115,3 +117,13 @@ interface BrowserTestResults {
     failures: number
     events: Event[]
 }
+
+export interface WorkerResponseMessage {
+    origin: string
+    name: string
+    args: {
+        id: number
+        message: AnyWSMessage
+    }
+}
+

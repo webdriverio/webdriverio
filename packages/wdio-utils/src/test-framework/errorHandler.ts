@@ -1,7 +1,7 @@
 import type { IPCMessage } from '@wdio/types'
 import { IPC_MESSAGE_TYPES } from '@wdio/types'
 
-/**
+/**'
  * notify `WDIOCLInterface` about failure in hook
  * we need to do it this way because `beforeFn` and `afterFn` are not real hooks.
  * Otherwise hooks failures are lost.

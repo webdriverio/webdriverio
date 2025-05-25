@@ -3,16 +3,20 @@ import type { Mock } from 'vitest'
 import BrowserFramework from '../src/browser.js'
 import { browser } from '@wdio/globals'
 import type BaseReporter from '../src/reporter.js'
-import { IPC_MESSAGE_TYPES } from '@wdio/types'
 import type { Browser as BrowserObject } from 'webdriverio'
 import WDIORunner from '../src/index.js'
+import * as rpcModule from '@wdio/rpc'
+
+const mockRpc = {
+    errorMessage: vi.fn()
+}
 
 vi.mock('@wdio/logger', () => {
     const logMock = {
         info: vi.fn(),
         debug: vi.fn(),
         error: vi.fn(),
-        warn: vi.fn()
+        warn: vi.fn(),
     }
     return {
         default: vi.fn(() => logMock)
@@ -25,7 +29,7 @@ vi.mock('@wdio/globals', () => ({
         setCookies: vi.fn(),
         execute: vi.fn(),
         getLogs: vi.fn()
-    }
+    } as unknown as BrowserObject
 }))
 
 vi.mock('node:url', async () => {
@@ -54,18 +58,24 @@ describe('BrowserFramework', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
+        vi.spyOn(rpcModule, 'createClientRpc').mockReturnValue(mockRpc as any)
         ;(browser.setCookies as Mock).mockResolvedValue(undefined)
         framework = new BrowserFramework('cid123', mockConfig as any, ['spec1.js'], mockReporter)
     })
 
     it('should send errorMessage when browser.url fails', async () => {
         (browser.url as any).mockRejectedValue(new Error('some failure'))
-
         const exitCode = await framework.run()
 
         expect(exitCode).toBe(1)
-        expect(process.send).toHaveBeenCalledWith(expect.objectContaining({
-            type: IPC_MESSAGE_TYPES.errorMessage
+        expect(mockRpc.errorMessage).toHaveBeenCalledWith(expect.objectContaining({
+            origin: 'worker',
+            name: 'error',
+            content: expect.objectContaining({
+                message: 'Invalid URL',
+                name: 'TypeError',
+                stack: expect.stringContaining('TypeError: Invalid URL')
+            })
         }))
     })
 
@@ -87,9 +97,6 @@ describe('BrowserFramework', () => {
         await runner.run({ args: {}, configFile: '/foo/bar' } as any)
 
         expect(browser.url).not.toHaveBeenCalled()
-        expect(process.send).not.toHaveBeenCalledWith(expect.objectContaining({
-            type: IPC_MESSAGE_TYPES.errorMessage,
-            value: expect.anything()
-        }))
+        expect(mockRpc.errorMessage).not.toHaveBeenCalledWith(expect.anything())
     })
 })

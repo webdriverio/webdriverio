@@ -186,12 +186,9 @@ describe('BaseReporter', () => {
         })
         expect(process.send).toBeCalledTimes(1)
         expect(process.send).toHaveBeenCalledWith(expect.objectContaining({
-            type: IPC_MESSAGE_TYPES.errorMessage,
-            value: expect.objectContaining({
-                origin: 'reporter',
-                name: 'printFailureMessage',
-                content: expect.anything()
-            })
+            name: 'printFailureMessage',
+            origin: 'reporter',
+            content: expect.anything()
         }))
     })
 
@@ -214,12 +211,9 @@ describe('BaseReporter', () => {
         })
         expect(process.send).toBeCalledTimes(1)
         expect(process.send).toHaveBeenCalledWith(expect.objectContaining({
-            type: IPC_MESSAGE_TYPES.errorMessage,
-            value: expect.objectContaining({
-                origin: 'reporter',
-                name: 'printFailureMessage',
-                content: expect.anything()
-            })
+            name: 'printFailureMessage',
+            origin: 'reporter',
+            content: expect.anything()
         }))
     })
 
