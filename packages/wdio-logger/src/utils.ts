@@ -8,6 +8,13 @@ const skipError = (aFunction: Function) => {
     }
 }
 
+/**
+ * Parses a comma-separated string of regular expressions into an array of RegExp objects.
+ * Supports both `/pattern/flags` and plain pattern formats.
+ *
+ * @param {string | undefined} maskingRegexString - The string containing regex patterns.
+ * @returns {(RegExp[] | undefined)} Array of RegExp objects or undefined if input is invalid.
+ */
 export const parseMaskingPatterns = (maskingRegexString: string | undefined) => {
     if (typeof maskingRegexString !== 'string') { return undefined }
     const regexStrings = maskingRegexString?.split(',').filter((regexStr) => regexStr.trim() !== '')
@@ -26,10 +33,20 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
     }).filter((regex) => regex !== undefined)
 }
 
-export const mask = <T = unknown>(possibleText: T, maskingPatterns: RegExp[] | undefined) => {
-    if (!maskingPatterns || typeof possibleText !== 'string') { return possibleText }
+/**
+ * Masks sensitive data in a string using the provided masking patterns.
+ *
+ * - If a pattern has no capturing groups, the whole match is replaced with the mask.
+ * - If a pattern has capturing groups, each group is replaced with the mask, preserving the rest of the match.
+ *
+ * @param {string} text - The text to mask.
+ * @param {RegExp[] | undefined} maskingPatterns - Array of RegExp patterns to use for masking.
+ * @returns {string} The masked text, or the original value if not a string or if no patterns are provided.
+ */
+export const mask = (text: string, maskingPatterns: RegExp[] | undefined) => {
+    if (!maskingPatterns || typeof text !== 'string') { return text }
 
-    let maskedText = possibleText as string
+    let maskedText = text
     maskingPatterns.forEach((maskingRegex) => {
 
         // Replace the whole match when no capturing groups or each capturing group

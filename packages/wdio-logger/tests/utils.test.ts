@@ -125,7 +125,7 @@ describe('wdio-logger utils', () => {
             const arg = 123
             const patterns = [/--key=[^ ]*/]
 
-            const maskedValue = mask(arg, patterns)
+            const maskedValue = mask(arg as unknown as string, patterns)
 
             expect(maskedValue).toEqual(arg)
         })
@@ -134,7 +134,7 @@ describe('wdio-logger utils', () => {
             const arg = undefined
             const patterns = [/--key=[^ ]*/]
 
-            const maskedValue = mask(arg, patterns)
+            const maskedValue = mask(arg as unknown as string, patterns)
 
             expect(maskedValue).toEqual(arg)
         })
