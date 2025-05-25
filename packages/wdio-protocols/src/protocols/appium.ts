@@ -10,6 +10,19 @@ const chromiumLogCommands = {
 
 export default {
     ...chromiumLogCommands,
+    '/session/:sessionId': {
+        GET: {
+            command: 'getSession',
+            description: 'Retrieve the capabilities of the specified session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'capabilities',
+                description: "An object describing the session's capabilities.",
+            },
+        },
+    },
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
@@ -2240,6 +2253,33 @@ export default {
                     XCUITest: '9.3+',
                 },
             },
+        },
+    },
+    '/session/:sessionId/location': {
+        GET: {
+            command: 'getGeoLocation',
+            description: 'Get the current geo location.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'location',
+                description: 'The current geo location.',
+            },
+        },
+        POST: {
+            command: 'setGeoLocation',
+            description: 'Set the current geo location.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'location',
+                    type: 'object',
+                    description:
+                        'the new location (`{latitude: number, longitude: number, altitude: number}`)',
+                    required: true,
+                },
+            ],
         },
     },
 }
