@@ -50,7 +50,7 @@ test('resolveId', async () => {
 test('load', () => {
     const plugin = testrunner({})
     const js = (plugin[0].load as Function)('\0virtual:wdio')
-    expect(js).toContain('export const commands = ["newSession","deleteSession","status"')
+    expect(js).toContain('export const commands = ["newSession","deleteSession","getSession"')
     expect(js).toContain('export const automationProtocolPath =')
     expect((plugin[0].load as Function)('something else')).toBe(undefined)
 })
