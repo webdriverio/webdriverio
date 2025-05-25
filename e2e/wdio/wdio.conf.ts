@@ -32,7 +32,7 @@ export const config: WebdriverIO.Config = {
      * test configurations
      */
     logLevel: 'info',
-    // maskingPatterns: '/--port=([^ ]*)/',
+    //maskingPatterns: '/--port=([^ ]*)/', // Uncomment to test masking in logs
     framework: 'mocha',
     outputDir: __dirname,
 

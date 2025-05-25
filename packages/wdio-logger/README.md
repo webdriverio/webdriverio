@@ -82,7 +82,7 @@ For example, we can replace `--key=MySecretKey` with `--key=**MASKED**` to hide 
  - If one or more capturing groups are provided, we replace all the matching groups with `**MASKED**`
  - If there are multiple matches for a single group, we replace them all, too
  - Support both masking in a file and the console
-    - Note: In the console, when masking, some colours get stripped, which is a known limitation
+    - Note: In the console, when masking, some colors get stripped, which is a known limitation
 
 `setMaskingPatterns` example
  ```javascript
@@ -107,7 +107,7 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-The above examples can miss early initialized loggers, so if needed, use it with the `WDIO_LOG_MASKING_PATTERNS` environment variable.
+Below are examples with the environment variable `WDIO_LOG_MASKING_PATTERNS`
 
 In the code directly
 ```javascript
