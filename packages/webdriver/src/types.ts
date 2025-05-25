@@ -98,7 +98,7 @@ export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.We
 }
 
 /**
- * Additional options outside of the WebDriver spec, exclusively for Webdriverio, only for runtime, and not sent to appium
+ * Additional options outside of the WebDriver spec, exclusively for WebdriverIO, only for runtime, and not sent to Appium
  */
 export class CommandRuntimeOptions {
 
