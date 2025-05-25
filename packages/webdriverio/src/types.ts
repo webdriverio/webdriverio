@@ -595,7 +595,7 @@ export type TransformElement<T> =
     T extends WebdriverIO.Element ? HTMLElement :
         T extends ChainablePromiseElement ? HTMLElement :
             T extends WebdriverIO.Element[] ? HTMLElement[] :
-                T extends ChainablePromiseArray ? HTMLElement[] :
+                T extends WebdriverIO.ElementArray ? HTMLElement[] :
                     T extends [infer First, ...infer Rest] ? [TransformElement<First>, ...TransformElement<Rest>] :
                         T extends Array<infer U> ? Array<TransformElement<U>> :
                             T
