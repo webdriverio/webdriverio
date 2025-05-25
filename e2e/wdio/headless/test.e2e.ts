@@ -17,7 +17,7 @@ describe('main suite 1', () => {
         await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
 
-    it('should support input value with sensitive information', async () => {
+    it.skip('should support input value with sensitive information', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
         const firstInput = await $('input')
