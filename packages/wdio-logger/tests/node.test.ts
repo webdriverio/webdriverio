@@ -284,20 +284,12 @@ describe('wdio-logger node', () => {
                     const scenarios: {
                         name: string
                         logger: string
-                        config: Record<string, string | undefined> | undefined
+                        config: Record<string, string>
                         expectedPatterns: RegExp[] | undefined
                     }[] = [{
                         name: 'should be possible to set masking pattern in config',
                         logger: 'scenarios-setMaskingPatterns-3',
                         config: { 'scenarios-setMaskingPatterns-3': pattern },
-                        expectedPatterns
-                    }, {
-                        name: 'should be possible to set masking pattern in WDIO_LOG_MASKING_PATTERNS',
-                        logger: 'scenarios-setMaskingPatterns-4',
-                        get config() {
-                            process.env.WDIO_LOG_MASKING_PATTERNS = pattern
-                            return undefined
-                        },
                         expectedPatterns
                     }, {
                         name: 'should be possible to override WDIO_LOG_MASKING_PATTERNS in config',
@@ -311,18 +303,10 @@ describe('wdio-logger node', () => {
                         name: 'should be possible to set multiple patterns in config for one logger',
                         logger: 'scenarios-setMaskingPatterns-6',
                         get config() {
-                            process.env.WDIO_LOG_MASKING_PATTERNS = 'info'
                             return { 'scenarios-setMaskingPatterns-6': `${pattern},info` }
                         },
                         expectedPatterns: [expectedPatterns[0], /info/]
-                    },
-                        // TODO dprevost fix this test
-                    /*, {
-                        name: 'should be possible to set logLevel in config for all sub levels',
-                        logger: 'test-logFile-setMaskingPatterns-7:foo',
-                        config: { 'test-logFile-setMaskingPatterns-7:bar': pattern },
-                        expectPattern
-                    }*/]
+                    }]
 
                     scenarios.forEach((scenario) => {
                         it(scenario.name, () => {
@@ -342,10 +326,15 @@ describe('wdio-logger node', () => {
                         expect(nodeLogger('test-logFile-setMaskingPatterns-2').maskingPatterns).toEqual([/info/])
                     })
 
-                    it('should be possible to pass a default', () => {
-                        nodeLogger.setMaskingPatterns(undefined, pattern)
+                    it('should be possible to pass a default using `setMaskingPatterns`', () => {
+                        nodeLogger.setMaskingPatterns(pattern)
 
                         expect(nodeLogger('test-logFile-setMaskingPatterns-3').maskingPatterns).toEqual(expectedPatterns)
+                    })
+                    it('should be possible to pass a default using `WDIO_LOG_MASKING_PATTERNS` env', () => {
+                        process.env.WDIO_LOG_MASKING_PATTERNS = 'myEnvPattern'
+
+                        expect(nodeLogger('test-logFile-setMaskingPatterns-4').maskingPatterns).toEqual([/myEnvPattern/])
                     })
                 })
             })

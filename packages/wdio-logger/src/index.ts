@@ -233,22 +233,27 @@ getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}
         loggers[logName].setLevel(logLevel)
     })
 }
-getLogger.setMaskingPatterns = (maskingPatternsStringPerLoggerName: Record<string, string | undefined> = {}, wdioDefault:string|undefined = undefined) => {
 
-    /**
-     * set the environment variable for masking patterns
-     */
-    if (process.env.WDIO_LOG_MASKING_PATTERNS === undefined) {
-        process.env.WDIO_LOG_MASKING_PATTERNS = wdioDefault
+type MaskPattern = string
+type MaskPatternForSpecificLogger = Record<string, MaskPattern>
+getLogger.setMaskingPatterns = (pattern: MaskPattern | MaskPatternForSpecificLogger) => {
+
+    if ( typeof pattern === 'string') {
+        /**
+         * set the environment variable for masking patterns
+         */
+        if (process.env.WDIO_LOG_MASKING_PATTERNS === undefined) {
+            process.env.WDIO_LOG_MASKING_PATTERNS = pattern
+        }
+    } else if ( typeof pattern === 'object') {
+        /**
+         * build maskingPatternsConfig object
+         */
+        maskingPatternsConfig = Object.entries(pattern).reduce((acc, [logName, maskingPatternsString]) => {
+            acc[logName] = parseMaskingPatterns(maskingPatternsString)
+            return acc
+        }, maskingPatternsConfig)
     }
-
-    /**
-     * build maskingPatternsConfig object
-     */
-    maskingPatternsConfig = Object.entries(maskingPatternsStringPerLoggerName).reduce((acc, [logName, maskingPatternsString]) => {
-        acc[logName] = parseMaskingPatterns(maskingPatternsString)
-        return acc
-    }, maskingPatternsConfig)
 
     /**
      * set masking patterns for each logger

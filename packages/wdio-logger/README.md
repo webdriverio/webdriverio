@@ -89,9 +89,9 @@ For example, we can replace `--key=MySecretKey` with `--key=**MASKED**` to hide 
 import logger from '@wdio/logger';
 
 // Default for all loggers
-logger.setMaskingPatterns(undefined, '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i')
+logger.setMaskingPatterns('/--key=([^ ]*)/i,/--secrets=([^ ]*)/i')
 
-// For a specific logger without a default for others
+// For a specific logger
 logger.setMaskingPatterns({'internal' : '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i'})
 const log = logger('internal');
 ```
@@ -107,7 +107,12 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-The above can missed early initialized loggers, so if needed use it on the command line
+```javascript
+// Using environment variable in code
+process.env.WDIO_LOG_MASKING_PATTERNS = '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i'
+```
+
+The above examples can missed early initialized loggers, so if needed use it on the command line
 ```shell
 WDIO_LOG_MASKING_PATTERNS='RESULT ([^ ]*)' npx wdio run ./wdio/wdio.conf.ts
 ```
