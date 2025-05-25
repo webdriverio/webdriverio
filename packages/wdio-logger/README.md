@@ -73,7 +73,7 @@ const uploadInterval = setInterval(() => {
 
 ## Masking Patterns
 
-For more secure logging, `setMaskingPatterns` or `WDIO_LOG_MASKING_PATTERNS` can obfuscate sensitive information from the log.
+For more secure logging, `setMaskingPatterns`, `WDIO_LOG_MASKING_PATTERNS` or `maskingPatterns` can obfuscate sensitive information from the log.
 For example, we can replace `--key=MySecretKey` with `--key=**MASKED**` to hide your cloud service access key or secret key
  - The regular expression pattern must be provided as a string similar as a RegEx but as string type, for example, `--key=[^ ]*`
  - It support flags and capturing groups like `/--key=([^ ]*)/i`
@@ -81,6 +81,8 @@ For example, we can replace `--key=MySecretKey` with `--key=**MASKED**` to hide 
  - If no capturing group is provided, the entire matching string of the pattern is masked
  - If one or more capturing groups are provided, we replace all the matching groups with `**MASKED**`
  - If there are multiple matches for a single group, we replace them all, too
+ - Support both masking in a file and in the console
+    - Note: In console, when masking some color get stripped which is a known limitation
 
 `setMaskingPatterns` example
  ```javascript
@@ -94,12 +96,6 @@ logger.setMaskingPatterns({'internal' : '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i'}
 const log = logger('internal');
 ```
 
-`WDIO_LOG_MASKING_PATTERNS` example
-```javascript
-// Use a single quote for multiple patterns
-process.env.WDIO_LOG_MASKING_PATTERNS='/--key=([^ ]*)/i,/--secrets=([^ ]*)/i'
-```
-
 Using wdio config from a `conf.ts` file, we can also configure masking patterns
 ```javascript
 export const config: WebdriverIO.Config = {
@@ -109,4 +105,9 @@ export const config: WebdriverIO.Config = {
     logLevel: 'debug',
     maskingPatterns: '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i',
 }
+```
+
+The above can missed early initialized loggers, so if needed use it on the command line
+```shell
+WDIO_LOG_MASKING_PATTERNS='RESULT ([^ ]*)' npx wdio run ./wdio/wdio.conf.ts
 ```

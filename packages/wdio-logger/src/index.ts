@@ -97,13 +97,15 @@ const wdioLoggerMethodFactory = (wdioLogger: LoggerInterface) => function (this:
         args = args.map((arg) => {
             for (const s of SERIALIZERS) {
                 if (s.matches(arg)) {
-                    return mask(s.serialize(arg as Error & string), wdioLogger.maskingPatterns)
+                    return s.serialize(arg as Error & string)
                 }
             }
-            return mask(arg, wdioLogger.maskingPatterns)
+            return arg
         }) as [string, string?, ...unknown[]]
 
-        const logText = ansiStrip(`${util.format.apply(this, args as [format: string, ...params: string[]])}\n`)
+        const unmaskedLogText = ansiStrip(`${util.format.apply(this, args as [format: string, ...params: string[]])}\n`)
+        const maskedLogText = mask(unmaskedLogText, wdioLogger.maskingPatterns)
+
         if (logFile && logFile.writable) {
             /**
              * empty logging cache if stuff got logged before
@@ -117,15 +119,21 @@ const wdioLoggerMethodFactory = (wdioLogger: LoggerInterface) => function (this:
                 logCache.clear()
             }
 
-            if (!logsContainInitPackageError(logText)) {
-                return logFile.write(logText)
+            if (!logsContainInitPackageError(unmaskedLogText)) {
+                return logFile.write(maskedLogText)
             }
             // If we get Error during init of integration packages, write logs to both "outputDir" and the terminal
-            logFile.write(logText)
+            logFile.write(maskedLogText)
         }
 
-        logCache.add(logText)
-        rawMethod(...args)
+        logCache.add(maskedLogText)
+
+        // To not break console color formatting, we use the masked log text only when needed
+        if (maskedLogText === unmaskedLogText) {
+            rawMethod(...args)
+        } else {
+            rawMethod(maskedLogText.replace(/\n$/, ''))
+        }
     }
 }
 

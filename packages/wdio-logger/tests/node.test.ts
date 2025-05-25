@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { it, describe, expect, vi, afterEach, beforeEach, afterAll } from 'vitest'
+import { it, describe, expect, vi, afterEach, beforeAll, beforeEach, afterAll } from 'vitest'
 
 import nodeLogger from '../src/index.js'
 import nodeLogger2 from '../build/index.js'
@@ -222,7 +222,7 @@ describe('wdio-logger node', () => {
         })
 
         describe('making patterns', () => {
-            beforeEach(() => {
+            afterEach(() => {
                 delete process.env.WDIO_LOG_MASKING_PATTERNS
             })
 
@@ -231,7 +231,7 @@ describe('wdio-logger node', () => {
                     process.env.WDIO_LOG_PATH = 'wdio.test.log'
                     process.env.WDIO_LOG_MASKING_PATTERNS = '--key=[^ ]*'
 
-                    const log = nodeLogger('test-maskedLogPatternNoFlag')
+                    const log = nodeLogger('test-logFile-maskedLogPatternNoFlag')
                     log.info('wdio.conf.ts --user= --key=mySecretKey --spec template.test.ts')
 
                     expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** --spec template.test.ts')
@@ -241,7 +241,7 @@ describe('wdio-logger node', () => {
                     process.env.WDIO_LOG_PATH = 'wdio.test.log'
                     process.env.WDIO_LOG_MASKING_PATTERNS = '/--key=[^ ]*/gi'
 
-                    const log = nodeLogger('test-maskedLogFile0Group')
+                    const log = nodeLogger('test-logFile-maskedLogFile0Group')
                     log.info('wdio.conf.ts --user= --KEY=mySecretKey --key=mySecretKey --spec template.test.ts')
 
                     expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= **MASKED** **MASKED** --spec template.test.ts')
@@ -251,7 +251,7 @@ describe('wdio-logger node', () => {
                     process.env.WDIO_LOG_PATH = 'wdio.test.log'
                     process.env.WDIO_LOG_MASKING_PATTERNS = '--key=([^ ]*)'
 
-                    const log = nodeLogger('test-maskedLogFile2Group')
+                    const log = nodeLogger('test-logFile-maskedLogFile2Group')
                     log.info('wdio.conf.ts --user= --key=mySecretKey --spec template.test.ts')
 
                     expect(write.mock.results[0].value).toContain('wdio.conf.ts --user= --key=**MASKED** --spec template.test.ts')
@@ -261,10 +261,20 @@ describe('wdio-logger node', () => {
                     process.env.WDIO_LOG_PATH = 'wdio.test.log'
                     process.env.WDIO_LOG_MASKING_PATTERNS = '--key=([^ ]*),/TOKEN=([^ ]*)/i'
 
-                    const log = nodeLogger('test-masked2RegExHaving2Group')
+                    const log = nodeLogger('test-logFile-masked2RegExHaving2Group')
                     log.info('TOKEN=mySecretToken wdio.conf.ts --user=myUser --key=mySecretKey --spec template.test.ts')
 
                     expect(write.mock.results[0].value).toContain('TOKEN=**MASKED** wdio.conf.ts --user=myUser --key=**MASKED** --spec template.test.ts')
+                })
+
+                it('masked sensitive information when logging arrays of string', () => {
+                    process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                    process.env.WDIO_LOG_MASKING_PATTERNS = 'COMMAND ([^ ]*)'
+
+                    const log = nodeLogger('test-logFile-maskedLoggingOfStringArrays')
+                    log.info('COMMAND', 'mySecretKey')
+
+                    expect(write.mock.results[0].value).toContain('COMMAND **MASKED**')
                 })
 
                 describe('given call to getLogger.setMaskingPatterns', () => {
@@ -309,8 +319,8 @@ describe('wdio-logger node', () => {
                         // TODO dprevost fix this test
                     /*, {
                         name: 'should be possible to set logLevel in config for all sub levels',
-                        logger: 'test-setMaskingPatterns-7:foo',
-                        config: { 'test-setMaskingPatterns-7:bar': pattern },
+                        logger: 'test-logFile-setMaskingPatterns-7:foo',
+                        config: { 'test-logFile-setMaskingPatterns-7:bar': pattern },
                         expectPattern
                     }*/]
 
@@ -324,18 +334,18 @@ describe('wdio-logger node', () => {
                     })
 
                     it('should be possible to set patterns in config for multiple loggers', () => {
-                        const config = { 'test-setMaskingPatterns-1': pattern,  'test-setMaskingPatterns-2': 'info' }
+                        const config = { 'test-logFile-setMaskingPatterns-1': pattern,  'test-logFile-setMaskingPatterns-2': 'info' }
 
                         nodeLogger.setMaskingPatterns(config)
 
-                        expect(nodeLogger('test-setMaskingPatterns-1').maskingPatterns).toEqual(expectedPatterns)
-                        expect(nodeLogger('test-setMaskingPatterns-2').maskingPatterns).toEqual([/info/])
+                        expect(nodeLogger('test-logFile-setMaskingPatterns-1').maskingPatterns).toEqual(expectedPatterns)
+                        expect(nodeLogger('test-logFile-setMaskingPatterns-2').maskingPatterns).toEqual([/info/])
                     })
 
                     it('should be possible to pass a default', () => {
                         nodeLogger.setMaskingPatterns(undefined, pattern)
 
-                        expect(nodeLogger('test-setMaskingPatterns-3').maskingPatterns).toEqual(expectedPatterns)
+                        expect(nodeLogger('test-logFile-setMaskingPatterns-3').maskingPatterns).toEqual(expectedPatterns)
                     })
                 })
             })
@@ -418,9 +428,75 @@ describe('wdio-logger node', () => {
             writableBuffer = undefined
         })
         afterAll(() => {
+            delete process.env.WDIO_LOG_PATH
             logInfoSpy.mockRestore()
+            nodeLogger.clearLogger()
+            nodeLogger2.clearLogger()
         })
     })
+
+    describe('given logs outputted in the console', () => {
+
+        describe('given WDIO_LOG_MASKING_PATTERNS', () => {
+            const consoleInfoSpy = vi.spyOn(console, 'info')
+            beforeAll(() => {
+                delete process.env.WDIO_LOG_MASKING_PATTERNS
+                consoleInfoSpy.mockClear()
+            })
+            afterEach(() => {
+                delete process.env.WDIO_LOG_MASKING_PATTERNS
+                consoleInfoSpy.mockClear()
+            })
+
+            describe('given WDIO_LOG_MASKING_PATTERNS is undefined', () => {
+                it('does not mask sensitive information', () => {
+                    const log = nodeLogger('test-console-noMasking')
+                    log.info('wdio.conf.ts --key=mySecretKey --spec template.test.ts')
+
+                    expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining('cyanBright INFO whiteBright test-console-noMasking: wdio.conf.ts --key=mySecretKey --spec template.test.ts'))
+                })
+
+                it('logs info with array or arguments for RESULT matching string with cyan color', () => {
+                    const log = nodeLogger('test-console-noMasking-MatchingStringWithColor')
+                    log.info('RESULT', 'mySecretKey')
+
+                    expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining('cyanBright INFO whiteBright test-console-noMasking-MatchingStringWithColor:'), 'cyan RESULT', 'mySecretKey')
+                })
+            })
+
+            describe('given WDIO_LOG_MASKING_PATTERNS is defined', () => {
+                it('masked sensitive information with one pattern', () => {
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '--key=([^ ]*)'
+
+                    const log = nodeLogger('test-console-masked1Pattern')
+                    log.info('wdio.conf.ts --key=mySecretKey --spec template.test.ts')
+
+                    expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining('wdio.conf.ts --key=**MASKED** --spec template.test.ts'))
+                })
+
+                it('masked sensitive information and keep date, formatting but colors does not work and ensure no trailing new line', () => {
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '--key=([^ ]*)'
+
+                    const log = nodeLogger('test-console-masked1Pattern')
+                    log.info('--key=mySecretKey')
+
+                    expect.stringMatching(
+                        /^gray \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z cyanBright INFO whiteBright test-console-masked1Pattern: --key=\*\*MASKED\*\*$/
+                    )
+                })
+
+                it('logs masked sensitive information without color as an entire string instead of an args array with color', () => {
+                    process.env.WDIO_LOG_MASKING_PATTERNS = 'RESULT ([^ ]*)'
+
+                    const log = nodeLogger('test-console-maskedLoggingOfStringArrays')
+                    log.info('RESULT', 'mySecretKey')
+
+                    expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining('cyan RESULT **MASKED**'))
+                })
+            })
+        })
+    })
+
     describe('waitForBuffer with no logFile', () => {
         it('should be ok if logFile is undefined', async () => {
             expect(await nodeLogger.waitForBuffer()).toBe(undefined)
