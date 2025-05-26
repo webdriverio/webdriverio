@@ -4,12 +4,11 @@ import path from 'node:path'
 import type { ChainablePromiseArray } from 'webdriverio'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
-import { executeHooksWithArgs, isWSMessage } from '@wdio/utils'
+import { executeHooksWithArgs } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
 import type {
     AnyWSMessage,
-    IPCMessage,
     LogMessage,
     TestState,
     WDIOErrorEvent,
@@ -17,15 +16,17 @@ import type {
     WSMessageValue
 } from '@wdio/types'
 import {
-    IPC_MESSAGE_TYPES,
     type Services,
     WS_MESSAGE_TYPES,
-    type Workers
 } from '@wdio/types'
+
+import { createClientRpc } from '@wdio/rpc'
+import type { ServerFunctions, ClientFunctions, RunnerRpcInstance } from '@wdio/rpc'
+
 import type { CoverageMapData } from 'istanbul-lib-coverage'
 import { transformExpectArgs } from './utils.js'
 import type BaseReporter from './reporter.js'
-import type { TestFramework, WorkerResponseMessage } from './types.js'
+import type { TestFramework } from './types.js'
 
 const log = logger('@wdio/runner')
 const sep = '\n  - '
@@ -46,6 +47,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
+    private _rpc: RunnerRpcInstance
 
     constructor (
         private _cid: string,
@@ -54,7 +56,18 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         private _reporter: BaseReporter
     ) {
         // listen on testrunner events
-        process.on('message', this.#processMessage.bind(this))
+        //process.on('message', this.#processMessage.bind(this))
+        this._rpc = createClientRpc<ServerFunctions, ClientFunctions>({
+            triggerHook: (data) => this.#handleHook(data.id, data),
+            consoleMessage: (data) => this.#handleConsole(data),
+            runCommand: (data) => this.#handleCommand(data.id, data),
+            expectRequest: (data) => this.#handleExpectation(data.id, data),
+            browserTestResult: (data) => this.#handleTestFinish(data),
+            expectMatchersRequest: (data) => this
+                .#expectMatcherResponse(data)
+        },
+        (msg) => process.send?.(msg),
+        (fn) => process.on('message', fn))
 
         const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
         this.#runnerOptions = runnerOptions || {}
@@ -82,15 +95,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             }
 
             log.error(`Failed to run browser tests with cid ${this._cid}: ${err.stack}`)
-            const errorMessage: IPCMessage<IPC_MESSAGE_TYPES.errorMessage> = {
-                type: IPC_MESSAGE_TYPES.errorMessage,
-                value: {
-                    origin: 'worker',
-                    name: 'error',
-                    content: { name: err.name, message: err.message, stack: err.stack }
-                }
-            }
-            process.send!(errorMessage)
+            await this._rpc.errorMessage({
+                origin: 'worker',
+                name: 'error',
+                content: { name: err.name, message: err.message, stack: err.stack }
+            })
             return 1
         }
     }
@@ -168,12 +177,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 type: WS_MESSAGE_TYPES.coverageMap,
                 value: coverageMap
             }
-            const workerEvent: Workers.WorkerEvent = {
+            await this._rpc.workerEvent({
                 origin: 'worker',
                 name: 'workerEvent',
                 args: coverageMessage
-            }
-            process.send(workerEvent)
+            })
         }
 
         /**
@@ -202,15 +210,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const { name, message, stack } = new Error(state.hasViteError
                 ? `Test failed due to the following error: ${errors.join('\n\n')}`
                 : `Test failed due to following error(s):${sep}${errors.join(sep)}`)
-            const errorMessage: IPCMessage<IPC_MESSAGE_TYPES.errorMessage> = {
-                type: IPC_MESSAGE_TYPES.errorMessage,
-                value: {
-                    origin: 'worker',
-                    name: 'error',
-                    content: { name, message, stack }
-                }
-            }
-            process.send!(errorMessage)
+            await this._rpc.errorMessage({
+                origin: 'worker',
+                name: 'error',
+                content: { name, message, stack }
+            })
             return 1
         }
 
@@ -231,7 +235,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         return state.failures || 0
     }
 
-    async #processMessage (cmd: Workers.WorkerRequest) {
+ /*   async #processMessage (cmd: Workers.WorkerRequest) {
         if (cmd.command !== 'workerRequest' || !process.send) {
             return
         }
@@ -263,7 +267,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 this.#expectMatcherResponse({ matchers: Array.from(matchers.keys()) })
             )
         }
-    }
+    }*/
 
     async #handleHook (
         id: number,
@@ -302,13 +306,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         if (!process.send) {
             return
         }
-
-        const response: WorkerResponseMessage = {
+        this._rpc.workerResponse({
             origin: 'worker',
             name: 'workerResponse',
             args: { id, message }
-        }
-        process.send(response)
+        })
     }
 
     /**

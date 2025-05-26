@@ -56,12 +56,3 @@ export interface SessionEndedMessage {
     name: 'sessionEnded',
     cid: string | undefined
 }
-
-export interface WorkerResponseMessage {
-    origin: 'worker'
-    name: 'workerResponse',
-    args: {
-        id: number
-        message: AnyWSMessage
-    }
-}
