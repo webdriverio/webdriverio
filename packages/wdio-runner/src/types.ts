@@ -1,5 +1,4 @@
 import type { Capabilities, Services } from '@wdio/types'
-import type { AnyWSMessage } from '@wdio/types'
 import type BaseReporter from './reporter.js'
 
 export type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
