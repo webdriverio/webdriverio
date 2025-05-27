@@ -107,9 +107,8 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-Below are examples with the environment variable `WDIO_LOG_MASKING_PATTERNS`
+Below are examples with the environment variable `WDIO_LOG_MASKING_PATTERNS` in the code directly:
 
-In the code directly
 ```javascript
 // Using environment variable in code
 process.env.WDIO_LOG_MASKING_PATTERNS = '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i'
