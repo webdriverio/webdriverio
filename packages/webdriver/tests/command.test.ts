@@ -75,7 +75,7 @@ vi.mock('../src/request/request', () => {
     // Mock the constructor
     const WebDriverRequest = vi.fn().mockImplementation((
         _method, _endpoint, _body, _abortSignal, _isHubCommand, requestEventHandler: RequestEventHandler
-    ) =>{
+    ) => {
         capturedRequestEventHandler.mockReturnValue(requestEventHandler)
         return { makeRequest: makeRequestMock }
     })

@@ -100,8 +100,8 @@ Using wdio config from a `conf.ts` file, we can also configure masking patterns
 ```javascript
 export const config: WebdriverIO.Config = {
     /**
- * test configurations
- */
+     * test configurations
+     */
     logLevel: 'debug',
     maskingPatterns: '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i',
 }
