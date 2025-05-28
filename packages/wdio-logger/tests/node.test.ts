@@ -346,6 +346,12 @@ describe('wdio-logger node', () => {
 
                         expect(nodeLogger('test-logFile-setMaskingPatterns-4').maskingPatterns).toEqual([/myEnvPattern/])
                     })
+                    it('should throw when wrong type', () => {
+                        process.env.WDIO_LOG_MASKING_PATTERNS = 'myEnvPattern'
+
+                        expect(() => nodeLogger.setMaskingPatterns(undefined as unknown as string)).throw('Invalid pattern property, expected `string` or `Record<string, string>` but received `undefined`')
+
+                    })
                 })
             })
         })

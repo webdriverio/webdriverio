@@ -253,6 +253,8 @@ getLogger.setMaskingPatterns = (pattern: MaskPattern | MaskPatternForSpecificLog
             acc[logName] = parseMaskingPatterns(maskingPatternsString)
             return acc
         }, maskingPatternsConfig)
+    } else {
+        throw new Error(`Invalid pattern property, expected \`string\` or \`Record<string, string>\` but received \`${typeof pattern}\``)
     }
 
     /**
