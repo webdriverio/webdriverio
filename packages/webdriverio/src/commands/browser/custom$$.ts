@@ -1,7 +1,7 @@
 import { ELEMENT_KEY } from 'webdriver'
 
-import { enhanceElementsArray } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
+import { ElementArray } from '../../element/array.js'
 import type { CustomStrategyFunction, CustomStrategyReference } from '../../types.js'
 
 /**
@@ -28,31 +28,36 @@ import type { CustomStrategyFunction, CustomStrategyReference } from '../../type
  * @param {*} strategyArguments
  * @return {WebdriverIO.ElementArray}
  */
-export async function custom$$ (
+export function custom$$ (
     this: WebdriverIO.Browser,
     strategyName: string,
     ...strategyArguments: unknown[]
-): Promise<WebdriverIO.ElementArray> {
+): WebdriverIO.ElementArray {
     const strategy = this.strategies.get(strategyName) as CustomStrategyFunction
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
     }
 
-    const strategyRef: CustomStrategyReference = { strategy, strategyName, strategyArguments }
-    let res = await this.execute(strategy, ...strategyArguments)
+    return ElementArray.fromAsyncCallback(async () => {
+        const strategyRef: CustomStrategyReference = { strategy, strategyName, strategyArguments }
+        let res = await this.execute(strategy, ...strategyArguments)
 
-    /**
-     * if the user's script return just one element
-     * then we convert it to an array as this method
-     * should return multiple elements
-     */
-    if (!Array.isArray(res)) {
-        res = [res]
-    }
+        /**
+         * if the user's script return just one element
+         * then we convert it to an array as this method
+         * should return multiple elements
+         */
+        if (!Array.isArray(res)) {
+            res = [res]
+        }
 
-    res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
+        res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
-    return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
+        return res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
+    }, {
+        selector: strategyName,
+        foundWith: 'custom$$',
+        parent: this
+    })
 }

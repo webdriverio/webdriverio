@@ -1,14 +1,10 @@
-import logger from '@wdio/logger'
 import { getBrowserObject } from '@wdio/utils'
 import { SHADOW_ELEMENT_KEY } from 'webdriver'
 
-import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 import { getElements } from '../../utils/getElementObject.js'
-import { enhanceElementsArray } from '../../utils/index.js'
+import { ElementArray } from '../../element/array.js'
 import { findStrategy } from '../../utils/findStrategy.js'
 import type { Selector } from '../../types.js'
-
-const log = logger('webdriverio')
 
 /**
  *
@@ -38,23 +34,21 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export async function shadow$$ (
+export function shadow$$ (
     this: WebdriverIO.Element,
     selector: string
-) {
+): WebdriverIO.ElementArray {
     const browser = getBrowserObject(this)
 
-    try {
+    return ElementArray.fromAsyncCallback(async () => {
         const shadowRoot = await browser.getElementShadowRoot(this.elementId)
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         const res = await browser.findElementsFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
         const elements = await getElements.call(this, selector as Selector, res, { isShadowElement: true })
-        return enhanceElementsArray(elements, this, selector as Selector) as WebdriverIO.ElementArray
-    } catch (err) {
-        log.warn(
-            `Failed to fetch element within shadow DOM using WebDriver command: ${(err as Error).message}!\n` +
-            'Falling back to JavaScript shim.'
-        )
-        return await this.$$(shadowFnFactory(selector, true))
-    }
+        return elements
+    }, {
+        selector,
+        foundWith: 'shadow$$',
+        parent: this
+    })
 }
