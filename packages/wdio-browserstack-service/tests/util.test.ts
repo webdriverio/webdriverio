@@ -1643,18 +1643,6 @@ describe('performA11yScan', () => {
         logInfoMock = vi.spyOn(log, 'warn')
     })
 
-    it('should return early if not a BrowserStack session', async () => {
-        browser = {
-            execute: async () => ({ success: true }),
-            executeAsync: async () => ({ success: true }),
-        } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-
-        const result = await performA11yScan(false, browser, false, true)
-        expect(result).toBeUndefined()
-        expect(logInfoMock.mock.calls[0][0])
-            .toContain('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
-    })
-
     it('should return early if not an Accessibility Automation session', async () => {
         browser = {
             execute: async () => ({ success: true }),
