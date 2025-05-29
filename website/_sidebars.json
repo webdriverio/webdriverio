@@ -63,7 +63,8 @@
         "pageobjects",
         "debugging",
         "repl",
-        "record"
+        "record",
+        "security"
       ]
     },
     {

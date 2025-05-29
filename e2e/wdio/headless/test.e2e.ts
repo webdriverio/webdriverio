@@ -6,6 +6,7 @@ import path from 'node:path'
 import { browser, $, expect } from '@wdio/globals'
 
 import { imageSize } from 'image-size'
+import type { InputOptions } from 'webdriverio'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -14,6 +15,17 @@ describe('main suite 1', () => {
         await browser.url('https://guinea-pig.webdriver.io/')
         await expect($('.findme')).toMatchSnapshot()
         await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
+    })
+  
+    it('should support input value with sensitive information', async () => {
+        await browser.url('https://guinea-pig.webdriver.io/')
+
+        const firstInput = await $('input')
+        await firstInput.setValue('mySecretPassword', { mask: true } satisfies InputOptions)
+
+        // Note: Doing the below will expose the password in the logs, check to support this command one day!
+        const inputValue = await firstInput.getValue()
+        expect(inputValue).toBe('mySecretPassword')
     })
 
     it.skip('should allow to check for PWA', async () => {

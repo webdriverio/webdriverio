@@ -693,6 +693,13 @@ export type TransformReturn<T> =
                 T extends Array<infer U> ? Array<TransformReturn<U>> :
                     T
 
+/**
+ * Additional options outside of the WebDriver spec, exclusively for WebdriverIO, only for runtime, and not sent to Appium
+ */
+export interface InputOptions {
+    mask?: boolean
+}
+
 declare global {
     namespace WebdriverIO {
         /**
