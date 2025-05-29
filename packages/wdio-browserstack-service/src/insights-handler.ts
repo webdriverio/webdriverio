@@ -88,6 +88,12 @@ class _InsightsHandler {
             return
         }
         process.removeAllListeners(`bs:addLog:${process.pid}`)
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            process.on(`bs:addLog:${process.pid}`, async (stdLog: StdLog) => {
+                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG, HookState.POST, { logEntry: stdLog })
+            })
+            return
+        }
         process.on(`bs:addLog:${process.pid}`, this.appendTestItemLog.bind(this))
     }
 
@@ -382,6 +388,14 @@ class _InsightsHandler {
             uuid,
             startedAt: (new Date()).toISOString()
         }
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { test })
+        }
+
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test })
+            return
+        }
         this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
 
@@ -395,10 +409,13 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         BStackLogger.debug('calling testFinished')
-        const testData = this.getRunData(test, 'TestRunFinished', result)
-        await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, testData)
+
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result })
+            return
+        }
         this.flushCBTDataQueue()
-        this.listener.testFinished(testData)
+        this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
     /**

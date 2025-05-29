@@ -117,6 +117,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             // Connect to Browserstack CLI from worker
             await BrowserstackCLI.getInstance().bootstrap()
 
+            BStackLogger.debug('worker id ' + process.env.WDIO_WORKER_ID)
             // Get the nearest hub and update it in config
             const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
             if (hubUrl) {

@@ -31,6 +31,8 @@ export const TestFrameworkConstants = {
     KEY_HOOK_RESULT : 'hook_result',
     KEY_HOOK_LOGS : 'hook_logs',
     KEY_HOOK_NAME : 'hook_name',
+    KEY_HOOKS_STARTED: 'test_hooks_started',
+    KEY_HOOKS_FINISHED: 'test_hooks_finished',
     DEFAULT_TEST_RESULT : 'pending',
     DEFAULT_HOOK_RESULT : 'pending',
     KIND_SCREENSHOT : 'TEST_SCREENSHOT',

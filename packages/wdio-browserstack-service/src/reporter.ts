@@ -148,11 +148,10 @@ class _TestReporter extends WDIOReporter {
         if (testStats.fullTitle === '<unknown test>') {
             return
         }
-        const testData = await this.getRunData(testStats, 'TestRunFinished')
-        await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, testData)
+        // await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, {})
 
         testStats.end ||= new Date()
-        this.listener.testFinished(testData)
+        this.listener.testFinished(await this.getRunData(testStats, 'TestRunFinished'))
     }
 
     async onTestStart(testStats: TestStats) {

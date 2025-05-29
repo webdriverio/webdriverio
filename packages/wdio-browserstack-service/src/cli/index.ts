@@ -6,11 +6,11 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
 import { GrpcClient } from './grpcClient.js'
-import TestHubModule from './modules/TestHubModule.js'
+import TestHubModule from './modules/testHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
 import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
-import type BaseModule from './modules/BaseModule.js'
+import type BaseModule from './modules/baseModule.js'
 import { BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_TESTHUB_UUID, CLI_STOP_TIMEOUT, TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_SCREENSHOT_ENV } from '../constants.js'
 import type { Options } from '@wdio/types'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
