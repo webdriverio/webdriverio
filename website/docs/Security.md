@@ -19,16 +19,16 @@ For example, if you are using a real production user and need to enter a passwor
 
 ```ts
   async enterPassword(userPassword) {
-    const passwordInputElement = $('TextField[@name="Password"]');
+    const passwordInputElement = $('Password');
 
     // Get focus
     await passwordInputElement.click();
 
-    await passwordInputElement.setValue('userPassword', { mask: true });
+    await passwordInputElement.setValue(userPassword, { mask: true });
   }
 ```
 
-The above will hide the text value from WDIO logs and also from appium logs. 
+The above will hide the text value from WDIO logs and also from Appium logs. 
 
 Logs example:
 ```text
@@ -36,7 +36,7 @@ Logs example:
 ```
 
 Limitations:
-  - In Appium, additional plugins could leak even though we ask appium to mask the information.
+  - In Appium, additional plugins could leak even though we ask to mask the information.
   - Cloud providers could use a proxy for HTTP logging, which bypasses the mask mechanism put in place.
 
 :::info
