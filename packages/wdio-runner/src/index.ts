@@ -62,7 +62,12 @@ export default class Runner extends EventEmitter {
 
         this._config = this._configParser.getConfig()
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
+
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
+        if (this._config.maskingPatterns) {
+            logger.setMaskingPatterns(this._config.maskingPatterns)
+        }
+
         const capabilities = this._configParser.getCapabilities()
         const isMultiremote = this._isMultiremote = !Array.isArray(capabilities) ||
             (Object.values(caps).length > 0 && Object.values(caps).every(c => typeof c === 'object' && c.capabilities))
