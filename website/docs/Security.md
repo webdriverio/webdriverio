@@ -99,6 +99,8 @@ Another way to block the logging of sensitive data is to lower or silence the lo
 It can achieved as follow:
 
 ```ts
+import logger from '@wdio/logger';
+
 /**
   * Set the logger level of the WDIO logger to 'silent' before *running a promise, which helps hide sensitive information in the logs.
  */
