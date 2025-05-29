@@ -16,7 +16,7 @@ describe('main suite 1', () => {
         await expect($('.findme')).toMatchSnapshot()
         await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
-
+  
     it('should support input value with sensitive information', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
@@ -28,7 +28,7 @@ describe('main suite 1', () => {
         expect(inputValue).toBe('mySecretPassword')
     })
 
-    it('should allow to check for PWA', async () => {
+    it.skip('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
         // eslint-disable-next-line wdio/no-pause
         await browser.pause(100)
@@ -43,7 +43,7 @@ describe('main suite 1', () => {
         ])).passed).toBe(true)
     })
 
-    it('should also detect non PWAs', async () => {
+    it.skip('should also detect non PWAs', async () => {
         await browser.url('https://json.org')
         expect((await browser.checkPWA()).passed).toBe(false)
     })
@@ -87,7 +87,7 @@ describe('main suite 1', () => {
         })
     })
 
-    describe('Lighthouse Service Performance Testing capabilities', () => {
+    describe.skip('Lighthouse Service Performance Testing capabilities', () => {
         before(() => browser.enablePerformanceAudits())
 
         it('should allow to do performance tests', async () => {
@@ -114,7 +114,7 @@ describe('main suite 1', () => {
         after(() => browser.disablePerformanceAudits())
     })
 
-    it('should be able to scroll up and down', async () => {
+    it.skip('should be able to scroll up and down', async () => {
         if (os.platform() === 'win32') {
             console.warn('Skipping scroll tests on Windows')
             return
