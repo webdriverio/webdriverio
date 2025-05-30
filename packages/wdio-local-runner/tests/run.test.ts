@@ -1,5 +1,4 @@
 import path from 'node:path'
-import exitHook from 'async-exit-hook'
 import { beforeAll, expect, test, afterAll, vi } from 'vitest'
 
 // @ts-ignore mock exports instances, package doesn't
@@ -8,6 +7,16 @@ import { instances } from '@wdio/runner'
 vi.mock('@wdio/runner', () => import(path.join(process.cwd(), '__mocks__', '@wdio/runner')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+let exitHookCallback: Function | undefined
+const exitHookMock = vi.fn((callback: Function) => {
+    exitHookCallback = callback
+    return () => {} // return unsubscribe function
+})
+
+vi.mock('exit-hook', () => ({
+    default: exitHookMock
+}))
+
 vi.mock('../src/constants', () => ({
     SHUTDOWN_TIMEOUT: 1
 }))
@@ -15,7 +24,6 @@ vi.mock('../src/constants', () => ({
 const sleep = (ms = 100) => new Promise(
     (resolve) => setTimeout(resolve, ms))
 
-let exitHookFn: Function
 let runner: any
 const origExit = process.exit.bind(process)
 
@@ -23,13 +31,14 @@ beforeAll(async () => {
     vi.spyOn(process, 'on')
     process.send = vi.fn()
     process.exit = vi.fn() as any
+
     const run = await import('../src/run.js')
-    exitHookFn = run.exitHookFn
     runner = run.runner
 })
 
-test.skip('should register exitHook', () => {
-    expect(exitHook).toHaveBeenCalled()
+test('should register exitHook', () => {
+    expect(exitHookMock).toHaveBeenCalled()
+    expect(exitHookCallback).toBeDefined()
 })
 
 test('should have registered runner listener', () => {
@@ -74,19 +83,29 @@ test('should exit process if failing to execute', async () => {
 
 })
 
-test('exitHookFn do nothing if no callback is provided', async () => {
-    exitHookFn()
-    await sleep()
+test('exitHook should set sigintWasCalled when triggered', async () => {
     expect(runner.sigintWasCalled).toBe(undefined)
+
+    // Trigger the exit hook callback
+    if (exitHookCallback) {
+        const promise = exitHookCallback()
+        expect(runner.sigintWasCalled).toBe(true)
+
+        // The callback should return a promise that resolves after SHUTDOWN_TIMEOUT
+        expect(promise).toBeInstanceOf(Promise)
+        await promise
+    }
 })
 
-test('exitHookFn should call callback after shutdown timeout', async () => {
-    const cb = vi.fn()
-    exitHookFn(cb)
-    expect(runner.sigintWasCalled).toBe(true)
-    expect(cb).toHaveBeenCalledTimes(0)
-    await sleep()
-    expect(cb).toHaveBeenCalledTimes(1)
+test('exitHook should wait for shutdown timeout', async () => {
+    if (exitHookCallback) {
+        const startTime = Date.now()
+        await exitHookCallback()
+        const endTime = Date.now()
+
+        // Should wait at least SHUTDOWN_TIMEOUT (1ms in test due to mock)
+        expect(endTime - startTime).toBeGreaterThanOrEqual(1)
+    }
 })
 
 afterAll(() => {

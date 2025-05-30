@@ -1,4 +1,4 @@
-import exitHook from 'async-exit-hook'
+import exitHook from 'exit-hook'
 
 import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
@@ -59,13 +59,13 @@ process.on('message', (m: Workers.WorkerCommand) => {
 /**
  * catch sigint messages as they are handled by main process
  */
-export const exitHookFn = (callback: () => void) => {
-    if (!callback) {
-        return
-    }
-
+exitHook(() => {
     runner.sigintWasCalled = true
     log.info(`Received SIGINT, giving process ${SHUTDOWN_TIMEOUT}ms to shutdown gracefully`)
-    setTimeout(callback, SHUTDOWN_TIMEOUT)
-}
-exitHook(exitHookFn)
+
+    return new Promise<void>((resolve) => {
+        setTimeout(() => {
+            resolve()
+        }, SHUTDOWN_TIMEOUT)
+    })
+})
