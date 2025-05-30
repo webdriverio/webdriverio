@@ -174,7 +174,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 ### 🥇 Gold Sponsor
 
 <p align="center">
-    <a href="https://www.route4me.com/"><img src="https://webdriver.io/img/sponsors/route4me.svg" width="250" alt="Route4Me" /></a>
+    <a href="https://www.jetify.com/"><img src="https://webdriver.io/img/sponsors/jetify_black.svg" width="250" alt="Jetify" /></a>
     &nbsp; &nbsp; &nbsp;
     <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>

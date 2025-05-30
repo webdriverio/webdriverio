@@ -64,10 +64,10 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 ### 🥇 Gold
 
 <ImageSwitcher
-    lightImageSrc="/img/sponsors/route4me.svg"
-    darkImageSrc="/img/sponsors/route4me.svg"
-    alt="Route4Me"
-    link="https://www.route4me.com/"
+    lightImageSrc="/img/sponsors/jetify_black.svg"
+    darkImageSrc="/img/sponsors/jetify_white.svg"
+    alt="Jetify"
+    link="https://www.jetify.com/"
     width="250"
     target="_blank"
     style={{ marginRight: '20px', position: 'relative', top: '8px' }}
@@ -137,4 +137,14 @@ We are grateful for the support of all our sponsors! Here are some of the compan
     link="https://saucelabs.com/"
     width="150"
     target="_blank"
+/>
+
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/route4me.svg"
+    darkImageSrc="/img/sponsors/route4me.svg"
+    alt="Route4Me"
+    link="https://www.route4me.com/"
+    width="250"
+    target="_blank"
+    style={{ marginRight: '20px', position: 'relative', top: '8px' }}
 />
