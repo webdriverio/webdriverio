@@ -64,8 +64,8 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 ### 🥇 Gold
 
 <ImageSwitcher
-    lightImageSrc="/img/sponsors/jetify_black.svg"
-    darkImageSrc="/img/sponsors/jetify_white.svg"
+    lightImageSrc="/img/sponsors/jetify_black.png"
+    darkImageSrc="/img/sponsors/jetify_white.png"
     alt="Jetify"
     link="https://www.jetify.com/"
     width="250"

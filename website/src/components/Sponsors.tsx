@@ -52,8 +52,8 @@ export default function Sponsors () {
                 </h3>
                 <div className="logos">
                     <ImageSwitcher
-                        lightImageSrc="/img/sponsors/jetify_black.svg"
-                        darkImageSrc="/img/sponsors/jetify_white.svg"
+                        lightImageSrc="/img/sponsors/jetify_black.png"
+                        darkImageSrc="/img/sponsors/jetify_white.png"
                         alt="Jetify"
                         link="https://www.jetify.com/"
                         width="150"
