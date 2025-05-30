@@ -1,6 +1,6 @@
 {
   "name": "@wdio/globals",
-  "version": "9.14.0",
+  "version": "9.15.0",
   "description": "A helper utility for importing global variables directly",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-globals",
