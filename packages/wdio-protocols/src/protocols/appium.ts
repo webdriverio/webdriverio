@@ -1775,7 +1775,7 @@ export default {
             command: 'compareImages',
             description:
                 'This feature conducts image comparisons utilizing the capabilities of the OpenCV framework. Please note that for this functionality to work, both the OpenCV framework and the opencv4nodejs module must be installed on the machine where the Appium server is operational. ***Furthermore, you\'ll need to have the [`images-plugin`](https://github.com/appium/appium/tree/master/packages/images-plugin) plugin installed to use this feature with Appium 2.0.***',
-            ref: 'https://appium.github.io/appium.io/docs/en/writing-running-appium/image-comparison/',
+            ref: 'https://github.com/appium/appium/blob/master/packages/images-plugin/docs/image-comparison.md',
             parameters: [
                 {
                     name: 'mode',
