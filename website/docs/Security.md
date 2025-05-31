@@ -119,7 +119,7 @@ export const withSilentLogger = async <T>(promise: () => Promise<T>): Promise<T>
 ## Thirds Party Solutions
 
 ### Appium
-Appium offers its masking solution; see [Log filter](https://appium.io/docs/en/2.0/guides/log-filters/)
+Appium offers its masking solution; see [Log filter](https://appium.io/docs/en/latest/guides/log-filters/)
  - It can be tricky to use their solution. One way if possible is to pass a token in your string like `@mask@` and use it as a regular expression
  - In some Appium versions, the values are also logged with each character comma-separated, so we need to be careful.
  - Unfortunately, BrowserStack does not support this solution, but it is still useful locally

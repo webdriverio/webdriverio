@@ -1047,7 +1047,7 @@ export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
     if (!answer.continueWithAppiumSetup) {
         return console.log(
             'Ok! You can learn more about setting up mobile environments in the ' +
-            'Appium docs at https://appium.io/docs/en/2.0/quickstart/'
+            'Appium docs at https://appium.io/docs/en/latest/quickstart/'
         )
     }
 
