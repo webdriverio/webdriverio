@@ -136,6 +136,14 @@ describe('before', () => {
         expect(validateCapsWithA11ySpy).toBeCalledTimes(1)
     })
 
+    it('calls validateCapsWithNonBstackA11y', async () => {
+        const validateCapsWithNonBstackA11ySpy = vi.spyOn(utils, 'validateCapsWithNonBstackA11y')
+        shouldAddServiceVersionSpy.mockReturnValue(false)
+        isAccessibilityAutomationSessionSpy.mockReturnValue(true)
+        await accessibilityHandler.before('session123')
+        expect(validateCapsWithNonBstackA11ySpy).toBeCalledTimes(1)
+    })
+
     it('calls getA11yResultsSummary', async () => {
         isBrowserstackSessionSpy.mockReturnValue(true)
         isAccessibilityAutomationSessionSpy.mockReturnValue(true)
