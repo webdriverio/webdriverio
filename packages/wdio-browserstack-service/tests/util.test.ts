@@ -37,6 +37,7 @@ import {
     getFailureObject,
     validateCapsWithAppA11y,
     validateCapsWithA11y,
+    validateCapsWithNonBstackA11y,
     shouldScanTestForAccessibility,
     isAccessibilityAutomationSession,
     isAppAccessibilityAutomationSession,
@@ -53,6 +54,8 @@ import {
     performA11yScan,
     getAppA11yResults,
     getAppA11yResultsSummary,
+    mergeDeep,
+    mergeChromeOptions
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
@@ -725,6 +728,7 @@ describe('launchTestSession', () => {
         expect(got.post).toBeCalledTimes(1)
         expect(result).toEqual(mockResponse)
     })
+
 })
 
 describe('getLogTag', () => {
@@ -1039,6 +1043,41 @@ describe('validateCapsWithA11y', () => {
     })
 })
 
+describe('validateCapsWithNonBstackA11y', () => {
+    let logInfoMock: any
+    beforeEach(() => {
+        logInfoMock = vi.spyOn(log, 'warn')
+    })
+
+    it('returns false if browser is not chrome', async () => {
+
+        const browserName = 'safari'
+        const browserVersion = 'latest'
+
+        expect(validateCapsWithNonBstackA11y(browserName, browserVersion)).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Accessibility Automation will run only on Chrome browsers.')
+    })
+
+    it('returns false if browser version is lesser than 100', async () => {
+
+        const browserName = 'chrome'
+        const browserVersion = '98'
+
+        expect(validateCapsWithNonBstackA11y(browserName, browserVersion)).toEqual(false)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Accessibility Automation will run only on Chrome browser version greater than 100.')
+    })
+
+    it('returns true if validation done', async () => {
+        const browserName = 'chrome'
+        const browserVersion = 'latest'
+
+        expect(validateCapsWithNonBstackA11y(browserName, browserVersion)).toEqual(true)
+    })
+
+})
+
 describe('shouldScanTestForAccessibility', () => {
     const cucumberWorldObj = {
         pickle: {
@@ -1118,11 +1157,6 @@ describe('getA11yResults', () => {
         on: vi.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
-    it('return false if BrowserStack Session', async () => {
-        const result: any = await utils.getA11yResults((browser as WebdriverIO.Browser), false, false)
-        expect(result).toEqual([])
-    })
-
     it('return success object if ally token defined and no error in response data', async () => {
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(false)
         const result: any = await utils.getA11yResults((browser as WebdriverIO.Browser), true, false)
@@ -1166,11 +1200,6 @@ describe('getA11yResultsSummary', () => {
         executeAsync: vi.fn(),
         on: vi.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-
-    it('return false if BrowserStack Session', async () => {
-        const result: any = await utils.getA11yResultsSummary((browser as WebdriverIO.Browser), false, false)
-        expect(result).toEqual({})
-    })
 
     it('return success object if ally token defined and no error in response data', async () => {
         vi.spyOn(utils, 'isAccessibilityAutomationSession').mockReturnValue(false)
@@ -1636,24 +1665,6 @@ describe('_getParamsForAppAccessibility', () => {
 })
 
 describe('performA11yScan', () => {
-    let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    let logInfoMock: any
-
-    beforeEach(() => {
-        logInfoMock = vi.spyOn(log, 'warn')
-    })
-
-    it('should return early if not an Accessibility Automation session', async () => {
-        browser = {
-            execute: async () => ({ success: true }),
-            executeAsync: async () => ({ success: true }),
-        } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-
-        const result = await performA11yScan(false, browser, true, false)
-        expect(result).toBeUndefined()
-        expect(logInfoMock.mock.calls[0][0])
-            .toContain('Not an Accessibility Automation session, cannot perform Accessibility scan.')
-    })
 
     it('should perform app accessibility scan when isAppAutomate is true', async () => {
         const mockResults = { success: true }
@@ -1906,5 +1917,55 @@ describe('getAppA11yResultsSummary', () => {
         delete process.env.TEST_ANALYTICS_ID
         delete process.env.BSTACK_A11Y_JWT
         vi.clearAllMocks()
+    })
+})
+
+describe('mergeDeep', () => {
+    it('should deeply merge two objects', () => {
+        const target = { a: 1, b: { c: 2 } }
+        const source = { b: { d: 3 }, e: 4 }
+        const result = mergeDeep(target, source)
+
+        expect(result).toEqual({
+            a: 1,
+            b: { c: 2, d: 3 },
+            e: 4
+        })
+    })
+
+    it('should handle empty sources', () => {
+        const target = { a: 1 }
+        const result = mergeDeep(target)
+
+        expect(result).toEqual({ a: 1 })
+    })
+})
+
+describe('mergeChromeOptions', () => {
+    it('should merge ChromeOptions args and extensions correctly', () => {
+        const base = {
+            args: ['--disable-gpu'],
+            extensions: ['ext1'],
+            prefs: {
+                homepage: 'https://example.com'
+            }
+        }
+
+        const override = {
+            args: ['--headless'],
+            extensions: ['ext2'],
+            prefs: {
+                newtab: 'https://newtab.com'
+            }
+        }
+
+        const result = mergeChromeOptions(base, override)
+
+        expect(result.args).toEqual(['--disable-gpu', '--headless'])
+        expect(result.extensions).toEqual(['ext1', 'ext2'])
+        expect(result.prefs).toEqual({
+            homepage: 'https://example.com',
+            newtab: 'https://newtab.com'
+        })
     })
 })

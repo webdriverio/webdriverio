@@ -120,6 +120,14 @@ describe('before', () => {
         expect(isAccessibilityAutomationSessionSpy).toBeCalledTimes(2)
     })
 
+    it('calls validateCapsWithNonBstackA11y', async () => {
+        const validateCapsWithNonBstackA11ySpy = vi.spyOn(utils, 'validateCapsWithNonBstackA11y')
+        shouldAddServiceVersionSpy.mockReturnValue(false)
+        isAccessibilityAutomationSessionSpy.mockReturnValue(true)
+        await accessibilityHandler.before('session123')
+        expect(validateCapsWithNonBstackA11ySpy).toBeCalledTimes(1)
+    })
+
     it('calls validateCapsWithA11y', async () => {
         const _getCapabilityValueSpy = vi.spyOn(accessibilityHandler, '_getCapabilityValue').mockReturnValue(true)
         const validateCapsWithA11ySpy = vi.spyOn(utils, 'validateCapsWithA11y')

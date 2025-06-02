@@ -948,6 +948,33 @@ describe('_updateObjectTypeCaps', () => {
         expect(caps.chromeBrowser.capabilities).toEqual({ 'browserstack.wdioService': pkg.version, 'browserstack.accessibilityOptions': { includeIssueType: { bestPractice: true, needsReview: true } } })
     })
 
+    it('should set chromeOptions if capType is goog:chromeOptions and no existing options are present', () => {
+        const value = { args: ['--disable-gpu'] }
+        vi.spyOn(utils, 'validateCapsWithNonBstackA11y').mockImplementation(() => true)
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+        service._updateObjectTypeCaps(caps, 'goog:chromeOptions', value)
+        expect(caps[0]['goog:chromeOptions']).toEqual(value)
+    })
+
+    it('should merge chromeOptions if capType is goog:chromeOptions and value is provided', () => {
+        const caps: any = [{ 'goog:chromeOptions': { args: ['--headless'] } }]
+        const value = { args: ['--disable-gpu'] }
+        vi.spyOn(utils, 'validateCapsWithNonBstackA11y').mockImplementation(() => true)
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+        service._updateObjectTypeCaps(caps, 'goog:chromeOptions', value)
+        expect(caps[0]['goog:chromeOptions']).toEqual({ args: ['--headless', '--disable-gpu'] })
+    })
+
+    it('should update goog:chromeOptions in caps object if value is provided', () => {
+        const caps = { chromeBrowser: { capabilities: { 'goog:chromeOptions': { args: ['--headless'] }, 'bstack:options': {} } } }
+        const value = { args: ['--disable-gpu'] }
+        vi.spyOn(utils, 'validateCapsWithNonBstackA11y').mockImplementation(() => true)
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+        service._updateObjectTypeCaps(caps, 'goog:chromeOptions', value)
+        expect(caps.chromeBrowser.capabilities['goog:chromeOptions']).toEqual({ args: ['--headless', '--disable-gpu'] })
+    })
+
+
     it('should delete accessibilityOptions in caps array if value not passed in _updateObjectTypeCaps', () => {
         const caps = [{ 'bstack:options': { accessibilityOptions: { wcagVersion: 'wcag2a' } } }]
         const service = new BrowserstackLauncher(options as any, caps as any, config)
