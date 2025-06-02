@@ -974,7 +974,6 @@ describe('_updateObjectTypeCaps', () => {
         expect(caps.chromeBrowser.capabilities['goog:chromeOptions']).toEqual({ args: ['--headless', '--disable-gpu'] })
     })
 
-
     it('should delete accessibilityOptions in caps array if value not passed in _updateObjectTypeCaps', () => {
         const caps = [{ 'bstack:options': { accessibilityOptions: { wcagVersion: 'wcag2a' } } }]
         const service = new BrowserstackLauncher(options as any, caps as any, config)
