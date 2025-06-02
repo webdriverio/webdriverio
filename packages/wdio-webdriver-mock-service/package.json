@@ -30,7 +30,7 @@
     "@types/uuid": "^10.0.0",
     "@wdio/protocols": "workspace:*",
     "@wdio/types": "workspace:*",
-    "nock": "14.0.4",
+    "nock": "14.0.5",
     "uuid": "^10.0.0",
     "webdriverio": "workspace:*"
   },
