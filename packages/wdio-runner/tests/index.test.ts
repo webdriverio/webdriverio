@@ -16,7 +16,7 @@ const mockRpc = {
     sessionEnded: vi.fn(),
     snapshotResults: vi.fn(),
     testFrameworkInitMessage: vi.fn(),
-    sessionStarted: vi.fn()
+    sessionMetadata: vi.fn()
 }
 vi.mock('fs/promises', async (orig) => ({
     ...(await orig()) as any,
@@ -412,7 +412,7 @@ describe('wdio-runner', () => {
                 })
             )
 
-            expect(mockRpc.sessionStarted).toHaveBeenCalledWith(
+            expect(mockRpc.sessionMetadata).toHaveBeenCalledWith(
                 expect.objectContaining({
                     automationProtocol: undefined,
                     sessionId: undefined,
