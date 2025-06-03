@@ -1,6 +1,6 @@
 /**
  * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
- * It returns a `ChainablePromiseArray` containing a set of WebdriverIO elements.
+ * It returns an `WebdriverIO.ElementArray` containing an array of WebdriverIO elements.
  *
  * :::info
  *

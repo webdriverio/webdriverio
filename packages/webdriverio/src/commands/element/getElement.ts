@@ -15,6 +15,7 @@ import type { ChainablePromiseElement } from '../../types.js'
  * @alias element.getElement
  * @return {WebdriverIO.Element}
  * @type utility
+ * @deprecated not needed anymore, you can now access the properties of `WebdriverIO.Element` directly.
  *
  */
 export async function getElement (this: WebdriverIO.Element | ChainablePromiseElement): Promise<WebdriverIO.Element> {

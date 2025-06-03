@@ -1,7 +1,6 @@
 import logger from '@wdio/logger'
 import type { Frameworks, Services, Options } from '@wdio/types'
 
-import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
 
 const log = logger('@wdio/utils:shim')
@@ -9,12 +8,8 @@ const log = logger('@wdio/utils:shim')
 let inCommandHook = false
 
 const ELEMENT_QUERY_COMMANDS = [
-    '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
-    'react$$', 'nextElement', 'previousElement', 'parentElement'
-]
-const ELEMENT_PROPS = [
-    'elementId', 'error', 'selector', 'parent', 'index', 'isReactElement',
-    'length'
+    '$', 'custom$', 'shadow$', 'react$',
+    'nextElement', 'previousElement', 'parentElement'
 ]
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
@@ -223,40 +218,12 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                      * await $('foo').$('bar')
                      * ```
                      */
-                    if (ELEMENT_QUERY_COMMANDS.includes(prop) || prop.endsWith('$')) {
+                    if (ELEMENT_QUERY_COMMANDS.includes(prop)) {
                         // this: WebdriverIO.Element
                         return wrapCommand(prop, function (this: Record<string, Function>, ...args: unknown[]) {
                             // eslint-disable-next-line prefer-spread
                             return this[prop].apply(this, args)
                         })
-                    }
-
-                    /**
-                     * if we call an array iterator function like map or forEach on an
-                     * set of elements, e.g.:
-                     * ```js
-                     * await $('body').$('header').$$('div').map((elem) => elem.getLocation())
-                     * ```
-                     */
-                    if (commandName.endsWith('$$') && typeof iterators[prop as keyof typeof iterators] === 'function') {
-                        return (mapIterator: Function) => wrapElementFn(
-                            target,
-                            function (this: never, mapIterator: Function) {
-                                // @ts-ignore
-                                return iterators[prop](this, mapIterator)
-                            },
-                            [mapIterator]
-                        )
-                    }
-
-                    /**
-                     * allow to grab the length or other properties of fetched element set, e.g.:
-                     * ```js
-                     * const elemAmount = await $$('foo').length
-                     * ```
-                     */
-                    if (ELEMENT_PROPS.includes(prop)) {
-                        return target.then((res) => res[prop])
                     }
 
                     /**
@@ -329,9 +296,9 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
          * if the command suppose to return an element, we apply `chainElementQuery` to allow
          * chaining of these promises.
          */
-        const command = ELEMENT_QUERY_COMMANDS.includes(commandName) || commandName.endsWith('$')
+        const command = ELEMENT_QUERY_COMMANDS.includes(commandName)
             ? chainElementQuery
-            : ACTION_COMMANDS.includes(commandName)
+            : ACTION_COMMANDS.includes(commandName) || commandName.endsWith('$$')
                 /**
                  * actions commands are a bit special as they return their own
                  * sync interface

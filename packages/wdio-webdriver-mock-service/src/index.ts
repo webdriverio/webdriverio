@@ -274,6 +274,17 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         nock.abortPendingRequests()
         this.init()
     }
+
+    elementArrayScenario() {
+        this.nockReset()
+        const elementIds = Array.from({ length: 10 }, () => uuidv4())
+        this._mock.command.findElement().reply(200, { value: { [ELEM_PROP]: elementIds[0] } })
+        this._mock.command.findElements().reply(200, { value: elementIds.map((id) => ({ [ELEM_PROP]: id })) })
+        elementIds.forEach((id, i) => {
+            this._mock.command.getElementText(id).reply(200, { value: `element text for ${id}` })
+            this._mock.command.getElementRect(id).reply(200, { value: { width: i, height: i, x: i, y: i } })
+        })
+    }
 }
 
 /**

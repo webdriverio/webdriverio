@@ -5,7 +5,7 @@ import {
     everySeries, filterSeries
 } from '../src/pIteration.js'
 
-const delay = (ms?: number) => new Promise(resolve => setTimeout(() => resolve(ms), ms || 0))
+const delay = (ms?: number) => new Promise<number>((resolve) => setTimeout(() => resolve(ms || 0), ms || 0))
 
 test('forEach, check callbacks are run in parallel', async () => {
     let total = 0
@@ -211,6 +211,7 @@ test('find should execute callbacks as soon as Promises are unwrapped', async ()
     const parallelCheck: number[] = []
     await find([delay(500), delay(300), delay(400)], (num: number) => {
         parallelCheck.push(num)
+        return false
     })
     expect(parallelCheck).toEqual([300, 400, 500])
 })
@@ -228,6 +229,7 @@ test('find should not skip holes in arrays', async () => {
     // eslint-disable-next-line no-sparse-arrays
     await find([0, 1, 2, , 5, ,], async () => {
         count++
+        return false
     })
     expect(count).toBe(6)
 })
@@ -276,6 +278,7 @@ test('findIndex should execute callbacks as soon as Promises are unwrapped', asy
     const parallelCheck: number[] = []
     await findIndex([delay(500), delay(300), delay(400)], (num: number) => {
         parallelCheck.push(num)
+        return false
     })
     expect(parallelCheck).toEqual([300, 400, 500])
 })
@@ -285,6 +288,7 @@ test('findIndex should not skip holes in arrays', async () => {
     // eslint-disable-next-line no-sparse-arrays
     await findIndex([0, 1, 2, , 5, ,], async () => {
         count++
+        return false
     })
     expect(count).toBe(6)
 })
@@ -326,6 +330,7 @@ test('some should execute callbacks as soon as Promises are unwrapped', async ()
     const parallelCheck: number[] = []
     await some([delay(500), delay(300), delay(400)], (num: number) => {
         parallelCheck.push(num)
+        return false
     })
     expect(parallelCheck).toEqual([300, 400, 500])
 })
@@ -360,6 +365,7 @@ test('some should skip holes in arrays', async () => {
     // eslint-disable-next-line no-sparse-arrays
     await some([0, 1, 2, , 5, ,], async () => {
         count++
+        return false
     })
     expect(count).toBe(4)
 })
@@ -416,7 +422,7 @@ test('every passing a non-async callback', async () => {
 
 test('every (return false)', async () => {
     const allIncluded = await every([1, 2, '3'], async (num: number, index: number, array: number[]) => {
-        await delay()
+        await delay(200)
         expect(array[index]).toBe(num)
         return typeof num === 'number'
     })
@@ -484,22 +490,24 @@ test('filter, throw inside callback', async function () {
 
 test('filter unwraps Promises in the array', async () => {
     const parallelCheck: number[] = []
-    const numbers = await filter([Promise.resolve(2), 1, '3'], async (num: number, index: number, array: number[]) => {
+    const numbers = await filter([Promise.resolve(2), 1, Promise.resolve(0), '3'], async (num: number, index: number, array: number[]) => {
         await delay(num * 100)
         expect(await Promise.resolve(array[index])).toBe(num)
         if (typeof num === 'number') {
             parallelCheck.push(num)
             return true
         }
+        return false
     })
-    expect(parallelCheck).toEqual([1, 2])
-    expect(numbers).toEqual([2, 1])
+    expect(parallelCheck).toEqual([0, 1, 2])
+    expect(numbers).toEqual([2, 1, 0])
 })
 
 test('filter should execute callbacks as soon as Promises are unwrapped', async () => {
     const parallelCheck: number[] = []
     await filter([delay(500), delay(300), delay(400)], (num: number) => {
         parallelCheck.push(num)
+        return true
     })
     expect(parallelCheck).toEqual([300, 400, 500])
 })
@@ -525,21 +533,21 @@ test('reduce with initialValue', async () => {
 })
 
 test('reduce with falsy initialValue', async () => {
-    const sum = await reduce(['1', '2', '3'], async (accumulator: number, currentValue: number, index: number, array: number[]) => {
+    const sum = await reduce(['1', '2', '3'], async (accumulator: number, currentValue: string, index: number, array: string[]) => {
         await delay()
         expect(array[index]).toBe(currentValue)
         return accumulator + Number(currentValue)
     }, 0)
     expect(sum).toBe(6)
 
-    const string = await reduce([1, 2, 3], async (accumulator: number, currentValue: number, index: number, array: number[]) => {
+    const string = await reduce([1, 2, 3], async (accumulator: string, currentValue: number, index: number, array: number[]) => {
         await delay()
         expect(array[index]).toBe(currentValue)
         return accumulator + String(currentValue)
     }, '')
-    expect(string, '1).toBe(')
+    expect(string).toBe('123')
 
-    const somePositive = await reduce([-1, 2, 3], async (accumulator: number, currentValue: number, index: number, array: number[]) => {
+    const somePositive = await reduce([-1, 2, 3], async (accumulator: boolean, currentValue: number, index: number, array: number[]) => {
         await delay()
         expect(array[index]).toBe(currentValue)
         return accumulator ? accumulator : currentValue > 0
@@ -556,7 +564,7 @@ test('reduce, throw inside callback', async function () {
 test('reduce unwrap Promises in the array', async () => {
     const sum = await reduce([Promise.resolve(1), 2, 3], async (accumulator: number, currentValue: number, index: number, array: number[]) => {
         await delay()
-        expect(await Promise.resolve(array[index])).toBe(currentValue)
+        expect(await array[index]).toBe(currentValue)
         return accumulator + currentValue
     }, 1)
     expect(sum).toBe(7)

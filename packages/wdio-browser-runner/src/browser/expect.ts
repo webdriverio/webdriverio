@@ -32,7 +32,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
  */
 function createMatcher (matcherName: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | ChainablePromiseArray, ...args: any[]) {
+    return async function (this: MatcherContext, context: WebdriverIO.Browser | WebdriverIO.Element | ChainablePromiseElement | WebdriverIO.ElementArray, ...args: any[]) {
         const cid = getCID()
         if (!import.meta.hot || !cid) {
             return {

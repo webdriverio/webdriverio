@@ -66,7 +66,7 @@ async function bar() {
     // instances array
     expectType<string[]>(mr.instances)
 
-    const elements = await browser.$$('foo').getElements()
+    const elements = await browser.$$('foo')
     expectType<string>(elements.foundWith)
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ async function bar() {
 
     const elemA = await remoteBrowser.$('')
     const elemB = await remoteBrowser.$('')
-    const multipleElems = await $$([elemA, elemB]).getElements()
+    const multipleElems = await $$([elemA, elemB])
     const multipleElemsChain = $$([elemA, elemB])
     expectType<WebdriverIO.ElementArray>(multipleElems)
     // // @ts-expect-error
@@ -145,7 +145,7 @@ async function bar() {
     )
     expectType<true | void>(waitUntil)
     const waitUntilElems = await browser.waitUntil(async () => {
-        const elems = await $$('elems').getElements()
+        const elems = await $$('elems')
         if (elems.length < 2) {
             return false
         }
@@ -309,7 +309,7 @@ async function bar() {
     expectType<number>(elcResult)
 
     // $$
-    const elems = await $$('').getElements()
+    const elems = await $$('')
     const el4 = elems[0]
     const el5 = await el4.$('')
     expectType<string>(await el4.getAttribute('class'))
@@ -340,7 +340,6 @@ async function bar() {
     const selector$$: string | HTMLElement | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> | {strategy: Function; strategyName: string; strategyArguments: any[]} = elems.selector
     ;(elems.parent as WebdriverIO.Element).click()
     ;(elems.parent as WebdriverIO.Browser).url('')
-    ;(elems.parent as WebdriverIO.MultiRemoteBrowser).url('')
     // @ts-expect-error
     ;(elems.parent as WebdriverIO.Browser).click()
 
@@ -489,7 +488,7 @@ async function bar() {
     expectType<boolean>(
         await browser.$$('foo').every(async () => true)
     )
-    expectType<WebdriverIO.Element[]>(
+    expectType<WebdriverIO.ElementArray>(
         await browser.$$('foo').filter(async () => true)
     )
 
@@ -524,20 +523,12 @@ async function bar() {
     const singleElement = await singleChainedElement.getElement()
     expectType<string>(singleElement.elementId)
     expectType<string>(singleElement.elementId)
-    // @ts-expect-error
-    const singleElementError = $('selector').getElements()
-    // @ts-expect-error
-    const singleElementError2 = singleChainedElement.getElements()
 
     // getElements type check
-    const multiChainedElements = await browser.$$('foo').getElements()
-    const multiElements = await multiChainedElements.getElements()
+    const multiChainedElements = await browser.$$('foo')
+    const multiElements = await multiChainedElements
     expectType<number>(multiChainedElements.length)
     expectType<number>(multiElements.length)
-    // @ts-expect-error
-    const multiElementError = $$('selector').getElement()
-    // @ts-expect-error
-    const multiElementError2 = multiElements.getElement()
 
     // test entries() functionality
     for await (const [index, element] of await browser.$$('foo').entries()) {
@@ -546,7 +537,7 @@ async function bar() {
     }
 
     // test with elements array
-    const elemArray = await browser.$$('foo').getElements()
+    const elemArray = await browser.$$('foo')
     for await (const [index, element] of elemArray.entries()) {
         expectType<number>(index)
         expectType<WebdriverIO.Element>(element)
@@ -554,7 +545,7 @@ async function bar() {
 
     // test return type of entries()
     const entriesIterator = browser.$$('foo').entries()
-    expectType<AsyncIterableIterator<[number, WebdriverIO.Element]>>(entriesIterator)
+    expectType<IterableIterator<[number, WebdriverIO.Element]>>(entriesIterator)
 
     // Emulate tests
     let restore = await browser.emulate('geolocation', { latitude: 1, longitude: 2 })
