@@ -1,4 +1,29 @@
+import Chromium from './chromium.js'
+
+const getLogTypes = '/session/:sessionId/se/log/types' as const
+const getLog = '/session/:sessionId/se/log' as const
+
+const chromiumLogCommands = {
+    [getLogTypes]: Chromium[getLogTypes],
+    [getLog]: Chromium[getLog],
+}
+
 export default {
+    ...chromiumLogCommands,
+    '/session/:sessionId': {
+        GET: {
+            command: 'getSession',
+            description: 'Retrieve the capabilities of the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            deprecated: 'Use `getAppiumSessionCapabilities` instead',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'capabilities',
+                description: "An object describing the session's capabilities.",
+            },
+        },
+    },
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
@@ -34,6 +59,47 @@ export default {
                 name: 'contexts',
                 description:
                     "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",
+            },
+        },
+    },
+    '/session/:sessionId/appium/commands': {
+        GET: {
+            command: 'getAppiumCommands',
+            description: 'Retrieve the endpoints and BiDi commands supported in the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'commands',
+                description:
+                    'Supported endpoints and BiDi commands, each grouped into common, driver-specific, and plugin-specific endpoints/commands.',
+            },
+        },
+    },
+    '/session/:sessionId/appium/extensions': {
+        GET: {
+            command: 'getAppiumExtensions',
+            description: 'Retrieve the extension commands supported in the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'commands',
+                description:
+                    'Supported extension commands, grouped into driver-specific and plugin-specific commands.',
+            },
+        },
+    },
+    '/session/:sessionId/appium/capabilities': {
+        GET: {
+            command: 'getAppiumSessionCapabilities',
+            description: 'Retrieve the capabilities of the current session.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/lib/protocol/routes.js',
+            parameters: [],
+            returns: {
+                type: 'Object',
+                name: 'capabilities',
+                description: "An object describing the session's capabilities.",
             },
         },
     },
@@ -512,6 +578,7 @@ export default {
                     type: 'object',
                     description:
                         'Command options. E.g. "timeout": (Only Android) Timeout to retry terminate the app (see more in Appium docs)',
+                    required: false,
                 },
             ],
             support: {
@@ -1709,7 +1776,7 @@ export default {
             command: 'compareImages',
             description:
                 'This feature conducts image comparisons utilizing the capabilities of the OpenCV framework. Please note that for this functionality to work, both the OpenCV framework and the opencv4nodejs module must be installed on the machine where the Appium server is operational. ***Furthermore, you\'ll need to have the [`images-plugin`](https://github.com/appium/appium/tree/master/packages/images-plugin) plugin installed to use this feature with Appium 2.0.***',
-            ref: 'https://appium.github.io/appium.io/docs/en/writing-running-appium/image-comparison/',
+            ref: 'https://github.com/appium/appium/blob/master/packages/images-plugin/docs/image-comparison.md',
             parameters: [
                 {
                     name: 'mode',
@@ -2231,54 +2298,31 @@ export default {
             },
         },
     },
-    '/session/:sessionId/log': {
-        POST: {
-            command: 'getLogs',
-            description:
-                'Get the log for a given log type. Log buffer is reset after each request.',
-            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
-            parameters: [
-                {
-                    name: 'type',
-                    type: 'string',
-                    description: 'the log type',
-                    required: true,
-                },
-            ],
-            returns: {
-                type: 'Object[]',
-                name: 'logs',
-                description: 'The list of log entries.',
-            },
-            support: {
-                android: {
-                    UiAutomator: '4.2+',
-                },
-                ios: {
-                    XCUITest: '9.3+',
-                },
-            },
-        },
-    },
-    '/session/:sessionId/log/types': {
+    '/session/:sessionId/location': {
         GET: {
-            command: 'getLogTypes',
-            description: 'Get available log types.',
+            command: 'getGeoLocation',
+            description: 'Get the current geo location.',
             ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
             parameters: [],
             returns: {
-                type: 'String[]',
-                name: 'logTypes',
-                description: 'The list of available log types.',
+                type: 'Object',
+                name: 'location',
+                description: 'The current geo location.',
             },
-            support: {
-                android: {
-                    UiAutomator: '4.2+',
+        },
+        POST: {
+            command: 'setGeoLocation',
+            description: 'Set the current geo location.',
+            ref: 'https://github.com/appium/appium/blob/master/packages/base-driver/docs/mjsonwp/protocol-methods.md#webdriver-endpoints',
+            parameters: [
+                {
+                    name: 'location',
+                    type: 'object',
+                    description:
+                        'the new location (`{latitude: number, longitude: number, altitude: number}`)',
+                    required: true,
                 },
-                ios: {
-                    XCUITest: '9.3+',
-                },
-            },
+            ],
         },
     },
 }
