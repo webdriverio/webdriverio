@@ -14,8 +14,11 @@ import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import { isW3C, isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } from './envDetector.js'
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
+import { isWSMessage, isIPCMessage } from './utils.js'
 
 export {
+    isWSMessage,
+    isIPCMessage,
     startWebDriver,
     initializePlugin,
     initializeLauncherService,
