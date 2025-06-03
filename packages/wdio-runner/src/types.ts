@@ -31,27 +31,3 @@ export interface TestFramework {
     run (): Promise<number>
     hasTests (): boolean
 }
-
-export interface SessionStartedMessage {
-    origin: 'worker'
-    name: 'sessionStarted'
-    content: {
-        sessionId: string
-        isW3C: boolean
-        protocol: string
-        hostname: string
-        port: number
-        path: string
-        headers: Record<string, string>
-        isMultiremote: boolean
-        injectGlobals: boolean
-        capabilities: WebdriverIO.Capabilities
-    },
-    cid?: string
-}
-
-export interface SessionEndedMessage {
-    origin: 'worker'
-    name: 'sessionEnded',
-    cid: string | undefined
-}

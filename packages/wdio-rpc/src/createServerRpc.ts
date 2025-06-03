@@ -5,12 +5,13 @@ export function createServerRpc<
     ClientFn extends object = ClientFunctions,
     ServerFn extends object = ServerFunctions
 >(
-    exposed: Partial<ServerFn>,
-    post: (msg: unknown) => void,
-    on: (fn: (msg: unknown) => void) => void
+    exposed: Partial<ServerFn>
 ) {
     return createBirpc<ClientFn, ServerFn>(
         exposed as ServerFn,
-        { post, on }
+        {
+            post: (msg: unknown) => process.send?.(msg),
+            on: (fn: (msg: unknown) => void) => process.on('message', fn),
+        }
     )
 }

@@ -50,11 +50,7 @@ export default class Runner extends EventEmitter {
         this._configParser = new ConfigParser(configFile, args)
         this._cid = cid
         this._specs = specs
-        this._rpc = createClientRpc(
-            {}, // no local exposed methods from runner
-            msg => process.send?.(msg),
-            fn => process.on('message', (data) => fn(data))
-        )
+        this._rpc = createClientRpc({})
 
         /**
          * add config file
@@ -201,7 +197,7 @@ export default class Runner extends EventEmitter {
         const { protocol, hostname, port, path, queryParams, automationProtocol, headers } = browser.options
         const { isW3C, sessionId } = browser
         const instances = getInstancesData(browser, isMultiremote)
-        this._rpc?.sessionStarted({
+        this._rpc?.sessionMetadata({
             path,
             automationProtocol,
             sessionId,

@@ -40,6 +40,7 @@
     "@types/node": "^20.1.0",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
+    "@wdio/rpc": "workspace:*",
     "diff": "^7.0.0",
     "object-inspect": "^1.12.0"
   },

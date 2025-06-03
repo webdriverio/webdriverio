@@ -4,7 +4,6 @@ import DotReporter from '@wdio/dot-reporter'
 import { initializePlugin } from '@wdio/utils'
 import type { Options, Capabilities, Reporters } from '@wdio/types'
 import { IPC_MESSAGE_TYPES } from '@wdio/types'
-import { createClientRpc, type RunnerRpcInstance } from '@wdio/rpc'
 
 const log = logger('@wdio/runner')
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
@@ -17,7 +16,6 @@ const mochaAllHooks = ['"before all" hook', '"after all" hook']
 export default class BaseReporter {
     private _reporters: Reporters.ReporterInstance[] = []
     private listeners: ((ev: unknown) => void)[] = []
-    private _rpc: RunnerRpcInstance
 
     constructor(
         private _config: Options.Testrunner,
@@ -32,10 +30,6 @@ export default class BaseReporter {
         if (this._config.reporters.length === 0) {
             this._config.reporters.push([DotReporter, {}])
         }
-
-        this._rpc = createClientRpc({},
-            (msg) => process.send?.(msg),
-            (fn) => process.on('message', fn))
     }
 
     async initReporters () {

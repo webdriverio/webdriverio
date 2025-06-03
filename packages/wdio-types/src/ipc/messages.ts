@@ -12,6 +12,7 @@ export enum IPC_MESSAGE_TYPES {
     testFrameworkInitMessage,
     finishedCommandMessage,
     debuggerMessage,
+    sessionMetadataMessage
 }
 
 export type IPCMessageValue = {
@@ -22,9 +23,10 @@ export type IPCMessageValue = {
     [IPC_MESSAGE_TYPES.reporterRealTime]: ReporterRealTime
     [IPC_MESSAGE_TYPES.errorMessage]: Error
     [IPC_MESSAGE_TYPES.testFrameworkInitMessage]: TestFrameworkInit,
-    [IPC_MESSAGE_TYPES.sessionStartedMessage]: SessionStartedMessage,
+    [IPC_MESSAGE_TYPES.sessionStartedMessage]: SessionStartedMessagePayload
     [IPC_MESSAGE_TYPES.finishedCommandMessage]: FinishedCommand
     [IPC_MESSAGE_TYPES.debuggerMessage]: Debugger
+    [IPC_MESSAGE_TYPES.sessionMetadataMessage]: SessionMetadata
 }
 
 export type IPCMessage<T extends IPC_MESSAGE_TYPES> = {
@@ -73,20 +75,38 @@ interface PrintFailureMessagePayload {
     retry?: number
 }
 
-interface SessionStartedMessage {
-    automationProtocol: string | undefined
+export interface SessionMetadata {
+    automationProtocol?: string
     sessionId: string
     isW3C: boolean
-    protocol: string | undefined
-    hostname: string | undefined
-    port: number | undefined
-    path: string | undefined
+    protocol?: string
+    hostname?: string
+    port?: number
+    path?: string
     queryParams?: Record<string, string>
     isMultiremote: boolean
-    instances: Record<string, Partial<BrowserData>> | undefined
+    instances?: Record<string, Partial<BrowserData>>
     capabilities: WebdriverIO.Capabilities
-    injectGlobals: boolean | undefined
+    injectGlobals?: boolean
     headers?: Record<string, string>
+}
+
+export interface SessionStartedMessagePayload {
+    origin: 'worker'
+    name: 'sessionStarted'
+    content: {
+        sessionId: string
+        isW3C: boolean
+        protocol: string
+        hostname: string
+        port: number
+        path: string
+        headers: Record<string, string>
+        isMultiremote: boolean
+        injectGlobals: boolean
+        capabilities: WebdriverIO.Capabilities
+    },
+    cid?: string
 }
 
 interface ReadyEvent {

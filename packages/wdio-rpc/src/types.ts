@@ -17,6 +17,7 @@ export interface ServerFunctions {
     errorMessage(data: IPCMessageValue[typeof IPC_MESSAGE_TYPES.errorMessage]): void
     workerEvent(data: { name: 'workerEvent', origin: 'worker', args: WSMessage<WS_MESSAGE_TYPES.coverageMap> }): void
     workerResponse(data:  WSMessageValue[typeof WS_MESSAGE_TYPES.workerResponseMessage]): void
+    sessionMetadata(data: IPCMessageValue[typeof IPC_MESSAGE_TYPES.sessionMetadataMessage]): void
 }
 
 /*

@@ -56,18 +56,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         private _reporter: BaseReporter
     ) {
         // listen on testrunner events
-        //process.on('message', this.#processMessage.bind(this))
         this._rpc = createClientRpc<ServerFunctions, ClientFunctions>({
             triggerHook: (data) => this.#handleHook(data.id, data),
             consoleMessage: (data) => this.#handleConsole(data),
             runCommand: (data) => this.#handleCommand(data.id, data),
             expectRequest: (data) => this.#handleExpectation(data.id, data),
             browserTestResult: (data) => this.#handleTestFinish(data),
-            expectMatchersRequest: (data) => this
-                .#expectMatcherResponse(data)
-        },
-        (msg) => process.send?.(msg),
-        (fn) => process.on('message', fn))
+            expectMatchersRequest: (data) => this.#expectMatcherResponse(data)
+        })
 
         const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
         this.#runnerOptions = runnerOptions || {}
@@ -234,40 +230,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
         return state.failures || 0
     }
-
- /*   async #processMessage (cmd: Workers.WorkerRequest) {
-        if (cmd.command !== 'workerRequest' || !process.send) {
-            return
-        }
-
-        const { message, id } = cmd.args
-        if (isWSMessage(message, WS_MESSAGE_TYPES.hookTriggerMessage)) {
-            return this.#handleHook(id, message.value)
-        }
-
-        if (isWSMessage(message, WS_MESSAGE_TYPES.consoleMessage)) {
-            return this.#handleConsole(message.value)
-        }
-
-        if (isWSMessage(message, WS_MESSAGE_TYPES.commandRequestMessage)) {
-            return this.#handleCommand(id, message.value)
-        }
-
-        if (isWSMessage(message, WS_MESSAGE_TYPES.expectRequestMessage)) {
-            return this.#handleExpectation(id, message.value)
-        }
-
-        if (isWSMessage(message, WS_MESSAGE_TYPES.browserTestResult)) {
-            return this.#handleTestFinish(message.value)
-        }
-
-        if (message.type === WS_MESSAGE_TYPES.expectMatchersRequest) {
-            return this.#sendWorkerResponse(
-                id,
-                this.#expectMatcherResponse({ matchers: Array.from(matchers.keys()) })
-            )
-        }
-    }*/
 
     async #handleHook (
         id: number,

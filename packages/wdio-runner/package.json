@@ -38,6 +38,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
+    "@wdio/rpc": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "expect-webdriverio": "^5.1.0",
     "istanbul-lib-coverage": "^3.2.2",

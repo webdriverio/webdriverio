@@ -564,6 +564,9 @@ importers:
       '@wdio/protocols':
         specifier: workspace:*
         version: link:../wdio-protocols
+      '@wdio/rpc':
+        specifier: workspace:*
+        version: link:../wdio-rpc
       '@wdio/runner':
         specifier: workspace:*
         version: link:../wdio-runner
@@ -1147,6 +1150,9 @@ importers:
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
+      '@wdio/rpc':
+        specifier: workspace:*
+        version: link:../wdio-rpc
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -1199,6 +1205,9 @@ importers:
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
+      '@wdio/rpc':
+        specifier: workspace:*
+        version: link:../wdio-rpc
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types

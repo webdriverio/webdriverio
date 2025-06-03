@@ -1,5 +1,6 @@
 import type { Event } from '../Runner.js'
 import type { $, $$ } from '@wdio/globals'
+import type { CoverageMapData } from 'istanbul-lib-coverage'
 
 export enum WS_MESSAGE_TYPES {
     consoleMessage = 200,
@@ -43,8 +44,6 @@ export type WSMessage<T extends WS_MESSAGE_TYPES> = {
 }
 
 export type AnyWSMessage = WSMessage<WS_MESSAGE_TYPES>
-
-import type { CoverageMapData } from 'istanbul-lib-coverage'
 
 // Placeholder type declarations – replace with actual imports
 interface ConsoleEvent {
