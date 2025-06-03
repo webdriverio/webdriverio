@@ -2,6 +2,7 @@ import type { ChildProcess } from 'node:child_process'
 import { expect, test, vi } from 'vitest'
 
 import WDIORunnerRepl from '../src/repl.js'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
 
 const replConfig = {
     commandTimeout: 0,
@@ -26,9 +27,18 @@ test('should parse error object', () => {
 test('should send child process message that debugger has started', () => {
     const childProcess = { send: vi.fn() }
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
+
     repl.start({})
-    expect(childProcess.send)
-        .toHaveBeenCalledWith({ origin: 'debugger', name: 'start' })
+
+    expect(childProcess.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+            type: IPC_MESSAGE_TYPES.debuggerMessage,
+            value: expect.objectContaining({
+                origin: 'debugger',
+                name: 'start'
+            })
+        })
+    )
 })
 
 test('should send command to child process', () => {
@@ -40,11 +50,16 @@ test('should send command to child process', () => {
     expect(repl.callback).toBe(undefined)
     repl.eval('1+1', {}, '/foo/bar', callback)
     expect(repl.commandIsRunning).toBe(true)
-    expect(childProcess.send).toHaveBeenCalledWith({
-        origin: 'debugger',
-        name: 'eval',
-        content: { cmd: '1+1' }
-    })
+    expect(childProcess.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+            type: IPC_MESSAGE_TYPES.debuggerMessage,
+            value: {
+                origin: 'debugger',
+                name: 'eval',
+                content: { cmd: '1+1' }
+            }
+        })
+    )
     expect(typeof repl.callback).toBe('function')
 
     repl.callback!(null, {})

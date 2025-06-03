@@ -2,7 +2,8 @@ import exitHook from 'async-exit-hook'
 
 import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
-import type { Workers } from '@wdio/types'
+import type{ IPCMessage, Workers } from '@wdio/types'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
 
 import { SHUTDOWN_TIMEOUT } from './constants.js'
 
@@ -20,19 +21,28 @@ interface RunnerInterface extends NodeJS.EventEmitter {
  * send ready event to testrunner to start receive command messages
  */
 if (typeof process.send === 'function') {
-    process.send(<Workers.WorkerMessage>{
-        name: 'ready',
-        origin: 'worker'
-    })
+    const readyEventMessage: IPCMessage<IPC_MESSAGE_TYPES.readyEventMessage> ={
+        type: IPC_MESSAGE_TYPES.readyEventMessage,
+        value: {
+            name: 'ready',
+            origin: 'worker'
+        }
+    }
+    process.send(readyEventMessage)
 }
 
 export const runner = new Runner() as unknown as RunnerInterface
 runner.on('exit', process.exit.bind(process))
-runner.on('error', ({ name, message, stack }) => process.send!({
-    origin: 'worker',
-    name: 'error',
-    content: { name, message, stack }
-}))
+runner.on('error', ({ name, message, stack }) => {
+    process.send!({
+        type: IPC_MESSAGE_TYPES.errorMessage,
+        value: {
+            origin: 'worker',
+            name: 'error',
+            content: { name, message, stack }
+        }
+    })
+})
 
 process.on('message', (m: Workers.WorkerCommand) => {
     if (!m || !m.command || !runner[m.command] || typeof runner[m.command] !== 'function') {
@@ -41,14 +51,19 @@ process.on('message', (m: Workers.WorkerCommand) => {
 
     log.info(`Run worker command: ${m.command}`)
     ;(runner[m.command] as Function)(m).then(
-        (result: unknown) => process.send!({
-            origin: 'worker',
-            name: 'finishedCommand',
-            content: {
-                command: m.command,
-                result
-            }
-        }),
+        (result: unknown) => {
+            process.send!({
+                type: IPC_MESSAGE_TYPES.finishedCommandMessage,
+                value: {
+                    origin: 'worker',
+                    name: 'finishedCommand',
+                    content: {
+                        command: m.command,
+                        result
+                    }
+                }
+            })
+        },
         (e: Error) => {
             log.error(`Failed launching test session: ${e.stack}`)
             setTimeout(() => process.exit(1), 10)

@@ -3,6 +3,8 @@ import type vm from 'node:vm'
 import type { ReplConfig, ReplCallback } from '@wdio/repl'
 import WDIORepl from '@wdio/repl'
 import type { ChildProcess } from 'node:child_process'
+import type { IPCMessage } from '@wdio/types'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
 
 export default class WDIORunnerRepl extends WDIORepl {
     childProcess: ChildProcess
@@ -30,11 +32,15 @@ export default class WDIORunnerRepl extends WDIORepl {
         }
 
         this.commandIsRunning = true
-        this.childProcess.send({
-            origin: 'debugger',
-            name: 'eval',
-            content: { cmd }
-        })
+        const debuggerMessage: IPCMessage<IPC_MESSAGE_TYPES.debuggerMessage> = {
+            type: IPC_MESSAGE_TYPES.debuggerMessage,
+            value: {
+                origin: 'debugger',
+                name: 'eval',
+                content: { cmd }
+            }
+        }
+        this.childProcess.send(debuggerMessage)
 
         this.callback = callback
     }
@@ -50,10 +56,14 @@ export default class WDIORunnerRepl extends WDIORepl {
     }
 
     start (context?: vm.Context) {
-        this.childProcess.send({
-            origin: 'debugger',
-            name: 'start'
-        })
+        const debuggerMessage: IPCMessage<IPC_MESSAGE_TYPES.debuggerMessage> = {
+            type: IPC_MESSAGE_TYPES.debuggerMessage,
+            value: {
+                origin: 'debugger',
+                name: 'start'
+            }
+        }
+        this.childProcess.send(debuggerMessage)
 
         return super.start(context)
     }

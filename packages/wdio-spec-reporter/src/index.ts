@@ -1,7 +1,9 @@
 import { format } from 'node:util'
 
 import prettyMs from 'pretty-ms'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities  } from '@wdio/types'
+import { IPC_MESSAGE_TYPES } from  '@wdio/types'
+import type { IPCMessage } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
 import WDIOReporter, { TestStats, getBrowserName } from '@wdio/reporter'
 import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
@@ -200,7 +202,15 @@ export default class SpecReporter extends WDIOReporter {
          *   - we are not running a unit test
          */
         if (process.send && content && !process.env.WDIO_UNIT_TESTS) {
-            process.send({ name: 'reporterRealTime', content })
+            const message: IPCMessage<IPC_MESSAGE_TYPES.reporterRealTime> = {
+                type: IPC_MESSAGE_TYPES.reporterRealTime,
+                value: {
+                    origin: 'reporter',
+                    name: 'reporterRealTime',
+                    content
+                }
+            }
+            process.send(message)
         }
     }
 
@@ -380,7 +390,7 @@ export default class SpecReporter extends WDIOReporter {
 
             // Display file path of spec
             if (suite.file && !specFileReferences.includes(suite.file)) {
-                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '')}`)
+                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '').slice(1)}`)
                 specFileReferences.push(suite.file)
             }
 

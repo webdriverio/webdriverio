@@ -1,4 +1,7 @@
-/**
+import type { IPCMessage } from '@wdio/types'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
+
+/**'
  * notify `WDIOCLInterface` about failure in hook
  * we need to do it this way because `beforeFn` and `afterFn` are not real hooks.
  * Otherwise hooks failures are lost.
@@ -27,10 +30,14 @@ export const logHookError = (hookName: string, hookResults: unknown[] = [], cid:
     }
 
     if (globalThis.process && typeof globalThis.process.send === 'function') {
-        globalThis.process.send!({
-            origin: 'reporter',
-            name: 'printFailureMessage',
-            content
-        })
+        const message: IPCMessage<IPC_MESSAGE_TYPES.errorMessage> = {
+            type: IPC_MESSAGE_TYPES.errorMessage,
+            value: {
+                origin: 'reporter',
+                name: 'printFailureMessage',
+                content
+            }
+        }
+        globalThis.process.send(message)
     }
 }
