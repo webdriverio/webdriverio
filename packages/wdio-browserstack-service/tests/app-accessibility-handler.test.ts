@@ -5,13 +5,16 @@ import logger from '@wdio/logger'
 
 import AccessibilityHandler from '../src/accessibility-handler.js'
 import * as utils from '../src/util.js'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 import * as bstackLogger from '../src/bstackLogger.js'
+import type { BrowserstackConfig, BrowserstackOptions } from '../src/types.js'
 
 const log = logger('test')
 let accessibilityHandler: AccessibilityHandler
 let browser: WebdriverIO.Browser
 let caps: Capabilities.RemoteCapability
+let options: BrowserstackConfig & BrowserstackOptions
+let config : Options.Testrunner
 let accessibilityOpts: { [key: string]: any }
 
 vi.mock('got')
@@ -57,8 +60,13 @@ describe('App Automate Accessibility Handler', () => {
                 needsReview: true
             }
         }
+        options = {
+            accessibility: true
+        } as BrowserstackConfig & BrowserstackOptions
 
-        accessibilityHandler = new AccessibilityHandler(browser, caps, true, 'mocha', true, accessibilityOpts)
+        config = {} as Options.Testrunner
+
+        accessibilityHandler = new AccessibilityHandler(browser, caps, options, true, config, 'mocha', true, false, accessibilityOpts)
     })
 
     describe('initialization', () => {
@@ -93,7 +101,7 @@ describe('App Automate Accessibility Handler', () => {
 
             await accessibilityHandler.before('app123')
 
-            expect(isBrowserstackSessionSpy).toBeCalledTimes(1)
+            expect(isBrowserstackSessionSpy).toBeCalledTimes(0)
             expect(isAppAccessibilityAutomationSessionSpy).toBeCalledTimes(1)
             expect(validateCapsWithAppA11ySpy).toBeCalledTimes(1)
         })
