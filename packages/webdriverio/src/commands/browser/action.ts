@@ -20,7 +20,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  *
  * Support for this command and specific actions can differ based on the environment. Progress on the development
  * can be followed on [wpt.fyi](https://wpt.fyi/results/webdriver/tests/perform_actions?label=experimental&label=master&aligned).
- * For mobile you might want to use Appium specific gesture commands on [iOS](https://github.com/appium/appium-xcuitest-driver#mobile-pinch)
+ * For mobile you might want to use Appium specific gesture commands on [iOS](https://appium.github.io/appium-xcuitest-driver/latest/guides/gestures/)
  * and [Android](https://github.com/appium/appium-uiautomator2-driver#mobile-gesture-commands).
  *
  * :::
