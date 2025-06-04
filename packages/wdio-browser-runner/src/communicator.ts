@@ -4,16 +4,17 @@ import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-li
 import logger from '@wdio/logger'
 import type { WebSocketClient } from 'vite'
 import type { WorkerInstance } from '@wdio/local-runner'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
-import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
+import type { AnyWSMessage, IPC_MESSAGE_TYPES, IPCMessageValue, Workers, WSMessage } from '@wdio/types'
+import { WS_MESSAGE_TYPES } from '@wdio/types'
 
 import { SESSIONS } from './constants.js'
 import { WDIO_EVENT_NAME } from './constants.js'
 import type { ViteServer } from './vite/server.js'
+import { isWSMessage } from '@wdio/utils'
 
 const log = logger('@wdio/browser-runner')
-
-type WorkerMessagePayload = SessionStartedMessage | SessionEndedMessage | WorkerResponseMessage | Workers.WorkerEvent
+import { createServerRpc } from '@wdio/rpc'
+import type { ServerFunctions, ClientFunctions } from '@wdio/rpc'
 
 interface WorkerMessage {
     id: number
@@ -43,58 +44,64 @@ export class ServerWorkerCommunicator {
 
     register (server: ViteServer, worker: WorkerInstance) {
         server.onBrowserEvent((data, client) => this.#onBrowserEvent(data, client, worker))
-        worker.on('message', this.#onWorkerMessage.bind(this))
+        createServerRpc<ClientFunctions, ServerFunctions>({
+            sessionStarted: (data: IPCMessageValue[typeof IPC_MESSAGE_TYPES.sessionStartedMessage]) => {
+                const cid = data.cid
+                if (typeof cid !== 'string') {
+                    return log.error('Received sessionStarted without a valid cid')
+                }
+
+                if (!SESSIONS.has(cid)) {
+                    SESSIONS.set(cid, {
+                        args: this.#config.mochaOpts || {},
+                        config: this.#config,
+                        capabilities: data.content.capabilities,
+                        sessionId: data.content.sessionId,
+                        injectGlobals: data.content.injectGlobals
+                    })
+                }
+            },
+            sessionEnded: (data: IPCMessageValue[typeof IPC_MESSAGE_TYPES.sessionEnded]) => {
+                SESSIONS.delete(data.cid)
+            },
+            workerEvent: async ({ args }) => {
+                if (isWSMessage(args, WS_MESSAGE_TYPES.coverageMap)) {
+                    const coverageMapData = args.value as CoverageMapData
+                    this.coverageMaps.push(
+                        await this.#mapStore.transformCoverage(libCoverage.createCoverageMap(coverageMapData))
+                    )
+                }
+
+                if (isWSMessage(args, WS_MESSAGE_TYPES.customCommand)) {
+                    const customArgs = args as WSMessage<WS_MESSAGE_TYPES.customCommand>
+                    const { commandName, cid } = customArgs.value
+                    if (!this.#customCommands.has(cid)) {
+                        this.#customCommands.set(cid, new Set())
+                    }
+                    const customCommands = this.#customCommands.get(cid)!
+                    customCommands.add(commandName)
+                }
+            },
+            workerResponse: ({ args }) => {
+                const { id, message } = args
+                const msg = this.#pendingMessages.get(id)
+                if (!msg) {
+                    return log.error(`Couldn't find message with id ${id} from type ${message.type}`)
+                }
+                this.#pendingMessages.delete(id)
+                msg.client.send(WDIO_EVENT_NAME, message)
+            },
+            snapshotResults: () => {},
+            printFailureMessage: () => {},
+            testFrameworkInitMessage: () => {},
+            errorMessage: () => {}
+        })
     }
 
-    async #onWorkerMessage (payload: WorkerMessagePayload) {
-        if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
-            SESSIONS.set(payload.cid!, {
-                args: this.#config.mochaOpts || {},
-                config: this.#config,
-                capabilities: payload.content.capabilities,
-                sessionId: payload.content.sessionId,
-                injectGlobals: payload.content.injectGlobals
-            })
-        }
-
-        if (payload.name === 'sessionEnded') {
-            SESSIONS.delete(payload.cid)
-        }
-
-        if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.coverageMap) {
-            const coverageMapData = payload.args.value as CoverageMapData
-            this.coverageMaps.push(
-                await this.#mapStore.transformCoverage(libCoverage.createCoverageMap(coverageMapData))
-            )
-        }
-
-        if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.customCommand) {
-            const { commandName, cid } = payload.args.value
-            if (!this.#customCommands.has(cid)) {
-                this.#customCommands.set(cid, new Set())
-            }
-            const customCommands = this.#customCommands.get(cid) || new Set()
-            customCommands.add(commandName)
-            return
-        }
-
-        if (payload.name === 'workerResponse') {
-            const msg = this.#pendingMessages.get(payload.args.id)
-            if (!msg) {
-                return log.error(`Couldn't find message with id ${payload.args.id} from type ${payload.args.message.type}`)
-            }
-            this.#pendingMessages.delete(payload.args.id)
-            return msg.client.send(WDIO_EVENT_NAME, payload.args.message)
-        }
-    }
-
-    #onBrowserEvent (message: Workers.SocketMessage, client: WebSocketClient, worker: WorkerInstance) {
-        /**
-         * some browser events don't need to go through the worker process
-         */
-        if (message.type === MESSAGE_TYPES.initiateBrowserStateRequest) {
-            const result: Workers.SocketMessage = {
-                type: MESSAGE_TYPES.initiateBrowserStateResponse,
+    #onBrowserEvent (message: AnyWSMessage, client: WebSocketClient, worker: WorkerInstance) {
+        if (isWSMessage(message, WS_MESSAGE_TYPES.initiateBrowserStateRequest)) {
+            const result: AnyWSMessage = {
+                type: WS_MESSAGE_TYPES.initiateBrowserStateResponse,
                 value: {
                     customCommands: [...(this.#customCommands.get(message.value.cid) || [])]
                 }

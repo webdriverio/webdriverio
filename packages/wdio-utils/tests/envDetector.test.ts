@@ -201,30 +201,6 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
     })
 
-    describe('isAndroid', () => {
-        it('should detect Android device', () => {
-            const capabilities: WebdriverIO.Capabilities = {
-                'bstack:options': {
-                    osVersion: '15.0',
-                    deviceName: 'Samsung Galaxy S25',
-                    realMobile: true,
-                    appiumVersion: '2.4.1',
-                    projectName: 'ProjectName',
-                    buildName: 'BuildName + ' + new Date().toISOString(),
-                    sessionName: 'SessionName',
-                    seleniumVersion: '4.20.0',
-                    debug: true,
-                    networkLogs: true,
-                    consoleLogs: 'verbose',
-                },
-                browserName: 'chrome',
-            }
-            const requestedCapabilities = { browserName: 'chrome' }
-            const { isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
-            expect(isAndroid).toEqual(true)
-        })
-    })
-
     it('isSeleniumStandalone', () => {
         const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isSeleniumStandalone).toBe(false)

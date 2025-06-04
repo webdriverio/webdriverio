@@ -549,7 +549,7 @@ export interface EdgeCapabilities {
 /**
  * Appium General W3C Capabilities
  *
- * @see https://appium.io/docs/en/latest/guides/caps/
+ * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/
  */
 export interface AppiumCapabilities {
     /**
@@ -592,7 +592,7 @@ export interface AppiumCapabilities {
     'appium:deviceName'?: string
     /**
      * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
-     * or [.apks file (Android App Bundle)](https://github.com/appium/appium-uiautomator2-driver/blob/master/docs/android-appbundle.md),
+     * or [.apks file (Android App Bundle)](https://appium.github.io/appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
      * or a .zip file containing one of these.
      *
      * Appium will attempt to install this app binary on the appropriate device first.
@@ -636,7 +636,7 @@ export interface AppiumCapabilities {
      */
     'appium:appTopLevelWindow'?: string
     /**
-     * https://appium.io/docs/en/latest/guides/settings/#initializing-settings-via-capabilities
+     * https://appium.io/docs/en/2.11/guides/settings/#initializing-settings-via-capabilities
      */
     'appium:settings'?: Record<string, any>
 }
@@ -644,7 +644,7 @@ export interface AppiumCapabilities {
 /**
  * Appium Android Only Capabilities
  *
- * @see https://github.com/appium/appium-uiautomator2-driver#capabilities
+ * @see https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/#android-only
  */
 export interface AppiumAndroidCapabilities {
     'appium:appiumVersion'?: string
@@ -746,7 +746,7 @@ export interface AppiumAndroidCapabilities {
 /**
  * Appium xcuitest Capabilities
  *
- * @see https://appium.github.io/appium-xcuitest-driver/latest/reference/capabilities/
+ * @see https://github.com/appium/appium-xcuitest-driver
  */
 export interface AppiumXCUITestCapabilities {
     'appium:platformName'?: string

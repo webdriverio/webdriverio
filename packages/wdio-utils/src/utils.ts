@@ -2,14 +2,31 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 
-import type { Options, Services } from '@wdio/types'
+import type { AnyIPCMessage, AnyWSMessage, Options, Services } from '@wdio/types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
+
+import type { WSMessage, WS_MESSAGE_TYPES } from '@wdio/types'
+import type { IPCMessage, IPC_MESSAGE_TYPES } from '@wdio/types'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
 const SLASH = '/'
+
+export function isWSMessage<T extends WS_MESSAGE_TYPES>(
+    msg: AnyWSMessage | AnyIPCMessage,
+    type: T
+): msg is WSMessage<T> {
+    return msg.type === type
+}
+
+export function isIPCMessage<T extends IPC_MESSAGE_TYPES>(
+    msg: AnyWSMessage | AnyIPCMessage,
+    type: T
+): msg is IPCMessage<T> {
+    return msg.type === type
+}
 
 function assertPath(path?: unknown) {
     if (typeof path !== 'string') {

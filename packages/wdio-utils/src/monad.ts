@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events'
 import logger from '@wdio/logger'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { WS_MESSAGE_TYPES, type Workers } from '@wdio/types'
 
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
@@ -122,7 +122,7 @@ export default function WebDriver (options: object, modifier?: Function, propert
                     origin: 'worker',
                     name: 'workerEvent',
                     args: {
-                        type: MESSAGE_TYPES.customCommand,
+                        type: WS_MESSAGE_TYPES.customCommand,
                         value: {
                             commandName: name,
                             cid: process.env.WDIO_WORKER_ID,
