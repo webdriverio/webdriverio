@@ -644,20 +644,21 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     })
             } else if (typeof capabilities === 'object') {
                 Object.entries(capabilities as Capabilities.RequestedMultiremoteCapabilities).forEach(([, caps]) => {
-                    if (validateCapsWithNonBstackA11y(
-                        (caps.capabilities as WebdriverIO.Capabilities).browserName,
-                        (caps.capabilities as WebdriverIO.Capabilities).browserVersion
-                    )) {
-                        if (capType === 'goog:chromeOptions' && value) {
-                            const chromeOptions = (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
-                            if (chromeOptions) {
-                                const finalChromeOptions = mergeChromeOptions(chromeOptions, value);
-                                (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = finalChromeOptions
-                            } else {
-                                (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = value
-                            }
-                            return
+                    if (
+                        validateCapsWithNonBstackA11y(
+                            (caps.capabilities as WebdriverIO.Capabilities).browserName,
+                            (caps.capabilities as WebdriverIO.Capabilities).browserVersion
+                        ) &&
+                        capType === 'goog:chromeOptions' && value
+                    ) {
+                        const chromeOptions = (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
+                        if (chromeOptions) {
+                            const finalChromeOptions = mergeChromeOptions(chromeOptions, value);
+                            (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = finalChromeOptions
+                        } else {
+                            (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = value
                         }
+                        return
                     }
                     if (!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
