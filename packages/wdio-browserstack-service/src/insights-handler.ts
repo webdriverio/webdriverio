@@ -39,6 +39,8 @@ import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 import { BrowserstackCLI } from './cli/index.js'
 import { TestFrameworkState } from './cli/states/testFrameworkState.js'
 import { HookState } from './cli/states/hookState.js'
+import TestFramework from './cli/frameworks/testFramework.js'
+import { TestFrameworkConstants } from './cli/frameworks/constants/testFrameworkConstants.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -376,7 +378,11 @@ class _InsightsHandler {
     }
 
     async beforeTest (test: Frameworks.Test) {
-        const uuid = uuidv4()
+        let uuid = uuidv4()
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { test })
+            uuid = TestFramework.getState(TestFramework.getTrackedInstance(), TestFrameworkConstants.KEY_TEST_UUID)
+        }
         InsightsHandler.currentTest = {
             test, uuid
         }
@@ -388,14 +394,11 @@ class _InsightsHandler {
             uuid,
             startedAt: (new Date()).toISOString()
         }
-        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
-            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { test })
-        }
 
-        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
-            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test })
-            return
-        }
+        // if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+        //     await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test })
+        //     return
+        // }
         this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
 
@@ -410,11 +413,11 @@ class _InsightsHandler {
         }
         BStackLogger.debug('calling testFinished')
 
-        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
-            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result })
-            return
-        }
         this.flushCBTDataQueue()
+        // if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+        //     await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result })
+        //     return
+        // }
         this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
@@ -850,6 +853,7 @@ class _InsightsHandler {
     }
 
     public async flushCBTDataQueue() {
+        BStackLogger.debug(`Flushing CBT Data Queue ${this.currentTestId}`)
         if (isUndefined(this.currentTestId)) {return}
         this.cbtQueue.forEach(cbtData => {
             cbtData.uuid = this.currentTestId!
@@ -870,6 +874,7 @@ class _InsightsHandler {
             uuid: '',
             integrations: integrationsData
         }
+        BStackLogger.debug(`Sending CBT Data ${this.currentTestId} ${JSON.stringify(cbtData)}`)
 
         if (this.currentTestId !== undefined) {
             cbtData.uuid = this.currentTestId

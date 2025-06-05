@@ -29,6 +29,8 @@ import AiHandler from './ai-handler.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { BrowserstackCLI } from './cli/index.js'
+import { AutomationFrameworkState } from './cli/states/automationFrameworkState.js'
+import { HookState } from './cli/states/hookState.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -160,6 +162,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._browser) {
             try {
+                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps })
                 const sessionId = this._browser.sessionId
                 if (isBrowserstackSession(this._browser)) {
                     try {
@@ -187,6 +190,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         this._caps,
                         this._options
                     )
+                    await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
                     await this._insightsHandler.before()
                 }
 
