@@ -13,13 +13,14 @@ import {
     ExecutionContext,
     LogCreatedEventRequest,
     LogCreatedEventRequest_LogEntry,
-    TestSessionEventRequest_AutomationSession as AutomationSession
+    TestSessionEventRequest_AutomationSession as AutomationSession,
+    DriverInitRequest
 } from '../proto/sdk-messages.js'
 
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
-import type { ConnectBinSessionResponse, StartBinSessionResponse, TestFrameworkEventResponse, TestSessionEventResponse, LogCreatedEventResponse } from 'src/proto/sdk-messages.js'
+import type { ConnectBinSessionResponse, StartBinSessionResponse, TestFrameworkEventResponse, TestSessionEventResponse, LogCreatedEventResponse, DriverInitResponse } from 'src/proto/sdk-messages.js'
 
 /**
  * GrpcClient - Singleton class for managing gRPC client connections
@@ -285,9 +286,9 @@ export class GrpcClient {
     }
 
     /**
-  *
-  * Send TestFrameworkEvent
-  */
+     *
+     * Send TestFrameworkEvent
+     */
 
     async testFrameworkEvent(data: TestFrameworkEventRequest) {
         this.logger.info('Sending TestFrameworkEvent')
@@ -327,6 +328,41 @@ export class GrpcClient {
             }
         } catch (error) {
             this.logger.error(`Error in TestFrameworkEvent: ${util.format(error)}`)
+            throw error
+        }
+    }
+
+    /**
+     *
+     * Send driverInitEvent
+     */
+
+    async driverInitEvent(data: DriverInitRequest) {
+        this.logger.info('Sending driverInitEvent')
+        try {
+            if (!this.client) {
+                this.logger.info('No gRPC client not initialized.')
+            }
+            const { platformIndex, ref, userInputParams } = data
+            const request = DriverInitRequest.create({
+                binSessionId: this.binSessionId,
+                platformIndex: platformIndex,
+                ref: ref,
+                userInputParams: userInputParams,
+            })
+
+            const driverInitEventPromise = promisify(this.client!.driverInit).bind(this.client!) as (arg0: DriverInitRequest) => Promise<DriverInitResponse>
+            try {
+                const response = await driverInitEventPromise(request)
+                this.logger.info('driverInitEvent successful')
+                return response
+            } catch (error: unknown) {
+                const errorMessage = util.format(error)
+                this.logger.error(`driverInitEvent error: ${errorMessage}`)
+                throw error
+            }
+        } catch (error) {
+            this.logger.error(`Error in driverInitEvent: ${util.format(error)}`)
             throw error
         }
     }
