@@ -203,6 +203,7 @@ function isAndroid(capabilities?: WebdriverIO.Capabilities) {
         (capabilities.platformName && capabilities.platformName.match(/Android/i)) ||
         (/Android/i.test(bsOptions.platformName || '')) ||
         (/Android/i.test(bsOptions.browserName || '')) ||
+        (/Samsung/i.test(bsOptions.deviceName || '')) ||
         (capabilities.browserName && capabilities.browserName.match(/Android/i))
     )
 }
