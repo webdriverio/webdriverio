@@ -597,18 +597,18 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         return c as WebdriverIO.Capabilities
                     })
                     .forEach((capability: WebdriverIO.Capabilities) => {
-                        if (validateCapsWithNonBstackA11y(capability.browserName, capability.browserVersion )){
-                            if (capType === 'goog:chromeOptions' && value) {
-
-                                const chromeOptions =  capability['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
-                                if (chromeOptions){
-                                    const finalChromeOptions = mergeChromeOptions(chromeOptions, value)
-                                    capability['goog:chromeOptions'] = finalChromeOptions
-                                } else {
-                                    capability['goog:chromeOptions'] = value
-                                }
-                                return
+                        if (
+                            validateCapsWithNonBstackA11y(capability.browserName, capability.browserVersion) &&
+                            capType === 'goog:chromeOptions' && value
+                        ) {
+                            const chromeOptions =  capability['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
+                            if (chromeOptions){
+                                const finalChromeOptions = mergeChromeOptions(chromeOptions, value)
+                                capability['goog:chromeOptions'] = finalChromeOptions
+                            } else {
+                                capability['goog:chromeOptions'] = value
                             }
+                            return
                         }
                         if (!capability['bstack:options']) {
                             const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
