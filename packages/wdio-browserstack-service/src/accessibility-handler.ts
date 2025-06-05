@@ -117,10 +117,18 @@ class _AccessibilityHandler {
         this._accessibility = isTrue(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
 
         //checks for running ALLY on non-bstack infra
-        if (isAccessibilityAutomationSession(this._accessibility) && (this._turboscale || !shouldAddServiceVersion(this._config, this._options.testObservability))){
-            if (validateCapsWithNonBstackA11y(this._platformA11yMeta.browser_name as string, this._platformA11yMeta?.browser_version as string)){
-                this._accessibility = true
-            }
+        if (
+            isAccessibilityAutomationSession(this._accessibility) &&
+            (
+                this._turboscale ||
+                !shouldAddServiceVersion(this._config, this._options.testObservability)
+            ) &&
+            validateCapsWithNonBstackA11y(
+                this._platformA11yMeta.browser_name as string,
+                this._platformA11yMeta?.browser_version as string
+            )
+        ){
+            this._accessibility = true
         } else {
             if (isAccessibilityAutomationSession(this._accessibility) && !this.isAppAutomate) {
                 const deviceName = this._getCapabilityValue(this._caps, 'deviceName', 'device')
