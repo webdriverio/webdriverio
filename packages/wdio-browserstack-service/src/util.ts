@@ -499,7 +499,7 @@ export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, 
         BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
         return false
     }
-    if ( !isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 100)) {
+    if (!isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 100)) {
         BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 100.')
         return false
     }
