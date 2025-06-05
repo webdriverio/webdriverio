@@ -45,7 +45,7 @@ The above will hide the text value from WDIO logs as the following:
 
 Logs example:
 ```text
-2025-05-25T23:02:42. 336Z INFO webdriver: DATA { text: "**MASKED**" }
+INFO webdriver: DATA { text: "**MASKED**" }
 ```
 
 Reporters, such as Allure reporters, and third-party tools like Percy from BrowserStack will also handle the masked version.
@@ -71,13 +71,13 @@ Using the `maskingPatterns` configuration, we can mask sensitive information fro
 For example, if you are using a Cloud provider and use the info level, then most certainly you will "leak" the user's key as shown below:
 
 ```text
-2025-05-29T19:09:11.309Z INFO @wdio/local-runner: Start worker 0-0 with arg: ./wdio.conf.ts --user=cloud_user --key=myCloudSecretExposedKey --spec myTest.test.ts
+INFO @wdio/local-runner: Start worker 0-0 with arg: ./wdio.conf.ts --user=cloud_user --key=myCloudSecretExposedKey --spec myTest.test.ts
 ```
 
 To counter that we can pass the the regular expression `'--key=([^ ]*)'` and now in the logs you will see 
 
 ```text
-2025-05-29T19:09:11.309Z INFO @wdio/local-runner: Start worker 0-0 with arg: ./wdio.conf.ts --user=cloud_user --key=**MASKED** --spec myTest.test.ts
+INFO @wdio/local-runner: Start worker 0-0 with arg: ./wdio.conf.ts --user=cloud_user --key=**MASKED** --spec myTest.test.ts
 ```
 
 You can achieve the above by providing the regular expression to the `maskingPatterns` field of the configuration.
