@@ -8,9 +8,12 @@ import { CLIUtils } from '../cliUtils.js'
 import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
 import { GrpcClient } from '../grpcClient.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
-import type { LogCreatedEventRequest, LogCreatedEventRequest_LogEntry, TestFrameworkEventRequest } from '../../proto/sdk-messages.js'
+import type { LogCreatedEventRequest, LogCreatedEventRequest_LogEntry, TestFrameworkEventRequest, TestSessionEventRequest, TestSessionEventRequest_AutomationSession } from '../../proto/sdk-messages.js'
 import type { Frameworks } from '@wdio/types'
 import WdioMochaTestFramework from '../frameworks/wdioMochaTestFramework.js'
+import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'
+import AutomationFramework from '../frameworks/automationFramework.js'
+import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 
 /**
  * TestHub Module for BrowserStack
@@ -48,8 +51,13 @@ export default class TestHubModule extends BaseModule {
         return TestHubModule.MODULE_NAME
     }
 
-    onAfterTest() {
+    onAfterTest(args: Record<string, unknown>) {
         this.logger.debug('onAfterTest: Called after test hook from cli configured module!!!')
+        const autoInstace = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+        this.logger.info(`onAfterTest: Automation instance: ${JSON.stringify(Object.fromEntries(autoInstace.getAllData()))}`)
+        const instances = [autoInstace]
+        args.autoInstance = instances
+        this.sendTestSessionEvent(args)
     }
 
     onAllTestEvents(args: Record<string, unknown>) {
@@ -86,7 +94,7 @@ export default class TestHubModule extends BaseModule {
 
             this.logger.debug(`sendTestFrameworkEvent for testState: ${testFrameworkState} hookState: ${testHookState}`)
             const platformIndex = process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0
-            const uuid = instance.getRef()
+            const uuid =  TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID) || instance.getRef()
             const eventJson = Buffer.from(JSON.stringify(Object.fromEntries(testData)))
             const executionContext = { hash: trackedContext.getId(), threadId: trackedContext.getThreadId().toString(), processId: trackedContext.getProcessId().toString() }
             const payload: TestFrameworkEventRequest = {
@@ -107,6 +115,94 @@ export default class TestHubModule extends BaseModule {
             this.logger.debug(`sendTestFrameworkEvent complete for testState: ${testFrameworkState} hookState: ${testHookState}`)
         } catch (error) {
             this.logger.error(`Error in sendTestFrameworkEvent: ${util.format(error)}`)
+        }
+    }
+
+    /**
+     * Send test session event to the service
+     * @param args containing test session data
+     */
+    async sendTestSessionEvent(args: Record<string, unknown>): Promise<void> {
+        this.logger.debug('sendTestSessionEvent: Called')
+        try {
+            const instance = args.instance as TestFrameworkInstance
+            const autoInstances = (args.autoInstance as AutomationFrameworkInstance[]) || []
+            // const cbtSessionCreated = TestFramework.getState(instance, WebdriverModule.KEY_CBT_SESSION_CREATED, false) as boolean
+
+            // if (cbtSessionCreated) {
+            //     return
+            // }
+
+            const trackedContext = instance.getContext()
+            const testFWName = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_FRAMEWORK_NAME) as string
+            const testFWVersion = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_FRAMEWORK_VERSION) as string
+            const testState = instance.getCurrentTestState().toString().split('.')[1]
+            const hookState = instance.getCurrentHookState().toString().split('.')[1]
+            this.logger.debug('sendTestSessionEvent: setup')
+
+            const executionContext = {
+                threadId: trackedContext.getThreadId().toString(),
+                processId: trackedContext.getProcessId().toString()
+            }
+
+            const payload: TestSessionEventRequest = {
+                binSessionId: '',
+                testFrameworkName: testFWName,
+                testFrameworkVersion: testFWVersion,
+                testFrameworkState: testState.toString(),
+                testHookState: hookState.toString(),
+                testUuid: TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID).toString(),
+                executionContext,
+                automationSessions: [],
+                platformIndex: process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0,
+                capabilities: new Uint8Array()
+            }
+
+            // Try to get capabilities from the first driver
+            try {
+                if (autoInstances.length > 0) {
+                    const driver = AutomationFramework.getDriver(autoInstances[0]) as WebdriverIO.Browser // RemoteWebDriver equivalent
+                    const userCaps = JSON.stringify(driver.capabilities)
+                    if (userCaps) {
+                        payload.capabilities = new TextEncoder().encode(userCaps)
+                    }
+                }
+            } catch (error) {
+                this.logger.debug(`Error while getting capabilities from driver: ${error}`)
+            }
+
+            this.logger.debug(`sendTestSessionEvent: instance iteration ${JSON.stringify(autoInstances)}`)
+            // Process automation instances
+            for (const autoInstance of autoInstances) {
+                const sessionProvider = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_IS_BROWSERSTACK_HUB) as boolean
+                    ? 'browserstack'
+                    : 'unknown_grid'
+
+                const automationSession: TestSessionEventRequest_AutomationSession = {
+                    provider: sessionProvider,
+                    ref: autoInstance.getRef(),
+                    hubUrl: this.config.hubUrl as string,
+                    frameworkSessionId: AutomationFramework.getState(
+                        autoInstance,
+                        AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
+                    // autoInstance.getDriver()?.getSessionId()?.toString() || ''
+                    ).toString(),
+                    frameworkName: autoInstance.frameworkName,
+                    frameworkVersion: autoInstance.frameworkVersion
+                }
+                this.logger.debug(`sendTestSessionEvent: automationSession: ${JSON.stringify(automationSession)}`)
+
+                payload.platformIndex = process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0
+                payload.automationSessions.push(automationSession)
+            }
+
+            this.logger.debug(`sendTestSessionEvent payload: ${JSON.stringify(payload)}`)
+            await GrpcClient.getInstance().testSessionEvent(payload)
+            this.logger.debug(`sendTestSessionEvent complete for testState: ${testState} hookState: ${hookState}`)
+            // TestFramework.setState(instance, WebdriverModule.KEY_CBT_SESSION_CREATED, response.success)
+        } catch (error) {
+            this.logger.error(`sendTestSessionEvent: Error sending grpc call: event=${JSON.stringify(args)}, error=${error}`)
+            throw new Error(`Failed to send test session event: ${error}`)
         }
     }
 

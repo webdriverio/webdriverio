@@ -16,6 +16,7 @@ import type { Options } from '@wdio/types'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
 import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
+import WebdriverIOModule from './modules/webdriverIOModule.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -136,6 +137,8 @@ export class BrowserstackCLI {
             }
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
         }
+
+        this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
 
         this.configureModules()
     }
