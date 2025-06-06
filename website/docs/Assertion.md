@@ -22,7 +22,7 @@ await expect(await $('.add-to-cart').isClickable()).toBe(true);
 
 ### Advanced Configuration
 
-The SoftAssertionService is now included by default, but you can override its behavior in your wdio.conf.js:
+The SoftAssertionService is included by default (from expect-webdriver 5.2.0), but you can override its behavior in your wdio.conf.js:
 
 ```js
 import { SoftAssertionService } from 'expect-webdriverio'
