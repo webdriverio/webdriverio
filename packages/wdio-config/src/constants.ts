@@ -35,6 +35,7 @@ export const DEFAULT_CONFIGS: () => WebdriverIO.Config = () => ({
     specFileRetries: 0,
     specFileRetriesDelay: 0,
     specFileRetriesDeferred: false,
+    autoAssertOnTestEnd: true,
     reporterSyncInterval: 100,
     reporterSyncTimeout: 5000,
     cucumberFeaturesWithLineNumbers: [],
