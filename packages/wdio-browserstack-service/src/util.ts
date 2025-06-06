@@ -53,7 +53,7 @@ import { FileStream } from './fileStream.js'
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
-import { StartBinSessionResponse } from './proto/sdk-messages.js'
+import type { StartBinSessionResponse } from './proto/sdk-messages.js'
 
 const pGitconfig = promisify(gitconfig)
 

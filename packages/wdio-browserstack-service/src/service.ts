@@ -175,7 +175,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         )
                         if (BrowserstackCLI.getInstance().isRunning()){
                             BStackLogger.info(`CLI is running, tracking accessibility event for before: ${sessionId}`)
-                            BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(AutomationFrameworkState.EXECUTE, HookState.PRE, {sessionId })
+                            BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(AutomationFrameworkState.EXECUTE, HookState.PRE, { sessionId })
                         } else {
                             await this._accessibilityHandler.before(sessionId)
                         }
