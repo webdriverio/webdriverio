@@ -426,7 +426,7 @@ Default: `false`
 
 ### autoAssertOnTestEnd
 
-Controls whether the SoftAssertionService automatically asserts all soft assertions at the end of each test. When set to `true`, any accumulated soft assertions will be automatically checked and cause the test to fail if any assertions failed. When set to `false`, you must manually call the assert method to check soft assertions.
+Controls whether WebdriverIO automatically asserts all soft assertions at the end of each test. When set to `true`, any accumulated soft assertions will be automatically checked and cause the test to fail if any assertions failed. When set to `false`, you must manually call the assert method to check soft assertions.
 
 Type: `Boolean`<br />
 Default: `true`
