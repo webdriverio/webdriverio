@@ -22,6 +22,7 @@ class AccessibilityScripts {
     public getResultsSummary: string | null = null
     public saveTestResults: string | null = null
     public commandsToWrap: Array<Command> | null = null
+    public ChromeExtension: { [key: string]: unknown } = {}
 
     public browserstackFolderPath = ''
     public commandsPath = ''
@@ -77,7 +78,7 @@ class AccessibilityScripts {
         }
     }
 
-    public update(data: { commands: [], scripts: Scripts }) {
+    public update(data: { commands: [], scripts: Scripts, nonBStackInfraA11yChromeOptions: {} }) {
         if (data.scripts) {
             this.performScan = data.scripts.scan
             this.getResults = data.scripts.getResults
@@ -87,6 +88,10 @@ class AccessibilityScripts {
         if (data.commands && data.commands.length) {
             this.commandsToWrap = data.commands
         }
+        if (data.nonBStackInfraA11yChromeOptions){
+            this.ChromeExtension = data.nonBStackInfraA11yChromeOptions
+        }
+
     }
 
     public store() {
@@ -101,7 +106,8 @@ class AccessibilityScripts {
                 getResults: this.getResults,
                 getResultsSummary: this.getResultsSummary,
                 saveResults: this.saveTestResults,
-            }
+            },
+            nonBStackInfraA11yChromeOptions: this.ChromeExtension,
         }))
     }
 }
