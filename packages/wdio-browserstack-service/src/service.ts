@@ -29,6 +29,9 @@ import AiHandler from './ai-handler.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { BrowserstackCLI } from './cli/index.js'
+import { TestFrameworkState } from './cli/states/testFrameworkState.js'
+import { HookState } from './cli/states/hookState.js'
+import { AutomationFrameworkState } from './cli/states/automationFrameworkState.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -170,7 +173,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
                             this._accessibility,
                             this._options.accessibilityOptions
                         )
-                        await this._accessibilityHandler.before(sessionId)
+                        if (BrowserstackCLI.getInstance().isRunning()){
+                            BStackLogger.info(`CLI is running, tracking accessibility event for before: ${sessionId}`)
+                            BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(AutomationFrameworkState.EXECUTE, HookState.PRE, {sessionId })
+                        } else {
+                            await this._accessibilityHandler.before(sessionId)
+                        }
                         Listener.setAccessibilityOptions(this._options.accessibilityOptions)
                     } catch (err) {
                         BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
@@ -291,7 +299,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._setSessionName(suiteTitle, test)
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
-        await this._accessibilityHandler?.beforeTest(suiteTitle, test)
+        if (BrowserstackCLI.getInstance().isRunning()){
+            BStackLogger.info(`CLI is running, tracking accessibility event for beforeTest: ${test.fullName ?? test.title}`)
+            BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { suiteTitle, test })
+        } else {
+            await this._accessibilityHandler?.beforeTest(suiteTitle, test)
+        }
         await this._insightsHandler?.beforeTest(test)
     }
 
@@ -302,7 +315,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
-        await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
+        if (BrowserstackCLI.getInstance().isRunning()){
+            BStackLogger.info(`CLI is running, tracking accessibility event for afterTest: ${test.fullName ?? test.title}`)
+            const suiteTitle = this._suiteTitle
+            BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { suiteTitle, test })
+        } else {
+            await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
+        }
         await this._insightsHandler?.afterTest(test, results)
         await this._percyHandler?.afterTest()
     }

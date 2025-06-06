@@ -53,6 +53,7 @@ import { FileStream } from './fileStream.js'
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
+import { StartBinSessionResponse } from './proto/sdk-messages.js'
 
 const pGitconfig = promisify(gitconfig)
 
@@ -308,7 +309,7 @@ export const jsonifyAccessibilityArray = (
     return result
 }
 
-export const  processAccessibilityResponse = (response: LaunchResponse) => {
+export const  processAccessibilityResponse = (response: LaunchResponse | StartBinSessionResponse) => {
     if (!response.accessibility) {
         handleErrorForAccessibility(null)
         return
@@ -322,7 +323,7 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
         const { accessibilityToken, pollingTimeout, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
         const scriptsJson = {
             'scripts': jsonifyAccessibilityArray(response.accessibility.options.scripts, 'name', 'command'),
-            'commands': response.accessibility.options.commandsToWrap.commands
+            'commands': response.accessibility.options.commandsToWrap?.commands ?? []
         }
         if (scannerVersion) {
             process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion

@@ -52,6 +52,10 @@ export default class TrackedInstance {
         })
     }
 
+    updateData(key: string, value: any) {
+        this.data.set(key, value)
+    }
+
     /**
    * get Specific data of instance.
    * @param {*} key
