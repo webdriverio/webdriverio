@@ -49,7 +49,7 @@ export interface Connection {
      */
     path?: string
     /**
-     * Query paramaters that are propagated to the driver server.
+     * Query parameters that are propagated to the driver server.
      */
     queryParams?: {
         [name: string]: string
@@ -139,6 +139,14 @@ export interface WebDriver extends Connection {
      * when attempting to start a session.
      */
     cacheDir?: string
+
+    /**
+     * Mask sensitive data in logs by replacing matching string or all captured groups for the provided regular expressions as string
+     * It replaces the matched string or the capture groups with `**MASKED**`
+     * Useful for masking sensitive data like cloud provider credentials for example with '/--key=([^ ]*)/'
+     * Use comma separated strings to use multiple patterns.
+     */
+    maskingPatterns?: string
 }
 
 export type SauceRegions = 'us' | 'eu' | 'us-west-1' | 'us-east-4' | 'eu-central-1' | 'staging'
@@ -195,7 +203,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     exclude?: string[]
     /**
-     * An object describing various of suites, which you can then specify
+     * An object describing various suites, which you can then specify
      * with the --suite option on the wdio CLI.
      */
     suites?: Record<string, (string |string[])[] | string[][]>

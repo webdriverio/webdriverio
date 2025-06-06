@@ -3,14 +3,15 @@ import type { ClientOptions, RawData, WebSocket } from 'ws'
 
 import { environment } from '../environment.js'
 import type * as remote from './remoteTypes.js'
+import type * as local from './localTypes.js'
 import type { CommandData } from './remoteTypes.js'
 import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
 import type { Client } from '../types.js'
+import { isBase64Safe } from './utils.js'
 
 const SCRIPT_PREFIX = '/* __wdio script__ */'
 const SCRIPT_SUFFIX = '/* __wdio script end__ */'
-const base64Regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/
 
 const log = logger('webdriver')
 const RESPONSE_TIMEOUT = 1000 * 60
@@ -124,7 +125,7 @@ export class BidiCore {
              * of the result instead of the raw base64 encoded string
              */
             let resultLog = data.toString()
-            if (typeof payload.result === 'object' && payload.result && 'data' in payload.result && typeof payload.result.data === 'string' && base64Regex.test(payload.result.data)) {
+            if (typeof payload.result === 'object' && payload.result && 'data' in payload.result && typeof payload.result.data === 'string' && isBase64Safe(payload.result.data)) {
                 resultLog = JSON.stringify({
                     ...payload.result,
                     data: `Base64 string [${payload.result.data.length} chars]`
@@ -162,9 +163,10 @@ export class BidiCore {
         })
 
         if (payload.type === 'error' || 'error' in payload) {
-            failError.message += ` with error: ${payload.error} - ${payload.message}`
-            if (payload.stacktrace && typeof payload.stacktrace === 'string') {
-                const driverStack = payload.stacktrace
+            const error = payload as local.ErrorResponse
+            failError.message += ` with error: ${payload.error} - ${error.message}`
+            if (error.stacktrace && typeof error.stacktrace === 'string') {
+                const driverStack = error.stacktrace
                     .split('\n')
                     .filter(Boolean)
                     .map((line: string) => `    at ${line}`)

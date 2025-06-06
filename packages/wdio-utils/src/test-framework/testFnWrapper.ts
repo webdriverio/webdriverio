@@ -88,6 +88,7 @@ export const testFrameworkFnWrapper = async function (
 
     let result
     let error
+    let skip = false
 
     const testStart = Date.now()
     try {
@@ -103,12 +104,19 @@ export const testFrameworkFnWrapper = async function (
             globalThis._wdioDynamicJasmineResultErrorList = undefined
         }
     } catch (_err: unknown) {
-        const err = _err instanceof Error ? _err : new Error(typeof _err === 'string' ? _err : 'An unknown error occurred')
-        if (err.stack) {
-            err.stack = filterStackTrace(err.stack)
-        }
+        /**
+         * To address skipping tests for Mocha and Jasmine
+         */
+        if (!(JSON.stringify(_err, Object.getOwnPropertyNames(_err)).includes('sync skip; aborting execution') || JSON.stringify(_err, Object.getOwnPropertyNames(_err)).includes('marked Pending'))) {
+            const err = _err instanceof Error ? _err : new Error(typeof _err === 'string' ? _err : 'An unknown error occurred')
+            if (err.stack) {
+                err.stack = filterStackTrace(err.stack)
+            }
 
-        error = err
+            error = err
+        } else {
+            skip = true
+        }
     }
     const duration = Date.now() - testStart
     const afterArgs = afterFnArgs(this)
@@ -117,7 +125,8 @@ export const testFrameworkFnWrapper = async function (
         error,
         result,
         duration,
-        passed: !error
+        passed: !error && !skip,
+        skipped: skip
     })
 
     if (type === 'Hook' && hookName) {

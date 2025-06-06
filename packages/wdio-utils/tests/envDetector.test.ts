@@ -104,6 +104,28 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeHeadlessShellCaps, requestedCapabilities }).isChrome).toBe(true)
     })
 
+    it('isWindowsApp', () => {
+        const requestedCapabilities = { browserName: '' }
+        const capabilities: WebdriverIO.Capabilities = {
+            platformName: 'windows',
+            'appium:automationName': 'windows',
+            'appium:deviceName': 'WindowsPC',
+        }
+        const {
+            isMobile,
+            isWindowsApp,
+            isMacApp,
+            isAndroid,
+            isIOS
+        } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+
+        expect(isMobile).toEqual(true)
+        expect(isWindowsApp).toEqual(true)
+        expect(isMacApp).toEqual(false)
+        expect(isAndroid).toEqual(false)
+        expect(isIOS).toEqual(false)
+    })
+
     it('isChromium', () => {
         const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isChromium).toBe(false)
@@ -177,6 +199,30 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
         requestedCapabilities.alwaysMatch = { 'sauce:options': {} }
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
+    })
+
+    describe('isAndroid', () => {
+        it('should detect Android device', () => {
+            const capabilities: WebdriverIO.Capabilities = {
+                'bstack:options': {
+                    osVersion: '15.0',
+                    deviceName: 'Samsung Galaxy S25',
+                    realMobile: true,
+                    appiumVersion: '2.4.1',
+                    projectName: 'ProjectName',
+                    buildName: 'BuildName + ' + new Date().toISOString(),
+                    sessionName: 'SessionName',
+                    seleniumVersion: '4.20.0',
+                    debug: true,
+                    networkLogs: true,
+                    consoleLogs: 'verbose',
+                },
+                browserName: 'chrome',
+            }
+            const requestedCapabilities = { browserName: 'chrome' }
+            const { isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+            expect(isAndroid).toEqual(true)
+        })
     })
 
     it('isSeleniumStandalone', () => {

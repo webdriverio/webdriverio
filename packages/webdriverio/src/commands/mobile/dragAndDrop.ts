@@ -10,6 +10,13 @@
  *
  * Also make sure that the element you are dragging and the target where you are dropping are both visible on the screen.
  *
+ * This command only works with the following up-to-date components:
+ *  - Appium server (version 2.0.0 or higher)
+ *  - `appium-uiautomator2-driver` (for Android)
+ *  - `appium-xcuitest-driver` (for iOS)
+ *
+ * Make sure your local or cloud-based Appium environment is regularly updated to avoid compatibility issues.
+ *
  * :::
  *
  * <example>

@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { transformCommandLogResult, sleep } from '@wdio/utils'
+import { sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
 import { type RequestInit as UndiciRequestInit } from 'undici'
@@ -138,13 +138,10 @@ export abstract class WebDriverRequest {
                 ...(dispatcher ? { dispatcher } : {})
             })
 
-            // Cloning the response to prevent body unusable error
-            const resp = response.clone()
-
             return {
-                statusCode: resp.status,
-                body: await resp.json() ?? {},
-            } as Options.RequestLibResponse
+                statusCode: response.status,
+                body: await response.json() ?? {},
+            } satisfies Options.RequestLibResponse
         } catch (err) {
             if (!(err instanceof Error)) {
                 throw new WebDriverRequestError(
@@ -168,7 +165,7 @@ export abstract class WebDriverRequest {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.body))
+            this.eventHandler.onLogData?.(fullRequestOptions.body)
         }
 
         const { ...requestLibOptions } = fullRequestOptions

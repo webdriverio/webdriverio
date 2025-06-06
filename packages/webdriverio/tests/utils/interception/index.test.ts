@@ -254,7 +254,7 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
         expect(browser.networkProvideResponse).toHaveBeenCalledWith({
             request: 123,
-            body: '{"foo":"bar"}'
+            body: { type: 'string', value: '{"foo":"bar"}' }
         })
         browser.emit('network.responseStarted', {
             isBlocked: true,
@@ -290,7 +290,7 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
         expect(browser.networkProvideResponse).toHaveBeenCalledWith({
             request: 123,
-            body: 'hello'
+            body: { type: 'string', value: 'hello' }
         })
         expect(mock.getBinaryResponse('123')).toBeNull()
     })
@@ -358,7 +358,10 @@ describe('WebDriverInterception', () => {
         [
           [
             {
-              "body": "{"data":{"someProperty":123}}",
+              "body": {
+                "type": "string",
+                "value": "{"data":{"someProperty":123}}",
+              },
               "request": "req-123",
             },
           ],

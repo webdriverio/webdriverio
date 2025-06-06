@@ -26,6 +26,18 @@ const log = logger('webdriver')
  * For Native Apps, this command differs from the `click` command as it will <strong>automatically swipe</strong> to the element using the `scrollIntoView command`,
  * which is not supported for native apps with the `click` command. In hybrid apps or web environments, automatic scrolling is supported for both `click` and `tap` commands.
  *
+ * :::info
+ *
+ * This command only works with the following up-to-date components:
+ *  - Appium server (version 2.0.0 or higher)
+ *  - `appium-uiautomator2-driver` (for Android)
+ *  - `appium-xcuitest-driver` (for iOS)
+ *
+ * Make sure your local or cloud-based Appium environment is regularly updated to avoid compatibility issues.
+ *
+ * :::
+ *
+ *
  * :::caution For Screen taps
  *
  * If you want to tap on a specific coordinate on the screen and you use a screenshot to determine the coordinates, remember that the

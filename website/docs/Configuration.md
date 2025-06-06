@@ -86,7 +86,7 @@ Default: `null`
 }
 ```
 
-If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
+If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.io/docs/en/latest/guides/caps/) for more details.
 
 ### logLevel
 
@@ -180,6 +180,23 @@ The path to the root of the cache directory. This directory is used to store all
 
 Type: `String`<br />
 Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
+
+### maskingPatterns
+
+For more secure logging, regular expressions set with `maskingPatterns` can obfuscate sensitive information from the log.
+ - The string format is a regular expression with or without flags (e.g. `/.../i`) and comma-separated for multiple regular expressions.
+ - For more details on masking patterns, see the [Masking Patterns section in the WDIO Logger README](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-logger/README.md#masking-patterns).
+
+Type: `String`<br />
+Default: `undefined`
+
+**Example:**
+
+```js
+{
+    maskingPatterns: '/--key=([^ ]*)/i,/RESULT (.*)/'
+}
+```
 
 ---
 
@@ -303,7 +320,7 @@ Default: `[]`
 
 ### suites
 
-An object describing various of suites, which you can then specify with the `--suite` option on the `wdio` CLI.
+An object describing various suites, which you can then specify with the `--suite` option on the `wdio` CLI.
 
 Type: `Object`<br />
 Default: `{}`

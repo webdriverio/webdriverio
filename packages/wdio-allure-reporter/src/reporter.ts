@@ -3,6 +3,7 @@ import type {
     SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
     AfterCommandArgs, Argument
 } from '@wdio/reporter'
+import { getBrowserName } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 import type { Label, MetadataMessage } from 'allure-js-commons'
@@ -243,10 +244,10 @@ export default class AllureReporter extends WDIOReporter {
         if (!this._isMultiremote) {
             const caps = this._capabilities
             // @ts-expect-error outdated JSONWP capabilities
-            const { browserName, desired, device } = caps
+            const { desired, device } = caps
             // @ts-expect-error outdated JSONWP capabilities
             const deviceName = (desired || {}).deviceName || (desired || {})['appium:deviceName'] || caps.deviceName || caps['appium:deviceName']
-            let targetName = device || browserName || deviceName || cid
+            let targetName = device || getBrowserName(caps) || deviceName || cid
             // custom mobile grids can have device information in a `desired` cap
             if (desired && deviceName && desired['appium:platformVersion']) {
                 targetName = `${device || deviceName} ${desired['appium:platformVersion']}`

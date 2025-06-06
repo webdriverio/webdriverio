@@ -1,4 +1,8 @@
 {
+  "logo.alt": {
+    "message": "WebdriverIO",
+    "description": "The alt text of navbar logo"
+  },
   "item.label.Docs": {
     "message": "Docs",
     "description": "Navbar item with label Docs"
@@ -19,8 +23,12 @@
     "message": "Community",
     "description": "Navbar item with label Community"
   },
-  "item.label.v8": {
-    "message": "v8",
-    "description": "Navbar item with label v8"
+  "item.label.Sponsor": {
+    "message": "Sponsor",
+    "description": "Navbar item with label Sponsor"
+  },
+  "item.label.v9": {
+    "message": "v9",
+    "description": "Navbar item with label v9"
   }
 }
