@@ -2,7 +2,6 @@
 id: security
 title: Security
 ---
-# Security
 
 WebdriverIO has the security aspect in mind when providing solutions. Below are some ways to better secure your test.
 
