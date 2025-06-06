@@ -1,5 +1,6 @@
 capabilities: [{<%
     if (answers.expEnvAccessKey) { %>
+        // For all Experitest options and more see: https://docs.digital.ai/continuous-testing/docs/te/test-execution-home
         'experitest:accessKey': '<%- answers.expEnvAccessKey %>',<%
     }
     if (answers.browserEnvironment && answers.browserEnvironment.length) { %>
@@ -24,23 +25,29 @@ capabilities: [{<%
         'appium:bundleId': '<%= answers.generateTestFiles ? 'com.apple.calculator' : '...' %>'<%
     } else if (answers.purpose === 'vscode') { %>
         browserName: 'vscode',
-        browserVersion: 'stable',
+        browserVersion: 'stable', // also possible: "insiders" or a specific version e.g. "1.80.0"
         'wdio:vscodeOptions': {
+            // points to directory where extension package.json is located
             extensionPath: __dirname,
+            // optional VS Code settings
             userSettings: {
                 "editor.fontSize": 14
             }
         }<%
     } else if (answers.purpose === 'electron') { %>
         browserName: 'electron',
+        // For all Electron service options see: https://webdriver.io/docs/desktop-testing/electron/configuration/#service-options
         'wdio:electronServiceOptions': {<%
             if (answers.electronAppBinaryPath) { %>
+            // custom path to app binary
             appBinaryPath: '<%- answers.electronAppBinaryPath %>',<%
             } %>
+            // custom application args
             appArgs: []
         }<%
     } else {
         %>
-        browserName: 'chrome'<%
+        // capabilities for local browser web tests
+        browserName: 'chrome' // or "firefox", "microsoftedge", "safari"<%
     } %>
     }],

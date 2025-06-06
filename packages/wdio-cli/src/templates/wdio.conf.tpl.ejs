@@ -1,10 +1,25 @@
 <% if (answers.isUsingTypeScript && answers.purpose === 'electron') {
     %>/// <reference types="wdio-electron-service" />
 <% } -%>
+<% if (!answers.isUsingTypeScript) {
+    %>// @ts-check
+<% } -%>
 import { defineConfig } from '@wdio/config'
 <%if (answers.isUsingTypeScript && answers.serenityAdapter) {
     %>import type { WebdriverIOConfig } from '@serenity-js/webdriverio'
-<% } -%> 
+<% } -%>
+
+/**
+ * Read environment variables from file
+ * https://github.com/motdotla/dotenv
+ */
+// import dotenv from 'dotenv';
+// import path from 'node:path';
+// dotenv.config({ path: path.resolve(import.meta.dirname, '.env') });
+
+/**
+ * @see https://webdriver.io/docs/configuration
+ */
 <% if (answers.isUsingTypeScript) {
     %>export const config: <%= answers.serenityAdapter ? 'WebdriverIOConfig' : 'WebdriverIO.Config' %> = defineConfig({<%
 } else if (answers.esmSupport) {
@@ -17,6 +32,7 @@ if (answers.runner === 'browser') {
     if (answers.preset) {
         %>['browser', {
             preset: '<%- answers.preset %>',
+            /* run in headful mode when the `DEBUG` environment variable is set */
             headless: !Boolean(process.env.DEBUG)
         }]<%
     } else {
@@ -35,7 +51,7 @@ if (answers.expEnvAccessKey) { %>
 <%} else { %>protocol: '<%- answers.expEnvProtocol %>',<%}%>
     port: <%- answers.expEnvPort %>,
     path: '/wd/hub',
-<% } else if (answers.hostname && answers.port) { %>//
+<% } else if (answers.hostname && answers.port) { %>
     hostname: '<%- answers.hostname %>',
     port: <%- answers.port %>,
     path: '<%- answers.path %>',<% } else if (answers.services.includes('appium')) { %>
@@ -46,18 +62,22 @@ if (answers.env_user && answers.env_key) { %>
 <% }
 if (answers.headless) { %>headless: true,<% }
 if (answers.region) { %>region: '<%- answers.region %>',<% } %>
+    /**
+     * Define which test specs should run. The path is a glob pattern that is relative to
+     * the directory of the configuration file being run.
+     */
     specs: [
         <%- `'${answers.specs}'` %>
     ],
-    maxInstances: 10,
+    /**
+     * WebdriverIO can run multiple capabilities at the same time, each running in a separate session.
+     * A capability represents an environment to test in, which can be an emulated device, a mobile or desktop device or just a browser.
+     * The environment can exist locally (local browser, Docker) or remotely (cloud or a Selenium grid).
+     */
     <%- include('snippets/capabilities', { answers }) -%>
-    logLevel: 'info',
-    bail: 0,
-    waitforTimeout: 10000,
-    connectionRetryTimeout: 120000,
-    connectionRetryCount: 3,
 <%- include('snippets/services', { answers }) -%>
 <%- include('snippets/reporters', { reporters: answers.reporters }) -%>
+    /* Framework to run your tests in */
     framework: '<%- answers.framework -%>',
 <% if (answers.framework === '@serenity-js/webdriverio') { -%>
 <%- include('snippets/serenity', { answers }) -%>

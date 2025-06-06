@@ -1,10 +1,12 @@
+    // The 'dot' reporter is automatically used by default
+    // For all reporter options see: https://webdriver.io/docs/dot-reporter
 <% if (reporters.length) { -%>
     reporters: [<%- reporters.map(reporter => {
-        if (reporter === 'allure') {
-            return `['${reporter}', {outputDir: 'allure-results'}]`
-        } else {
-            return `'${reporter}'`
-        }
-    }) -%>],
+if (reporter === 'allure') {
+    return `['${reporter}', {outputDir: 'allure-results'}]`
+} else {
+    return `'${reporter}'`
+}
+}) -%>],
 <% } else { -%>
 <% } -%>
