@@ -5,21 +5,6 @@ title: Assertion
 
 The [WDIO testrunner](https://webdriver.io/docs/clioptions) comes with a built in assertion library that allows you to make powerful assertions on various aspects of the browser or elements within your (web) application. It extends [Jests Matchers](https://jestjs.io/docs/en/using-matchers) functionality with additional, for e2e testing optimized, matchers, e.g.:
 
-## Soft Assertions
-
-WebdriverIO includes soft assertions by default from expect-webdriver(5.2.0). Soft assertions allow your tests to continue execution even when an assertion fails. All failures are collected and reported at the end of the test.
-
-### Usage
-
-```js
-// These won't throw immediately if they fail
-await expect.soft(await $('h1').getText()).toEqual('Basketball Shoes');
-await expect.soft(await $('#price').getText()).toMatch(/€\d+/);
-
-// Regular assertions still throw immediately
-await expect(await $('.add-to-cart').isClickable()).toBe(true);
-```
-
 ```js
 const $button = await $('button')
 await expect($button).toBeDisplayed()
@@ -35,6 +20,21 @@ await expect(selectOptions).toHaveChildren({ gte: 1 })
 ```
 
 For the full list, see the [expect API doc](/docs/api/expect-webdriverio).
+
+## Soft Assertions
+
+WebdriverIO includes soft assertions by default from expect-webdriver(5.2.0). Soft assertions allow your tests to continue execution even when an assertion fails. All failures are collected and reported at the end of the test.
+
+### Usage
+
+```js
+// These won't throw immediately if they fail
+await expect.soft(await $('h1').getText()).toEqual('Basketball Shoes');
+await expect.soft(await $('#price').getText()).toMatch(/€\d+/);
+
+// Regular assertions still throw immediately
+await expect(await $('.add-to-cart').isClickable()).toBe(true);
+```
 
 ## Migrating from Chai
 
