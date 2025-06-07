@@ -1,5 +1,6 @@
 import { vi, describe, it, afterEach, expect } from 'vitest'
 import { logHookError } from '../../src/test-framework/errorHandler.js'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
 
 process.send = vi.fn()
 
@@ -8,14 +9,17 @@ describe('logHookError', () => {
         logHookError('BeforeStep', [undefined, true, new Error('foobar')], '0-1')
         expect(process.send).toBeCalledTimes(1)
         expect(process.send).toBeCalledWith({
-            name: 'printFailureMessage',
-            origin: 'reporter',
-            content: {
-                cid: '0-1',
-                fullTitle: 'BeforeStep Hook',
-                state: 'fail',
-                type: 'hook',
-                error: expect.objectContaining({ message: 'foobar' }),
+            type: IPC_MESSAGE_TYPES.errorMessage,
+            value: {
+                name: 'printFailureMessage',
+                origin: 'reporter',
+                content: {
+                    cid: '0-1',
+                    fullTitle: 'BeforeStep Hook',
+                    state: 'fail',
+                    type: 'hook',
+                    error: expect.objectContaining({ message: 'foobar' }),
+                }
             },
         })
     })

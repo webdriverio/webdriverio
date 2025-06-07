@@ -1,10 +1,13 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
 import { $ } from '@wdio/globals'
 import type { ChainablePromiseElement } from 'webdriverio'
+import type { AnyWSMessage, WSMessageValue } from '@wdio/types'
+import { WS_MESSAGE_TYPES } from '@wdio/types'
 
 import { getCID } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
+
+import { isWSMessage } from '@wdio/utils'
 
 declare type RawMatcherFn<Context extends MatcherContext = MatcherContext> = {
     (this: Context, actual: unknown, ...expected: Array<unknown>): ExpectationResult;
@@ -49,7 +52,7 @@ function createMatcher (matcherName: string) {
             }
         }
 
-        const expectRequest: Workers.ExpectRequestEvent = {
+        const expectRequest: WSMessageValue[WS_MESSAGE_TYPES.expectRequestMessage] = {
             id: matcherRequestCount++,
             cid,
             scope: this,
@@ -93,14 +96,17 @@ function createMatcher (matcherName: string) {
              */
             expectRequest.context = context
         }
-
         /**
-         * Avoid serialization issues when sending over the element. If we create
-         * an element from an existing HTMLElement, it might have custom properties
-         * attached to it that can't be serialized.
+         * Avoid serialization issues when sending an element.
+         * If the element was created from an existing HTMLElement,
+         * it may have a non-serializable selector (e.g. Promise).
+         * Strip it to ensure safe message transfer.
          */
-        if (expectRequest.element && typeof expectRequest.element.selector !== 'string') {
-            expectRequest.element.selector = undefined
+        interface SerializableElement {
+            selector?: unknown
+        }
+        if (expectRequest.element && 'selector' in expectRequest.element) {
+            delete (expectRequest.element as SerializableElement).selector
         }
 
         /**
@@ -109,22 +115,15 @@ function createMatcher (matcherName: string) {
          * snapshot call.
          */
         if (matcherName === 'toMatchInlineSnapshot') {
-            expectRequest.scope.errorStack = (new Error('inline snapshot error'))
-                .stack
-                ?.split('\n')
-                .find((line) => line.includes(window.__wdioSpec__))
-                /**
-                 * stack traces within the browser have an url path, e.g.
-                 * `http://localhost:8080/@fs/path/to/__tests__/unit/snapshot.test.js:123:45`
-                 * that we want to remove so that the stack trace is properly
-                 * parsed by Vitest, e.g. make it to:
-                 * `/__tests__/unit/snapshot.test.js:123:45`
-                 */
+            ;(expectRequest.scope as { errorStack?: string }).errorStack = (
+                new Error('inline snapshot error')
+            ).stack?.split('\n')
+                .find(line => line.includes(window.__wdioSpec__))
                 ?.replace(/http:\/\/localhost:\d+/g, '')
                 .replace('/@fs/', '/')
         }
 
-        import.meta.hot.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest })
+        import.meta.hot.send(WDIO_EVENT_NAME, { type: WS_MESSAGE_TYPES.expectRequestMessage, value: expectRequest })
         const contextString = isContextObject
             ? 'elementId' in context
                 ? 'WebdriverIO.Element'
@@ -145,44 +144,36 @@ function createMatcher (matcherName: string) {
 /**
  * request all available matchers from the testrunner
  */
-import.meta.hot?.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectMatchersRequest })
+import.meta.hot?.send(WDIO_EVENT_NAME, { type: WS_MESSAGE_TYPES.expectMatchersRequest })
 
 /**
  * listen on assertion results from testrunner
  */
-import.meta.hot?.on(WDIO_EVENT_NAME, (message: Workers.SocketMessage) => {
-    /**
-     * Set up `expect-webdriverio` matchers for the browser environment.
-     * Every assertion is send to the testrunner via a websocket connection
-     * and is executed in the Node.js environment. This allows us to enable
-     * matchers that require Node.js specific modules like `fs` or `child_process`,
-     * for visual regression or snapshot testing for example.
-     *
-     * The testrunner will send a list of available matchers to the browser
-     * since there might services or other hooks that add custom matchers.
-     */
-    if (message.type === MESSAGE_TYPES.expectMatchersResponse) {
-        const matchers = message.value.matchers.reduce((acc, matcherName) => {
+import.meta.hot?.on(WDIO_EVENT_NAME, (message: AnyWSMessage) => {
+    if (isWSMessage(message, WS_MESSAGE_TYPES.expectMatchersResponse)) {
+        const { matchers } = message.value
+        const matcherFns = matchers.reduce((acc, matcherName) => {
             acc[matcherName] = createMatcher(matcherName)
             return acc
         }, {} as Record<string, RawMatcherFn<MatcherContext>>)
-        expect.extend(matchers)
+        expect.extend(matcherFns)
     }
 
-    if (message.type !== MESSAGE_TYPES.expectResponseMessage) {
+    if (!isWSMessage(message, WS_MESSAGE_TYPES.expectResponseMessage)) {
         return
     }
 
-    const payload = matcherRequests.get(message.value.id)
+    const { id, pass, message: msg } = message.value
+    const payload = matcherRequests.get(id)
     if (!payload) {
-        return console.warn(`Couldn't find payload for assertion result with id ${message.value.id}`)
+        return console.warn(`Couldn't find payload for assertion result with id ${id}`)
     }
 
     clearTimeout(payload.commandTimeout)
-    matcherRequests.delete(message.value.id)
+    matcherRequests.delete(id)
     payload.resolve({
-        pass: message.value.pass,
-        message: () => message.value.message
+        pass,
+        message: () => msg
     })
 })
 

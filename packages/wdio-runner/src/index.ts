@@ -9,14 +9,14 @@ import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
+import { createClientRpc, type RunnerRpcInstance } from '@wdio/rpc'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
 import { initializeInstance, getInstancesData } from './utils.js'
 import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
-    TestFramework, SessionStartedMessage, SessionEndedMessage, SnapshotResultMessage
-} from './types.js'
+    TestFramework } from './types.js'
 
 const log = logger('@wdio/runner')
 
@@ -34,6 +34,7 @@ export default class Runner extends EventEmitter {
     private _specs?: string[]
     private _caps?: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     private _sessionInitError?: Error
+    private _rpc?: RunnerRpcInstance
 
     /**
      * run test suite
@@ -49,6 +50,7 @@ export default class Runner extends EventEmitter {
         this._configParser = new ConfigParser(configFile, args)
         this._cid = cid
         this._specs = specs
+        this._rpc = createClientRpc({})
 
         /**
          * add config file
@@ -62,12 +64,7 @@ export default class Runner extends EventEmitter {
 
         this._config = this._configParser.getConfig()
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
-
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
-        if (this._config.maskingPatterns) {
-            logger.setMaskingPatterns(this._config.maskingPatterns)
-        }
-
         const capabilities = this._configParser.getCapabilities()
         const isMultiremote = this._isMultiremote = !Array.isArray(capabilities) ||
             (Object.values(caps).length > 0 && Object.values(caps).every(c => typeof c === 'object' && c.capabilities))
@@ -129,7 +126,13 @@ export default class Runner extends EventEmitter {
          * initialize framework
          */
         this._framework = await this.#initFramework(cid, this._config, this._caps, this._reporter, specs)
-        process.send!({ name: 'testFrameworkInit', content: { cid, caps: this._caps, specs, hasTests: this._framework.hasTests() } })
+
+        this._rpc?.testFrameworkInitMessage({
+            cid,
+            caps: this._caps as Capabilities.RequestedStandaloneCapabilities,
+            specs,
+            hasTests: this._framework!.hasTests()
+        })
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
         }
@@ -194,15 +197,20 @@ export default class Runner extends EventEmitter {
         const { protocol, hostname, port, path, queryParams, automationProtocol, headers } = browser.options
         const { isW3C, sessionId } = browser
         const instances = getInstancesData(browser, isMultiremote)
-        process.send!(<SessionStartedMessage>{
-            origin: 'worker',
-            name: 'sessionStarted',
-            content: {
-                automationProtocol, sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances,
-                capabilities: browser.capabilities,
-                injectGlobals: this._config.injectGlobals,
-                headers
-            }
+        this._rpc?.sessionMetadata({
+            path,
+            automationProtocol,
+            sessionId,
+            isW3C,
+            protocol,
+            hostname,
+            port,
+            isMultiremote,
+            queryParams,
+            instances,
+            capabilities: browser.capabilities,
+            injectGlobals: this._config!.injectGlobals,
+            headers
         })
 
         /**
@@ -227,12 +235,11 @@ export default class Runner extends EventEmitter {
         /**
          * send snapshot result upstream
          */
-        process.send!(<SnapshotResultMessage>{
+        this._rpc?.snapshotResults({
             origin: 'worker',
             name: 'snapshot',
             content: snapshotService.results
         })
-
         return this._shutdown(failures, retries)
     }
 
@@ -477,12 +484,16 @@ export default class Runner extends EventEmitter {
         }
 
         await this._browser?.deleteSession()
-        process.send!(<SessionEndedMessage>{
+
+        /** Ensure `cid` is set before sending the sessionEnded message.
+         *This prevents sending an invalid or empty session ID, which could
+         *break downstream reporting, result tracking, or session cleanup logic.
+         * */
+        this._rpc?.sessionEnded({
             origin: 'worker',
             name: 'sessionEnded',
-            cid: this._cid
+            cid: this._cid!
         })
-
         /**
          * delete session(s)
          */
