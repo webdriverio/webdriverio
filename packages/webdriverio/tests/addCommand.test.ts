@@ -64,7 +64,7 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             browser.addCommand(
                 'press',
-                async function (this /* Expect to be infer to Element by default */) {
+                async function (this /* Expect to be infer to WebDriverIO.Element by default */) {
                     await this.click()
                     return
                 },

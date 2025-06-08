@@ -2,7 +2,6 @@ import path from 'node:path'
 import { describe, expect, expectTypeOf, test, vi } from 'vitest'
 import type { ClickOptions } from '../src/index.js'
 import { remote, multiremote } from '../src/index.js'
-import { Expect } from 'expect-webdriverio'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -115,11 +114,22 @@ describe('overwriteCommand', () => {
                 expect(() => browser.overwriteCommand(
                     // @ts-expect-error cannot overwrite non-existing command
                     'click',
-                    async function () {},
-                    false,
+                    async function () {}
                 )).toThrow('overwriteCommand: no command to be overwritten: click')
             })
 
+            test('should infer properly the argument this of the func to the Browser type', async () => {
+                const browser = await remote(remoteConfig)
+                vi.spyOn(browser, 'scroll')
+
+                browser.overwriteCommand('pause', async function (this) {
+                    this.scroll(0, 100)
+                })
+
+                await browser.pause(10)
+
+                expect(browser.scroll).toHaveBeenCalledTimes(1)
+            })
         })
         describe('given element scope', () => {
             const isElementScope = true

@@ -210,6 +210,7 @@ type OverwriteCommandFn<
     BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
+    this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
     originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
