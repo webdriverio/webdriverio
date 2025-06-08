@@ -165,9 +165,7 @@ describe('overwriteCommand', () => {
                     'getText',
                     async function (originalFunction /* Expecting return a Promise<string> */) {
 
-                        console.log('originalFunction', originalFunction)
                         const text: string = await originalFunction()
-                        console.log(text)
                         return text + ' - overwritten'
                     },
                     isElementScope,
@@ -195,6 +193,22 @@ describe('overwriteCommand', () => {
                 const element = await browser.$('.someRandomElement')
 
                 expect(await element.click()).toBeUndefined()
+            })
+
+            test('should resolve the this parameters type by inference automatically', async () => {
+                const browser = await remote(remoteConfig)
+                browser.overwriteCommand(
+                    'click',
+                    async function (this /* Expect to be WebdriverIO.Element */ ) {
+                        return this.getText()
+                    },
+                    isElementScope,
+                )
+
+                const element = await browser.$('.someRandomElement')
+                vi.spyOn(element, 'getElementText').mockResolvedValue('some text')
+
+                expect(await element.click()).toBe('some text')
             })
         })
     })

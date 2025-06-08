@@ -59,6 +59,22 @@ const customCommand = async () => {
 
 describe('addCommand', () => {
     describe('remote', () => {
+
+        test('should resolve the this parameter by inference', async () => {
+            const browser = await remote(remoteConfig)
+            browser.addCommand(
+                'press',
+                async function (this /* Expect to be infer to Element by default */) {
+                    return this.click()
+                },
+                true,
+            )
+
+            const element = await browser.$('.someRandomElement')
+
+            expect(await element.click()).toBeUndefined()
+        })
+
         test('should be able to handle async', async () => {
             const browser = await remote(remoteConfig)
 
