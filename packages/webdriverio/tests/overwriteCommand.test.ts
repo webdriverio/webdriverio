@@ -1,7 +1,8 @@
 import path from 'node:path'
-import { describe, expect, test, vi } from 'vitest'
+import { describe, expect, expectTypeOf, test, vi } from 'vitest'
 import type { ClickOptions } from '../src/index.js'
 import { remote, multiremote } from '../src/index.js'
+import { Expect } from 'expect-webdriverio'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -49,23 +50,6 @@ describe('overwriteCommand', () => {
 
         describe('given browser scope', () => {
 
-            test('should resolve return type properly', async () => {
-                const browser = await remote(remoteConfig)
-                browser.overwriteCommand(
-                    'pause',
-                    async function (originalFunction /* (milliseconds?: number | undefined) => Promise<void> */) {
-                        const promise: Promise<void> = originalFunction(10)
-
-                        await promise
-
-                        return
-                    },
-                    false,
-                )
-
-                expect(await browser.pause()).toBeUndefined()
-            })
-
             test('should be able to handle async', async () => {
                 const browser = await remote(remoteConfig)
                 browser.overwriteCommand('pause', customBrowserCommand)
@@ -106,6 +90,36 @@ describe('overwriteCommand', () => {
                 // @ts-expect-error command overwritten
                 await expect(browser.url()).rejects.toThrow(error2)
             })
+
+            test('should resolve return type properly', async () => {
+                const browser = await remote(remoteConfig)
+                let origCommand
+                browser.overwriteCommand(
+                    'pause',
+                    async function (originalFunction /* (milliseconds?: number | undefined) => Promise<void> */) {
+                        origCommand = originalFunction
+
+                        const promise: Promise<void> = originalFunction(10)
+                        return await promise
+                    },
+                    false,
+                )
+
+                await expect(browser.pause()).resolves.toBeUndefined()
+                expect(origCommand).toBeDefined()
+            })
+
+            test('should get a ts error and runtime error when trying to overwrite an non-existing command', async () => {
+                const browser = await remote(remoteConfig)
+
+                expect(() => browser.overwriteCommand(
+                    // @ts-expect-error cannot overwrite non-existing command
+                    'click',
+                    async function () {},
+                    false,
+                )).toThrow('overwriteCommand: no command to be overwritten: click')
+            })
+
         })
         describe('given element scope', () => {
             const isElementScope = true
@@ -179,20 +193,23 @@ describe('overwriteCommand', () => {
 
             test('should resolve the parameters of the original command function type properly', async () => {
                 const browser = await remote(remoteConfig)
+                let origFunction
                 browser.overwriteCommand(
                     'click',
                     async function (originalFunction /* Expecting the type to be (options: Partial<ClickOptions>) => Promise<void> */) {
-                        const clickOptions: Partial<ClickOptions> = { skipRelease: true }
+                        origFunction = originalFunction
+                        expectTypeOf<Parameters<typeof originalFunction>[0]>().toEqualTypeOf<Partial<ClickOptions> | undefined>()
 
-                        await originalFunction(clickOptions)
-                        return
+                        const clickOptions: Partial<ClickOptions> = { skipRelease: true }
+                        return originalFunction(clickOptions)
                     },
                     isElementScope,
                 )
 
                 const element = await browser.$('.someRandomElement')
 
-                expect(await element.click()).toBeUndefined()
+                await expect(element.click()).resolves.toBeUndefined()
+                expect(origFunction).toBeDefined()
             })
 
             test('should resolve the this parameters type by inference automatically', async () => {
@@ -211,6 +228,16 @@ describe('overwriteCommand', () => {
 
                 expect(await element.click()).toBe('some text')
                 expect(element.getText).toHaveBeenCalledTimes(1)
+            })
+
+            test('should get a ts error error when trying to overwrite an non-existing command', async () => {
+                const browser = await remote(remoteConfig)
+
+                browser.overwriteCommand(
+                    // @ts-expect-error cannot overwrite non-existing command
+                    'press',
+                    async function () {},
+                    isElementScope)
             })
         })
     })

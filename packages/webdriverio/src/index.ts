@@ -68,15 +68,9 @@ export const remote = async function(
      * we need to overwrite the original addCommand and overwriteCommand
      */
     if ((params as Options.Testrunner).framework && !isStub(params.automationProtocol)) {
-        const origAddCommand = instance.addCommand.bind(instance) as typeof instance.addCommand
-        instance.addCommand = (name: string, fn, attachToElement) => (
-            origAddCommand(name, fn, attachToElement)
-        )
+        instance.addCommand = instance.addCommand.bind(instance)
 
-        const origOverwriteCommand = instance.overwriteCommand.bind(instance) as typeof instance.overwriteCommand
-        instance.overwriteCommand = (name: string, fn, attachToElement) => (
-            origOverwriteCommand<keyof typeof elementCommands, any, any>(name, fn, attachToElement)
-        )
+        instance.overwriteCommand = instance.overwriteCommand.bind(instance)
     }
 
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
