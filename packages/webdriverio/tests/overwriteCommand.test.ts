@@ -54,9 +54,11 @@ describe('overwriteCommand', () => {
                 browser.overwriteCommand(
                     'pause',
                     async function (originalFunction /* (milliseconds?: number | undefined) => Promise<void> */) {
-                        const promise: () => Promise<void> = originalFunction(10)
+                        const promise: Promise<void> = originalFunction(10)
 
-                        return await promise
+                        await promise
+
+                        return
                     },
                     false,
                 )
