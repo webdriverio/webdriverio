@@ -69,12 +69,12 @@ export const remote = async function(
      */
     if ((params as Options.Testrunner).framework && !isStub(params.automationProtocol)) {
         const origAddCommand = instance.addCommand.bind(instance) as typeof instance.addCommand
-        instance.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
+        instance.addCommand = (name: string, fn, attachToElement) => (
             origAddCommand(name, fn, attachToElement)
         )
 
         const origOverwriteCommand = instance.overwriteCommand.bind(instance) as typeof instance.overwriteCommand
-        instance.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
+        instance.overwriteCommand = (name: string, fn, attachToElement) => (
             origOverwriteCommand<keyof typeof elementCommands, any, any>(name, fn, attachToElement)
         )
     }
@@ -178,7 +178,7 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
+        driver.addCommand = (name: string, fn, attachToElement) => {
             driver.instances.forEach(instance =>
                 driver.getInstance(instance).addCommand(name, fn, attachToElement)
             )

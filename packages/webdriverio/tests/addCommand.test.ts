@@ -65,14 +65,18 @@ describe('addCommand', () => {
             browser.addCommand(
                 'press',
                 async function (this /* Expect to be infer to Element by default */) {
-                    return this.click()
+                    await this.click()
+                    return
                 },
                 true,
             )
 
             const element = await browser.$('.someRandomElement')
+            vi.spyOn(element, 'click')
 
-            expect(await element.click()).toBeUndefined()
+            // @ts-expect-error undefined custom command
+            expect(await element.press()).toBeUndefined()
+            expect(element.click).toBeCalledTimes(1)
         })
 
         test('should be able to handle async', async () => {

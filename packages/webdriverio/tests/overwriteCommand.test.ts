@@ -206,9 +206,11 @@ describe('overwriteCommand', () => {
                 )
 
                 const element = await browser.$('.someRandomElement')
+                vi.spyOn(element, 'getText')
                 vi.spyOn(element, 'getElementText').mockResolvedValue('some text')
 
                 expect(await element.click()).toBe('some text')
+                expect(element.getText).toHaveBeenCalledTimes(1)
             })
         })
     })
