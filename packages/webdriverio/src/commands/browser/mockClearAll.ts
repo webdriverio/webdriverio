@@ -30,7 +30,7 @@ const log = logger('webdriverio:mockClearAll')
  *
  * @alias browser.mockClearAll
  */
-export async function mockClearAll () {
+export async function mockClearAll (): Promise<void> {
     for (const [handle, mocks] of Object.entries(SESSION_MOCKS)) {
         log.trace(`Clearing mocks for ${handle}`)
         for (const mock of mocks) {
