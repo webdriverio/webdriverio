@@ -63,7 +63,7 @@ describe('overwriteCommand', () => {
                     false,
                 )
 
-                expect(browser.pause()).resolves.toBeValid()
+                expect(await browser.pause()).toBeUndefined()
             })
 
             test('should be able to handle async', async () => {
@@ -158,18 +158,23 @@ describe('overwriteCommand', () => {
             })
 
             test('should resolve the return of the original command function type properly', async () => {
+
                 const browser = await remote(remoteConfig)
+
                 browser.overwriteCommand(
                     'getText',
                     async function (originalFunction /* Expecting return a Promise<string> */) {
 
+                        console.log('originalFunction', originalFunction)
                         const text: string = await originalFunction()
-                        return text.concat(' - overwritten')
+                        console.log(text)
+                        return text + ' - overwritten'
                     },
                     isElementScope,
                 )
 
-                const element = browser.$('.someRandomElement')
+                const element = await browser.$('.someRandomElement')
+                vi.spyOn(element, 'getElementText').mockResolvedValue('some text')
 
                 expect(await element.getText()).toBe('some text - overwritten')
             })
@@ -189,7 +194,7 @@ describe('overwriteCommand', () => {
 
                 const element = await browser.$('.someRandomElement')
 
-                expect(element.click()).resolves.toBeValid()
+                expect(await element.click()).toBeUndefined()
             })
         })
     })
