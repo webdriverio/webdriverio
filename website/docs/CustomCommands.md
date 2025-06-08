@@ -271,9 +271,9 @@ The overall approach is similar to `addCommand`, the only difference is that the
  */
 // 'pause'            - name of command to be overwritten
 // origPauseFunction  - original pause function
-browser.overwriteCommand('pause', async (origPauseFunction, ms) => {
+browser.overwriteCommand('pause', async (originalPauseFunction, ms) => {
     console.log(`sleeping for ${ms}`)
-    await origPauseFunction(ms)
+    await originalPauseFunction(ms)
     return ms
 })
 
@@ -289,34 +289,38 @@ Overwriting commands on element level is almost the same. Simply pass `true` as 
 /**
  * Attempt to scroll to element if it is not clickable.
  * Pass { force: true } to click with JS even if element is not visible or clickable.
+ * Show that the original function argument type can be kept with `options?: ClickOptions`
  */
 // 'click'            - name of command to be overwritten
 // origClickFunction  - original click function
-browser.overwriteCommand('click', async function (origClickFunction, { force = false } = {}) {
-    if (!force) {
-        try {
-            // attempt to click
-            await origClickFunction()
-            return null
-        } catch (err) {
-            if (err.message.includes('not clickable at point')) {
-                console.warn('WARN: Element', this.selector, 'is not clickable.',
-                    'Scrolling to it before clicking again.')
+browser.overwriteCommand(
+  'click',
+  async function (this, originalClickFunction, options?: ClickOptions & { force?: boolean }) {
+    if (!options?.force) {
+      try {
+        // attempt to click
+        await originalClickFunction();
+        return null;
+      } catch (err) {
+        if ((err as Error).message.includes('not clickable at point')) {
+          console.warn('WARN: Element', this.selector, 'is not clickable.', 'Scrolling to it before clicking again.');
 
-                // scroll to element and click again
-                await this.scrollIntoView()
-                return origClickFunction()
-            }
-            throw err
+          // scroll to element and click again
+          await this.scrollIntoView();
+          return originalClickFunction();
         }
+        throw err;
+      }
     }
 
     // clicking with js
-    console.warn('WARN: Using force click for', this.selector)
+    console.warn('WARN: Using force click for', this.selector);
     await browser.execute((el) => {
-        el.click()
-    }, this)
-}, true) // don't forget to pass `true` as 3rd argument
+      el.click();
+    }, this);
+  },
+  true,
+); // don't forget to pass `true` as 3rd argument
 
 // then use it as before
 const elem = await $('body')
