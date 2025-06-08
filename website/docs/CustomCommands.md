@@ -294,33 +294,34 @@ Overwriting commands on element level is almost the same. Simply pass `true` as 
 // 'click'            - name of command to be overwritten
 // origClickFunction  - original click function
 browser.overwriteCommand(
-  'click',
-  async function (this, originalClickFunction, options?: ClickOptions & { force?: boolean }) {
-    if (!options?.force) {
-      try {
-        // attempt to click
-        await originalClickFunction();
-        return null;
-      } catch (err) {
-        if ((err as Error).message.includes('not clickable at point')) {
-          console.warn('WARN: Element', this.selector, 'is not clickable.', 'Scrolling to it before clicking again.');
+    'click',
+    async function (this, originalClickFunction, options?: ClickOptions & { force?: boolean }) {
+        const { force, ...restOptions } = options || {}
+        if (!force) {
+            try {
+                // attempt to click
+                await originalClickFunction(options)
+                return
+            } catch (err) {
+                if ((err as Error).message.includes('not clickable at point')) {
+                    console.warn('WARN: Element', this.selector, 'is not clickable.', 'Scrolling to it before clicking again.')
 
-          // scroll to element and click again
-          await this.scrollIntoView();
-          return originalClickFunction();
+                    // scroll to element and click again
+                    await this.scrollIntoView()
+                    return originalClickFunction(options)
+                }
+                throw err
+            }
         }
-        throw err;
-      }
-    }
 
-    // clicking with js
-    console.warn('WARN: Using force click for', this.selector);
-    await browser.execute((el) => {
-      el.click();
-    }, this);
-  },
-  true,
-); // don't forget to pass `true` as 3rd argument
+        // clicking with js
+        console.warn('WARN: Using force click for', this.selector)
+        await browser.execute((el) => {
+            el.click()
+        }, this)
+    },
+    true, // don't forget to pass `true` as 3rd argument
+)
 
 // then use it as before
 const elem = await $('body')
