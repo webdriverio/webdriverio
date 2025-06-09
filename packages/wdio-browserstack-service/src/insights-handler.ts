@@ -39,6 +39,8 @@ import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 import { BrowserstackCLI } from './cli/index.js'
 import { TestFrameworkState } from './cli/states/testFrameworkState.js'
 import { HookState } from './cli/states/hookState.js'
+import TestFramework from './cli/frameworks/testFramework.js'
+import { TestFrameworkConstants } from './cli/frameworks/constants/testFrameworkConstants.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -88,6 +90,12 @@ class _InsightsHandler {
             return
         }
         process.removeAllListeners(`bs:addLog:${process.pid}`)
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            process.on(`bs:addLog:${process.pid}`, async (stdLog: StdLog) => {
+                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG, HookState.POST, { logEntry: stdLog })
+            })
+            return
+        }
         process.on(`bs:addLog:${process.pid}`, this.appendTestItemLog.bind(this))
     }
 
@@ -370,7 +378,11 @@ class _InsightsHandler {
     }
 
     async beforeTest (test: Frameworks.Test) {
-        const uuid = uuidv4()
+        let uuid = uuidv4()
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { test })
+            uuid = TestFramework.getState(TestFramework.getTrackedInstance(), TestFrameworkConstants.KEY_TEST_UUID)
+        }
         InsightsHandler.currentTest = {
             test, uuid
         }
@@ -382,6 +394,11 @@ class _InsightsHandler {
             uuid,
             startedAt: (new Date()).toISOString()
         }
+
+        // if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+        //     await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test })
+        //     return
+        // }
         this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
 
@@ -395,10 +412,13 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         BStackLogger.debug('calling testFinished')
-        const testData = this.getRunData(test, 'TestRunFinished', result)
-        await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, testData)
+
         this.flushCBTDataQueue()
-        this.listener.testFinished(testData)
+        // if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+        //     await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result })
+        //     return
+        // }
+        this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
     /**
@@ -833,6 +853,7 @@ class _InsightsHandler {
     }
 
     public async flushCBTDataQueue() {
+        BStackLogger.debug(`Flushing CBT Data Queue ${this.currentTestId}`)
         if (isUndefined(this.currentTestId)) {return}
         this.cbtQueue.forEach(cbtData => {
             cbtData.uuid = this.currentTestId!
@@ -853,6 +874,7 @@ class _InsightsHandler {
             uuid: '',
             integrations: integrationsData
         }
+        BStackLogger.debug(`Sending CBT Data ${this.currentTestId} ${JSON.stringify(cbtData)}`)
 
         if (this.currentTestId !== undefined) {
             cbtData.uuid = this.currentTestId

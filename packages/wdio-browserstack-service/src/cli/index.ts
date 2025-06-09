@@ -6,7 +6,7 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
 import { GrpcClient } from './grpcClient.js'
-import TestHubModule from './modules/TestHubModule.js'
+import TestHubModule from './modules/testHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
 import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
@@ -16,6 +16,7 @@ import type { Options } from '@wdio/types'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
 import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
+import WebdriverIOModule from './modules/webdriverIOModule.js'
 import AcessibilityModule from './modules/AcessibilityModule.js'
 import { processAccessibilityResponse } from '../util.js'
 
@@ -145,6 +146,8 @@ export class BrowserstackCLI {
             }
 
         }
+
+        this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
 
         this.configureModules()
     }

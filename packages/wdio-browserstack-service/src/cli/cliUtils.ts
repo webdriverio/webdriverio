@@ -31,6 +31,7 @@ import { UPDATED_CLI_ENDPOINT, BROWSERSTACK_API_URL } from '../constants.js'
 import type { Options, Capabilities } from '@wdio/types'
 import { Readable } from 'node:stream'
 import type { BrowserstackConfig, BrowserstackOptions } from 'src/types.js'
+import { TestFrameworkConstants } from './frameworks/constants/testFrameworkConstants.js'
 
 export class CLIUtils {
     static automationFrameworkDetail = {}
@@ -446,5 +447,11 @@ export class CLIUtils {
      */
     static getHookRegistryKey(frameworkState: State, hookState: State) {
         return `${frameworkState}:${hookState}`
+    }
+
+    static matchHookRegex(hookState: string) {
+        const pattern = new RegExp(TestFrameworkConstants.HOOK_REGEX)
+
+        return pattern.test(hookState)
     }
 }

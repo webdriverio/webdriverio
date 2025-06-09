@@ -293,6 +293,18 @@ export const processTestObservabilityResponse = (response: LaunchResponse) => {
     }
 }
 
+export const performO11ySync = async (browser: WebdriverIO.Browser) => {
+    if (isBrowserstackSession(browser)) {
+        await browser.execute(`browserstack_executor: ${JSON.stringify({
+            action: 'annotate',
+            arguments: {
+                data: `ObservabilitySync:${Date.now()}`,
+                level: 'debug'
+            }
+        })}`)
+    }
+}
+
 interface DataElement {
     [key: string]: any
 }
@@ -1629,4 +1641,21 @@ export function setReadWriteAccess(dirPath: string) {
     } catch (err: any) {
         BStackLogger.error(`Failed to set directory access: ${err.stack}`)
     }
+}
+
+export function getHierarchyFromTest(test: Frameworks.Test) {
+    const value: string[] = []
+    if (test.ctx && test.ctx.test) {
+        // If we already have the parent object, utilize it else get from context
+        let parent = typeof test.parent === 'object' ? test.parent : test.ctx.test.parent
+        while (parent && parent.title !== '') {
+            value.push(parent.title)
+            parent = parent.parent
+        }
+    } else if (test.description && test.fullName) {
+        // for Jasmine
+        value.push(test.description)
+        value.push(test.fullName.replace(new RegExp(' ' + test.description + '$'), ''))
+    }
+    return value.reverse()
 }

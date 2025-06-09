@@ -130,4 +130,11 @@ export default class TestFramework {
         instance.getAllData().set(key, value)
     }
 
+    updateInstanceState(instance: TestFrameworkInstance, testFrameworkState: State, hookState: State) {
+        instance.setLastTestState(instance.getCurrentTestState())
+        instance.setLastHookState(instance.getCurrentHookState())
+        instance.setCurrentTestState(testFrameworkState)
+        instance.setCurrentHookState(hookState)
+    }
+
 }
