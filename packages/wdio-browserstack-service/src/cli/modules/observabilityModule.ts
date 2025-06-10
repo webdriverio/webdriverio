@@ -5,7 +5,7 @@ import { HookState } from '../states/hookState.js'
 import PerformanceTester from '../../instrumentation/performance/performance-tester.js'
 import { O11Y_EVENTS } from '../../instrumentation/performance/constants.js'
 import { BStackLogger } from '../cliLogger.js'
-import { performO11ySync } from 'src/util.js'
+import { performO11ySync } from '../../util.js'
 
 /**
  * Observability Module for BrowserStack
@@ -35,9 +35,9 @@ export default class ObservabilityModule extends BaseModule {
         return ObservabilityModule.MODULE_NAME
     }
 
-    async onBeforeTest(args: Record<string, WebdriverIO.Browser>) {
+    async onBeforeTest(args: Record<string, unknown>) {
         if (args.browser) {
-            const browser = args.browser
+            const browser = args.browser as WebdriverIO.Browser
             PerformanceTester.start(O11Y_EVENTS.SYNC)
             performO11ySync(browser)
             PerformanceTester.end(O11Y_EVENTS.SYNC)
