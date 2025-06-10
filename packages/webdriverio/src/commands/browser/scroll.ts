@@ -29,9 +29,10 @@ export function scroll (
     this: WebdriverIO.Browser,
     x = 0,
     y = 0
-) {
+): Promise<void> {
     if (!x && !y) {
-        return log.warn('"scroll" command was called with no parameters, skipping execution')
+        log.warn('"scroll" command was called with no parameters, skipping execution')
+        return Promise.resolve()
     }
 
     // Appium does not support the "wheel" action
