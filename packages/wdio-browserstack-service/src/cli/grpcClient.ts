@@ -12,6 +12,7 @@ import {
     TestSessionEventRequest,
     ExecutionContext,
     LogCreatedEventRequest,
+    // eslint-disable-next-line camelcase
     LogCreatedEventRequest_LogEntry,
     TestSessionEventRequest_AutomationSession as AutomationSession,
     DriverInitRequest
@@ -379,8 +380,10 @@ export class GrpcClient {
                 threadId: executionContext?.threadId,
                 hash: executionContext?.hash
             })
+            // eslint-disable-next-line camelcase
             const logEntries: LogCreatedEventRequest_LogEntry[] = []
             for (const log of logs) {
+                // eslint-disable-next-line camelcase
                 const logEntry = LogCreatedEventRequest_LogEntry.create({
                     testFrameworkName: log.testFrameworkName,
                     testFrameworkVersion: log.testFrameworkVersion,
