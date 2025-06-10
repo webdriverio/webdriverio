@@ -57,6 +57,7 @@ import {
 import * as bstackLogger from '../src/bstackLogger.js'
 import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
 import * as testHubUtils from '../src/testHub/utils.js'
+import type { Options } from '@wdio/types'
 
 const log = logger('test')
 
@@ -1382,6 +1383,7 @@ describe('processTestObservabilityResponse', () => {
 
 describe('processAccessibilityResponse', () => {
     let response: LaunchResponse, handleErrorForAccessibilitySpy
+    let options: BrowserstackConfig & Options.Testrunner
     beforeAll(() => {
         response = {
             jwt: 'abc',
@@ -1417,24 +1419,40 @@ describe('processAccessibilityResponse', () => {
                 errors: undefined
             }
         }
+        options = {}
     })
     it ('processAccessibilityResponse should not log an error', function () {
-        processAccessibilityResponse(response)
+        const optionsWithAccessibilityTrue = options
+        optionsWithAccessibilityTrue.accessibility = true
+        processAccessibilityResponse(response, optionsWithAccessibilityTrue)
         expect(process.env[BROWSERSTACK_ACCESSIBILITY]).toEqual('true')
     })
     it ('processAccessibilityResponse should log error if accessibility success is false', function () {
         handleErrorForAccessibilitySpy = vi.spyOn(testHubUtils, 'handleErrorForAccessibility').mockReturnValue({} as any)
         const res = response
         res.accessibility!.success = false
-        processAccessibilityResponse(res)
+        const optionsWithAccessibilityTrue = options
+        optionsWithAccessibilityTrue.accessibility = true
+        processAccessibilityResponse(res, optionsWithAccessibilityTrue)
         expect(handleErrorForAccessibilitySpy).toBeCalled()
     })
     it ('processAccessibilityResponse should log error if accessibility field not found', function () {
         handleErrorForAccessibilitySpy = vi.spyOn(testHubUtils, 'handleErrorForAccessibility').mockReturnValue({} as any)
         const res = response
         res.accessibility = undefined
-        processAccessibilityResponse(res)
+        const optionsWithAccessibilityTrue = options
+        optionsWithAccessibilityTrue.accessibility = true
+        processAccessibilityResponse(res, optionsWithAccessibilityTrue)
         expect(handleErrorForAccessibilitySpy).toBeCalled()
+    })
+    it ('processAccessibilityResponse should not log error if accessibility field not found & accessibility not found in options', function () {
+        handleErrorForAccessibilitySpy = vi.spyOn(testHubUtils, 'handleErrorForAccessibility').mockReturnValue({} as any)
+        const res = response
+        res.accessibility = undefined
+        const optionsWithAccessibilityNull = options
+        optionsWithAccessibilityNull.accessibility = null
+        processAccessibilityResponse(res, optionsWithAccessibilityNull)
+        expect(handleErrorForAccessibilitySpy).toBeCalledTimes(0)
     })
     afterEach(() => {
         handleErrorForAccessibilitySpy?.mockClear()
