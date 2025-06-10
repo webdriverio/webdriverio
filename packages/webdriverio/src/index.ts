@@ -173,8 +173,8 @@ export const multiremote = async function (
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
         driver.addCommand = (name: string, fn, attachToElement) => {
-            driver.instances.forEach(instance =>
-                driver.getInstance(instance).addCommand(name, fn, attachToElement)
+            driver.instances.forEach(instanceName =>
+                driver.getInstance(instanceName).addCommand(name, fn, attachToElement)
             )
 
             return origAddCommand(
@@ -187,7 +187,7 @@ export const multiremote = async function (
         }
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver) as typeof driver.overwriteCommand
-        driver.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
+        driver.overwriteCommand = (name, fn, attachToElement) => {
             return origOverwriteCommand<keyof typeof elementCommands, any, any>(
                 name,
                 fn,

@@ -225,30 +225,8 @@ export interface CustomInstanceCommands<T> {
      */
     addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
         name: string,
-        func: IsElement extends true ? AddCommandFnScoped<Instance, IsElement> : AddCommandFn,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
         attachToElement?: IsElement,
-        proto?: Record<string, any>,
-        instances?: Record<string, Instances>
-    ): void;
-
-    /**
-     * add command to `browser`
-     * Waiting approval
-     */
-    addBrowserCommand(
-        name: string,
-        func: AddCommandFn,
-        proto?: Record<string, any>,
-        instances?: Record<string, Instances>
-    ): void;
-
-    /**
-     * add command to `element` scope
-     * Waiting approval
-     */
-    addElementCommand(
-        name: string,
-        func: AddCommandFnScoped<T, false>,
         proto?: Record<string, any>,
         instances?: Record<string, Instances>
     ): void;
@@ -260,28 +238,6 @@ export interface CustomInstanceCommands<T> {
         name: IsElement extends true ? ElementKey : BrowserKey,
         func: IsElement extends true ? OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement> : OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
-        proto?: Record<string, any>,
-        instances?: Record<string, Instances>
-    ): void;
-
-    /**
-     * overwrite `browser` command
-     * Waiting approval
-     */
-    overwriteBrowserCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = false>(
-        name: BrowserKey,
-        func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
-        proto?: Record<string, any>,
-        instances?: Record<string, Instances>
-    ): void;
-
-    /**
-     * overwrite `element` command
-     * Waiting approval
-     */
-    overwriteElementCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = true>(
-        name: ElementKey,
-        func: OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
         proto?: Record<string, any>,
         instances?: Record<string, Instances>
     ): void;
