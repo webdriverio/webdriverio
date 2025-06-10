@@ -17,6 +17,7 @@ import TestOpsConfig from '../testOps/testOpsConfig.js'
 import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
 import WebdriverIOModule from './modules/webdriverIOModule.js'
+import ObservabilityModule from './modules/observabilityModule.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -119,6 +120,8 @@ export class BrowserstackCLI {
         this.setupTestFramework()
         this.setupAutomationFramework()
 
+        this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
+
         if (startBinResponse.testhub) {
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
             if (startBinResponse.testhub.jwt) {
@@ -138,7 +141,9 @@ export class BrowserstackCLI {
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
         }
 
-        this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
+        if (startBinResponse.observability?.success) {
+            this.modules[ObservabilityModule.MODULE_NAME] = new ObservabilityModule(startBinResponse.observability)
+        }
 
         this.configureModules()
     }
