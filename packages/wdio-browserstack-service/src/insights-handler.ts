@@ -101,6 +101,13 @@ class _InsightsHandler {
         this._suiteFile = filename
     }
 
+    public async setGitConfigPath() {
+        const gitMeta = await getGitMetaData()
+        if (gitMeta) {
+            this._gitConfigPath = gitMeta.root
+        }
+    }
+
     async before () {
         if (isBrowserstackSession(this._browser)) {
             await (this._browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({

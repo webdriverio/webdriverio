@@ -165,7 +165,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._browser) {
             try {
-                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps })
+                if (BrowserstackCLI.getInstance().isRunning()) {
+                    await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps })
+                }
                 const sessionId = this._browser.sessionId
                 if (isBrowserstackSession(this._browser)) {
                     try {
@@ -193,7 +195,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         this._caps,
                         this._options
                     )
-                    await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
+                    if (BrowserstackCLI.getInstance().isRunning()) {
+                        await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
+                        this._insightsHandler.setGitConfigPath()
+                        return
+                    }
                     await this._insightsHandler.before()
                 }
 
