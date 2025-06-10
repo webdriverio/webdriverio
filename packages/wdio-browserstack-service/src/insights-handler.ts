@@ -395,10 +395,10 @@ class _InsightsHandler {
             startedAt: (new Date()).toISOString()
         }
 
-        // if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
-        //     await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test })
-        //     return
-        // }
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test })
+            return
+        }
         this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
 
@@ -413,11 +413,12 @@ class _InsightsHandler {
         }
         BStackLogger.debug('calling testFinished')
 
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG_REPORT, HookState.POST, { test, result })
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result })
+            return
+        }
         this.flushCBTDataQueue()
-        // if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
-        //     await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result })
-        //     return
-        // }
         this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
