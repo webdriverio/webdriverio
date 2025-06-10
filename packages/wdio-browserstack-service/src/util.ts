@@ -316,9 +316,11 @@ export const jsonifyAccessibilityArray = (
     return result
 }
 
-export const  processAccessibilityResponse = (response: LaunchResponse) => {
+export const  processAccessibilityResponse = (response: LaunchResponse, options: BrowserstackConfig & Options.Testrunner) => {
     if (!response.accessibility) {
-        handleErrorForAccessibility(null)
+        if (options.accessibility === true) {
+            handleErrorForAccessibility(null)
+        }
         return
     }
     if (!response.accessibility.success) {
@@ -355,7 +357,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     if (options.testObservability) {
         processTestObservabilityResponse(response)
     }
-    processAccessibilityResponse(response)
+    processAccessibilityResponse(response, options)
 }
 
 export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
