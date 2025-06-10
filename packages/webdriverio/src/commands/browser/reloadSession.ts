@@ -55,7 +55,7 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?: WebdriverIO.Capabilities) {
+export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?: WebdriverIO.Capabilities): Promise<string> {
     const oldSessionId = (this as WebdriverIO.Browser).sessionId
 
     /**
@@ -91,5 +91,5 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
         await Promise.all(options.onReload.map((hook) => hook(oldSessionId, (this as WebdriverIO.Browser).sessionId)))
     }
 
-    return this.sessionId as string
+    return this.sessionId
 }

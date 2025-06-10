@@ -26,7 +26,7 @@ import { checkUnicode } from '../../utils/index.js'
 export async function keys (
     this: WebdriverIO.Browser,
     value: string | string[]
-) {
+): Promise<void> {
     let keySequence: string[] = []
 
     /**

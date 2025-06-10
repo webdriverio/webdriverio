@@ -34,7 +34,7 @@ export async function custom$ (
     this: WebdriverIO.Browser,
     strategyName: string,
     ...strategyArguments: unknown[]
-) {
+) : Promise<WebdriverIO.Element> {
     const strategy = this.strategies.get(strategyName) as CustomStrategyFunction
 
     if (!strategy) {
