@@ -8,6 +8,7 @@ import { CLIUtils } from '../cliUtils.js'
 import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
 import { GrpcClient } from '../grpcClient.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
+// eslint-disable-next-line camelcase
 import type { LogCreatedEventRequest, LogCreatedEventRequest_LogEntry, TestFrameworkEventRequest, TestSessionEventRequest, TestSessionEventRequest_AutomationSession } from '../../proto/sdk-messages.js'
 import type { Frameworks } from '@wdio/types'
 import WdioMochaTestFramework from '../frameworks/wdioMochaTestFramework.js'
@@ -197,6 +198,7 @@ export default class TestHubModule extends BaseModule {
                     ? 'browserstack'
                     : 'unknown_grid'
 
+                // eslint-disable-next-line camelcase
                 const automationSession: TestSessionEventRequest_AutomationSession = {
                     provider: sessionProvider,
                     ref: autoInstance.getRef(),
@@ -247,6 +249,7 @@ export default class TestHubModule extends BaseModule {
                 binSessionId: '' // TODO: Dummy value, not needed
             }
             for (const logEntry of logEntries) {
+                // eslint-disable-next-line camelcase
                 const logData: LogCreatedEventRequest_LogEntry = {
                     testFrameworkName,
                     testFrameworkVersion,
