@@ -71,6 +71,46 @@ class _PercyHandler {
         PerformanceTester.end(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.AUTO_CAPTURE, true, null, { eventName, sessionName })
     }
 
+    async percyAutoCaptureForCli(eventName: string | null, sessionName: string) {
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.AUTO_CAPTURE)
+        try {
+            if (eventName) {
+                if(sessionName === null || sessionName === undefined) {
+                    PercyLogger.error('Session name is null or undefined, cannot capture Percy screenshot')
+                    return
+                }
+                if (!sessionName) {
+                    /* Service doesn't wait for handling of browser commands so the below counter is used in teardown method to delay service exit */
+                    this._percyScreenshotCounter += 1
+                }
+
+                this._percyCaptureMap?.increment(sessionName, eventName)
+                await (this._isAppAutomate ? PercySDK.screenshotApp(this._percyCaptureMap?.getName( sessionName, eventName)) : await PercySDK.screenshot(this._browser, this._percyCaptureMap?.getName( sessionName, eventName)))
+                this._percyScreenshotCounter -= 1
+            }
+        } catch (err: any) {
+            this._percyScreenshotCounter -= 1
+            this._percyCaptureMap?.decrement(sessionName, eventName as string)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.AUTO_CAPTURE, false, err, { eventName, sessionName })
+            PercyLogger.error(`Error while trying to auto capture Percy screenshot ${err}`)
+        }
+        PerformanceTester.end(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.AUTO_CAPTURE, true, null, { eventName, sessionName })
+    }
+
+    // private async commandWrapper (command: any, origFunction: Function, ...args: any[]) {
+    //     if (
+    //         this._sessionId && AccessibilityHandler._a11yScanSessionMap[this._sessionId] &&
+    //             (
+    //                 !command.name.includes('execute') ||
+    //                 !AccessibilityHandler.shouldPatchExecuteScript(args.length ? args[0] : null)
+    //             )
+    //     ) {
+    //         PercyLogger.debug(`Performing scan for ${command.class} ${command.name}`)
+    //         await performA11yScan(this.isAppAutomate, this._browser, true, true, command.name)
+    //     }
+    //     return origFunction(...args)
+    // }
+
     async before () {
         this._percyCaptureMap = new PercyCaptureMap()
     }

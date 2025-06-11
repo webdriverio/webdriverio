@@ -18,6 +18,7 @@ import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
 import WebdriverIOModule from './modules/webdriverIOModule.js'
 import ObservabilityModule from './modules/observabilityModule.js'
+import PercyModule from './modules/percyModule.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -122,6 +123,7 @@ export class BrowserstackCLI {
 
         this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
 
+
         if (startBinResponse.testhub) {
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
             if (startBinResponse.testhub.jwt) {
@@ -144,6 +146,8 @@ export class BrowserstackCLI {
         if (startBinResponse.observability?.success) {
             this.modules[ObservabilityModule.MODULE_NAME] = new ObservabilityModule(startBinResponse.observability)
         }
+        // if (startBinResponse.percy?.success) {
+            this.modules[PercyModule.MODULE_NAME] = new PercyModule()
 
         this.configureModules()
     }
