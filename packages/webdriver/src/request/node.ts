@@ -16,7 +16,7 @@ export const SESSION_DISPATCHERS: Map<string, Dispatcher> = new Map()
  * Node implementation of WebDriverRequest using undici fetch
  */
 export class FetchRequest extends WebDriverRequest {
-    async fetch (url: URL, opts: RequestInit) {
+    async fetch(url: URL, opts: RequestInit) {
         const response = await fetch(url, opts as UndiciRequestInit) as unknown as Promise<Response>
         if (opts.method === 'DELETE') {
             // regex should only target the delete session request, not other
@@ -38,6 +38,8 @@ export class FetchRequest extends WebDriverRequest {
         /**
          * Use a proxy agent if we have a proxy url set
          */
+        const PROXY_URL = environment.value.variables.PROXY_URL;
+        const NO_PROXY = environment.value.variables.NO_PROXY;
         const shouldUseProxy =
             PROXY_URL && !NO_PROXY?.some((str) => url.hostname.endsWith(str))
 
@@ -53,7 +55,7 @@ export class FetchRequest extends WebDriverRequest {
                 bodyTimeout: options.connectionRetryTimeout,
             })
 
-        if (sessionId){
+        if (sessionId) {
             SESSION_DISPATCHERS.set(sessionId, dispatcher)
         }
 
@@ -69,10 +71,10 @@ export class FetchRequest extends WebDriverRequest {
         SESSION_DISPATCHERS.delete(sessionId)
     }
 
-    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false) {
+    async createOptions(options: RequestOptions, sessionId?: string, isBrowser: boolean = false) {
         const { url, requestOptions } = await super.createOptions(options, sessionId, isBrowser)
 
-        ;(requestOptions as UndiciRequestInit).dispatcher = this.getDispatcher(url, options, sessionId)
+            ; (requestOptions as UndiciRequestInit).dispatcher = this.getDispatcher(url, options, sessionId)
         return { url, requestOptions }
     }
 }
