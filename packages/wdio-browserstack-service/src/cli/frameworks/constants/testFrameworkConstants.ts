@@ -21,6 +21,7 @@ export const TestFrameworkConstants = {
     KEY_TEST_FAILURE_REASON : 'test_failure_reason',
     KEY_TEST_LOGS : 'test_logs',
     KEY_TEST_META : 'test_meta',
+    KEY_TEST_DEFERRED : 'test_deferred',
     KEY_SESSION_NAME : 'test_session_name',
     KEY_AUTOMATE_SESSION_NAME : 'automate_session_name',
     KEY_AUTOMATE_SESSION_STATUS: 'automate_session_status',

@@ -19,6 +19,7 @@ import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
 import WebdriverIOModule from './modules/webdriverIOModule.js'
 import AcessibilityModule from './modules/AcessibilityModule.js'
 import { processAccessibilityResponse } from '../util.js'
+import ObservabilityModule from './modules/observabilityModule.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -137,6 +138,7 @@ export class BrowserstackCLI {
                 if (startBinResponse.observability.options?.allowScreenshots) {
                     process.env[TESTOPS_SCREENSHOT_ENV] = startBinResponse.observability.options.allowScreenshots.toString()
                 }
+                this.modules[ObservabilityModule.MODULE_NAME] = new ObservabilityModule(startBinResponse.observability)
             }
 
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
@@ -146,7 +148,6 @@ export class BrowserstackCLI {
                 processAccessibilityResponse(startBinResponse)
                 this.modules[AcessibilityModule.MODULE_NAME] = new AcessibilityModule(startBinResponse.accessibility)
             }
-
         }
 
         this.configureModules()

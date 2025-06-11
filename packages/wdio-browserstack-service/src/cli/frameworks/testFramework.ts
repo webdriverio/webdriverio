@@ -119,6 +119,10 @@ export default class TestFramework {
         return instance.getAllData().get(key)
     }
 
+    static hasState(instance: TestFrameworkInstance, key: string) {
+        return instance.hasData(key)
+    }
+
     /**
    * Set the state
    * @param {TrackedInstance} instance - The instance

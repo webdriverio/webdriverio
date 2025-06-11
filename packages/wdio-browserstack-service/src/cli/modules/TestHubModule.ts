@@ -8,6 +8,7 @@ import { CLIUtils } from '../cliUtils.js'
 import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
 import { GrpcClient } from '../grpcClient.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
+// eslint-disable-next-line camelcase
 import type { LogCreatedEventRequest, LogCreatedEventRequest_LogEntry, TestFrameworkEventRequest, TestSessionEventRequest, TestSessionEventRequest_AutomationSession } from '../../proto/sdk-messages.js'
 import type { Frameworks } from '@wdio/types'
 import WdioMochaTestFramework from '../frameworks/wdioMochaTestFramework.js'
@@ -65,6 +66,7 @@ export default class TestHubModule extends BaseModule {
         const instance = args.instance as TestFrameworkInstance
         const testState = instance.getCurrentTestState()
         const hookState = instance.getCurrentHookState()
+        const keyTestDeferred = TestFramework.getState(instance, TestHubModule.KEY_TEST_DEFERRED)
         if (testState === TestFrameworkState.LOG) {
             this.logger.debug(`onAllTestEvents: TestFrameworkState.LOG - ${testState}`)
             const logEntries = WdioMochaTestFramework.getLogEntries(instance, testState, hookState)
@@ -74,7 +76,25 @@ export default class TestHubModule extends BaseModule {
                 WdioMochaTestFramework.clearLogs(instance, testState, hookState)
                 // Handle LOG state if needed
             }
-        } else if (testState === TestFrameworkState.TEST || CLIUtils.matchHookRegex(testState.toString().split('.')[1])) {
+        } else if (
+            testState === TestFrameworkState.TEST &&
+            hookState === HookState.POST &&
+            !TestFramework.hasState(instance, TestFrameworkConstants.KEY_TEST_RESULT_AT)
+        ) {
+            this.logger.info('onAllTestEvents: dropping due to lack of results')
+            TestFramework.setState(instance, TestFrameworkConstants.KEY_TEST_DEFERRED, true)
+        } else if (
+            keyTestDeferred &&
+            testState === TestFrameworkState.LOG_REPORT &&
+            hookState === HookState.POST &&
+            TestFramework.hasState(instance, TestFrameworkConstants.KEY_TEST_RESULT_AT)
+        ) {
+            // Create a modified args object with updated test framework state
+            instance.setCurrentTestState(TestFrameworkState.TEST)
+            this.onAllTestEvents(args)
+        }
+
+        if (testState === TestFrameworkState.TEST || CLIUtils.matchHookRegex(testState.toString().split('.')[1])) {
             this.sendTestFrameworkEvent(args)
         }
     }
@@ -178,6 +198,7 @@ export default class TestHubModule extends BaseModule {
                     ? 'browserstack'
                     : 'unknown_grid'
 
+                // eslint-disable-next-line camelcase
                 const automationSession: TestSessionEventRequest_AutomationSession = {
                     provider: sessionProvider,
                     ref: autoInstance.getRef(),
@@ -228,6 +249,7 @@ export default class TestHubModule extends BaseModule {
                 binSessionId: '' // TODO: Dummy value, not needed
             }
             for (const logEntry of logEntries) {
+                // eslint-disable-next-line camelcase
                 const logData: LogCreatedEventRequest_LogEntry = {
                     testFrameworkName,
                     testFrameworkVersion,

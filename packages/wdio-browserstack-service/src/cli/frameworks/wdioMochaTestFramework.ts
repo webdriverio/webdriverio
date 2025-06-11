@@ -78,7 +78,7 @@ export default class WdioMochaTestFramework extends TestFramework {
             }
 
             await this.trackHookEvents(instance, testFrameworkState, hookState, args)
-            logger.info(`trackEvent: tracked instance data=${JSON.stringify(Object.fromEntries(instance.getAllData()))}`)
+            logger.debug(`trackEvent: tracked instance data=${JSON.stringify(Object.fromEntries(instance.getAllData()))}`)
         } catch (error) {
             logger.error(`trackEvent: Error in tracking events: ${error} hookState=${hookState} testFrameworkState=${testFrameworkState}`)
         }
@@ -336,8 +336,6 @@ export default class WdioMochaTestFramework extends TestFramework {
             [TestFrameworkConstants.KEY_HOOKS_FINISHED]: hooksFinished,
         }
 
-        // logger.info(`args CHECK = ${JSON.stringify(args)}`)
-
         if (hookState === HookState.PRE) {
             const gitConfig = await getGitMetaData()
             const filename = test.file
@@ -353,10 +351,10 @@ export default class WdioMochaTestFramework extends TestFramework {
             }
             hooksStarted.get(key)?.push(hook)
             updates[WdioMochaTestFramework.KEY_HOOK_LAST_STARTED] = key
-            // logger.info(`Hook Started in PRE key = ${key} & hook = ${JSON.stringify(hook)} and args = ${JSON.stringify(args)}`)
+            logger.info(`Hook Started in PRE key = ${key} & hook = ${JSON.stringify(hook)}`)
         } else if (hookState === HookState.POST) {
             const hooksList = hooksStarted.get(key) || []
-            // logger.info(`Hook List in Post ${JSON.stringify(hooksList)} and args = ${JSON.stringify(args)}`)
+            logger.info(`Hook List in Post ${JSON.stringify(hooksList)}`)
 
             if (hooksList.length > 0) {
                 const hook = hooksList.pop() as Record<string, unknown>

@@ -39,8 +39,6 @@ import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
 import { BrowserstackCLI } from './cli/index.js'
 import { TestFrameworkState } from './cli/states/testFrameworkState.js'
 import { HookState } from './cli/states/hookState.js'
-import TestFramework from './cli/frameworks/testFramework.js'
-import { TestFrameworkConstants } from './cli/frameworks/constants/testFrameworkConstants.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
@@ -101,6 +99,13 @@ class _InsightsHandler {
 
     setSuiteFile(filename: string) {
         this._suiteFile = filename
+    }
+
+    public async setGitConfigPath() {
+        const gitMeta = await getGitMetaData()
+        if (gitMeta) {
+            this._gitConfigPath = gitMeta.root
+        }
     }
 
     async before () {
@@ -377,12 +382,22 @@ class _InsightsHandler {
         return testData
     }
 
-    async beforeTest (test: Frameworks.Test) {
-        let uuid = uuidv4()
-        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
-            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { test })
-            uuid = TestFramework.getState(TestFramework.getTrackedInstance(), TestFrameworkConstants.KEY_TEST_UUID)
+    public setTestData (test: Frameworks.Test, uuid: string) {
+        InsightsHandler.currentTest = {
+            test, uuid
         }
+        if (this._framework !== 'mocha') {
+            return
+        }
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+        this._tests[fullTitle] = {
+            uuid,
+            startedAt: (new Date()).toISOString()
+        }
+    }
+
+    async beforeTest (test: Frameworks.Test) {
+        const uuid = uuidv4()
         InsightsHandler.currentTest = {
             test, uuid
         }
@@ -395,10 +410,6 @@ class _InsightsHandler {
             startedAt: (new Date()).toISOString()
         }
 
-        // if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
-        //     await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test })
-        //     return
-        // }
         this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
 
@@ -412,12 +423,7 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         BStackLogger.debug('calling testFinished')
-
         this.flushCBTDataQueue()
-        // if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
-        //     await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result })
-        //     return
-        // }
         this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
