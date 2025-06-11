@@ -154,6 +154,13 @@ export class CLIUtils {
         const response = await this.requestToUpdateCLI(queryParams, config)
         if (nestedKeyValue(response, ['updated_cli_version'])) {
             logger.debug(`Need to update binary, current binary version: ${queryParams.cli_version}`)
+
+            const browserStackBinaryUrl = process.env.BROWSERSTACK_BINARY_URL || null
+            if (!isNullOrEmpty(browserStackBinaryUrl)) {
+                logger.debug(`Using BROWSERSTACK_BINARY_URL: ${browserStackBinaryUrl}`)
+                response.url = browserStackBinaryUrl
+            }
+
             const finalBinaryPath = await this.downloadLatestBinary(nestedKeyValue(response, ['url']), cliDir)
             PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
             return finalBinaryPath
