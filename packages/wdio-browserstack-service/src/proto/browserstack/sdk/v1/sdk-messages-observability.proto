@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package browserstack.sdk.v1;
+
+import "sdk-messages-testhub.proto";
+
+message KeyMessage {
+    string key = 1;
+    string message = 2;
+}
+
+message Observability {
+    bool success = 1;
+    optional ObservabilityOptions options = 2;
+    optional string error_trace_id = 3;
+    optional string code = 4;
+    repeated KeyMessage errors = 5;
+    optional bytes options_as_bytes = 6;
+
+    message ObservabilityOptions {
+        optional string allow_screenshots = 1;
+    }
+}
+
+message ObservabilityConfigRequest {
+    string bin_session_id = 1;
+    uint32 platform_index = 2;
+    string test_framework_name = 3;
+    string test_framework_version = 4;
+    optional string hub_url = 5;
+    optional string capabilities = 6;
+}
+
+message ObservabilityConfigResponse {
+    bool success = 1;
+    optional TestHub testhub = 2;
+    optional Observability observability = 3;
+    optional string capabilities = 4;
+}

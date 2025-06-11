@@ -292,6 +292,18 @@ export const processTestObservabilityResponse = (response: LaunchResponse) => {
     }
 }
 
+export const performO11ySync = async (browser: WebdriverIO.Browser) => {
+    if (isBrowserstackSession(browser)) {
+        await browser.execute(`browserstack_executor: ${JSON.stringify({
+            action: 'annotate',
+            arguments: {
+                data: `ObservabilitySync:${Date.now()}`,
+                level: 'debug'
+            }
+        })}`)
+    }
+}
+
 interface DataElement {
     [key: string]: any
 }
@@ -1576,3 +1588,75 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
     return ['true'].includes(value.trim().toLowerCase())
 }
 
+export function isNullOrEmpty(string: any): boolean {
+    return !string || string.trim() === ''
+}
+
+export function isHash(entity: any) {
+    return Boolean(entity && typeof(entity) === 'object' && !Array.isArray(entity))
+}
+
+export function nestedKeyValue(hash: any, keys: Array<string>) {
+    return keys.reduce((hash, key) => (isHash(hash) ? hash[key] : undefined), hash)
+}
+
+export function removeDir(dir: string) {
+    const list = fs.readdirSync(dir)
+    for (let i = 0; i < list.length; i++) {
+        const filename = path.join(dir, list[i])
+        const stat = fs.statSync(filename)
+
+        if (filename === '.' || filename === '..') {
+            // pass these files
+        } else if (stat.isDirectory()) {
+            // rmdir recursively
+            removeDir(filename)
+        } else {
+            // rm filename
+            fs.unlinkSync(filename)
+        }
+    }
+    fs.rmdirSync(dir)
+}
+
+export function createDir(dir: string) {
+    if (fs.existsSync(dir)){
+        removeDir(dir)
+    }
+    fs.mkdirSync(dir, { recursive: true })
+}
+
+export function isWritable(dirPath: string): boolean {
+    try {
+        fs.accessSync(dirPath, fs.constants.W_OK)
+        return true
+    } catch {
+        return false
+    }
+}
+
+export function setReadWriteAccess(dirPath: string) {
+    try {
+        fs.chmodSync(dirPath, 0o666)
+        BStackLogger.debug(`Directory ${dirPath} is now read/write accessible.`)
+    } catch (err: any) {
+        BStackLogger.error(`Failed to set directory access: ${err.stack}`)
+    }
+}
+
+export function getHierarchyFromTest(test: Frameworks.Test) {
+    const value: string[] = []
+    if (test.ctx && test.ctx.test) {
+        // If we already have the parent object, utilize it else get from context
+        let parent = typeof test.parent === 'object' ? test.parent : test.ctx.test.parent
+        while (parent && parent.title !== '') {
+            value.push(parent.title)
+            parent = parent.parent
+        }
+    } else if (test.description && test.fullName) {
+        // for Jasmine
+        value.push(test.description)
+        value.push(test.fullName.replace(new RegExp(' ' + test.description + '$'), ''))
+    }
+    return value.reverse()
+}

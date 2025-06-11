@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package browserstack.sdk.v1;
+
+message TestHub {
+    string jwt = 1;
+    string build_hashed_id = 2;
+    bool testhub_events = 3;
+    bytes errors = 4;
+}
