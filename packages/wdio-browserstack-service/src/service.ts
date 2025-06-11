@@ -29,6 +29,11 @@ import AiHandler from './ai-handler.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { BrowserstackCLI } from './cli/index.js'
+import { AutomationFrameworkState } from './cli/states/automationFrameworkState.js'
+import { HookState } from './cli/states/hookState.js'
+import { TestFrameworkState } from './cli/states/testFrameworkState.js'
+import TestFramework from './cli/frameworks/testFramework.js'
+import { TestFrameworkConstants } from './cli/frameworks/constants/testFrameworkConstants.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -117,6 +122,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             // Connect to Browserstack CLI from worker
             await BrowserstackCLI.getInstance().bootstrap()
 
+            BStackLogger.debug('worker id ' + process.env.WDIO_WORKER_ID)
             // Get the nearest hub and update it in config
             const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
             if (hubUrl) {
@@ -159,6 +165,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._browser) {
             try {
+                if (BrowserstackCLI.getInstance().isRunning()) {
+                    await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps })
+                }
                 const sessionId = this._browser.sessionId
                 if (isBrowserstackSession(this._browser)) {
                     try {
@@ -186,6 +195,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         this._caps,
                         this._options
                     )
+                    if (BrowserstackCLI.getInstance().isRunning()) {
+                        await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { browser: this._browser, hubUrl: this._config.hostname })
+                        this._insightsHandler.setGitConfigPath()
+                        return
+                    }
                     await this._insightsHandler.before()
                 }
 
@@ -292,6 +306,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._setSessionName(suiteTitle, test)
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
         await this._accessibilityHandler?.beforeTest(suiteTitle, test)
+
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { test })
+            const uuid = TestFramework.getState(TestFramework.getTrackedInstance(), TestFrameworkConstants.KEY_TEST_UUID)
+            this._insightsHandler?.setTestData(test, uuid)
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { test })
+            return
+        }
         await this._insightsHandler?.beforeTest(test)
     }
 
@@ -302,9 +324,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
+
         await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
-        await this._insightsHandler?.afterTest(test, results)
         await this._percyHandler?.afterTest()
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG_REPORT, HookState.POST, { test, result: results })
+            await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result: results })
+            return
+        }
+        await this._insightsHandler?.afterTest(test, results)
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'after' })

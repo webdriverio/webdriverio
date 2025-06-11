@@ -6,16 +6,18 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
 import { GrpcClient } from './grpcClient.js'
-import TestHubModule from './modules/TestHubModule.js'
+import TestHubModule from './modules/testHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
 import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
-import type BaseModule from './modules/BaseModule.js'
+import type BaseModule from './modules/baseModule.js'
 import { BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_TESTHUB_UUID, CLI_STOP_TIMEOUT, TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_SCREENSHOT_ENV } from '../constants.js'
 import type { Options } from '@wdio/types'
 import TestOpsConfig from '../testOps/testOpsConfig.js'
 import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
+import WebdriverIOModule from './modules/webdriverIOModule.js'
+import ObservabilityModule from './modules/observabilityModule.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -118,6 +120,8 @@ export class BrowserstackCLI {
         this.setupTestFramework()
         this.setupAutomationFramework()
 
+        this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
+
         if (startBinResponse.testhub) {
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
             if (startBinResponse.testhub.jwt) {
@@ -135,6 +139,10 @@ export class BrowserstackCLI {
                 }
             }
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
+        }
+
+        if (startBinResponse.observability?.success) {
+            this.modules[ObservabilityModule.MODULE_NAME] = new ObservabilityModule(startBinResponse.observability)
         }
 
         this.configureModules()

@@ -20,7 +20,7 @@ export default class WdioAutomationFramework extends AutomationFramework {
      * @param {*} hookState
      * @param {*} args
      */
-    async trackEvent(automationFrameworkState: State, hookState: State, args: unknown = {}) {
+    async trackEvent(automationFrameworkState: State, hookState: State, args: Record<string, unknown> = {}) {
         logger.info(`trackEvent: automationFrameworkState=${automationFrameworkState} hookState=${hookState}`)
         await super.trackEvent(automationFrameworkState, hookState, args)
 
@@ -29,7 +29,7 @@ export default class WdioAutomationFramework extends AutomationFramework {
             logger.error(`trackEvent: instance not found for automationFrameworkState=${automationFrameworkState} hookState=${hookState}`)
             return
         }
-        // args.instance = instance
+        args.instance = instance
         await this.runHooks(instance, automationFrameworkState, hookState, args)
     }
 
@@ -40,7 +40,7 @@ export default class WdioAutomationFramework extends AutomationFramework {
      * @param {*} args
      * @returns instance
      */
-    resolveInstance(automationFrameworkState: State, hookState: State, args: unknown = {}) {
+    resolveInstance(automationFrameworkState: State, hookState: State, args: Record<string, unknown> = {}) {
         let instance = null
         logger.info(`resolveInstance: resolving instance for automationFrameworkState=${automationFrameworkState} hookState=${hookState}`)
         if (automationFrameworkState === AutomationFrameworkState.CREATE || automationFrameworkState === AutomationFrameworkState.NONE) {
@@ -55,7 +55,7 @@ export default class WdioAutomationFramework extends AutomationFramework {
      * Create instance for WebdriverIO
      * @returns {void}
      */
-    trackWebdriverIOInstance(automationFrameworkState: State, args: unknown = {}) {
+    trackWebdriverIOInstance(automationFrameworkState: State, args: Record<string, unknown> = {}) {
         if (
             // !args.browser &&
             AutomationFramework.getTrackedInstance()

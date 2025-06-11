@@ -88,11 +88,24 @@ class _InsightsHandler {
             return
         }
         process.removeAllListeners(`bs:addLog:${process.pid}`)
+        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
+            process.on(`bs:addLog:${process.pid}`, async (stdLog: StdLog) => {
+                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG, HookState.POST, { logEntry: stdLog })
+            })
+            return
+        }
         process.on(`bs:addLog:${process.pid}`, this.appendTestItemLog.bind(this))
     }
 
     setSuiteFile(filename: string) {
         this._suiteFile = filename
+    }
+
+    public async setGitConfigPath() {
+        const gitMeta = await getGitMetaData()
+        if (gitMeta) {
+            this._gitConfigPath = gitMeta.root
+        }
     }
 
     async before () {
@@ -369,6 +382,20 @@ class _InsightsHandler {
         return testData
     }
 
+    public setTestData (test: Frameworks.Test, uuid: string) {
+        InsightsHandler.currentTest = {
+            test, uuid
+        }
+        if (this._framework !== 'mocha') {
+            return
+        }
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+        this._tests[fullTitle] = {
+            uuid,
+            startedAt: (new Date()).toISOString()
+        }
+    }
+
     async beforeTest (test: Frameworks.Test) {
         const uuid = uuidv4()
         InsightsHandler.currentTest = {
@@ -382,6 +409,7 @@ class _InsightsHandler {
             uuid,
             startedAt: (new Date()).toISOString()
         }
+
         this.listener.testStarted(this.getRunData(test, 'TestRunStarted'))
     }
 
@@ -395,10 +423,8 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         BStackLogger.debug('calling testFinished')
-        const testData = this.getRunData(test, 'TestRunFinished', result)
-        await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, testData)
         this.flushCBTDataQueue()
-        this.listener.testFinished(testData)
+        this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
     }
 
     /**
@@ -833,6 +859,7 @@ class _InsightsHandler {
     }
 
     public async flushCBTDataQueue() {
+        BStackLogger.debug(`Flushing CBT Data Queue ${this.currentTestId}`)
         if (isUndefined(this.currentTestId)) {return}
         this.cbtQueue.forEach(cbtData => {
             cbtData.uuid = this.currentTestId!
@@ -853,6 +880,7 @@ class _InsightsHandler {
             uuid: '',
             integrations: integrationsData
         }
+        BStackLogger.debug(`Sending CBT Data ${this.currentTestId} ${JSON.stringify(cbtData)}`)
 
         if (this.currentTestId !== undefined) {
             cbtData.uuid = this.currentTestId
