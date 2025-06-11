@@ -1,5 +1,5 @@
 import util from 'node:util'
-import BaseModule from './baseModule.js'
+import BaseModule from './BaseModule.js'
 import { BStackLogger } from '../cliLogger.js'
 import TestFramework from '../frameworks/testFramework.js'
 import { TestFrameworkState } from '../states/testFrameworkState.js'

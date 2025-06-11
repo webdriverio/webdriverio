@@ -177,7 +177,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         )
                         if (BrowserstackCLI.getInstance().isRunning()){
                             BStackLogger.info(`CLI is running, tracking accessibility event for before: ${sessionId}`)
-                            BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(AutomationFrameworkState.EXECUTE, HookState.PRE, { sessionId })
+                            // BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { sessionId })
                         } else {
                             await this._accessibilityHandler.before(sessionId)
                         }
@@ -304,7 +304,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
         if (BrowserstackCLI.getInstance().isRunning()){
             BStackLogger.info(`CLI is running, tracking accessibility event for beforeTest: ${test.fullName ?? test.title}`)
-            BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.PRE, { suiteTitle, test })
+            BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.INIT_TEST, HookState.PRE, { suiteTitle, test })
         } else {
             await this._accessibilityHandler?.beforeTest(suiteTitle, test)
         }

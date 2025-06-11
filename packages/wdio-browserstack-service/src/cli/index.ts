@@ -6,7 +6,7 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
 import { GrpcClient } from './grpcClient.js'
-import TestHubModule from './modules/testHubModule.js'
+import TestHubModule from './modules/TestHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
 import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
@@ -120,7 +120,8 @@ export class BrowserstackCLI {
 
         this.setupTestFramework()
         this.setupAutomationFramework()
-
+        
+        this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
         if (startBinResponse.testhub) {
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
             if (startBinResponse.testhub.jwt) {
@@ -137,6 +138,7 @@ export class BrowserstackCLI {
                     process.env[TESTOPS_SCREENSHOT_ENV] = startBinResponse.observability.options.allowScreenshots.toString()
                 }
             }
+            
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
 
             if (startBinResponse.accessibility?.success){
@@ -147,7 +149,7 @@ export class BrowserstackCLI {
 
         }
 
-        this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
+        
 
         this.configureModules()
     }

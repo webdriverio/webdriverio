@@ -20,9 +20,9 @@ import {
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
 import Listener from './testOps/listener.js'
-import { BrowserstackCLI } from './cli/index.js'
-import { TestFrameworkState } from './cli/states/testFrameworkState.js'
-import { HookState } from './cli/states/hookState.js'
+// import { BrowserstackCLI } from './cli/index.js'
+// import { TestFrameworkState } from './cli/states/testFrameworkState.js'
+// import { HookState } from './cli/states/hookState.js'
 
 class _TestReporter extends WDIOReporter {
     private _capabilities: WebdriverIO.Capabilities = {}

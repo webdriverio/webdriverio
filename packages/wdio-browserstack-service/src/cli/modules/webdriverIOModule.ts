@@ -1,5 +1,5 @@
 import util from 'node:util'
-import BaseModule from './baseModule.js'
+import BaseModule from './BaseModule.js'
 import { BStackLogger } from '../cliLogger.js'
 import AutomationFramework from '../frameworks/automationFramework.js'
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
@@ -62,6 +62,8 @@ export default class WebdriverIOModule extends BaseModule {
                 this.logger.warn('onBeforeDriverCreate: No capabilities provided')
                 return
             }
+            AutomationFramework.setState(instance, AutomationFrameworkConstants.KEY_INPUT_CAPABILITIES, capabilities)
+
             // const hubUrl = args.hubUrl
             this.getBinDriverCapabilities(instance, capabilities)
             // AutomationFramework.setState(instance, WebdriverIOModule.KEY_CAPABILITIES, capabilities)
