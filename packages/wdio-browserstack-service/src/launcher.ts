@@ -352,7 +352,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this._updateCaps(capabilities, 'buildProductMap')
 
         // local binary will be handled by CLI
-        if (!BrowserstackCLI.getInstance().isRunning()) {
+        if (BrowserstackCLI.getInstance().isRunning()) {
             return
         }
         if (!this._options.browserstackLocal) {

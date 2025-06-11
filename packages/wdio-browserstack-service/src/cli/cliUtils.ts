@@ -56,7 +56,7 @@ export class CLIUtils {
     static getBinConfig(config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities, options: BrowserstackConfig & BrowserstackOptions) {
         const modifiedOpts: Record<string, unknown> = { ...options }
         if (modifiedOpts.opts) {
-            modifiedOpts.browserstackLocalOptions = modifiedOpts.opts
+            modifiedOpts.browserStackLocalOptions = modifiedOpts.opts
             delete modifiedOpts.opts
         }
 
