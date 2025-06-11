@@ -289,7 +289,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         // remove accessibilityOptions from the capabilities if present
         this._updateObjectTypeCaps(capabilities, 'accessibilityOptions')
-        
+
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
 
         let buildStartResponse = null
@@ -316,7 +316,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             }
 
             this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
-
 
             if (shouldSetupPercy) {
                 try {

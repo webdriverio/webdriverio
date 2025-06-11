@@ -65,7 +65,7 @@ export default class AcessibilityModule extends BaseModule {
             const device = this.getCapability(inputCaps, 'deviceName')
             const chromeOptions = this.getCapability(inputCaps, 'goog:chromeOptions')
             this.accessibility = validateCapsWithA11y(device, platformA11yMeta, chromeOptions)
-            
+
             if (!this.accessibility) {
                 this.logger.info('Accessibility automation is disabled for this session.')
                 return
@@ -142,7 +142,7 @@ export default class AcessibilityModule extends BaseModule {
 
             const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
             const testInstance: TestFrameworkInstance = TestFramework.getTrackedInstance()
-            
+
             const sessionId =  AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
             const accessibilityOptions = this.config.accessibilityOptions
             const shouldScanTest = shouldScanTestForAccessibility(suiteTitle, test.title, accessibilityOptions as { [key: string]: any } | undefined) &&  this.accessibility
@@ -153,7 +153,7 @@ export default class AcessibilityModule extends BaseModule {
                 scanTestForAccessibility: shouldScanTest,
                 accessibilityScanStarted: true
             }
-            
+
             // Store test metadata in test instance
             testInstance.updateData(`accessibility_metadata_${testIdentifier}`, testMetadata)
             this.accessibilityMap.set(sessionId, shouldScanTest)
@@ -165,7 +165,6 @@ export default class AcessibilityModule extends BaseModule {
                 this.logger.info('Accessibility scanning disabled for this test case.')
                 this.LOG_DISABLED_SHOWN.set(sessionId, true)
             }
-
 
         } catch (error) {
             this.logger.error(`Exception in starting accessibility automation scan for this test case: ${error}`)
@@ -195,7 +194,7 @@ export default class AcessibilityModule extends BaseModule {
                 return
             }
 
-            const {accessibilityScanStarted, scanTestForAccessibility} = testMetadata
+            const { accessibilityScanStarted, scanTestForAccessibility } = testMetadata
             if (!accessibilityScanStarted) {
                 this.logger.debug('Accessibility scan was not started for this test')
                 return
@@ -271,11 +270,11 @@ export default class AcessibilityModule extends BaseModule {
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: any){
         try {
             this.logger.debug('Sending test stop event for accessibility results')
-            await this.performScanCli(browser,'afterTest')
+            await this.performScanCli(browser, 'afterTest')
             const results: unknown = await (browser as WebdriverIO.Browser).executeAsync(this.scriptInstance.saveTestResults as string, dataForExtension)
             this.logger.debug(`save results : ${util.format(results as string)}`)
         } catch (error) {
-            this.logger.error(`Error while sending test stop event: ${error}`);
+            this.logger.error(`Error while sending test stop event: ${error}`)
         }
     }
 

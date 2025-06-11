@@ -120,7 +120,7 @@ export class BrowserstackCLI {
 
         this.setupTestFramework()
         this.setupAutomationFramework()
-        
+
         this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
         if (startBinResponse.testhub) {
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
@@ -138,7 +138,7 @@ export class BrowserstackCLI {
                     process.env[TESTOPS_SCREENSHOT_ENV] = startBinResponse.observability.options.allowScreenshots.toString()
                 }
             }
-            
+
             this.modules[TestHubModule.MODULE_NAME] = new TestHubModule(startBinResponse.testhub)
 
             if (startBinResponse.accessibility?.success){
@@ -148,8 +148,6 @@ export class BrowserstackCLI {
             }
 
         }
-
-        
 
         this.configureModules()
     }
