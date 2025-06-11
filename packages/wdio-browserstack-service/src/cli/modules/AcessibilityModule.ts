@@ -30,7 +30,7 @@ export default class AcessibilityModule extends BaseModule {
         this.accessibilityConfig = accessibilityConfig //accessibilityResponse
         // AutomationFramework.registerObserver(AutomationFrameworkState.EXECUTE, HookState.PRE, this.onBeforeExecute.bind(this))
         AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.POST, this.onBeforeExecute.bind(this))
-        TestFramework.registerObserver(TestFrameworkState.INIT_TEST, HookState.PRE, this.onBeforeTest.bind(this))
+        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
         this.accessibility = true
         this.scriptInstance = accessibilityScripts
