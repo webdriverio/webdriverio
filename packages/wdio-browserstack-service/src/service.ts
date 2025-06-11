@@ -36,7 +36,7 @@ import TestFramework from './cli/frameworks/testFramework.js'
 import { TestFrameworkConstants } from './cli/frameworks/constants/testFrameworkConstants.js'
 import AutomationFramework from './cli/frameworks/automationFramework.js'
 import WebdriverIOModule from './cli/modules/webdriverIOModule.js'
-import AutomationFrameworkInstance from './cli/instances/automationFrameworkInstance.js'
+import type AutomationFrameworkInstance from './cli/instances/automationFrameworkInstance.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
