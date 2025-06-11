@@ -1,0 +1,33 @@
+{
+  "name": "@wdio/rpc",
+  "version": "1.0.0",
+  "description": "WebdriverIO internal RPC communication layer powered by birpc",
+  "engines": {
+    "node": ">=18.20.0"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-rpc"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    }
+  },
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@wdio/types": "workspace:*",
+    "birpc": "^2.3.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
