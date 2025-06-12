@@ -73,7 +73,7 @@ export class FetchRequest extends WebDriverRequest {
     async createOptions(options: RequestOptions, sessionId?: string, isBrowser: boolean = false) {
         const { url, requestOptions } = await super.createOptions(options, sessionId, isBrowser)
 
-            ; (requestOptions as UndiciRequestInit).dispatcher = this.getDispatcher(url, options, sessionId)
+        ;(requestOptions as UndiciRequestInit).dispatcher = this.getDispatcher(url, options, sessionId)
         return { url, requestOptions }
     }
 }
