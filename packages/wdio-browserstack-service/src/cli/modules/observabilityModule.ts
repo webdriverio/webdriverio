@@ -1,4 +1,4 @@
-import BaseModule from './BaseModule.js'
+import BaseModule from './baseModule.js'
 import AutomationFramework from '../frameworks/automationFramework.js'
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
 import { HookState } from '../states/hookState.js'
