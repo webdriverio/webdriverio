@@ -11,3 +11,8 @@ declare namespace WebdriverIO {
         performScan: () => Promise<{ [key: string]: any; } | undefined>
     }
 }
+
+interface State {
+    value: number,
+    toString: () => string
+}
