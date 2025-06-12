@@ -112,7 +112,7 @@ export class CLIUtils {
     }
 
     static getSdkLanguage() {
-        return 'wdio'
+        return 'ECMAScript'
     }
 
     static async setupCliPath(config: Options.Testrunner): Promise<string|null> {
