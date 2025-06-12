@@ -14,7 +14,7 @@ import util from 'node:util'
 import type { Accessibility } from 'src/proto/sdk-messages-accessibility.js'
 import type { Capabilities } from '@wdio/types'
 
-export default class AcessibilityModule extends BaseModule {
+export default class AccessibilityModule extends BaseModule {
 
     logger = BStackLogger
     name: string
@@ -22,13 +22,13 @@ export default class AcessibilityModule extends BaseModule {
     accessibility: boolean = false
     isAppAccessibility: boolean
     accessibilityConfig: Accessibility
-    static MODULE_NAME = 'AcessibilityModule'
+    static MODULE_NAME = 'AccessibilityModule'
     accessibilityMap: Map<number, boolean>
     LOG_DISABLED_SHOWN: Map<number, boolean>
 
     constructor(accessibilityConfig: Accessibility) {
         super()
-        this.name = 'AcessibilityModule'
+        this.name = 'AccessibilityModule'
         this.accessibilityConfig = accessibilityConfig //accessibilityResponse
         // AutomationFramework.registerObserver(AutomationFrameworkState.EXECUTE, HookState.PRE, this.onBeforeExecute.bind(this))
         AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.POST, this.onBeforeExecute.bind(this))

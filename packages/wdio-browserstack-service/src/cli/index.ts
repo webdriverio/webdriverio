@@ -17,7 +17,7 @@ import TestOpsConfig from '../testOps/testOpsConfig.js'
 import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
 import WebdriverIOModule from './modules/webdriverIOModule.js'
-import AcessibilityModule from './modules/AcessibilityModule.js'
+import AccessibilityModule from './modules/AccessibilityModule.js'
 import { processAccessibilityResponse } from '../util.js'
 import ObservabilityModule from './modules/observabilityModule.js'
 
@@ -146,7 +146,7 @@ export class BrowserstackCLI {
             if (startBinResponse.accessibility?.success){
                 process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
                 processAccessibilityResponse(startBinResponse)
-                this.modules[AcessibilityModule.MODULE_NAME] = new AcessibilityModule(startBinResponse.accessibility)
+                this.modules[AccessibilityModule.MODULE_NAME] = new AccessibilityModule(startBinResponse.accessibility)
             }
         }
 
