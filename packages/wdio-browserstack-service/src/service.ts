@@ -119,14 +119,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
 
         try {
-            // Connect to Browserstack CLI from worker
-            await BrowserstackCLI.getInstance().bootstrap()
+            if (this._config.framework === 'mocha') {
+                // Connect to Browserstack CLI from worker
+                await BrowserstackCLI.getInstance().bootstrap()
 
-            BStackLogger.debug('worker id ' + process.env.WDIO_WORKER_ID)
-            // Get the nearest hub and update it in config
-            const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
-            if (hubUrl) {
-                this._config.hostname = new URL(hubUrl).hostname
+                // Get the nearest hub and update it in config
+                const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
+                if (hubUrl) {
+                    this._config.hostname = new URL(hubUrl).hostname
+                }
             }
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
