@@ -123,7 +123,6 @@ export class BrowserstackCLI {
 
         this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
 
-
         if (startBinResponse.testhub) {
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
             if (startBinResponse.testhub.jwt) {
@@ -146,9 +145,9 @@ export class BrowserstackCLI {
         if (startBinResponse.observability?.success) {
             this.modules[ObservabilityModule.MODULE_NAME] = new ObservabilityModule(startBinResponse.observability)
         }
-        // if (startBinResponse.percy?.success) {
-            this.modules[PercyModule.MODULE_NAME] = new PercyModule()
-
+        if (startBinResponse.percy?.success) {
+            this.modules[PercyModule.MODULE_NAME] = new PercyModule(startBinResponse.percy)
+        }
         this.configureModules()
     }
 

@@ -4,27 +4,27 @@ import TestFramework from '../frameworks/testFramework.js'
 import AutomationFramework from '../frameworks/automationFramework.js'
 import { TestFrameworkState } from '../states/testFrameworkState.js'
 import { HookState } from '../states/hookState.js'
-import type { Frameworks } from '@wdio/types'
-import PercyCaptureMap from '../../Percy/PercyCaptureMap.js'
-import _PercyHandler from '../../Percy/Percy-Handler.js'
-import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'
-
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
+import PercyHandler from '../../Percy/Percy-Handler.js'
+import type { Capabilities } from '@wdio/types'
 
 export default class PercyModule extends BaseModule {
 
     logger = BStackLogger
-    private percyHandler!: _PercyHandler
-    private browser?: WebdriverIO.Browser
+    private browser?: WebdriverIO.Browser | undefined
     static readonly MODULE_NAME = 'PercyModule'
+    private percyHandler: PercyHandler | undefined
+    private percyConfig: unknown
+    private isAppAutomate: boolean
     /**
      * Create a new PercyModule
      */
-    constructor() {
+    constructor(percyConfig: unknown) {
         super()
+        this.percyConfig = percyConfig
+        this.isAppAutomate = false
         this.logger.info('PercyModule: Initializing Percy Module')
-        // AutomationFramework.registerObserver(AutomationFrameworkState.EXECUTE, HookState.PRE, this.onBeforeExecute.bind(this))
-        AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.PRE, this.onBefore.bind(this))
+        AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.POST, this.onAfterCreate.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
     }
@@ -33,39 +33,62 @@ export default class PercyModule extends BaseModule {
         return PercyModule.MODULE_NAME
     }
 
-    async onBefore(args: Record<string, unknown>) {
-        this.logger.info('onPreExecute: inside onBefore percy module!!!')
+    async onAfterCreate(args: Record<string, unknown>) {
+        this.browser = args.browser as WebdriverIO.Browser
 
+        if (!this.browser) {
+            this.logger.error('PercyModule: Browser instance is not defined in onAfterCreate')
+            return
+        }
+        if (!this.percyConfig || !(this.percyConfig as any).percyCaptureMode) {
+            this.logger.warn('PercyModule: Percy capture mode is not defined in the configuration, skipping Percy initialization')
+            return
+        }
+        this.isAppAutomate = this.isAppAutomate || 'app' in this.config
+        this.percyHandler = new PercyHandler(
+            (this.percyConfig as any).percyCaptureMode,
+            this.browser,
+            {} as Capabilities.RemoteCapability,
+            this.isAppAutomate,
+            ''
+        )
+
+        await this.percyHandler.before()
+
+        const sessionId = this.browser.sessionId
+        this.browser.on('command', async (command) => {
+            await this.percyHandler?.browserBeforeCommand(
+                Object.assign(command, { sessionId })
+            )
+        })
+        this.browser.on('result', (result) => {
+            this.percyHandler?.browserAfterCommand(
+                Object.assign(result, { sessionId })
+            )
+        })
     }
 
     async onBeforeTest(args: Record<string, unknown>) {
-        this.logger.info('onPreExecute: inside percy module!!!')
-        const autoInstance: AutomationFrameworkInstance = AutomationFramework.getTrackedInstance()
-        if (!autoInstance) {
-            this.logger.debug('No tracked instances found!')
+        const sessionName = (args as any).sessionName
+        if (!this.percyHandler) {
+            this.logger.warn('PercyModule: Percy handler is not initialized, skipping pre execute actions')
             return
         }
-        const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
-        this.logger.debug(`Browser instance: ${JSON.stringify(browser)}`)
+        this.percyHandler._setSessionName(sessionName as string)
     }
 
-    async onAfterTest(args: Record<string, unknown>) {
-        this.logger.info('onPostExecute: inside percy module!!!')
+    async onAfterTest(_args: Record<string, unknown>) {
         try {
-            const sessionName = "hello percy"
-            if(sessionName == null){
-                this.logger.debug(`Percy post execute failed - sessionName is null`);
-                return;
+            if (!this.percyHandler) {
+                this.logger.warn('PercyModule: Percy handler is not initialized, skipping post execute actions')
+                return
             }
-            this.logger.debug(`config data: ${JSON.stringify(this.config)}`);
-            this.logger.debug(`percy capture mode: ${this.config.percyCaptureMode}, sessionName: ${sessionName}`);
-            if(this.config.percyCaptureMode === 'testcase') {
-                this.percyHandler.percyAutoCaptureForCli('testcase', sessionName);
+            if ((this.percyConfig as any).percyCaptureMode === 'testcase') {
+                await this.percyHandler.percyAutoCapture('testcase', null)
             }
-            // this.percyHandler.teardown()
+            await this.percyHandler.teardown()
         } catch (error) {
-            this.logger.error(`Percy post execute failed: ${error}`);
+            this.logger.error(`Percy post execute failed: ${error}`)
         }
     }
-
 }
