@@ -9,8 +9,8 @@ import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PAT
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
-const SLASH = '/'
-const REG_EXP_WINDOWS_ABS_PATH = /^[A-Za-z]:\\.*$/
+export const SLASH = '/'
+export const REG_EXP_WINDOWS_ABS_PATH = /^[A-Za-z]:\\/
 
 function assertPath(path?: unknown) {
     if (typeof path !== 'string') {
