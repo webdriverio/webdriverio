@@ -1,0 +1,155 @@
+import BaseModule from './BaseModule.js'
+import { BStackLogger } from '../cliLogger.js'
+import TestFramework from '../frameworks/testFramework.js'
+import { TestFrameworkState } from '../states/testFrameworkState.js'
+import { HookState } from '../states/hookState.js'
+import got from 'got'
+import type { Frameworks } from '@wdio/types'
+
+export default class WebdriverModule extends BaseModule {
+
+    logger = BStackLogger
+
+    static readonly MODULE_NAME = 'WebdriverModule'
+    /**
+     * Create a new WebdriverModule
+     */
+    constructor() {
+        super()
+        this.logger.info('WebdriverModule: Initializing Webdriver Module')
+        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
+        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
+    }
+
+    getModuleName(): string {
+        return WebdriverModule.MODULE_NAME
+    }
+
+    async onBeforeTest(args: Record<string, unknown>) {
+        this.logger.info('onbeforeTest: inside webdriver module before test hook!!!')
+        const test = args.test as Frameworks.Test
+        const testTitle = test.title as string
+        const suiteTitle = args.suiteTitle as string
+        const sessionId = globalThis.browser.sessionId as string
+        const userName = this.config.userName as string
+        const accessKey = this.config.accessKey as string
+        await this.markSessionName( sessionId, suiteTitle + ' - ' + testTitle,
+            { user: userName, key: accessKey }
+        )
+    }
+
+    async onAfterTest(args: Record<string, unknown>) {
+        this.logger.debug('onAfterTest: inside webdriver module after test hook!!!')
+        const { error, passed } = args.results as { error: Error | null, passed: boolean }
+        const _failReasons: string[] = []
+
+        if (!passed) {
+            _failReasons.push((error && error.message) || 'Unknown Error')
+        }
+
+        const status = passed ? 'passed' : 'failed'
+        const reason = _failReasons.length > 0 ? _failReasons.join('\n') : undefined
+
+        const requestBody: Record<string, unknown> = { status }
+        if (reason) {
+            requestBody.reason = reason
+        }
+        const sessionId = globalThis.browser.sessionId as string
+        const userName = this.config.userName as string
+        const accessKey = this.config.accessKey as string
+
+        await this.markSessionStatus( sessionId, passed ? 'passed' : 'failed', passed ? undefined : (error?.message || 'Unknown Error'),
+            { user: userName, key: accessKey }
+        )
+    }
+
+    async markSessionName( sessionId: string, sessionName: string, config: { user: string; key: string;}): Promise<void> {
+        try {
+
+            const auth = Buffer.from(`${config.user}:${config.key}`).toString('base64')
+            const isAppAutomate = this.config.app
+            if (isAppAutomate) {
+                this.logger.info('Marking session name for App Automate')
+            } else {
+                this.logger.info('Marking session name for Automate')
+            }
+
+            const sessionStatusApiUrl = isAppAutomate
+                ? `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`
+                : `https://api.browserstack.com/automate/sessions/${sessionId}.json`
+
+            const requestBody = {
+                name: sessionName
+            }
+
+            const options: any = {
+                method: 'PUT',
+                url: sessionStatusApiUrl,
+                headers: {
+                    Authorization: `Basic ${auth}`,
+                    'Content-Type': 'application/json'
+                },
+                json: requestBody,
+                responseType: 'json'
+            }
+
+            if (this.config.proxy) {
+                options.agent = {
+                    https: new (require('https-proxy-agent'))(this.config.proxy)
+                }
+            }
+
+            const response = await got(options)
+            this.logger.debug('Session name updated:', response.body)
+            this.logger.debug(`Done for sessionId ${sessionId}`)
+        } catch (err) {
+            this.logger.error(`Failed to update session name on BrowserStack: ${err}`)
+        }
+    }
+
+    async markSessionStatus( sessionId: string, sessionStatus: 'passed' | 'failed', sessionErrorMessage: string | undefined,
+        config: { user: string; key: string; }
+    ): Promise<void> {
+        try {
+            const auth = Buffer.from(`${config.user}:${config.key}`).toString('base64')
+            const isAppAutomate = this.config.app
+            if (isAppAutomate) {
+                this.logger.info('Marking session status for App Automate')
+            } else {
+                this.logger.info('Marking session status for Automate')
+            }
+
+            const sessionStatusApiUrl = isAppAutomate
+                ? `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`
+                : `https://api.browserstack.com/automate/sessions/${sessionId}.json`
+
+            const body = {
+                status: sessionStatus,
+                ...(sessionErrorMessage ? { reason: sessionErrorMessage } : {})
+            }
+
+            const options: any = {
+                method: 'PUT',
+                url: sessionStatusApiUrl,
+                headers: {
+                    Authorization: `Basic ${auth}`,
+                    'Content-Type': 'application/json'
+                },
+                json: body,
+                responseType: 'json'
+            }
+
+            if (this.config.proxy) {
+                options.agent = {
+                    https: new (require('https-proxy-agent'))(this.config.proxy)
+                }
+            }
+
+            const response = await got(options)
+            this.logger.debug('Session update response:', response.body)
+        } catch (err) {
+            this.logger.error(`Failed to update session status on BrowserStack: ${err}`)
+        }
+    }
+
+}

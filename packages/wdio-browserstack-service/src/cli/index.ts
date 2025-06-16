@@ -7,6 +7,7 @@ import { EVENTS as PerformanceEvents } from '../instrumentation/performance/cons
 import { BStackLogger } from './cliLogger.js'
 import { GrpcClient } from './grpcClient.js'
 import TestHubModule from './modules/TestHubModule.js'
+import WebDriverModule from './modules/WebdriverModule.js'
 
 import type { ChildProcess } from 'node:child_process'
 import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
@@ -110,6 +111,7 @@ export class BrowserstackCLI {
      */
     loadModules(startBinResponse: StartBinSessionResponse) {
         // Defer imports to avoid circular dependencies
+        this.modules[WebDriverModule.MODULE_NAME] = new WebDriverModule()
         this.binSessionId = startBinResponse.binSessionId
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
