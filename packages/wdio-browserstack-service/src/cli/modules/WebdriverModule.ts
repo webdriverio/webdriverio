@@ -7,6 +7,7 @@ import got from 'got'
 import type { Frameworks, Options } from '@wdio/types'
 import AutomationFramework from '../frameworks/automationFramework.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
+import { isBrowserstackSession } from '../../util.js'
 
 export default class WebdriverModule extends BaseModule {
 
@@ -33,6 +34,7 @@ export default class WebdriverModule extends BaseModule {
         this.logger.info('onbeforeTest: inside webdriver module before test hook!')
         const autoInstance = AutomationFramework.getTrackedInstance()
         const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
+        const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
         const test = args.test as Frameworks.Test
         const testTitle = test.title as string
         const suiteTitle = args.suiteTitle as string
@@ -40,7 +42,7 @@ export default class WebdriverModule extends BaseModule {
         const accessKey = this.config.accessKey as string
         const testContextOptions = this.config.testContextOptions as TestContextOptions
 
-        if (testContextOptions.skipSessionName) {
+        if (testContextOptions.skipSessionName || !isBrowserstackSession(browser)) {
             this.logger.info('Skipping session name update as per configuration')
             return
         }
@@ -84,11 +86,12 @@ export default class WebdriverModule extends BaseModule {
 
         const autoInstance = AutomationFramework.getTrackedInstance()
         const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
+        const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
         const userName = this.config.userName as string
         const accessKey = this.config.accessKey as string
         const testContextOptions = this.config.testContextOptions as TestContextOptions
 
-        if (testContextOptions.skipSessionStatus) {
+        if (testContextOptions.skipSessionStatus || !isBrowserstackSession(browser)) {
             this.logger.info('Skipping session status update as per configuration')
             return
         }
