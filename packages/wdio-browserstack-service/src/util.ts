@@ -308,9 +308,11 @@ export const jsonifyAccessibilityArray = (
     return result
 }
 
-export const  processAccessibilityResponse = (response: LaunchResponse) => {
+export const  processAccessibilityResponse = (response: LaunchResponse, options: BrowserstackConfig & Options.Testrunner) => {
     if (!response.accessibility) {
-        handleErrorForAccessibility(null)
+        if (options.accessibility === true) {
+            handleErrorForAccessibility(null)
+        }
         return
     }
     if (!response.accessibility.success) {
@@ -320,9 +322,11 @@ export const  processAccessibilityResponse = (response: LaunchResponse) => {
 
     if (response.accessibility.options) {
         const { accessibilityToken, pollingTimeout, scannerVersion } = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
+        const result = jsonifyAccessibilityArray(response.accessibility.options.capabilities, 'name', 'value')
         const scriptsJson = {
             'scripts': jsonifyAccessibilityArray(response.accessibility.options.scripts, 'name', 'command'),
-            'commands': response.accessibility.options.commandsToWrap.commands
+            'commands': response.accessibility.options.commandsToWrap.commands,
+            'nonBStackInfraA11yChromeOptions': result['goog:chromeOptions']
         }
         if (scannerVersion) {
             process.env.BSTACK_A11Y_SCANNER_VERSION = scannerVersion
@@ -346,7 +350,7 @@ export const processLaunchBuildResponse = (response: LaunchResponse, options: Br
     if (options.testObservability) {
         processTestObservabilityResponse(response)
     }
-    processAccessibilityResponse(response)
+    processAccessibilityResponse(response, options)
 }
 
 export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.TESTHUB_EVENTS.START, o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig, bStackConfig: BrowserStackConfig, accessibilityAutomation: boolean | null) {
@@ -389,6 +393,11 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         config: {}
     }
 
+    if (accessibilityAutomation && (isTurboScale(options) || data.browserstackAutomation === false)){
+        data.accessibility.settings ??= {}
+        data.accessibility.settings.includeEncodedExtension = true
+    }
+
     try {
         if (Object.keys(CrashReporter.userConfigForReporting).length === 0) {
             CrashReporter.userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : {}
@@ -406,6 +415,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
             password: getObservabilityKey(options, config),
             json: data
         }).json()
+        delete data?.accessibility?.settings?.includeEncodedExtension
         BStackLogger.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
         if (response.jwt) {
@@ -474,6 +484,20 @@ export const validateCapsWithA11y = (deviceName?: any, platformMeta?: { [key: st
     return false
 }
 
+export const validateCapsWithNonBstackA11y = (browserName?: string | undefined, browserVersion?:string | undefined )  => {
+
+    if (browserName?.toLowerCase() !== 'chrome') {
+        BStackLogger.warn('Accessibility Automation will run only on Chrome browsers.')
+        return false
+    }
+    if ( !isUndefined(browserVersion) && !(browserVersion === 'latest' || parseFloat(browserVersion + '') > 100)) {
+        BStackLogger.warn('Accessibility Automation will run only on Chrome browser version greater than 100.')
+        return false
+    }
+    return true
+
+}
+
 export const shouldScanTestForAccessibility = (suiteTitle: string | undefined, testTitle: string, accessibilityOptions?: { [key: string]: any; }, world?: { [key: string]: any; }, isCucumber?: boolean ) => {
     try {
         const includeTags = Array.isArray(accessibilityOptions?.includeTagsInTestingScope) ? accessibilityOptions?.includeTagsInTestingScope : []
@@ -538,10 +562,6 @@ export const _getParamsForAppAccessibility = ( commandName?: string ): { thTestR
 
 export const performA11yScan = async (isAppAutomate: boolean, browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string, commandName?: string) : Promise<{ [key: string]: any; } | undefined> => {
     return await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN, async () => {
-        if (!isBrowserStackSession) {
-            BStackLogger.warn('Not a BrowserStack Automate session, cannot perform Accessibility scan.')
-            return // since we are running only on Automate as of now
-        }
 
         if (!isAccessibilityAutomationSession(isAccessibility)) {
             BStackLogger.warn('Not an Accessibility Automation session, cannot perform Accessibility scan.')
@@ -565,10 +585,6 @@ export const performA11yScan = async (isAppAutomate: boolean, browser: Webdriver
 }
 
 export const getA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<Array<{ [key: string]: any; }>> => {
-    if (!isBrowserStackSession) {
-        BStackLogger.warn('Not a BrowserStack Automate session, cannot retrieve Accessibility results.')
-        return [] // since we are running only on Automate as of now
-    }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results.')
@@ -644,9 +660,6 @@ const getAppA11yResultResponse = async (apiUrl: string, isAppAutomate: boolean, 
 }
 
 export const getA11yResultsSummary = PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY, async (isAppAutomate: boolean, browser: WebdriverIO.Browser, isBrowserStackSession?: boolean, isAccessibility?: boolean | string) : Promise<{ [key: string]: any; }> => {
-    if (!isBrowserStackSession) {
-        return {} // since we are running only on Automate as of now
-    }
 
     if (!isAccessibilityAutomationSession(isAccessibility)) {
         BStackLogger.warn('Not an Accessibility Automation session, cannot retrieve Accessibility results summary.')
@@ -1572,6 +1585,46 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
         return false
     }
     return ['true'].includes(value.trim().toLowerCase())
+}
+
+export function mergeDeep(target: Record<string, any>, ...sources: any[]): Record<string, any> {
+    if (!sources.length) {return target}
+    const source = sources.shift()
+
+    if (isObject(target) && isObject(source)) {
+        for (const key in source) {
+            const sourceValue = source[key]
+            const targetValue = target[key]
+
+            if (isObject(sourceValue)) {
+                if (!targetValue || !isObject(targetValue)) {
+                    target[key] = {}
+                }
+                mergeDeep(target[key], sourceValue)
+            } else {
+                target[key] = sourceValue
+            }
+        }
+    }
+
+    return mergeDeep(target, ...sources)
+}
+
+export function mergeChromeOptions(base: Capabilities.ChromeOptions, override: Partial<Capabilities.ChromeOptions>): Capabilities.ChromeOptions {
+    const merged: Capabilities.ChromeOptions = { ...base }
+
+    if (override.args) {
+        merged.args = [...(base.args || []), ...override.args]
+    }
+
+    if (override.extensions) {
+        merged.extensions = [...(base.extensions || []), ...override.extensions]
+    }
+
+    if (override.prefs) {
+        merged.prefs = mergeDeep({ ...(base.prefs || {}) }, override.prefs)
+    }
+    return merged
 }
 
 export function isNullOrEmpty(string: any): boolean {
