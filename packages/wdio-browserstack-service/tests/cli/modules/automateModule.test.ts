@@ -1,11 +1,11 @@
 import type { Mock } from 'vitest'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import WebdriverModule from '../../src/cli/modules/WebdriverModule.js'
-import TestFramework from '../../src/cli/frameworks/testFramework.js'
-import { TestFrameworkState } from '../../src/cli/states/testFrameworkState.js'
-import { HookState } from '../../src/cli/states/hookState.js'
+import AutomateModule from '../../../src/cli/modules/automateModule.js'
+import TestFramework from '../../../src/cli/frameworks/testFramework.js'
+import { TestFrameworkState } from '../../../src/cli/states/testFrameworkState.js'
+import { HookState } from '../../../src/cli/states/hookState.js'
 import got from 'got'
-import type { Frameworks } from '@wdio/types'
+import type { Frameworks, Options } from '@wdio/types'
 
 // vi.mock('../../src/cli/frameworks/testFramework.ts')
 vi.mock('got')
@@ -25,10 +25,11 @@ Object.defineProperty(globalThis, 'browser', {
     configurable: true
 })
 
-describe('WebdriverModule', () => {
-    let webdriverModule: WebdriverModule
+describe('AutomateModule', () => {
+    let automateModule: AutomateModule
     let mockGot: Mock
     let mockConfig: any
+    let mockOptions: Options.Testrunner
     let registerObserverSpy: Mock
 
     beforeEach(() => {
@@ -38,6 +39,10 @@ describe('WebdriverModule', () => {
             userName: 'test-user',
             accessKey: 'test-key'
         }
+        mockOptions = {
+            user: 'testuser',
+            key: 'testkey',
+        } as Options.Testrunner
 
         mockGot = vi.mocked(got)
         mockGot.mockResolvedValue({
@@ -45,9 +50,9 @@ describe('WebdriverModule', () => {
         })
 
         registerObserverSpy = vi.spyOn(TestFramework, 'registerObserver').mockImplementation(() => {}) as Mock
-        webdriverModule = new WebdriverModule()
+        automateModule = new AutomateModule(mockOptions)
 
-        Object.defineProperty(webdriverModule, 'config', {
+        Object.defineProperty(automateModule, 'config', {
             value: mockConfig
         })
     })
@@ -58,7 +63,7 @@ describe('WebdriverModule', () => {
     })
 
     describe('constructor', () => {
-        it('should initialize WebdriverModule correctly', () => {
+        it('should initialize AutomateModule correctly', () => {
             expect(TestFramework.registerObserver).toHaveBeenCalledTimes(2)
             expect(TestFramework.registerObserver).toHaveBeenCalledWith(
                 TestFrameworkState.TEST,
@@ -73,8 +78,8 @@ describe('WebdriverModule', () => {
         })
 
         it('should have correct module name', () => {
-            expect(webdriverModule.getModuleName()).toBe('WebdriverModule')
-            expect(WebdriverModule.MODULE_NAME).toBe('WebdriverModule')
+            expect(automateModule.getModuleName()).toBe('AutomateModule')
+            expect(AutomateModule.MODULE_NAME).toBe('AutomateModule')
         })
     })
 
@@ -89,9 +94,9 @@ describe('WebdriverModule', () => {
         }
 
         it('should call markSessionName with correct parameters', async () => {
-            const markSessionNameSpy = vi.spyOn(webdriverModule, 'markSessionName').mockResolvedValue()
+            const markSessionNameSpy = vi.spyOn(automateModule, 'markSessionName').mockResolvedValue()
 
-            await webdriverModule.onBeforeTest(mockArgs)
+            await automateModule.onBeforeTest(mockArgs)
 
             expect(markSessionNameSpy).toHaveBeenCalledWith(
                 'mock-session-id-12345',
@@ -109,9 +114,9 @@ describe('WebdriverModule', () => {
                 value: { sessionId: null }
             })
 
-            const markSessionNameSpy = vi.spyOn(webdriverModule, 'markSessionName').mockResolvedValue()
+            const markSessionNameSpy = vi.spyOn(automateModule, 'markSessionName').mockResolvedValue()
 
-            await webdriverModule.onBeforeTest(mockArgs)
+            await automateModule.onBeforeTest(mockArgs)
 
             expect(markSessionNameSpy).toHaveBeenCalledWith(
                 null,
@@ -131,7 +136,7 @@ describe('WebdriverModule', () => {
             }
 
             // Update the config on the instance
-            Object.defineProperty(webdriverModule, 'config', {
+            Object.defineProperty(automateModule, 'config', {
                 value: customConfig
             })
 
@@ -139,9 +144,9 @@ describe('WebdriverModule', () => {
                 value: { sessionId: 'mock-session-id-12345' }
             })
 
-            const markSessionNameSpy = vi.spyOn(webdriverModule, 'markSessionName').mockResolvedValue()
+            const markSessionNameSpy = vi.spyOn(automateModule, 'markSessionName').mockResolvedValue()
 
-            await webdriverModule.onBeforeTest(mockArgs)
+            await automateModule.onBeforeTest(mockArgs)
 
             expect(markSessionNameSpy).toHaveBeenCalledWith(
                 'mock-session-id-12345',
@@ -167,9 +172,9 @@ describe('WebdriverModule', () => {
         }
 
         it('should call markSessionStatus with failed status', async () => {
-            const markSessionStatusSpy = vi.spyOn(webdriverModule, 'markSessionStatus').mockResolvedValue()
+            const markSessionStatusSpy = vi.spyOn(automateModule, 'markSessionStatus').mockResolvedValue()
 
-            await webdriverModule.onAfterTest(mockArgs)
+            await automateModule.onAfterTest(mockArgs)
 
             expect(markSessionStatusSpy).toHaveBeenCalledWith(
                 'mock-session-id-12345',
@@ -189,12 +194,12 @@ describe('WebdriverModule', () => {
             }
 
             const passedArgs = {
-                results: passedResults
+                result: passedResults
             }
 
-            const markSessionStatusSpy = vi.spyOn(webdriverModule, 'markSessionStatus').mockResolvedValue()
+            const markSessionStatusSpy = vi.spyOn(automateModule, 'markSessionStatus').mockResolvedValue()
 
-            await webdriverModule.onAfterTest(passedArgs)
+            await automateModule.onAfterTest(passedArgs)
 
             expect(markSessionStatusSpy).toHaveBeenCalledWith(
                 'mock-session-id-12345',
@@ -214,12 +219,12 @@ describe('WebdriverModule', () => {
             }
 
             const argsWithoutError = {
-                results: resultsWithoutError
+                result: resultsWithoutError
             }
 
-            const markSessionStatusSpy = vi.spyOn(webdriverModule, 'markSessionStatus').mockResolvedValue()
+            const markSessionStatusSpy = vi.spyOn(automateModule, 'markSessionStatus').mockResolvedValue()
 
-            await webdriverModule.onAfterTest(argsWithoutError)
+            await automateModule.onAfterTest(argsWithoutError)
 
             expect(markSessionStatusSpy).toHaveBeenCalledWith(
                 'mock-session-id-12345',
@@ -241,14 +246,14 @@ describe('WebdriverModule', () => {
 
         it('should make API call to App Automate when app is present', async () => {
             // Mock config app
-            Object.defineProperty(webdriverModule, 'config', {
+            Object.defineProperty(automateModule, 'config', {
                 value: {
                     userName: 'test-user',
                     accessKey: 'test-key',
                     app: './test-app.apk'
                 }
             })
-            await webdriverModule.markSessionName('session-123', 'Test Session Name', mockCredentials)
+            await automateModule.markSessionName('session-123', 'Test Session Name', mockCredentials)
 
             expect(mockGot).toHaveBeenCalledWith({
                 method: 'PUT',
@@ -266,7 +271,7 @@ describe('WebdriverModule', () => {
 
         it('should make API call to Browser Automate when app is not present', async () => {
 
-            await webdriverModule.markSessionName('session-123', 'Test Session Name', mockCredentials)
+            await automateModule.markSessionName('session-123', 'Test Session Name', mockCredentials)
 
             expect(mockGot).toHaveBeenCalledWith({
                 method: 'PUT',
@@ -284,7 +289,7 @@ describe('WebdriverModule', () => {
 
         it('should handle proxy configuration', async () => {
             // Mock config with proxy
-            Object.defineProperty(webdriverModule, 'config', {
+            Object.defineProperty(automateModule, 'config', {
                 value: {
                     userName: 'test-user',
                     accessKey: 'test-key',
@@ -293,7 +298,7 @@ describe('WebdriverModule', () => {
                 }
             })
 
-            await webdriverModule.markSessionName('session-123', 'Test Session Name', mockCredentials)
+            await automateModule.markSessionName('session-123', 'Test Session Name', mockCredentials)
 
             expect(mockGot).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -313,14 +318,14 @@ describe('WebdriverModule', () => {
 
         it('should make API call to App Automate for failed status', async () => {
             // Mock config without app
-            Object.defineProperty(webdriverModule, 'config', {
+            Object.defineProperty(automateModule, 'config', {
                 value: {
                     userName: 'test-user',
                     accessKey: 'test-key',
                     app: './test-app.apk'
                 }
             })
-            await webdriverModule.markSessionStatus('session-123', 'failed', 'Test failure reason', mockCredentials)
+            await automateModule.markSessionStatus('session-123', 'failed', 'Test failure reason', mockCredentials)
 
             expect(mockGot).toHaveBeenCalledWith({
                 method: 'PUT',
@@ -339,14 +344,14 @@ describe('WebdriverModule', () => {
 
         it('should make API call for passed status without reason', async () => {
             // Mock config without app
-            Object.defineProperty(webdriverModule, 'config', {
+            Object.defineProperty(automateModule, 'config', {
                 value: {
                     userName: 'test-user',
                     accessKey: 'test-key',
                     app: './test-app.apk'
                 }
             })
-            await webdriverModule.markSessionStatus('session-123', 'passed', undefined, mockCredentials)
+            await automateModule.markSessionStatus('session-123', 'passed', undefined, mockCredentials)
 
             expect(mockGot).toHaveBeenCalledWith({
                 method: 'PUT',
@@ -363,7 +368,7 @@ describe('WebdriverModule', () => {
         })
 
         it('should make API call to Browser Automate when app is not present', async () => {
-            await webdriverModule.markSessionStatus('session-123', 'passed', undefined, mockCredentials)
+            await automateModule.markSessionStatus('session-123', 'passed', undefined, mockCredentials)
 
             expect(mockGot).toHaveBeenCalledWith({
                 method: 'PUT',
@@ -381,7 +386,7 @@ describe('WebdriverModule', () => {
 
         it('should handle proxy configuration', async () => {
             // Mock config with proxy
-            Object.defineProperty(webdriverModule, 'config', {
+            Object.defineProperty(automateModule, 'config', {
                 value: {
                     userName: 'test-user',
                     accessKey: 'test-key',
@@ -390,7 +395,7 @@ describe('WebdriverModule', () => {
                 }
             })
 
-            await webdriverModule.markSessionStatus('session-123', 'passed', undefined, mockCredentials)
+            await automateModule.markSessionStatus('session-123', 'passed', undefined, mockCredentials)
 
             expect(mockGot).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -405,26 +410,26 @@ describe('WebdriverModule', () => {
     describe('App Automate Detection', () => {
         it('should detect App Automate when app property exists', async () => {
             // Mock config app
-            Object.defineProperty(webdriverModule, 'config', {
+            Object.defineProperty(automateModule, 'config', {
                 value: {
                     userName: 'test-user',
                     accessKey: 'test-key',
                     app: './test-app.apk'
                 }
             })
-            const markSessionNameSpy = vi.spyOn(webdriverModule, 'markSessionName').mockResolvedValue()
+            const markSessionNameSpy = vi.spyOn(automateModule, 'markSessionName').mockResolvedValue()
 
-            await webdriverModule.onBeforeTest({
+            await automateModule.onBeforeTest({
                 test: { title: 'Test', fullName: 'Test' },
                 suiteTitle: { suiteTitle: 'Suite' }
             })
 
             expect(markSessionNameSpy).toHaveBeenCalled()
-            expect(webdriverModule.config.app).toBe('./test-app.apk')
+            expect(automateModule.config.app).toBe('./test-app.apk')
         })
 
         it('should detect Browser Automate when app property is missing', async () => {
-            Object.defineProperty(webdriverModule, 'config', {
+            Object.defineProperty(automateModule, 'config', {
                 value: {
                     userName: 'test-user',
                     accessKey: 'test-key'
@@ -434,15 +439,15 @@ describe('WebdriverModule', () => {
                 configurable: true
             })
 
-            const markSessionNameSpy = vi.spyOn(webdriverModule, 'markSessionName').mockResolvedValue()
+            const markSessionNameSpy = vi.spyOn(automateModule, 'markSessionName').mockResolvedValue()
 
-            await webdriverModule.onBeforeTest({
+            await automateModule.onBeforeTest({
                 test: { title: 'Test', fullName: 'Test' },
                 suiteTitle: { suiteTitle: 'Suite' }
             })
 
             expect(markSessionNameSpy).toHaveBeenCalled()
-            expect(webdriverModule.config.app).toBeUndefined()
+            expect(automateModule.config.app).toBeUndefined()
         })
     })
 })
