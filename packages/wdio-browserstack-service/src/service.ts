@@ -324,10 +324,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterTest' })
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
-        if (BrowserstackCLI.getInstance().isRunning() && this._config.framework === 'mocha') {
-            BStackLogger.debug('Browserstack CLI is running')
-            BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { results })
-        }
         this._specsRan = true
         const { error, passed } = results
         if (!passed) {

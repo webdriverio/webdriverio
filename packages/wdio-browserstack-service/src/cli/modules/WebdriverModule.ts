@@ -4,18 +4,22 @@ import TestFramework from '../frameworks/testFramework.js'
 import { TestFrameworkState } from '../states/testFrameworkState.js'
 import { HookState } from '../states/hookState.js'
 import got from 'got'
-import type { Frameworks } from '@wdio/types'
+import type { Frameworks, Options } from '@wdio/types'
+import AutomationFramework from '../frameworks/automationFramework.js'
+import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 
 export default class WebdriverModule extends BaseModule {
 
     logger = BStackLogger
+    browserStackConfig: Options.Testrunner
 
     static readonly MODULE_NAME = 'WebdriverModule'
     /**
      * Create a new WebdriverModule
      */
-    constructor() {
+    constructor(browserStackConfig: Options.Testrunner) {
         super()
+        this.browserStackConfig = browserStackConfig
         this.logger.info('WebdriverModule: Initializing Webdriver Module')
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
@@ -26,21 +30,44 @@ export default class WebdriverModule extends BaseModule {
     }
 
     async onBeforeTest(args: Record<string, unknown>) {
-        this.logger.info('onbeforeTest: inside webdriver module before test hook!!!')
+        this.logger.info('onbeforeTest: inside webdriver module before test hook!')
+        const autoInstance = AutomationFramework.getTrackedInstance()
+        const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
         const test = args.test as Frameworks.Test
         const testTitle = test.title as string
         const suiteTitle = args.suiteTitle as string
-        const sessionId = globalThis.browser.sessionId as string
         const userName = this.config.userName as string
         const accessKey = this.config.accessKey as string
-        await this.markSessionName( sessionId, suiteTitle + ' - ' + testTitle,
+        const testContextOptions = this.config.testContextOptions as TestContextOptions
+
+        if (testContextOptions.skipSessionName) {
+            this.logger.info('Skipping session name update as per configuration')
+            return
+        }
+
+        let name = suiteTitle
+        if (testContextOptions.sessionNameFormat) {
+            const caps = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_CAPABILITIES)
+            name = testContextOptions.sessionNameFormat(
+                this.browserStackConfig,
+                caps,
+                suiteTitle,
+                testTitle
+            )
+        } else if (test && !test.fullName) {
+            // Mocha
+            const pre = testContextOptions.sessionNamePrependTopLevelSuiteTitle ? `${suiteTitle} - ` : ''
+            const post = !testContextOptions.sessionNameOmitTestTitle ? ` - ${testTitle}` : ''
+            name = `${pre}${test.parent}${post}`
+        }
+        await this.markSessionName( sessionId, name,
             { user: userName, key: accessKey }
         )
     }
 
     async onAfterTest(args: Record<string, unknown>) {
-        this.logger.debug('onAfterTest: inside webdriver module after test hook!!!')
-        const { error, passed } = args.results as { error: Error | null, passed: boolean }
+        this.logger.debug('onAfterTest: inside webdriver module after test hook!')
+        const { error, passed } = args.result as { error: Error | null, passed: boolean }
         const _failReasons: string[] = []
 
         if (!passed) {
@@ -54,9 +81,17 @@ export default class WebdriverModule extends BaseModule {
         if (reason) {
             requestBody.reason = reason
         }
-        const sessionId = globalThis.browser.sessionId as string
+
+        const autoInstance = AutomationFramework.getTrackedInstance()
+        const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
         const userName = this.config.userName as string
         const accessKey = this.config.accessKey as string
+        const testContextOptions = this.config.testContextOptions as TestContextOptions
+
+        if (testContextOptions.skipSessionStatus) {
+            this.logger.info('Skipping session status update as per configuration')
+            return
+        }
 
         await this.markSessionStatus( sessionId, passed ? 'passed' : 'failed', passed ? undefined : (error?.message || 'Unknown Error'),
             { user: userName, key: accessKey }

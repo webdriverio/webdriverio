@@ -113,7 +113,6 @@ export class BrowserstackCLI {
      */
     loadModules(startBinResponse: StartBinSessionResponse) {
         // Defer imports to avoid circular dependencies
-        this.modules[WebDriverModule.MODULE_NAME] = new WebDriverModule()
         this.binSessionId = startBinResponse.binSessionId
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
@@ -123,6 +122,7 @@ export class BrowserstackCLI {
         this.setupAutomationFramework()
 
         this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
+        this.modules[WebDriverModule.MODULE_NAME] = new WebDriverModule(this.browserstackConfig as Options.Testrunner)
 
         if (startBinResponse.testhub) {
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
