@@ -1,4 +1,4 @@
-import BaseModule from './BaseModule.js'
+import BaseModule from './baseModule.js'
 import { BStackLogger } from '../cliLogger.js'
 import TestFramework from '../frameworks/testFramework.js'
 import { TestFrameworkState } from '../states/testFrameworkState.js'

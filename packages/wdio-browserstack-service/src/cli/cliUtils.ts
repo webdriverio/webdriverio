@@ -30,7 +30,8 @@ import { BStackLogger as logger } from './cliLogger.js'
 import { UPDATED_CLI_ENDPOINT, BROWSERSTACK_API_URL } from '../constants.js'
 import type { Options, Capabilities } from '@wdio/types'
 import { Readable } from 'node:stream'
-import type { BrowserstackConfig, BrowserstackOptions } from 'src/types.js'
+import type { BrowserstackConfig, BrowserstackOptions, TestObservabilityOptions } from 'src/types.js'
+import { TestFrameworkConstants } from './frameworks/constants/testFrameworkConstants.js'
 
 export class CLIUtils {
     static automationFrameworkDetail = {}
@@ -62,13 +63,18 @@ export class CLIUtils {
         const commonBstackOptions = (config.commonCapabilities &&
             config.commonCapabilities['bstack:options']) || {}
 
+        const observabilityOptions: TestObservabilityOptions = options.testObservabilityOptions || {}
         const binconfig: Record<string, unknown> = {
-            userName: config.user,
-            accessKey: config.key,
+            userName: observabilityOptions.user || config.user,
+            accessKey: observabilityOptions.key || config.key,
             platforms: [],
             ...modifiedOpts,
             ...commonBstackOptions,
         }
+
+        binconfig.buildName = observabilityOptions.buildName || binconfig.buildName
+        binconfig.projectName = observabilityOptions.projectName || binconfig.projectName
+        binconfig.buildTag = observabilityOptions.buildTag || []
 
         let caps = capabilities
         if (capabilities && !Array.isArray(capabilities)) {
@@ -106,7 +112,7 @@ export class CLIUtils {
     }
 
     static getSdkLanguage() {
-        return 'wdio'
+        return 'ECMAScript'
     }
 
     static async setupCliPath(config: Options.Testrunner): Promise<string|null> {
@@ -446,5 +452,11 @@ export class CLIUtils {
      */
     static getHookRegistryKey(frameworkState: State, hookState: State) {
         return `${frameworkState}:${hookState}`
+    }
+
+    static matchHookRegex(hookState: string) {
+        const pattern = new RegExp(TestFrameworkConstants.HOOK_REGEX)
+
+        return pattern.test(hookState)
     }
 }

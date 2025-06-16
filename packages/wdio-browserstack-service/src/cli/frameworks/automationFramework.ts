@@ -4,6 +4,7 @@ import { CLIUtils } from '../cliUtils.js'
 import TrackedInstance from '../instances/trackedInstance.js'
 import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'
 import type TrackedContext from '../instances/trackedContext.js'
+import { AutomationFrameworkConstants } from './constants/automationFrameworkConstants.js'
 
 /**
  * AutomationFramework - Automation Framework abstract class
@@ -82,6 +83,7 @@ export default class AutomationFramework {
    * @returns {void}
    */
     static setTrackedInstance(context: TrackedContext, instance: AutomationFrameworkInstance) {
+        logger.debug(`setTrackedInstance: ${context.getId()}`)
         AutomationFramework.instances.set(context.getId(), instance)
     }
 
@@ -90,6 +92,7 @@ export default class AutomationFramework {
    * @returns {TrackedInstance} The tracked instance
    */
     static getTrackedInstance() {
+        logger.debug(`getTrackedInstance: ${CLIUtils.getCurrentInstanceName()}`)
         const context = TrackedInstance.createContext(CLIUtils.getCurrentInstanceName())
         return AutomationFramework.instances.get(context.getId())
     }
@@ -113,5 +116,33 @@ export default class AutomationFramework {
    */
     static getState(instance: AutomationFrameworkInstance, key: string) {
         return instance.getAllData().get(key)
+    }
+
+    static isAutomationSession(instance: AutomationFrameworkInstance): boolean {
+        return AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_IS_BROWSERSTACK_HUB)
+    }
+
+    /**
+     * Set the driver for the automation framework instance
+     * @param {AutomationFrameworkInstance} instance - The automation framework instance
+     * @param {*} driver - The driver object
+     */
+    static setDriver(instance: AutomationFrameworkInstance, driver: unknown): void {
+        if (this.isAutomationSession(instance)) {
+            AutomationFramework.setState(instance, AutomationFramework.KEY_AUTOMATION_SESSIONS, driver)
+        } else {
+            AutomationFramework.setState(instance, AutomationFramework.KEY_NON_BROWSERSTACK_AUTOMATION_SESSIONS, driver)
+        }
+    }
+
+    /**
+     * Get the driver from the automation framework instance
+     * @param {AutomationFrameworkInstance} instance - The automation framework instance
+     * @returns {*} The driver object or null
+     */
+    static getDriver(instance: AutomationFrameworkInstance): unknown {
+        let driver: unknown = null
+        driver = this.isAutomationSession(instance) ? AutomationFramework.getState(instance, AutomationFramework.KEY_AUTOMATION_SESSIONS) || null : AutomationFramework.getState(instance, AutomationFramework.KEY_NON_BROWSERSTACK_AUTOMATION_SESSIONS) || null
+        return driver
     }
 }

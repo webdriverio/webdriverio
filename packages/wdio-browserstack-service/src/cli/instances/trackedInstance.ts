@@ -61,6 +61,10 @@ export default class TrackedInstance {
         return this.data.get(key)
     }
 
+    hasData(key: string): boolean {
+        return this.data.has(key)
+    }
+
     static createContext(target: string) {
         return new TrackedContext(
             crypto.createHash('sha256').update(target).digest('hex'),
