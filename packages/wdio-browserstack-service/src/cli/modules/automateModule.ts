@@ -9,29 +9,29 @@ import AutomationFramework from '../frameworks/automationFramework.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 import { isBrowserstackSession } from '../../util.js'
 
-export default class WebdriverModule extends BaseModule {
+export default class AutomateModule extends BaseModule {
 
     logger = BStackLogger
     browserStackConfig: Options.Testrunner
 
-    static readonly MODULE_NAME = 'WebdriverModule'
+    static readonly MODULE_NAME = 'AutomateModule'
     /**
-     * Create a new WebdriverModule
+     * Create a new AutomateModule
      */
     constructor(browserStackConfig: Options.Testrunner) {
         super()
         this.browserStackConfig = browserStackConfig
-        this.logger.info('WebdriverModule: Initializing Webdriver Module')
+        this.logger.info('AutomateModule: Initializing Automate Module')
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
     }
 
     getModuleName(): string {
-        return WebdriverModule.MODULE_NAME
+        return AutomateModule.MODULE_NAME
     }
 
     async onBeforeTest(args: Record<string, unknown>) {
-        this.logger.info('onbeforeTest: inside webdriver module before test hook!')
+        this.logger.info('onbeforeTest: inside automate module before test hook!')
         const autoInstance = AutomationFramework.getTrackedInstance()
         const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
         const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
@@ -68,7 +68,7 @@ export default class WebdriverModule extends BaseModule {
     }
 
     async onAfterTest(args: Record<string, unknown>) {
-        this.logger.debug('onAfterTest: inside webdriver module after test hook!')
+        this.logger.debug('onAfterTest: inside automate module after test hook!')
         const { error, passed } = args.result as { error: Error | null, passed: boolean }
         const _failReasons: string[] = []
 

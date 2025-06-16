@@ -6,7 +6,7 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
 import { GrpcClient } from './grpcClient.js'
-import WebDriverModule from './modules/WebdriverModule.js'
+import AutomateModule from './modules/automateModule.js'
 import TestHubModule from './modules/testHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
@@ -122,7 +122,7 @@ export class BrowserstackCLI {
         this.setupAutomationFramework()
 
         this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
-        this.modules[WebDriverModule.MODULE_NAME] = new WebDriverModule(this.browserstackConfig as Options.Testrunner)
+        this.modules[AutomateModule.MODULE_NAME] = new AutomateModule(this.browserstackConfig as Options.Testrunner)
 
         if (startBinResponse.testhub) {
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
