@@ -21,6 +21,28 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.45.0 (2025-06-12)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#14555](https://github.com/webdriverio/webdriverio/pull/14555) Added support for running accessibility on Non-browserstack infrastructure [v8] ([@Bhargavi-BS](https://github.com/Bhargavi-BS))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#14558](https://github.com/webdriverio/webdriverio/pull/14558) fix for accessibility build error [wdio-browsertstack-service] [v8] ([@rounak610](https://github.com/rounak610))
+* `wdio-utils`
+  * [#14428](https://github.com/webdriverio/webdriverio/pull/14428) fix: disable Chrome's password manager leak detection as it can block test execution (v8 backport) ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14439](https://github.com/webdriverio/webdriverio/pull/14439) Auto enable accessibility [v8] ([@rounak610](https://github.com/rounak610))
+
+#### Committers: 3
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Rounak Bhatia ([@rounak610](https://github.com/rounak610))
+- [@Bhargavi-BS](https://github.com/Bhargavi-BS)
+
+
 ## v8.44.1 (2025-04-14)
 
 #### :bug: Bug Fix

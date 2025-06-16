@@ -122,14 +122,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
 
         try {
-            // Connect to Browserstack CLI from worker
-            await BrowserstackCLI.getInstance().bootstrap()
+            if (this._config.framework === 'mocha') {
+                // Connect to Browserstack CLI from worker
+                await BrowserstackCLI.getInstance().bootstrap()
 
-            BStackLogger.debug('worker id ' + process.env.WDIO_WORKER_ID)
-            // Get the nearest hub and update it in config
-            const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
-            if (hubUrl) {
-                this._config.hostname = new URL(hubUrl).hostname
+                // Get the nearest hub and update it in config
+                const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
+                if (hubUrl) {
+                    this._config.hostname = new URL(hubUrl).hostname
+                }
             }
             if (BrowserstackCLI.getInstance().isRunning()) {
                 await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: this._caps })
@@ -175,21 +176,23 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._browser) {
             try {
                 const sessionId = this._browser.sessionId
-                if (isBrowserstackSession(this._browser)) {
-                    try {
-                        this._accessibilityHandler = new AccessibilityHandler(
-                            this._browser,
-                            this._caps,
-                            this._isAppAutomate(),
-                            this._config.framework,
-                            this._accessibility,
-                            this._options.accessibilityOptions
-                        )
-                        await this._accessibilityHandler.before(sessionId)
-                        Listener.setAccessibilityOptions(this._options.accessibilityOptions)
-                    } catch (err) {
-                        BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
-                    }
+
+                try {
+                    this._accessibilityHandler = new AccessibilityHandler(
+                        this._browser,
+                        this._caps,
+                        this._options,
+                        this._isAppAutomate(),
+                        this._config,
+                        this._config.framework,
+                        this._accessibility,
+                        this._turboScale,
+                        this._options.accessibilityOptions
+                    )
+                    await this._accessibilityHandler.before(sessionId)
+                    Listener.setAccessibilityOptions(this._options.accessibilityOptions)
+                } catch (err) {
+                    BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
                 }
 
                 if (shouldProcessEventForTesthub('')) {
