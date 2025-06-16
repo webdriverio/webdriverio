@@ -206,37 +206,39 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     await this._insightsHandler.before()
                 }
 
-                /**
-                 * register command event
-                 */
-                this._browser.on('command', async (command) => {
-                    if (shouldProcessEventForTesthub('')) {
-                        this._insightsHandler?.browserCommand(
-                            'client:beforeCommand',
+                if (!BrowserstackCLI.getInstance().isRunning()) {
+                    /**
+                     * register command event
+                     */
+                    this._browser.on('command', async (command) => {
+                        if (shouldProcessEventForTesthub('')) {
+                            this._insightsHandler?.browserCommand(
+                                'client:beforeCommand',
+                                Object.assign(command, { sessionId }),
+                                this._currentTest
+                            )
+                        }
+                        await this._percyHandler?.browserBeforeCommand(
                             Object.assign(command, { sessionId }),
-                            this._currentTest
                         )
-                    }
-                    await this._percyHandler?.browserBeforeCommand(
-                        Object.assign(command, { sessionId }),
-                    )
-                })
+                    })
 
-                /**
-                 * register result event
-                 */
-                this._browser.on('result', (result) => {
-                    if (shouldProcessEventForTesthub('')) {
-                        this._insightsHandler?.browserCommand(
-                            'client:afterCommand',
+                    /**
+                     * register result event
+                     */
+                    this._browser.on('result', (result) => {
+                        if (shouldProcessEventForTesthub('')) {
+                            this._insightsHandler?.browserCommand(
+                                'client:afterCommand',
+                                Object.assign(result, { sessionId }),
+                                this._currentTest
+                            )
+                        }
+                        this._percyHandler?.browserAfterCommand(
                             Object.assign(result, { sessionId }),
-                            this._currentTest
                         )
-                    }
-                    this._percyHandler?.browserAfterCommand(
-                        Object.assign(result, { sessionId }),
-                    )
-                })
+                    })
+                }
             } catch (err) {
                 BStackLogger.error(`Error in service class before function: ${err}`)
                 if (shouldProcessEventForTesthub('')) {
@@ -244,15 +246,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 }
             }
 
-            if (this._percy) {
-                this._percyHandler = new PercyHandler(
-                    this._percyCaptureMode,
-                    this._browser,
-                    this._caps,
-                    this._isAppAutomate(),
-                    this._config.framework
-                )
-                this._percyHandler.before()
+            if (!BrowserstackCLI.getInstance().isRunning()) {
+                if (this._percy) {
+                    this._percyHandler = new PercyHandler(
+                        this._percyCaptureMode,
+                        this._browser,
+                        this._caps,
+                        this._isAppAutomate(),
+                        this._config.framework
+                    )
+                    this._percyHandler.before()
+                }
             }
         }
 
@@ -308,6 +312,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 suiteTitle = getParentSuiteName(this._suiteTitle, testSuiteName)
             }
         }
+
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
         await this._accessibilityHandler?.beforeTest(suiteTitle, test)
 
@@ -331,7 +336,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
-        await this._percyHandler?.afterTest()
+        if (!BrowserstackCLI.getInstance().isRunning()) {
+            await this._percyHandler?.afterTest()
+        }
         if (BrowserstackCLI.getInstance().isRunning()) {
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG_REPORT, HookState.POST, { test, result: results })
             await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.TEST, HookState.POST, { test, result: results })
@@ -363,7 +370,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         })()
 
         await Listener.getInstance().onWorkerEnd()
-        await this._percyHandler?.teardown()
+        if (!BrowserstackCLI.getInstance().isRunning()) {
+            await this._percyHandler?.teardown()
+        }
         this.saveWorkerData()
 
         await PerformanceTester.stopAndGenerate('performance-service.html')
@@ -424,7 +433,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._accessibilityHandler?.afterScenario(world)
         await this._insightsHandler?.afterScenario(world)
-        await this._percyHandler?.afterScenario()
+        if (!BrowserstackCLI.getInstance().isRunning()) {
+            await this._percyHandler?.afterScenario()
+        }
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeStep' })
@@ -584,12 +595,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
             name = `${pre}${test.parent}${post}`
         }
 
-        this._percyHandler?._setSessionName(name)
+        if (!BrowserstackCLI.getInstance().isRunning()) {
+            this._percyHandler?._setSessionName(name)
+        }
 
         if (name !== this._fullTitle) {
             this._fullTitle = name
             await this._updateJob({ name })
         }
+
+        return name
     }
 
     private _setAnnotation(data: string) {

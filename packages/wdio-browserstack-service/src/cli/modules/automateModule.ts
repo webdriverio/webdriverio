@@ -8,6 +8,8 @@ import type { Frameworks, Options } from '@wdio/types'
 import AutomationFramework from '../frameworks/automationFramework.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 import { isBrowserstackSession } from '../../util.js'
+import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
+import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
 
 export default class AutomateModule extends BaseModule {
 
@@ -32,6 +34,7 @@ export default class AutomateModule extends BaseModule {
 
     async onBeforeTest(args: Record<string, unknown>) {
         this.logger.info('onbeforeTest: inside automate module before test hook!')
+        const instace = args.instance as TestFrameworkInstance
         const autoInstance = AutomationFramework.getTrackedInstance()
         const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
         const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
@@ -62,6 +65,8 @@ export default class AutomateModule extends BaseModule {
             const post = !testContextOptions.sessionNameOmitTestTitle ? ` - ${testTitle}` : ''
             name = `${pre}${test.parent}${post}`
         }
+
+        TestFramework.setState(instace, TestFrameworkConstants.KEY_AUTOMATE_SESSION_NAME, name)
         await this.markSessionName( sessionId, name,
             { user: userName, key: accessKey }
         )
@@ -69,6 +74,7 @@ export default class AutomateModule extends BaseModule {
 
     async onAfterTest(args: Record<string, unknown>) {
         this.logger.debug('onAfterTest: inside automate module after test hook!')
+        const instace = args.instance as TestFrameworkInstance
         const { error, passed } = args.result as { error: Error | null, passed: boolean }
         const _failReasons: string[] = []
 
@@ -78,11 +84,6 @@ export default class AutomateModule extends BaseModule {
 
         const status = passed ? 'passed' : 'failed'
         const reason = _failReasons.length > 0 ? _failReasons.join('\n') : undefined
-
-        const requestBody: Record<string, unknown> = { status }
-        if (reason) {
-            requestBody.reason = reason
-        }
 
         const autoInstance = AutomationFramework.getTrackedInstance()
         const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
@@ -96,7 +97,9 @@ export default class AutomateModule extends BaseModule {
             return
         }
 
-        await this.markSessionStatus( sessionId, passed ? 'passed' : 'failed', passed ? undefined : (error?.message || 'Unknown Error'),
+        TestFramework.setState(instace, TestFrameworkConstants.KEY_AUTOMATE_SESSION_STATUS, status)
+        TestFramework.setState(instace, TestFrameworkConstants.KEY_AUTOMATE_SESSION_REASON, reason)
+        await this.markSessionStatus( sessionId, status, reason,
             { user: userName, key: accessKey }
         )
     }
