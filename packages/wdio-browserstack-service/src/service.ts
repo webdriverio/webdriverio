@@ -34,6 +34,9 @@ import { HookState } from './cli/states/hookState.js'
 import { AutomationFrameworkState } from './cli/states/automationFrameworkState.js'
 import TestFramework from './cli/frameworks/testFramework.js'
 import { TestFrameworkConstants } from './cli/frameworks/constants/testFrameworkConstants.js'
+import AutomationFramework from './cli/frameworks/automationFramework.js'
+import WebdriverIOModule from './cli/modules/webdriverIOModule.js'
+import type AutomationFrameworkInstance from './cli/instances/automationFrameworkInstance.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -103,7 +106,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeSession' })
-    async beforeSession (config: Omit<Options.Testrunner, 'capabilities'>) {
+    async beforeSession (config: Omit<Options.Testrunner, 'capabilities'>, capabilities: WebdriverIO.Capabilities) {
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
         // will fail
@@ -121,7 +124,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         try {
             if (this._config.framework === 'mocha') {
                 // Connect to Browserstack CLI from worker
-                await BrowserstackCLI.getInstance().bootstrap()
+                await BrowserstackCLI.getInstance().bootstrap(this._options)
 
                 // Get the nearest hub and update it in config
                 const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string
@@ -129,6 +132,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     this._config.hostname = new URL(hubUrl).hostname
                 }
             }
+            if (BrowserstackCLI.getInstance().isRunning()) {
+                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: this._caps })
+            }
+            const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+            const caps = AutomationFramework.getState(instance, WebdriverIOModule.KEY_CAPABILITIES)
+            Object.assign(capabilities, caps)
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
         }
@@ -166,30 +175,28 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._browser) {
             try {
-                if (BrowserstackCLI.getInstance().isRunning()) {
-                    await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps })
-                }
                 const sessionId = this._browser.sessionId
-                if (isBrowserstackSession(this._browser)) {
-                    try {
-                        this._accessibilityHandler = new AccessibilityHandler(
-                            this._browser,
-                            this._caps,
-                            this._isAppAutomate(),
-                            this._config.framework,
-                            this._accessibility,
-                            this._options.accessibilityOptions
-                        )
-                        if (BrowserstackCLI.getInstance().isRunning()){
-                            BStackLogger.info(`CLI is running, tracking accessibility event for before: ${sessionId}`)
-                            // BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { sessionId })
-                        } else {
-                            await this._accessibilityHandler.before(sessionId)
-                        }
-                        Listener.setAccessibilityOptions(this._options.accessibilityOptions)
-                    } catch (err) {
-                        BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
+                try {
+                    this._accessibilityHandler = new AccessibilityHandler(
+                        this._browser,
+                        this._caps,
+                        this._options,
+                        this._isAppAutomate(),
+                        this._config,
+                        this._config.framework,
+                        this._accessibility,
+                        this._turboScale,
+                        this._options.accessibilityOptions
+                    )
+                    if (isBrowserstackSession(this._browser) && BrowserstackCLI.getInstance().isRunning()){
+                        BStackLogger.info(`CLI is running, tracking accessibility event for before: ${sessionId}`)
+                        // BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.POST, { sessionId })
+                    } else {
+                        await this._accessibilityHandler.before(sessionId)
                     }
+                    Listener.setAccessibilityOptions(this._options.accessibilityOptions)
+                } catch (err) {
+                    BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
                 }
 
                 if (shouldProcessEventForTesthub('')) {

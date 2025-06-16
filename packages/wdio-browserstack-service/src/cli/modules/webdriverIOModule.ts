@@ -65,7 +65,7 @@ export default class WebdriverIOModule extends BaseModule {
             AutomationFramework.setState(instance, AutomationFrameworkConstants.KEY_INPUT_CAPABILITIES, capabilities)
 
             // const hubUrl = args.hubUrl
-            this.getBinDriverCapabilities(instance, capabilities)
+            await this.getBinDriverCapabilities(instance, capabilities)
             // AutomationFramework.setState(instance, WebdriverIOModule.KEY_CAPABILITIES, capabilities)
             // AutomationFramework.setState(instance, WebdriverIOModule.KEY_HUB_URL, hubUrl)
         } catch (e){
@@ -183,6 +183,15 @@ export default class WebdriverIOModule extends BaseModule {
                 }
                 this.logger.debug(`getBinDriverCapabilities: got hub url ${response.hubUrl}`)
             }
+            const capabilitiesStr = (response.capabilities as Buffer).toString('utf8')
+            const capabilitiesObj = JSON.parse(capabilitiesStr)
+            if (capabilitiesObj['bstack:options'] && 'buildTag' in capabilitiesObj['bstack:options']) {
+                delete capabilitiesObj['bstack:options'].buildTag
+            }
+            if ('browserstack.buildTag' in capabilitiesObj) {
+                delete capabilitiesObj['browserstack.buildTag']
+            }
+            AutomationFramework.setState(instance, WebdriverIOModule.KEY_CAPABILITIES, capabilitiesObj)
         } catch (error) {
             this.logger.error(`getBinDriverCapabilities: Error getting capabilities: ${error}`)
         }

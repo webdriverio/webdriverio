@@ -39,6 +39,8 @@ import {
     ObjectsAreEqual,
     isValidCapsForHealing,
     getBooleanValueFromString,
+    validateCapsWithNonBstackA11y,
+    mergeChromeOptions
 } from './util.js'
 import { getProductMap } from './testHub/utils.js'
 import CrashReporter from './crash-reporter.js'
@@ -55,6 +57,7 @@ import PerformanceTester from './instrumentation/performance/performance-tester.
 import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
 import { BrowserstackCLI } from './cli/index.js'
 import { CLIUtils } from './cli/cliUtils.js'
+import accessibilityScripts from './scripts/accessibility-scripts.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -211,7 +214,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 BrowserstackCLI.getInstance().setBrowserstackConfig(config)
                 CLIUtils.setFrameworkDetail('WebdriverIO-' + config.framework, 'WebdriverIO') // TODO: make this constant
                 const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options)
-                await BrowserstackCLI.getInstance().bootstrap(binconfig)
+                await BrowserstackCLI.getInstance().bootstrap(this._options, binconfig)
                 BStackLogger.debug(`Is CLI running ${BrowserstackCLI.getInstance().isRunning()}`)
             }
         } catch (err) {
@@ -305,6 +308,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildIdentifier: this._buildIdentifier
             }, this.browserStackConfig, this._accessibilityAutomation)
 
+            //added checks for Accessibility running on non-bstack infra
+            if (isAccessibilityAutomationSession(this._accessibilityAutomation) && (process.env.BROWSERSTACK_TURBOSCALE || !shouldAddServiceVersion(this._config, this._options.testObservability))){
+                const overrideOptions: Partial<Capabilities.ChromeOptions> = accessibilityScripts.ChromeExtension
+                this._updateObjectTypeCaps(capabilities, 'goog:chromeOptions', overrideOptions)
+            }
+
             if (buildStartResponse?.accessibility) {
                 if (this._accessibilityAutomation === null) {
                     this.browserStackConfig.accessibility = buildStartResponse.accessibility.success as boolean
@@ -352,6 +361,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this._updateCaps(capabilities, 'testhubBuildUuid')
         this._updateCaps(capabilities, 'buildProductMap')
 
+        // local binary will be handled by CLI
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            return
+        }
         if (!this._options.browserstackLocal) {
             return BStackLogger.info('browserstackLocal is not enabled - skipping...')
         }
@@ -590,6 +603,20 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         return c as (Capabilities.DesiredCapabilities)
                     })
                     .forEach((capability: Capabilities.DesiredCapabilities) => {
+
+                        if (validateCapsWithNonBstackA11y(capability.browserName, capability.browserVersion )){
+                            if (capType === 'goog:chromeOptions' && value) {
+
+                                const chromeOptions =  capability['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
+                                if (chromeOptions){
+                                    const finalChromeOptions = mergeChromeOptions(chromeOptions, value)
+                                    capability['goog:chromeOptions'] = finalChromeOptions
+                                } else {
+                                    capability['goog:chromeOptions'] = value
+                                }
+                                return
+                            }
+                        }
                         if (!capability['bstack:options']) {
                             const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                             if (extensionCaps.length) {
@@ -623,6 +650,21 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     })
             } else if (typeof capabilities === 'object') {
                 Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
+                    if (validateCapsWithNonBstackA11y(
+                        (caps.capabilities as WebdriverIO.Capabilities).browserName,
+                        (caps.capabilities as WebdriverIO.Capabilities).browserVersion
+                    )) {
+                        if (capType === 'goog:chromeOptions' && value) {
+                            const chromeOptions = (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] as unknown as Capabilities.ChromeOptions
+                            if (chromeOptions) {
+                                const finalChromeOptions = mergeChromeOptions(chromeOptions, value);
+                                (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = finalChromeOptions
+                            } else {
+                                (caps.capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] = value
+                            }
+                            return
+                        }
+                    }
                     if (!(caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {

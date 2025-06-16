@@ -20,6 +20,7 @@ import WebdriverIOModule from './modules/webdriverIOModule.js'
 import AccessibilityModule from './modules/accessibilityModule.js'
 import { processAccessibilityResponse } from '../util.js'
 import ObservabilityModule from './modules/observabilityModule.js'
+import type { BrowserstackConfig, BrowserstackOptions } from '../types.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -45,6 +46,7 @@ export class BrowserstackCLI {
     automationFramework: WdioAutomationFramework|null = null
     SDK_CLI_BIN_PATH: string | null = null
     logger = BStackLogger
+    options: BrowserstackConfig & BrowserstackOptions | {}
 
     constructor() {
         this.initialized = false
@@ -52,6 +54,7 @@ export class BrowserstackCLI {
         this.cliArgs = {}
         this.browserstackConfig = {}
         this.wdioConfig = ''
+        this.options = {}
     }
 
     /**
@@ -70,9 +73,10 @@ export class BrowserstackCLI {
      * Initializes and starts the CLI based on environment settings
      * @returns {Promise<void>}
      */
-    async bootstrap(wdioConfig='') {
+    async bootstrap(options: BrowserstackConfig & BrowserstackOptions, wdioConfig='',) {
         PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_BOOTSTRAP)
         BrowserstackCLI.enabled = true
+        this.options = options
         try {
             const binSessionId = process.env.BROWSERSTACK_CLI_BIN_SESSION_ID || null
 
@@ -145,7 +149,7 @@ export class BrowserstackCLI {
 
             if (startBinResponse.accessibility?.success){
                 process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
-                processAccessibilityResponse(startBinResponse)
+                processAccessibilityResponse(startBinResponse, this.options as BrowserstackConfig & BrowserstackOptions)
                 this.modules[AccessibilityModule.MODULE_NAME] = new AccessibilityModule(startBinResponse.accessibility)
             }
         }
