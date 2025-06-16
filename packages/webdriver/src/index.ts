@@ -78,8 +78,9 @@ export default class WebDriver {
             /**
              * make sure the Bidi connection is established before returning
              */
-            await client._bidiHandler.waitForConnected()
-            client._bidiHandler.socket.on('message', parseBidiMessage.bind(client))
+            if (await client._bidiHandler.waitForConnected()) {
+                client._bidiHandler.socket?.on('message', parseBidiMessage.bind(client))
+            }
         }
 
         /**
@@ -148,7 +149,9 @@ export default class WebDriver {
          * parse and propagate all Bidi events to the browser instance
          */
         if (isBidi(options.capabilities || {})) {
-            client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+            client._bidiHandler?.waitForConnected().then(()=>{
+                client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+            })
         }
         return client
     }
@@ -213,7 +216,7 @@ export default class WebDriver {
         if (isBidi(instance.capabilities || {})) {
             const bidiReqOpts = instance.options.strictSSL ? {} : { rejectUnauthorized: false }
             await instance._bidiHandler?.reconnect(newSessionCapabilities.webSocketUrl as unknown as string, bidiReqOpts)
-            instance._bidiHandler?.socket.on('message', parseBidiMessage.bind(instance))
+            instance._bidiHandler?.socket?.on('message', parseBidiMessage.bind(instance))
         }
 
         return sessionId

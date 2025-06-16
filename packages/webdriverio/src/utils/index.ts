@@ -328,10 +328,12 @@ export async function findDeepElement(
             ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
             : undefined
     const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
-        const nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
+        let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
             [ELEMENT_KEY]: node.sharedId as string,
             locator
         }))
+
+        nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
             return nodes[0]
@@ -396,10 +398,13 @@ export async function findDeepElements(
             ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
             : undefined
     const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
-        const nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
-            [ELEMENT_KEY]: node.sharedId as string,
-            locator
-        }))
+        let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId))
+            .map((node) => ({
+                [ELEMENT_KEY]: node.sharedId as string,
+                locator
+            }))
+
+        nodes = returnUniqueNodes(nodes)
 
         if (!(this as WebdriverIO.Element).elementId) {
             return nodes
@@ -425,6 +430,14 @@ export async function findDeepElements(
             : browser.findElements(using, value)
     })
     return deepElementResult as ElementReference[]
+}
+
+/**
+* Temporary patch for https://github.com/mozilla/geckodriver/issues/2223
+*/
+function returnUniqueNodes(nodes: ExtendedElementReference[]): ExtendedElementReference[] {
+    const ids = new Set()
+    return nodes.filter((node) => !ids.has(node[ELEMENT_KEY]) && ids.add(node[ELEMENT_KEY]))
 }
 
 /**
@@ -706,7 +719,7 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
 
 type Entries<T> = {
     [K in keyof T]: [K, T[K]];
-}[keyof T][];
+}[keyof T][]
 
 /**
  * Enhance elements array with data required to refetch it

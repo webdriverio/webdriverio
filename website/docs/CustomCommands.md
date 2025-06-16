@@ -267,13 +267,16 @@ The overall approach is similar to `addCommand`, the only difference is that the
 
 ```js
 /**
- * print milliseconds before pause and return its value.
- */
-// 'pause'            - name of command to be overwritten
-// origPauseFunction  - original pause function
-browser.overwriteCommand('pause', async (origPauseFunction, ms) => {
+ * Print milliseconds before pause and return its value.
+ * 
+ * @param pause - name of command to be overwritten
+ * @param this of func - the original browser instance on which the function was called
+ * @param originalPauseFunction of func - the original pause function
+ * @param ms of func - the actual parameters passed
+  */
+browser.overwriteCommand('pause', async function (this, originalPauseFunction, ms) {
     console.log(`sleeping for ${ms}`)
-    await origPauseFunction(ms)
+    await originalPauseFunction(ms)
     return ms
 })
 
@@ -289,34 +292,41 @@ Overwriting commands on element level is almost the same. Simply pass `true` as 
 /**
  * Attempt to scroll to element if it is not clickable.
  * Pass { force: true } to click with JS even if element is not visible or clickable.
+ * Show that the original function argument type can be kept with `options?: ClickOptions`
+ *
+ * @param this of func - the element on which the original function was called
+ * @param originalClickFunction of func - the original pause function
+ * @param options of func - the actual parameters passed
  */
-// 'click'            - name of command to be overwritten
-// origClickFunction  - original click function
-browser.overwriteCommand('click', async function (origClickFunction, { force = false } = {}) {
-    if (!force) {
-        try {
-            // attempt to click
-            await origClickFunction()
-            return null
-        } catch (err) {
-            if (err.message.includes('not clickable at point')) {
-                console.warn('WARN: Element', this.selector, 'is not clickable.',
-                    'Scrolling to it before clicking again.')
+browser.overwriteCommand(
+    'click',
+    async function (this, originalClickFunction, options?: ClickOptions & { force?: boolean }) {
+        const { force, ...restOptions } = options || {}
+        if (!force) {
+            try {
+                // attempt to click
+                await originalClickFunction(options)
+                return
+            } catch (err) {
+                if ((err as Error).message.includes('not clickable at point')) {
+                    console.warn('WARN: Element', this.selector, 'is not clickable.', 'Scrolling to it before clicking again.')
 
-                // scroll to element and click again
-                await this.scrollIntoView()
-                return origClickFunction()
+                    // scroll to element and click again
+                    await this.scrollIntoView()
+                    return originalClickFunction(options)
+                }
+                throw err
             }
-            throw err
         }
-    }
 
-    // clicking with js
-    console.warn('WARN: Using force click for', this.selector)
-    await browser.execute((el) => {
-        el.click()
-    }, this)
-}, true) // don't forget to pass `true` as 3rd argument
+        // clicking with js
+        console.warn('WARN: Using force click for', this.selector)
+        await browser.execute((el) => {
+            el.click()
+        }, this)
+    },
+    true, // don't forget to pass `true` as 3rd argument
+)
 
 // then use it as before
 const elem = await $('body')

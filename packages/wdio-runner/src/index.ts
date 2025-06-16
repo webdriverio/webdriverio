@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
-import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
+import { expect, setOptions, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
@@ -29,7 +29,7 @@ export default class Runner extends EventEmitter {
 
     private _reporter?: BaseReporter
     private _framework?: TestFramework
-    private _config?: Options.Testrunner
+    private _config?: WebdriverIO.Config
     private _cid?: string
     private _specs?: string[]
     private _caps?: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
@@ -62,7 +62,12 @@ export default class Runner extends EventEmitter {
 
         this._config = this._configParser.getConfig()
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
+
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
+        if (this._config.maskingPatterns) {
+            logger.setMaskingPatterns(this._config.maskingPatterns)
+        }
+
         const capabilities = this._configParser.getCapabilities()
         const isMultiremote = this._isMultiremote = !Array.isArray(capabilities) ||
             (Object.values(caps).length > 0 && Object.values(caps).every(c => typeof c === 'object' && c.capabilities))
@@ -70,11 +75,16 @@ export default class Runner extends EventEmitter {
         /**
          * add built-in services
          */
+        const softAssertionService = new SoftAssertionService({
+            autoAssertOnTestEnd: this._config.autoAssertOnTestEnd || true
+        }, this._caps, this._config)
+
         const snapshotService = SnapshotService.initiate({
             updateState: this._config.updateSnapshots,
             resolveSnapshotPath: this._config.resolveSnapshotPath
         })
         // ToDo(Christian): resolve type incompatibility between v8 and v9
+        this._configParser.addService(softAssertionService as any)
         this._configParser.addService(snapshotService as any)
 
         this._caps = this._isMultiremote
@@ -109,7 +119,7 @@ export default class Runner extends EventEmitter {
          * run `beforeSession` command before framework and browser are initiated
          */
         ;(await initializeWorkerService(
-            this._config as Options.Testrunner,
+            this._config as WebdriverIO.Config,
             this._caps as WebdriverIO.Capabilities,
             args.ignoredWorkerServices
         )).map(this._configParser.addService.bind(this._configParser))
@@ -233,7 +243,7 @@ export default class Runner extends EventEmitter {
 
     async #initFramework (
         cid: string,
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
         reporter: BaseReporter,
         specs: string[]
@@ -267,7 +277,7 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     private async _initSession (
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     ) {
         const browser = await this._startSession(config, caps) as WebdriverIO.Browser
@@ -309,7 +319,7 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     private async _startSession (
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
     ) {
         try {

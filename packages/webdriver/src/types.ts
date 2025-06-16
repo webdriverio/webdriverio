@@ -27,6 +27,8 @@ export interface SessionFlags {
     isSauce: boolean
     isSeleniumStandalone: boolean
     isBidi: boolean
+    isWindowsApp: boolean
+    isMacApp: boolean
 }
 
 type Fn = (...args: unknown[]) => unknown
@@ -38,9 +40,22 @@ export type BidiResponses = ValueOf<ObtainMethods<Pick<BidiHandler, BidiCommands
 export type RemoteConfig = Options.WebDriver & Capabilities.WithRequestedCapabilities
 
 type BidiInterface = ObtainMethods<Pick<BidiHandler, BidiCommands>>
+export interface WebDriverCommandEvent {
+    command: string
+    method: string
+    endpoint: string
+    body: unknown
+}
+export interface WebDriverResultEvent {
+    command: string
+    method: string
+    endpoint: string
+    body: unknown
+    result: unknown
+}
 type WebDriverClassicEvents = {
-    command: { command: string, method: string, endpoint: string, body: unknown }
-    result: { command: string, method: string, endpoint: string, body: unknown, result: unknown }
+    command: WebDriverCommandEvent
+    result: WebDriverResultEvent
     bidiCommand: Omit<CommandData, 'id'>,
     bidiResult: CommandResponse,
     'request.performance': RequestPerformanceEvent
@@ -80,4 +95,17 @@ export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.We
     capabilities?: WebdriverIO.Capabilities
     // original requested capabilities
     requestedCapabilities?: Capabilities.WithRequestedCapabilities['capabilities']
+}
+
+/**
+ * Additional options outside of the WebDriver spec, exclusively for WebdriverIO, only for runtime, and not sent to Appium
+ */
+export class CommandRuntimeOptions {
+
+    // mask the text parameter value of the command
+    mask?: boolean
+
+    constructor (options: { mask?: boolean }) {
+        this.mask = options.mask
+    }
 }

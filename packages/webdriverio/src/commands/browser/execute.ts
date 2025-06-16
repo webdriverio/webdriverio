@@ -5,7 +5,8 @@ import { verifyArgsAndStripIfElement, createFunctionDeclarationFromString } from
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { getContextManager } from '../../session/context.js'
-import { polyfillFn } from '../../session/polyfill.js'
+import { polyfillFn } from '../../scripts/polyfill.js'
+import type { TransformElement, TransformReturn } from '../../types.js'
 
 /**
  *
@@ -44,9 +45,9 @@ import { polyfillFn } from '../../session/polyfill.js'
  */
 export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
-    script: string | ((...innerArgs: InnerArguments) => ReturnValue),
+    script: string | ((...innerArgs: TransformElement<InnerArguments>) => ReturnValue),
     ...args: InnerArguments
-): Promise<ReturnValue> {
+): Promise<TransformReturn<ReturnValue>> {
     /**
      * parameter check
      */

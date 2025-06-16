@@ -111,6 +111,26 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     if (
         body &&
         body.capabilities &&
+        body.capabilities.alwaysMatch.mobileMode &&
+        body.capabilities.alwaysMatch.windowsAppMode
+    ) {
+        sessionResponse.capabilities['appium:automationName'] = 'windows'
+        delete sessionResponse.capabilities.browserName
+    }
+
+    if (
+        body &&
+        body.capabilities &&
+        body.capabilities.alwaysMatch.mobileMode &&
+        body.capabilities.alwaysMatch.macAppMode
+    ) {
+        sessionResponse.capabilities['appium:automationName'] = 'mac2'
+        delete sessionResponse.capabilities.browserName
+    }
+
+    if (
+        body &&
+        body.capabilities &&
         body.capabilities.alwaysMatch.keepBrowserName
     ) {
         sessionResponse.capabilities.browserName = body.capabilities.alwaysMatch.browserName

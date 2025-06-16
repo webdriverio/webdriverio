@@ -19,13 +19,13 @@ interface BrowserSize {
  * </example>
  *
  * @alias browser.getWindowSize
- * @return {Object} { x, y, width, height } for W3C or { width, height } for non W3C browser
+ * @return {Object} `{ x, y, width, height }` for W3C or `{ width, height }` for non W3C browser
  * @type window
  *
  */
-export async function getWindowSize(this: WebdriverIO.Browser) {
+export async function getWindowSize(this: WebdriverIO.Browser): Promise<BrowserSize> {
     const browser = getBrowserObject(this)
 
     const { width, height } = await browser.getWindowRect() as BrowserSize
-    return { width, height } as BrowserSize
+    return { width, height } satisfies BrowserSize
 }

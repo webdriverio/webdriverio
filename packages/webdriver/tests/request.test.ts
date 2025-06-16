@@ -6,10 +6,19 @@ import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
 import '../src/browser.js'
-import { FetchRequest } from '../src/request/web.js'
+import { FetchRequest as WebFetchRequest } from '../src/request/web.js'
+import { FetchRequest, SESSION_DISPATCHERS } from '../src/request/node.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fetch')
+vi.mock('undici', () => {
+    return {
+        fetch: vi.fn(async () => ({ ok: true, status: 200, json: async () => ({}) })),
+        Agent: vi.fn().mockImplementation(() => ({ close: vi.fn() })),
+        ProxyAgent: vi.fn().mockImplementation(() => ({ close: vi.fn() })),
+    }
+})
+
 const { warn, error } = logger('test')
 
 const webdriverPath = '/session'
@@ -23,16 +32,17 @@ const baseUrl = `${defaultOptions.protocol}://${defaultOptions.hostname}:${defau
 describe('webdriver request', () => {
     beforeEach(() => {
         vi.mocked(fetch).mockClear()
+        SESSION_DISPATCHERS.clear()
     })
 
     it('should have some default options', () => {
-        const req = new FetchRequest('POST', '/foo/bar', { foo: 'bar' })
+        const req = new WebFetchRequest('POST', '/foo/bar', { foo: 'bar' })
         expect(req.method).toBe('POST')
         expect(req.endpoint).toBe('/foo/bar')
     })
 
     it('should be able to make request', async () => {
-        const req = new FetchRequest('POST', '/foo/bar', { foo: 'bar' })
+        const req = new WebFetchRequest('POST', '/foo/bar', { foo: 'bar' })
         const url =  new URL('/foo/bar', baseUrl)
         req.createOptions = vi.fn().mockImplementation((opts, sessionId) => ({
             url,
@@ -54,7 +64,7 @@ describe('webdriver request', () => {
     })
 
     it('should pick up the fullRequestOptions returned by transformRequest', async () => {
-        const req = new FetchRequest('POST', '/foo/bar', { foo: 'bar' })
+        const req = new WebFetchRequest('POST', '/foo/bar', { foo: 'bar' })
         const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
             ...requestOptions,
             body: { foo: 'baz' }
@@ -75,7 +85,7 @@ describe('webdriver request', () => {
     })
 
     it('should resolve with the body returned by transformResponse', async () => {
-        const req = new FetchRequest('POST', 'session/:sessionId/element', { foo: 'requestBody' })
+        const req = new WebFetchRequest('POST', 'session/:sessionId/element', { foo: 'requestBody' })
 
         const transformResponse = vi.fn().mockImplementation((response) => ({
             ...response,
@@ -100,12 +110,12 @@ describe('webdriver request', () => {
 
     describe('createOptions', () => {
         it('fails if command requires sessionId but none given', async () => {
-            const req = new FetchRequest('POST', `${webdriverPath}/:sessionId/element`, {})
+            const req = new WebFetchRequest('POST', `${webdriverPath}/:sessionId/element`, {})
             await expect(() => req.createOptions({ logLevel: 'warn' })).rejects.toThrow('A sessionId is required')
         })
 
         it('creates proper options set', async () => {
-            const req = new FetchRequest('POST', `${webdriverPath}/:sessionId/element`, {})
+            const req = new WebFetchRequest('POST', `${webdriverPath}/:sessionId/element`, {})
             const { url, requestOptions } = await req.createOptions({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -124,7 +134,7 @@ describe('webdriver request', () => {
         })
 
         it('ignors path when command is a hub command', async () => {
-            const req = new FetchRequest('POST', '/grid/api/hub', {}, true)
+            const req = new WebFetchRequest('POST', '/grid/api/hub', {}, undefined, true)
             const options = await req.createOptions({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -136,7 +146,7 @@ describe('webdriver request', () => {
         })
 
         it('should add authorization header if user and key is given', async () => {
-            const req = new FetchRequest('POST', webdriverPath, { some: 'body' })
+            const req = new WebFetchRequest('POST', webdriverPath, { some: 'body' })
             const user = 'foo'
             const key = 'bar'
             const { requestOptions } = await req.createOptions({
@@ -151,7 +161,7 @@ describe('webdriver request', () => {
         })
 
         it('sets request body to "undefined" when request object is empty and DELETE is used', async () => {
-            const req = new FetchRequest('DELETE', webdriverPath, {})
+            const req = new WebFetchRequest('DELETE', webdriverPath, {})
             const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
@@ -161,7 +171,7 @@ describe('webdriver request', () => {
         })
 
         it('sets request body to "undefined" when request object is empty and GET is used', async () => {
-            const req = new FetchRequest('GET', `${webdriverPath}/title`, {})
+            const req = new WebFetchRequest('GET', `${webdriverPath}/title`, {})
             const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
@@ -171,7 +181,7 @@ describe('webdriver request', () => {
         })
 
         it('should attach an empty object body when POST is used', async () => {
-            const req = new FetchRequest('POST', '/status', {})
+            const req = new WebFetchRequest('POST', '/status', {})
             const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
@@ -181,7 +191,7 @@ describe('webdriver request', () => {
         })
 
         it('should add the Content-Length header when a request object has a body', async () => {
-            const req = new FetchRequest('POST', webdriverPath, { foo: 'bar' })
+            const req = new WebFetchRequest('POST', webdriverPath, { foo: 'bar' })
             const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
@@ -193,7 +203,7 @@ describe('webdriver request', () => {
         })
 
         it('should add Content-Length as well any other header provided in the request options if there is body in the request object', async () => {
-            const req = new FetchRequest('POST', webdriverPath, { foo: 'bar' })
+            const req = new WebFetchRequest('POST', webdriverPath, { foo: 'bar' })
             const { requestOptions } = await req.createOptions({
                 ...defaultOptions, path: '/',
                 headers: { foo: 'bar' },
@@ -204,7 +214,7 @@ describe('webdriver request', () => {
         })
 
         it('should add only the headers provided if the request body is empty', async () => {
-            const req = new FetchRequest('POST', webdriverPath)
+            const req = new WebFetchRequest('POST', webdriverPath)
             const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
                 path: '/',
@@ -221,7 +231,7 @@ describe('webdriver request', () => {
             const expectedResponse = { value: { 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' } }
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+            const req = new WebFetchRequest('POST', webdriverPath, {}, undefined, false, {
                 onResponse, onPerformance
             })
 
@@ -242,7 +252,7 @@ describe('webdriver request', () => {
         it('should short circuit if request throws a stale element exception', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', 'session/:sessionId/element', {}, false, {
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element', {}, undefined, false, {
                 onResponse, onPerformance
             })
 
@@ -262,7 +272,7 @@ describe('webdriver request', () => {
         it('should not fail code due to an empty server response', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+            const req = new WebFetchRequest('POST', webdriverPath, {}, undefined, false, {
                 onResponse, onPerformance
             })
 
@@ -281,7 +291,7 @@ describe('webdriver request', () => {
             const onRetry = vi.fn()
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+            const req = new WebFetchRequest('POST', webdriverPath, {}, undefined, false, {
                 onResponse, onPerformance, onRetry
             })
 
@@ -304,7 +314,7 @@ describe('webdriver request', () => {
             const onRetry = vi.fn()
             const onResponse = vi.fn()
             const onPerformance = vi.fn()
-            const req = new FetchRequest('POST', webdriverPath, {}, false, {
+            const req = new WebFetchRequest('POST', webdriverPath, {}, undefined, false, {
                 onResponse, onPerformance, onRetry
             })
 
@@ -324,7 +334,7 @@ describe('webdriver request', () => {
         })
 
         it('should manage hub commands', async () => {
-            const req = new FetchRequest('POST', '/grid/api/hub', {}, true)
+            const req = new WebFetchRequest('POST', '/grid/api/hub', {}, undefined, true)
             expect(await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -335,7 +345,7 @@ describe('webdriver request', () => {
         })
 
         it('should fail if hub command is called on node', async () => {
-            const req = new FetchRequest('POST', '/grid/api/testsession', {}, true)
+            const req = new WebFetchRequest('POST', '/grid/api/testsession', {}, undefined, true)
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -353,7 +363,7 @@ describe('webdriver request', () => {
             it('should throw if timeout happens too often', async () => {
                 const retryCnt = 3
                 const onRetry = vi.fn()
-                const req = new FetchRequest('POST', '/timeout', {}, true, { onRetry })
+                const req = new WebFetchRequest('POST', '/timeout', {}, undefined, true, { onRetry })
                 const result = await req.makeRequest({
                     protocol: 'https',
                     hostname: 'localhost',
@@ -374,7 +384,7 @@ describe('webdriver request', () => {
                 const onRequest = vi.fn()
                 const onResponse = vi.fn()
                 const onPerformance = vi.fn()
-                const req = new FetchRequest('GET', '/timeout', {}, true, { onRetry, onRequest, onResponse, onPerformance })
+                const req = new WebFetchRequest('GET', '/timeout', {}, undefined, true, { onRetry, onRequest, onResponse, onPerformance })
                 const reqOpts = {
                     protocol: 'https',
                     hostname: 'localhost',
@@ -395,7 +405,7 @@ describe('webdriver request', () => {
         it('should return proper response if retry passes', async () => {
             const retryCnt = 7
             const onRetry = vi.fn()
-            const req = new FetchRequest('POST', '/timeout', {}, true, { onRetry })
+            const req = new WebFetchRequest('POST', '/timeout', {}, undefined, true, { onRetry })
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -414,7 +424,7 @@ describe('webdriver request', () => {
         it('should retry on connection refused error', async () => {
             const retryCnt = 7
             const onRetry = vi.fn()
-            const req = new FetchRequest('POST', '/connectionRefused', {}, false, { onRetry })
+            const req = new WebFetchRequest('POST', '/connectionRefused', {}, undefined, false, { onRetry })
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -430,7 +440,8 @@ describe('webdriver request', () => {
         }, 20_000)
 
         it('should throw if request error is unknown', async () => {
-            const req = new FetchRequest('POST', '/sumoerror', {}, true)
+            console.log('TESTING', AbortSignal)
+            const req = new WebFetchRequest('POST', '/sumoerror', {}, undefined, true)
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -444,6 +455,63 @@ describe('webdriver request', () => {
             )
             expect(result.message).toEqual(expect.stringContaining('ups'))
         })
+
+        it('should validate dispatcher is reused within the same session', async () => {
+            const sessionId = 'reuse-session-id'
+
+            const req1 = new FetchRequest('POST', `/session/${sessionId}/element`, {})
+            const req2 = new FetchRequest('GET', `/session/${sessionId}/cookie`, {})
+            await req1.makeRequest(defaultOptions, sessionId).then((res) => res, (e) => e)
+            await req2.makeRequest(defaultOptions, sessionId).then((res) => res, (e) => e)
+
+            expect(SESSION_DISPATCHERS.has(sessionId)).toBe(true)
+            expect(SESSION_DISPATCHERS.size).toBe(1)
+        })
+
+        it('should validate a new dispatcher is created for each individual session', async () => {
+            const sessionId1 = 'session-id-1'
+            const sessionId2 = 'session-id-2'
+
+            const req1 = new FetchRequest('POST', `/session/${sessionId1}/element`, {})
+            const req2 = new FetchRequest('GET', `/session/${sessionId2}/cookie`, {})
+            await req1.makeRequest(defaultOptions, sessionId1).then((res) => res, (e) => e)
+            await req2.makeRequest(defaultOptions, sessionId2).then((res) => res, (e) => e)
+
+            expect(SESSION_DISPATCHERS.has(sessionId1)).toBe(true)
+            expect(SESSION_DISPATCHERS.has(sessionId2)).toBe(true)
+            expect(SESSION_DISPATCHERS.size).toBe(2)
+        })
+
+        it('should cleanup session dispatcher on DELETE /session/:sessionId', async () => {
+            const sessionId = 'delete-session-id'
+            const deleteSessionRequest = new FetchRequest('DELETE', `/session/${sessionId}`, {})
+            const getElementRequest = new FetchRequest('POST', `/session/${sessionId}/element`, {})
+
+            // initial request to initialize the dispatcher map
+            await getElementRequest.makeRequest(defaultOptions, sessionId).then((res) => res, (e) => e)
+            expect(SESSION_DISPATCHERS.has(sessionId)).toBe(true)
+
+            const currentDispatcher = SESSION_DISPATCHERS.get(sessionId) || { close:undefined }
+            await deleteSessionRequest.makeRequest(defaultOptions, sessionId).then((res) => res, (e) => e)
+
+            expect(currentDispatcher.close).toHaveBeenCalled()
+            expect(SESSION_DISPATCHERS.has(sessionId)).toBe(false)
+            expect(SESSION_DISPATCHERS.size).toBe(0)
+        })
+
+        it('should not cleanup session dispatcher on non delete session DELETE requests', async () => {
+            const sessionId = 'other-delete-session-id'
+            const deleteCookieRequest = new FetchRequest('DELETE', `/session/${sessionId}/cookie`, {})
+
+            await deleteCookieRequest.makeRequest(defaultOptions, sessionId).then((res) => res, (e) => e)
+            expect(SESSION_DISPATCHERS.has(sessionId)).toBe(true)
+
+            const currentDispatcher = SESSION_DISPATCHERS.get(sessionId) || { close:undefined }
+
+            expect(currentDispatcher.close).not.toHaveBeenCalled()
+            expect(SESSION_DISPATCHERS.has(sessionId)).toBe(true)
+            expect(SESSION_DISPATCHERS.size).toBe(1)
+        })
     })
 
     afterEach(() => {
@@ -453,5 +521,7 @@ describe('webdriver request', () => {
         vi.mocked(fetch).mockClear()
         vi.mocked(warn).mockClear()
         vi.mocked(error).mockClear()
+
+        SESSION_DISPATCHERS.clear()
     })
 })

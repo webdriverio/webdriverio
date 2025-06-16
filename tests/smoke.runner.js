@@ -13,6 +13,7 @@ const jasmineConfig = path.resolve(__dirname, 'helpers', 'configJasmine.js')
 const allPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-all-passed.conf.js')
 const noArgConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-no-arg.conf.js')
 const severalPassedConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-failed.conf.js')
+const allPassedWildCardConfig = path.resolve(__dirname, 'tests-cli-spec-arg/wdio-with-all-passed-wildcard.conf.js')
 
 // eslint-disable-next-line no-control-regex
 const ansiColorRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
@@ -387,6 +388,42 @@ const cucumberFailAmbiguousDefinitions = async () => {
         () => true
     )
     assert.equal(hasFailed, true)
+}
+
+/**
+ * Cucumber pending status test
+ */
+const cucumberPendingTest = async () => {
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberPendingTest.log')
+    await fs.rm(logFile, { force: true })
+
+    await launch(
+        'cucumberPendingTest',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            specs: [
+                path.resolve(__dirname, 'cucumber', 'test-pending.feature')
+            ],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]
+            ],
+            cucumberOpts: {
+                ignoreUndefinedDefinitions: true,
+                scenarioLevelReporter: true
+            }
+        }
+    )
+
+    const specLogs = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+    const pendingMatch = specLogs.match(/(\d+)\s+pending/)
+    assert.ok(
+        pendingMatch && parseInt(pendingMatch[1], 10) === 1,
+        'Expected exactly 1 pending test in output'
+    )
 }
 
 /**
@@ -897,6 +934,108 @@ const cliExcludeParamValidationExcludeMultipleSpecsByPath = async () => {
     assert.strictEqual(skippedSpecs, 0)
     assert.strictEqual(failed, 0)
 }
+
+const cliSpecsWithWildCard = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliSpecsWithWildCard',
+        path.resolve(severalPassedConfig),
+        {
+            spec: ['mocha.test01*.js']
+        }
+    )
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliSpecsTheSameWithWildCard = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliSpecsTheSameWithWildCard',
+        path.resolve(severalPassedConfig),
+        {
+            spec: [
+                'mocha.test01*.js',
+                'mocha.test01*.js'
+            ]
+        }
+    )
+    assert.strictEqual(passed, 2)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliSpecsWithWildCardAndGroup = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliSpecsWithWildCardAndGroup',
+        path.resolve(severalPassedConfig),
+        {
+            spec: ['mocha.test01*.js'],
+            group: true
+        }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeCertainWithWildCard = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeCertainWithWildCard',
+        path.resolve(severalPassedConfig),
+        {
+            spec: ['mocha.test01*.js'],
+            exclude: [
+                'mocha.test01.js',
+            ]
+        }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeSomeFromConfWithWildCard = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeSomeFromConfWithWildCard',
+        path.resolve(allPassedWildCardConfig),
+        {
+            exclude: ['mocha.test01*.js'],
+        }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeSomeFromConfWithWildCardAndGroup = async () => {
+    const { passed, skippedSpecs, failed } = await launch(
+        'cliExcludeSomeFromConfWithWildCardAndGroup',
+        path.resolve(allPassedWildCardConfig),
+        {
+            exclude: ['mocha.test01*.js'],
+            group: true
+        }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(failed, 0)
+}
+
+const cliExcludeAllWithWildCard = async () => {
+    try {
+        await launch(
+            'cliExcludeAllWithWildCard',
+            path.resolve(allPassedWildCardConfig),
+            {
+                spec: ['mocha.test*.js'],
+                exclude: ['mocha.test*.js'],
+            }
+        )
+        assert.ok(false)
+    } catch {
+        assert.ok(true)
+    }
+}
 // *** END - tests for CLI --spec ***
 
 // *************************
@@ -990,6 +1129,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberTestrunnerByLineNumber,
         cucumberTestrunnerMultipleByLineNumber,
         cucumberFailAmbiguousDefinitions,
+        cucumberPendingTest,
         cucumberReporter,
         cucumberFileOption,
         standaloneTest,
@@ -1021,7 +1161,14 @@ const jasmineAfterHookArgsValidation = async () => {
         cliExcludeParamValidationSomeExcludedByPath,
         cliExcludeParamValidationExcludeNonExistentByKeyword,
         cliExcludeParamValidationExcludeFromConfigByKeyword,
-        cliExcludeParamValidationExcludeMultipleSpecsByPath
+        cliExcludeParamValidationExcludeMultipleSpecsByPath,
+        cliSpecsWithWildCard,
+        cliSpecsTheSameWithWildCard,
+        cliSpecsWithWildCardAndGroup,
+        cliExcludeCertainWithWildCard,
+        cliExcludeSomeFromConfWithWildCard,
+        cliExcludeSomeFromConfWithWildCardAndGroup,
+        cliExcludeAllWithWildCard
     ]
 
     console.log('\nRunning smoke tests...\n')

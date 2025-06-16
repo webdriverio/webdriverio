@@ -77,7 +77,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'Component or Unit Testing - in the browser\n    > https://webdriver.io/docs/component-testing', value: '@wdio/browser-runner$--$browser$--$component' },
         { name: 'Desktop Testing - of Electron Applications\n    > https://webdriver.io/docs/desktop-testing/electron', value: '@wdio/local-runner$--$local$--$electron' },
         { name: 'Desktop Testing - of MacOS Applications\n    > https://webdriver.io/docs/desktop-testing/macos', value: '@wdio/local-runner$--$local$--$macos' },
-        { name: 'VS Code Extension Testing\n    > https://webdriver.io/docs/vscode-extension-testing', value: '@wdio/local-runner$--$local$--$vscode' }
+        { name: 'VS Code Extension Testing\n    > https://webdriver.io/docs/vscode-extension-testing', value: '@wdio/local-runner$--$local$--$vscode' },
+        { name: 'Roku Testing - of OTT apps running on RokuOS\n    > https://webdriver.io/docs/wdio-roku-service', value: '@wdio/local-runner$--$local$--$roku' }
     ],
     framework: [
         { name: 'Mocha (https://mochajs.org/)', value: '@wdio/mocha-framework$--$mocha' },
@@ -229,7 +230,7 @@ export function usesSerenity (answers: Questionnair) {
 }
 
 function getTestingPurpose (answers: Questionnair) {
-    return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos'
+    return convertPackageHashToObject(answers.runner).purpose as 'e2e' | 'electron' | 'component' | 'vscode' | 'macos' | 'roku'
 }
 
 export const isNuxtProject = [
@@ -425,7 +426,7 @@ export const QUESTIONNAIRE = [{
     name: 'useSauceConnect',
     message: (
         'Are you testing a local application and need Sauce Connect to be set-up?\n' +
-        'Read more on Sauce Connect at: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy'
+        'Read more on Sauce Connect at: https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy'
     ),
     default: isNuxtProject,
     when: /* istanbul ignore next */ (answers: Questionnair) => (
@@ -609,6 +610,8 @@ export const QUESTIONNAIRE = [{
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'electron')]
         } else if (getTestingPurpose(answers) === 'macos') {
             return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'appium')]
+        } else if (getTestingPurpose(answers) === 'roku') {
+            return [SUPPORTED_PACKAGES.service.find(({ name }) => name === 'roku')]
         }
         return prioServiceOrderFor(services)
     },
@@ -626,6 +629,8 @@ export const QUESTIONNAIRE = [{
             defaultServices.push('vscode')
         } else if (getTestingPurpose(answers) === 'electron') {
             defaultServices.push('electron')
+        } else if (getTestingPurpose(answers) === 'roku') {
+            defaultServices.push('roku')
         }
         if (isNuxtProject) {
             defaultServices.push('nuxt')
@@ -666,7 +671,8 @@ export const COMMUNITY_PACKAGES_WITH_TS_SUPPORT = [
     'wdio-vscode-service',
     'wdio-nuxt-service',
     'wdio-vite-service',
-    'wdio-gmail-service'
+    'wdio-gmail-service',
+    'wdio-roku-service'
 ]
 
 export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner & { capabilities: unknown }> = {

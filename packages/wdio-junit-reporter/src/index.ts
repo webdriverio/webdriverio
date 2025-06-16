@@ -322,7 +322,14 @@ class JunitReporter extends WDIOReporter {
 
         if (suiteKeys.length === 0) {
             const error = this.runnerStat?.error ?? 'No tests found'
-            return builder.testCase().failure(error)
+            /**
+             * Because this function gets called twice for Cucumber, this conditional is to ensure that
+             * Cucumber and Mocha generate the same Junit report for empty suites. Otherwise, Cucumber reporter
+             * would generate two <testsuite>.
+             */
+            if (!isCucumberFrameworkRunner || (isCucumberFrameworkRunner && type === 'feature')) {
+                return builder.testSuite().testCase().className('').name('').failure(error)
+            }
         }
 
         for (const suiteKey of Object.keys(this.suites)) {

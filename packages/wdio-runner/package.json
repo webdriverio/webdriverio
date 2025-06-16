@@ -1,6 +1,6 @@
 {
   "name": "@wdio/runner",
-  "version": "9.10.1",
+  "version": "9.15.0",
   "description": "A WebdriverIO service that runs tests in arbitrary environments",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-runner",
@@ -39,7 +39,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
-    "expect-webdriverio": "^5.1.0",
+    "expect-webdriverio": "^5.3.0",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   },

@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import type { JsonCompatible } from '@wdio/types'
-import { type local } from 'webdriver'
+import { type local, type remote } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 
 import Timer from '../Timer.js'
@@ -37,6 +37,7 @@ export default class WebDriverInterception {
     #requestOverwrites: Overwrite[] = []
     #respondOverwrites: Overwrite[] = []
     #calls: local.NetworkResponseCompletedParameters[] = []
+    #responseBodies = new Map<string, remote.NetworkBytesValue>()
 
     constructor (
         pattern: URLPattern,
@@ -202,9 +203,13 @@ export default class WebDriverInterception {
          */
         if (overwrite) {
             this.#emit('overwrite', request)
+            const responseData = parseOverwrite(overwrite, request)
+            if (responseData.body) {
+                this.#responseBodies.set(request.request.request, responseData.body)
+            }
             return this.#browser.networkProvideResponse({
                 request: request.request.request,
-                ...parseOverwrite(overwrite, request)
+                ...responseData,
             }).catch(this.#handleNetworkProvideResponseError)
         }
 
@@ -230,8 +235,43 @@ export default class WebDriverInterception {
         throw err
     }
 
+    /**
+     * Get the raw binary data for a mock response by request ID
+     * @param {string} requestId  The ID of the request to retrieve the binary response for
+     * @returns {Buffer | null}   The binary data as a Buffer, or null if no matching binary response is found
+     */
+    getBinaryResponse(requestId: string): Buffer | null {
+        const body = this.#responseBodies.get(requestId)
+        if (body?.type !== 'base64') {
+            return null
+        }
+        if (/[^A-Za-z0-9+/=\s]/.test(body.value)) {
+            log.warn(`Invalid base64 data for request ${requestId}`)
+            return null
+        }
+        return Buffer.from(body.value, 'base64')
+    }
+
+    /**
+     * Simulate a responseStarted event for testing purposes
+     * @param request NetworkResponseCompletedParameters to simulate
+     */
+    public simulateResponseStarted(request: local.NetworkResponseCompletedParameters): void {
+        try {
+            this.#handleResponseStarted(request)
+        } catch (e) {
+            console.log('DEBUG: Error in simulateResponseStarted:', e)
+            throw e
+        }
+    }
+
+    public debugResponseBodies(): Map<string, remote.NetworkBytesValue> {
+        return this.#responseBodies
+    }
+
     #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters> (request: T) {
-        return request.isBlocked && this.#pattern && this.#pattern.test(request.request.url)
+        const matches = this.#pattern && this.#pattern.test(request.request.url)
+        return request.isBlocked && matches
     }
 
     #matchesFilterOptions<T extends local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters> (request: T) {
@@ -309,6 +349,7 @@ export default class WebDriverInterception {
      */
     clear() {
         this.#calls = []
+        this.#responseBodies.clear()
         return this
     }
 
@@ -372,11 +413,9 @@ export default class WebDriverInterception {
      */
     respond(payload: RespondBody, params: Omit<RespondWithOptions, 'body'> = {}, once?: boolean) {
         this.#ensureNotRestored()
-        const body = typeof payload === 'string'
-            ? payload
-            : globalThis.Buffer && globalThis.Buffer.isBuffer(payload)
-                ? payload.toString('base64')
-                : JSON.stringify(payload)
+        const body = Buffer.isBuffer(payload)
+            ? { type: 'base64', value: payload.toString('base64') }
+            : { type: 'string', value: typeof payload === 'string' ? payload : JSON.stringify(payload) }
         const overwrite: RespondWithOptions = { body, ...params }
         this.#respondOverwrites = this.#setOverwrite(this.#respondOverwrites, { overwrite, once })
         return this

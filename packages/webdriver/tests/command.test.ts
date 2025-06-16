@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { EventEmitter, on } from 'node:events'
+import { EventEmitter } from 'node:events'
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
@@ -8,9 +8,12 @@ import type { Options } from '@wdio/types'
 
 import '../src/browser.js'
 // @ts-expect-error mock feature
-import { WebDriverRequest as RequestMock, thenMock, catchMock } from '../src/request/request.js'
+import { WebDriverRequest as RequestMock, thenMock, catchMock, makeRequestMock, getCapturedRequestHandler } from '../src/request/request.js'
 import commandWrapper from '../src/command.js'
 import type { BaseClient } from '../src/types.js'
+import { CommandRuntimeOptions } from '../src/types.js'
+import type { RequestEventHandler } from '../build/request/types.js'
+import type { RequestOptions } from '../src/request/types.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fetch')
@@ -53,24 +56,37 @@ const requestHandler = {
     onPerformance: expect.any(Function),
     onRequest: expect.any(Function),
     onResponse: expect.any(Function),
-    onRetry: expect.any(Function)
+    onRetry: expect.any(Function),
+    onLogData: expect.any(Function)
 }
 
 vi.mock('../src/request/request', () => {
     const thenMock = vi.fn()
-    const catchMock = vi.fn()
+    const finallyMock = vi.fn()
+    const catchMock = vi.fn().mockReturnValue({ finally: finallyMock })
 
-    const promise = { then: thenMock, catch: catchMock }
-    const WebDriverRequest = vi.fn().mockReturnValue({
-        makeRequest: () => (promise),
-        on: vi.fn()
+    const promise = { then: thenMock, catch: catchMock, finally: finallyMock }
+
+    const makeRequestMock = vi.fn().mockReturnValue(promise)
+    thenMock.mockReturnValue(promise)
+
+    const capturedRequestEventHandler = vi.fn<() => RequestEventHandler>()
+
+    // Mock the constructor
+    const WebDriverRequest = vi.fn().mockImplementation((
+        _method, _endpoint, _body, _abortSignal, _isHubCommand, requestEventHandler: RequestEventHandler
+    ) => {
+        capturedRequestEventHandler.mockReturnValue(requestEventHandler)
+        return { makeRequest: makeRequestMock }
     })
 
-    thenMock.mockReturnValue(promise)
     return {
         thenMock,
         catchMock,
+        finallyMock,
         WebDriverRequest,
+        makeRequestMock,
+        getCapturedRequestHandler: capturedRequestEventHandler
     }
 })
 
@@ -83,6 +99,8 @@ class FakeClient extends EventEmitter {
     isSauce = false
     isFirefox = false
     isBidi = false
+    isWindowsApp = false
+    isMacApp = false
     isSeleniumStandalone = false
     isNativeContext = false
     mobileContext = ''
@@ -90,9 +108,13 @@ class FakeClient extends EventEmitter {
     capabilities = {}
     requestedCapabilities = {}
     options = {
-        logLevel: 'warn' as Options.WebDriverLogTypes
-    } as any
+        logLevel: 'warn' as Options.WebDriverLogTypes,
+        headers: {
+            'custom-header': 'custom-value'
+        },
+    } as Partial<RequestOptions>
     emit = vi.fn()
+    on = vi.fn()
 }
 
 const scope: BaseClient = new FakeClient()
@@ -101,10 +123,12 @@ type mockResponse = (...args: any[]) => any
 describe('command wrapper', () => {
     beforeEach(() => {
         vi.mocked(log.warn).mockClear()
+        vi.mocked(log.info).mockClear()
         vi.mocked(scope.emit).mockClear()
-        vi.mocked(RequestMock).mockClear()
+        vi.mocked(scope.on).mockClear()
         vi.mocked(thenMock).mockClear()
         vi.mocked(catchMock).mockClear()
+        vi.mocked(getCapturedRequestHandler).mockClear()
     })
 
     it('should fail if wrong arguments are passed in', async () => {
@@ -151,10 +175,10 @@ describe('command wrapper', () => {
                 using: 'css selector',
                 value: '#body'
             },
+            expect.any(AbortSignal),
             false,
             requestHandler
         )
-        vi.mocked(RequestMock).mockClear()
     })
 
     it('should do a proper request with non required params', async () => {
@@ -168,10 +192,10 @@ describe('command wrapper', () => {
                 value: '#body',
                 customParam: 123
             },
+            expect.any(AbortSignal),
             false,
             requestHandler
         )
-        vi.mocked(RequestMock).mockClear()
     })
 
     it('should encode uri parameters', async () => {
@@ -182,10 +206,10 @@ describe('command wrapper', () => {
             'POST',
             '/session/:sessionId/element/%2Fpath/element',
             expect.anything(),
+            expect.any(AbortSignal),
             false,
             requestHandler
         )
-        vi.mocked(RequestMock).mockClear()
     })
 
     it('should double encode uri parameters if using selenium', async () => {
@@ -196,11 +220,29 @@ describe('command wrapper', () => {
             'POST',
             '/session/:sessionId/element/%252Fpath/element',
             expect.anything(),
+            expect.any(AbortSignal),
             false,
             requestHandler
         )
-        vi.mocked(RequestMock).mockClear()
         expect(log.warn).toHaveBeenCalledTimes(0)
+    })
+
+    it('should register abort listener', async () => {
+        scope.sessionId = '456' // Emulate new session
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
+
+        expect(scope.on).toHaveBeenCalledTimes(1)
+        expect(scope.on).toHaveBeenLastCalledWith('result', expect.any(Function))
+    })
+
+    it('should register abort listener once when request was called multiple times', async () => {
+        scope.sessionId = '789' // Emulate new session
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
+
+        expect(scope.on).toHaveBeenCalledTimes(1)
     })
 
     it('should log deprecation notice', async () => {
@@ -229,6 +271,140 @@ describe('command wrapper', () => {
             result: { error }
         })
     })
+
+    describe('masking command', () => {
+        const maskCommandEndpoint: CommandEndpoint = {
+            command: 'elementSendKeys',
+            ref: 'https://w3c.github.io/webdriver/#dfn-element-send-keys',
+            description: '',
+            variables: [{
+                name: 'elementId',
+                description: 'the id of an element returned in a previous call to Find Element(s)'
+            }],
+            parameters: [{
+                name: 'text',
+                type: 'string',
+                description: 'the text to be sent to the element',
+                required: true
+            }]
+        }
+        const elementId = '123'
+        const text = 'mySecretPassword'
+        const runtimeOptionsWithMasking = new CommandRuntimeOptions({ mask: true })
+
+        it('should do the http request with the unmasked text when masking is requested', async () => {
+            const commandFn = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await commandFn.call(scope, elementId, text, runtimeOptionsWithMasking)
+
+            expect(RequestMock).toHaveBeenCalledWith(
+                expect.any(String),
+                expect.any(String),
+                {
+                    text: 'mySecretPassword',
+                },
+                expect.any(AbortSignal),
+                false,
+                requestHandler
+            )
+        })
+
+        it('should emit "result" with masked text on success', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            const test = await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            vi.mocked(scope.emit).mockClear()
+            const thenCallback = thenMock.mock.calls[0][0]
+
+            thenCallback({})
+
+            expect(scope.emit).toBeCalledWith('result', expect.objectContaining({
+                body: { text: '**MASKED**' },
+            }))
+        })
+
+        it('should emit "result" with masked text on error', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            const test = await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            vi.mocked(scope.emit).mockClear()
+            const errorCallback = catchMock.mock.calls[0][0]
+
+            const error = new Error('Request failed')
+            expect(() => errorCallback(error)).toThrow(error)
+            expect(scope.emit).toBeCalledWith('result', expect.objectContaining({
+                body: { text: '**MASKED**' },
+            }))
+        })
+
+        it('should emit "command" with masked text', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+
+            expect(scope.emit).toBeCalledWith('command', expect.objectContaining({
+                body: { text: '**MASKED**' },
+            }))
+        })
+
+        it('should emit "request.performance" with masked text when using the RequestEventHandler.onPerformance', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            vi.mocked(scope.emit).mockClear()
+            getCapturedRequestHandler().onPerformance({ data: 'data', request: { body: { text: 'mySecretPassword' } } })
+
+            expect(scope.emit).toBeCalledWith('request.performance', expect.objectContaining({
+                request: { body: { text: '**MASKED**' } },
+            }))
+        })
+
+        it('should emit "request.start" with masked text when using the RequestEventHandler.onRequest', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            vi.mocked(scope.emit).mockClear()
+            getCapturedRequestHandler().onRequest({ data: 'data',  body: { text: 'mySecretPassword' }  })
+
+            expect(scope.emit).toBeCalledWith('request.start', expect.objectContaining(
+                { body: { text: '**MASKED**' } }
+            ))
+        })
+
+        it('should log "DATA" with masked text when using the RequestEventHandle.onLogData', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            vi.mocked(scope.emit).mockClear()
+            getCapturedRequestHandler().onLogData({ text: 'mySecretPassword' })
+
+            expect(log.info).toBeCalledWith('DATA', { text: '**MASKED**' })
+        })
+
+        it('should log "COMMAND" with masked text', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+
+            expect(log.info).toBeCalledWith('COMMAND', 'elementSendKeys("123", "**MASKED**")')
+        })
+
+        it('should makeRequest with the appium header for sensitive data', async () => {
+            const protocolCommandFunction = commandWrapper(commandMethod, commandPath, maskCommandEndpoint)
+
+            await protocolCommandFunction.call(scope, elementId, text, runtimeOptionsWithMasking)
+            expect(makeRequestMock).toHaveBeenCalledWith(expect.objectContaining(
+                { headers: {
+                    'custom-header': 'custom-value',
+                    'x-appium-is-sensitive': 'true'
+                } }
+            ), expect.any(String))
+            expect(scope.options.headers).toEqual({
+                'custom-header': 'custom-value',
+            })
+        })
+
+    })
 })
 
 describe('command wrapper result log', () => {
@@ -236,11 +412,10 @@ describe('command wrapper result log', () => {
         const commandFn = commandWrapper(method, path, endpoint)
         await commandFn.call(scope)
         expect(RequestMock).toHaveBeenCalledTimes(1)
-        expect(RequestMock).toHaveBeenCalledWith(method, path, expect.any(Object), false, requestHandler)
+        expect(RequestMock).toHaveBeenCalledWith(method, path, expect.any(Object), expect.any(AbortSignal), false, requestHandler)
 
         const callback = thenMock.mock.calls[0][0]
 
-        vi.mocked(RequestMock).mockClear()
         vi.mocked(thenMock).mockClear()
         vi.mocked(log.info).mockClear()
 

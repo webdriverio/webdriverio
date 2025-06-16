@@ -67,4 +67,4 @@ export enum SpecialNumberType {
 export enum EvaluateResultType {
     Success = 'success',
     Exception = 'exception'
-  }
+}

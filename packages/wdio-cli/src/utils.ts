@@ -17,7 +17,7 @@ import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config/node'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Capabilities, Options, Services } from '@wdio/types'
+import type { Capabilities, Services } from '@wdio/types'
 
 import { installPackages, getInstallCommand } from './install.js'
 import {
@@ -129,7 +129,7 @@ export async function runLauncherHook(hook: Function | Function[], ...args: unkn
  */
 export async function runOnCompleteHook(
     onCompleteHook: Function | Function[],
-    config: Options.Testrunner,
+    config: WebdriverIO.Config,
     capabilities: Capabilities.TestrunnerCapabilities,
     exitCode: number,
     results: OnCompleteResult
@@ -338,23 +338,6 @@ export async function getCapabilities(arg: ReplCommandArguments) {
 }
 
 /**
- * Checks if certain directory has babel configuration files
- * @param rootDir directory where this function checks for Babel signs
- * @returns true, if a babel config was found, otherwise false
- */
-export function hasBabelConfig(rootDir: string) {
-    return Promise.all([
-        fs.access(path.join(rootDir, 'babel.js')),
-        fs.access(path.join(rootDir, 'babel.cjs')),
-        fs.access(path.join(rootDir, 'babel.mjs')),
-        fs.access(path.join(rootDir, '.babelrc'))
-    ]).then(
-        (results) => results.filter(Boolean).length > 1,
-        () => false
-    )
-}
-
-/**
  * detect if project has a compiler file
  */
 export async function detectCompiler(answers: Questionnair) {
@@ -364,8 +347,8 @@ export async function detectCompiler(answers: Questionnair) {
     }
 
     const root = await getProjectRoot(answers)
-    const rootTSConfigExist = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
-    return (await hasBabelConfig(root) || rootTSConfigExist) ? true : false
+    const hasRootTSConfig = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
+    return hasRootTSConfig
 }
 
 /**
@@ -1064,7 +1047,7 @@ export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
     if (!answer.continueWithAppiumSetup) {
         return console.log(
             'Ok! You can learn more about setting up mobile environments in the ' +
-            'Appium docs at https://appium.io/docs/en/2.0/quickstart/'
+            'Appium docs at https://appium.io/docs/en/latest/quickstart/'
         )
     }
 

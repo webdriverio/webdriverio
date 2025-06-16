@@ -105,6 +105,15 @@ describe('switchWindow', () => {
         expect(tabId).toBe('window-handle-1')
     })
 
+    it('should allow switchWindow call even when the currently active one is closed', async () => {
+        vi.spyOn(browser, 'getWindowHandle').mockImplementation(() =>
+            Promise.reject('target window already closed')
+        )
+
+        const tabId = await browser.switchWindow('webdriver.io')
+        expect(tabId).toBe('window-handle-1')
+    })
+
     afterAll(() => {
         // @ts-expect-error
         delete global.window

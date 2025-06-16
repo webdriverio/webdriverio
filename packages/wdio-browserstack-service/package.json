@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browserstack-service",
-  "version": "9.10.1",
+  "version": "9.15.0",
   "description": "WebdriverIO service for better Browserstack integration",
   "author": "Adam Bjerstedt <abjerstedt@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service",
@@ -37,8 +37,8 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@browserstack/ai-sdk-node": "1.5.17",
-    "@percy/appium-app": "^2.0.1",
-    "@percy/selenium-webdriver": "^2.0.3",
+    "@percy/appium-app": "^2.0.9",
+    "@percy/selenium-webdriver": "^2.2.2",
     "@types/gitconfiglocal": "^2.0.1",
     "@wdio/logger": "workspace:*",
     "@wdio/reporter": "workspace:*",
@@ -49,6 +49,7 @@
     "formdata-node": "5.0.1",
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
+    "undici": "^6.20.1",
     "uuid": "^10.0.0",
     "webdriverio": "workspace:*",
     "winston-transport": "^4.5.0",

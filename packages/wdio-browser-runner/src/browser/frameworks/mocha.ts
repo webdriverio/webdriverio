@@ -265,7 +265,7 @@ export class MochaFramework extends HTMLElement {
 const template = document.createElement('template')
 template.innerHTML = /*html*/`
 <style>
-    @import "/node_modules/mocha/mocha.css";
+    @import "@wdio/browser-runner/third_party/mocha.css";
 
     .reporter {
         transition: width .3s;

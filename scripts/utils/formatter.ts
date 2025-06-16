@@ -1,103 +1,182 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import path from 'node:path'
-
-interface TagType {
-    string: string
-    type: string
-}
+import type { Block, Spec } from 'comment-parser'
 
 const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.
 const repoUrl = `https://github.com/${organizationName}/${projectName}`
 
-export default function (docfile: any) {
+interface TagType extends Spec {
+    string: string
+}
+
+interface Example {
+    file: string;
+    format: string;
+    code: string;
+}
+
+function normalizeSpec(spec: Spec): TagType {
+    const ensureType = (currentType: string | undefined) => currentType || 'any'
+
+    const trimDescription = (desc: string) =>
+        desc && desc.endsWith('\n') ? desc.replace(/(\n)+$/, '') : desc
+
+    const string = spec.source[0].source.split(`@${spec.tag}`)[1].trim()
+
+    spec.type = ensureType(spec.type)
+    spec.description = trimDescription(spec.description)
+
+    return {
+        ...spec,
+        string,
+    }
+}
+
+export default function (docfile: {
+    filename: string;
+    javadoc: Block[];
+}) {
     const javadoc = docfile.javadoc[0]
 
-    let type = (javadoc.ctx && javadoc.ctx.type)
+    let type = ''
     const name = path.basename(path.basename(docfile.filename, '.js'), '.ts')
     const scope = docfile.filename.split('/').slice(-2, -1)[0]
 
     let description = ''
     const paramStr: string[] = []
-    const propertyTags: string[] = []
-    const paramTags: string[] = []
-    const returnTags: string[] = []
-    const throwsTags: string[] = []
+    const propertyTags: TagType[] = []
+    const paramTags: TagType[] = []
+    const returnTags: TagType[] = []
+    const throwsTags: TagType[] = []
     const fires: string[] = []
     const listens: string[] = []
-    let tagDeprecated = false
+    const exampleReferences: string[] = []
+    let tagDeprecated = ''
     let tagSee = ''
     let tagVersion = ''
     let tagAuthor = ''
-    let tagType = ''
+    let tagCustomType = ''
     let tagMobileElement = false
     let tagSkipUsage = false
+    let returns
 
     for (const tag of javadoc.tags) {
-        if (tag.type === 'param') {
-            tag.joinedTypes = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                : 'any'
+        const newTag = normalizeSpec(tag)
+        const { tag: tagName, type: tagType, description, string, source } = newTag
+        const typeOnToken = source[0].tokens.type
 
-            if (tag.typesDescription.includes('|<code>undefined</code>')) {
-                tag.typesDescription = `<code>${tag.joinedTypes}</code>`
-            } else if (tag.types.length === 1 && tag.types[0].startsWith('Record<')) {
-                tag.types = [tag.typesDescription.replaceAll('<code>', '').replaceAll('</code>', '')]
+        switch (tagName) {
+        case 'param': {
+            if (tagType.includes('=')) {
+                newTag.optional = true
+                newTag.type = newTag.type.replace('=', '')
             }
 
-            paramTags.push(tag)
-            paramStr.push(tag.name)
-        } else if (tag.type === 'rowInfo') {
-            paramTags.push(tag)
-        } else if (tag.type === 'property') {
-            tag.joinedTypes = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                : 'any'
-            propertyTags.push(tag)
-        } else if (tag.type === 'return' || tag.type === 'returns') {
-            tag.joinedTypes = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                : 'any'
-            returnTags.push(tag)
-        } else if (tag.type === 'throws') {
-            tag.joinedTypes = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                : 'any'
-            throwsTags.push(tag)
-        } else if (tag.type === 'fires') {
-            fires.push(tag.string)
-        } else if (tag.type === 'listens') {
-            listens.push(tag.string)
-        } else if (tag.type === 'namespace') {
+            if (!tagType.includes('`')) {
+                newTag.type = `\`${newTag.type}\``
+            }
+
+            paramTags.push(newTag)
+            paramStr.push(newTag.name)
+            break
+        }
+        case 'rowInfo': {
+            paramTags.push(newTag)
+            break
+        }
+        case 'property': {
+            propertyTags.push(newTag)
+            break
+        }
+        case 'return':
+        case 'returns': {
+            returns = {
+                type: newTag.type,
+                name: newTag.tag,
+                description: string.split(typeOnToken)[1]
+            }
+            returnTags.push(newTag)
+            break
+        }
+        case 'throws': {
+            newTag.name = newTag.tag
+            newTag.description = string.split(typeOnToken)[1]
+            throwsTags.push(newTag)
+            break
+        }
+        case 'fires': {
+            fires.push(description)
+            break
+        }
+        case 'listens': {
+            listens.push(description)
+            break
+        }
+        case 'namespace': {
             type = 'namespace'
-        } else if (tag.type === 'method') {
+            break
+        }
+        case 'method': {
             type = 'method'
-        } else if (tag.type === 'class') {
+            break
+        }
+        case 'class': {
             type = 'class'
-        } else if (tag.type === 'function') {
+            break
+        }
+        case 'function': {
             type = 'function'
-        } else if (tag.type === 'event') {
+            break
+        }
+        case 'event': {
             type = 'event'
-        } else if (tag.type === 'see') {
-            tagSee = tag.url ? tag.url : tag.local
-        } else if (tag.type === 'version') {
-            tagVersion = tag.string
-        } else if (tag.type === 'deprecated') {
-            tagDeprecated = true
-        } else if (tag.type === 'mobileElement') {
+            break
+        }
+        case 'see': {
+            tagSee = source[0].source.split('@see')[1].trim()
+            break
+        }
+        case 'version': {
+            tagVersion = source[0].source.split('@version')[1].trim()
+            break
+        }
+        case 'deprecated': {
+            tagDeprecated = source[0].source.split('@deprecated')[1].trim()
+            break
+        }
+        case 'mobileElement': {
             tagMobileElement = true
-        } else if (tag.type === 'skipUsage') {
+            break
+        }
+        case 'skipUsage': {
             tagSkipUsage = true
-        } else if (tag.type === 'author') {
-            tagAuthor = tag.string
-        } else if (tag.type === 'type') {
-            tagType = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                : 'any'
+            break
+        }
+        case 'author': {
+            tagAuthor = description
+            break
+        }
+        case 'type': {
+            tagCustomType = source[0].source.split('@type')[1].trim()
+            break
+        }
+        case 'example': {
+            exampleReferences.push(source[0].source.split('@example')[1].trim())
+            break
+        }
+        case 'alias':
+        case 'for':
+        case 'uses':
+        case 'docs': {
+            break
+        }
+        default:
+            console.log('unknown tag ', tag.tag, ' in ', docfile.filename)
+            break
         }
     }
 
-    description = javadoc.description.full
+    description = javadoc.description
         .replace(/\nh1/, '#')
         .replace(/\nh2/, '##')
         .replace(/\nh3/, '###')
@@ -111,28 +190,28 @@ export default function (docfile: any) {
         .replace(/^h5/, '#####')
         .replace(/^h6/, '######')
 
-    const files: string[] = []
+    const files: Example[] = []
     let exampleCodeLine: string[] = []
-    let example: any = description.match(/<example>((.|\n)*)<\/example>/g)
+    const example = description.match(/<example>((.|\n)*)<\/example>/g)
     let exampleFilename = ''
     let currentLine = 0
 
     if (example && example[0]) {
         console.log('parse example section for', docfile.filename)
 
-        example = example[0].replace(/<(\/)*example>/g, '').split(/\n/g)
-        example.forEach(function(line: string) {
+        const exampleLines = example[0].replace(/<(\/)*example>/g, '').split(/\n/g)
+        exampleLines.forEach(function(line: string) {
             ++currentLine
 
             const checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g)
-            if ((checkForFilenameExpression && checkForFilenameExpression.length) || (currentLine === example.length)) {
+            if ((checkForFilenameExpression && checkForFilenameExpression.length) || (currentLine === exampleLines.length)) {
 
                 if (exampleCodeLine.length) {
 
                     /**
                      * remove filename expression in first line
                      */
-                    exampleFilename = exampleCodeLine.shift()!.trim().substr(1)
+                    exampleFilename = exampleCodeLine.shift()!.trim().slice(1)
                     const code = exampleCodeLine
                         .join('\n')
                         /**
@@ -147,9 +226,9 @@ export default function (docfile: any) {
                     if (exampleFilename !== '' && code !== '') {
                         files.push({
                             file: exampleFilename,
-                            format: exampleFilename.split(/\./).pop(),
+                            format: exampleFilename.split(/\./).pop() || 'js',
                             code: code
-                        } as any)
+                        })
                     }
 
                     /**
@@ -161,24 +240,20 @@ export default function (docfile: any) {
                 /**
                  * if this is the last line of code dont proceed
                  */
-                if (currentLine === example.length) {
+                if (currentLine === exampleLines.length) {
                     return
                 }
 
             }
 
-            exampleCodeLine.push(line.substr(4))
+            exampleCodeLine.push(line.slice(4))
         })
 
         /**
          * remove example section from description
          */
-        description = description.substr(0, description.indexOf('<example>'))
+        description = description.slice(0, description.indexOf('<example>'))
     }
-
-    const exampleReferences = javadoc.tags
-        .filter((tag: TagType) => tag.type === 'example' && typeof tag.string === 'string')
-        .map((tag: TagType) => tag.string)
 
     /**
      * format param strings, from
@@ -207,20 +282,20 @@ export default function (docfile: any) {
         throwsTags: throwsTags,
         fires: fires,
         listens: listens,
+        returns: returns,
         author: tagAuthor,
         version: tagVersion,
         see: tagSee,
         deprecated: tagDeprecated,
-        tagType: tagType,
-        type: type,
+        tagType: tagCustomType,
+        type: type ? type : false,
         isMethod: type === 'method',
         isFunction: type === 'function',
         isClass: type === 'class',
         isNamespace: type === 'namespace',
         isEvent: type === 'event',
-        hasType: tagType !== '',
+        hasType: tagCustomType !== '',
         description: description,
-        ignore: javadoc.ignore,
         examples: files,
         exampleReferences,
         customEditUrl: `${repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,

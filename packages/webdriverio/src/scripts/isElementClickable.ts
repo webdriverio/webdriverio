@@ -129,21 +129,32 @@ export default function isElementClickable (elem: HTMLElement) {
         return isElementInViewport(elem) && !hasOverlaps(elem)
     }
 
+    function getViewportScrollPositions() {
+        return {
+            // Cross-browser compatibility
+            x: window.scrollX !== null && window.scrollX !== void 0
+                ? window.scrollX
+                : window.pageXOffset,
+            y: window.scrollY !== null && window.scrollY !== void 0
+                ? window.scrollY
+                : window.pageYOffset,
+        }
+    }
+
     // scroll the element to the center of the viewport when
     // it is not fully displayed in the viewport or is overlapped by another element
     // to check if it still overlapped/not in the viewport
     // afterwards we scroll back to the original position
     let _isFullyDisplayedInViewport = isFullyDisplayedInViewport(elem)
     if (!_isFullyDisplayedInViewport) {
-        const { x: originalX, y: originalY } = elem.getBoundingClientRect()
+        const { x: originalX, y: originalY } = getViewportScrollPositions()
 
         elem.scrollIntoView(scrollIntoViewFullSupport ? { block: 'center', inline: 'center' } : false)
 
         _isFullyDisplayedInViewport = isFullyDisplayedInViewport(elem)
-
-        const { x, y } = elem.getBoundingClientRect()
-        if (x !== originalX || y !== originalY) {
-            elem.scroll(scrollX, scrollY)
+        const { x: currentX, y: currentY } = getViewportScrollPositions()
+        if (currentX !== originalX || currentY !== originalY) {
+            window.scroll(originalX, originalY)
         }
     }
 

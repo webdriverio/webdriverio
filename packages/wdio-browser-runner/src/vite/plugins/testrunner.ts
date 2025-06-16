@@ -96,6 +96,13 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             if (MODULES_TO_MOCK.includes(id)) {
                 return mockModulePath
             }
+
+            /**
+             * redirect requests to 3rd party dependencies
+             */
+            if (id.startsWith('/@wdio/browser-runner/third_party/')) {
+                return path.resolve(__dirname, ...id.split('/').slice(3))
+            }
         },
         load(id) {
             /**

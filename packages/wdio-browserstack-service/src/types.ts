@@ -1,7 +1,7 @@
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Options as BSOptions } from 'browserstack-local'
 
-export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>;
+export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<unknown>
 
 export type AppConfig = {
     id?: string,
@@ -40,7 +40,7 @@ export interface BrowserstackConfig {
      * ${BUILD_NUMBER} (Default): Generates an incremental counter with every execution
      * ${DATE_TIME}: Generates a Timestamp with every execution. Eg. 05-Nov-19:30
      */
-     buildIdentifier?: string;
+    buildIdentifier?: string;
     /**
      * Set this to true to enable BrowserStack Test Observability which will collect test related data
      * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
@@ -293,19 +293,19 @@ export interface LaunchResponse {
 }
 
 export interface UserConfigforReporting {
-  framework?: string,
-  services?: unknown[],
-  capabilities?: WebdriverIO.Capabilities,
-  env?: {
-    'BROWSERSTACK_BUILD': string | undefined,
-    'BROWSERSTACK_BUILD_NAME': string | undefined,
-    'BUILD_TAG': string | undefined,
-  }
+    framework?: string,
+    services?: unknown[],
+    capabilities?: WebdriverIO.Capabilities,
+    env?: {
+        'BROWSERSTACK_BUILD': string | undefined,
+        'BROWSERSTACK_BUILD_NAME': string | undefined,
+        'BUILD_TAG': string | undefined,
+    }
 }
 
 export interface CredentialsForCrashReportUpload {
-  username?: string,
-  password?: string
+    username?: string,
+    password?: string
 }
 
 export interface IntegrationObject {

@@ -200,8 +200,7 @@ export async function formatConfigFilePaths(config: string) {
 export async function canAccessConfigPath(configPathNoExtension:string, configPath?:string) {
     return new Promise<string | undefined>((resolve, reject)=>{
         if (configPath) {
-            const _configPath = configPath
-            fs.access(_configPath).then(()=>resolve(_configPath), reject)
+            fs.access(configPath).then(()=>resolve(configPath), reject)
         } else {
             reject()
         }

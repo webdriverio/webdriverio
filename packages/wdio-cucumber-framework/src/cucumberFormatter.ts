@@ -6,6 +6,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import type { Payload } from './types.js'
+import { convertStatus } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -187,25 +188,7 @@ export default class CucumberFormatter extends Formatter {
         step: PickleStep,
         result: TestStepResult
     ) {
-        let state = 'undefined'
-        switch (result.status) {
-        case Status.FAILED:
-        case Status.UNDEFINED:
-            state = 'fail'
-            break
-        case Status.PASSED:
-            state = 'pass'
-            break
-        case Status.PENDING:
-            state = 'pending'
-            break
-        case Status.SKIPPED:
-            state = 'skip'
-            break
-        case Status.AMBIGUOUS:
-            state = 'pending'
-            break
-        }
+        let state = convertStatus(result.status)
         let error = result.message ? new Error(result.message) : undefined
         let title = step ? step?.text : this.getTitle(scenario)
 
@@ -220,6 +203,7 @@ export default class CucumberFormatter extends Formatter {
                 /**
                  * mark test as failed
                  */
+                state = 'fail'
                 this.failedCount++
 
                 const err = new Error(
@@ -241,9 +225,10 @@ export default class CucumberFormatter extends Formatter {
                 error = err
             }
         } else if (result.status === Status.FAILED && !(result as unknown as TestCaseFinished).willBeRetried) {
+            state = 'fail'
+            this.failedCount++
             error = new Error(result.message?.split('\n')[0])
             error.stack = result.message as string
-            this.failedCount++
         } else if (result.status === Status.AMBIGUOUS && this.failAmbiguousDefinitions) {
             state = 'fail'
             this.failedCount++
