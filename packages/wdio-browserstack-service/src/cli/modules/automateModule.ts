@@ -10,6 +10,8 @@ import { AutomationFrameworkConstants } from '../frameworks/constants/automation
 import { isBrowserstackSession } from '../../util.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
 import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
+import PerformanceTester from '../../instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from '../../instrumentation/performance/constants.js'
 
 export default class AutomateModule extends BaseModule {
 
@@ -104,93 +106,100 @@ export default class AutomateModule extends BaseModule {
         )
     }
 
-    async markSessionName( sessionId: string, sessionName: string, config: { user: string; key: string;}): Promise<void> {
-        try {
+    async markSessionName(sessionId: string, sessionName: string, config: { user: string; key: string;}): Promise<void> {
+        return await PerformanceTester.measureWrapper(
+            PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.SESSION_NAME,
+            async (sessionId: string, sessionName: string, config: { user: string; key: string;}) => {
+                try {
+                    const auth = Buffer.from(`${config.user}:${config.key}`).toString('base64')
+                    const isAppAutomate = this.config.app
+                    if (isAppAutomate) {
+                        this.logger.info('Marking session name for App Automate')
+                    } else {
+                        this.logger.info('Marking session name for Automate')
+                    }
 
-            const auth = Buffer.from(`${config.user}:${config.key}`).toString('base64')
-            const isAppAutomate = this.config.app
-            if (isAppAutomate) {
-                this.logger.info('Marking session name for App Automate')
-            } else {
-                this.logger.info('Marking session name for Automate')
-            }
+                    const sessionStatusApiUrl = isAppAutomate
+                        ? `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`
+                        : `https://api.browserstack.com/automate/sessions/${sessionId}.json`
 
-            const sessionStatusApiUrl = isAppAutomate
-                ? `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`
-                : `https://api.browserstack.com/automate/sessions/${sessionId}.json`
+                    const requestBody = {
+                        name: sessionName
+                    }
 
-            const requestBody = {
-                name: sessionName
-            }
+                    const options: any = {
+                        method: 'PUT',
+                        url: sessionStatusApiUrl,
+                        headers: {
+                            Authorization: `Basic ${auth}`,
+                            'Content-Type': 'application/json'
+                        },
+                        json: requestBody,
+                        responseType: 'json'
+                    }
 
-            const options: any = {
-                method: 'PUT',
-                url: sessionStatusApiUrl,
-                headers: {
-                    Authorization: `Basic ${auth}`,
-                    'Content-Type': 'application/json'
-                },
-                json: requestBody,
-                responseType: 'json'
-            }
+                    if (this.config.proxy) {
+                        options.agent = {
+                            https: new (require('https-proxy-agent'))(this.config.proxy)
+                        }
+                    }
 
-            if (this.config.proxy) {
-                options.agent = {
-                    https: new (require('https-proxy-agent'))(this.config.proxy)
+                    const response = await got(options)
+                    this.logger.debug('Session name updated:', response.body)
+                    this.logger.debug(`Done for sessionId ${sessionId}`)
+                } catch (err) {
+                    this.logger.error(`Failed to update session name on BrowserStack: ${err}`)
                 }
             }
-
-            const response = await got(options)
-            this.logger.debug('Session name updated:', response.body)
-            this.logger.debug(`Done for sessionId ${sessionId}`)
-        } catch (err) {
-            this.logger.error(`Failed to update session name on BrowserStack: ${err}`)
-        }
+        )(sessionId, sessionName, config)
     }
 
-    async markSessionStatus( sessionId: string, sessionStatus: 'passed' | 'failed', sessionErrorMessage: string | undefined,
-        config: { user: string; key: string; }
-    ): Promise<void> {
-        try {
-            const auth = Buffer.from(`${config.user}:${config.key}`).toString('base64')
-            const isAppAutomate = this.config.app
-            if (isAppAutomate) {
-                this.logger.info('Marking session status for App Automate')
-            } else {
-                this.logger.info('Marking session status for Automate')
-            }
+    async markSessionStatus(sessionId: string, sessionStatus: 'passed' | 'failed', sessionErrorMessage: string | undefined, config: { user: string; key: string; }): Promise<void> {
+        return await PerformanceTester.measureWrapper(
+            PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.SESSION_STATUS,
+            async (sessionId: string, sessionStatus: 'passed' | 'failed', sessionErrorMessage: string | undefined, config: { user: string; key: string; }) => {
+                try {
+                    const auth = Buffer.from(`${config.user}:${config.key}`).toString('base64')
+                    const isAppAutomate = this.config.app
+                    if (isAppAutomate) {
+                        this.logger.info('Marking session status for App Automate')
+                    } else {
+                        this.logger.info('Marking session status for Automate')
+                    }
 
-            const sessionStatusApiUrl = isAppAutomate
-                ? `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`
-                : `https://api.browserstack.com/automate/sessions/${sessionId}.json`
+                    const sessionStatusApiUrl = isAppAutomate
+                        ? `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`
+                        : `https://api.browserstack.com/automate/sessions/${sessionId}.json`
 
-            const body = {
-                status: sessionStatus,
-                ...(sessionErrorMessage ? { reason: sessionErrorMessage } : {})
-            }
+                    const body = {
+                        status: sessionStatus,
+                        ...(sessionErrorMessage ? { reason: sessionErrorMessage } : {})
+                    }
 
-            const options: any = {
-                method: 'PUT',
-                url: sessionStatusApiUrl,
-                headers: {
-                    Authorization: `Basic ${auth}`,
-                    'Content-Type': 'application/json'
-                },
-                json: body,
-                responseType: 'json'
-            }
+                    const options: any = {
+                        method: 'PUT',
+                        url: sessionStatusApiUrl,
+                        headers: {
+                            Authorization: `Basic ${auth}`,
+                            'Content-Type': 'application/json'
+                        },
+                        json: body,
+                        responseType: 'json'
+                    }
 
-            if (this.config.proxy) {
-                options.agent = {
-                    https: new (require('https-proxy-agent'))(this.config.proxy)
+                    if (this.config.proxy) {
+                        options.agent = {
+                            https: new (require('https-proxy-agent'))(this.config.proxy)
+                        }
+                    }
+
+                    const response = await got(options)
+                    this.logger.debug('Session update response:', response.body)
+                } catch (err) {
+                    this.logger.error(`Failed to update session status on BrowserStack: ${err}`)
                 }
             }
-
-            const response = await got(options)
-            this.logger.debug('Session update response:', response.body)
-        } catch (err) {
-            this.logger.error(`Failed to update session status on BrowserStack: ${err}`)
-        }
+        )(sessionId, sessionStatus, sessionErrorMessage, config)
     }
 
 }
