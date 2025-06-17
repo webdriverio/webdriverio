@@ -59,6 +59,26 @@ const customCommand = async () => {
 
 describe('addCommand', () => {
     describe('remote', () => {
+
+        test('should resolve the this parameter by inference', async () => {
+            const browser = await remote(remoteConfig)
+            browser.addCommand(
+                'press',
+                async function (this /* Expect to be infer to WebDriverIO.Element by default */) {
+                    await this.click()
+                    return
+                },
+                true,
+            )
+
+            const element = await browser.$('.someRandomElement')
+            vi.spyOn(element, 'click')
+
+            // @ts-expect-error undefined custom command
+            expect(await element.press()).toBeUndefined()
+            expect(element.click).toBeCalledTimes(1)
+        })
+
         test('should be able to handle async', async () => {
             const browser = await remote(remoteConfig)
 

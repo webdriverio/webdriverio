@@ -47,7 +47,7 @@ export async function savePDF (
     this: WebdriverIO.Browser,
     filepath: string,
     options?: PDFPrintOptions
-) {
+): Promise<Buffer<ArrayBuffer>> {
     /**
      * run command implementation based on given environment
      */

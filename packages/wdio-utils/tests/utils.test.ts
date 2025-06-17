@@ -6,7 +6,8 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
-    userImport, getBrowserObject, enableFileLogging, isAppiumCapability
+    userImport, getBrowserObject, enableFileLogging, isAppiumCapability,
+    isAbsolute
 } from '../src/utils.js'
 
 describe('utils', () => {
@@ -262,6 +263,20 @@ describe('utils:userImport', () => {
             .rejects
             .toThrow('Couldn\'t import "foobar"! Do you have it installed? If not run "npm install foobar"!')
     })
+})
+
+describe('utils:isAbsolute', () => {
+    it.each([
+        [true, 'absolute path for POSIX systems', '/path/to/file',],
+        [true, 'absolute path for Windows system', 'c:\\path\\to\\file'],
+        [false, 'relative path for POSIX system', 'path/to/file'],
+        [false, 'relative path for Windows system', 'path\\to\\file'],
+        [false, 'UNC path for Windows system', '\\\\server\\path\\to\\file'],
+        [false, 'null value', ''],
+    ])('should return %s when input %s', (expected:boolean, _pattern:string, pathString:string)=>{
+        expect(isAbsolute(pathString)).toBe(expected)
+    })
+
 })
 
 describe('getBrowserObject', () => {

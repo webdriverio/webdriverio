@@ -189,7 +189,7 @@ type AddCommandFnScoped<
     InstanceType = WebdriverIO.Browser,
     IsElement extends boolean = false
 > = (
-    this: IsElement extends true ? Element : InstanceType,
+    this: IsElement extends true ? WebdriverIO.Element : InstanceType,
     ...args: any[]
 ) => any
 
@@ -201,7 +201,7 @@ type OverwriteCommandFnScoped<
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
-    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
+    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
@@ -210,21 +210,25 @@ type OverwriteCommandFn<
     BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
-    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
+    this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
+    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
 export type CustomLocatorReturnValue = HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
+
+type Instances = WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+
 export interface CustomInstanceCommands<T> {
     /**
      * add command to `browser` or `element` scope
      */
-    addCommand<IsElement extends boolean = false>(
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
         name: string,
-        func: AddCommandFn | AddCommandFnScoped<T, IsElement>,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Instances>
     ): void;
 
     /**
@@ -232,10 +236,10 @@ export interface CustomInstanceCommands<T> {
      */
     overwriteCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = false>(
         name: IsElement extends true ? ElementKey : BrowserKey,
-        func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
+        func: IsElement extends true ? OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement> : OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Instances>
     ): void;
 
     /**
