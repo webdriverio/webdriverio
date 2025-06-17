@@ -370,7 +370,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.SESSION_STATUS, async () => {
                 if (setSessionStatus && !BrowserstackCLI.getInstance().isRunning()) {
                     BStackLogger.debug(`Setting session status to ${result === 0 ? 'passed' : 'failed'}`)
-                const hasReasons = this._failReasons.length > 0
+                    const hasReasons = this._failReasons.length > 0
                     await this._updateJob({
                         status: result === 0 && this._specsRan ? 'passed' : 'failed',
                         ...(setSessionName ? { name: this._fullTitle } : {}),
@@ -382,9 +382,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
             await Listener.getInstance().onWorkerEnd()
             if (!BrowserstackCLI.getInstance().isRunning()) {
-            await this._percyHandler?.teardown()
+                await this._percyHandler?.teardown()
             }
-        this.saveWorkerData()
+            this.saveWorkerData()
 
             PerformanceTester.end(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER)
             await PerformanceTester.stopAndGenerate('performance-service.html')
