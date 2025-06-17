@@ -28,8 +28,6 @@ import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig, TOStop
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     BROWSER_DESCRIPTION,
-    DATA_ENDPOINT,
-    UPLOAD_LOGS_ADDRESS,
     UPLOAD_LOGS_ENDPOINT,
     consoleHolder,
     BSTACK_A11Y_POLLING_TIMEOUT,
@@ -43,7 +41,6 @@ import {
     BROWSERSTACK_ACCESSIBILITY,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED,
-    APP_ALLY_ENDPOINT,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
     APP_ALLY_ISSUES_ENDPOINT
 } from './constants.js'
@@ -54,6 +51,7 @@ import AccessibilityScripts from './scripts/accessibility-scripts.js'
 import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 import type { StartBinSessionResponse } from './proto/sdk-messages.js'
+import APIUtils from './cli/apiUtils.js'
 
 const pGitconfig = promisify(gitconfig)
 
@@ -421,7 +419,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
     data.config = CrashReporter.userConfigForReporting
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v2/builds`
+        const url = `${APIUtils.DATA_ENDPOINT}/api/v2/builds`
         const response: LaunchResponse = await got.post(url, {
             ...DEFAULT_REQUEST_CONFIG,
             username: getObservabilityUser(options, config),
@@ -627,7 +625,7 @@ export const getAppA11yResults = PerformanceTester.measureWrapper(PERFORMANCE_SD
     }
 
     try {
-        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
+        const apiUrl = `${APIUtils.APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_ENDPOINT}`
         const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, isBrowserStackSession, isAccessibility, sessionId)
         const result = apiRespone?.data?.data?.issues
         BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
@@ -650,7 +648,7 @@ export const getAppA11yResultsSummary = PerformanceTester.measureWrapper(PERFORM
     }
 
     try {
-        const apiUrl = `${APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_SUMMARY_ENDPOINT}`
+        const apiUrl = `${APIUtils.APP_ALLY_ENDPOINT}/${APP_ALLY_ISSUES_SUMMARY_ENDPOINT}`
         const apiRespone = await getAppA11yResultResponse(apiUrl, isAppAutomate, browser, isBrowserStackSession, isAccessibility, sessionId)
         const result = apiRespone?.data?.data?.summary
         BStackLogger.debug(`Polling Result: ${JSON.stringify(result)}`)
@@ -722,7 +720,7 @@ export const stopBuildUpstream = PerformanceTester.measureWrapper(PERFORMANCE_SD
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]}/stop`
+        const url = `${APIUtils.DATA_ENDPOINT}/api/v1/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]}/stop`
         const response = await got.put(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
@@ -1202,7 +1200,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
     }
 
     try {
-        const url = `${DATA_ENDPOINT}/${eventUrl}`
+        const url = `${APIUtils.DATA_ENDPOINT}/${eventUrl}`
         const response = await got.post(url, {
             agent: DEFAULT_REQUEST_CONFIG.agent,
             headers: {
@@ -1408,7 +1406,7 @@ export async function uploadLogs(user: string | undefined, key: string | undefin
         return
     }
     const fileStream = fs.createReadStream(BStackLogger.logFilePath)
-    const uploadAddress = UPLOAD_LOGS_ADDRESS
+    const uploadAddress = APIUtils.UPLOAD_LOGS_ADDRESS
     const zip = zlib.createGzip({ level: 1 })
     fileStream.pipe(zip)
 

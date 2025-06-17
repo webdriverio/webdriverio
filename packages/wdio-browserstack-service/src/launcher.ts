@@ -58,6 +58,7 @@ import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants
 import { BrowserstackCLI } from './cli/index.js'
 import { CLIUtils } from './cli/cliUtils.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
+import APIUtils from './cli/apiUtils.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -551,7 +552,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             form.append('custom_id', app.customId)
         }
 
-        const res = await got.post('https://api-cloud.browserstack.com/app-automate/upload', {
+        const res = await got.post(`${APIUtils.BROWSERSTACK_AA_API_CLOUD_URL}/app-automate/upload`, {
             body: form,
             username : this._config.user,
             password : this._config.key

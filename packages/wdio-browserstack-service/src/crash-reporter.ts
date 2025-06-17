@@ -1,10 +1,11 @@
 import type { Capabilities, Options } from '@wdio/types'
 import got from 'got'
 
-import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT, BROWSERSTACK_TESTHUB_UUID } from './constants.js'
+import { BSTACK_SERVICE_VERSION, BROWSERSTACK_TESTHUB_UUID } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
+import APIUtils from './cli/apiUtils.js'
 
 type Dict = Record<string, any>
 
@@ -72,7 +73,7 @@ export default class CrashReporter {
             },
             config: this.userConfigForReporting
         }
-        const url = `${DATA_ENDPOINT}/api/v1/analytics`
+        const url = `${APIUtils.DATA_ENDPOINT}/api/v1/analytics`
         got.post(url, {
             ...DEFAULT_REQUEST_CONFIG,
             ...this.credentialsForCrashReportUpload,

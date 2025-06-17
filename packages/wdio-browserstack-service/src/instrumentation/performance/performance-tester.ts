@@ -11,7 +11,8 @@ import { arch, hostname, platform, type, version } from 'node:os'
 import got from 'got'
 
 import { BStackLogger } from '../../bstackLogger.js'
-import { EDS_URL, PERF_MEASUREMENT_ENV } from '../../constants.js'
+import { PERF_MEASUREMENT_ENV } from '../../constants.js'
+import APIUtils from '../../cli/apiUtils.js'
 
 type PerformanceDetails = {
     success?: true,
@@ -299,7 +300,7 @@ export default class PerformanceTester {
                     event_json: { measures: measures, sdkRunId: process.env.PERF_SDK_RUN_ID }
                 }
             }
-            const result = await got.post(`${EDS_URL}/send_sdk_events`, {
+            const result = await got.post(`${APIUtils.EDS_URL}/send_sdk_events`, {
                 headers: {
                     'content-type': 'application/json'
                 }, json: payload
