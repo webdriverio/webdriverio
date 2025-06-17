@@ -176,7 +176,7 @@ export default class AccessibilityModule extends BaseModule {
             }
 
             // Store test metadata in test instance
-            testInstance.updateData(`accessibility_metadata_${testIdentifier}`, testMetadata)
+            TestFramework.setState(testInstance, `accessibility_metadata_${testIdentifier}`, testMetadata)
             this.accessibilityMap.set(sessionId, shouldScanTest)
 
             // Log if accessibility scan is enabled for this test
@@ -243,7 +243,7 @@ export default class AccessibilityModule extends BaseModule {
                 this.accessibilityMap.delete(sessionId)
 
                 // Clean up test metadata
-                testInstance.updateData(`accessibility_metadata_${testIdentifier}`, null)
+                TestFramework.setState(testInstance, `accessibility_metadata_${testIdentifier}`, null)
             }
 
         } catch (error) {

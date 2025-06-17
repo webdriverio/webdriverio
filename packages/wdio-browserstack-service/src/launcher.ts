@@ -327,6 +327,21 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
 
+            if (this._accessibilityAutomation && this._options.accessibilityOptions) {
+                const filteredOpts = Object.keys(this._options.accessibilityOptions)
+                    .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
+                    .reduce((opts, key) => {
+                        return {
+                            ...opts,
+                            [key]: this._options.accessibilityOptions?.[key]
+                        }
+                    }, {})
+
+                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
+            } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
+                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
+            }
+
             if (shouldSetupPercy) {
                 try {
                     const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
@@ -340,21 +355,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     PercyLogger.error(`Error while setting up Percy ${err}`)
                 }
             }
-        }
-
-        if (this._accessibilityAutomation && this._options.accessibilityOptions) {
-            const filteredOpts = Object.keys(this._options.accessibilityOptions)
-                .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
-                .reduce((opts, key) => {
-                    return {
-                        ...opts,
-                        [key]: this._options.accessibilityOptions?.[key]
-                    }
-                }, {})
-
-            this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
-        } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
-            this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
         }
 
         // send testhub build uuid and product map instrumentation

@@ -133,7 +133,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 }
             }
             if (BrowserstackCLI.getInstance().isRunning()) {
-                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: this._caps })
+                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
             }
             const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
             const caps = AutomationFramework.getState(instance, WebdriverIOModule.KEY_CAPABILITIES)
