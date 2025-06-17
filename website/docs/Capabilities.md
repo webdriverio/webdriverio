@@ -406,7 +406,7 @@ When testing on Safari, make sure you have the [Safari Technology Preview](https
 
 If you like to define your own set of capabilities in order to e.g. store arbitrary data to be used within the tests for that specific capability, you can do so by e.g. setting:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/capabilities.js
 ```
 

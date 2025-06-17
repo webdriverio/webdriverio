@@ -14,7 +14,7 @@ If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) 
 
 ### Install undici
 
-``` reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/proxying/proxy-between-driver-and-test.js
 ```
 
@@ -32,7 +32,7 @@ In order to tunnel the connection between the browser and the internet, you can 
 
 The `proxy` parameters can be applied via the standard capabilities the following way:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/proxying/proxy-between-browser-and-internet.js
 ```
 

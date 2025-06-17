@@ -13,7 +13,7 @@ title: Test Output
 
 This can be set on the [Service Options](./service-options#enablelayouttesting) as well as on the [Method](./method-options) level.
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/enable-layout-testing.js
 ```
 

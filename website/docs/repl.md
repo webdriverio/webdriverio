@@ -31,7 +31,7 @@ If the config file uses capabilities object then just pass the path to config fi
 
 WebdriverIO with capability array:
 
-``` reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/repl/repl.js
 ```
 
@@ -39,9 +39,9 @@ https://github.com/webdriverio/webdriverio/blob/main/website/recipes/repl/repl.j
 wdio repl "./path/to/wdio.config.js" 0 -p 9515
 ```
 
-WebdriverIO mit [Multiremote](https://webdriver.io/docs/multiremote/) Capability Objekt:
+WebdriverIO with [Multiremote](https://webdriver.io/docs/multiremote/) capability object:
 
-``` reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/repl/repl-multiremote.js
 ```
 

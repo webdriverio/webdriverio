@@ -122,7 +122,7 @@ The only thing to do now in order to use this service is to assign it to the `se
 
 Modify your `wdio.conf.js` file to look like this:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service.js
 ```
 
@@ -137,7 +137,7 @@ To make services easier to consume and discover by the WebdriverIO community, pl
 
 Following the recommended naming pattern allows services to be added by name:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service-npm.js
 ```
 

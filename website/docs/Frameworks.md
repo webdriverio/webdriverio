@@ -72,7 +72,7 @@ This will pass along the following Mocha options:
 {
     grep: ['my-test'],
     bail: true
-    checkLeacks: false
+    checkLeaks: false
 }
 ```
 
@@ -192,7 +192,7 @@ This will pass along the following Mocha options:
 {
     grep: ['my-test'],
     bail: true
-    checkLeacks: false
+    checkLeaks: false
 }
 ```
 
@@ -499,7 +499,7 @@ Before using this function, make sure to set the following environment variables
 
 Here's an example of the necessary configurations and code samples for implementation:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/publish-report.js
 ```
 

@@ -19,7 +19,7 @@ These docs leave out Safari web extensions as their support for it is way behind
 
 Loading a web extension in Chrome can be done through providing a `base64` encoded string of the `crx` file or by providing a path to the web extension folder. The easiest is just to do the latter by defining your Chrome capabilities as following:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/chrome.js
 ```
 
@@ -31,7 +31,7 @@ If you automate a different browser than Chrome, e.g. Brave, Edge or Opera, chan
 
 If you compile your extension as `.crx` file using e.g. the [crx](https://www.npmjs.com/package/crx) NPM package, you can also inject the bundled extension via:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/crx.js
 ```
 
@@ -39,7 +39,7 @@ https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extensi
 
 To create a Firefox profile that includes extensions you can use the [Firefox Profile Service](/docs/firefox-profile-service) to set up your session accordingly. However you might run into issues where your local developed extension can't be loaded due to signing issues. In this case you can also load an extension in the `before` hook via the [`installAddOn`](/docs/api/gecko#installaddon) command, e.g.:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/web-extension/firefox.js
 ```
 
@@ -91,7 +91,7 @@ declare global {
 
 In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/popup-modal.js
 ```
 

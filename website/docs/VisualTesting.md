@@ -50,7 +50,7 @@ npm install --save-dev @wdio/visual-service
 
 `@wdio/visual-service` can be used as a normal service. You can set it up in your configuration file with the following:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/config.js
 ```
 
@@ -65,7 +65,7 @@ The `logName` allows you to assign a custom name to each capability, which can t
 
 To enable this, you can define `logName` in the `capabilities` section and ensure the `formatImageName` option in the Visual Testing service references it. Here's how you can set it up:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/capabilities.js
 ```
 
@@ -95,7 +95,7 @@ capabilities as you can see below. This will make sure that each screenshot will
 
 [Writing your tests](/docs/visual-testing/writing-tests) will not be any different in comparison to using the [testrunner](https://webdriver.io/docs/testrunner)
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/logs.js
 ```
 

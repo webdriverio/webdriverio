@@ -32,7 +32,7 @@ To use this reporter, all you need to do is assign it to the `reporter` property
 
 Your `wdio.conf.js` file should look like this:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter.js
 ```
 
@@ -155,7 +155,7 @@ To make reporter easier to consume and discover by the WebdriverIO community, pl
 
 Following the recommended naming pattern allows services to be added by name:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-reporter/custom-reporter-npm.js
 ```
 

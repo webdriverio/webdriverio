@@ -137,7 +137,7 @@ Default:
 
 Specify custom `headers` to pass into every WebDriver request. If your Selenium Grid requires Basic Authentification we recommend to pass in an `Authorization` header through this option to authenticate your WebDriver requests, e.g.:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/headers.js
 ```
 
@@ -497,7 +497,7 @@ Default: `none` if not provided and tests run in CI, `new` if not provided, othe
 
 Overrides default snapshot path. For example, to store snapshots next to test files.
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/resolve-snapshot-path.js
 ```
 

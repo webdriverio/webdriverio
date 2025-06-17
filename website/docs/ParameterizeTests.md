@@ -87,7 +87,7 @@ npx wdio run wdio.conf.js
 
 Similarly, configuration file can also read environment variables passed through the command line.
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/parameterize.js
 ```
 

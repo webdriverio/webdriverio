@@ -7,7 +7,7 @@ You can use WebdriverIO with your existing Selenium Grid instance. To connect yo
 
 Here is a code snippet from sample wdio.conf.ts.
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-grid/selenium-grid-remote.js
 ```
 You need to provide the appropriate values for the protocol, hostname, port, and path based on your Selenium Grid setup.
@@ -39,7 +39,7 @@ When running test cases with a remote Selenium Grid, the browser runs on a remot
 
 For Chromium-based browsers, you can refer to the [Download file](https://webdriver.io/docs/api/browser/downloadFile) documentation. If your test scripts need to read the content of a downloaded file, you need to download it from the remote Selenium node to the test runner machine. Here is an example code snippet from the sample `wdio.conf.ts` configuration for the Chrome browser:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/file-downloads.js
 ```
 

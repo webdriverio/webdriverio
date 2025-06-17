@@ -9,13 +9,13 @@ WebdriverIO offers a tight integration to CI systems like [Bamboo](https://www.a
 1. Update your config to save your JUnit results where Bamboo can find them, (and specify the `junit` reporter):
 
 Example:
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration.js
 ```
 Note: *It's always a good standard to keep the test results in separate folder than in the root folder.*
 
 Example when running tests in parallel:
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/bamboo/bamboo-integration-parallel.js
 ```
 

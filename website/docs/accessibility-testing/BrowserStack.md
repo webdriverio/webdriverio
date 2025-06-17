@@ -30,7 +30,7 @@ npm install --save-dev @wdio/browserstack-service
 
 2. Update `wdio.conf.js` config file.
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/cloud/browserstack.js
 ```
 

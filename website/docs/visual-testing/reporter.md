@@ -11,7 +11,7 @@ To utilize this feature, ensure you have the required configuration to generate 
 
 Before using the Visual Reporter, make sure you have configured the Visual Testing service to generate JSON report files:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/generate-json-reports.js
 ```
 

@@ -52,7 +52,7 @@ Note that `wdio.conf.js` can contain Javascript. Since you probably do not want 
 
 Using this technique, you can dynamically change the configuration:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/debugging.js
 ```
 

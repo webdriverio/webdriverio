@@ -15,13 +15,13 @@ While there is currently no difference in how matchers are defined that are spec
 
 To register a custom browser matcher, call `extend` on the `expect` object either in your spec file directly or as part of the e.g. `before` hook in your `wdio.conf.js`:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e719632df8f241f923c8d9301aab6bccee5cb109/customMatchers/example.ts#L3-L18
 ```
 
 As shown in the example the matcher function takes the expected object, e.g. the browser or element object, as the first parameter and the expected value as the second. You can then use the matcher as follows:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e719632df8f241f923c8d9301aab6bccee5cb109/customMatchers/example.ts#L50-L52
 ```
 
@@ -29,13 +29,13 @@ https://github.com/webdriverio/example-recipes/blob/e719632df8f241f923c8d9301aab
 
 Similar to custom browser matchers, element matchers don't differ. Here is an example of how to create a custom matcher to assert the aria-label of an element:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e719632df8f241f923c8d9301aab6bccee5cb109/customMatchers/example.ts#L20-L38
 ```
 
 This allows you to call the assertion as follows:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e719632df8f241f923c8d9301aab6bccee5cb109/customMatchers/example.ts#L54-L57
 ```
 
@@ -43,7 +43,7 @@ https://github.com/webdriverio/example-recipes/blob/e719632df8f241f923c8d9301aab
 
 If you are using TypeScript, one more step is required to ensure the type safety of your custom matchers. By extending the `Matcher` interface with your custom matchers, all type issues vanish:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e719632df8f241f923c8d9301aab6bccee5cb109/customMatchers/example.ts#L40-L47
 ```
 

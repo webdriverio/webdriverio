@@ -55,7 +55,7 @@ It is totally up to you what you want to run in your tests and how you like to r
 
 You can mix Testing Library primitives with WebdriverIO commands as you wish, e.g.:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164dfe4d6d76b41/component-testing/svelte-example.js
 ```
 
@@ -65,7 +65,7 @@ __Note:__ using render methods from Testing Library helps remove created compone
 
 You can set up your tests by running arbitrary scripts in Node.js or in the browser, e.g. injecting styles, mocking browser APIs or connecting to a 3rd party service. The WebdriverIO [hooks](/docs/configuration#hooks) can be used to run code in Node.js while the [`mochaOpts.require`](/docs/frameworks#require) allows you to import scripts into the browser before tests are loaded, e.g.:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/component-testing/component-testing.js
 ```
 
@@ -117,7 +117,7 @@ Press `Ctrl` or `Command` + `c` or enter `.exit` to continue with the test.
 
 If you have a [Selenium Grid](https://www.selenium.dev/documentation/grid/) set up and run your browser through that grid, you have to set the `host` browser runner option to allow the browser, to access the right host where the test files are being served, e.g.:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-grid/selenium-grid.js
 ```
 

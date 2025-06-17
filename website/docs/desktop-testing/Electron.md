@@ -43,7 +43,7 @@ npm install --save-dev wdio-electron-service
 
 Then you can use the following configuration:
 
-```js reference useHTTPS
+```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/desktop-testing/electron.js
 ```
 
