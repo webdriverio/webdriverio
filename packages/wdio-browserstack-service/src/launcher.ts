@@ -58,6 +58,7 @@ import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants
 import { BrowserstackCLI } from './cli/index.js'
 import { CLIUtils } from './cli/cliUtils.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
+import util from 'node:util'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -415,39 +416,50 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         })
     }
 
-    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
     async onComplete () {
-        BStackLogger.debug('Inside OnComplete hook..')
-
-        BStackLogger.debug('Sending stop launch event')
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
 
         try {
-            await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
-        } catch (err) {
-            BStackLogger.error(`Error while stoping CLI ${err}`)
-        }
-        if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
-            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
-        }
-        this.browserStackConfig.testObservability.buildStopped = true
+            BStackLogger.debug('Inside OnComplete hook..')
 
-        await PerformanceTester.stopAndGenerate('performance-launcher.html')
-        if (process.env[PERF_MEASUREMENT_ENV]) {
-            PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
+            BStackLogger.debug('Sending stop launch event')
 
-            if (!process.env.START_TIME) {
-                return
+            try {
+                await (BrowserstackCLI.getInstance().isRunning() ? BrowserstackCLI.getInstance().stop() : stopBuildUpstream())
+            } catch (err) {
+                BStackLogger.error(`Error while stoping CLI ${err}`)
             }
-            const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
-            BStackLogger.info(`Total duration is ${duration / 1000} s`)
-        }
+            if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
+            }
+            this.browserStackConfig.testObservability.buildStopped = true
 
-        BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
-        await sendFinish(this.browserStackConfig)
-        try {
-            await this._uploadServiceLogs()
+            if (process.env[PERF_MEASUREMENT_ENV]) {
+                PerformanceTester.calculateTimes(['launchTestSession', 'stopBuildUpstream'])
+
+                if (!process.env.START_TIME) {
+                    PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
+                    await PerformanceTester.stopAndGenerate('performance-launcher.html')
+                    return
+                }
+                const duration = (new Date()).getTime() - (new Date(process.env.START_TIME)).getTime()
+                BStackLogger.info(`Total duration is ${duration / 1000} s`)
+            }
+
+            BStackLogger.info(`BrowserStack service run ended for id: ${this.browserStackConfig?.sdkRunID} testhub id: ${TestOpsConfig.getInstance()?.buildHashedId}`)
+            await sendFinish(this.browserStackConfig)
+            try {
+                await this._uploadServiceLogs()
+            } catch (error) {
+                BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
+            }
+
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP)
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
         } catch (error) {
-            BStackLogger.debug(`Failed to upload BrowserStack WDIO Service logs ${error}`)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_CLEANUP, false, util.format(error))
+            await PerformanceTester.stopAndGenerate('performance-launcher.html')
+            BStackLogger.error(`Error in onComplete hook: ${error}`)
         }
 
         BStackLogger.clearLogger()
@@ -588,8 +600,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     async _uploadServiceLogs() {
         const clientBuildUuid = this._getClientBuildUuid()
 
-        const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
-        BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
+        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_AUTO_CAPTURE, async () => {
+            const response = await uploadLogs(getBrowserStackUser(this._config), getBrowserStackKey(this._config), clientBuildUuid)
+            BStackLogger.logToFile(`Response - ${format(response)}`, 'debug')
+        })()
     }
 
     _updateObjectTypeCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?: { [key: string]: any }) {

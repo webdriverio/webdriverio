@@ -37,6 +37,7 @@ import { TestFrameworkConstants } from './cli/frameworks/constants/testFramework
 import AutomationFramework from './cli/frameworks/automationFramework.js'
 import WebdriverIOModule from './cli/modules/webdriverIOModule.js'
 import type AutomationFrameworkInstance from './cli/instances/automationFrameworkInstance.js'
+import util from 'node:util'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -348,39 +349,47 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this._insightsHandler?.afterTest(test, results)
     }
 
-    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'after' })
     async after (result: number) {
-        const { preferScenarioName, setSessionName, setSessionStatus } = this._options
-        // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
-        // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-        if (preferScenarioName && this._scenariosThatRan.length === 1){
-            this._fullTitle = this._scenariosThatRan.pop()
-        }
+        PerformanceTester.start(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER)
 
-        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.SESSION_STATUS, async () => {
-            if (setSessionStatus) {
-                const hasReasons = this._failReasons.length > 0
-                await this._updateJob({
-                    status: result === 0 && this._specsRan ? 'passed' : 'failed',
-                    ...(setSessionName ? { name: this._fullTitle } : {}),
-                    ...(result === 0 && this._specsRan ?
-                        {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
-                })
+        try {
+            const { preferScenarioName, setSessionName, setSessionStatus } = this._options
+            // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
+            // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
+            if (preferScenarioName && this._scenariosThatRan.length === 1){
+                this._fullTitle = this._scenariosThatRan.pop()
             }
-        })()
 
-        await Listener.getInstance().onWorkerEnd()
-        await this._percyHandler?.teardown()
-        this.saveWorkerData()
+            await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.SESSION_STATUS, async () => {
+                if (setSessionStatus) {
+                    const hasReasons = this._failReasons.length > 0
+                    await this._updateJob({
+                        status: result === 0 && this._specsRan ? 'passed' : 'failed',
+                        ...(setSessionName ? { name: this._fullTitle } : {}),
+                        ...(result === 0 && this._specsRan ?
+                            {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
+                    })
+                }
+            })()
 
-        await PerformanceTester.stopAndGenerate('performance-service.html')
-        if (process.env[PERF_MEASUREMENT_ENV]) {
-            PerformanceTester.calculateTimes([
-                'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
-                'onTestStart', 'onTestEnd', 'onTestSkip', 'before',
-                'beforeHook', 'afterHook', 'beforeTest', 'afterTest',
-                'uploadPending', 'teardown', 'browserCommand'
-            ])
+            await Listener.getInstance().onWorkerEnd()
+            await this._percyHandler?.teardown()
+            this.saveWorkerData()
+
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER)
+            await PerformanceTester.stopAndGenerate('performance-service.html')
+            if (process.env[PERF_MEASUREMENT_ENV]) {
+                PerformanceTester.calculateTimes([
+                    'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
+                    'onTestStart', 'onTestEnd', 'onTestSkip', 'before',
+                    'beforeHook', 'afterHook', 'beforeTest', 'afterTest',
+                    'uploadPending', 'teardown', 'browserCommand'
+                ])
+            }
+        } catch (error) {
+            BStackLogger.error(`Error in after hook: ${error}`)
+            PerformanceTester.end(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER, false, util.format(error))
+            await PerformanceTester.stopAndGenerate('performance-service.html')
         }
     }
 

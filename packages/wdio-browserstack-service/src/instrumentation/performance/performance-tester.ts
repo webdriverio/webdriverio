@@ -97,6 +97,8 @@ export default class PerformanceTester {
             return
         }
 
+        await PerformanceTester.sleep(2000) // Wait to ensure all pending measurements are processed by the observer
+
         try {
             const eventsJson = JSON.stringify(this._measuredEvents)
             // remove enclosing array and add a trailing comma so that we
