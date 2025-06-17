@@ -77,7 +77,7 @@ export default class PercyModule extends BaseModule {
         this.percyHandler._setSessionName(sessionName as string)
     }
 
-    async onAfterTest(_args: Record<string, unknown>) {
+    async onAfterTest() {
         try {
             if (!this.percyHandler) {
                 this.logger.warn('PercyModule: Percy handler is not initialized, skipping post execute actions')
