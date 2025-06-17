@@ -543,7 +543,7 @@ To enable integration with Serenity/JS, configure WebdriverIO as follows:
 <Tabs>
 <TabItem value="wdio-conf-typescript" label="TypeScript" default>
 
-```typescript title="wdio.conf.ts"
+```ts title="wdio.conf.ts"
 import { defineConfig } from '@wdio/config'
 import { WebdriverIOConfig } from '@serenity-js/webdriverio';
 
@@ -598,7 +598,7 @@ export const config = defineConfig({
 </TabItem>
 <TabItem value="wdio-conf-javascript" label="JavaScript">
 
-```typescript title="wdio.conf.js"
+```ts title="wdio.conf.js"
 import { defineConfig } from '@wdio/config'
 
 export const config = defineConfig({
@@ -699,7 +699,7 @@ where every actor can:
 
 This should be enough to help you get started with introducing test scenarios that follow the Screenplay Pattern even to an existing test suite, for example:
 
-```typescript title="specs/example.spec.ts"
+```ts title="specs/example.spec.ts"
 import { actorCalled } from '@serenity-js/core'
 import { Navigate, Page } from '@serenity-js/web'
 import { Ensure, equals } from '@serenity-js/assertions'

@@ -117,7 +117,7 @@ Press `Ctrl` or `Command` + `c` or enter `.exit` to continue with the test.
 
 If you have a [Selenium Grid](https://www.selenium.dev/documentation/grid/) set up and run your browser through that grid, you have to set the `host` browser runner option to allow the browser, to access the right host where the test files are being served, e.g.:
 
-```ts reference useHTTPS
+```ts title=wdio.conf.ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-grid/selenium-grid.js
 ```
 

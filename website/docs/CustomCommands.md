@@ -190,7 +190,7 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your c
 }>
 <TabItem value="modules">
 
-```typescript
+```ts
 declare global {
     namespace WebdriverIO {
         interface Browser {
@@ -211,7 +211,7 @@ declare global {
 </TabItem>
 <TabItem value="ambient">
 
-```typescript
+```ts
 declare namespace WebdriverIO {
     interface Browser {
         browserCustomCommand: (arg: any) => Promise<void>

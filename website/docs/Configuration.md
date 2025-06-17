@@ -497,7 +497,7 @@ Default: `none` if not provided and tests run in CI, `new` if not provided, othe
 
 Overrides default snapshot path. For example, to store snapshots next to test files.
 
-```ts reference useHTTPS
+```ts title="wdio.conf.ts" reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/resolve-snapshot-path.js
 ```
 
