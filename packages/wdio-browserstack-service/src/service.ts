@@ -603,8 +603,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._fullTitle = name
             await this._updateJob({ name })
         }
-
-        return name
     }
 
     private _setAnnotation(data: string) {
