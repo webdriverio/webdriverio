@@ -23,6 +23,7 @@ import {
     nodeRequest,
     getBrowserStackUser,
     getBrowserStackKey,
+    isFalse,
 } from '../util.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
@@ -58,6 +59,14 @@ export class CLIUtils {
         if (modifiedOpts.opts) {
             modifiedOpts.browserStackLocalOptions = modifiedOpts.opts
             delete modifiedOpts.opts
+        }
+
+        modifiedOpts.testContextOptions = {
+            skipSessionName: isFalse(modifiedOpts.setSessionName),
+            skipSessionStatus: isFalse(modifiedOpts.setSessionStatus),
+            sessionNameOmitTestTitle: modifiedOpts.sessionNameOmitTestTitle || false,
+            sessionNamePrependTopLevelSuiteTitle: modifiedOpts.sessionNamePrependTopLevelSuiteTitle || false,
+            sessionNameFormat: modifiedOpts.sessionNameFormat || ''
         }
 
         const commonBstackOptions = (config.commonCapabilities &&
@@ -112,7 +121,7 @@ export class CLIUtils {
     }
 
     static getSdkLanguage() {
-        return 'wdio'
+        return 'ECMAScript'
     }
 
     static async setupCliPath(config: Options.Testrunner): Promise<string|null> {
@@ -154,6 +163,13 @@ export class CLIUtils {
         const response = await this.requestToUpdateCLI(queryParams, config)
         if (nestedKeyValue(response, ['updated_cli_version'])) {
             logger.debug(`Need to update binary, current binary version: ${queryParams.cli_version}`)
+
+            const browserStackBinaryUrl = process.env.BROWSERSTACK_BINARY_URL || null
+            if (!isNullOrEmpty(browserStackBinaryUrl)) {
+                logger.debug(`Using BROWSERSTACK_BINARY_URL: ${browserStackBinaryUrl}`)
+                response.url = browserStackBinaryUrl
+            }
+
             const finalBinaryPath = await this.downloadLatestBinary(nestedKeyValue(response, ['url']), cliDir)
             PerformanceTester.end(PerformanceEvents.SDK_CLI_CHECK_UPDATE)
             return finalBinaryPath

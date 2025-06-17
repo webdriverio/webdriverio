@@ -6,6 +6,7 @@ import PerformanceTester from '../instrumentation/performance/performance-tester
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
 import { GrpcClient } from './grpcClient.js'
+import AutomateModule from './modules/automateModule.js'
 import TestHubModule from './modules/testHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
@@ -18,6 +19,7 @@ import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
 import WebdriverIOModule from './modules/webdriverIOModule.js'
 import ObservabilityModule from './modules/observabilityModule.js'
+import PercyModule from './modules/percyModule.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -121,6 +123,7 @@ export class BrowserstackCLI {
         this.setupAutomationFramework()
 
         this.modules[WebdriverIOModule.MODULE_NAME] = new WebdriverIOModule()
+        this.modules[AutomateModule.MODULE_NAME] = new AutomateModule(this.browserstackConfig as Options.Testrunner)
 
         if (startBinResponse.testhub) {
             process.env[TESTOPS_BUILD_COMPLETED_ENV] = 'true'
@@ -144,7 +147,9 @@ export class BrowserstackCLI {
         if (startBinResponse.observability?.success) {
             this.modules[ObservabilityModule.MODULE_NAME] = new ObservabilityModule(startBinResponse.observability)
         }
-
+        if (startBinResponse.percy?.success) {
+            this.modules[PercyModule.MODULE_NAME] = new PercyModule(startBinResponse.percy)
+        }
         this.configureModules()
     }
 

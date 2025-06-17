@@ -1,6 +1,6 @@
 {
   "name": "@wdio/appium-service",
-  "version": "8.44.1",
+  "version": "8.45.0",
   "description": "A WebdriverIO service to start & stop Appium Server",
   "author": "Morten Bjerg Gregersen <morten@mogee.dk>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service",
@@ -33,15 +33,15 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/config": "8.43.0",
+    "@wdio/config": "8.45.0",
     "@wdio/logger": "8.38.0",
     "@wdio/types": "8.41.0",
-    "@wdio/utils": "8.41.0",
+    "@wdio/utils": "8.45.0",
     "get-port": "^7.0.0",
     "import-meta-resolve": "^4.0.0",
     "param-case": "^4.0.0",
     "tree-kill": "^1.2.2",
-    "webdriverio": "8.44.1"
+    "webdriverio": "8.45.0"
   },
   "publishConfig": {
     "access": "public"
