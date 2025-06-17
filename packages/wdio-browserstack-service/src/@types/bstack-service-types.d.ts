@@ -16,3 +16,16 @@ interface State {
     value: number,
     toString: () => string
 }
+
+interface TestContextOptions {
+    skipSessionName: boolean,
+    skipSessionStatus: boolean,
+    sessionNameOmitTestTitle: boolean,
+    sessionNamePrependTopLevelSuiteTitle: boolean,
+    sessionNameFormat: (
+        config: Partial<import('@wdio/types').Options.Testrunner>,
+        capabilities: Partial<import('@wdio/types').Capabilities.RemoteCapability>,
+        suiteTitle: string,
+        testTitle?: string
+    ) => string
+}
