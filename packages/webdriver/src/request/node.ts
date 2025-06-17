@@ -37,7 +37,7 @@ export class FetchRequest extends WebDriverRequest {
         /**
          * Use a proxy agent if we have a proxy url set
          */
-        const { PROXY_URL, NO_PROXY } = environment.value.variables;
+        const { PROXY_URL, NO_PROXY } = environment.value.variables
         const shouldUseProxy =
             PROXY_URL && !NO_PROXY?.some((str) => url.hostname.endsWith(str))
 
