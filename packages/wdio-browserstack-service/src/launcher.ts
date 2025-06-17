@@ -447,6 +447,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             PercyLogger.clearLogger()
         }
 
+        // local binary will be handled by CLI
+        if (BrowserstackCLI.getInstance().isRunning()) {
+            return
+        }
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
