@@ -6,7 +6,7 @@ import AccessibilityScripts from '../src/scripts/accessibility-scripts.js'
 
 vi.mock('node:fs', () => ({
     default: {
-        readFileSync: vi.fn().mockReturnValue('{"scripts": {"scan": "scan", "getResults": "getResults", "getResultsSummary": "getResultsSummary", "saveResults": "saveResults"}, "commands": [{"command": "command1"}, {"command": "command2"}]}'),
+        readFileSync: vi.fn().mockReturnValue('{"scripts": {"scan": "scan", "getResults": "getResults", "getResultsSummary": "getResultsSummary", "saveResults": "saveResults"}, "commands": [{"command": "command1"}, {"command": "command2"}], "nonBStackInfraA11yChromeOptions": {"extension": ["extension1"]}}'),
         writeFileSync: vi.fn(),
         existsSync: vi.fn().mockReturnValue(true),
         mkdirSync: vi.fn(),
@@ -34,6 +34,7 @@ describe('AccessibilityScripts', () => {
         expect(accessibilityScripts.getResultsSummary).to.equal('getResultsSummary')
         expect(accessibilityScripts.saveTestResults).to.equal('saveResults')
         expect(accessibilityScripts.commandsToWrap).to.deep.equal([{ command: 'command1' }, { command: 'command2' }])
+        expect(accessibilityScripts.ChromeExtension).to.deep.equal({ extension: ['extension1'] })
     })
 
     it('should update data', () => {
@@ -45,15 +46,17 @@ describe('AccessibilityScripts', () => {
                 getResultsSummary: 'getResultsSummary',
                 saveResults: 'saveResults',
             },
+            nonBStackInfraA11yChromeOptions: { extension: ['extension1'] }
         } as unknown
 
-        accessibilityScripts.update(data as { commands: [any]; scripts: { scan: null; getResults: null; getResultsSummary: null; saveResults: null } })
+        accessibilityScripts.update(data as { commands: [any]; scripts: { scan: null; getResults: null; getResultsSummary: null; saveResults: null }; nonBStackInfraA11yChromeOptions:{} })
 
         expect(accessibilityScripts.performScan).to.equal('scan')
         expect(accessibilityScripts.getResults).to.equal('getResults')
         expect(accessibilityScripts.getResultsSummary).to.equal('getResultsSummary')
         expect(accessibilityScripts.saveTestResults).to.equal('saveResults')
         expect(accessibilityScripts.commandsToWrap).to.deep.equal([{ command: 'command1' }, { command: 'command2' }])
+        expect(accessibilityScripts.ChromeExtension).to.deep.equal({ extension: ['extension1'] })
     })
 
     it('should store data to file', () => {
@@ -63,6 +66,7 @@ describe('AccessibilityScripts', () => {
         accessibilityScripts.getResultsSummary = 'getResultsSummary'
         accessibilityScripts.saveTestResults = 'saveResults'
         accessibilityScripts.commandsToWrap = [{ command: 'command1' }, { command: 'command2' }]
+        accessibilityScripts.ChromeExtension = { extension: ['extension1'] }
 
         const writeFileSyncStub = vi.spyOn(fs, 'writeFileSync')
         accessibilityScripts.store()
@@ -76,7 +80,8 @@ describe('AccessibilityScripts', () => {
                     getResults: accessibilityScripts.getResults,
                     getResultsSummary: accessibilityScripts.getResultsSummary,
                     saveResults: accessibilityScripts.saveTestResults,
-                }
+                },
+                nonBStackInfraA11yChromeOptions: accessibilityScripts.ChromeExtension,
             })
         )
     })
