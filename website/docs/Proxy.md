@@ -14,6 +14,14 @@ If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) 
 
 ### Install undici
 
+```sh
+npm install undici
+```
+
+### Add undici setGlobalDispatcher to your config file
+
+Add the following require statement to the top of your config file.
+
 ```ts reference useHTTPS
 https://github.com/webdriverio/webdriverio/blob/main/website/recipes/proxying/proxy-between-driver-and-test.js
 ```
