@@ -775,18 +775,18 @@ describe('beforeTest', () => {
 })
 
 describe('afterTest', () => {
-    it('should increment failure reasons on fails', () => {
+    it('should increment failure reasons on fails', async () => {
         service.before(service['_config'] as any, [], browser)
         service['_fullTitle'] = ''
-        service.beforeSuite({ title: 'foo' } as any)
-        service.beforeTest({ title: 'foo', parent: 'bar' } as any)
+        await service.beforeSuite({ title: 'foo' } as any)
+        await service.beforeTest({ title: 'foo', parent: 'bar' } as any)
         service.afterTest(
             { title: 'foo', parent: 'bar' } as any,
             undefined as never,
             { error: { message: 'cool reason' }, result: 1, duration: 5, passed: false } as any)
         expect(service['_failReasons']).toContain('cool reason')
 
-        service.beforeTest({ title: 'foo2', parent: 'bar2' } as any)
+        await service.beforeTest({ title: 'foo2', parent: 'bar2' } as any)
         service.afterTest(
             { title: 'foo2', parent: 'bar2' } as any,
             undefined as never,
@@ -796,7 +796,7 @@ describe('afterTest', () => {
         expect(service['_failReasons']).toContain('cool reason')
         expect(service['_failReasons']).toContain('not so cool reason')
 
-        service.beforeTest({ title: 'foo3', parent: 'bar3' } as any)
+        await service.beforeTest({ title: 'foo3', parent: 'bar3' } as any)
         service.afterTest(
             { title: 'foo3', parent: 'bar3' } as any,
             undefined as never,
@@ -809,17 +809,17 @@ describe('afterTest', () => {
         expect(service['_failReasons']).toContain('Unknown Error')
     })
 
-    it('should not increment failure reasons on passes', () => {
+    it('should not increment failure reasons on passes', async () => {
         service.before(service['_config'] as any, [], browser)
-        service.beforeSuite({ title: 'foo' } as any)
-        service.beforeTest({ title: 'foo', parent: 'bar' } as any)
+        await service.beforeSuite({ title: 'foo' } as any)
+        await service.beforeTest({ title: 'foo', parent: 'bar' } as any)
         service.afterTest(
             { title: 'foo', parent: 'bar' } as any,
             undefined as never,
             { error: { message: 'cool reason' }, result: 1, duration: 5, passed: true } as any)
         expect(service['_failReasons']).toEqual([])
 
-        service.beforeTest({ title: 'foo2', parent: 'bar2' } as any)
+        await service.beforeTest({ title: 'foo2', parent: 'bar2' } as any)
         service.afterTest(
             { title: 'foo2', parent: 'bar2' } as any,
             undefined as never,
