@@ -59,6 +59,7 @@ import { BrowserstackCLI } from './cli/index.js'
 import { CLIUtils } from './cli/cliUtils.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import util from 'node:util'
+import APIUtils from './cli/apiUtils.js'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number
@@ -250,32 +251,34 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
          * Upload app to BrowserStack if valid file path to app is given.
          * Update app value of capability directly if app_url, custom_id, shareable_id is given
          */
-        if (!this._options.app) {
-            BStackLogger.debug('app is not defined in browserstack-service config, skipping ...')
-        } else {
-            let app: App = {}
-            const appConfig: AppConfig | string = this._options.app
+        if (!BrowserstackCLI.getInstance().isRunning()) {
+            if (!this._options.app) {
+                BStackLogger.debug('app is not defined in browserstack-service config, skipping ...')
+            } else {
+                let app: App = {}
+                const appConfig: AppConfig | string = this._options.app
 
-            try {
-                app = await this._validateApp(appConfig)
-            } catch (error: any){
-                throw new SevereServiceError(error)
-            }
-
-            if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
-                if (fs.existsSync(app.app!)) {
-                    const data: AppUploadResponse = await this._uploadApp(app)
-                    BStackLogger.info(`app upload completed: ${JSON.stringify(data)}`)
-                    app.app = data.app_url
-                } else if (app.customId){
-                    app.app = app.customId
-                } else {
-                    throw new SevereServiceError(`[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test`)
+                try {
+                    app = await this._validateApp(appConfig)
+                } catch (error: any){
+                    throw new SevereServiceError(error)
                 }
-            }
 
-            BStackLogger.info(`Using app: ${app.app}`)
-            this._updateCaps(capabilities, 'app', app.app)
+                if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
+                    if (fs.existsSync(app.app!)) {
+                        const data: AppUploadResponse = await this._uploadApp(app)
+                        BStackLogger.info(`app upload completed: ${JSON.stringify(data)}`)
+                        app.app = data.app_url
+                    } else if (app.customId){
+                        app.app = app.customId
+                    } else {
+                        throw new SevereServiceError(`[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test`)
+                    }
+                }
+
+                BStackLogger.info(`Using app: ${app.app}`)
+                this._updateCaps(capabilities, 'app', app.app)
+            }
         }
 
         /**
@@ -328,6 +331,21 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             this.browserStackConfig.accessibility = this._accessibilityAutomation as boolean
 
+            if (this._accessibilityAutomation && this._options.accessibilityOptions) {
+                const filteredOpts = Object.keys(this._options.accessibilityOptions)
+                    .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
+                    .reduce((opts, key) => {
+                        return {
+                            ...opts,
+                            [key]: this._options.accessibilityOptions?.[key]
+                        }
+                    }, {})
+
+                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
+            } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
+                this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
+            }
+
             if (shouldSetupPercy) {
                 try {
                     const bestPlatformPercyCaps = getBestPlatformForPercySnapshot(capabilities)
@@ -341,21 +359,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     PercyLogger.error(`Error while setting up Percy ${err}`)
                 }
             }
-        }
-
-        if (this._accessibilityAutomation && this._options.accessibilityOptions) {
-            const filteredOpts = Object.keys(this._options.accessibilityOptions)
-                .filter(key => !NOT_ALLOWED_KEYS_IN_CAPS.includes(key))
-                .reduce((opts, key) => {
-                    return {
-                        ...opts,
-                        [key]: this._options.accessibilityOptions?.[key]
-                    }
-                }, {})
-
-            this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', filteredOpts)
-        } else if (isAccessibilityAutomationSession(this._accessibilityAutomation)) {
-            this._updateObjectTypeCaps(capabilities, 'accessibilityOptions', {})
         }
 
         // send testhub build uuid and product map instrumentation
@@ -561,7 +564,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             form.append('custom_id', app.customId)
         }
 
-        const res = await got.post('https://api-cloud.browserstack.com/app-automate/upload', {
+        const res = await got.post(`${APIUtils.BROWSERSTACK_AA_API_CLOUD_URL}/app-automate/upload`, {
             body: form,
             username : this._config.user,
             password : this._config.key

@@ -38,9 +38,10 @@ import AutomationFramework from './cli/frameworks/automationFramework.js'
 import WebdriverIOModule from './cli/modules/webdriverIOModule.js'
 import type AutomationFrameworkInstance from './cli/instances/automationFrameworkInstance.js'
 import util from 'node:util'
+import APIUtils from './cli/apiUtils.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
-    private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
+    private _sessionBaseUrl = `${APIUtils.BROWSERSTACK_AUTOMATE_API_URL}/automate/sessions`
     private _failReasons: string[] = []
     private _scenariosThatRan: string[] = []
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
@@ -134,7 +135,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 }
             }
             if (BrowserstackCLI.getInstance().isRunning()) {
-                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: this._caps })
+                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
             }
             const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
             const caps = AutomationFramework.getState(instance, WebdriverIOModule.KEY_CAPABILITIES)
@@ -164,11 +165,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // Ensure capabilities are not null in case of multiremote
 
         if (this._isAppAutomate()) {
-            this._sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
+            this._sessionBaseUrl = `${APIUtils.BROWSERSTACK_AA_API_CLOUD_URL}/app-automate/sessions`
         }
 
         if (this._turboScale) {
-            this._sessionBaseUrl = 'https://api.browserstack.com/automate-turboscale/v1/sessions'
+            this._sessionBaseUrl = `${APIUtils.BROWSERSTACK_AUTOMATE_API_URL}/automate-turboscale/v1/sessions`
         }
 
         this._scenariosThatRan = []

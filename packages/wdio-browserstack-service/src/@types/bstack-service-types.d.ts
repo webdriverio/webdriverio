@@ -29,3 +29,40 @@ interface TestContextOptions {
         testTitle?: string
     ) => string
 }
+
+interface GRRUrls {
+    automate: {
+        hub: string,
+        cdp: string,
+        api: string,
+        upload: string
+    },
+    appAutomate: {
+        hub: string,
+        cdp: string,
+        api: string,
+        upload: string
+    },
+    percy: {
+        api: string
+    },
+    turboScale: {
+        api: string
+    },
+    accessibility: {
+        api: string,
+    },
+    appAccessibility: {
+        api: string
+    },
+    observability: {
+        api: string,
+        upload: string
+    },
+    configServer: {
+        api: string
+    },
+    edsInstrumentation: {
+        api: string
+    }
+}

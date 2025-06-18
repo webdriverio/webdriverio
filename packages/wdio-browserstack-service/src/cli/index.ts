@@ -23,6 +23,7 @@ import { processAccessibilityResponse } from '../util.js'
 import ObservabilityModule from './modules/observabilityModule.js'
 import type { BrowserstackConfig, BrowserstackOptions } from '../types.js'
 import PercyModule from './modules/percyModule.js'
+import APIUtils from './apiUtils.js'
 
 /**
  * BrowserstackCLI - Singleton class for managing CLI operations
@@ -124,6 +125,7 @@ export class BrowserstackCLI {
         this.logger.info(`loadModules: binSessionId=${this.binSessionId}`)
 
         this.setConfig(startBinResponse)
+        APIUtils.updateURLSForGRR(this.config.apis as GRRUrls)
 
         this.setupTestFramework()
         this.setupAutomationFramework()

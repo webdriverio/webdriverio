@@ -28,11 +28,12 @@ import {
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger as logger } from './cliLogger.js'
-import { UPDATED_CLI_ENDPOINT, BROWSERSTACK_API_URL } from '../constants.js'
+import { UPDATED_CLI_ENDPOINT } from '../constants.js'
 import type { Options, Capabilities } from '@wdio/types'
 import { Readable } from 'node:stream'
 import type { BrowserstackConfig, BrowserstackOptions, TestObservabilityOptions } from 'src/types.js'
 import { TestFrameworkConstants } from './frameworks/constants/testFrameworkConstants.js'
+import APIUtils from './apiUtils.js'
 
 export class CLIUtils {
     static automationFrameworkDetail = {}
@@ -285,7 +286,7 @@ export class CLIUtils {
             'GET',
             `${UPDATED_CLI_ENDPOINT}?${params.toString()}`,
             requestInit,
-            BROWSERSTACK_API_URL
+            APIUtils.BROWSERSTACK_AUTOMATE_API_URL
         )
         logger.debug(`response ${JSON.stringify(response)}`)
         return response

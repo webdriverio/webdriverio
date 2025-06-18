@@ -12,6 +12,7 @@ import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
 import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkConstants.js'
 import PerformanceTester from '../../instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from '../../instrumentation/performance/constants.js'
+import APIUtils from '../apiUtils.js'
 
 export default class AutomateModule extends BaseModule {
 
@@ -120,8 +121,8 @@ export default class AutomateModule extends BaseModule {
                     }
 
                     const sessionStatusApiUrl = isAppAutomate
-                        ? `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`
-                        : `https://api.browserstack.com/automate/sessions/${sessionId}.json`
+                        ? `${APIUtils.BROWSERSTACK_AA_API_URL}/app-automate/sessions/${sessionId}.json`
+                        : `${APIUtils.BROWSERSTACK_AUTOMATE_API_URL}/automate/sessions/${sessionId}.json`
 
                     const requestBody = {
                         name: sessionName
@@ -168,8 +169,8 @@ export default class AutomateModule extends BaseModule {
                     }
 
                     const sessionStatusApiUrl = isAppAutomate
-                        ? `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`
-                        : `https://api.browserstack.com/automate/sessions/${sessionId}.json`
+                        ? `${APIUtils.BROWSERSTACK_AA_API_URL}/app-automate/sessions/${sessionId}.json`
+                        : `${APIUtils.BROWSERSTACK_AUTOMATE_API_URL}/automate/sessions/${sessionId}.json`
 
                     const body = {
                         status: sessionStatus,
