@@ -42,8 +42,6 @@ interface WebdriverIOJasmineConfig extends Omit<WebdriverIO.Config, keyof HooksA
     jasmineOpts: Omit<jasmineNodeOpts, 'cleanStack'>
 }
 
-console.log('----J', import.meta.resolve('expect-webdriverio'))
-
 /**
  * Jasmine runner
  */
