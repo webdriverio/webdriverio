@@ -9,7 +9,8 @@ import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PAT
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
-const SLASH = '/'
+export const SLASH = '/'
+export const REG_EXP_WINDOWS_ABS_PATH = /^[A-Za-z]:\\/
 
 function assertPath(path?: unknown) {
     if (typeof path !== 'string') {
@@ -19,7 +20,7 @@ function assertPath(path?: unknown) {
 
 export function isAbsolute(p: string) {
     assertPath(p)
-    return p.length > 0 && p.charCodeAt(0) === SLASH.codePointAt(0)
+    return p.length > 0 && (p.charCodeAt(0) === SLASH.codePointAt(0) || REG_EXP_WINDOWS_ABS_PATH.test(p))
 }
 
 /**

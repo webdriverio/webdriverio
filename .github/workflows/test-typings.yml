@@ -8,6 +8,8 @@ on:
 jobs:
   check:
     name: Typing Tests
+    permissions:
+      contents: read
     runs-on: 'ubuntu-latest'
     steps:
       - name: ⬇️ Checkout Code
