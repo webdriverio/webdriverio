@@ -83,9 +83,8 @@ export default class Runner extends EventEmitter {
             updateState: this._config.updateSnapshots,
             resolveSnapshotPath: this._config.resolveSnapshotPath
         })
-        // ToDo(Christian): resolve type incompatibility between v8 and v9
-        this._configParser.addService(softAssertionService as any)
-        this._configParser.addService(snapshotService as any)
+        this._configParser.addService(softAssertionService)
+        this._configParser.addService(snapshotService)
 
         this._caps = this._isMultiremote
             /**

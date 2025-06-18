@@ -42,6 +42,7 @@
     "@wdio/runner": "workspace:*",
     "@wdio/types": "workspace:*",
     "exit-hook": "^4.0.0",
+    "expect-webdriverio": "^5.3.2",
     "split2": "^4.1.0",
     "stream-buffers": "^3.0.2"
   },

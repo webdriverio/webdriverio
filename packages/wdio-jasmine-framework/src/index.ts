@@ -42,6 +42,8 @@ interface WebdriverIOJasmineConfig extends Omit<WebdriverIO.Config, keyof HooksA
     jasmineOpts: Omit<jasmineNodeOpts, 'cleanStack'>
 }
 
+console.log('----J', import.meta.resolve('expect-webdriverio'))
+
 /**
  * Jasmine runner
  */
@@ -200,8 +202,10 @@ class JasmineAdapter {
         const executeMock = jasmine.Spec.prototype.execute
         jasmine.Spec.prototype.execute = function (...args: unknown[]) {
             self._lastTest = this.result
-            // @ts-ignore overwrite existing type
+            // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
             self._lastTest.start = new Date().getTime()
+            // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
+            self._lastTest.file = this.result.filename
             globalThis._wdioDynamicJasmineResultErrorList = this.result.failedExpectations
             globalThis._jasmineTestResult = this.result
             executeMock.apply(this, args)
@@ -341,6 +345,7 @@ class JasmineAdapter {
             break
         }
 
+        console.log('----F', params)
         return this.formatMessage(params)
     }
 
