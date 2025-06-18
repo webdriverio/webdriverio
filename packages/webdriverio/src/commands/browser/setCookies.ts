@@ -57,7 +57,7 @@ import type { Cookie } from '@wdio/protocols'
 export async function setCookies(
     this: WebdriverIO.Browser,
     cookieObjs: Cookie | Cookie[]
-) {
+): Promise<void> {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
 
     if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {

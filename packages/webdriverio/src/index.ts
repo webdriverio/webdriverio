@@ -68,15 +68,9 @@ export const remote = async function(
      * we need to overwrite the original addCommand and overwriteCommand
      */
     if ((params as Options.Testrunner).framework && !isStub(params.automationProtocol)) {
-        const origAddCommand = instance.addCommand.bind(instance) as typeof instance.addCommand
-        instance.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
-            origAddCommand(name, fn, attachToElement)
-        )
+        instance.addCommand = instance.addCommand.bind(instance)
 
-        const origOverwriteCommand = instance.overwriteCommand.bind(instance) as typeof instance.overwriteCommand
-        instance.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
-            origOverwriteCommand<keyof typeof elementCommands, any, any>(name, fn, attachToElement)
-        )
+        instance.overwriteCommand = instance.overwriteCommand.bind(instance)
     }
 
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
@@ -178,9 +172,9 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
-            driver.instances.forEach(instance =>
-                driver.getInstance(instance).addCommand(name, fn, attachToElement)
+        driver.addCommand = (name: string, fn, attachToElement) => {
+            driver.instances.forEach(instanceName =>
+                driver.getInstance(instanceName).addCommand(name, fn, attachToElement)
             )
 
             return origAddCommand(
@@ -193,7 +187,7 @@ export const multiremote = async function (
         }
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver) as typeof driver.overwriteCommand
-        driver.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
+        driver.overwriteCommand = (name, fn, attachToElement) => {
             return origOverwriteCommand<keyof typeof elementCommands, any, any>(
                 name,
                 fn,

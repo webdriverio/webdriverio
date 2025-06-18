@@ -37,7 +37,7 @@ import { getContextManager } from '../../session/context.js'
 export async function switchWindow (
     this: WebdriverIO.Browser,
     matcher: string | RegExp
-) {
+): Promise<string> {
     /**
      * parameter check
      */

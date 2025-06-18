@@ -247,6 +247,11 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     resolveSnapshotPath?: (testPath: string, snapExtension: string) => string
     /**
+     * If set to true, soft assertions will be automatically asserted at the end of each test.
+     * @default true
+     */
+    autoAssertOnTestEnd?: boolean
+    /**
      * The number of retry attempts for an entire specfile when it fails as a whole.
      */
     specFileRetries?: number

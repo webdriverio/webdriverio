@@ -11,29 +11,29 @@ on:
         required: true
         type: choice
         options:
-          - 15
-          - 25
-          - 35
-          - 50
-          - 100
-          - 150
-          - 200
-          - 250
-          - 300
-          - 350
-          - 400
-          - 450
-          - 500
-          - 550
-          - 600
-          - 650
-          - 700
-          - 750
-          - 800
-          - 850
-          - 900
-          - 950
-          - 1000
+          - '15'
+          - '25'
+          - '35'
+          - '50'
+          - '100'
+          - '150'
+          - '200'
+          - '250'
+          - '300'
+          - '350'
+          - '400'
+          - '450'
+          - '500'
+          - '550'
+          - '600'
+          - '650'
+          - '700'
+          - '750'
+          - '800'
+          - '850'
+          - '900'
+          - '950'
+          - '1000'
 
 jobs:
   authorize:
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run Expense Flow
-        uses: webdriverio/expense-action@v1
+        uses: webdriverio/expense-action@2811799a4c5a0831154784a6021671e62657e289 # v1
         with:
           prNumber: ${{ github.event.inputs.prNumber }}
           amount: ${{ github.event.inputs.amount }}
