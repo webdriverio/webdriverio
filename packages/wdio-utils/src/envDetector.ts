@@ -199,13 +199,19 @@ function isAndroid(capabilities?: WebdriverIO.Capabilities) {
         return false
     }
 
-    return Boolean(
+    // Check for explicit Android platform declarations
+    const hasAndroidPlatform = Boolean(
         (capabilities.platformName && capabilities.platformName.match(/Android/i)) ||
         (/Android/i.test(bsOptions.platformName || '')) ||
         (/Android/i.test(bsOptions.browserName || '')) ||
-        (/Samsung/i.test(bsOptions.deviceName || '')) ||
         (capabilities.browserName && capabilities.browserName.match(/Android/i))
     )
+
+    // Check for Android device names (case insensitive)
+    const deviceName = bsOptions.deviceName || ''
+    const hasAndroidDeviceName = /android|galaxy|pixel|nexus|oneplus|lg|htc|motorola|sony|huawei|vivo|oppo|xiaomi|redmi|realme|samsung/i.test(deviceName)
+
+    return Boolean(hasAndroidPlatform || hasAndroidDeviceName)
 }
 
 /**
