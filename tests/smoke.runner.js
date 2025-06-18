@@ -140,8 +140,7 @@ const jasmineTestrunner = async () => {
     }
 
     assert.strictEqual(skippedSpecs, 1)
-    assert.equal(
-        (await fs.readFile(logFile, 'utf-8')).toString(),
+    expect((await fs.readFile(logFile, 'utf-8')).toString()).toBe(
         [
             'expect(number).toBe(number)',
             'expect(number).toBe(number)',
@@ -1099,15 +1098,19 @@ const jasmineAfterHookArgsValidation = async () => {
     // Remove dynamic values that will be different every time you run tests, e.g. start time or filepaths
     delete actualPassedTestLogs.test.start
     delete actualPassedTestLogs.test.filename
+    delete actualPassedTestLogs.test.file
     delete actualPassedTestLogs.result.start
     delete actualPassedTestLogs.result.filename
+    delete actualPassedTestLogs.result.file
     delete actualPassedTestLogs.duration
     delete actualFailedTestLogs.test.start
     delete actualFailedTestLogs.test.filename
+    delete actualFailedTestLogs.test.file
     delete actualFailedTestLogs.test.failedExpectations[0].stack
     delete actualFailedTestLogs.error.stack
     delete actualFailedTestLogs.result.start
     delete actualFailedTestLogs.result.filename
+    delete actualFailedTestLogs.result.file
     delete actualFailedTestLogs.result.failedExpectations[0].stack
     delete actualFailedTestLogs.duration
 
