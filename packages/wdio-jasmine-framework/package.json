@@ -39,7 +39,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "expect-webdriverio": "^5.1.0",
+    "expect-webdriverio": "^5.3.1",
     "jasmine": "^5.0.0"
   },
   "devDependencies": {

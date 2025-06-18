@@ -39,7 +39,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
-    "expect-webdriverio": "^5.3.0",
+    "expect-webdriverio": "^5.3.1",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   },
