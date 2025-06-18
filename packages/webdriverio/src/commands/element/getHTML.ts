@@ -219,7 +219,7 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
 
     let returnHTML = isCheerioObject ? $('body').html() as string : $
     if (options.removeCommentNodes) {
-        returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
+        returnHTML = returnHTML?.replace(/<!--[^]*?-->/g, '')
     }
     return options.prettify
         ? prettifyFn(returnHTML)

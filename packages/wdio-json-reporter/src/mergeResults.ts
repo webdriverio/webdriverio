@@ -2,6 +2,35 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { ResultSet } from './types.js'
 
+/**
+ * Validates a file pattern to prevent ReDoS attacks
+ * @param pattern - The pattern to validate
+ * @returns true if the pattern is safe, false otherwise
+ */
+function isFilePatternSafe(pattern: string): boolean {
+    // Basic length limit
+    if (pattern.length > 200) {return false}
+
+    // Check for potentially dangerous regex patterns
+    const dangerousPatterns = [
+        // Nested quantifiers
+        /(\*.*\*)|(\+.*\+)|(\?.*\?)/,
+        // Alternation with overlapping patterns
+        /\([^)]*\|[^)]*\)\*|\([^)]*\|[^)]*\)\+/,
+        // Complex lookarounds
+        /\(\?=/,
+        /\(\?!/,
+        /\(\?<=/,
+        /\(\?<!/,
+        // Excessive repetition
+        /\{[0-9]{3,}\}/,
+        // Suspicious character classes with quantifiers
+        /\[.*\]\*.*\[.*\]\*|\[.*\]\+.*\[.*\]\+/
+    ]
+
+    return !dangerousPatterns.some(dangerous => dangerous.test(pattern))
+}
+
 const DEFAULT_FILENAME = 'wdio-merged.json'
 
 type MergedResultSet = Omit<ResultSet, 'capabilities'> & { capabilities: ResultSet['capabilities'][] }
@@ -28,7 +57,23 @@ export default async function mergeResults(
 }
 
 async function getDataFromFiles (dir: string, filePattern: string | RegExp) {
-    const fileNames = (await fs.readdir(dir)).filter((file) => file.match(filePattern))
+    let safePattern: RegExp
+
+    if (filePattern instanceof RegExp) {
+        safePattern = filePattern
+    } else if (typeof filePattern === 'string' && isFilePatternSafe(filePattern)) {
+        try {
+            safePattern = new RegExp(filePattern)
+        } catch {
+            // If the pattern is invalid, fall back to a safe default
+            safePattern = /\.json$/
+        }
+    } else {
+        // If pattern is unsafe or invalid, use a safe default
+        safePattern = /\.json$/
+    }
+
+    const fileNames = (await fs.readdir(dir)).filter((file) => file.match(safePattern))
     const data: unknown[] = []
 
     await Promise.all(fileNames.map(async (fileName) => {
