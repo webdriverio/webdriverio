@@ -8,6 +8,8 @@ on:
 jobs:
   multiremote_check:
     name: Testrunner Multiremote Tests (${{ matrix.os }})
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -31,7 +33,7 @@ jobs:
         run: pnpm run test:e2e:multiremote
         shell: bash
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: e2e-testrunner-multiremote-tests-logs
