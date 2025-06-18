@@ -143,6 +143,7 @@ describe('switchFrame command', () => {
         })
 
         it('should NOT re-resolve if element already has an elementId', async () => {
+            // Mock the resolved element
             const resolvedElem = {
                 elementId: 'elem-456',
                 [ELEMENT_KEY]: 'elem-456',
