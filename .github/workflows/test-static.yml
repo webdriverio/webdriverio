@@ -9,6 +9,8 @@ on:
 jobs:
   check:
     name: Static Code Analysis
+    permissions:
+      contents: read
     runs-on: 'ubuntu-latest'
     steps:
       - name: ⬇️ Checkout Code

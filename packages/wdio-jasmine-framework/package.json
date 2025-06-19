@@ -39,11 +39,22 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "expect-webdriverio": "^5.1.0",
     "jasmine": "^5.0.0"
   },
   "devDependencies": {
     "@types/jasmine": "5.1.5"
+  },
+  "peerDependencies": {
+    "expect-webdriverio": "^5.3.2",
+    "webdriverio": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "expect-webdriverio": {
+      "optional": false
+    },
+    "webdriverio": {
+      "optional": false
+    }
   },
   "publishConfig": {
     "access": "public"
