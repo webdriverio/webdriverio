@@ -32,3 +32,17 @@ Then('this steps fails only the first time used', () => {
         expect(true).toBe(false)
     }
 })
+
+Then('it can take a file snapshot', () => {
+    expect({ deep: { foo: 'bar' } }).toMatchSnapshot()
+})
+
+Then('it can take an inline snapshot', () => {
+    expect({ deep: { foo: 'bar' } }).toMatchInlineSnapshot(`
+      {
+        "deep": {
+          "foo": "bar",
+        },
+      }
+    `)
+})
