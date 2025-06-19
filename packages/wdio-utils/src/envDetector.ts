@@ -199,7 +199,6 @@ function isAndroid(capabilities?: WebdriverIO.Capabilities) {
         return false
     }
 
-    // Check for explicit Android platform declarations
     const hasAndroidPlatform = Boolean(
         (capabilities.platformName && capabilities.platformName.match(/Android/i)) ||
         (/Android/i.test(bsOptions.platformName || '')) ||
@@ -207,7 +206,6 @@ function isAndroid(capabilities?: WebdriverIO.Capabilities) {
         (capabilities.browserName && capabilities.browserName.match(/Android/i))
     )
 
-    // Check for Android device names (case insensitive)
     const deviceName = bsOptions.deviceName || ''
     const hasAndroidDeviceName = /android|galaxy|pixel|nexus|oneplus|lg|htc|motorola|sony|huawei|vivo|oppo|xiaomi|redmi|realme|samsung/i.test(deviceName)
 
