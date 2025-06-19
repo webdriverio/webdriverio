@@ -34,8 +34,8 @@ import { HookState } from './cli/states/hookState.js'
 import { AutomationFrameworkState } from './cli/states/automationFrameworkState.js'
 import TestFramework from './cli/frameworks/testFramework.js'
 import { TestFrameworkConstants } from './cli/frameworks/constants/testFrameworkConstants.js'
+import { AutomationFrameworkConstants } from './cli/frameworks/constants/automationFrameworkConstants.js'
 import AutomationFramework from './cli/frameworks/automationFramework.js'
-import WebdriverIOModule from './cli/modules/webdriverIOModule.js'
 import type AutomationFrameworkInstance from './cli/instances/automationFrameworkInstance.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
@@ -136,7 +136,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
             }
             const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
-            const caps = AutomationFramework.getState(instance, WebdriverIOModule.KEY_CAPABILITIES)
+            const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
             Object.assign(capabilities, caps)
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
