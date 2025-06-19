@@ -225,41 +225,41 @@ describe('sessionEnvironmentDetector', () => {
         })
 
         it('should detect Android by device name in bstack:options using sessionEnvironmentDetector', () => {
-            expect(sessionEnvironmentDetector({ 
-                capabilities: { 'bstack:options': { deviceName: 'Samsung Galaxy S21' } }, 
-                requestedCapabilities: {} 
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Samsung Galaxy S21' } },
+                requestedCapabilities: {}
             }).isAndroid).toBe(true)
-            
-            expect(sessionEnvironmentDetector({ 
-                capabilities: { 'bstack:options': { deviceName: 'Google Pixel 7' } }, 
-                requestedCapabilities: {} 
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Google Pixel 7' } },
+                requestedCapabilities: {}
             }).isAndroid).toBe(true)
-            
-            expect(sessionEnvironmentDetector({ 
-                capabilities: { 'bstack:options': { deviceName: 'OnePlus 9 Pro' } }, 
-                requestedCapabilities: {} 
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'OnePlus 9 Pro' } },
+                requestedCapabilities: {}
             }).isAndroid).toBe(true)
-            
-            expect(sessionEnvironmentDetector({ 
-                capabilities: { 'bstack:options': { deviceName: 'Nexus 5X' } }, 
-                requestedCapabilities: {} 
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Nexus 5X' } },
+                requestedCapabilities: {}
             }).isAndroid).toBe(true)
         })
 
         it('should detect Android by device name in bstack:options using capabilitiesEnvironmentDetector', () => {
-            expect(capabilitiesEnvironmentDetector({ 
+            expect(capabilitiesEnvironmentDetector({
                 'bstack:options': { deviceName: 'Samsung Galaxy S21' }
             }).isAndroid).toBe(true)
-            
-            expect(capabilitiesEnvironmentDetector({ 
+
+            expect(capabilitiesEnvironmentDetector({
                 'bstack:options': { deviceName: 'Google Pixel 7' }
             }).isAndroid).toBe(true)
-            
-            expect(capabilitiesEnvironmentDetector({ 
+
+            expect(capabilitiesEnvironmentDetector({
                 'bstack:options': { deviceName: 'OnePlus 9 Pro' }
             }).isAndroid).toBe(true)
-            
-            expect(capabilitiesEnvironmentDetector({ 
+
+            expect(capabilitiesEnvironmentDetector({
                 'bstack:options': { deviceName: 'Nexus 5X' }
             }).isAndroid).toBe(true)
         })
@@ -280,9 +280,9 @@ describe('sessionEnvironmentDetector', () => {
             ]
 
             androidDevices.forEach(deviceName => {
-                expect(sessionEnvironmentDetector({ 
-                    capabilities: { 'bstack:options': { deviceName } }, 
-                    requestedCapabilities: {} 
+                expect(sessionEnvironmentDetector({
+                    capabilities: { 'bstack:options': { deviceName } },
+                    requestedCapabilities: {}
                 }).isAndroid).toBe(true)
             })
         })
@@ -303,7 +303,7 @@ describe('sessionEnvironmentDetector', () => {
             ]
 
             androidDevices.forEach(deviceName => {
-                expect(capabilitiesEnvironmentDetector({ 
+                expect(capabilitiesEnvironmentDetector({
                     'bstack:options': { deviceName }
                 }).isAndroid).toBe(true)
             })
@@ -320,9 +320,9 @@ describe('sessionEnvironmentDetector', () => {
             ]
 
             nonAndroidDevices.forEach(deviceName => {
-                expect(sessionEnvironmentDetector({ 
-                    capabilities: { 'bstack:options': { deviceName } }, 
-                    requestedCapabilities: {} 
+                expect(sessionEnvironmentDetector({
+                    capabilities: { 'bstack:options': { deviceName } },
+                    requestedCapabilities: {}
                 }).isAndroid).toBe(false)
             })
         })
@@ -338,76 +338,76 @@ describe('sessionEnvironmentDetector', () => {
             ]
 
             nonAndroidDevices.forEach(deviceName => {
-                expect(capabilitiesEnvironmentDetector({ 
+                expect(capabilitiesEnvironmentDetector({
                     'bstack:options': { deviceName }
                 }).isAndroid).toBe(false)
             })
         })
 
         it('should detect Android case-insensitively by device name with both detectors', () => {
-            expect(sessionEnvironmentDetector({ 
-                capabilities: { 'bstack:options': { deviceName: 'SAMSUNG GALAXY S21' } }, 
-                requestedCapabilities: {} 
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'SAMSUNG GALAXY S21' } },
+                requestedCapabilities: {}
             }).isAndroid).toBe(true)
-            
-            expect(capabilitiesEnvironmentDetector({ 
+
+            expect(capabilitiesEnvironmentDetector({
                 'bstack:options': { deviceName: 'google pixel 7' }
             }).isAndroid).toBe(true)
-            
-            expect(sessionEnvironmentDetector({ 
-                capabilities: { 'bstack:options': { deviceName: 'Galaxy S22' } }, 
-                requestedCapabilities: {} 
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Galaxy S22' } },
+                requestedCapabilities: {}
             }).isAndroid).toBe(true)
-            
-            expect(capabilitiesEnvironmentDetector({ 
+
+            expect(capabilitiesEnvironmentDetector({
                 'bstack:options': { deviceName: 'ONEPLUS 10' }
             }).isAndroid).toBe(true)
         })
 
         it('should detect Android when both platform and device name are present', () => {
-            const capabilities = { 
+            const capabilities = {
                 platformName: 'Android',
-                'bstack:options': { deviceName: 'Samsung Galaxy S21' } 
+                'bstack:options': { deviceName: 'Samsung Galaxy S21' }
             }
-            
-            expect(sessionEnvironmentDetector({ 
-                capabilities, 
-                requestedCapabilities: {} 
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
             }).isAndroid).toBe(true)
-            
+
             expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(true)
         })
 
         it('should detect Android when only device name is present without platform', () => {
             const capabilities = { 'bstack:options': { deviceName: 'Pixel 7' } }
-            
-            expect(sessionEnvironmentDetector({ 
-                capabilities, 
-                requestedCapabilities: {} 
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
             }).isAndroid).toBe(true)
-            
+
             expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(true)
         })
 
         it('should handle empty deviceName in bstack:options', () => {
             const capabilities = { 'bstack:options': { deviceName: '' } }
-            
-            expect(sessionEnvironmentDetector({ 
-                capabilities, 
-                requestedCapabilities: {} 
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
             }).isAndroid).toBe(false)
-            
+
             expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(false)
         })
 
         it('should handle missing deviceName in bstack:options', () => {
             const capabilities = { 'bstack:options': {} }
-            
-            expect(sessionEnvironmentDetector({ 
-                capabilities, 
-                requestedCapabilities: {} 
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
             }).isAndroid).toBe(false)
-            
+
             expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(false)
         })
     })
