@@ -15,7 +15,6 @@ import { getGitMetaData, getHierarchyFromTest, getUniqueIdentifier, isUndefined,
 export default class WdioMochaTestFramework extends TestFramework {
     static KEY_HOOK_LAST_STARTED = 'test_hook_last_started'
     static KEY_HOOK_LAST_FINISHED = 'test_hook_last_finished'
-    public hookEvents = ['BEFORE_CLASS', 'BEFORE_GROUPS', 'BEFORE_METHOD', 'BEFORE_SUITE', 'BEFORE_TEST', 'AFTER_CLASS', 'AFTER_GROUPS', 'AFTER_METHOD', 'AFTER_SUITE', 'AFTER_TEST']
 
     /**
    * Constructor for the TestFramework
@@ -53,7 +52,6 @@ export default class WdioMochaTestFramework extends TestFramework {
             if (!TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_ID) && hookState === HookState.PRE && testFrameworkState === TestFrameworkState.TEST) {
                 const test = args.test as Frameworks.Test
                 const testData = await this.getTestData(instance, test)
-                // logger.info(`trackEvent: testData=${JSON.stringify(testData)}`)
                 logger.info(`trackEvent: instanceData=${JSON.stringify(Object.fromEntries(instance.getAllData()))}`)
                 instance.updateMultipleEntries(testData)
             }
@@ -127,7 +125,6 @@ export default class WdioMochaTestFramework extends TestFramework {
         )
 
         const frameworkName = this.getTestFrameworks()[0]
-        // const test = args.test as Frameworks.Test
 
         const instanceEntries = {
             [TestFrameworkConstants.KEY_TEST_FRAMEWORK_NAME]: frameworkName,
@@ -137,7 +134,6 @@ export default class WdioMochaTestFramework extends TestFramework {
             [TestFrameworkConstants.KEY_HOOKS_STARTED]: new Map(),
             [TestFrameworkConstants.KEY_TEST_UUID]: uuidv4(),
             [TestFrameworkConstants.KEY_TEST_RESULT]: TestFrameworkConstants.DEFAULT_TEST_RESULT,
-            // [TestFrameworkConstants.KEY_AUTOMATE_SESSION_NAME]: test.title || test.description,
             // TODO[CLI]: Add customRerunParam
             // [TestFrameworkConstants.KEY_TEST_RERUN_NAME]:
         }
@@ -157,7 +153,6 @@ export default class WdioMochaTestFramework extends TestFramework {
         const testData: Record<string, unknown> = {
             [TestFrameworkConstants.KEY_TEST_ID]: getUniqueIdentifier(test, framework),
             [TestFrameworkConstants.KEY_TEST_NAME]: test.title || test.description,
-            // [TestFrameworkConstants.KEY_TEST_TAGS]: test.tags || [],
             [TestFrameworkConstants.KEY_TEST_CODE]: test.body || '',
             [TestFrameworkConstants.KEY_TEST_FILE_PATH]: (gitConfig?.root && filename) ? path.relative(gitConfig.root, filename) : undefined,
             [TestFrameworkConstants.KEY_TEST_LOCATION]: filename ? path.relative(process.cwd(), filename) : undefined,
@@ -319,7 +314,6 @@ export default class WdioMochaTestFramework extends TestFramework {
     ) {
         const testResult = args.result as Frameworks.TestResult
         const test = args.test as Frameworks.Test
-        // const testData = CLIUtils.getBeforeClassData(testResult)
         const key = testFrameworkState.toString()
 
         const hooksStarted = TestFramework.getState(instance, TestFrameworkConstants.KEY_HOOKS_STARTED) as Map<string, unknown[]>
