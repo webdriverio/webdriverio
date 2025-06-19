@@ -31,8 +31,7 @@ export default class AccessibilityModule extends BaseModule {
     constructor(accessibilityConfig: Accessibility) {
         super()
         this.name = 'AccessibilityModule'
-        this.accessibilityConfig = accessibilityConfig //accessibilityResponse
-        // AutomationFramework.registerObserver(AutomationFrameworkState.EXECUTE, HookState.PRE, this.onBeforeExecute.bind(this))
+        this.accessibilityConfig = accessibilityConfig
         AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.POST, this.onBeforeExecute.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
@@ -77,12 +76,7 @@ export default class AccessibilityModule extends BaseModule {
                 this.accessibility = validateCapsWithA11y(device, platformA11yMeta, chromeOptions)
             }
 
-            if (!this.accessibility) {
-                this.logger.info('Accessibility automation is disabled for this session.')
-                return
-            }
-
-            //patching of result summary
+            //patching getA11yResultsSummary
             browser.getAccessibilityResultsSummary = async () => {
                 if (this.isAppAccessibility) {
                     return await getAppA11yResultsSummary(true, browser, isBrowserstackSession, this.accessibility, sessionId)
@@ -90,6 +84,7 @@ export default class AccessibilityModule extends BaseModule {
                 return await this.getA11yResultsSummary(browser)
             }
 
+            //patching getA11yResults
             browser.getAccessibilityResults = async () => {
                 if (this.isAppAccessibility) {
                     return await getAppA11yResults(true, browser, isBrowserstackSession, this.accessibility, sessionId)
@@ -97,8 +92,14 @@ export default class AccessibilityModule extends BaseModule {
                 return await this.getA11yResults(browser)
             }
 
+            //patching performScan
             browser.performScan = async () => {
                 return await this.performScanCli(browser)
+            }
+
+            if (!this.accessibility) {
+                this.logger.info('Accessibility automation is disabled for this session.')
+                return
             }
 
             if (!('overwriteCommand' in browser && Array.isArray(this.scriptInstance.commandsToWrap))) {
@@ -295,6 +296,10 @@ export default class AccessibilityModule extends BaseModule {
             PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN,
             async () => {
                 try {
+                    if (!this.accessibility) {
+                        this.logger.debug('Not an Accessibility Automation session.')
+                        return
+                    }
                     if (this.isAppAccessibility) {
                         const results: unknown = await (browser as WebdriverIO.Browser).execute(
                             formatString(this.scriptInstance.performScan, JSON.stringify(_getParamsForAppAccessibility(commandName))) as string,
@@ -319,6 +324,11 @@ export default class AccessibilityModule extends BaseModule {
 
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: any) {
         try {
+            if (!this.accessibility) {
+                this.logger.debug('Not an Accessibility Automation session.')
+                return
+            }
+
             this.logger.debug('Performing scan before saving results')
             await this.performScanCli(browser)
 
@@ -340,6 +350,10 @@ export default class AccessibilityModule extends BaseModule {
             PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS,
             async () => {
                 try {
+                    if (!this.accessibility) {
+                        this.logger.debug('Not an Accessibility Automation session.')
+                        return
+                    }
                     this.logger.debug('Performing scan before getting results')
                     await this.performScanCli(browser)
                     const results: Array<{ [key: string]: any; }> = await (browser as WebdriverIO.Browser).executeAsync(this.scriptInstance.getResults as string)
@@ -358,6 +372,10 @@ export default class AccessibilityModule extends BaseModule {
             PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.GET_RESULTS_SUMMARY,
             async () => {
                 try {
+                    if (!this.accessibility) {
+                        this.logger.debug('Not an Accessibility Automation session.')
+                        return
+                    }
                     this.logger.debug('Performing scan before getting results summary')
                     await this.performScanCli(browser)
                     const summaryResults: { [key: string]: any; } = await (browser as WebdriverIO.Browser).executeAsync(this.scriptInstance.getResultsSummary as string)
