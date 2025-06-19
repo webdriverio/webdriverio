@@ -19,15 +19,6 @@ export default class WebdriverIOModule extends BaseModule {
 
     logger = BStackLogger
     static MODULE_NAME = 'WebdriverIOModule'
-    static KEY_BROWSER_OBJECT = 'browserObject'
-    static KEY_CONTEXT_OBJECT = 'contextObject'
-    static KEY_PAGE_OBJECT = 'pageObject'
-    static KEY_SESSION_ID = 'sessionId'
-    static KEY_PLATFORM_INDEX = 'platformIndex'
-    static KEY_CAPABILITIES = 'capabilities'
-    static KEY_HUB_URL = 'hubUrl'
-    static KEY_PLATFORM_DETAILS = 'platformDetails'
-    static KEY_TEST_ID = 'testId'
 
     /**
        * Create a new WebdriverIOModule
@@ -42,7 +33,6 @@ export default class WebdriverIOModule extends BaseModule {
 
         AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.PRE, this.onBeforeDriverCreate.bind(this))
         AutomationFramework.registerObserver(AutomationFrameworkState.CREATE, HookState.POST, this.onDriverCreated.bind(this))
-        AutomationFramework.registerObserver(AutomationFrameworkState.EXECUTE, HookState.POST, this.onAfterTest.bind(this))
     }
 
     /**
@@ -62,42 +52,11 @@ export default class WebdriverIOModule extends BaseModule {
                 this.logger.warn('onBeforeDriverCreate: No capabilities provided')
                 return
             }
-            // const hubUrl = args.hubUrl
             this.getBinDriverCapabilities(instance, capabilities)
-            // AutomationFramework.setState(instance, WebdriverIOModule.KEY_CAPABILITIES, capabilities)
-            // AutomationFramework.setState(instance, WebdriverIOModule.KEY_HUB_URL, hubUrl)
         } catch (e){
             this.logger.error(`Error in onBeforeDriverCreate: ${util.format(e)}`)
         }
     }
-
-    /**
-       * Handle Playwright dispatch events
-       * @param {Object} args - The arguments containing the Playwright dispatch event message
-       * @returns {void}
-       */
-    // async onPlaywrightDispatch(args) {
-    //     try {
-    //         const bsParams = args?.message && args?.message?.params && args?.message?.params?.bsParams
-    //         const bStackParams = args?.message && args?.message?.bStackParams
-    //         if (bsParams || bStackParams) {
-    //             this.logger.debug(`onDispatchExecute: Playwright driver is executing tests ${util.inspect(bsParams)} || ${util.inspect(bStackParams)}`)
-    //             const instance = args?.instance
-    //             const sessionId = bsParams?.sessionId || bStackParams?.sessionId
-    //             const platformDetails = bsParams?.platformDetails || bStackParams?.platformDetails
-    //             if (sessionId) {
-    //                 this.logger.debug(`onDispatchExecute: Playwright sessionId: ${sessionId}`)
-    //                 AutomationFramework.setState(instance, PlaywrightDriverModule.KEY_SESSION_ID, sessionId)
-    //             }
-    //             if (platformDetails) {
-    //                 this.logger.debug(`onDispatchExecute: Playwright platform details: ${util.inspect(platformDetails)}`)
-    //                 AutomationFramework.setState(instance, PlaywrightDriverModule.KEY_PLATFORM_INDEX, platformDetails)
-    //             }
-    //         }
-    //     } catch (e) {
-    //         this.logger.error(`Error in onDispatchExecute: ${util.format(e)}`)
-    //     }
-    // }
 
     /**
      * Handle driver creation event
@@ -150,12 +109,6 @@ export default class WebdriverIOModule extends BaseModule {
             }
             AutomationFramework.setDriver(instance, browser)
 
-            // // Set driver creation timestamp
-            // AutomationFramework.setState(instance, AutomationFrameworkConstants.KEY_DRIVER_CREATED_AT, new Date().toISOString())
-
-            // Store driver reference if needed
-            // AutomationFramework.setState(instance, AutomationFrameworkConstants.KEY_DRIVER_INSTANCE, driver)
-
             this.logger.info(`onDriverCreated: Successfully processed driver creation for session: ${sessionId}`)
             const autoInstace = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
             this.logger.info(`onDriverCreated: Automation instance: ${JSON.stringify(Object.fromEntries(autoInstace.getAllData()))}`)
@@ -184,74 +137,5 @@ export default class WebdriverIOModule extends BaseModule {
         } catch (error) {
             this.logger.error(`getBinDriverCapabilities: Error getting capabilities: ${error}`)
         }
-    }
-
-    // /**
-    //    * Store playwright page,context and browser objects
-    //    * @param {Object} args - The arguments containtaing page or context or browser objects
-    //    * @returns {void}
-    //    */
-    // async onAfterDriverCreate(args) {
-    //     try {
-    //         this.logger.debug('onAfterDriverCreate: Playwright driver is about to be created')
-    //         const instance = args.instance
-    //         this.playwrightVersion = getFrameworkVersion(FRAMEWORKS.PLAYWRIGHT)
-
-    //         if (args.page) {
-    //             this.logger.debug('onAfterDriverCreate: Setting page object')
-    //             AutomationFramework.setState(instance, WebdriverIOModule.KEY_PAGE_OBJECT, args.page)
-    //             if (args.testInfo) {
-    //                 this.logger.debug('onAfterDriverCreate: Setting Session Name from testInfo')
-    //                 const testId = args.testInfo?._test?.id || args.testInfo?.testId
-    //                 AutomationFramework.setState(instance, WebdriverIOModule.KEY_TEST_ID, testId)
-    //                 // await this.markSessionName(args.testInfo)
-    //             }
-
-    //         }
-
-    //         if (args.context) {
-    //             this.logger.debug('onAfterDriverCreate: Setting context object')
-    //             AutomationFramework.setState(instance, WebdriverIOModule.KEY_CONTEXT_OBJECT, args.context)
-    //         }
-
-    //         if (args.browser) {
-    //             this.logger.debug('onAfterDriverCreate: Setting browser object')
-    //             const platformIndex = global.__workerDetails.workerInfo.parallelIndex
-    //             AutomationFramework.setState(instance, WebdriverIOModule.KEY_BROWSER_OBJECT, args.browser)
-    //             AutomationFramework.setState(instance, WebdriverIOModule.KEY_PLATFORM_INDEX, platformIndex)
-    //             const userInputParams = Buffer.from(JSON.stringify({ 'isPlaywright': true }).toString('base64'))
-    //             const response = await GrpcClient.getInstance().driverInit({ platformIndex, ref: instance.getRef(), userInputParams })
-    //         }
-    //     } catch (e) {
-    //         this.logger.error(`Error in onAfterDriverCreate: ${util.format(e)}`)
-    //     }
-    // }
-
-    async onAfterTest(args: Record<string, unknown>) {
-        this.logger.debug('Automation onAfterTest: Test completed')
-        const instance = args.instance
-        if (!instance) {
-            this.logger.debug('Automation onAfterTest: Automation instance is not available')
-
-            return
-        }
-        // const testInfo = args.testInfo
-        // const testId = testInfo.id
-        // const result = testInfo.status
-        // const sanitisedStatus = getPlaywrightStatus(result)
-        // const sessionName = getPlaywrightSessionName(testInfo)
-        // const reason = nestedKeyValue(result, ['error', 'message'])
-        // this.logger.debug(`Automation onAfterTest: Test status: ${sanitisedStatus}`)
-
-        // if (!sanitisedStatus) {
-        //     this.logger.debug('Unable to mark session status, received status: ', result.status)
-
-        //     return
-        // }
-
-        // this.logger.debug(`Automation onAfterTest: Setting session status for testId: ${testId}`)
-
-        // Set session status
-        // await this.markSessionStatus(instance, sessionName, sanitisedStatus, reason)
     }
 }

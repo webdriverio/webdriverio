@@ -206,7 +206,6 @@ export default class TestHubModule extends BaseModule {
                     frameworkSessionId: AutomationFramework.getState(
                         autoInstance,
                         AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
-                    // autoInstance.getDriver()?.getSessionId()?.toString() || ''
                     ).toString(),
                     frameworkName: autoInstance.frameworkName,
                     frameworkVersion: autoInstance.frameworkVersion
