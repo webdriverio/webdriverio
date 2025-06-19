@@ -25,7 +25,6 @@ export default class TestHubModule extends BaseModule {
     testhubConfig: unknown
     name: string
     static MODULE_NAME = 'TestHubModule'
-    static KEY_TEST_DEFERRED = 'test_deferred'
 
     /**
      * Create a new TestHubModule
@@ -66,7 +65,7 @@ export default class TestHubModule extends BaseModule {
         const instance = args.instance as TestFrameworkInstance
         const testState = instance.getCurrentTestState()
         const hookState = instance.getCurrentHookState()
-        const keyTestDeferred = TestFramework.getState(instance, TestHubModule.KEY_TEST_DEFERRED)
+        const keyTestDeferred = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_DEFERRED)
         if (testState === TestFrameworkState.LOG) {
             this.logger.debug(`onAllTestEvents: TestFrameworkState.LOG - ${testState}`)
             const logEntries = WdioMochaTestFramework.getLogEntries(instance, testState, hookState)
@@ -206,7 +205,6 @@ export default class TestHubModule extends BaseModule {
                     frameworkSessionId: AutomationFramework.getState(
                         autoInstance,
                         AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID,
-                    // autoInstance.getDriver()?.getSessionId()?.toString() || ''
                     ).toString(),
                     frameworkName: autoInstance.frameworkName,
                     frameworkVersion: autoInstance.frameworkVersion
