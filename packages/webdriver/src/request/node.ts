@@ -9,7 +9,6 @@ import type { RequestOptions } from './types.js'
 // This can be removed when we drop Node18 support.
 dns.setDefaultResultOrder('ipv4first')
 
-const { PROXY_URL, NO_PROXY } = environment.value.variables
 export const SESSION_DISPATCHERS: Map<string, Dispatcher> = new Map()
 
 /**
@@ -38,6 +37,7 @@ export class FetchRequest extends WebDriverRequest {
         /**
          * Use a proxy agent if we have a proxy url set
          */
+        const { PROXY_URL, NO_PROXY } = environment.value.variables
         const shouldUseProxy =
             PROXY_URL && !NO_PROXY?.some((str) => url.hostname.endsWith(str))
 
