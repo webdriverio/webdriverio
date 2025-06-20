@@ -54,7 +54,7 @@ export class CLIUtils {
      * @returns {string}
      * @throws {Error}
      */
-    static getBinConfig(config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities, options: BrowserstackConfig & BrowserstackOptions) {
+    static getBinConfig(config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities, options: BrowserstackConfig & BrowserstackOptions, buildTag?: string) {
         const modifiedOpts: Record<string, unknown> = { ...options }
         if (modifiedOpts.opts) {
             modifiedOpts.browserStackLocalOptions = modifiedOpts.opts
@@ -83,7 +83,7 @@ export class CLIUtils {
 
         binconfig.buildName = observabilityOptions.buildName || binconfig.buildName
         binconfig.projectName = observabilityOptions.projectName || binconfig.projectName
-        binconfig.buildTag = observabilityOptions.buildTag || []
+        binconfig.buildTag = this.getObservabilityBuildTags(observabilityOptions, buildTag) || []
 
         let caps = capabilities
         if (capabilities && !Array.isArray(capabilities)) {
@@ -465,4 +465,18 @@ export class CLIUtils {
 
         return pattern.test(hookState)
     }
+
+    static getObservabilityBuildTags(observabilityOptions: TestObservabilityOptions, bstackBuildTag?: string) {
+        if (process.env.TEST_OBSERVABILITY_BUILD_TAG) {
+            return process.env.TEST_OBSERVABILITY_BUILD_TAG.split(',')
+        }
+        if (observabilityOptions.buildTag) {
+            return observabilityOptions.buildTag
+        }
+        if (bstackBuildTag) {
+            return [bstackBuildTag]
+        }
+        return []
+    }
+
 }

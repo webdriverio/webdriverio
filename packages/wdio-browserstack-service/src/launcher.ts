@@ -215,7 +215,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (config.framework === 'mocha') {
                 BrowserstackCLI.getInstance().setBrowserstackConfig(config)
                 CLIUtils.setFrameworkDetail('WebdriverIO-' + config.framework, 'WebdriverIO') // TODO: make this constant
-                const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options)
+                const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options, this._buildTag)
                 await BrowserstackCLI.getInstance().bootstrap(this._options, binconfig)
                 BStackLogger.debug(`Is CLI running ${BrowserstackCLI.getInstance().isRunning()}`)
             }
