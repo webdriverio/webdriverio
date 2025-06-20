@@ -1114,7 +1114,7 @@ export function getHookType (hookName: string): string {
 }
 
 export function isScreenshotCommand (args: BeforeCommandArgs | AfterCommandArgs) {
-    return args.endpoint && args.endpoint.includes('/screenshot')
+    return 'endpoint' in args && args.endpoint && args.endpoint.includes('/screenshot')
 }
 
 export function isBStackSession(config: Options.Testrunner) {

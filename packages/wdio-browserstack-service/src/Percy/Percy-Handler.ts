@@ -82,12 +82,13 @@ class _PercyHandler {
     }
 
     isDOMChangingCommand(args: BeforeCommandArgs): boolean {
+        if ('method'in args && 'endpoint' in args) {
         /*
           Percy screenshots which are to be taken on events such as send keys, element click & screenshot are deferred until
           another DOM changing command is seen such that any DOM processing post the previous command is completed
         */
-        return (
-            typeof args.method === 'string' && typeof args.endpoint === 'string' &&
+            return (
+                typeof args.method === 'string' && typeof args.endpoint === 'string' &&
             (
                 (
                     args.method === 'POST' &&
@@ -109,7 +110,9 @@ class _PercyHandler {
                 ) ||
                 ( args.method === 'DELETE' && args.endpoint === '/session/:sessionId' )
             )
-        )
+            )
+        }
+        return false
     }
 
     async cleanupDeferredScreenshots() {
@@ -145,7 +148,7 @@ class _PercyHandler {
 
     async browserAfterCommand (args: BeforeCommandArgs & AfterCommandArgs) {
         try {
-            if (!args.endpoint || !this._percyAutoCaptureMode) {
+            if (!('endpoint' in args) || !args.endpoint || !this._percyAutoCaptureMode) {
                 return
             }
             let eventName = null
@@ -154,7 +157,7 @@ class _PercyHandler {
                 eventName = 'click'
             } else if (endpoint.includes('screenshot') && ['screenshot', 'auto'].includes(this._percyAutoCaptureMode as string)) {
                 eventName = 'screenshot'
-            } else if (endpoint.includes('actions') && ['auto'].includes(this._percyAutoCaptureMode as string)) {
+            } else if ('body' in args && endpoint.includes('actions') && ['auto'].includes(this._percyAutoCaptureMode as string)) {
                 const actionsBody = (args.body as { actions: { type: string }[] }).actions
                 if (actionsBody && Array.isArray(actionsBody) && actionsBody.length && actionsBody[0].type === 'key') {
                     eventName = 'keys'
