@@ -380,7 +380,7 @@ export const QUESTIONNAIRE = [{
     default: 'LT_USERNAME',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
         answers.backend && answers.backend.indexOf('LambdaTest') > -1 &&
-        answers.hostname!.indexOf('lambdatest.com') > -1
+        (answers.hostname === 'lambdatest.com' || answers.hostname?.endsWith('.lambdatest.com'))
     )
 }, {
     type: 'input',
@@ -389,7 +389,7 @@ export const QUESTIONNAIRE = [{
     default: 'LT_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
         answers.backend && answers.backend.indexOf('LambdaTest') > -1 &&
-        answers.hostname!.indexOf('lambdatest.com') > -1
+        (answers.hostname === 'lambdatest.com' || answers.hostname?.endsWith('.lambdatest.com'))
     )
 }, {
     type: 'input',
