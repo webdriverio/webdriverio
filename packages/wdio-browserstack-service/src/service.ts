@@ -187,7 +187,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     if (shouldProcessEventForTesthub('')) {
                         this._insightsHandler?.browserCommand(
                             'client:beforeCommand',
-                            Object.assign(command, { sessionId }),
+                            Object.assign(command, { sessionId } ),
                             this._currentTest
                         )
                     }

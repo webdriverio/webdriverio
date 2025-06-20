@@ -31,6 +31,7 @@ import type {
 import {
     TYPE as DescriptionType
 } from './types.js'
+import type { BeforeCommand, CustomCommand } from 'node_modules/@wdio/reporter/build/types.js'
 
 export default class AllureReporter extends WDIOReporter {
     private _allure: AllureRuntime
@@ -489,7 +490,7 @@ export default class AllureReporter extends WDIOReporter {
         this._skipTest()
     }
 
-    onBeforeCommand(command: BeforeCommandArgs) {
+    onBeforeCommand(beforeCommand: BeforeCommandArgs) {
         if (!this._state.currentAllureStepableEntity) {
             return
         }
@@ -499,15 +500,31 @@ export default class AllureReporter extends WDIOReporter {
         if (disableWebdriverStepsReporting || this._isMultiremote) {
             return
         }
-        const { method, endpoint } = command
+        let stepName: string | undefined
+        let payload: string | undefined
 
-        const stepName = command.command ? command.command : `${method} ${endpoint}`
-        const payload = command.body || command.params
+        // Processing custom commands
+        if ('name' in beforeCommand) {
+            const command = beforeCommand as CustomCommand
+            stepName = command.name
+            payload = command.args ? command.args.join(', ') : undefined
+        }
 
-        this._startStep(stepName as string)
+        // Processing standard commands
+        if ( 'method' in beforeCommand || 'endpoint' in beforeCommand || 'command' in beforeCommand) {
+            const command = beforeCommand as BeforeCommand
+            const { method, endpoint } = beforeCommand
 
-        if (typeof payload === 'object' && !isEmpty(payload as object)) {
-            this.attachJSON('Request', payload)
+            stepName = command.command ? command.command : `${method} ${endpoint}`
+            payload = command.body?.toString() || command.params?.toString()
+        }
+
+        if (stepName) {
+            this._startStep(stepName as string)
+
+            if (typeof payload === 'object' && !isEmpty(payload as object)) {
+                this.attachJSON('Request', payload)
+            }
         }
     }
 

@@ -183,6 +183,7 @@ export default function WebDriver (options: object, modifier?: Function, propert
     unit.lift = function (name: string, func: Function, proto: Record<string, any>, origCommand?: Function) {
         (proto || prototype)[name] = function next (...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
+            this.emit('command', { name, args })
 
             /**
              * set name of function for better error stack
@@ -208,7 +209,9 @@ export default function WebDriver (options: object, modifier?: Function, propert
 
                 log.info('RESULT', resultLog)
                 this.emit('result', { name, result: res })
-            }).catch(() => {})
+            }).catch((error) => {
+                this.emit('result', { name, result: { error } })
+            })
 
             return result
         }
