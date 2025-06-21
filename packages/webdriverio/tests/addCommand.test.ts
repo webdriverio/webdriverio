@@ -357,16 +357,37 @@ describe('addCommand', () => {
             expect.assertions(2)
         })
 
-        describe('when custom command is a function', () => {
+        describe('when browser custom command is a function', () => {
+            test.only('should return result when running custom command as a function', async () => {
+                const browser = await remote(remoteConfig)
+                console.log('addCommand')
+                browser.addCommand(
+                    'press1',
+                    () => {
+                        console.trace('custom command executed')
+                        return 'command result'
+                    }
+                )
+
+                console.log('call command')
+                // @ts-expect-error undefined custom command
+                expect(await browser.press1()).toEqual('command result')
+            })
+        })
+
+        describe('when element custom command is a function', () => {
             test('should return result when running custom command as a function', async () => {
                 const browser = await remote(remoteConfig)
                 browser.addCommand(
-                    'press',
-                    () => {return 'command result'}
+                    'press2',
+                    () => {return 'command result'},
+                    true
                 )
 
+                const element = await browser.$('.someRandomElement')
+
                 // @ts-expect-error undefined custom command
-                expect(await browser.press()).toEqual('command result')
+                expect(await element.press2()).toEqual('command result')
             })
         })
     })
