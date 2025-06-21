@@ -34,7 +34,7 @@ export default class TestHubModule extends BaseModule {
         this.name = 'TestHubModule'
         this.testhubConfig = testhubConfig
 
-        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
+        TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
 
         Object.values(TestFrameworkState).forEach(state => {
             Object.values(HookState).forEach(hook => {
@@ -51,10 +51,10 @@ export default class TestHubModule extends BaseModule {
         return TestHubModule.MODULE_NAME
     }
 
-    onAfterTest(args: Record<string, unknown>) {
-        this.logger.debug('onAfterTest: Called after test hook from cli configured module!!!')
+    onBeforeTest(args: Record<string, unknown>) {
+        this.logger.debug('onBeforeTest: Called after test hook from cli configured module!!!')
         const autoInstace = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
-        this.logger.info(`onAfterTest: Automation instance: ${JSON.stringify(Object.fromEntries(autoInstace.getAllData()))}`)
+        this.logger.info(`onBeforeTest: Automation instance: ${JSON.stringify(Object.fromEntries(autoInstace.getAllData()))}`)
         const instances = [autoInstace]
         args.autoInstance = instances
         this.sendTestSessionEvent(args)
