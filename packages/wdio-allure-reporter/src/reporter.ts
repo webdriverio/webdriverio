@@ -499,16 +499,16 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        const command = beforeCommand
-        const { method, endpoint } = beforeCommand
+        const { command, method, endpoint, body, params } = beforeCommand
 
-        const stepName = command.command ? command.command : `${method} ${endpoint}`
-        const payload = command.body?.toString() || command.params?.toString()
+        const stepName = command ? command : `${method} ${endpoint}`.trim() || 'unknown command'
+        const payload = body || params
 
         if (stepName) {
             this._startStep(stepName as string)
 
             if (typeof payload === 'object' && !isEmpty(payload as object)) {
+                // TODO dprevost check if support array too for JSON
                 this.attachJSON('Request', payload)
             }
         }
