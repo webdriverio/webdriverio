@@ -209,14 +209,14 @@ export default function WebDriver (options: object, modifier?: Function, propert
                         }
 
                         log.info('RESULT', resultLog)
-                        this.emit('result', { command: name, result: res })
+                        this.emit('result', { command: name, result: { value: res } })
                     }).catch((error: Error) => {
                         this.emit('result', { command: name, result: { error } })
                     })
                 } else {
                     // The function should always be a promise and not trigger the below, but for the sake of being bullet proof let's do it
                     // When a function we can emit the result immediately
-                    this.emit('result', { command: name, result })
+                    this.emit('result', { command: name, result: { value: result } })
                 }
 
                 return result

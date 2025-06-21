@@ -170,7 +170,7 @@ describe('monad', () => {
 
                 expect(result).toBe('command result')
                 expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [] })
-                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: 'command result' })
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: { value: 'command result' } })
                 expect(client.emit).toHaveBeenCalledTimes(2)
             })
 
@@ -197,7 +197,7 @@ describe('monad', () => {
 
                 expect(result).toBe(expectedResult)
                 expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [] })
-                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: expectedResult })
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: { value: expectedResult } })
                 expect(client.emit).toHaveBeenCalledTimes(2)
             })
 

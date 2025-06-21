@@ -114,11 +114,19 @@ export default class AllureReporter extends WDIOReporter {
         )
     }
 
-    attachJSON(name: string, json: unknown) {
-        const isStr = typeof json === 'string'
-        const content = isStr ? json : JSON.stringify(json, null, 2)
+    attachJSON(name: string, value: unknown) {
+        let isJson = !!value && (typeof value === 'object' || Array.isArray(value))
+        if (typeof value === 'string' && (value.trim().startsWith('{') || value.trim().startsWith('['))) {
+            try {
+                value = JSON.parse(value)
+                isJson = !!value
+            } catch {
+                isJson = false
+            }
+        }
 
-        this.attachFile(name, String(content), isStr ? ContentType.JSON : ContentType.TEXT)
+        const content = isJson ? JSON.stringify(value, null, 2) : value
+        this.attachFile(name, String(content), isJson ? ContentType.JSON: ContentType.TEXT)
     }
 
     attachScreenshot(name: string, content: Buffer) {
@@ -499,7 +507,7 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        const { command, method, endpoint, body, params } = beforeCommand
+        const { command, method = '', endpoint = '', body, params } = beforeCommand
 
         const stepName = command ? command : `${method} ${endpoint}`.trim() || 'unknown command'
         const payload = body || params
@@ -507,8 +515,7 @@ export default class AllureReporter extends WDIOReporter {
         if (stepName) {
             this._startStep(stepName as string)
 
-            if (typeof payload === 'object' && !isEmpty(payload as object)) {
-                // TODO dprevost check if support array too for JSON
+            if (payload && (typeof payload === 'object' || Array.isArray(payload))  && !isEmpty(payload)) {
                 this.attachJSON('Request', payload)
             }
         }
@@ -518,12 +525,12 @@ export default class AllureReporter extends WDIOReporter {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
         const commandResult = (
-            (command?.result as { value?: unknown } | undefined)?.value ||
-            (command?.result as { error?: Error } | undefined)?.error?.name ||
-            {}
+            (command.result as { value?: unknown } | undefined)?.value ||
+            (command.result as { error?: Error | undefined } | undefined)?.error?.name ||
+            undefined
         )
-        const isScreenshot = isScreenshotCommand(command)
-        if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
+
+        if (!disableWebdriverScreenshotsReporting && isScreenshotCommand(command) && commandResult) {
             this.attachScreenshot('Screenshot', Buffer.from(commandResult as string, 'base64'))
         }
 
@@ -531,7 +538,9 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        this.attachJSON('Response', commandResult)
+        if (commandResult) {
+            this.attachJSON('Response', commandResult)
+        }
         this.endStep(AllureStatus.PASSED)
     }
 
