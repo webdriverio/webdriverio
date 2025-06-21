@@ -358,7 +358,7 @@ describe('addCommand', () => {
         })
 
         describe('when browser custom command is a function', () => {
-            test.only('should return result when running custom command as a function', async () => {
+            test('should return result when running custom command as a function', async () => {
                 const browser = await remote(remoteConfig)
                 console.log('addCommand')
                 browser.addCommand(

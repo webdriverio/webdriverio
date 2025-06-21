@@ -11,7 +11,7 @@ import type { Hook } from './stats/hook.js'
 import HookStats from './stats/hook.js'
 import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
-import type { AfterCommandArgs, BeforeCommand, BeforeCommandArgs, CommandArgs, CustomCommand, Tag, Argument } from './types.js'
+import type { AfterCommandArgs,  BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
 type CustomWriteStream = { write: (content: unknown) => boolean }
 
 export default class WDIOReporter extends EventEmitter {
@@ -312,6 +312,6 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
 }
 
 export {
-    SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommand, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, CustomCommand, Argument, Test, getBrowserName
+    SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
+    AfterCommandArgs, CommandArgs, Argument, Test, getBrowserName
 }

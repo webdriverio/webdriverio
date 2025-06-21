@@ -1,7 +1,7 @@
 import { stringify } from 'csv-stringify/sync'
 import type {
-    SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommand, BeforeCommandArgs,
-    AfterCommandArgs, Argument, CustomCommand } from '@wdio/reporter'
+    SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
+    AfterCommandArgs, Argument } from '@wdio/reporter'
 import { getBrowserName } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
@@ -498,24 +498,12 @@ export default class AllureReporter extends WDIOReporter {
         if (disableWebdriverStepsReporting || this._isMultiremote) {
             return
         }
-        let stepName: string | undefined
-        let payload: string | undefined
 
-        // Processing custom commands
-        if ('name' in beforeCommand) {
-            const command = beforeCommand as CustomCommand
-            stepName = command.name
-            payload = command.args ? command.args.join(', ') : undefined
-        }
+        const command = beforeCommand
+        const { method, endpoint } = beforeCommand
 
-        // Processing standard commands
-        if ( 'method' in beforeCommand || 'endpoint' in beforeCommand || 'command' in beforeCommand) {
-            const command = beforeCommand as BeforeCommand
-            const { method, endpoint } = beforeCommand
-
-            stepName = command.command ? command.command : `${method} ${endpoint}`
-            payload = command.body?.toString() || command.params?.toString()
-        }
+        const stepName = command.command ? command.command : `${method} ${endpoint}`
+        const payload = command.body?.toString() || command.params?.toString()
 
         if (stepName) {
             this._startStep(stepName as string)

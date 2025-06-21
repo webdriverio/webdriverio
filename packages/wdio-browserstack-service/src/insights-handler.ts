@@ -38,13 +38,12 @@ import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
 import Listener from './testOps/listener.js'
 import { TESTOPS_SCREENSHOT_ENV } from './constants.js'
-import type { AfterCommand, BeforeCommand } from 'node_modules/@wdio/reporter/build/types.js'
 
 class _InsightsHandler {
     private _tests: Record<string, TestMeta> = {}
     private _hooks: Record<string, string[]> = {}
     private _platformMeta: PlatformMeta
-    private _commands: Record<string, BeforeCommand | AfterCommand> = {}
+    private _commands: Record<string, BeforeCommandArgs | AfterCommandArgs> = {}
     private _gitConfigPath?: string
     private _suiteFile?: string
     public static currentTest: CurrentRunInfo = {}
@@ -533,54 +532,52 @@ class _InsightsHandler {
     }
 
     async browserCommand (commandType: string, args: BeforeCommandArgs | AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
-        if ('method' in args && 'endpoint' in args) {
-            const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
-            if (commandType === 'client:beforeCommand') {
-                this._commands[dataKey] = args
-                return
-            }
+        const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
+        if (commandType === 'client:beforeCommand') {
+            this._commands[dataKey] = args
+            return
+        }
 
-            if (!test) {
-                return
-            }
-            const identifier = this.getIdentifier(test)
-            const testMeta = this._tests[identifier] || TestReporter.getTests()[identifier]
+        if (!test) {
+            return
+        }
+        const identifier = this.getIdentifier(test)
+        const testMeta = this._tests[identifier] || TestReporter.getTests()[identifier]
 
-            if (!testMeta) {
-                return
-            }
+        if (!testMeta) {
+            return
+        }
 
-            // log screenshot
-            const body = 'body' in args ? args.body : undefined
-            const result = 'result' in args ? args.result as { value: string } : undefined
-            if (Boolean(process.env[TESTOPS_SCREENSHOT_ENV]) && isScreenshotCommand(args) && result?.value) {
-                await this.listener.onScreenshot([{
-                    test_run_uuid: testMeta.uuid,
-                    timestamp: new Date().toISOString(),
-                    message: result.value,
-                    kind: 'TEST_SCREENSHOT'
-                }])
-            }
-
-            const requestData = this._commands[dataKey]
-            if (!requestData) {
-                return
-            }
-
-            // log http request
-            this.listener.logCreated([{
+        // log screenshot
+        const body = 'body' in args ? args.body : undefined
+        const result = 'result' in args ? args.result as { value: string } : undefined
+        if (Boolean(process.env[TESTOPS_SCREENSHOT_ENV]) && isScreenshotCommand(args) && result?.value) {
+            await this.listener.onScreenshot([{
                 test_run_uuid: testMeta.uuid,
                 timestamp: new Date().toISOString(),
-                kind: 'HTTP',
-                http_response: {
-                    path: requestData.endpoint,
-                    method: requestData.method,
-                    body,
-                    response: result
-                }
-            }]
-            )
+                message: result.value,
+                kind: 'TEST_SCREENSHOT'
+            }])
         }
+
+        const requestData = this._commands[dataKey]
+        if (!requestData) {
+            return
+        }
+
+        // log http request
+        this.listener.logCreated([{
+            test_run_uuid: testMeta.uuid,
+            timestamp: new Date().toISOString(),
+            kind: 'HTTP',
+            http_response: {
+                path: requestData.endpoint,
+                method: requestData.method,
+                body,
+                response: result
+            }
+        }]
+        )
     }
 
     /*

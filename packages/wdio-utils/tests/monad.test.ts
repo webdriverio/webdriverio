@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import webdriverMonad, { SCOPE_TYPES } from '../src/monad.js'
+import webdriverMonad from '../src/monad.js'
 import logger from '@wdio/logger'
 const log = logger('webdriver')
 
@@ -169,8 +169,8 @@ describe('monad', () => {
                 const result = client.customFunctionCommand()
 
                 expect(result).toBe('command result')
-                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, args: [], name: customCommandName })
-                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, name: customCommandName, result: 'command result' })
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [] })
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: 'command result' })
                 expect(client.emit).toHaveBeenCalledTimes(2)
             })
 
@@ -179,8 +179,8 @@ describe('monad', () => {
                 fn.mockImplementation(() => {throw error1})
 
                 expect(() => client.customFunctionCommand()).toThrowError('command error')
-                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, args: [], name: customCommandName })
-                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, name: customCommandName, result: { error: error1 } })
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [] })
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: { error: error1 } })
                 expect(client.emit).toHaveBeenCalledTimes(2)
             })
         })
@@ -196,8 +196,8 @@ describe('monad', () => {
                 const result = await client.customPromiseCommand()
 
                 expect(result).toBe(expectedResult)
-                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, args: [], name: customCommandName })
-                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, name: customCommandName, result: expectedResult })
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [] })
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: expectedResult })
                 expect(client.emit).toHaveBeenCalledTimes(2)
             })
 
@@ -207,9 +207,9 @@ describe('monad', () => {
 
                 const promise = client.customPromiseCommand()
 
-                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, args: [], name: customCommandName })
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [],  })
                 await expect(promise).rejects.toThrowError('command promise error')
-                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, name: customCommandName, result: { error: error2 } })
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: { error: error2 } })
                 expect(client.emit).toHaveBeenCalledTimes(2)
             })
         })

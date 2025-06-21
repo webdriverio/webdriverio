@@ -183,7 +183,7 @@ export default function WebDriver (options: object, modifier?: Function, propert
     unit.lift = function (name: string, func: Function, proto: Record<string, any>, origCommand?: Function) {
         (proto || prototype)[name] = function next (...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
-            this.emit('command', { command: name, name, args })
+            this.emit('command', { command: name, body: args })
 
             /**
              * set name of function for better error stack
@@ -209,20 +209,20 @@ export default function WebDriver (options: object, modifier?: Function, propert
                         }
 
                         log.info('RESULT', resultLog)
-                        this.emit('result', { command: name, name, result: res })
+                        this.emit('result', { command: name, result: res })
                     }).catch((error: Error) => {
-                        this.emit('result', { command: name, name, result: { error } })
+                        this.emit('result', { command: name, result: { error } })
                     })
                 } else {
                     // The function should always be a promise and not trigger the below, but for the sake of being bullet proof let's do it
                     // When a function we can emit the result immediately
-                    this.emit('result', { command: name, name, result })
+                    this.emit('result', { command: name, result })
                 }
 
                 return result
             } catch (error) {
                 // The function should always be a promise and not trigger this error but for the sake of being bullet proof let's do it
-                this.emit('result', { command: name, name, result: { error } })
+                this.emit('result', { command: name, result: { error } })
                 throw error
             }
         }
