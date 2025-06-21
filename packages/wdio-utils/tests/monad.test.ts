@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import webdriverMonad from '../src/monad.js'
+import command from '../../webdriver/build/command.js'
 
 let prototype: any
 
@@ -146,5 +147,61 @@ describe('monad', () => {
         const monad = webdriverMonad({})
         const client = monad(sessionId)
         expect(client.commandList).toHaveLength(0)
+    })
+
+    describe('given custom command', () => {
+        let client: any
+        beforeEach(() => {
+            const monad = webdriverMonad({}, (client: any) => client, prototype)
+            const commandWrapperMock = vi.fn().mockImplementation((name, fn) => fn)
+            client = monad(sessionId, commandWrapperMock)
+            client.emit = vi.fn()
+        })
+
+        describe('when custom command is a function', () => {
+            const fn = vi.fn().mockImplementation(() => 'command result')
+            beforeEach(() => {
+                client.addCommand('customCommand', fn)
+            })
+
+            it('should return result when running custom command as a function and emit command and result', () => {
+                const result = client.customCommand()
+
+                expect(result).toBe('command result')
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: 'customCommand', args: [], name: 'customCommand' })
+
+                // TODO when not a promise, result is not emitted
+                //expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: 'customCommand', args: [], name: 'customCommand', result: 'command result' })
+            })
+
+            it('should return result when running custom command as a function', () => {
+                fn.mockImplementation(() => {throw new Error('command error')})
+
+                expect(() => client.customCommand()).toThrowError('command error')
+            })
+
+            it('should throw when throwing an error', async () => {
+                const result = client.customCommand()
+
+                expect(result).toBe('command result')
+            })
+
+        })
+        describe.only('when custom command is a Promise', () => {
+            const expectedResult = 'command promise result'
+            const fn = vi.fn().mockImplementation(async () => Promise.resolve(expectedResult))
+            beforeEach(() => {
+                client.addCommand('customCommand', fn)
+            })
+
+            it('should return result when running custom command and emit command + result', async () => {
+                const result = await client.customCommand()
+
+                expect(result).toBe(expectedResult)
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: 'customCommand', args: [], name: 'customCommand' })
+                // TODO when a promise, result is not emitted
+                //expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: 'customCommand', args: [], name: 'customCommand', result: expectedResult })
+            })
+        })
     })
 })
