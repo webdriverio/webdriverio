@@ -183,7 +183,7 @@ export default function WebDriver (options: object, modifier?: Function, propert
     unit.lift = function (name: string, func: Function, proto: Record<string, any>, origCommand?: Function) {
         (proto || prototype)[name] = function next (...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
-            this.emit('command', { name, args })
+            this.emit('command', { command: name, name, args })
 
             /**
              * set name of function for better error stack
@@ -199,6 +199,7 @@ export default function WebDriver (options: object, modifier?: Function, propert
              * always transform result into promise
              */
             Promise.resolve(result).then((res: unknown) => {
+
                 const elem = res as { elementId: string, selector?: string }
                 let resultLog = res
                 if (elem instanceof SCOPE_TYPES.element) {
@@ -208,9 +209,11 @@ export default function WebDriver (options: object, modifier?: Function, propert
                 }
 
                 log.info('RESULT', resultLog)
-                this.emit('result', { name, result: res })
+                this.emit('result', { command: name, name, result: res })
+                // To remove this log shows that the promise is resolved after the expect in my unit tests.
+                //console.log('Command result after emit:', res)
             }).catch((error) => {
-                this.emit('result', { name, result: { error } })
+                this.emit('result', { command: name, name, result: { error } })
             })
 
             return result
