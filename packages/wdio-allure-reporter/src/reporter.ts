@@ -1,8 +1,7 @@
 import { stringify } from 'csv-stringify/sync'
 import type {
-    SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
-    AfterCommandArgs, Argument
-} from '@wdio/reporter'
+    SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommand, BeforeCommandArgs,
+    AfterCommandArgs, Argument, CustomCommand } from '@wdio/reporter'
 import { getBrowserName } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
@@ -31,7 +30,6 @@ import type {
 import {
     TYPE as DescriptionType
 } from './types.js'
-import type { BeforeCommand, CustomCommand } from 'node_modules/@wdio/reporter/build/types.js'
 
 export default class AllureReporter extends WDIOReporter {
     private _allure: AllureRuntime
