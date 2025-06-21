@@ -512,13 +512,12 @@ export default class AllureReporter extends WDIOReporter {
         const stepName = command ? command : `${method} ${endpoint}`.trim() || 'unknown command'
         const payload = body || params
 
-        if (stepName) {
-            this._startStep(stepName as string)
+        this._startStep(stepName as string)
 
-            if (payload && (typeof payload === 'object' || Array.isArray(payload))  && !isEmpty(payload)) {
-                this.attachJSON('Request', payload)
-            }
+        if (payload && (typeof payload === 'object' || Array.isArray(payload))  && !isEmpty(payload)) {
+            this.attachJSON('Request', payload)
         }
+
     }
 
     onAfterCommand(command: AfterCommandArgs) {

@@ -12,6 +12,7 @@ import HookStats from './stats/hook.js'
 import TestStats, { type Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
 import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types.js'
+
 type CustomWriteStream = { write: (content: unknown) => boolean }
 
 export default class WDIOReporter extends EventEmitter {
