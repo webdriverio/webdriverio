@@ -131,12 +131,6 @@ export default class WebdriverIOModule extends BaseModule {
                 if (response.capabilities.length > 0) {
                     const capabilitiesStr = (response.capabilities as Buffer).toString('utf8')
                     const capabilitiesObj = JSON.parse(capabilitiesStr)
-                    if (capabilitiesObj['bstack:options'] && 'buildTag' in capabilitiesObj['bstack:options']) {
-                        delete capabilitiesObj['bstack:options'].buildTag
-                    }
-                    if ('browserstack.buildTag' in capabilitiesObj) {
-                        delete capabilitiesObj['browserstack.buildTag']
-                    }
                     AutomationFramework.setState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES, capabilitiesObj)
                 }
                 this.logger.debug(`getBinDriverCapabilities: got hub url ${response.hubUrl}`)
