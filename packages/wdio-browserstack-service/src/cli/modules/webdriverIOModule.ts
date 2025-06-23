@@ -112,9 +112,6 @@ export default class WebdriverIOModule extends BaseModule {
             AutomationFramework.setDriver(instance, browser)
 
             this.logger.info(`onDriverCreated: Successfully processed driver creation for session: ${sessionId}`)
-            const autoInstace = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
-            this.logger.info(`onDriverCreated: Automation instance: ${JSON.stringify(Object.fromEntries(autoInstace.getAllData()))}`)
-
         } catch (error) {
             this.logger.error(`onDriverCreated: Error processing driver creation: ${error}`)
         }
@@ -132,19 +129,18 @@ export default class WebdriverIOModule extends BaseModule {
             const response: DriverInitResponse = await GrpcClient.getInstance().driverInitEvent(payload)
             if (response.success) {
                 if (response.capabilities.length > 0) {
-                    this.logger.debug(`getBinDriverCapabilities: Received capabilities from driver: ${JSON.stringify(response.capabilities)}`)
+                    const capabilitiesStr = (response.capabilities as Buffer).toString('utf8')
+                    const capabilitiesObj = JSON.parse(capabilitiesStr)
+                    if (capabilitiesObj['bstack:options'] && 'buildTag' in capabilitiesObj['bstack:options']) {
+                        delete capabilitiesObj['bstack:options'].buildTag
+                    }
+                    if ('browserstack.buildTag' in capabilitiesObj) {
+                        delete capabilitiesObj['browserstack.buildTag']
+                    }
+                    AutomationFramework.setState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES, capabilitiesObj)
                 }
                 this.logger.debug(`getBinDriverCapabilities: got hub url ${response.hubUrl}`)
             }
-            const capabilitiesStr = (response.capabilities as Buffer).toString('utf8')
-            const capabilitiesObj = JSON.parse(capabilitiesStr)
-            if (capabilitiesObj['bstack:options'] && 'buildTag' in capabilitiesObj['bstack:options']) {
-                delete capabilitiesObj['bstack:options'].buildTag
-            }
-            if ('browserstack.buildTag' in capabilitiesObj) {
-                delete capabilitiesObj['browserstack.buildTag']
-            }
-            AutomationFramework.setState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES, capabilitiesObj)
         } catch (error) {
             this.logger.error(`getBinDriverCapabilities: Error getting capabilities: ${error}`)
         }
