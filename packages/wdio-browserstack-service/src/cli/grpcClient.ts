@@ -15,13 +15,22 @@ import {
     // eslint-disable-next-line camelcase
     LogCreatedEventRequest_LogEntry,
     TestSessionEventRequest_AutomationSession as AutomationSession,
-    DriverInitRequest
+    DriverInitRequest,
+    FetchDriverExecuteParamsEventRequest,
 } from '../proto/sdk-messages.js'
 
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
 import { BStackLogger } from './cliLogger.js'
-import type { ConnectBinSessionResponse, StartBinSessionResponse, TestFrameworkEventResponse, TestSessionEventResponse, LogCreatedEventResponse, DriverInitResponse } from 'src/proto/sdk-messages.js'
+import type {
+    ConnectBinSessionResponse,
+    StartBinSessionResponse,
+    TestFrameworkEventResponse,
+    TestSessionEventResponse,
+    LogCreatedEventResponse,
+    DriverInitResponse,
+    FetchDriverExecuteParamsEventResponse
+} from 'src/proto/sdk-messages.js'
 
 /**
  * GrpcClient - Singleton class for managing gRPC client connections
@@ -416,6 +425,35 @@ export class GrpcClient {
             }
         } catch (error) {
             this.logger.error(`Error in LogCreatedEvent: ${util.format(error)}`)
+            throw error
+        }
+    }
+
+    async fetchDriverExecuteParamsEvent(data: FetchDriverExecuteParamsEventRequest) {
+        this.logger.info('Sending fetchDriverExecuteParamsEvent')
+        try {
+            if (!this.client) {
+                this.logger.info('No gRPC client not initialized.')
+            }
+            const { product, scriptName } = data
+            const request = FetchDriverExecuteParamsEventRequest.create({
+                binSessionId: this.binSessionId,
+                product: product,
+                scriptName: scriptName,
+            })
+
+            const fetchDriverExecuteParamsEventPromise = promisify(this.client!.fetchDriverExecuteParamsEvent).bind(this.client!) as (arg0: FetchDriverExecuteParamsEventRequest) => Promise<FetchDriverExecuteParamsEventResponse>
+            try {
+                const response = await fetchDriverExecuteParamsEventPromise(request)
+                this.logger.info('fetchDriverExecuteParamsEvent successful')
+                return response
+            } catch (error: unknown) {
+                const errorMessage = util.format(error)
+                this.logger.error(`fetchDriverExecuteParamsEvent error: ${errorMessage}`)
+                throw error
+            }
+        } catch (error) {
+            this.logger.error(`Error in fetchDriverExecuteParamsEvent: ${util.format(error)}`)
             throw error
         }
     }
