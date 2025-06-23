@@ -1,6 +1,6 @@
 {
   "name": "@wdio/runner",
-  "version": "9.15.0",
+  "version": "9.16.1",
   "description": "A WebdriverIO service that runs tests in arbitrary environments",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-runner",
@@ -44,7 +44,7 @@
   },
   "peerDependencies": {
     "expect-webdriverio": "^5.3.2",
-    "webdriverio": "workspace:*"
+    "webdriverio": "^9.0.0"
   },
   "peerDependenciesMeta": {
     "expect-webdriverio": {
