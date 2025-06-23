@@ -8,7 +8,7 @@ import { TestFrameworkState } from '../states/testFrameworkState.js'
 import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
 import { HookState } from '../states/hookState.js'
 import accessibilityScripts from '../../scripts/accessibility-scripts.js'
-import { _getParamsForAppAccessibility, formatString, getAppA11yResults, getAppA11yResultsSummary, shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y } from '../../util.js'
+import { _getParamsForAppAccessibility, formatString, getAppA11yResults, getAppA11yResultsSummary, shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y, validateCapsWithNonBstackA11y } from '../../util.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 import util from 'node:util'
 import type { Accessibility } from 'src/proto/sdk-messages-accessibility.js'
@@ -23,12 +23,13 @@ export default class AccessibilityModule extends BaseModule {
     scriptInstance: typeof accessibilityScripts
     accessibility: boolean = false
     isAppAccessibility: boolean
+    isNonBstackA11y: boolean
     accessibilityConfig: Accessibility
     static MODULE_NAME = 'AccessibilityModule'
     accessibilityMap: Map<number, boolean>
     LOG_DISABLED_SHOWN: Map<number, boolean>
 
-    constructor(accessibilityConfig: Accessibility) {
+    constructor(accessibilityConfig: Accessibility, isNonBstackA11y: boolean) {
         super()
         this.name = 'AccessibilityModule'
         this.accessibilityConfig = accessibilityConfig
@@ -40,6 +41,7 @@ export default class AccessibilityModule extends BaseModule {
         this.accessibilityMap = new Map()
         this.LOG_DISABLED_SHOWN = new Map()
         this.isAppAccessibility = accessibilityConfig.isAppAccessibility || false
+        this.isNonBstackA11y = isNonBstackA11y
     }
 
     async onBeforeExecute() {
@@ -70,6 +72,10 @@ export default class AccessibilityModule extends BaseModule {
             }
             if (this.isAppAccessibility) {
                 this.accessibility = validateCapsWithAppA11y(platformA11yMeta)
+            } else if (this.isNonBstackA11y){
+                if (validateCapsWithNonBstackA11y(platformA11yMeta.browser_name as string, platformA11yMeta.browser_version as string)){
+                    this.accessibility = true
+                }
             } else {
                 const device = this.getCapability(inputCaps, 'deviceName')
                 const chromeOptions = this.getCapability(inputCaps, 'goog:chromeOptions')

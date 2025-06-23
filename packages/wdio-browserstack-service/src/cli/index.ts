@@ -19,7 +19,7 @@ import WdioMochaTestFramework from './frameworks/wdioMochaTestFramework.js'
 import WdioAutomationFramework from './frameworks/wdioAutomationFramework.js'
 import WebdriverIOModule from './modules/webdriverIOModule.js'
 import AccessibilityModule from './modules/accessibilityModule.js'
-import { processAccessibilityResponse } from '../util.js'
+import { isTurboScale, processAccessibilityResponse, shouldAddServiceVersion } from '../util.js'
 import ObservabilityModule from './modules/observabilityModule.js'
 import type { BrowserstackConfig, BrowserstackOptions } from '../types.js'
 import PercyModule from './modules/percyModule.js'
@@ -155,8 +155,10 @@ export class BrowserstackCLI {
 
             if (startBinResponse.accessibility?.success){
                 process.env[BROWSERSTACK_ACCESSIBILITY] = 'true'
+                const options = this.options as BrowserstackConfig & BrowserstackOptions
+                const isNonBstackA11y = isTurboScale(options) || !shouldAddServiceVersion(this.browserstackConfig as Options.Testrunner, options.testObservability)
                 processAccessibilityResponse(startBinResponse, this.options as BrowserstackConfig & BrowserstackOptions)
-                this.modules[AccessibilityModule.MODULE_NAME] = new AccessibilityModule(startBinResponse.accessibility)
+                this.modules[AccessibilityModule.MODULE_NAME] = new AccessibilityModule(startBinResponse.accessibility, isNonBstackA11y)
             }
         }
         if (startBinResponse.percy?.success) {
