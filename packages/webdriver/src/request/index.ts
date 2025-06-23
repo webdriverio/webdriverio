@@ -176,7 +176,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
         }
 
-        const { url, ...requestLibOptions } = fullRequestOptions
+        const { url, retry: _, ...requestLibOptions } = fullRequestOptions
         const startTime = this._libPerformanceNow()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: RequestLibError) => err)
