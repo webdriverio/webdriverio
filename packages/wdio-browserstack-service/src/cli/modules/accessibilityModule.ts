@@ -15,6 +15,8 @@ import type { Accessibility } from 'src/proto/sdk-messages-accessibility.js'
 import type { Capabilities } from '@wdio/types'
 import PerformanceTester from '../../instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from '../../instrumentation/performance/constants.js'
+import type { FetchDriverExecuteParamsEventRequest, FetchDriverExecuteParamsEventResponse } from 'src/proto/sdk-messages.js'
+import { GrpcClient } from '../grpcClient.js'
 
 export default class AccessibilityModule extends BaseModule {
 
@@ -237,11 +239,13 @@ export default class AccessibilityModule extends BaseModule {
                 const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
 
                 if (browser) {
-                    const dataForExtension = {
+                    let dataForExtension = {
                         'thTestRunUuid': process.env.TEST_ANALYTICS_ID,
                         'thBuildUuid': process.env.BROWSERSTACK_TESTHUB_UUID,
                         'thJwtToken': process.env.BROWSERSTACK_TESTHUB_JWT
                     }
+                    const driverExecuteParams = await this.getDriverExecuteParams()
+                    dataForExtension = { ...dataForExtension, ...driverExecuteParams }
 
                     // final scan and saving the results
                     await this.sendTestStopEvent(browser, dataForExtension)
@@ -393,4 +397,19 @@ export default class AccessibilityModule extends BaseModule {
             }
         )()
     }
+
+    async getDriverExecuteParams() {
+        const payload: FetchDriverExecuteParamsEventRequest = {
+            binSessionId: '',
+            product: 'accessibility',
+            scriptName: 'saveResults'
+        }
+        const response: FetchDriverExecuteParamsEventResponse = await GrpcClient.getInstance().fetchDriverExecuteParamsEvent(payload)
+        if (response.success) {
+            return response.accessibilityExecuteParams ? JSON.parse(Buffer.from(response.accessibilityExecuteParams).toString('utf8')) : {}
+        }
+        this.logger.error(`Failed to fetch driver execute params: ${response.error || 'Unknown error'}`)
+        return {}
+    }
+
 }
