@@ -112,33 +112,32 @@ export async function switchFrame (
      * the string.
      */
     if (typeof context === 'string') {
-        const tree = await this.browsingContextGetTree({})
-        let newContextId: string | undefined
+        const newContextId = await this.waitUntil(async () => {
+            const tree = await this.browsingContextGetTree({})
+            const urlContext = (
+                sessionContext.findContext(context, tree.contexts, 'byUrl') ||
+        sessionContext.findContext(`${context}/`, tree.contexts, 'byUrl')
+            )
+            const urlContextContaining = sessionContext.findContext(context, tree.contexts, 'byUrlContaining')
+            const contextIdContext = sessionContext.findContext(context, tree.contexts, 'byContextId')
 
-        const urlContext = (
-            sessionContext.findContext(context, tree.contexts, 'byUrl') ||
-            /**
-             * In case the user provides an url without `/` at the end, e.g. `https://example.com`,
-             * the `browsingContextGetTree` command may return a context with the url `https://example.com/`.
-             */
-            sessionContext.findContext(`${context}/`, tree.contexts, 'byUrl')
-        )
-        const urlContextContaining = sessionContext.findContext(context, tree.contexts, 'byUrlContaining')
-        const contextIdContext = sessionContext.findContext(context, tree.contexts, 'byContextId')
-        if (urlContext) {
-            log.info(`Found context by url "${urlContext.url}" with context id "${urlContext.context}"`)
-            newContextId = urlContext.context
-        } else if (urlContextContaining) {
-            log.info(`Found context by url containing "${urlContextContaining.url}" with context id "${urlContextContaining.context}"`)
-            newContextId = urlContextContaining.context
-        } else if (contextIdContext) {
-            log.info(`Found context by id "${contextIdContext}" with url "${contextIdContext.url}"`)
-            newContextId = contextIdContext.context
-        }
+            if (urlContext) {
+                log.info(`Found context by url "${urlContext.url}" with context id "${urlContext.context}"`)
+                return urlContext.context
+            } else if (urlContextContaining) {
+                log.info(`Found context by url containing "${urlContextContaining.url}" with context id "${urlContextContaining.context}"`)
+                return urlContextContaining.context
+            } else if (contextIdContext) {
+                log.info(`Found context by id "${contextIdContext}" with url "${contextIdContext.url}"`)
+                return contextIdContext.context
+            }
 
-        if (!newContextId) {
-            throw new Error(`No frame with url or id "${context}" found!`)
-        }
+            return false
+        }, {
+            timeout: this.options.waitforTimeout,
+            interval: this.options.waitforInterval,
+            timeoutMsg: `No frame with url or id "${context}" found within the timeout`
+        }) as string // ✅ we ensure it's string
 
         const currentContext = await sessionContext.getCurrentContext()
         const allContexts = await sessionContext.getFlatContextTree()
@@ -274,36 +273,45 @@ export async function switchFrame (
      * the function for each of them.
      */
     if (typeof context === 'function') {
-        const allContexts = await sessionContext.getFlatContextTree()
-        const allContextIds = Object.keys(allContexts)
-        for (const contextId of allContextIds) {
-            const functionDeclaration = new Function(`
+        let foundContextId: string | undefined
+
+        await this.waitUntil(async () => {
+            const allContexts = await sessionContext.getFlatContextTree()
+            const allContextIds = Object.keys(allContexts)
+
+            for (const contextId of allContextIds) {
+                const functionDeclaration = new Function(`
                 return (${SCRIPT_PREFIX}${context.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
             `).toString()
-            const params: remote.ScriptCallFunctionParameters = {
-                functionDeclaration,
-                awaitPromise: false,
-                arguments: [],
-                target: { context: contextId }
+                const params: remote.ScriptCallFunctionParameters = {
+                    functionDeclaration,
+                    awaitPromise: false,
+                    arguments: [],
+                    target: { context: contextId }
+                }
+
+                const result = await this.scriptCallFunction(params).catch((err) => {
+                    log.warn(`switchFrame context callback threw error: ${err.message}`)
+                    return undefined
+                })
+
+                if (result && result.type === 'success' && result.result.type === 'boolean' && result.result.value) {
+                    foundContextId = contextId
+                    return true
+                }
             }
 
-            const result = await this.scriptCallFunction(params).catch((err) => (
-                log.warn(`switchFrame context callback threw error: ${err.message}`)))
+            return false
+        }, {
+            timeout: this.options.waitforTimeout,
+            interval: this.options.waitforInterval,
+            timeoutMsg: 'Could not find the desired frame within the timeout'
+        })
 
-            if (!result || result.type !== 'success' || result.result.type !== 'boolean' || !result.result.value) {
-                continue
-            }
-
-            /**
-             * reset the context to the top level frame first so we can start the search from the root context
-             */
-            await browser.switchFrame(null)
-
-            await this.switchFrame(contextId)
-            return contextId
-        }
-
-        throw new Error('Could not find the desired frame')
+        // Now switch into the frame we found
+        await this.switchFrame(null)
+        await this.switchFrame(foundContextId!)
+        return foundContextId
     }
 
     throw new Error(
