@@ -1,0 +1,9 @@
+version: v2
+modules:
+  - path: packages/wdio-browserstack-service/src/proto/browserstack/sdk/v1
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
