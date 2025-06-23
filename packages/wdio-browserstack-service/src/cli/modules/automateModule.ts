@@ -13,11 +13,24 @@ import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkCon
 import PerformanceTester from '../../instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from '../../instrumentation/performance/constants.js'
 import APIUtils from '../apiUtils.js'
+import { AutomationFrameworkState } from '../states/automationFrameworkState.js'
+
+interface TestResult {
+    testName: string
+    status: 'passed' | 'failed'
+    reason?: string
+}
+
+interface SessionData {
+    lastTestName: string
+    testResults: Map<string, TestResult> // testName -> TestResult
+}
 
 export default class AutomateModule extends BaseModule {
 
     logger = BStackLogger
     browserStackConfig: Options.Testrunner
+    private sessionMap: Map<string, SessionData> = new Map()
 
     static readonly MODULE_NAME = 'AutomateModule'
     /**
@@ -29,6 +42,7 @@ export default class AutomateModule extends BaseModule {
         this.logger.info('AutomateModule: Initializing Automate Module')
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.PRE, this.onBeforeTest.bind(this))
         TestFramework.registerObserver(TestFrameworkState.TEST, HookState.POST, this.onAfterTest.bind(this))
+        TestFramework.registerObserver(AutomationFrameworkState.EXECUTE, HookState.POST, this.onAfterExecute.bind(this))
     }
 
     getModuleName(): string {
@@ -44,8 +58,6 @@ export default class AutomateModule extends BaseModule {
         const test = args.test as Frameworks.Test
         const testTitle = test.title as string
         const suiteTitle = args.suiteTitle as string
-        const userName = this.config.userName as string
-        const accessKey = this.config.accessKey as string
         const testContextOptions = this.config.testContextOptions as TestContextOptions
 
         if (testContextOptions.skipSessionName || !isBrowserstackSession(browser)) {
@@ -69,10 +81,18 @@ export default class AutomateModule extends BaseModule {
             name = `${pre}${test.parent}${post}`
         }
 
+        const existingSession = this.sessionMap.get(sessionId)
+        if (!existingSession) {
+            this.sessionMap.set(sessionId, {
+                lastTestName: name,
+                testResults: new Map()
+            })
+        } else {
+            existingSession.lastTestName = name
+            this.sessionMap.set(sessionId, existingSession)
+        }
+
         TestFramework.setState(instace, TestFrameworkConstants.KEY_AUTOMATE_SESSION_NAME, name)
-        await this.markSessionName( sessionId, name,
-            { user: userName, key: accessKey }
-        )
     }
 
     async onAfterTest(args: Record<string, unknown>) {
@@ -91,8 +111,9 @@ export default class AutomateModule extends BaseModule {
         const autoInstance = AutomationFramework.getTrackedInstance()
         const sessionId = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_FRAMEWORK_SESSION_ID)
         const browser = AutomationFramework.getDriver(autoInstance) as WebdriverIO.Browser
-        const userName = this.config.userName as string
-        const accessKey = this.config.accessKey as string
+        const test = args.test as Frameworks.Test
+        const testTitle = test.title as string
+        const suiteTitle = args.suiteTitle as string
         const testContextOptions = this.config.testContextOptions as TestContextOptions
 
         if (testContextOptions.skipSessionStatus || !isBrowserstackSession(browser)) {
@@ -100,11 +121,76 @@ export default class AutomateModule extends BaseModule {
             return
         }
 
+        let name = suiteTitle
+        if (testContextOptions.sessionNameFormat) {
+            const caps = AutomationFramework.getState(autoInstance, AutomationFrameworkConstants.KEY_CAPABILITIES)
+            name = testContextOptions.sessionNameFormat(
+                this.browserStackConfig,
+                caps,
+                suiteTitle,
+                testTitle
+            )
+        } else if (test && !test.fullName) {
+            // Mocha
+            const pre = testContextOptions.sessionNamePrependTopLevelSuiteTitle ? `${suiteTitle} - ` : ''
+            const post = !testContextOptions.sessionNameOmitTestTitle ? ` - ${testTitle}` : ''
+            name = `${pre}${test.parent}${post}`
+        }
+
+        const sessionData = this.sessionMap.get(sessionId)
+        if (sessionData) {
+            const testResult: TestResult = {
+                testName: name,
+                status: status,
+                reason: reason
+            }
+
+            sessionData.testResults.set(name, testResult)
+            this.sessionMap.set(sessionId, sessionData)
+        }
+
         TestFramework.setState(instace, TestFrameworkConstants.KEY_AUTOMATE_SESSION_STATUS, status)
         TestFramework.setState(instace, TestFrameworkConstants.KEY_AUTOMATE_SESSION_REASON, reason)
-        await this.markSessionStatus( sessionId, status, reason,
-            { user: userName, key: accessKey }
-        )
+    }
+
+    async onAfterExecute() {
+        this.logger.debug('onAfterExecute: inside automate module after execute hook!')
+
+        const userName = this.config.userName as string
+        const accessKey = this.config.accessKey as string
+        const testContextOptions = this.config.testContextOptions as TestContextOptions
+
+        for (const [sessionId, sessionData] of this.sessionMap.entries()) {
+            try {
+                const failedTests = Array.from(sessionData.testResults.values()).filter(test => test.status === 'failed')
+                const hasFailures = failedTests.length > 0
+                const sessionStatus = hasFailures ? 'failed' : 'passed'
+
+                let failureReason: string | undefined
+                if (hasFailures) {
+                    if (failedTests.length === 1) {
+                        failureReason = failedTests[0].reason || 'Test failed'
+                    } else {
+                        const reasonLines = failedTests.map(test =>
+                            `${test.testName}: ${test.reason || 'Unknown Error'}`
+                        )
+                        failureReason = reasonLines.join(',\n')
+                    }
+                }
+
+                if (!testContextOptions.skipSessionName) {
+                    await this.markSessionName(sessionId, sessionData.lastTestName, { user: userName, key: accessKey })
+                }
+
+                if (!testContextOptions.skipSessionStatus) {
+                    await this.markSessionStatus(sessionId, sessionStatus, failureReason, { user: userName, key: accessKey })
+                }
+            } catch (error) {
+                this.logger.error(`Failed to process session ${sessionId}: ${error}`)
+            }
+        }
+
+        this.sessionMap.clear()
     }
 
     async markSessionName(sessionId: string, sessionName: string, config: { user: string; key: string;}): Promise<void> {
