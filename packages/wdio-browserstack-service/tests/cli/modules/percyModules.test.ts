@@ -2,7 +2,8 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 
 vi.mock('../../../src/cli/frameworks/testFramework.js', () => ({
     default: {
-        registerObserver: vi.fn()
+        registerObserver: vi.fn(),
+        getState: vi.fn()
     }
 }))
 
@@ -112,7 +113,7 @@ describe('PercyModule', () => {
 
     describe('onBeforeTest', () => {
         it('should not call _setSessionName when Percy handler is not initialized', async () => {
-            await percyModule.onBeforeTest({ sessionName: 'test-session' })
+            await percyModule.onBeforeTest({ instance: {} })
             expect(PercyHandler).not.toHaveBeenCalled()
         })
 
@@ -120,15 +121,24 @@ describe('PercyModule', () => {
             const mockBrowser = { sessionId: 'test-session-id', on: vi.fn() } as any
             await percyModule.onAfterCreate({ browser: mockBrowser })
 
-            await percyModule.onBeforeTest({ sessionName: 'test-session' })
+            const getStateSpy = vi.spyOn(TestFramework, 'getState')
+            getStateSpy.mockReturnValue('test-session-name')
+            const mockTestInstance = {
+                getAllData: vi.fn().mockReturnValue(new Map([
+                    ['automate_session_name', 'test-session-name']
+                ]))
+            }
 
-            expect(mockInstance._setSessionName).toHaveBeenCalledWith('test-session')
+            await percyModule.onBeforeTest({ instance: mockTestInstance })
+
+            expect(mockInstance._setSessionName).toHaveBeenCalledWith('test-session-name')
+            expect(getStateSpy).toHaveBeenCalledWith(mockTestInstance, 'automate_session_name')
         })
     })
 
     describe('onAfterTest', () => {
         it('should not call percyAutoCapture when Percy handler is not initialized', async () => {
-            await percyModule.onAfterTest({})
+            await percyModule.onAfterTest()
             expect(PercyHandler).not.toHaveBeenCalled()
         })
 
@@ -137,7 +147,7 @@ describe('PercyModule', () => {
             const mockBrowser = { sessionId: 'test-session-id', on: vi.fn() } as any
             await percyModule.onAfterCreate({ browser: mockBrowser })
 
-            await percyModule.onAfterTest({})
+            await percyModule.onAfterTest()
 
             expect(mockInstance.percyAutoCapture).toHaveBeenCalledWith('testcase', null)
             expect(mockInstance.teardown).toHaveBeenCalled()

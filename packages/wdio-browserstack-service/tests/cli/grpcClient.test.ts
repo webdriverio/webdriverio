@@ -22,27 +22,27 @@ describe('GrpcClient', () => {
 
     describe('getClient()', () => {
         it('should return null when client is not initialized', () => {
-            expect(grpcClient.getClient()).to.be.null
+            expect(grpcClient.getClient()).toBe(null)
         })
 
         it('should return SDKClient instance when client is initialized', () => {
             const mockClient = {} as SDKClient
             grpcClient.client = mockClient
 
-            expect(grpcClient.getClient()).to.equal(mockClient)
+            expect(grpcClient.getClient()).toEqual(mockClient)
         })
     })
 
     describe('getChannel()', () => {
         it('should return null when channel is not initialized', () => {
-            expect(grpcClient.getChannel()).to.be.null
+            expect(grpcClient.getChannel()).toBe(null)
         })
 
         it('should return grpc.Channel instance when channel is initialized', () => {
             const mockChannel = {} as grpc.Channel
             grpcClient.channel = mockChannel
 
-            expect(grpcClient.getChannel()).to.equal(mockChannel)
+            expect(grpcClient.getChannel()).toEqual(mockChannel)
         })
     })
 
@@ -51,7 +51,14 @@ describe('GrpcClient', () => {
             vi.resetAllMocks()
 
             vi.spyOn(CLIUtils, 'getSdkVersion').mockReturnValue('1.0.0')
-            vi.spyOn(CLIUtils, 'getAutomationFrameworkDetail').mockReturnValue({ name: 'webdriver' })
+            vi.spyOn(CLIUtils, 'getAutomationFrameworkDetail').mockReturnValue({
+                name: 'webdriver',
+                version: {}
+            })
+            vi.spyOn(CLIUtils, 'getTestFrameworkDetail').mockReturnValue({
+                name: '',
+                version: {}
+            })
             vi.spyOn(CLIUtils, 'getSdkLanguage').mockReturnValue('typescript')
 
             grpcClient = new GrpcClient()
@@ -70,8 +77,12 @@ describe('GrpcClient', () => {
                 expect.objectContaining({
                     binSessionId: 'test-session-id',
                     sdkVersion: '1.0.0',
-                    testFramework: 'webdriver',
-                    wdioConfig: 'test-config'
+                    testFramework: '',
+                    wdioConfig: 'test-config',
+                    sdkLanguage: 'typescript',
+                    language: 'typescript',
+                    frameworks: ['webdriver', ''],
+                    frameworkVersions: {}
                 }),
                 expect.any(Function)
             )

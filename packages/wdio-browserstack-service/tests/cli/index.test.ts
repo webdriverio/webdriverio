@@ -7,7 +7,62 @@ import { BrowserstackCLI } from '../../src/cli/index.js'
 
 import * as bstackLogger from '../../src/bstackLogger.js'
 import { CLIUtils } from '../../src/cli/cliUtils.js'
-import TestHubModule from '../../src/cli/modules/TestHubModule.js'
+import TestHubModule from '../../src/cli/modules/testHubModule.js'
+
+// Mock child_process at the top level
+vi.mock('node:child_process')
+
+// Mock APIUtils to prevent the actual URL updates
+vi.mock('../../src/cli/apiUtils.js', () => ({
+    default: {
+        updateURLSForGRR: vi.fn()
+    }
+}))
+
+// Mock other modules
+vi.mock('../../src/cli/modules/WebdriverIOModule.js', () => ({
+    default: class WebdriverIOModule {
+        static MODULE_NAME = 'webdriverio'
+    }
+}))
+
+vi.mock('../../src/cli/modules/AutomateModule.js', () => ({
+    default: class AutomateModule {
+        static MODULE_NAME = 'automate'
+    }
+}))
+
+vi.mock('../../src/cli/modules/ObservabilityModule.js', () => ({
+    default: class ObservabilityModule {
+        static MODULE_NAME = 'observability'
+    }
+}))
+
+vi.mock('../../src/cli/modules/AccessibilityModule.js', () => ({
+    default: class AccessibilityModule {
+        static MODULE_NAME = 'accessibility'
+    }
+}))
+
+vi.mock('../../src/cli/modules/PercyModule.js', () => ({
+    default: class PercyModule {
+        static MODULE_NAME = 'percy'
+    }
+}))
+
+// Mock TestOpsConfig
+vi.mock('../../src/testOpsConfig.js', () => ({
+    TestOpsConfig: {
+        getInstance: vi.fn(() => ({
+            buildHashedId: null
+        }))
+    }
+}))
+
+// Mock accessibility response processor
+vi.mock('../../src/accessibility-response-processor.js', () => ({
+    processAccessibilityResponse: vi.fn()
+}))
 
 const mockGetInstance = GrpcClient.getInstance as Mock
 
@@ -20,11 +75,61 @@ vi.mock('../../src/cli/grpcClient.js', () => ({
 const bstackLoggerSpy = vi.spyOn(bstackLogger.BStackLogger, 'logToFile')
 bstackLoggerSpy.mockImplementation(() => {})
 
+// Mock APIs structure for testing
+const mockApis = {
+    automate: {
+        hub: 'https://hub.browserstack.com',
+        cdp: 'https://cdp.browserstack.com',
+        api: 'https://api.browserstack.com',
+        upload: 'https://upload.browserstack.com'
+    },
+    appAutomate: {
+        hub: 'https://hub-app.browserstack.com',
+        cdp: 'https://cdp-app.browserstack.com',
+        api: 'https://api-app.browserstack.com',
+        upload: 'https://upload-app.browserstack.com'
+    },
+    percy: {
+        api: 'https://percy.browserstack.com'
+    },
+    turboScale: {
+        api: 'https://turboscale.browserstack.com'
+    },
+    accessibility: {
+        api: 'https://accessibility.browserstack.com'
+    },
+    appAccessibility: {
+        api: 'https://app-accessibility.browserstack.com'
+    },
+    observability: {
+        api: 'https://observability.browserstack.com',
+        upload: 'https://upload-observability.browserstack.com'
+    },
+    configServer: {
+        api: 'https://config.browserstack.com'
+    },
+    edsInstrumentation: {
+        api: 'https://eds.browserstack.com'
+    }
+}
+
+// Mock config structure
+const mockConfig = {
+    test: 'config',
+    apis: mockApis
+}
+
 describe('BrowserstackCLI', () => {
     let browserstackCLI: BrowserstackCLI
     let mockGrpcClient: any
     let startMainSpy: any
     let startChildSpy: any
+
+    // Mock wdio config for testing
+    const mockWdioConfig = {
+        capabilities: [],
+        selfHeal: false
+    }
 
     beforeEach(() => {
         vi.resetAllMocks()
@@ -39,8 +144,7 @@ describe('BrowserstackCLI', () => {
             // Ensure the environment variable is cleared
             delete process.env.BROWSERSTACK_CLI_BIN_SESSION_ID
 
-            const wdioConfig = 'DummyConfig'
-            await browserstackCLI.bootstrap(wdioConfig)
+            await browserstackCLI.bootstrap(mockWdioConfig)
             expect(startMainSpy).toHaveBeenCalledOnce()
             expect(startChildSpy).not.toHaveBeenCalled()
         })
@@ -51,7 +155,7 @@ describe('BrowserstackCLI', () => {
             // Set the environment variable
             process.env.BROWSERSTACK_CLI_BIN_SESSION_ID = 'test-session-id'
 
-            await browserstackCLI.bootstrap()
+            await browserstackCLI.bootstrap(mockWdioConfig)
             expect(startChildSpy).toHaveBeenCalledWith('test-session-id')
             expect(startMainSpy).not.toHaveBeenCalled()
 
@@ -63,7 +167,7 @@ describe('BrowserstackCLI', () => {
             const stopSpy = vi.spyOn(browserstackCLI, 'stop').mockResolvedValue()
             vi.spyOn(browserstackCLI, 'startMain').mockRejectedValue(error)
 
-            await browserstackCLI.bootstrap()
+            await browserstackCLI.bootstrap(mockWdioConfig)
 
             expect(stopSpy).toHaveBeenCalled()
         })
@@ -73,13 +177,23 @@ describe('BrowserstackCLI', () => {
         beforeEach(() => {
             vi.resetAllMocks()
 
+            // Mock CLIUtils methods that are used in loadModules
+            vi.spyOn(CLIUtils, 'getTestFrameworkDetail').mockReturnValue({
+                name: 'webdriverio-mocha',
+                version: '1.0.0'
+            })
+            vi.spyOn(CLIUtils, 'getAutomationFrameworkDetail').mockReturnValue({
+                name: 'webdriverio',
+                version: '1.0.0'
+            })
+
             mockGrpcClient = {
                 init: vi.fn(),
                 connect: vi.fn().mockResolvedValue(undefined),
                 connectBinSession: vi.fn().mockResolvedValue({}),
                 startBinSession: vi.fn().mockResolvedValue({
                     binSessionId: 'test-session-id',
-                    config: JSON.stringify({ test: 'config' })
+                    config: JSON.stringify(mockConfig)
                 }),
                 stopBinSession: vi.fn().mockResolvedValue({})
             }
@@ -112,16 +226,26 @@ describe('BrowserstackCLI', () => {
         beforeEach(() => {
             vi.resetAllMocks()
 
+            // Mock CLIUtils methods that are used in loadModules
+            vi.spyOn(CLIUtils, 'getTestFrameworkDetail').mockReturnValue({
+                name: 'webdriverio-mocha',
+                version: '1.0.0'
+            })
+            vi.spyOn(CLIUtils, 'getAutomationFrameworkDetail').mockReturnValue({
+                name: 'webdriverio',
+                version: '1.0.0'
+            })
+
             mockGrpcClient = {
                 init: vi.fn(),
                 connect: vi.fn().mockResolvedValue(undefined),
                 connectBinSession: vi.fn().mockResolvedValue({
                     binSessionId: 'test-session-id',
-                    config: JSON.stringify({ test: 'config' })
+                    config: JSON.stringify(mockConfig)
                 }),
                 startBinSession: vi.fn().mockResolvedValue({
                     binSessionId: 'test-session-id',
-                    config: JSON.stringify({ test: 'config' })
+                    config: JSON.stringify(mockConfig)
                 }),
                 stopBinSession: vi.fn().mockResolvedValue({})
             }
@@ -258,9 +382,19 @@ describe('BrowserstackCLI', () => {
             browserstackCLI = new BrowserstackCLI()
             vi.spyOn(browserstackCLI, 'configureModules').mockResolvedValue()
 
+            // Mock CLIUtils methods that are used in loadModules
+            vi.spyOn(CLIUtils, 'getTestFrameworkDetail').mockReturnValue({
+                name: 'webdriverio-mocha',
+                version: '1.0.0'
+            })
+            vi.spyOn(CLIUtils, 'getAutomationFrameworkDetail').mockReturnValue({
+                name: 'webdriverio',
+                version: '1.0.0'
+            })
+
             mockStartBinResponse = {
                 binSessionId: 'test-session-id',
-                config: JSON.stringify({ test: 'config' }),
+                config: JSON.stringify(mockConfig),
                 testhub: {}
             }
         })
@@ -276,7 +410,7 @@ describe('BrowserstackCLI', () => {
         it('handles response without testhub data', () => {
             const responseWithoutTestHub = {
                 binSessionId: 'test-session-id',
-                config: JSON.stringify({ test: 'config' })
+                config: JSON.stringify(mockConfig)
             }
 
             browserstackCLI.loadModules(responseWithoutTestHub)
@@ -288,7 +422,7 @@ describe('BrowserstackCLI', () => {
         it('sets config from response', () => {
             browserstackCLI.loadModules(mockStartBinResponse)
 
-            expect(browserstackCLI.getConfig()).toEqual({ test: 'config' })
+            expect(browserstackCLI.getConfig()).toEqual(mockConfig)
         })
     })
 

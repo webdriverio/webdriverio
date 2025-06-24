@@ -86,6 +86,14 @@ describe('CLIUtils', () => {
                 userName: 'testuser',
                 accessKey: 'testkey',
                 buildName: 'common-build',
+                buildTag: [],
+                testContextOptions: {
+                    skipSessionName: false,
+                    skipSessionStatus: false,
+                    sessionNameOmitTestTitle: false,
+                    sessionNamePrependTopLevelSuiteTitle: false,
+                    sessionNameFormat: ''
+                },
                 platforms: [{
                     browserName: 'chrome'
                 }]
@@ -142,7 +150,7 @@ describe('CLIUtils', () => {
             const result = CLIUtils.getBinConfig(mockConfig, capabilities, options)
             const parsed = JSON.parse(result)
 
-            expect(parsed.browserstackLocalOptions).toEqual({
+            expect(parsed.browserStackLocalOptions).toEqual({
                 localIdentifier: 'test123'
             })
             expect(parsed.opts).toBeUndefined()
@@ -175,8 +183,8 @@ describe('CLIUtils', () => {
     })
 
     describe('getSdkLanguage', () => {
-        it('returns wdio as sdk language', () => {
-            expect(CLIUtils.getSdkLanguage()).toBe('wdio')
+        it('returns ECMAScript as sdk language', () => {
+            expect(CLIUtils.getSdkLanguage()).toBe('ECMAScript')
         })
     })
 
@@ -215,8 +223,8 @@ describe('CLIUtils', () => {
 
         it('returns empty string when no binary files found', () => {
             vi.mocked(fs.readdirSync).mockReturnValue([
-                { name: 'other-file.txt', isFile: () => true, isDirectory: () => false }
-            ] as unknown as fs.Dirent[])
+                'other-file.txt'
+            ] as any)
 
             const result = CLIUtils.getExistingCliPath(mockCliDir)
             expect(result).toBe('')
@@ -304,11 +312,11 @@ describe('CLIUtils', () => {
 
             expect(testFramework).toEqual({
                 name: 'mocha',
-                version: { mocha: 'latest' }
+                version: { mocha: CLIUtils.getSdkVersion() }
             })
             expect(autoFramework).toEqual({
                 name: 'webdriver',
-                version: 'latest'
+                version: { webdriver: CLIUtils.getSdkVersion() }
             })
         })
     })
