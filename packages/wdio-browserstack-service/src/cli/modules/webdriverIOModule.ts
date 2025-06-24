@@ -7,7 +7,7 @@ import { HookState } from '../states/hookState.js'
 import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 import { isBrowserstackSession } from '../../util.js'
-import type { DriverInitRequest, DriverInitResponse } from 'src/proto/sdk-messages.js'
+import type { DriverInitRequest, DriverInitResponse } from '../../proto/sdk-messages.js'
 import { GrpcClient } from '../grpcClient.js'
 
 export default class WebdriverIOModule extends BaseModule {

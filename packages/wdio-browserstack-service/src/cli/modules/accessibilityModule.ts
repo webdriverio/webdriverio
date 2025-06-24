@@ -11,11 +11,11 @@ import accessibilityScripts from '../../scripts/accessibility-scripts.js'
 import { _getParamsForAppAccessibility, formatString, getAppA11yResults, getAppA11yResultsSummary, shouldScanTestForAccessibility, validateCapsWithA11y, validateCapsWithAppA11y, validateCapsWithNonBstackA11y } from '../../util.js'
 import { AutomationFrameworkConstants } from '../frameworks/constants/automationFrameworkConstants.js'
 import util from 'node:util'
-import type { Accessibility } from 'src/proto/sdk-messages-accessibility.js'
+import type { Accessibility } from '../../proto/sdk-messages-accessibility.js'
 import type { Capabilities } from '@wdio/types'
 import PerformanceTester from '../../instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from '../../instrumentation/performance/constants.js'
-import type { FetchDriverExecuteParamsEventRequest, FetchDriverExecuteParamsEventResponse } from 'src/proto/sdk-messages.js'
+import type { FetchDriverExecuteParamsEventRequest, FetchDriverExecuteParamsEventResponse } from '../../proto/sdk-messages.js'
 import { GrpcClient } from '../grpcClient.js'
 
 export default class AccessibilityModule extends BaseModule {
