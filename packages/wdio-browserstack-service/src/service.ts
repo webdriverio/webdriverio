@@ -361,6 +361,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         PerformanceTester.start(PERFORMANCE_SDK_EVENTS.HOOK_EVENTS.AFTER)
 
         try {
+            if (BrowserstackCLI.getInstance().isRunning()) {
+                await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.EXECUTE, HookState.POST, {})
+            }
             const { preferScenarioName, setSessionName, setSessionStatus } = this._options
             // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
             // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
