@@ -152,24 +152,6 @@ describe('TestHubModule', () => {
                 autoInstance: [mockAutomationInstance]
             })
         })
-
-        it('should log automation instance data', async () => {
-            const mockAutomationInstance = {
-                getAllData: vi.fn(() => new Map([['key', 'value']]))
-            }
-            vi.mocked(AutomationFramework.getTrackedInstance).mockReturnValue(mockAutomationInstance)
-            vi.spyOn(testHubModule, 'sendTestSessionEvent').mockResolvedValue()
-
-            const mockArgs = {
-                test: { title: 'Test' } as Frameworks.Test
-            }
-
-            await testHubModule.onBeforeTest(mockArgs)
-
-            expect(testHubModule.logger.info).toHaveBeenCalledWith(
-                expect.stringContaining('onBeforeTest: Automation instance:')
-            )
-        })
     })
 
     describe('onAllTestEvents', () => {

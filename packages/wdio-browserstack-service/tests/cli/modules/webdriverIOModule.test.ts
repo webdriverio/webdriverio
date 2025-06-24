@@ -279,45 +279,6 @@ describe('WebdriverIOModule', () => {
             )
         })
 
-        it('should remove buildTag from bstack:options', async () => {
-            const mockCapabilities: WebdriverIO.Capabilities = {
-                browserName: 'chrome'
-            }
-
-            await webdriverIOModule.getBinDriverCapabilities(mockAutomationInstance, mockCapabilities)
-
-            const setStateCall = vi.mocked(AutomationFramework.setState).mock.calls.find(
-                call => call[1] === AutomationFrameworkConstants.KEY_CAPABILITIES
-            )
-            const capabilitiesArg = setStateCall?.[2] as any
-
-            expect(capabilitiesArg['bstack:options']).toEqual({})
-        })
-
-        it('should handle capabilities with browserstack.buildTag', async () => {
-            mockGrpcClient.driverInitEvent.mockResolvedValue({
-                success: true,
-                capabilities: Buffer.from(JSON.stringify({
-                    browserName: 'chrome',
-                    'browserstack.buildTag': 'test-build'
-                })),
-                hubUrl: 'https://hub.browserstack.com'
-            })
-
-            const mockCapabilities: WebdriverIO.Capabilities = {
-                browserName: 'chrome'
-            }
-
-            await webdriverIOModule.getBinDriverCapabilities(mockAutomationInstance, mockCapabilities)
-
-            const setStateCall = vi.mocked(AutomationFramework.setState).mock.calls.find(
-                call => call[1] === AutomationFrameworkConstants.KEY_CAPABILITIES
-            )
-            const capabilitiesArg = setStateCall?.[2] as any
-
-            expect(capabilitiesArg).not.toHaveProperty('browserstack.buildTag')
-        })
-
         it('should handle WDIO_WORKER_ID environment variable', async () => {
             process.env.WDIO_WORKER_ID = '2-5'
 

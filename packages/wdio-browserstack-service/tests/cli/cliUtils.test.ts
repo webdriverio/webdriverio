@@ -87,6 +87,7 @@ describe('CLIUtils', () => {
                 accessKey: 'testkey',
                 buildName: 'common-build',
                 buildTag: [],
+                isNonBstackA11yWDIO: true,
                 testContextOptions: {
                     skipSessionName: false,
                     skipSessionStatus: false,
