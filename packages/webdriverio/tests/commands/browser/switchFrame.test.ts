@@ -166,7 +166,7 @@ describe('switchFrame command', () => {
         })
 
         it('should re-resolve element if elementId is missing', async () => {
-            // Mock the resolved element (returned after re-resolving)
+            // Mock the resolved element
             const resolvedElement = {
                 selector: 'iframe',
                 elementId: 'elem-789',
