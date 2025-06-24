@@ -161,7 +161,7 @@ Use environment variables to store dynamic test data e.g. secret credentials, wi
 
 ## Lint your code
 
-Using eslint to lint your code you can potentionally catch errors early, use our [linting rules](https://www.npmjs.com/package/eslint-plugin-wdio) to make sure that some of the best practices are always applied.
+Using eslint to lint your code you can potentially catch errors early, use our [linting rules](https://www.npmjs.com/package/eslint-plugin-wdio) to make sure that some of the best practices are always applied.
 
 ## Don't pause
 

@@ -31,39 +31,18 @@ If the config file uses capabilities object then just pass the path to config fi
 
 WebdriverIO with capability array:
 
-```ts title="wdio.conf.ts example"
-export const config = {
-    // ...
-    capabilities:[{
-        browserName: 'chrome', // options: `chrome`, `edge`, `firefox`, `safari`, `chromium`
-        browserVersion: '27.0', // browser version
-        platformName: 'Windows 10' // OS platform
-    }]
-}
+```ts title="wdio.conf.ts example" reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/repl/repl.js
 ```
 
 ```sh
 wdio repl "./path/to/wdio.config.js" 0 -p 9515
 ```
 
-WebdriverIO with [multiremote](https://webdriver.io/docs/multiremote/) capability object:
+WebdriverIO with [Multiremote](https://webdriver.io/docs/multiremote/) capability object:
 
-```ts title="wdio.conf.ts example"
-export const config = {
-    // ...
-    capabilities: {
-        myChromeBrowser: {
-            capabilities: {
-                browserName: 'chrome'
-            }
-        },
-        myFirefoxBrowser: {
-            capabilities: {
-                browserName: 'firefox'
-            }
-        }
-    }
-}
+```ts title="wdio.conf.ts example" reference useHTTPS
+https://github.com/webdriverio/webdriverio/blob/main/website/recipes/repl/repl-multiremote.js
 ```
 
 ```sh
@@ -116,8 +95,8 @@ Usage:
   values={[
     {label: 'Long Parameter Names', value: 'long'},
     {label: 'Short Parameter Names', value: 'short'}
-  ]
-}>
+  ]}
+>
 <TabItem value="long">
 
 ```sh
