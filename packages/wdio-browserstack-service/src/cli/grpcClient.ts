@@ -30,7 +30,7 @@ import type {
     LogCreatedEventResponse,
     DriverInitResponse,
     FetchDriverExecuteParamsEventResponse
-} from 'src/proto/sdk-messages.js'
+} from '../proto/sdk-messages.js'
 
 /**
  * GrpcClient - Singleton class for managing gRPC client connections

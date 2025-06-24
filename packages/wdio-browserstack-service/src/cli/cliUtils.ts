@@ -24,6 +24,8 @@ import {
     getBrowserStackUser,
     getBrowserStackKey,
     isFalse,
+    isTurboScale,
+    shouldAddServiceVersion,
 } from '../util.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
@@ -72,11 +74,13 @@ export class CLIUtils {
         const commonBstackOptions = (config.commonCapabilities &&
             config.commonCapabilities['bstack:options']) || {}
 
+        const isNonBstackA11y = isTurboScale(options) || !shouldAddServiceVersion(config as Options.Testrunner, options.testObservability)
         const observabilityOptions: TestObservabilityOptions = options.testObservabilityOptions || {}
         const binconfig: Record<string, unknown> = {
             userName: observabilityOptions.user || config.user,
             accessKey: observabilityOptions.key || config.key,
             platforms: [],
+            isNonBstackA11yWDIO: isNonBstackA11y,
             ...modifiedOpts,
             ...commonBstackOptions,
         }
