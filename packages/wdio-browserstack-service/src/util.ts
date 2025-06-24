@@ -42,16 +42,18 @@ import {
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
-    APP_ALLY_ISSUES_ENDPOINT
+    APP_ALLY_ISSUES_ENDPOINT,
+    CLI_DEBUG_LOGS_FILE
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
-import { FileStream } from './fileStream.js'
 import AccessibilityScripts from './scripts/accessibility-scripts.js'
 import UsageStats from './testOps/usageStats.js'
 import TestOpsConfig from './testOps/testOpsConfig.js'
 import type { StartBinSessionResponse } from './proto/sdk-messages.js'
 import APIUtils from './cli/apiUtils.js'
+import tar from 'tar'
+import { fileFromPath } from 'formdata-node/file-from-path'
 
 const pGitconfig = promisify(gitconfig)
 
@@ -1401,30 +1403,82 @@ export function checkAndTruncateVCSInfo(gitMetaData: GitMetaData): GitMetaData {
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function uploadLogs(user: string | undefined, key: string | undefined, clientBuildUuid: string) {
-    if (!user || !key) {
-        BStackLogger.debug('Uploading logs failed due to no credentials')
-        return
+    try {
+        if (!user || !key) {
+            BStackLogger.debug('Uploading logs failed due to no credentials')
+            return
+        }
+
+        const tmpDir = '/tmp'
+        const tarPath = path.join(tmpDir, 'logs.tar')
+        const tarGzPath = path.join(tmpDir, 'logs.tar.gz')
+
+        const filesToArchive = [
+            BStackLogger.logFilePath,
+            CLI_DEBUG_LOGS_FILE,
+        ].filter(f => fs.existsSync(f))
+
+        const copiedFileNames = []
+        for (const f of filesToArchive) {
+            const dest = path.join(tmpDir, path.basename(f))
+            fs.copyFileSync(f, dest)
+            copiedFileNames.push(path.basename(f))
+        }
+
+        await tar.create(
+            {
+                file: tarPath,
+                cwd: tmpDir,
+                portable: true,
+                noDirRecurse: true
+            },
+            copiedFileNames
+        )
+
+        await new Promise<void>((resolve, reject) => {
+            const source = fs.createReadStream(tarPath)
+            const dest = fs.createWriteStream(tarGzPath)
+            const gzip = zlib.createGzip({ level: 1 })
+
+            source.pipe(gzip).pipe(dest)
+            dest.on('finish', resolve)
+            dest.on('error', reject)
+        })
+
+        const formData = new FormData()
+        const file = await fileFromPath(tarGzPath)
+        formData.append('data', file, 'logs.tar.gz')
+        formData.append('clientBuildUuid', clientBuildUuid)
+
+        const requestOptions = {
+            body: formData,
+            username: user,
+            password: key
+        }
+
+        const response = await nodeRequest(
+            'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, APIUtils.UPLOAD_LOGS_ADDRESS
+        )
+
+        fs.unlinkSync(tarPath)
+        fs.unlinkSync(tarGzPath)
+        for (const f of copiedFileNames) {
+            const filePath = path.join(tmpDir, f)
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath)
+            }
+        }
+
+        // Delete the SDK CLI log file after upload
+        if (fs.existsSync(CLI_DEBUG_LOGS_FILE)) {
+            fs.unlinkSync(CLI_DEBUG_LOGS_FILE)
+        }
+
+        return response
+    } catch (error) {
+        BStackLogger.error(`Error while uploading logs: ${getErrorString(error)}`)
+        return null
     }
-    const fileStream = fs.createReadStream(BStackLogger.logFilePath)
-    const uploadAddress = APIUtils.UPLOAD_LOGS_ADDRESS
-    const zip = zlib.createGzip({ level: 1 })
-    fileStream.pipe(zip)
-
-    const formData = new FormData()
-    formData.append('data', new FileStream(zip), 'logs.gz')
-    formData.append('clientBuildUuid', clientBuildUuid)
-
-    const requestOptions = {
-        body: formData,
-        username: user,
-        password: key
-    }
-
-    const response = await nodeRequest(
-        'POST', UPLOAD_LOGS_ENDPOINT, requestOptions, uploadAddress
-    )
-
-    return response
 }
 
 export const isObject = (object: any) => {
