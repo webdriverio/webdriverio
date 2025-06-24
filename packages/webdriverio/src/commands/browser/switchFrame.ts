@@ -116,7 +116,11 @@ export async function switchFrame (
             const tree = await this.browsingContextGetTree({})
             const urlContext = (
                 sessionContext.findContext(context, tree.contexts, 'byUrl') ||
-        sessionContext.findContext(`${context}/`, tree.contexts, 'byUrl')
+                /**
+                 * In case the user provides an url without `/` at the end, e.g. `https://example.com`,
+                 * the `browsingContextGetTree` command may return a context with the url `https://example.com/`.
+                 */
+                sessionContext.findContext(`${context}/`, tree.contexts, 'byUrl')
             )
             const urlContextContaining = sessionContext.findContext(context, tree.contexts, 'byUrlContaining')
             const contextIdContext = sessionContext.findContext(context, tree.contexts, 'byContextId')
@@ -308,7 +312,9 @@ export async function switchFrame (
             timeoutMsg: 'Could not find the desired frame within the timeout'
         })
 
-        // Now switch into the frame we found
+        /**
+             * reset the context to the top level frame first so we can start the search from the root context
+         */
         await this.switchFrame(null)
         await this.switchFrame(foundContextId!)
         return foundContextId
