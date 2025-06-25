@@ -46,7 +46,7 @@
     "expect-webdriverio": "^5.3.4"
   },
   "peerDependencies": {
-    "@wdio/runner": "^9.16.3",
+    "@wdio/runner": "^9.16.2",
     "webdriverio": "^9.0.0"
   },
   "peerDependenciesMeta": {
