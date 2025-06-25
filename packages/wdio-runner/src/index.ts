@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
-import { expect, setOptions, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
+import { expect, setOptions, getConfig, matchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
@@ -85,7 +85,6 @@ export default class Runner extends EventEmitter {
         })
         this._configParser.addService(softAssertionService)
         this._configParser.addService(snapshotService)
-
         this._caps = this._isMultiremote
             /**
              * Filter driver instances based on 'wdio:exclude' capability and allow
@@ -254,7 +253,11 @@ export default class Runner extends EventEmitter {
          */
         if (runner === 'local') {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
-            return framework.init(cid, config, specs, capabilities, reporter)
+            const frameworkInstance = framework.init(cid, config, specs, capabilities, reporter, expect)
+            if (frameworkInstance.setupExpect) {
+                frameworkInstance.setupExpect(expect, matchers, getConfig)
+            }
+            return frameworkInstance
         }
 
         /**
