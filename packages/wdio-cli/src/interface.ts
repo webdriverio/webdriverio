@@ -49,13 +49,10 @@ export default class WDIOCLInterface extends EventEmitter {
     private _skippedSpecs = 0
     private _inDebugMode = false
     private _start = new Date()
-    private _messages: {
-        reporter: Record<string, string[]>
-        debugger: Record<string, string[]>
-    } = {
-            reporter: {},
-            debugger: {}
-        }
+    private _messages = {
+        reporter: {} as Record<string, string[]>,
+        debugger: {} as Record<string, string[]>
+    }
 
     constructor(
         private _config: WebdriverIO.Config,

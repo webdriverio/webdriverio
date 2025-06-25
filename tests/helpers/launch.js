@@ -12,6 +12,8 @@ export default function launch (testName, ...args) {
             }
         }
 
+        console.log(launcher.interface.result)
+
         throw new Error(`Smoke test "${testName}" failed`)
     })
 }
