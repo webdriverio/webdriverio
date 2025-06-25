@@ -4,6 +4,8 @@ const LOG_METHODS = ['error', 'warn', 'info', 'debug', 'trace', 'silent']
 
 export type { Logger } from './index.js'
 
+export const SENSITIVE_DATA_REPLACER = '**MASKED**'
+
 /**
  * This implementation of the Logger package is a simple adptation to run it within
  * a browser environment.
@@ -25,5 +27,6 @@ export default function getLogger (component: string) {
 // logging interface expects a 'setLevel' method
 getLogger.setLevel = () => {}
 getLogger.setLogLevelsConfig = () => {}
+getLogger.setMaskingPatterns = () => {}
 getLogger.waitForBuffer = () => {}
 getLogger.clearLogger = () => {}

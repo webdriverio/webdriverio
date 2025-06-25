@@ -23,6 +23,7 @@ export class ContextManager extends SessionManager {
     #currentContext?: string
     #mobileContext?: string
     #isNativeContext: boolean
+    #getContextSupport = true
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, ContextManager.name)
@@ -196,7 +197,8 @@ export class ContextManager extends SessionManager {
         if (
             this.#browser.isMobile &&
             !this.#isNativeContext &&
-            !this.#mobileContext
+            !this.#mobileContext &&
+            this.#getContextSupport
         ) {
             const context = await this.#browser.getContext().catch((err) => {
                 log.warn(
@@ -204,6 +206,14 @@ export class ContextManager extends SessionManager {
                     `WebDriver capabilities: ${JSON.stringify(this.#browser.capabilities)}\n` +
                     `Requested WebDriver capabilities: ${JSON.stringify(this.#browser.requestedCapabilities)}`
                 )
+
+                /**
+                 * Avoid continuing fetching the context if the environment does not support it
+                 */
+                if (err.message.includes('Request failed with status code 405')) {
+                    this.#getContextSupport = false
+                }
+
                 return undefined
             })
             this.#mobileContext = typeof context === 'string'

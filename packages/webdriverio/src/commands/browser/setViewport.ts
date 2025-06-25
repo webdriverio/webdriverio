@@ -30,13 +30,13 @@ export interface SetViewportOptions {
  * @param {number}             options.width            viewport width in pixels
  * @param {number}             options.height           viewport height in pixels
  * @param {number}             options.devicePixelRatio pixel ratio of the viewport
- * @return {Promise<void>}
+ * @return {`Promise<void>`}
  * @type window
  */
 export async function setViewport(
     this: WebdriverIO.Browser,
     options: SetViewportOptions
-) {
+): Promise<void> {
     /**
      * type check
      */

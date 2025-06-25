@@ -30,7 +30,7 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 To use the service for the Virtual Desktop/Emulator/Simulator Machine and Real Device cloud you need to set `user` and `key` in your `wdio.conf.js` file. It will automatically use Sauce Labs to run your integration tests. If you run your tests on Sauce Labs you can specify the region you want to run your tests in via the `region` property. Available short handles for regions are `us` (default) and `eu`. These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud. If you don't provide the region, it defaults to `us`.
 
-If you want WebdriverIO to automatically spin up a [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) tunnel, you need to set `sauceConnect: true`. If you would like to change the data center to EU add `region:'eu'` as US data center is set as default.
+If you want WebdriverIO to automatically spin up a [Sauce Connect](https://docs.saucelabs.com/secure-connections/#sauce-connect-proxy) tunnel, you need to set `sauceConnect: true`. If you would like to change the data center to EU add `region:'eu'` as US data center is set as default.
 
 ```js
 // wdio.conf.js
@@ -53,7 +53,6 @@ export const config = {
 
 If you want to use an existing Sauce Connect tunnel you only need to provide a `tunnelName`. If you are using a shared tunnel, and you are not the user who created the tunnel, you must identify the Sauce Labs user who did create the tunnel in order to use it for your test. Include the `tunnelOwner` in the capabilities like this:
 
-
 <Tabs
   defaultValue="tunnelname"
   values={[
@@ -70,7 +69,7 @@ export const config = {
         browserName: 'chrome',
         platformName: 'Windows 10',
         browserVersion: 'latest',
-        // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
+        // Sauce options can be found here https://docs.saucelabs.com/dev/test-configuration-options/
         'sauce:options': {
             tunnelName: 'YourTunnelName',
 
@@ -94,7 +93,7 @@ export const config = {
         browserName: 'chrome',
         platformName: 'Windows 10',
         browserVersion: 'latest',
-        // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
+        // Sauce options can be found here https://docs.saucelabs.com/dev/test-configuration-options/
         'sauce:options': {
             tunnelName: 'TunnelName',
             tunnelOwner: '<username of owner>,
@@ -111,25 +110,27 @@ export const config = {
 
 </TabItem>
 </Tabs>
-```
 
 ## Sauce Service Options
 
 To authorize the Sauce Labs service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### maxErrorStackLength
+
 This service will automatically push the error stack to Sauce Labs when a test fails. By default, it will only push the first 5 lines, but if needed this can be changed. Be aware that more lines will result in more WebDriver calls which might slow down the execution.
 
 Type: `number`<br />
 Default: `5`
 
 ### sauceConnect
+
 If `true` it runs Sauce Connect and opens a secure connection between a Sauce Labs virtual machine running your browser tests.
 
 Type: `Boolean`<br />
 Default: `false`
 
 ### sauceConnectOpts
+
 Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://docs.saucelabs.com/dev/cli/sauce-connect-5/run/) for more information.
 
 NOTE: When specifying the options the `--` should be omitted. It can also be turned into camelCase (e.g. `shared-tunnel` or `sharedTunnel`).
@@ -154,6 +155,7 @@ Default: `(config, capabilities, suiteTitle) => suiteTitle`
 ----
 
 ## Overriding generated name metadata
+
 The service automatically generates a name for each test from the suite name, browser name and other information.
 
 You can override this by providing a value for the `name` desired capability, but this will have the side effect of giving all tests the same name.

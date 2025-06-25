@@ -27,6 +27,7 @@ const suitesHooksLog = (await vi.importActual('./__fixtures__/suites-hooks.json'
 const suiteTestRetry = (await vi.importActual('./__fixtures__/suite-test-retry.json') as any).default
 const suitesMultipleLog = (await vi.importActual('./__fixtures__/suites-multiple.json') as any).default
 const suitesErrorLog = (await vi.importActual('./__fixtures__/suites-error.json') as any).default
+const suiteEmpty = (await vi.importActual('./__fixtures__/suite-empty.json') as any).default
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
@@ -43,7 +44,7 @@ if (os.platform() === 'win32') {
         }
     }
 
-    for (const fixture of [suitesLog, suitesErrorLog, suitesHooksLog, suiteTestRetry, suitesMultipleLog, suitesWithFailedAfterEachHookLog, suitesWithFailedBeforeEachHookLog, suitesWithNoErrorObjectLog, nestedArrayOfSuites, nestedSuites]) {
+    for (const fixture of [suitesLog, suitesErrorLog, suitesHooksLog, suiteTestRetry, suitesMultipleLog, suitesWithFailedAfterEachHookLog, suitesWithFailedBeforeEachHookLog, suitesWithNoErrorObjectLog, nestedArrayOfSuites, nestedSuites, suiteEmpty]) {
         for (const [index, [, suite]] of Object.entries(Object.entries(fixture)) as any) {
             const specFileName = (fixture === nestedArrayOfSuites) ? `sync_${index}` : 'sync'
             suite.file = `C:\\path\\to\\project\\test\\specs\\${specFileName}.spec.js`
@@ -331,6 +332,11 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '').replace('C:/', '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly with empty suite', () => {
+        reporter.suites = suiteEmpty as any
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
     it('_buildOrderedReport', () => {

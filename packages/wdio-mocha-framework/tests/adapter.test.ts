@@ -116,6 +116,18 @@ test('should throw runtime error if spec could not be loaded', async () => {
     await expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
+test('should pass error to hook if spec could not be loaded', async () => {
+    const runtimeError = new Error('Uuups')
+    const adapter = adapterFactory({ mochaOpts: { mockFailureCount: 0 } })
+    await adapter.init()
+    adapter['_specLoadError'] = runtimeError
+    await expect(adapter.run()).rejects.toEqual(runtimeError)
+
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0]).toBe('after')
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][2]).toHaveLength(3)
+    expect((vi.mocked(executeHooksWithArgs).mock.calls[0][2] as any)[0]).toBe(runtimeError)
+})
+
 test('wrapHook if successful', async () => {
     const config = { beforeAll: 'somehook' }
     const adapter = adapterFactory(config)
@@ -241,7 +253,7 @@ test('getUID', () => {
     const adapter = adapterFactory()
 
     // disabling indent eslint rule for better visibility
-    /*eslint-disable indent */
+    /* eslint-disable @stylistic/indent */
     expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-0-0')
     expect(adapter.getUID({ type: 'hook:end' })).toBe('hook-0-0')
     expect(adapter.getUID({ type: 'hook:start' })).toBe('hook-0-1')
@@ -295,7 +307,7 @@ test('getUID', () => {
         expect(adapter.getUID({ type: 'test:fail' })).toBe('test-00-0')
     expect(adapter.getUID({ type: 'suite:end' })).toBe('suite-0-0')
     expect(() => adapter.getUID({ type: 'test:nonexisting' })).toThrow()
-    /*eslint-enable indent */
+    /* eslint-enable @stylistic/indent */
 })
 
 describe('loadFiles', () => {

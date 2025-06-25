@@ -36,6 +36,7 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
     'wdio:specs'?: Spec[]
     exclude?: string[]
     'wdio:exclude'?: string[]
+    group?: boolean
 }
 
 export default class ConfigParser {
@@ -232,7 +233,7 @@ export default class ConfigParser {
          * run single spec file only, regardless of multiple-spec specification
          */
         if (addPathToSpecs && spec.length > 0) {
-            this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
+            this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!, object.group)
         }
         /**
          * At this step function allKeywordsContainPath() allows us to make sure
@@ -302,9 +303,8 @@ export default class ConfigParser {
             : this._config.exclude || []
         const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
-        // only use capability excludes if (CLI) --exclude or config exclude are not defined
-        if (Array.isArray(capExclude) && exclude.length === 0) {
-            exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
+        if (Array.isArray(capExclude)) {
+            exclude = [...exclude, ...ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)]
         }
 
         // only use capability specs if (CLI) --spec is not defined
@@ -335,7 +335,7 @@ export default class ConfigParser {
         }
 
         // Remove any duplicate tests from the final specs array
-        specs = [...new Set(specs)]
+        specs = filterDublicationArrayItems(specs)
 
         // If the --repeat flag is set, duplicate the specs array N times
         // Ensure that when --repeat is used that either --spec or --suite is also used
@@ -360,15 +360,15 @@ export default class ConfigParser {
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
-    setFilePathToFilterOptions(cliArgFileList: string[], specs: Spec[]) {
+    setFilePathToFilterOptions(cliArgFileList: string[], specs: Spec[], group?: boolean) {
         const filesToFilter = new Set<string>()
         const fileList = ConfigParser.getFilePaths(specs, this._config.rootDir, this._pathService)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
-            // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
-            // Return value will always be string[]
+            // Send wildcard or single file glob to getFilePaths
+            // Return value will always be string[] or string [][]
             const globMatchedFiles = <string[]>ConfigParser.getFilePaths(
-                this._pathService.glob(filteredFile, path.dirname(this.#configFilePath)),
+                group ? [[filteredFile]] : [filteredFile],
                 this._config.rootDir,
                 this._pathService
             )
@@ -386,13 +386,13 @@ export default class ConfigParser {
                 fileList.forEach(file => {
                     if (typeof file === 'string') {
                         // TODO: filteredFile is not a regex and thus this is a false positive
-                        if (file.match(filteredFile)) {
+                        if (isValidRegex(filteredFile) && file.match(filteredFile)) {
                             filesToFilter.add(file)
                         }
                     } else if (Array.isArray(file)) {
                         file.forEach(subFile => {
                             // TODO: filteredFile is not a regex and thus this is a false positive
-                            if (subFile.match(filteredFile)) {
+                            if (isValidRegex(filteredFile) && subFile.match(filteredFile)) {
                                 filesToFilter.add(subFile)
                             }
                         })
@@ -415,7 +415,7 @@ export default class ConfigParser {
         if (!this.#isInitialised) {
             throw new Error('ConfigParser was not initialized, call "await config.initialize()" first!')
         }
-        return this._config as Required<Options.Testrunner>
+        return this._config as Required<WebdriverIO.Config>
     }
 
     /**
@@ -502,7 +502,7 @@ export default class ConfigParser {
     filterSpecs(specs: Spec[], excludeList: string[]) {
         // If 'exclude' is array of paths
         if (allKeywordsContainPath(excludeList)) {
-            return specs.reduce((returnVal: Spec[], currSpec) => {
+            const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
                 if (Array.isArray(currSpec)) {
                     returnVal.push(currSpec.filter(specItem => !excludeList.includes(specItem)))
                 } else if (excludeList.indexOf(currSpec) === -1) {
@@ -510,9 +510,10 @@ export default class ConfigParser {
                 }
                 return returnVal
             }, [])
+            return filterEmptyArrayItems(filteredSpec)
         }
         // If 'exclude' is array of keywords
-        return specs.reduce((returnVal: Spec[], currSpec) => {
+        const filteredSpec = specs.reduce((returnVal: Spec[], currSpec) => {
             if (Array.isArray(currSpec)) {
                 returnVal.push(currSpec.filter(specItem => !excludeList.some(excludeVal => specItem.includes(excludeVal))))
             }
@@ -522,6 +523,7 @@ export default class ConfigParser {
             }
             return returnVal
         }, [])
+        return filterEmptyArrayItems(filteredSpec)
     }
 
     shard(specs: Spec[]) {
@@ -538,5 +540,23 @@ export default class ConfigParser {
 }
 
 function allKeywordsContainPath(excludedSpecList: string[]) {
-    return excludedSpecList.every(val => val.includes('/') || val.includes('\\'))
+    return excludedSpecList.every(val => val.includes('/') || val.includes('\\') || val.includes('*'))
 }
+
+function filterEmptyArrayItems(specList: Spec[]) {
+    return specList.filter(item=>(Array.isArray(item) && item.length) || !Array.isArray(item))
+}
+
+function filterDublicationArrayItems(specList: Spec[]) {
+    return [...new Set(specList.map(item=> Array.isArray(item) ? [...new Set(item)] : item))]
+}
+
+function isValidRegex(expression: string) {
+    try {
+        new RegExp(expression)
+        return true
+    } catch {
+        return false
+    }
+}
+

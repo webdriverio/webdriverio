@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import type { Reporters, Options } from '@wdio/types'
@@ -27,7 +28,8 @@ export default class WDIOReporter extends EventEmitter {
         hooks: 0,
         passes: 0,
         skipping: 0,
-        failures: 0
+        failures: 0,
+        pending: 0
     }
     retries = 0
     runnerStat?: RunnerStats
@@ -185,10 +187,17 @@ export default class WDIOReporter extends EventEmitter {
             }
 
             this.tests[currentTest.uid] = currentTest
-            currentTest.skip(test.pendingReason!)
-            this.counts.skipping++
-            this.counts.tests++
-            this.onTestSkip(currentTest)
+            if (test.state === 'pending') {
+                currentTest.state = 'pending'
+                this.counts.pending++
+                this.counts.tests++
+                this.onTestPending(currentTest)
+            } else {
+                currentTest.skip(test.pendingReason!)
+                this.counts.skipping++
+                this.counts.tests++
+                this.onTestSkip(currentTest)
+            }
         })
 
         this.on('test:end', (test: Test) => {
@@ -278,13 +287,32 @@ export default class WDIOReporter extends EventEmitter {
     onTestFail(_testStats: TestStats) { }
     onTestRetry(_testStats: TestStats) { }
     onTestSkip(_testStats: TestStats) { }
+    onTestPending(_testStats: TestStats) { }
     onTestEnd(_testStats: TestStats) { }
     onSuiteRetry(_suiteStats: SuiteStats) { }
     onSuiteEnd(_suiteStats: SuiteStats) { }
     onRunnerEnd(_runnerStats: RunnerStats) { }
 }
 
+/**
+ * Returns the browser name from the capabilities
+ * @param caps WebdriverIO Capabilities
+ * @returns {string} Browser name
+ */
+function getBrowserName(caps: WebdriverIO.Capabilities) {
+    // @ts-expect-error outdated JSONWP capabilities
+    const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
+    const appName = (
+        caps['appium:bundleId'] ||
+        caps['appium:appPackage'] ||
+        caps['appium:appActivity'] ||
+        (path.isAbsolute(app) ? path.basename(app) : app)
+    )
+    // @ts-expect-error outdated JSONWP capabilities
+    return caps.browserName || caps.browser || appName
+}
+
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, Argument, Test
+    AfterCommandArgs, CommandArgs, Argument, Test, getBrowserName
 }

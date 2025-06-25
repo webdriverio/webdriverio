@@ -23,7 +23,7 @@ interface ManualProxySettings {
     socksProxy?: string;
 }
 
-type ProxySettings = NoProxySettings | SystemProxySettings | AutomaticProxySettings | ManualProxySettings;
+type ProxySettings = NoProxySettings | SystemProxySettings | AutomaticProxySettings | ManualProxySettings
 
 export interface FirefoxProfileOptions extends FirefoxSettings {
     /**

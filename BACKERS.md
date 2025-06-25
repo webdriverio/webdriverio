@@ -17,14 +17,14 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 <p align="center">
     <a href="https://www.browserstack.com/automation-webdriverio"><img src="https://webdriver.io/img/sponsors/browserstack_black.svg" alt="BrowserStack" /></a>
-    &nbsp; &nbsp; &nbsp;
-    <a href="https://saucelabs.com"><img src="https://webdriver.io/img/sponsors/saucelabs_black.svg" alt="Sauce Labs" width=400 /></a>
 </p>
 
 ### 🥇 Gold Sponsor
 
 <p align="center">
-    <a href="https://www.route4me.com/"><img src="https://webdriver.io/img/sponsors/route4me.svg" width="250" alt="Route4Me" /></a>
+    <a href="https://www.jetify.com/"><img src="https://webdriver.io/img/sponsors/jetify_black.png" width="250" alt="Jetify" /></a>
+    &nbsp; &nbsp; &nbsp;
+    <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
 [Become a Gold Sponsor](https://github.com/sponsors/christian-bromann/sponsorships?tier_id=303973&preview=false)
@@ -33,8 +33,6 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 
 <p align="center">
     <a href="https://testingbot.com"><img src="https://webdriver.io/img/sponsors/testingbot.svg" width="250" alt="TestingBot" /></a>
-    &nbsp; &nbsp; &nbsp;
-    <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
 [Become a Silver Sponsor](https://github.com/sponsors/christian-bromann/sponsorships?tier_id=303966&preview=false)

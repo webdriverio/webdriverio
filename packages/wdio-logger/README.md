@@ -70,3 +70,51 @@ const uploadInterval = setInterval(() => {
 	}
 }, 100);
 ```
+
+## Masking Patterns
+
+For more secure logging, `setMaskingPatterns`, `WDIO_LOG_MASKING_PATTERNS` or `maskingPatterns` can obfuscate sensitive information from the log.
+For example, we can replace `--key=MySecretKey` with `--key=**MASKED**` to hide your cloud service access key or secret key
+ - The regular expression pattern must be provided as a string similar as a RegEx but as string type, for example, `--key=[^ ]*`
+ - It support flags and capturing groups like `/--key=([^ ]*)/i`
+ - Multiple patterns are separated by a comma, like `--key=([^ ]*),secrets=([^ ]*)`
+ - If no capturing group is provided, the entire matching string of the pattern is masked
+ - If one or more capturing groups are provided, we replace all the matching groups with `**MASKED**`
+ - If there are multiple matches for a single group, we replace them all, too
+ - Support both masking in a file and the console
+    - Note: In the console, when masking, some colors get stripped, which is a known limitation
+
+`setMaskingPatterns` example
+ ```javascript
+import logger from '@wdio/logger';
+
+// Default for all loggers
+logger.setMaskingPatterns('/--key=([^ ]*)/i,/--secrets=([^ ]*)/i')
+
+// For a specific logger
+logger.setMaskingPatterns({'internal' : '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i'})
+const log = logger('internal');
+```
+
+Using wdio config from a `conf.ts` file, we can also configure masking patterns
+```javascript
+export const config: WebdriverIO.Config = {
+    /**
+     * test configurations
+     */
+    logLevel: 'debug',
+    maskingPatterns: '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i',
+}
+```
+
+Below are examples with the environment variable `WDIO_LOG_MASKING_PATTERNS` in the code directly:
+
+```javascript
+// Using environment variable in code
+process.env.WDIO_LOG_MASKING_PATTERNS = '/--key=([^ ]*)/i,/--secrets=([^ ]*)/i'
+```
+
+Or before your command line
+```shell
+WDIO_LOG_MASKING_PATTERNS='RESULT ([^ ]*)' npx wdio run ./wdio/wdio.conf.ts
+```

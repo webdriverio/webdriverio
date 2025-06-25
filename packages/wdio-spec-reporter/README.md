@@ -51,7 +51,7 @@ Default: `{passed: '✓', skipped: '-', failed: '✖'}`
 
 ### sauceLabsSharableLinks
 By default the test results in Sauce Labs can only be viewed by a team member from the same team, not by a team member
-from a different team. This options will enable [sharable links](https://wiki.saucelabs.com/display/DOCS/Building+Sharable+Links+to+Test+Results)
+from a different team. This options will enable [sharable links](https://docs.saucelabs.com/test-results/sharing-test-results/#building-sharable-links)
 by default, which means that all tests that are executed in Sauce Labs can be viewed by everybody.
 Just add `sauceLabsSharableLinks: false`, as shown below, in the reporter options to disable this feature.
 
@@ -134,12 +134,12 @@ With it set to `false` you will see output as:
 Running: loremipsum (v50) on Windows 10
 Session ID: foobar
 
-» /foo/bar/loo.e2e.js
+» foo/bar/loo.e2e.js
 Foo test
    green ✓ foo
    green ✓ bar
 
-» /bar/foo/loo.e2e.js
+» bar/foo/loo.e2e.js
 Bar test
    green ✓ some test
    red ✖ a failed test
@@ -151,12 +151,12 @@ and with `true` (default) each line will be prefixed with the preface:
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] » foo/bar/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] » bar/foo/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Bar test
 [loremipsum 50 Windows 10 #0-0]    green ✓ some test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test

@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
+import { Status } from '@cucumber/cucumber'
 import {
     createStepArgument,
     formatMessage,
@@ -9,7 +10,8 @@ import {
     getTestStepTitle,
     addKeywordToStep,
     getRule,
-    generateSkipTagsFromCapabilities
+    generateSkipTagsFromCapabilities,
+    convertStatus
 } from '../src/utils.js'
 import { featureWithRules } from './fixtures/features.js'
 
@@ -237,4 +239,16 @@ describe('utils', () => {
         browserName: 'chrome',
     }, [['@skip_local']]))
         .toStrictEqual([])
+
+    describe('convertStatus', () => {
+        it('maps Cucumber statuses to TestStatus', () => {
+            expect(convertStatus(Status.PASSED)).toBe('pass')
+            expect(convertStatus(Status.PENDING)).toBe('pending')
+            expect(convertStatus(Status.SKIPPED)).toBe('skip')
+            expect(convertStatus(Status.AMBIGUOUS)).toBe('skip')
+            expect(convertStatus(Status.FAILED)).toBe('fail')
+            expect(convertStatus(Status.UNDEFINED)).toBe('pass')
+            expect(convertStatus(Status.UNKNOWN)).toBe('fail')
+        })
+    })
 })

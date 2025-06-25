@@ -12,7 +12,7 @@ import { sync as globSync } from 'glob'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
-import type { Capabilities, Options, Frameworks } from '@wdio/types'
+import type { Capabilities, Frameworks } from '@wdio/types'
 
 import {
     setDefaultTimeout,
@@ -65,7 +65,7 @@ export class CucumberAdapter {
 
     constructor(
         private _cid: string,
-        private _config: Options.Testrunner,
+        private _config: WebdriverIO.Config,
         private _specs: string[],
         private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _reporter: EventEmitter,
@@ -138,7 +138,7 @@ export class CucumberAdapter {
     }
 
     readFiles(
-        filePaths: Options.Testrunner['specs'] = []
+        filePaths: WebdriverIO.Config['specs'] = []
     ): (string | string[])[] {
         return filePaths.map((filePath) => {
             return Array.isArray(filePath)
@@ -150,7 +150,7 @@ export class CucumberAdapter {
     }
 
     getGherkinDocuments(
-        files: Options.Testrunner['specs'] = []
+        files: WebdriverIO.Config['specs'] = []
     ): (GherkinDocument | GherkinDocument[])[] {
         return this.readFiles(files).map((specContent, idx) => {
             const docs: GherkinDocument[] = [specContent].flat(1).map(
@@ -379,7 +379,7 @@ export class CucumberAdapter {
      * @param {object} config config
      */
     addWdioHooks(
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         supportCodeLibraryBuilder: typeof Cucumber.supportCodeLibraryBuilder
     ) {
         const params: { uri?: string; feature?: Feature } = {}
@@ -440,7 +440,7 @@ export class CucumberAdapter {
      * wraps step definition code with sync/async runner with a retry option
      * @param {object} config
      */
-    wrapSteps (config: Options.Testrunner) {
+    wrapSteps (config: WebdriverIO.Config) {
         const wrapStep = this.wrapStep
         const cid = this._cid
 
@@ -494,7 +494,7 @@ export class CucumberAdapter {
     wrapStep(
         code: Function,
         isStep: boolean,
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         cid: string,
         options: StepDefinitionOptions,
         getHookParams: Function,

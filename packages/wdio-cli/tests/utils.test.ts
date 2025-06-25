@@ -41,7 +41,7 @@ import {
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { installPackages } from '../src/install.js'
-import { hasBabelConfig } from '../src/utils.js'
+import type { Questionnair } from '../src/types.js'
 
 vi.mock('ejs')
 vi.mock('inquirer')
@@ -91,7 +91,7 @@ vi.mock('../src/install', () => ({
 beforeEach(() => {
     global.console.log = vi.fn()
 
-    vi.mocked(readPackageUp).mockReturnValue({
+    vi.mocked(readPackageUp).mockResolvedValue({
         path: '/foo/package.json',
         packageJson: {
             name: 'cool-test-module',
@@ -198,7 +198,7 @@ test('runOnCompleteHook handles array of functions', () => {
     const hookSuccess = vi.fn()
     const secondHook = vi.fn()
 
-    runOnCompleteHook([hookSuccess, secondHook], { capabilities: {} }, {}, 0, {} as any)
+    runOnCompleteHook([hookSuccess, secondHook], { capabilities: [] }, {}, 0, {} as any)
     expect(hookSuccess).toBeCalledTimes(1)
     expect(secondHook).toBeCalledTimes(1)
 })
@@ -207,14 +207,14 @@ test('runOnCompleteHook handles async functions', async () => {
     const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 31))
 
     const start = Date.now()
-    await runOnCompleteHook([hookSuccess], { capabilities: {} }, {}, 0, {} as any)
+    await runOnCompleteHook([hookSuccess], { capabilities: [] }, {}, 0, {} as any)
     expect(Date.now() - start).toBeGreaterThanOrEqual(30)
 })
 
 test('runOnCompleteHook handles a single function', () => {
     const hookSuccess = vi.fn()
 
-    runOnCompleteHook(hookSuccess, { capabilities: {} }, {}, 0, {} as any)
+    runOnCompleteHook(hookSuccess, { capabilities: [] }, {}, 0, {} as any)
     expect(hookSuccess).toBeCalledTimes(1)
 })
 
@@ -222,7 +222,7 @@ test('runOnCompleteHook with no failure returns 0', async () => {
     const hookSuccess = vi.fn()
     const hookFailing = vi.fn()
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: [] }, {}, 0, {} as any)
 
     expect(result).not.toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -233,7 +233,7 @@ test('runOnCompleteHook with failure returns 1', async () => {
     const hookSuccess = vi.fn()
     const hookFailing = vi.fn().mockImplementation(() => { throw new Error('buhh') })
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: [] }, {}, 0, {} as any)
 
     expect(result).toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -244,7 +244,7 @@ test('runOnCompleteHook fails with SevereServiceError', async () => {
     const hookSuccess = vi.fn()
     const hookFailing = vi.fn().mockImplementation(() => { throw new SevereServiceError('buhh') })
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: [] }, {}, 0, {} as any)
         .catch(() => 'some error')
 
     expect(result).toBe('some error')
@@ -264,9 +264,9 @@ test('getRunnerName', () => {
     // @ts-ignore test invalid parameter
     expect(getRunnerName({ foo: {} })).toBe('undefined')
     // @ts-ignore test invalid parameter
-    expect(getRunnerName({ foo: { capabilities: {} }, bar: {} })).toBe('undefined')
+    expect(getRunnerName({ foo: { capabilities: [] }, bar: {} })).toBe('undefined')
     // @ts-ignore test invalid parameter
-    expect(getRunnerName({ foo: { capabilities: {} } })).toBe('MultiRemote')
+    expect(getRunnerName({ foo: { capabilities: [] } })).toBe('MultiRemote')
 })
 
 describe('findInConfig', () => {
@@ -424,7 +424,7 @@ describe('getCapabilities', () => {
                 browserName: 'chrome',
                 'goog:chromeOptions': { 'args': ['window-size=8000,1200'] }
             }
-        ])
+        ] as WebdriverIO.Capabilities)
         expect(await getCapabilities({ option: '/path/to/config.js', capabilities: 2 } as any))
             .toMatchSnapshot()
         expect(autoCompileMock).toBeCalledTimes(1)
@@ -783,16 +783,9 @@ test('getProjectRoot', async () => {
     } as any)).toBe('/bar/foo')
 })
 
-test('hasBabelConfig', async () => {
-    vi.mocked(fs.access).mockResolvedValue({} as any)
-    expect(await hasBabelConfig('/foo')).toBe(true)
-    vi.mocked(fs.access).mockRejectedValue(new Error('not found'))
-    expect(await hasBabelConfig('/foo')).toBe(false)
-})
-
 test('detectCompiler', async () => {
     vi.mocked(readPackageUp).mockRestore()
-    const answers = { createPackageJSON: true }
+    const answers = { createPackageJSON: true } as Questionnair
     expect(await detectCompiler(answers)).toBe(false)
 })
 

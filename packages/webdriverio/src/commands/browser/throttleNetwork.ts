@@ -12,8 +12,9 @@
  * :::info
  *
  * Note that using the `throttleNetwork` command requires support for Chrome DevTools protocol and e.g.
- * can not be used when running automated tests in the cloud. Find out more in the
- * [Automation Protocols](/docs/automationProtocols) section.
+ * can not be used when running automated tests in the cloud. Chrome DevTools protocol is not installed by default,
+ * use `npm install puppeteer-core` to install it.
+ * Find out more in the [Automation Protocols](/docs/automationProtocols) section.
  *
  * :::
  *
@@ -113,7 +114,7 @@ const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
 export async function throttleNetwork (
     this: WebdriverIO.Browser,
     params: ThrottleOptions
-) {
+): Promise<void> {
     if (
         /**
          * check string parameter
@@ -133,7 +134,7 @@ export async function throttleNetwork (
     if (this.isSauce) {
         const browser = getBrowserObject(this)
         await browser.sauceThrottleNetwork(params)
-        return null
+        return
     }
 
     const failedConnectionMessage = 'No Puppeteer connection could be established which is required to use this command'
@@ -160,5 +161,5 @@ export async function throttleNetwork (
             : params
     )
 
-    return null
+    return
 }

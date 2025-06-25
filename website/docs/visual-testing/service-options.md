@@ -287,7 +287,7 @@ and reset when done
 
 This will hide all text on a page so only the layout will be used for comparison. Hiding will be done by adding the style `'color': 'transparent !important'` to **each** element.
 
-For the output see [Test Output](./test-output#enablelayouttesting)
+For the output see [Test Output](/docs/visual-testing/test-output#enablelayouttesting)
 
 :::info
 By using this flag each element that contains text (so not only `p, h1, h2, h3, h4, h5, h6, span, a, li`, but also `div|button|..`) will get this property. There is **no** option to tailor this.
@@ -340,6 +340,12 @@ You can not provide custom paths/folders in the `formatImageName`. If you want t
 
 The timeout in milliseconds to wait after a scroll. This might help identify pages with lazy loading.
 
+:::info
+
+This will only work when the service/method option `userBasedFullPageScreenshot` is set to `true`, see also [`userBasedFullPageScreenshot`](/docs/visual-testing/service-options#userbasedbullpagescreenshot)
+
+:::
+
 ### `hideScrollBars`
 
 -   **Type:** `boolean`
@@ -348,15 +354,6 @@ The timeout in milliseconds to wait after a scroll. This might help identify pag
 -   **Supported:** Web, Hybrid App (Webview)
 
 Hide scrollbars in the application. If set to true all scrollbars will be disabled before taking a screenshot. This is set to default `true` to prevent extra issues.
-
-### `isHybridApp`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `false`
--   **Supported:** Hybrid App
-
-Tell the module if the used app is a Hybrid app, this will not calculate the address bar height because it is not there.
 
 ### `logLevel`
 
@@ -409,6 +406,27 @@ returns a string can also be used to set the screenshotPath value:
 -   **Supported:** Web
 
 The padding which needs to be added to the toolbar bar on iOS and Android to do a proper cutout of the viewport.
+
+### `userBasedFullPageScreenshot`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `false`
+-   **Supported:** Web, Hybrid App (Webview) **Introduced in visual-service@7.0.0**
+
+By default, full-page screenshots on desktop web are captured using the WebDriver BiDi protocol, which enables fast, stable, and consistent screenshots without scrolling.
+When userBasedFullPageScreenshot is set to true, the screenshot process simulates a real user: scrolling through the page, capturing viewport-sized screenshots, and stitching them together. This method is useful for pages with lazy-loaded content or dynamic rendering that depends on scroll position.
+
+Use this option if your page relies on content loading while scrolling or if you want to preserve the behavior of older screenshot methods.
+
+### `waitForFontsLoaded`
+
+-   **Type:** `boolean`
+-   **Mandatory:** No
+-   **Default:** `true`
+-   **Supported:** Web, Hybrid App (Webview)
+
+Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
 
 ## Tabbable Options
 
@@ -539,15 +557,13 @@ The color of the line.
 
 The width of the line.
 
-### `waitForFontsLoaded`
-
--   **Type:** `boolean`
--   **Mandatory:** No
--   **Default:** `true`
--   **Supported:** Web, Hybrid App (Webview)
-
-Fonts, including third-party fonts, can be loaded synchronously or asynchronously. Asynchronous loading means that fonts might load after WebdriverIO determines that a page has fully loaded. To prevent font rendering issues, this module, by default, will wait for all fonts to be loaded before taking a screenshot.
-
 ## Compare options
 
-The compare options can also be set as service options, they are described in the [Method Compare options](./method-options#compare-check-options)
+### `compareOptions`
+
+-   **Type:** `object`
+-   **Mandatory:** No
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/6a988808c9adc58f58c5a66cd74296ae5c1ad6dc/packages/webdriver-image-comparison/src/helpers/options.ts#L46-L60) for all default values
+-   **Supported:** Web, Hybrid App (Webview), Native App (See [Method Compare options](./method-options#compare-check-options) for more information)
+
+The compare options can also be set as service options, they are described in the [Method Compare options](/docs/visual-testing/method-options#compare-check-options)

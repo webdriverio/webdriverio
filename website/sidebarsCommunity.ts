@@ -1,6 +1,6 @@
 import type { SidebarsConfig } from '@docusaurus/plugin-content-docs'
 
-import events from './events.json' assert { type: 'json' }
+import events from './events.json' with { type: 'json' }
 
 const sidebarsCommunity: SidebarsConfig = {
     community: [

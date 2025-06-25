@@ -1,10 +1,9 @@
-import path from 'node:path'
 import { format } from 'node:util'
 
 import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
-import WDIOReporter, { TestStats } from '@wdio/reporter'
+import WDIOReporter, { TestStats, getBrowserName } from '@wdio/reporter'
 import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
@@ -40,6 +39,7 @@ export default class SpecReporter extends WDIOReporter {
         passed: 0,
         failed: 0,
         skipped: 0,
+        pending: 0,
         retried: 0
     }
 
@@ -150,6 +150,13 @@ export default class SpecReporter extends WDIOReporter {
         this._pendingReasons.push(testStat.pendingReason as string)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
+    }
+
+    onTestPending(testStat: TestStats) {
+        this.printCurrentStats(testStat)
+        this._pendingReasons.push(testStat.pendingReason as string)
+        this._consoleLogs.push(this._consoleOutput)
+        this._stateCounts.pending++
     }
 
     onRunnerEnd (runner: RunnerStats) {
@@ -373,7 +380,7 @@ export default class SpecReporter extends WDIOReporter {
 
             // Display file path of spec
             if (suite.file && !specFileReferences.includes(suite.file)) {
-                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '')}`)
+                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '').slice(1)}`)
                 specFileReferences.push(suite.file)
             }
 
@@ -482,6 +489,13 @@ export default class SpecReporter extends WDIOReporter {
         if (this._stateCounts.skipped > 0) {
             const text = `${this._stateCounts.skipped} skipped ${duration}`.trim()
             output.push(this.setMessageColor(text, State.SKIPPED))
+        }
+
+        // Get the pending tests
+        if (this._stateCounts.pending > 0) {
+            const text = `${this._stateCounts.pending} pending ${duration}`.trim()
+            output.push(this.setMessageColor(text, State.PENDING))
+            duration = ''
         }
 
         // Get the skipped tests
@@ -645,16 +659,7 @@ export default class SpecReporter extends WDIOReporter {
         }
         const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
         const device = caps['appium:deviceName']
-        // @ts-expect-error outdated JSONWP capabilities
-        const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
-        const appName = (
-            caps['appium:bundleId'] ||
-            caps['appium:appPackage'] ||
-            caps['appium:appActivity'] ||
-            (path.isAbsolute(app) ? path.basename(app) : app)
-        )
-        // @ts-expect-error outdated JSONWP capabilities
-        const browser = caps.browserName || caps.browser || appName
+        const browser = getBrowserName(caps)
         /**
          * fallback to different capability types:
          * browserVersion: W3C format
@@ -675,7 +680,7 @@ export default class SpecReporter extends WDIOReporter {
 
         // Mobile capabilities
         if (device) {
-            const program = appName || caps.browserName
+            const program = getBrowserName(caps)
             const executing = program ? `executing ${program}` : ''
             if (!verbose) {
                 return `${device} ${platform} ${version}`

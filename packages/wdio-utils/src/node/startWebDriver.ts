@@ -35,6 +35,7 @@ declare global {
 
 const log = logger('@wdio/utils')
 const DRIVER_WAIT_TIMEOUT = 10 * 1000 // 10s
+const DRIVER_RETRY_INTERVAL = 100
 
 export async function startWebDriver (options: Capabilities.RemoteConfig) {
     /**
@@ -84,7 +85,7 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
             : await setupChromedriver(cacheDir, browserVersion)
 
         caps['goog:chromeOptions'] = deepmerge(
-            { binary: chromeExecuteablePath },
+            { binary: chromeExecuteablePath, prefs: { 'profile.password_manager_leak_detection': false } },
             caps['goog:chromeOptions'] || {}
         )
         chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
@@ -181,7 +182,7 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
         driverProcess.stderr?.pipe(split2()).on('data', driverLog.warn.bind(driverLog))
     }
 
-    await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT })
+    await waitPort({ port, output: 'silent', timeout: DRIVER_WAIT_TIMEOUT, interval: DRIVER_RETRY_INTERVAL })
         .catch((e) => { throw new Error(`Timed out to connect to ${driver}: ${e.message}`) })
 
     options.hostname = 'localhost'

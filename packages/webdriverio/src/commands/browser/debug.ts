@@ -34,7 +34,7 @@ import WDIORepl from '@wdio/repl'
 export function debug(
     this: WebdriverIO.Browser,
     commandTimeout = 5000
-) {
+): Promise<void | unknown> {
     const repl = new WDIORepl()
     const { introMessage } = WDIORepl
 

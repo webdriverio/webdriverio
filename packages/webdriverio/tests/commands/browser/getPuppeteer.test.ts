@@ -55,7 +55,7 @@ describe('attach Puppeteer', () => {
                 }
             },
             requestedCapabilities: {}
-        })
+        } as WebdriverIO.Browser)
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
@@ -73,7 +73,7 @@ describe('attach Puppeteer', () => {
                     args: ['foo', 'bar', '-remote-debugging-port', 4321, 'barfoo']
                 } as any
             }
-        })
+        } as WebdriverIO.Browser)
         expect(typeof pprt).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
@@ -94,7 +94,7 @@ describe('attach Puppeteer', () => {
                     args: []
                 } as any
             }
-        })
+        } as WebdriverIO.Browser)
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
@@ -113,7 +113,7 @@ describe('attach Puppeteer', () => {
                     args: []
                 } as any
             }
-        })
+        } as WebdriverIO.Browser)
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
@@ -131,7 +131,7 @@ describe('attach Puppeteer', () => {
                     args: []
                 } as any
             }
-        })).rejects.toThrow('Could\'t find a websocket url')
+        } as WebdriverIO.Browser)).rejects.toThrow('Could\'t find a websocket url')
     })
 
     it('should pass for Edge', async () => {
@@ -145,7 +145,7 @@ describe('attach Puppeteer', () => {
                 }
             },
             requestedCapabilities: {}
-        })
+        } as WebdriverIO.Browser)
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
@@ -164,7 +164,7 @@ describe('attach Puppeteer', () => {
                 } as any
             }
         // @ts-ignore uses sync command
-        }).catch(err => err)
+        } as WebdriverIO.Browser).catch(err => err)
 
         expect(err.message).toContain('Using DevTools capabilities is not supported for this session.')
     })
@@ -182,7 +182,7 @@ describe('attach Puppeteer', () => {
             puppeteer: {
                 connected: true
             } as any
-        })
+        } as WebdriverIO.Browser)
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect).toHaveBeenCalledTimes(0)
     })
@@ -194,7 +194,7 @@ describe('attach Puppeteer', () => {
             capabilities: {
                 'se:cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
             }
-        })
+        } as WebdriverIO.Browser)
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
@@ -220,7 +220,7 @@ describe('attach Puppeteer', () => {
                     Authorization: 'OAuth token'
                 }
             } as any
-        })
+        } as WebdriverIO.Browser)
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
@@ -246,9 +246,18 @@ describe('attach Puppeteer', () => {
                     Authorization: 'OAuth token'
                 }
             } as any
-        })
+        } as WebdriverIO.Browser)
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
 
+    it('should throw an error if Puppeteer is not supported', async () => {
+        // @ts-expect-error
+        globalThis.wdio = true
+        await expect(browser.getPuppeteer.call({
+            ...browser,
+            options: browser.options,
+            capabilities: { browserName: 'chrome' }
+        } as WebdriverIO.Browser)).rejects.toThrow('Puppeteer is not supported in browser runner')
+    })
 })

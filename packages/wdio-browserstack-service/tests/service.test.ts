@@ -496,7 +496,7 @@ describe('beforeHook', () => {
         service['_insightsHandler'] = new InsightsHandler(browser)
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'beforeHook')
         service.beforeHook({ title: 'foo2', parent: 'bar2' } as any,
-        {} as any)
+            {} as any)
 
         expect(methodSpy).toBeCalled()
     })
@@ -510,7 +510,7 @@ describe('afterHook', () => {
         service['_insightsHandler'] = new InsightsHandler(browser)
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'afterHook')
         service.afterHook({ title: 'foo2', parent: 'bar2' } as any,
-        undefined as never, {} as any)
+            undefined as never, {} as any)
 
         expect(methodSpy).toBeCalled()
     })
@@ -525,7 +525,7 @@ describe('beforeStep', () => {
         service['_insightsHandler'] = new InsightsHandler(browser)
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'beforeStep')
         service.beforeStep({ keyword: 'Given', text: 'this is a test' } as any,
-        undefined as never)
+            undefined as never)
 
         expect(methodSpy).toBeCalled()
     })
@@ -540,7 +540,7 @@ describe('afterStep', () => {
         service['_insightsHandler'] = new InsightsHandler(browser)
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'afterStep')
         service.afterStep({ title: 'foo2', parent: 'bar2' } as any,
-        undefined as never, {} as any)
+            undefined as never, {} as any)
 
         expect(methodSpy).toBeCalled()
     })

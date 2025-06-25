@@ -26,7 +26,8 @@ class Timer {
         private _delay: number,
         private _timeout: number,
         private _fn: Function,
-        private _leading = false
+        private _leading = false,
+        private _signal?: AbortSignal
     ) {
         this.#retPromise = new Promise<boolean>((resolve, reject) => {
             this._resolve = resolve
@@ -101,8 +102,20 @@ class Timer {
     }
 
     private _checkCondition (err?: Error, res?: unknown) {
-        ++this._conditionExecutedCnt
         this._lastError = err
+
+        /**
+         * If the signal is aborted, reject the promise with the last error or a new error
+         * and stop the timer
+         */
+        if (this._signal?.aborted) {
+            this._reject(this._lastError || new Error('Aborted'))
+            this._stop()
+            this._stopMain()
+            return
+        }
+
+        ++this._conditionExecutedCnt
 
         // resolve timer only on truthy values
         if (res) {

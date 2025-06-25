@@ -104,6 +104,28 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeHeadlessShellCaps, requestedCapabilities }).isChrome).toBe(true)
     })
 
+    it('isWindowsApp', () => {
+        const requestedCapabilities = { browserName: '' }
+        const capabilities: WebdriverIO.Capabilities = {
+            platformName: 'windows',
+            'appium:automationName': 'windows',
+            'appium:deviceName': 'WindowsPC',
+        }
+        const {
+            isMobile,
+            isWindowsApp,
+            isMacApp,
+            isAndroid,
+            isIOS
+        } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+
+        expect(isMobile).toEqual(true)
+        expect(isWindowsApp).toEqual(true)
+        expect(isMacApp).toEqual(false)
+        expect(isAndroid).toEqual(false)
+        expect(isIOS).toEqual(false)
+    })
+
     it('isChromium', () => {
         const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isChromium).toBe(false)
@@ -177,6 +199,217 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
         requestedCapabilities.alwaysMatch = { 'sauce:options': {} }
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
+    })
+
+    describe('isAndroid', () => {
+        it('should detect Android device', () => {
+            const capabilities: WebdriverIO.Capabilities = {
+                'bstack:options': {
+                    osVersion: '15.0',
+                    deviceName: 'Samsung Galaxy S25',
+                    realMobile: true,
+                    appiumVersion: '2.4.1',
+                    projectName: 'ProjectName',
+                    buildName: 'BuildName + ' + new Date().toISOString(),
+                    sessionName: 'SessionName',
+                    seleniumVersion: '4.20.0',
+                    debug: true,
+                    networkLogs: true,
+                    consoleLogs: 'verbose',
+                },
+                browserName: 'chrome',
+            }
+            const requestedCapabilities = { browserName: 'chrome' }
+            const { isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+            expect(isAndroid).toEqual(true)
+        })
+
+        it('should detect Android by device name in bstack:options using sessionEnvironmentDetector', () => {
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Samsung Galaxy S21' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Google Pixel 7' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'OnePlus 9 Pro' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Nexus 5X' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+        })
+
+        it('should detect Android by device name in bstack:options using capabilitiesEnvironmentDetector', () => {
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'Samsung Galaxy S21' }
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'Google Pixel 7' }
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'OnePlus 9 Pro' }
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'Nexus 5X' }
+            }).isAndroid).toBe(true)
+        })
+
+        it('should detect Android by various manufacturer device names with sessionEnvironmentDetector', () => {
+            const androidDevices = [
+                'LG G8',
+                'HTC One',
+                'Motorola Edge',
+                'Sony Xperia',
+                'Huawei P30',
+                'Vivo V21',
+                'Oppo Find X3',
+                'Xiaomi Mi 11',
+                'Redmi Note 10',
+                'Realme GT',
+                'Samsung Galaxy Note'
+            ]
+
+            androidDevices.forEach(deviceName => {
+                expect(sessionEnvironmentDetector({
+                    capabilities: { 'bstack:options': { deviceName } },
+                    requestedCapabilities: {}
+                }).isAndroid).toBe(true)
+            })
+        })
+
+        it('should detect Android by various manufacturer device names with capabilitiesEnvironmentDetector', () => {
+            const androidDevices = [
+                'LG G8',
+                'HTC One',
+                'Motorola Edge',
+                'Sony Xperia',
+                'Huawei P30',
+                'Vivo V21',
+                'Oppo Find X3',
+                'Xiaomi Mi 11',
+                'Redmi Note 10',
+                'Realme GT',
+                'Samsung Galaxy Note'
+            ]
+
+            androidDevices.forEach(deviceName => {
+                expect(capabilitiesEnvironmentDetector({
+                    'bstack:options': { deviceName }
+                }).isAndroid).toBe(true)
+            })
+        })
+
+        it('should not detect Android for non-Android device names with sessionEnvironmentDetector', () => {
+            const nonAndroidDevices = [
+                'iPhone 13',
+                'iPad Pro',
+                'iPhone SE',
+                'iPad Mini',
+                'Desktop Chrome',
+                'MacBook Pro'
+            ]
+
+            nonAndroidDevices.forEach(deviceName => {
+                expect(sessionEnvironmentDetector({
+                    capabilities: { 'bstack:options': { deviceName } },
+                    requestedCapabilities: {}
+                }).isAndroid).toBe(false)
+            })
+        })
+
+        it('should not detect Android for non-Android device names with capabilitiesEnvironmentDetector', () => {
+            const nonAndroidDevices = [
+                'iPhone 13',
+                'iPad Pro',
+                'iPhone SE',
+                'iPad Mini',
+                'Desktop Chrome',
+                'MacBook Pro'
+            ]
+
+            nonAndroidDevices.forEach(deviceName => {
+                expect(capabilitiesEnvironmentDetector({
+                    'bstack:options': { deviceName }
+                }).isAndroid).toBe(false)
+            })
+        })
+
+        it('should detect Android case-insensitively by device name with both detectors', () => {
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'SAMSUNG GALAXY S21' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'google pixel 7' }
+            }).isAndroid).toBe(true)
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Galaxy S22' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'ONEPLUS 10' }
+            }).isAndroid).toBe(true)
+        })
+
+        it('should detect Android when both platform and device name are present', () => {
+            const capabilities = {
+                platformName: 'Android',
+                'bstack:options': { deviceName: 'Samsung Galaxy S21' }
+            }
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(true)
+        })
+
+        it('should detect Android when only device name is present without platform', () => {
+            const capabilities = { 'bstack:options': { deviceName: 'Pixel 7' } }
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(true)
+        })
+
+        it('should handle empty deviceName in bstack:options', () => {
+            const capabilities = { 'bstack:options': { deviceName: '' } }
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
+            }).isAndroid).toBe(false)
+
+            expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(false)
+        })
+
+        it('should handle missing deviceName in bstack:options', () => {
+            const capabilities = { 'bstack:options': {} }
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
+            }).isAndroid).toBe(false)
+
+            expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(false)
+        })
     })
 
     it('isSeleniumStandalone', () => {
@@ -266,14 +499,30 @@ describe('sessionEnvironmentDetector', () => {
             platformName: 'WINDOWS',
             'ms:experimental-webdriver': true,
             'ms:waitForAppLaunch': 10,
-            app: 'C:\\Program Files\\foo\\bar.exe',
-            appArguments: '-noCloseConfirmationPopUp -shouldDisplayDiesToTake'
+            'appium:app': 'C:\\Program Files\\foo\\bar.exe',
+            'appium:appArguments': '-noCloseConfirmationPopUp -shouldDisplayDiesToTake',
+            'appium:automationName': 'Windows'
         }
         const requestedCapabilities = { browserName: '' }
-        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        const { isMobile, isIOS, isAndroid, isWindowsApp } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)
         expect(isAndroid).toEqual(false)
+        expect(isWindowsApp).toEqual(true)
+    })
+
+    it('should detect a Mac application automated through Appium', () => {
+        const capabilities: any = {
+            platformName: 'mac',
+            'appium:appPath': '/Applications/MyAppName.app',
+            'appium:automationName': 'mac2'
+        }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid, isMacApp } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(true)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+        expect(isMacApp).toEqual(true)
     })
 
     it('should detect Android mobile app', function () {

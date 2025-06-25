@@ -37,7 +37,7 @@ import { getContextManager } from '../../session/context.js'
 export async function switchWindow (
     this: WebdriverIO.Browser,
     matcher: string | RegExp
-) {
+): Promise<string> {
     /**
      * parameter check
      */
@@ -46,6 +46,13 @@ export async function switchWindow (
     }
 
     const currentWindow = await this.getWindowHandle()
+        /**
+         * in cases where a browser window was closed by e.g. clicking on a button
+         * this command may throws an "no such window: target window already closed"
+         * error. In this case we return `undefined` and determine the new window
+         * based on the command parameter.
+         */
+        .catch(() => undefined)
 
     // is the matcher a window handle, and are we in the right window already?
     if (typeof matcher === 'string' && currentWindow === matcher) {
@@ -99,8 +106,6 @@ export async function switchWindow (
             return tab
         }
     }
-
-    await this.switchToWindow(currentWindow)
 
     throw new Error(`No window found with title, url, name or window handle matching "${matcher}"`)
 }

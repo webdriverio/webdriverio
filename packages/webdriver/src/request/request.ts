@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
-import { transformCommandLogResult, sleep } from '@wdio/utils'
+import { sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
+
+import { type RequestInit as UndiciRequestInit } from 'undici'
 
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
 import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
@@ -9,6 +11,8 @@ import type { WebDriverResponse, RequestLibResponse, RequestOptions, RequestEven
 import { isSuccessfulResponse } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
 import pkg from '../../package.json' with { type: 'json' }
+
+import './polyfill.js'
 
 const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'detached shadow root',
@@ -33,14 +37,22 @@ export abstract class WebDriverRequest {
     isHubCommand: boolean
     requiresSessionId: boolean
     eventHandler: RequestEventHandler
-
-    constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false, eventHandler: RequestEventHandler = {}) {
+    abortSignal?: AbortSignal
+    constructor (
+        method: string,
+        endpoint: string,
+        body?: Record<string, unknown>,
+        abortSignal?: AbortSignal,
+        isHubCommand: boolean = false,
+        eventHandler: RequestEventHandler = {}
+    ) {
         this.body = body
         this.method = method
         this.endpoint = endpoint
         this.isHubCommand = isHubCommand
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
         this.eventHandler = eventHandler
+        this.abortSignal = abortSignal
     }
 
     async makeRequest (options: RequestOptions, sessionId?: string) {
@@ -49,12 +61,15 @@ export abstract class WebDriverRequest {
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{url: URL; requestOptions: RequestInit;}> {
+    async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{ url: URL; requestOptions: RequestInit; }> {
         const timeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default as number
         const requestOptions: RequestInit = {
             method: this.method,
             redirect: 'follow',
-            signal: AbortSignal.timeout(timeout)
+            signal: AbortSignal.any([
+                AbortSignal.timeout(timeout),
+                ...(this.abortSignal ? [this.abortSignal] : [])
+            ])
         }
 
         const requestHeaders: HeadersInit = new Headers({
@@ -111,21 +126,22 @@ export abstract class WebDriverRequest {
 
     protected async _libRequest (url: URL, opts: RequestInit): Promise<Options.RequestLibResponse> {
         try {
+
+            const dispatcher = (opts as UndiciRequestInit).dispatcher
+
             const response = await this.fetch(url, {
                 method: opts.method,
                 body: JSON.stringify(opts.body),
                 headers: opts.headers as Record<string, string>,
                 signal: opts.signal,
-                redirect: opts.redirect
+                redirect: opts.redirect,
+                ...(dispatcher ? { dispatcher } : {})
             })
 
-            // Cloning the response to prevent body unusable error
-            const resp = response.clone()
-
             return {
-                statusCode: resp.status,
-                body: await resp.json() ?? {},
-            } as Options.RequestLibResponse
+                statusCode: response.status,
+                body: await response.json() ?? {},
+            } satisfies Options.RequestLibResponse
         } catch (err) {
             if (!(err instanceof Error)) {
                 throw new WebDriverRequestError(
@@ -149,7 +165,7 @@ export abstract class WebDriverRequest {
         log.info(`[${fullRequestOptions.method}] ${(url as URL).href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', transformCommandLogResult(fullRequestOptions.body))
+            this.eventHandler.onLogData?.(fullRequestOptions.body)
         }
 
         const { ...requestLibOptions } = fullRequestOptions
@@ -198,11 +214,16 @@ export abstract class WebDriverRequest {
             const resError = response as WebDriverRequestError
 
             /**
-             * retry failed requests
+             * retry failed requests, only if:
+             * - the abort signal is not aborted
+             * - the error code or status code is retryable
              */
             if (
-                (resError.code && RETRYABLE_ERROR_CODES.includes(resError.code)) ||
-                (resError.statusCode && RETRYABLE_STATUS_CODES.includes(resError.statusCode))
+                !(this.abortSignal && this.abortSignal.aborted) &&
+                (
+                    (resError.code && RETRYABLE_ERROR_CODES.includes(resError.code)) ||
+                    (resError.statusCode && RETRYABLE_STATUS_CODES.includes(resError.statusCode))
+                )
             ) {
                 return retry(resError)
             }

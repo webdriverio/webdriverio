@@ -19,8 +19,8 @@ const log = logger('webdriverio')
  * </example>
  *
  * @alias element.scroll
- * @param {number=} x  horizontal scroll position (default: `0`)
- * @param {number=} y  vertical scroll position (default: `0`)
+ * @param {number} [x=0]  horizontal scroll position (default: `0`)
+ * @param {number} [y=0]  vertical scroll position (default: `0`)
  * @uses protocol/execute
  * @type utility
  *
@@ -29,9 +29,10 @@ export function scroll (
     this: WebdriverIO.Browser,
     x = 0,
     y = 0
-) {
+): Promise<void> {
     if (!x && !y) {
-        return log.warn('"scroll" command was called with no parameters, skipping execution')
+        log.warn('"scroll" command was called with no parameters, skipping execution')
+        return Promise.resolve()
     }
 
     // Appium does not support the "wheel" action

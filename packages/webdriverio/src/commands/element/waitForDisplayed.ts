@@ -24,7 +24,7 @@ import type { WaitForOptions } from '../../types.js'
  * @example https://github.com/webdriverio/example-recipes/blob/9ac16b4d4cf4bc8ec87f6369439a2d0bcaae4483/waitForDisplayed/waitForDisplayedExample.js#L6-L14
  * @type utility
  */
-export async function waitForDisplayed (
+export function waitForDisplayed (
     this: WebdriverIO.Element,
     {
         timeout = this.options.waitforTimeout,

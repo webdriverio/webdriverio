@@ -75,7 +75,7 @@ function generate () {
                     if (hasCustomType && Boolean(paramTypeMap[command as keyof typeof paramTypeMap][idx].requiresImport)) {
                         customTypes.add(paramType)
                     }
-                    return `${camelCase(p.name)}${p.required === false ? '?' : ''}: ${paramType}`
+                    return `${camelCase(p.name)}${p.required !== true ? '?' : ''}: ${paramType}`
                 })
                 const varsAndParams = vars.concat(params)
                 let returnValue = returns ? returns.type.toLowerCase() : 'void'

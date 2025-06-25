@@ -1,14 +1,18 @@
 import logger from '@wdio/logger'
-import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
+import { commandCallStructure, isValidParameter, getArgumentType, transformCommandLogResult } from '@wdio/utils'
 import { WebDriverBidiProtocol, type CommandEndpoint } from '@wdio/protocols'
 
 import { environment } from './environment.js'
 import type { BidiHandler } from './bidi/handler.js'
 import type { WebDriverResponse } from './request/types.js'
-import type { BaseClient, BidiCommands, BidiResponses } from './types.js'
+import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent } from './types.js'
+import { CommandRuntimeOptions } from './types.js'
+import { mask } from './utils.js'
+import { APPIUM_MASKING_HEADER } from './constants.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
+const sessionAbortListeners = new Map<string, Set<AbortController> | null>()
 
 export default function (
     method: string,
@@ -18,7 +22,14 @@ export default function (
 ) {
     const { command, deprecated, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return async function protocolCommand (this: BaseClient, ...args: unknown[]): Promise<WebDriverResponse | BidiResponses | void> {
+    return async function protocolCommand (this: BaseClient, ...unmaskedArgs: unknown[]): Promise<WebDriverResponse | BidiResponses | void> {
+
+        let runtimeOptions = {}
+        if (unmaskedArgs.length > 0 && unmaskedArgs[unmaskedArgs.length - 1] instanceof CommandRuntimeOptions ) {
+            // Popping the additional options to not have `Wrong parameters applied` thrown
+            runtimeOptions = unmaskedArgs.pop() as CommandRuntimeOptions
+        }
+
         const isBidiCommand = BIDI_COMMANDS.includes(command as BidiCommands)
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
@@ -31,7 +42,6 @@ export default function (
 
         const commandUsage = `${command}(${commandParams.map((p) => p.name).join(', ')})`
         const moreInfo = `\n\nFor more info see ${ref}\n`
-        const body: Record<string, unknown> = {}
 
         /**
          * log deprecation warning if command is deprecated
@@ -63,7 +73,7 @@ export default function (
          * parameter check
          */
         const minAllowedParams = commandParams.filter((param) => param.required).length
-        if (args.length < minAllowedParams || args.length > commandParams.length) {
+        if (unmaskedArgs.length < minAllowedParams || unmaskedArgs.length > commandParams.length) {
             const parameterDescription = commandParams.length
                 ? `\n\nProperty Description:\n${commandParams.map((p) => `  "${p.name}" (${p.type}): ${p.description}`).join('\n')}`
                 : ''
@@ -79,7 +89,8 @@ export default function (
         /**
          * parameter type check
          */
-        for (const [it, arg] of Object.entries(args)) {
+        const unmaskedBody: Record<string, unknown> = {}
+        for (const [it, arg] of Object.entries(unmaskedArgs)) {
             if (isBidiCommand) {
                 break
             }
@@ -117,34 +128,61 @@ export default function (
             /**
              * rest of args are part of body payload
              */
-            body[commandParams[i].name] = arg
+            unmaskedBody[commandParams[i].name] = arg
         }
 
-        const request = new environment.value.Request(method, endpoint, body, isHubCommand, {
-            onPerformance: (data) => this.emit('request.performance', data),
-            onRequest: (data) => this.emit('request.start', data),
+        /**
+         * Until this point, the body and args should not be logged or emitted in any way. Used the masked version to do so.
+         */
+        const { maskedBody, maskedArgs, isMasked } = mask(commandInfo, runtimeOptions, unmaskedBody, unmaskedArgs)
+
+        /**
+         * Make sure we pass along an abort signal to the request class so we
+         * can abort the request as well as any retries in case the session is
+         * deleted.
+         *
+         * Abort the attempt to make the WebDriver call, except for:
+         *   - `deleteSession` calls which should go through in case we retry the command.
+         *   - requests that don't require a session.
+         */
+        const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
+        const requiresSession = endpointUri.includes('/:sessionId/')
+        if (isAborted && command !== 'deleteSession' && requiresSession) {
+            throw new Error(`Trying to run command "${commandCallStructure(command, maskedArgs)}" after session has been deleted, aborting request without executing it`)
+        }
+
+        const request = new environment.value.Request(method, endpoint, unmaskedBody, abortSignal, isHubCommand, {
+            onPerformance: (data) => this.emit('request.performance', { ...data, request: {
+                ...data.request,
+                body: isMasked ? maskedBody : data.request.body
+            } }),
+            onRequest: (data) => this.emit('request.start', { ...data, body: isMasked ? maskedBody : data.body }),
             onResponse: (data) => this.emit('request.end', data),
-            onRetry: (data) => this.emit('request.retry', data)
+            onRetry: (data) => this.emit('request.retry', data),
+            onLogData: (data) => log.info('DATA', transformCommandLogResult((isMasked ? maskedBody : data)))
         })
-        this.emit('command', { command, method, endpoint, body })
-        log.info('COMMAND', commandCallStructure(command, args))
+        this.emit('command', { command, method, endpoint, body: maskedBody })
+        log.info('COMMAND', commandCallStructure(command, maskedArgs))
+
+        const options = isMasked ? { ...this.options,  headers: { ...this.options.headers, ...APPIUM_MASKING_HEADER } } : this.options
+
         /**
          * use then here so we can better unit test what happens before and after the request
          */
-        return request.makeRequest(this.options, this.sessionId).then((result) => {
+        return request.makeRequest(options, this.sessionId).then((result) => {
             if (typeof result.value !== 'undefined') {
                 let resultLog = result.value
 
                 if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
                     resultLog = `${result.value.slice(0, 61)}...`
-                } else if (command === 'executeScript' && typeof body.script === 'string' && body.script.includes('(() => window.__wdioEvents__)')) {
+                } else if (command === 'executeScript' && typeof maskedBody.script === 'string' && maskedBody.script.includes('(() => window.__wdioEvents__)')) {
                     resultLog = `[${(result.value as unknown[]).length} framework events captured]`
                 }
 
                 log.info('RESULT', resultLog)
             }
 
-            this.emit('result', { command, method, endpoint, body, result })
+            this.emit('result', { command, method, endpoint, body: maskedBody, result })
 
             if (command === 'deleteSession') {
                 /**
@@ -153,7 +191,7 @@ export default function (
                 const browser = this as { _bidiHandler?: BidiHandler }
                 browser._bidiHandler?.close()
 
-                const shutdownDriver = (body.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
+                const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
                 /**
                  * kill driver process if there is one
                  */
@@ -191,8 +229,65 @@ export default function (
 
             return result.value as WebDriverResponse | BidiResponses
         }).catch((error) => {
-            this.emit('result', { command, method, endpoint, body, result: { error } })
+            this.emit('result', { command, method, endpoint, body: maskedBody, result: { error } })
             throw error
+        }).finally(() => {
+            cleanup()
         })
+    }
+}
+
+/**
+ * Manage session abortions, e.g. abort requests after session has been deleted.
+ * @param this - WebDriver client instance
+ * @returns Object with `isAborted`, `abortSignal`, and `cleanup`
+ */
+function manageSessionAbortions (this: BaseClient): {
+    isAborted: boolean
+    abortSignal?: AbortSignal
+    cleanup: () => void
+} {
+    const abort = new AbortController()
+    const abortOnSessionEnd = (result: WebDriverResultEvent) => {
+        if (result.command !== 'deleteSession') {
+            return
+        }
+        const abortListeners = sessionAbortListeners.get(this.sessionId)
+        if (abortListeners) {
+            for (const abortListener of abortListeners) {
+                abortListener.abort()
+            }
+            abortListeners.clear()
+            sessionAbortListeners.set(this.sessionId, null)
+        }
+
+    }
+
+    let abortListenerForCurrentSession = sessionAbortListeners.get(this.sessionId)
+    if (typeof abortListenerForCurrentSession === 'undefined') {
+        abortListenerForCurrentSession = new Set()
+        sessionAbortListeners.set(this.sessionId, abortListenerForCurrentSession)
+        this.on('result', abortOnSessionEnd)
+    }
+
+    /**
+     * If the session has been deleted, we don't want to run any further commands
+     */
+    if (abortListenerForCurrentSession === null) {
+        return { isAborted: true, abortSignal: undefined, cleanup: () => {} }
+    }
+
+    /**
+     * listen for session deletion and abort all requests
+     */
+    abortListenerForCurrentSession.add(abort)
+
+    return {
+        isAborted: false,
+        abortSignal: abort.signal,
+        cleanup: () => {
+            this.off('result', abortOnSessionEnd)
+            abortListenerForCurrentSession?.delete(abort)
+        }
     }
 }

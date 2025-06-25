@@ -189,7 +189,7 @@ type AddCommandFnScoped<
     InstanceType = WebdriverIO.Browser,
     IsElement extends boolean = false
 > = (
-    this: IsElement extends true ? Element : InstanceType,
+    this: IsElement extends true ? WebdriverIO.Element : InstanceType,
     ...args: any[]
 ) => any
 
@@ -201,7 +201,7 @@ type OverwriteCommandFnScoped<
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
-    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
+    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
@@ -210,21 +210,25 @@ type OverwriteCommandFn<
     BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
-    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
+    this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
+    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
 export type CustomLocatorReturnValue = HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
+
+type Instances = WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+
 export interface CustomInstanceCommands<T> {
     /**
      * add command to `browser` or `element` scope
      */
-    addCommand<IsElement extends boolean = false>(
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
         name: string,
-        func: AddCommandFn | AddCommandFnScoped<T, IsElement>,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Instances>
     ): void;
 
     /**
@@ -232,10 +236,10 @@ export interface CustomInstanceCommands<T> {
      */
     overwriteCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = false>(
         name: IsElement extends true ? ElementKey : BrowserKey,
-        func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
+        func: IsElement extends true ? OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement> : OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Instances>
     ): void;
 
     /**
@@ -464,7 +468,7 @@ export interface ActionParameter {
     actions: Action[]
 }
 
-export type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
+export type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release'
 export interface TouchAction {
     action: ActionTypes,
     x?: number,
@@ -472,8 +476,8 @@ export interface TouchAction {
     element?: WebdriverIO.Element,
     ms?: number
 }
-export type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
-export type TouchActions = TouchActionParameter | TouchActionParameter[];
+export type TouchActionParameter = string | string[] | TouchAction | TouchAction[]
+export type TouchActions = TouchActionParameter | TouchActionParameter[]
 
 export type Matcher = {
     name: string,
@@ -578,7 +582,7 @@ type IosContextBundleId  = {
     bundleId?: string;
 }
 
-export type IosDetailedContext = AppiumDetailedContextInterface & IosContextBundleId;
+export type IosDetailedContext = AppiumDetailedContextInterface & IosContextBundleId
 
 export type AndroidDetailedContext = AppiumDetailedContextInterface & {
     androidWebviewData?: {
@@ -593,9 +597,9 @@ export type AndroidDetailedContext = AppiumDetailedContextInterface & {
     };
     packageName?: string;
     webviewPageId?: string;
-};
+}
 
-export type AppiumDetailedCrossPlatformContexts = (IosDetailedContext | AndroidDetailedContext)[];
+export type AppiumDetailedCrossPlatformContexts = (IosDetailedContext | AndroidDetailedContext)[]
 
 export type GetContextsOptions = {
     androidWebviewConnectionRetryTime?: number;
@@ -611,8 +615,8 @@ export type ActiveAppInfo = {
     bundleId: string;
     name: string;
     processArguments: {
-      args: string[];
-      env: Record<string, string>;
+        args: string[];
+        env: Record<string, string>;
     };
 }
 
@@ -649,6 +653,56 @@ export interface ExtendedElementReference {
 
 export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock' | 'device'
 export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
+
+export interface SaveScreenshotOptions {
+    /**
+     * Whether to take a screenshot of the full page or just the current viewport.
+     * @default false
+     */
+    fullPage?: boolean
+    /**
+     * The format of the screenshot.
+     * @default 'png'
+     */
+    format?: 'png' | 'jpeg' | 'jpg'
+    /**
+     * The quality of the screenshot in case of JPEG format in range 0-100 percent.
+     * @default 100
+     */
+    quality?: number
+    /**
+     * Clipping a rectangle of the screenshot.
+     */
+    clip?: {
+        x: number
+        y: number
+        width: number
+        height: number
+    }
+}
+
+export type TransformElement<T> =
+    T extends WebdriverIO.Element ? HTMLElement :
+        T extends ChainablePromiseElement ? HTMLElement :
+            T extends WebdriverIO.Element[] ? HTMLElement[] :
+                T extends ChainablePromiseArray ? HTMLElement[] :
+                    T extends [infer First, ...infer Rest] ? [TransformElement<First>, ...TransformElement<Rest>] :
+                        T extends Array<infer U> ? Array<TransformElement<U>> :
+                            T
+
+export type TransformReturn<T> =
+    T extends HTMLElement ? WebdriverIO.Element :
+        T extends HTMLElement[] ? WebdriverIO.Element[] :
+            T extends [infer First, ...infer Rest] ? [TransformReturn<First>, ...TransformReturn<Rest>] :
+                T extends Array<infer U> ? Array<TransformReturn<U>> :
+                    T
+
+/**
+ * Additional options outside of the WebDriver spec, exclusively for WebdriverIO, only for runtime, and not sent to Appium
+ */
+export interface InputOptions {
+    mask?: boolean
+}
 
 declare global {
     namespace WebdriverIO {

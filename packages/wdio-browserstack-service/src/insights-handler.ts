@@ -22,7 +22,8 @@ import {
     isUndefined,
     o11yClassErrorHandler,
     removeAnsiColors,
-    getObservabilityProduct
+    getObservabilityProduct,
+    generateHashCodeFromFields
 } from './util.js'
 import type {
     TestData,
@@ -395,7 +396,21 @@ class _InsightsHandler {
             finishedAt: (new Date()).toISOString()
         }
         this.flushCBTDataQueue()
-        this.listener.testFinished(this.getRunData(test, 'TestRunFinished', result))
+        const testData = this.getRunData(test, 'TestRunFinished', result)
+        this.listener.testFinished(testData)
+        const testFinishHashCode = generateHashCodeFromFields(
+            [
+                testData.integrations?.browserstack?.browser ?? '',
+                testData.integrations?.browserstack?.browser_version ?? '',
+                testData.integrations?.browserstack?.platform ?? '',
+                testData.integrations?.browserstack?.session_id ?? '',
+                testData.integrations?.capabilities ?? {},
+                testData.file_name ?? '',
+                testData.scopes ?? [],
+                testData.name ?? ''
+            ]
+        )
+        TestReporter.hashCodeToHandleTestSkip[testFinishHashCode] = testData.uuid ?? ''
     }
 
     /**
@@ -660,6 +675,11 @@ class _InsightsHandler {
         }
 
         if ((eventType === 'TestRunFinished' || eventType === 'HookRunFinished') && results) {
+            testData.integrations = {}
+            if (this._browser && this._platformMeta) {
+                const provider = getCloudProvider(this._browser)
+                testData.integrations[provider] = this.getIntegrationsObject()
+            }
             const { error, passed } = results
             if (!passed) {
                 testData.result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
@@ -688,6 +708,9 @@ class _InsightsHandler {
         }
 
         if (eventType === 'TestRunSkipped') {
+            if (this._hooks[fullTitle]) {
+                testData.hooks = this._hooks[fullTitle]
+            }
             testData.result = 'skipped'
             eventType = 'TestRunFinished'
         }
@@ -871,7 +894,7 @@ class _InsightsHandler {
             browser_version: caps?.browserVersion,
             platform: caps?.platformName,
             product: this._platformMeta?.product,
-            platform_version: getPlatformVersion(this._userCaps as WebdriverIO.Capabilities)
+            platform_version: getPlatformVersion(caps, this._userCaps as WebdriverIO.Capabilities)
         }
     }
 

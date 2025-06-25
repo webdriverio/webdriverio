@@ -4,7 +4,7 @@ export default {
             command: 'getPageLogs',
             description:
                 'Get webpage specific log information based on the last page load.',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ExtendedDebuggingTools',
+            ref: 'https://docs.saucelabs.com/insights/debug/#network-logs',
             examples: [
                 [
                     '// Get Network Logs',
@@ -30,7 +30,7 @@ export default {
                     ' */',
                 ],
                 [
-                    '// Get Performance Logs (needs capturePerformance capability see: https://wiki.saucelabs.com/display/DOCS/Measure+Page+Load+Performance+Using+Test+Automation#MeasurePageLoadPerformanceUsingTestAutomation-EnableYourScript)',
+                    '// Get Performance Logs (needs capturePerformance capability see: https://docs.saucelabs.com/performance/transitions/#setting-performance-capabilities',
                     "console.log(browser.getPageLogs('sauce:performance'));",
                     '/**',
                     ' * outputs:',
@@ -64,7 +64,7 @@ export default {
             command: 'sauceThrottleNetwork',
             description:
                 'With network conditioning you can test your site on a variety of network connections, including Edge, 3G, and even offline. You can throttle the data throughput, including the maximum download and upload throughput, and use latency manipulation to enforce a minimum delay in connection round-trip time (RTT).',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ThrottleNetworkCapabilities',
+            ref: 'https://docs.saucelabs.com/insights/debug/#saucethrottlenetwork',
             examples: [
                 [
                     '// predefined network condition',
@@ -95,7 +95,7 @@ export default {
             command: 'throttleCPU',
             description:
                 'You can throttle the CPU in DevTools to understand how your page performs under that constraint.',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ThrottleCPUCapabilities',
+            ref: 'https://docs.saucelabs.com/insights/debug/#saucethrottlecpu',
             examples: [
                 [
                     '// throttle CPU and make it run 4x slower',
@@ -119,7 +119,7 @@ export default {
             command: 'interceptRequest',
             description:
                 'Allows modifying any request made by the browser. You can blacklist, modify, or redirect these as required for your tests.',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-InterceptNetworkRequests',
+            ref: 'https://docs.saucelabs.com/insights/debug/#intercept-network-requests',
             examples: [
                 [
                     '// redirect a request',
@@ -167,7 +167,7 @@ export default {
         POST: {
             command: 'assertPerformance',
             description: 'Assert against the performance baseline of your app.',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands',
+            ref: 'https://docs.saucelabs.com/performance/transitions/#setting-performance-capabilities',
             examples: [
                 [
                     '// test performance for a page',
@@ -207,7 +207,7 @@ export default {
             command: 'jankinessCheck',
             description:
                 'Perform a scroll test that evaluates the jankiness of the application.',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands',
+            ref: 'https://docs.saucelabs.com/performance/motion/#implementing-the-jankiness-custom-command',
             examples: [
                 [
                     '// test performance for a page',
@@ -228,7 +228,7 @@ export default {
         POST: {
             command: 'mockRequest',
             description: 'Mocks a network resource.',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands',
+            ref: 'https://docs.saucelabs.com/',
             parameters: [
                 {
                     name: 'url',
@@ -256,7 +256,7 @@ export default {
             command: 'getMockCalls',
             description:
                 'Receive request information about requests that match the mocked resource.',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands',
+            ref: 'https://docs.saucelabs.com/',
             variables: [
                 {
                     name: 'mockId',
@@ -273,7 +273,7 @@ export default {
         DELETE: {
             command: 'clearMockCalls',
             description: 'Clear list of mock calls.',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands',
+            ref: 'https://docs.saucelabs.com/',
             variables: [
                 {
                     name: 'mockId',
@@ -293,7 +293,7 @@ export default {
         POST: {
             command: 'respondMock',
             description: 'Respond if mock matches a specific resource.',
-            ref: 'https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands',
+            ref: 'https://docs.saucelabs.com/',
             variables: [
                 {
                     name: 'mockId',

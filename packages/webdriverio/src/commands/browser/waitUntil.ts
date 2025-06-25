@@ -1,3 +1,6 @@
+import { getBrowserObject } from '@wdio/utils'
+import type { WebDriverResultEvent } from 'webdriver'
+
 import Timer from '../../utils/Timer.js'
 import type { WaitUntilOptions } from '../../types.js'
 
@@ -44,8 +47,20 @@ export function waitUntil<ReturnValue>(
         interval = this.options.waitforInterval as number
     }
 
+    /**
+     * abort the Timer if the session is deleted during the wait
+     */
+    const browser = getBrowserObject(this)
+    const abort = new AbortController()
+    const abortOnSessionEnd = (result: WebDriverResultEvent) => {
+        if (result.command === 'deleteSession') {
+            abort.abort()
+        }
+    }
+    browser.on('result', abortOnSessionEnd)
+
     const fn = condition.bind(this)
-    const timer = new Timer(interval as number, timeout as number, fn, true)
+    const timer = new Timer(interval as number, timeout as number, fn, true, abort.signal)
     return timer.catch<Exclude<ReturnValue, false | 0 | '' | null | undefined>>((e: Error) => {
         if (e.message === 'timeout') {
             if (typeof timeoutMsg === 'string') {
@@ -75,5 +90,7 @@ export function waitUntil<ReturnValue>(
         )).join('\n')
 
         throw err
+    }).finally(() => {
+        browser.off('result', abortOnSessionEnd)
     })
 }
