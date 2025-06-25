@@ -12,7 +12,13 @@ vi.mock('../../../src/session/context.ts', () => {
         getCurrentContext: vi.fn().mockResolvedValue('5D4662C2B4465334DFD34239BA1E9E66'),
         setCurrentContext: vi.fn(),
         getFlatContextTree: vi.fn().mockResolvedValue([]),
-        initialize: vi.fn()
+        initialize: vi.fn(),
+        findContext: vi.fn().mockImplementation((search, contexts, strategy) => {
+            if (strategy === 'byUrl' && search === 'https://mno.com') {
+                return { context: '5', url: 'https://mno.com' }
+            }
+            return undefined
+        })
     }
     return { getContextManager: () => manager }
 })
@@ -141,5 +147,59 @@ describe('switchFrame command', () => {
             await browser.switchFrame(null)
             expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')
         })
+
+        it('should switch context for delayed iframe URL', async () => {
+            vi.spyOn(getContextManager(browser), 'getFlatContextTree').mockResolvedValue({
+                '1': {
+                    context: '1',
+                    parent: null,
+                    url: 'https://abc.com',
+                    clientWindow: 'window-1',
+                    originalOpener: null,
+                    userContext: 'default',
+                    children: ['5']
+                },
+                '5': {
+                    context: '5',
+                    parent: '1',
+                    url: 'https://mno.com',
+                    clientWindow: 'window-5',
+                    originalOpener: null,
+                    userContext: 'default',
+                    children: []
+                }
+            })
+
+            vi.spyOn(browser, 'browsingContextLocateNodes').mockResolvedValue({
+                nodes: [
+                    {
+                        sharedId: 'node-5',
+                        value: {
+                            nodeType: 1,
+                            childNodeCount: 0,
+                            attributes: {
+                                src: 'https://mno.com'
+                            }
+                        }
+                    }
+                ]
+            })
+
+            vi.spyOn(browser, 'scriptCallFunction').mockResolvedValue({
+                type: 'success',
+                result: {
+                    type: 'window',
+                    value: { context: '5' }
+                }
+            })
+
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame').mockResolvedValue(undefined)
+
+            const result = await browser.switchFrame('https://mno.com')
+            expect(result).toBe('5')
+            expect(contextManager.setCurrentContext).toBeCalledWith('5')
+            expect(switchToFrame).toHaveBeenCalled()
+        })
+
     })
 })
