@@ -7,6 +7,7 @@ import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
 import type { ChainablePromiseElement } from '../../types.js'
+import { findIframeInShadowDOM } from '../../utils/shadowDom.js'
 
 const log = logger('webdriverio:switchFrame')
 
@@ -211,6 +212,20 @@ export async function switchFrame (
                 } as FrameResult
             }))
         }))).flat(Infinity) as FrameResult[]
+
+        // if we didn't find any frames, we try to find an iframe in the shadow DOM
+        // that matches the url fragment or context id
+        if (allFrames.length === 0) {
+            const urlFragment = typeof context === 'string'
+                ? context.split('/').pop() ?? ''
+                : ''
+
+            const fallbackFrame = await findIframeInShadowDOM(this, urlFragment)
+
+            if (fallbackFrame) {
+                return this.switchFrame(await this.$(fallbackFrame))
+            }
+        }
 
         /**
          * Our desired frame may be somewhere nested in other frames. In order to properly
