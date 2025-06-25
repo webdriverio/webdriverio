@@ -360,16 +360,11 @@ describe('addCommand', () => {
         describe('when browser custom command is a function', () => {
             test('should return result when running custom command as a function', async () => {
                 const browser = await remote(remoteConfig)
-                console.log('addCommand')
                 browser.addCommand(
                     'press1',
-                    () => {
-                        console.trace('custom command executed')
-                        return 'command result'
-                    }
+                    () => 'command result'
                 )
 
-                console.log('call command')
                 // @ts-expect-error undefined custom command
                 expect(await browser.press1()).toEqual('command result')
             })
