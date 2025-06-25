@@ -119,14 +119,6 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             stdio: ['inherit', 'pipe', 'pipe', 'ipc']
         })
 
-        childProcess.stdout?.on('data', (data) => {
-            console.log('----->', data.toString())
-        })
-
-        childProcess.stderr?.on('data', (data) => {
-            console.log('----->', data.toString())
-        })
-
         childProcess.on('message', this._handleMessage.bind(this))
         childProcess.on('error', this._handleError.bind(this))
         childProcess.on('exit', this._handleExit.bind(this))
