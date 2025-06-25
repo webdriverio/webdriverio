@@ -517,7 +517,6 @@ export default class AllureReporter extends WDIOReporter {
         if (payload && (typeof payload === 'object' || Array.isArray(payload))  && !isEmpty(payload)) {
             this.attachJSON('Request', payload)
         }
-
     }
 
     onAfterCommand(command: AfterCommandArgs) {
