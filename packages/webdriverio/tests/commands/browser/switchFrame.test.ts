@@ -141,5 +141,70 @@ describe('switchFrame command', () => {
             await browser.switchFrame(null)
             expect(contextManager.setCurrentContext).toBeCalledWith('5D4662C2B4465334DFD34239BA1E9E66')
         })
+
+        it('should NOT re-resolve if element already has an elementId', async () => {
+            // Mock the resolved element
+            const resolvedElem = {
+                elementId: 'elem-456',
+                [ELEMENT_KEY]: 'elem-456',
+                selector: 'iframe',
+                waitForExist: vi.fn().mockResolvedValue(true),
+                isExisting: vi.fn().mockResolvedValue(true),
+                isElement: true,
+                getElement: vi.fn()
+            } as any
+
+            resolvedElem.getElement.mockResolvedValue(resolvedElem)
+
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame').mockResolvedValue(undefined)
+
+            await browser.switchFrame(resolvedElem)
+
+            expect(switchToFrame).toHaveBeenCalledWith(expect.objectContaining({
+                [ELEMENT_KEY]: 'elem-456'
+            }))
+        })
+
+        it('should re-resolve element if elementId is missing', async () => {
+            // Mock the resolved element
+            const resolvedElement = {
+                selector: 'iframe',
+                elementId: 'elem-789',
+                [ELEMENT_KEY]: 'elem-789',
+                waitForExist: vi.fn().mockResolvedValue(true),
+                isExisting: vi.fn().mockResolvedValue(true),
+                isElement: true
+            }
+
+            // Spy on browser.$ to simulate re-resolving the selector
+            const $spy = vi.spyOn(browser, '$').mockResolvedValue(resolvedElement as any)
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame').mockResolvedValue(undefined)
+
+            // Fake unresolved element (missing elementId/ELEMENT_KEY)
+            const unresolvedElement = {
+                selector: 'iframe',
+                parent: browser,
+                isElement: true,
+                elementId: undefined,
+                [ELEMENT_KEY]: undefined,
+                async getElement() {
+                    if (!this.elementId && typeof this.selector === 'string') {
+                        const resolved = await this.parent.$(this.selector)
+                        this.elementId = resolved.elementId
+                        this[ELEMENT_KEY] = resolved[ELEMENT_KEY]
+                        return resolved
+                    }
+                    return this as any
+                }
+            }
+
+            await browser.switchFrame(unresolvedElement as any)
+
+            // Assert: re-resolution happened and switchToFrame was called with resolved element
+            expect($spy).toHaveBeenCalledWith('iframe')
+            expect(switchToFrame).toHaveBeenCalledWith(expect.objectContaining({
+                [ELEMENT_KEY]: 'elem-789'
+            }))
+        })
     })
 })
