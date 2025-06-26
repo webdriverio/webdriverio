@@ -277,16 +277,14 @@ export async function switchFrame (
      * the function for each of them.
      */
     if (typeof context === 'function') {
-        let foundContextId: string | undefined
-
-        await this.waitUntil(async () => {
+        const foundContextId = await this.waitUntil(async () => {
             const allContexts = await sessionContext.getFlatContextTree()
             const allContextIds = Object.keys(allContexts)
 
             for (const contextId of allContextIds) {
                 const functionDeclaration = new Function(`
-                return (${SCRIPT_PREFIX}${context.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
-            `).toString()
+                    return (${SCRIPT_PREFIX}${context.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);
+                `).toString()
                 const params: remote.ScriptCallFunctionParameters = {
                     functionDeclaration,
                     awaitPromise: false,
@@ -300,8 +298,7 @@ export async function switchFrame (
                 })
 
                 if (result && result.type === 'success' && result.result.type === 'boolean' && result.result.value) {
-                    foundContextId = contextId
-                    return true
+                    return contextId
                 }
             }
 
@@ -316,7 +313,7 @@ export async function switchFrame (
              * reset the context to the top level frame first so we can start the search from the root context
          */
         await this.switchFrame(null)
-        await this.switchFrame(foundContextId!)
+        await this.switchFrame(foundContextId)
         return foundContextId
     }
 
