@@ -88,7 +88,7 @@ export function commandCallStructure (commandName: string, args: unknown[], unfu
              *  - Returned async functions: `return async function` or `return (async function`
              *  - Arrow functions: `() =>` or `param =>` or `(param1, param2) =>`
              */
-            /^\s*(?:(?:async\s+)?function\s*[\w\s]*\(|!function\(|return\s+\(?(?:async\s+)?function|\(?\w*(?:\s*,\s*\w+)*\)?\s*=>)/.test(arg.trim())
+            /^\s*(?:(?:async\s+)?function(?:\s+\w+)?\s*\(|!function\(|return\s+\(?(?:async\s+)?function|\([^)]*\)\s*=>|\w+\s*=>)/.test(arg.trim())
         ) {
             arg = '<fn>'
         } else if (

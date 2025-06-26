@@ -61,7 +61,7 @@ class AiHandler {
         const sessionId = browser.sessionId
 
         // a utility function to escape single and double quotes
-        const escapeString = (str: string) => str.replace(/'/g, "\\'").replace(/"/g, '\\"')
+        const escapeString = (str: string) => str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
 
         const tcgDetails = escapeString(JSON.stringify({
             region: TCG_INFO.tcgRegion,

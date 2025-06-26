@@ -9,6 +9,37 @@ const skipError = (aFunction: Function) => {
 }
 
 /**
+ * Validates a regex pattern to prevent ReDoS attacks
+ * @param pattern - The regex pattern to validate
+ * @param flags - The regex flags to validate
+ * @returns true if the pattern is safe, false otherwise
+ */
+const isRegexSafe = (pattern: string, flags?: string): boolean => {
+    // Basic length limits
+    if (pattern.length > 500) {return false}
+    if (flags && flags.length > 10) {return false}
+
+    // Check for potentially dangerous patterns that can cause catastrophic backtracking
+    const dangerousPatterns = [
+        // Nested quantifiers
+        /(\*.*\*)|(\+.*\+)|(\?.*\?)/,
+        // Alternation with overlapping patterns
+        /\([^)]*\|[^)]*\)\*|\([^)]*\|[^)]*\)\+/,
+        // Complex lookarounds
+        /\(\?=/,
+        /\(\?!/,
+        /\(\?<=/,
+        /\(\?<!/,
+        // Excessive repetition
+        /\{[0-9]{3,}\}/,
+        // Suspicious character classes with quantifiers
+        /\[.*\]\*.*\[.*\]\*|\[.*\]\+.*\[.*\]\+/
+    ]
+
+    return !dangerousPatterns.some(dangerous => dangerous.test(pattern))
+}
+
+/**
  * Parses a comma-separated string of regular expressions into an array of RegExp objects.
  * Supports both `/pattern/flags` and plain pattern formats.
  *
@@ -23,10 +54,12 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
         const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
         if (!regexParts) {
             // When passing only a simple string without `/` or flags, aka `(--key=)([^ ]*)`
-            return skipError(() => new RegExp(regexStr))
+            return isRegexSafe(regexStr) ? skipError(() => new RegExp(regexStr)) : undefined
         } else if (regexParts?.[1]) {
             // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
-            return skipError(() => regexParts[2] ? new RegExp(regexParts[1], regexParts[2]) : new RegExp(regexParts[1]))
+            return isRegexSafe(regexParts[1], regexParts[2]) ?
+                skipError(() => regexParts[2] ? new RegExp(regexParts[1], regexParts[2]) : new RegExp(regexParts[1])) :
+                undefined
         }
         return undefined
 
