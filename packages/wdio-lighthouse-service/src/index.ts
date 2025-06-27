@@ -121,22 +121,28 @@ export default class DevToolsService implements Services.ServiceInstance {
             }
 
             const url = await (browser as WebdriverIO.Browser).getUrl()
-            const target = url !== 'data:,' ?
-                await puppeteer.waitForTarget(
-                /* istanbul ignore next */
-                    (t) => t.url().includes(url)) :
-                await puppeteer.waitForTarget(
-                    /* istanbul ignore next */
-                    // @ts-expect-error
-                    (t) => t.type() === 'page' || Boolean(t._getTargetInfo().browserContextId))
+            const target = url !== 'data:,'
+                ? await puppeteer.waitForTarget(
+                    async (t) => (
+                        t.url().includes(url) &&
+                        !t.url().includes('BiDi-CDP Mapper') &&
+                        Boolean(await t.page())
+                    )
+                )
+                : await puppeteer.waitForTarget(
+                    async (t) => (
+                        t.type() === 'page' ||
+                        // @ts-expect-error
+                        Boolean(t._getTargetInfo().browserContextId) &&
+                        !!(await t.page())
+                    )
+                )
 
-            /* istanbul ignore next */
             if (!target) {
                 throw new Error('No page target found')
             }
 
-            const page = await target.page() || null
-            /* istanbul ignore next */
+            const page = await target.page()
             if (!page) {
                 throw new Error('No page found')
             }
