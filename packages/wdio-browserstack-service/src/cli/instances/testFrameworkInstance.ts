@@ -9,11 +9,11 @@ const now = new Date()
 export default class TestFrameworkInstance extends TrackedInstance {
     testFrameworks: Array<string>
     testFrameworksVersions: Record<string, string>
-    currentTestState: State
-    currentHookState: State
-    lastTestState: State
-    lastHookState: State
-    createdAt: string
+    #currentTestState: State
+    #currentHookState: State
+    #lastTestState: State
+    #lastHookState: State
+    #createdAt: string
 
     /**
    * create TestFrameworkInstance
@@ -27,11 +27,11 @@ export default class TestFrameworkInstance extends TrackedInstance {
         super(context)
         this.testFrameworks = testFrameworks
         this.testFrameworksVersions = testFrameworksVersions
-        this.currentTestState = testFrameworkState
-        this.currentHookState = hookState
-        this.lastTestState = TestFrameworkState.NONE
-        this.lastHookState = HookState.NONE
-        this.createdAt = now.toLocaleString()
+        this.#currentTestState = testFrameworkState
+        this.#currentHookState = hookState
+        this.#lastTestState = TestFrameworkState.NONE
+        this.#lastHookState = HookState.NONE
+        this.#createdAt = now.toLocaleString()
     }
 
     /**
@@ -39,7 +39,7 @@ export default class TestFrameworkInstance extends TrackedInstance {
    * @returns {*} - returns TestFramework State
    */
     getCurrentTestState() {
-        return this.currentTestState
+        return this.#currentTestState
     }
 
     /**
@@ -47,8 +47,8 @@ export default class TestFrameworkInstance extends TrackedInstance {
    * @param {TestFrameworkState} currentTestState - Set Current TestFramework State
    */
     setCurrentTestState(currentTestState: State) {
-        this.setLastTestState(this.currentTestState)
-        this.currentTestState = currentTestState
+        this.setLastTestState(this.#currentTestState)
+        this.#currentTestState = currentTestState
     }
 
     /**
@@ -56,7 +56,7 @@ export default class TestFrameworkInstance extends TrackedInstance {
    * @returns {HookState} - return current hook state.
    */
     getCurrentHookState() {
-        return this.currentHookState
+        return this.#currentHookState
     }
 
     /**
@@ -64,8 +64,8 @@ export default class TestFrameworkInstance extends TrackedInstance {
    * @param {HookState} currentHookState - set current hook state.
    */
     setCurrentHookState(currentHookState: State) {
-        this.setLastHookState(this.currentHookState)
-        this.currentHookState = currentHookState
+        this.setLastHookState(this.#currentHookState)
+        this.#currentHookState = currentHookState
     }
 
     /**
@@ -73,7 +73,7 @@ export default class TestFrameworkInstance extends TrackedInstance {
    * @returns {TestFrameworkState} - return last test framework state
    */
     getLastTestState() {
-        return this.lastTestState
+        return this.#lastTestState
     }
 
     /**
@@ -81,7 +81,7 @@ export default class TestFrameworkInstance extends TrackedInstance {
    * @param {TestFrameworkState} lastTestState - set last test framework state
    */
     setLastTestState(lastTestState: State) {
-        this.lastTestState = lastTestState
+        this.#lastTestState = lastTestState
     }
 
     /**
@@ -89,7 +89,7 @@ export default class TestFrameworkInstance extends TrackedInstance {
    * @returns {HookState} get last hook state
    */
     getLastHookState() {
-        return this.lastHookState
+        return this.#lastHookState
     }
 
     /**
@@ -97,7 +97,7 @@ export default class TestFrameworkInstance extends TrackedInstance {
    * @param {HookState} lastHookState - returns late hook state
    */
     setLastHookState(lastHookState: State) {
-        this.lastHookState = lastHookState
+        this.#lastHookState = lastHookState
     }
 
     /**
@@ -105,7 +105,7 @@ export default class TestFrameworkInstance extends TrackedInstance {
    * @returns {string} - return created time
    */
     getCreatedAt() {
-        return this.createdAt
+        return this.#createdAt
     }
 
 }

@@ -3,18 +3,16 @@ import crypto from 'node:crypto'
 import { threadId } from 'node:worker_threads'
 
 export default class TrackedInstance {
-    context: TrackedContext
-    data: Map<string, any>
-
-    static KEY_IS_BROWSERSTACK_AUTOMATION_SESSION = 'isBrowserstackAutomationSession'
+    #context: TrackedContext
+    #data: Map<string, any>
 
     /**
    * create TrackedInstance
    * @param {TrackedContext} context
    */
     constructor(context: TrackedContext) {
-        this.context = context
-        this.data = new Map()
+        this.#context = context
+        this.#data = new Map()
     }
 
     /**
@@ -22,7 +20,7 @@ export default class TrackedInstance {
    * @returns {number} - returns ref id
    */
     getRef() {
-        return this.context.getId()
+        return this.#context.getId()
     }
 
     /**
@@ -30,7 +28,7 @@ export default class TrackedInstance {
    * @return {TrackedContext} - returns tracked context
    */
     getContext() {
-        return this.context
+        return this.#context
     }
 
     /**
@@ -38,7 +36,7 @@ export default class TrackedInstance {
    * @returns {Map} - returns all data
    */
     getAllData() {
-        return this.data
+        return this.#data
     }
 
     /**
@@ -48,12 +46,12 @@ export default class TrackedInstance {
    */
     updateMultipleEntries(entries: Record<string, any>) {
         Object.keys(entries).forEach(key => {
-            this.data.set(key, entries[key])
+            this.#data.set(key, entries[key])
         })
     }
 
     updateData(key: string, value: any) {
-        this.data.set(key, value)
+        this.#data.set(key, value)
     }
 
     /**
@@ -62,11 +60,11 @@ export default class TrackedInstance {
    * @returns {*}
    */
     getData(key: string) {
-        return this.data.get(key)
+        return this.#data.get(key)
     }
 
     hasData(key: string): boolean {
-        return this.data.has(key)
+        return this.#data.has(key)
     }
 
     static createContext(target: string) {
