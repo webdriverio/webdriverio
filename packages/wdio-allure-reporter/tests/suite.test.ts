@@ -26,6 +26,7 @@ import {
 import {
     commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
 } from './__fixtures__/command.js'
+import type { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter'
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
@@ -748,14 +749,156 @@ describe('command reporting', () => {
 
         expect(results).toHaveLength(1)
         expect(results[0].steps).toHaveLength(1)
-
-        const responseAttachments = results[0].steps[0].attachments.filter(
-            (attachment: Attachment) => attachment.name === 'Response'
-        )
-
         expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].commandTitle)
-        expect(responseAttachments).toHaveLength(1)
         expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(results[0].steps[0].attachments).toEqual(
+            [{
+                name: 'Request',
+                type: 'application/json',
+                source: expect.any(String),
+            },
+            {
+                name: 'Response',
+                type: 'application/json',
+                source: expect.any(String),
+            }]
+        )
+    })
+
+    it('should add step from custom command', () => {
+        const sessionId = '1234'
+        const customCommandBeforeArgs = {
+            sessionId,
+            command: 'customCommand',
+            body: ['arg1', 1, true, { foo: 'bar' }],
+        } satisfies BeforeCommandArgs
+        const customCommandAfterArgs = {
+            sessionId,
+            command: 'customCommand',
+            result: { value: {
+                foo: 'bar',
+                bar: 1,
+                baz: true
+            } }
+        } satisfies AfterCommandArgs
+
+        const allureOptions = {
+            stdout: true,
+            outputDir,
+        }
+        const reporter = new AllureReporter(allureOptions)
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(customCommandBeforeArgs)
+        reporter.onAfterCommand(customCommandAfterArgs)
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(1)
+        expect(results[0].steps[0].name).toEqual('customCommand')
+        expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(results[0].steps[0].attachments).toEqual(
+            [{
+                name: 'Request',
+                type: 'application/json',
+                source: expect.any(String),
+            },
+            {
+                name: 'Response',
+                type: 'application/json',
+                source: expect.any(String),
+            }]
+        )
+    })
+
+    it('should add step from unknown command', () => {
+        const sessionId = '1234'
+        const customCommandBeforeArgs = {
+            sessionId,
+            body: undefined,
+        } satisfies BeforeCommandArgs
+        const customCommandAfterArgs = {
+            sessionId,
+            result: undefined
+        } satisfies AfterCommandArgs
+
+        const allureOptions = {
+            stdout: true,
+            outputDir,
+        }
+        const reporter = new AllureReporter(allureOptions)
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(customCommandBeforeArgs)
+        reporter.onAfterCommand(customCommandAfterArgs)
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(1)
+        expect(results[0].steps[0].name).toEqual('unknown command')
+        expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(results[0].steps[0].attachments).toEqual([])
+    })
+
+    it('should add step from failed command', () => {
+        const error = new Error('Command failed')
+        const command = {
+            sessionId: '4d1707ae-820f-1645-8485-5a820b2a40da',
+            method: 'GET',
+            endpoint: '/session/:sessionId/element',
+            cid: '0-0'
+        }
+        const beforeCommand = {
+            ...command,
+            body: { using: 'css selector', value: 'img' },
+        } satisfies BeforeCommandArgs
+        const afterCommandFailure = {
+            ...command,
+            result: { error }
+        } satisfies AfterCommandArgs
+
+        const allureOptions = { stdout: true, outputDir }
+        const reporter = new AllureReporter(allureOptions)
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(beforeCommand)
+        reporter.onAfterCommand(afterCommandFailure)
+        reporter.onTestSkip(testPending())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const { results } = getResults(outputDir)
+
+        expect(results).toHaveLength(1)
+        expect(results[0].steps).toHaveLength(1)
+        expect(results[0].steps[0].name).toEqual(assertionResults['webdriver'].commandTitle)
+        expect(results[0].steps[0].status).toEqual(Status.PASSED)
+        expect(results[0].steps[0].attachments).toEqual(
+            [{
+                name: 'Request',
+                type: 'application/json',
+                source: expect.any(String),
+            },
+            {
+                name: 'Response',
+                type: 'text/plain',
+                source: expect.any(String),
+            }]
+        )
     })
 
     it('should not empty attach for step from command', () => {

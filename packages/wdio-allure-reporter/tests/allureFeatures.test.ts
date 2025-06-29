@@ -281,7 +281,7 @@ describe('reporter runtime implementation', () => {
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
-        reporter.addAttachment({ name: 'foo', content: 'bar', type: ContentType.JSON })
+        reporter.addAttachment({ name: 'foo', content: { bar: 'bar' }, type: ContentType.JSON })
         reporter.onTestPass()
         reporter.onRunnerEnd(runnerEnd())
 
@@ -294,7 +294,7 @@ describe('reporter runtime implementation', () => {
             type: ContentType.JSON,
             source: expect.any(String),
         })
-        expect(attachJSONSpy).toHaveBeenCalledWith('foo', 'bar')
+        expect(attachJSONSpy).toHaveBeenCalledWith('foo', { bar: 'bar' })
     })
 
     it('should allow to start end step', () => {
@@ -1155,7 +1155,7 @@ describe('request fails', () => {
         expect(attachJSONSpy).toHaveBeenCalledWith('Response', 'SomeError')
     })
 
-    it('should attachJSON with empty json in onAfterCommand when the command fails', () => {
+    it('should not attachJSON in onAfterCommand when the command result has nothing', () => {
         const command = {
             method: 'POST',
             endpoint: '/session/:sessionId/element',
@@ -1173,6 +1173,6 @@ describe('request fails', () => {
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
-        expect(attachJSONSpy).toHaveBeenCalledWith('Response', {})
+        expect(attachJSONSpy).not.toHaveBeenCalled()
     })
 })
