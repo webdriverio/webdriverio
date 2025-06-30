@@ -1,24 +1,12 @@
-# WebdriverIO Security Policy
+# WebdriverIO Security Threat Model
 
-This document outlines the security policy and threat model for the WebdriverIO project.
-
-## Reporting a Vulnerability
-
-The WebdriverIO team and community take all security vulnerabilities seriously. If you believe you have found a security vulnerability in WebdriverIO, please report it to us as described below.
-
-__DO NOT report security vulnerabilities through public GitHub issues.__
-
-Please contact us [security@webdriver.io](mailto:security@webdriver.io) with a description of the vulnerability and steps to reproduce it. You should receive a response within 48 hours. If for some reason you do not, please follow up via the same email to ensure we received your original message.
-
-## WebdriverIO Security Threat Model
-
-### Introduction
+## Introduction
 
 Threat model analysis assists organizations to proactively identify potential security threats and vulnerabilities, enabling them to develop effective strategies to mitigate these risks before they are exploited by attackers. Furthermore, this often helps to improve the overall security and resilience of a system or application.
 
 The aim of this document is to facilitate the identification of potential security threats and vulnerabilities that may be exploited by adversaries in the WebdriverIO ecosystem, along with possible outcomes and appropriate mitigations.
 
-### Project Overview
+## Project Overview
 
 WebdriverIO is a next-generation browser and mobile automation test framework for Node.js that provides:
 - Browser automation via WebDriver and WebDriver BiDi protocols
@@ -29,9 +17,9 @@ WebdriverIO is a next-generation browser and mobile automation test framework fo
 - File upload/download capabilities
 - Browser and component testing support
 
-### Relevant Assets and Threat Actors
+## Relevant Assets and Threat Actors
 
-#### Protected Assets
+### Protected Assets
 
 The following assets are considered important for the WebdriverIO project:
 - **WebdriverIO source code and project documentation**
@@ -42,7 +30,7 @@ The following assets are considered important for the WebdriverIO project:
 - **Test data and artifacts** including screenshots, videos, and logs
 - **Package distribution channels** (npm registry, GitHub releases)
 
-#### Threat Actors
+### Threat Actors
 
 The following threat actors are considered relevant to the WebdriverIO application:
 - **External malicious attackers** without direct access to user systems
@@ -52,47 +40,47 @@ The following threat actors are considered relevant to the WebdriverIO applicati
 - **Supply chain attackers** targeting dependencies or distribution channels
 - **Automated services and bots** performing reconnaissance or attacks
 
-### 1. Feature Breakdown
+## 1. Feature Breakdown
 
-#### 1.1 Core Components
+### 1.1 Core Components
 
-##### **CLI and Configuration System**
+#### **CLI and Configuration System**
 - `@wdio/cli` - Command-line interface for test execution
 - Configuration files (`wdio.conf.js/ts`) with sensitive data
 - Environment variable handling for credentials
 - Auto-configuration wizard that generates config files
 
-##### **Test Execution Engine**
+#### **Test Execution Engine**
 - `@wdio/local-runner` - Local test execution through processes
 - `@wdio/browser-runner` - Browser-based test execution (uses `@wdio/local-runner`) for component testing
 - Multi-remote capabilities for parallel testing
 - Test framework adapters (Mocha, Jasmine, Cucumber)
 
-##### **Cloud Service Integrations**
+#### **Cloud Service Integrations**
 - BrowserStack, Sauce Labs, TestingBot, LambdaTest integrations
 - API key and credential management
 - Tunnel connections for local testing
 - Session management and reporting
 
-##### **File Handling System**
+#### **File Handling System**
 - File upload functionality via WebDriver
 - File download capabilities through Selenium Grid
 - Archive creation and extraction (ZIP files)
 - Temporary file management
 
-##### **Network Communication**
+#### **Network Communication**
 - HTTP/HTTPS requests to WebDriver endpoints
 - Cloud service API communications
 - Proxy support and authentication
 - Custom header injection
 
-##### **Reporting and Logging**
+#### **Reporting and Logging**
 - Multiple reporter plugins (Allure, JUnit, JSON, etc.)
 - Log masking for sensitive data
 - Crash reporting and telemetry
 - Screenshot and video capture
 
-#### 1.2 Data Flow Architecture
+### 1.2 Data Flow Architecture
 
 ```
 [User Config] → [CLI] → [Test Runner] → [WebDriver/Cloud Service] → [Browser/Device]
@@ -100,29 +88,29 @@ The following threat actors are considered relevant to the WebdriverIO applicati
 [Env Variables] [Validation] [Session Mgmt] [Network Requests] [Test Execution]
 ```
 
-### Attack Surface Analysis
+## Attack Surface Analysis
 
 In threat modeling, an attack surface refers to any possible point of entry that an attacker might use to exploit a system or application. This includes all the paths and interfaces that an attacker may use to access, manipulate or extract sensitive data from a system.
 
-#### External Attack Surface
+### External Attack Surface
 - **CLI commands and configuration processing**
 - **Network communications** to WebDriver endpoints and cloud services
 - **File system operations** including uploads, downloads, and temporary files
 - **Package installation and updates** via npm/package managers
 - **Environment variable processing** for credentials and configuration
 
-#### Internal Attack Surface (Post-Compromise)
+### Internal Attack Surface (Post-Compromise)
 - **Configuration file manipulation** in user workspace
 - **Test code execution** with elevated privileges
 - **Log and artifact access** containing sensitive information
 - **Inter-process communication** between test runners and browsers
 - **Memory access** to running WebdriverIO processes
 
-### 2. Threat Identification (STRIDE Analysis)
+## 2. Threat Identification (STRIDE Analysis)
 
-#### 2.1 Spoofing Threats
+### 2.1 Spoofing Threats
 
-##### **T-01: Cloud Service Credential Theft**
+#### **T-01: Cloud Service Credential Theft**
 - **Severity**: HIGH
 - **Description**: Attackers could steal cloud service credentials (API keys, access tokens) from environment variables, configuration files, or logs
 - **Attack Vectors**:
@@ -131,7 +119,7 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Credentials logged in plain text
   - Memory dumps containing secrets
 
-##### **T-02: WebDriver Endpoint Spoofing**
+#### **T-02: WebDriver Endpoint Spoofing**
 - **Severity**: MEDIUM
 - **Description**: Malicious actors could redirect WebDriver traffic to fake endpoints
 - **Attack Vectors**:
@@ -139,9 +127,9 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Man-in-the-middle attacks on unencrypted connections
   - Malicious proxy configurations
 
-#### 2.2 Tampering Threats
+### 2.2 Tampering Threats
 
-##### **T-03: Configuration File Tampering**
+#### **T-03: Configuration File Tampering**
 - **Severity**: HIGH
 - **Description**: Unauthorized modification of configuration files could lead to test manipulation or credential theft
 - **Attack Vectors**:
@@ -149,7 +137,7 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Supply chain attacks modifying templates
   - Insider threats with repository access
 
-##### **T-04: Test Code Injection**
+#### **T-04: Test Code Injection**
 - **Severity**: HIGH
 - **Description**: Malicious code injection through test files or configuration
 - **Attack Vectors**:
@@ -157,7 +145,7 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Unsafe eval() usage in test files
   - Template injection in configuration generation
 
-##### **T-05: Archive/File Upload Tampering**
+#### **T-05: Archive/File Upload Tampering**
 - **Severity**: MEDIUM
 - **Description**: Malicious files uploaded through file upload functionality
 - **Attack Vectors**:
@@ -165,14 +153,14 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Archive bombs (ZIP bombs)
   - Malicious file execution on remote systems
 
-##### **T-05a: Prototype Pollution**
+#### **T-05a: Prototype Pollution**
 - **Severity**: HIGH
 - **Description**: The use of recursive merge operations (e.g., `deepmerge`) on configuration objects could allow an attacker to pollute the `Object.prototype`. This can lead to various vulnerabilities, including denial of service, remote code execution, or cross-site scripting, depending on how the polluted properties are used throughout the application. The `ConfigParser.ts` uses `deepmerge` extensively, making this a relevant threat.
 - **Attack Vectors**:
   - Maliciously crafted configuration files (`wdio.conf.js`)
   - Supplying crafted configuration objects through command-line arguments or other external inputs that get merged into the main configuration.
 
-##### **T-16: Malicious Plugin Loading**
+#### **T-16: Malicious Plugin Loading**
 - **Severity**: HIGH
 - **Description**: WebdriverIO's plugin architecture allows for custom services and reporters to be loaded dynamically based on the configuration file (`wdio.conf.js`). An attacker with filesystem access could replace a legitimate plugin package within the `node_modules` directory with a malicious one. When WebdriverIO loads the compromised plugin, it would result in arbitrary code execution with the privileges of the user running the tests.
 - **Attack Vectors**:
@@ -180,9 +168,9 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Exploiting another vulnerability to gain file system write access.
   - Supply chain attacks that modify packages post-installation.
 
-#### 2.3 Repudiation Threats
+### 2.3 Repudiation Threats
 
-##### **T-06: Test Result Manipulation**
+#### **T-06: Test Result Manipulation**
 - **Severity**: MEDIUM
 - **Description**: Attackers could modify test results without proper audit trails
 - **Attack Vectors**:
@@ -190,9 +178,9 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Log file tampering
   - Missing integrity checks on test outputs
 
-#### 2.4 Information Disclosure Threats
+### 2.4 Information Disclosure Threats
 
-##### **T-07: Sensitive Data in Logs**
+#### **T-07: Sensitive Data in Logs**
 - **Severity**: HIGH
 - **Description**: Credentials, personal data, or sensitive test data exposed in logs
 - **Attack Vectors**:
@@ -201,7 +189,7 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Screenshots containing sensitive information
   - Debug information exposure
 
-##### **T-08: Network Traffic Eavesdropping**
+#### **T-08: Network Traffic Eavesdropping**
 - **Severity**: MEDIUM
 - **Description**: Sensitive data intercepted during network communications
 - **Attack Vectors**:
@@ -209,7 +197,7 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Weak TLS configurations
   - Proxy credential exposure
 
-##### **T-09: File System Information Disclosure**
+#### **T-09: File System Information Disclosure**
 - **Severity**: MEDIUM
 - **Description**: Unauthorized access to test files, screenshots, or temporary files
 - **Attack Vectors**:
@@ -217,9 +205,9 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Screenshots in shared directories
   - Configuration files with world-readable permissions
 
-#### 2.5 Denial of Service Threats
+### 2.5 Denial of Service Threats
 
-##### **T-10: Resource Exhaustion**
+#### **T-10: Resource Exhaustion**
 - **Severity**: MEDIUM
 - **Description**: Excessive resource consumption leading to system unavailability
 - **Attack Vectors**:
@@ -227,7 +215,7 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Memory leaks in long-running test suites
   - ZIP bomb attacks through file downloads
 
-##### **T-11: Cloud Service Quota Exhaustion**
+#### **T-11: Cloud Service Quota Exhaustion**
 - **Severity**: MEDIUM
 - **Description**: Malicious tests consuming cloud service resources
 - **Attack Vectors**:
@@ -235,9 +223,9 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Excessive parallel session creation
   - Large file uploads to cloud services
 
-#### 2.6 Elevation of Privilege Threats
+### 2.6 Elevation of Privilege Threats
 
-##### **T-12: Command Injection**
+#### **T-12: Command Injection**
 - **Severity**: HIGH
 - **Description**: Execution of arbitrary commands through CLI or configuration
 - **Attack Vectors**:
@@ -245,7 +233,7 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Path injection in file operations
   - Deserialization of untrusted data
 
-##### **T-13: Cross-Site Script Execution (Browser Runner)**
+#### **T-13: Cross-Site Script Execution (Browser Runner)**
 - **Severity**: MEDIUM
 - **Description**: XSS attacks in browser-based test execution
 - **Attack Vectors**:
@@ -253,7 +241,7 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Malicious test data injection
   - Unsafe DOM manipulation in browser tests
 
-##### **T-14: Environment Variable Manipulation**
+#### **T-14: Environment Variable Manipulation**
 - **Severity**: HIGH
 - **Description**: Attackers manipulating environment variables to compromise credentials or redirect traffic
 - **Attack Vectors**:
@@ -262,7 +250,7 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Configuration injection through environment overrides
   - PATH manipulation to execute malicious binaries
 
-##### **T-15: URI Scheme Validation Bypass**
+#### **T-15: URI Scheme Validation Bypass**
 - **Severity**: MEDIUM
 - **Description**: Inadequate validation of URLs and file paths in WebDriver operations
 - **Attack Vectors**:
@@ -271,9 +259,9 @@ In threat modeling, an attack surface refers to any possible point of entry that
   - Protocol smuggling attacks
   - Malicious redirect chains
 
-### 3. Threat Prioritization
+## 3. Threat Prioritization
 
-#### 3.1 Critical Priority (Immediate Action Required)
+### 3.1 Critical Priority (Immediate Action Required)
 
 1. **T-01: Cloud Service Credential Theft** - Direct financial and security impact
 2. **T-03: Configuration File Tampering** - Can compromise entire test infrastructure
@@ -284,14 +272,14 @@ In threat modeling, an attack surface refers to any possible point of entry that
 7. **T-14: Environment Variable Manipulation** - Credential compromise potential
 8. **T-16: Malicious Plugin Loading** - Arbitrary code execution via compromised plugins
 
-#### 3.2 High Priority (Address Soon)
+### 3.2 High Priority (Address Soon)
 
 9. **T-05: Archive/File Upload Tampering** - File system compromise
 10. **T-08: Network Traffic Eavesdropping** - Data breach potential
 11. **T-09: File System Information Disclosure** - Data exposure
 12. **T-15: URI Scheme Validation Bypass** - File system access risks
 
-#### 3.3 Medium Priority (Monitor and Plan)
+### 3.3 Medium Priority (Monitor and Plan)
 
 13. **T-02: WebDriver Endpoint Spoofing** - Limited attack surface
 14. **T-06: Test Result Manipulation** - Integrity concerns
@@ -299,11 +287,11 @@ In threat modeling, an attack surface refers to any possible point of entry that
 16. **T-11: Cloud Service Quota Exhaustion** - Financial impact
 17. **T-13: Cross-Site Script Execution** - Limited to browser runner
 
-### 4. Threat Mitigation Strategies
+## 4. Threat Mitigation Strategies
 
-#### 4.1 Credential and Secret Management
+### 4.1 Credential and Secret Management
 
-##### **For T-01: Cloud Service Credential Theft**
+#### **For T-01: Cloud Service Credential Theft**
 
 **Immediate Actions:**
 - ✅ **Implemented**: Environment variable usage for credentials
@@ -336,9 +324,9 @@ function validateCredentials(user, key) {
 - Audit access to environment variables
 - Use short-lived tokens when possible
 
-#### 4.2 Configuration Security
+### 4.2 Configuration Security
 
-##### **For T-03: Configuration File Tampering and T-04: Test Code Injection**
+#### **For T-03: Configuration File Tampering and T-04: Test Code Injection**
 
 The `ConfigParser` class in `@wdio/config` is the primary mechanism for loading and parsing configuration files. It performs several validation steps, but security can be enhanced.
 
@@ -374,9 +362,9 @@ async function loadAndValidateConfig(configPath) {
 }
 ```
 
-#### 4.3 Input Validation and Sanitization
+### 4.3 Input Validation and Sanitization
 
-##### **For T-05a: Prototype Pollution**
+#### **For T-05a: Prototype Pollution**
 
 The `ConfigParser.ts` uses `deepmerge` to combine default configurations, file configurations, and command-line arguments. This is a common vector for prototype pollution.
 
@@ -408,7 +396,7 @@ function sanitizeAndMerge(target, source) {
 // In ConfigParser.ts, use sanitizeAndMerge instead of a direct deepmerge.
 ```
 
-##### **For T-12: Command Injection**
+#### **For T-12: Command Injection**
 
 **Secure Configuration Loading:**
 ```javascript
@@ -441,9 +429,9 @@ export const config = {
 process.env.WDIO_LOG_MASKING_PATTERNS = '/password=([^&]*)/gi,/key=([^&]*)/gi'
 ```
 
-#### 4.4 File Handling Security
+### 4.4 File Handling Security
 
-##### **For T-05: Archive/File Upload Tampering**
+#### **For T-05: Archive/File Upload Tampering**
 
 **Secure File Upload:**
 ```javascript
@@ -502,9 +490,9 @@ async function validateArchive(archivePath) {
 }
 ```
 
-#### 4.5 Network Security
+### 4.5 Network Security
 
-##### **For T-02: WebDriver Endpoint Spoofing & T-08: Network Traffic Eavesdropping**
+#### **For T-02: WebDriver Endpoint Spoofing & T-08: Network Traffic Eavesdropping**
 
 **Secure Communication:**
 ```javascript
@@ -534,9 +522,9 @@ const httpsOptions = {
 }
 ```
 
-#### 4.6 Logging and Monitoring Security
+### 4.6 Logging and Monitoring Security
 
-##### **For T-07: Sensitive Data in Logs**
+#### **For T-07: Sensitive Data in Logs**
 
 **WebdriverIO Native Log Masking:**
 
@@ -575,10 +563,10 @@ export const config = {
 
 **Environment Variable Configuration:**
 ```bash
-## Set masking patterns via environment variable
+# Set masking patterns via environment variable
 export WDIO_LOG_MASKING_PATTERNS='/password=([^&]*)/gi,/key=([^&]*)/gi,/token=([^\\s]*)/gi'
 
-## Example: Comprehensive masking for CI/CD
+# Example: Comprehensive masking for CI/CD
 export WDIO_LOG_MASKING_PATTERNS='/password[=:"\'\\s]*["\']?([^"\'\\s&]+)["\']?/gi,/accessKey[=:"\'\\s]*["\']?([^"\'\\s&]+)["\']?/gi,/secret[=:"\'\\s]*["\']?([^"\'\\s&]+)["\']?/gi'
 ```
 
@@ -592,9 +580,9 @@ await $('#api-key-field').addValue('sk-1234567890abcdef', { mask: true })
 // INFO webdriver: DATA { text: "**MASKED**" }
 ```
 
-#### 4.7 Access Control and Permissions
+### 4.7 Access Control and Permissions
 
-##### **For T-09: File System Information Disclosure**
+#### **For T-09: File System Information Disclosure**
 
 **Secure File Permissions:**
 ```javascript
@@ -619,9 +607,9 @@ process.on('exit', () => {
 })
 ```
 
-#### 4.8 Resource Management
+### 4.8 Resource Management
 
-##### **For T-10: Resource Exhaustion & T-11: Cloud Service Quota Exhaustion**
+#### **For T-10: Resource Exhaustion & T-11: Cloud Service Quota Exhaustion**
 
 **Resource Limits:**
 ```javascript
@@ -640,9 +628,9 @@ function enforceResourceLimits(config) {
 }
 ```
 
-#### 4.9 Browser Security (Browser Runner)
+### 4.9 Browser Security (Browser Runner)
 
-##### **For T-13: Cross-Site Script Execution**
+#### **For T-13: Cross-Site Script Execution**
 
 **Content Security Policy:**
 ```javascript
@@ -658,9 +646,9 @@ function sanitizeTestContent(content) {
 }
 ```
 
-#### 4.10 Environment Variable Security
+### 4.10 Environment Variable Security
 
-##### **For T-14: Environment Variable Manipulation**
+#### **For T-14: Environment Variable Manipulation**
 
 **Environment Validation:**
 ```javascript
@@ -707,9 +695,9 @@ function loadSecureEnvironment() {
 }
 ```
 
-#### 4.11 URI and Protocol Security
+### 4.11 URI and Protocol Security
 
-##### **For T-15: URI Scheme Validation Bypass**
+#### **For T-15: URI Scheme Validation Bypass**
 
 **URL Validation:**
 ```javascript
@@ -780,9 +768,9 @@ function validateFilePath(filePath) {
 }
 ```
 
-#### 4.12 Plugin and Module Security
+### 4.12 Plugin and Module Security
 
-##### **For T-16: Malicious Plugin Loading**
+#### **For T-16: Malicious Plugin Loading**
 
 WebdriverIO dynamically imports reporters and services based on string names in the configuration. It is important for users to understand the source of these plugins:
 
@@ -801,9 +789,9 @@ This powerful feature carries the risk of loading malicious code if the underlyi
 - **Plugin Signing and Verification**: A potential future enhancement for WebdriverIO could be to introduce a mechanism for plugin developers to sign their packages and for the framework to verify that signature before loading the code. This would provide a strong guarantee that the plugin has not been tampered with.
 - **Sandbox Execution**: Explore executing plugins in a sandboxed environment with limited access to the system, though this is complex in a Node.js environment.
 
-### 5. Implementation Recommendations
+## 5. Implementation Recommendations
 
-#### 5.1 Security Configuration Checklist
+### 5.1 Security Configuration Checklist
 
 **Required Security Settings:**
 ```javascript
@@ -836,7 +824,7 @@ export const config = {
 process.env.WDIO_LOG_MASKING_PATTERNS = '/password=([^&]*)/gi,/key=([^&]*)/gi'
 ```
 
-#### 5.2 Development Security Guidelines
+### 5.2 Development Security Guidelines
 
 1. **Never commit credentials** to version control
 2. **Validate all user inputs** including file paths and configuration values
@@ -845,7 +833,7 @@ process.env.WDIO_LOG_MASKING_PATTERNS = '/password=([^&]*)/gi,/key=([^&]*)/gi'
 5. **Regular security audits** of dependencies using `npm audit`
 6. **Monitor for security vulnerabilities** in used packages
 
-#### 5.3 Operational Security
+### 5.3 Operational Security
 
 1. **Regular credential rotation** for cloud services
 2. **Monitor usage patterns** for anomalous behavior
@@ -853,26 +841,26 @@ process.env.WDIO_LOG_MASKING_PATTERNS = '/password=([^&]*)/gi,/key=([^&]*)/gi'
 4. **Backup and recovery procedures** for test infrastructure
 5. **Incident response plan** for security breaches
 
-### 6. Security Testing Recommendations
+## 6. Security Testing Recommendations
 
-#### 6.1 Static Analysis
+### 6.1 Static Analysis
 - Use ESLint security rules
 - Implement dependency vulnerability scanning
 - Code review security checklist
 
-#### 6.2 Dynamic Testing
+### 6.2 Dynamic Testing
 - Penetration testing of WebDriver endpoints
 - Fuzzing of file upload functionality
 - Load testing for DoS resistance
 
-#### 6.3 Monitoring
+### 6.3 Monitoring
 - Log analysis for suspicious patterns
 - Network traffic monitoring
 - Resource usage monitoring
 
-### 7. Supply Chain and Insider Threat Analysis
+## 7. Supply Chain and Insider Threat Analysis
 
-#### 7.1 Insider Threat Actors
+### 7.1 Insider Threat Actors
 
 **Overview**: An insider threat actor, such as a WebdriverIO project contributor, maintainer, or user organization employee with access to the codebase or infrastructure, might abuse their role to compromise the project or user systems.
 
@@ -898,7 +886,7 @@ process.env.WDIO_LOG_MASKING_PATTERNS = '/password=([^&]*)/gi,/key=([^&]*)/gi'
 - **Activity monitoring** and audit logging for sensitive operations
 - **SLSA compliance** for build and release security
 
-#### 7.2 Third-Party Dependencies and Supply Chain
+### 7.2 Third-Party Dependencies and Supply Chain
 
 **Overview**: WebdriverIO relies on numerous third-party dependencies that could introduce vulnerabilities or be compromised by attackers. The Node.js ecosystem's extensive dependency chain creates multiple potential attack vectors.
 
@@ -931,7 +919,7 @@ const riskAreas = {
 - **Dependency license compliance**: Use tools to scan for and manage license compliance of dependencies to avoid legal risks.
 - **SBOM (Software Bill of Materials)**: Generate and maintain an SBOM using standards like SPDX or CycloneDX. This provides transparency into the software supply chain and helps in vulnerability management.
 
-#### 7.3 Package Distribution Security
+### 7.3 Package Distribution Security
 
 **Attack Vectors**:
 - **npm registry compromise** affecting package distribution
@@ -946,7 +934,7 @@ const riskAreas = {
 - **Mirror validation** for alternative package sources
 - **Provenance tracking** for build and release processes
 
-### 8. Conclusion
+## 8. Conclusion
 
 WebdriverIO, as a test automation framework, handles sensitive credentials and has access to both local systems and cloud services. The primary security concerns revolve around credential management, file handling, and network communications. The framework has implemented several security measures including log masking and environment variable usage, but additional hardening is recommended.
 
