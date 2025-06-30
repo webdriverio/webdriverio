@@ -89,7 +89,7 @@
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "grapheme-splitter": "^1.0.4",
-    "htmlfy": "^0.6.0",
+    "htmlfy": "^0.8.1",
     "is-plain-obj": "^4.1.0",
     "jszip": "^3.10.1",
     "lodash.clonedeep": "^4.5.0",
