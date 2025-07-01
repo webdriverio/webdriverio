@@ -3,19 +3,19 @@ import type { Capabilities } from '@wdio/types'
 
 import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector.js'
 
-import appiumResponse from './__fixtures__/appium.response.json' assert { type: 'json' }
-import experitestResponse from './__fixtures__/experitest.response.json' assert { type: 'json' }
-import chromedriverResponse from './__fixtures__/chromedriver.response.json' assert { type: 'json' }
-import geckodriverResponse from './__fixtures__/geckodriver.response.json' assert { type: 'json' }
-import ghostdriverResponse from './__fixtures__/ghostdriver.response.json' assert { type: 'json' }
-import safaridriverResponse from './__fixtures__/safaridriver.response.json' assert { type: 'json' }
-import safaridriverdockerNpNResponse from './__fixtures__/safaridriverdockerNpN.response.json' assert { type: 'json' }
-import safaridriverdockerNbVResponse from './__fixtures__/safaridriverdockerNbV.response.json' assert { type: 'json' }
-import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json' assert { type: 'json' }
-import edgedriverResponse from './__fixtures__/edgedriver.response.json' assert { type: 'json' }
-import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json' assert { type: 'json' }
-import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json' assert { type: 'json' }
-import bidiResponse from './__fixtures__/bidi.response.json' assert { type: 'json' }
+import appiumResponse from './__fixtures__/appium.response.json' with { type: 'json' }
+import experitestResponse from './__fixtures__/experitest.response.json' with { type: 'json' }
+import chromedriverResponse from './__fixtures__/chromedriver.response.json' with { type: 'json' }
+import geckodriverResponse from './__fixtures__/geckodriver.response.json' with { type: 'json' }
+import ghostdriverResponse from './__fixtures__/ghostdriver.response.json' with { type: 'json' }
+import safaridriverResponse from './__fixtures__/safaridriver.response.json' with { type: 'json' }
+import safaridriverdockerNpNResponse from './__fixtures__/safaridriverdockerNpN.response.json' with { type: 'json' }
+import safaridriverdockerNbVResponse from './__fixtures__/safaridriverdockerNbV.response.json' with { type: 'json' }
+import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json' with { type: 'json' }
+import edgedriverResponse from './__fixtures__/edgedriver.response.json' with { type: 'json' }
+import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json' with { type: 'json' }
+import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json' with { type: 'json' }
+import bidiResponse from './__fixtures__/bidi.response.json' with { type: 'json' }
 
 describe('sessionEnvironmentDetector', () => {
     const chromeCaps = chromedriverResponse.value as WebdriverIO.Capabilities
