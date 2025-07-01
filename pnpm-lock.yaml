@@ -122,6 +122,9 @@ importers:
       ejs-lint:
         specifier: ^2.0.1
         version: 2.0.1
+      eslint:
+        specifier: ^9.30.0
+        version: 9.30.0(jiti@2.4.2)
       eta:
         specifier: ^3.5.0
         version: 3.5.0
@@ -23557,7 +23560,7 @@ snapshots:
 
   jest-diff@29.7.0:
     dependencies:
-      chalk: 4.1.0
+      chalk: 4.1.2
       diff-sequences: 29.6.3
       jest-get-type: 29.6.3
       pretty-format: 29.7.0
@@ -25312,7 +25315,7 @@ snapshots:
       '@yarnpkg/parsers': 3.0.2
       '@zkochan/js-yaml': 0.0.7
       axios: 1.10.0
-      chalk: 4.1.0
+      chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
       cliui: 8.0.1
@@ -25434,7 +25437,7 @@ snapshots:
   ora@5.3.0:
     dependencies:
       bl: 4.1.0
-      chalk: 4.1.0
+      chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
       is-interactive: 1.0.0
