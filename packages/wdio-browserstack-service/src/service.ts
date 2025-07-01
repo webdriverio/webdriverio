@@ -312,7 +312,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async beforeTest (test: Frameworks.Test) {
         this._currentTest = test
         let suiteTitle = this._suiteTitle
-        BStackLogger.debug(`This is my suitetitle ${suiteTitle}`)
 
         if (test.fullName) {
             // For Jasmine, `suite.title` is `Jasmine__TopLevel__Suite`.

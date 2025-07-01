@@ -145,12 +145,6 @@ export default class TestHubModule extends BaseModule {
         try {
             const instance = args.instance as TestFrameworkInstance
             const autoInstances = (args.autoInstance as AutomationFrameworkInstance[]) || []
-            // const cbtSessionCreated = TestFramework.getState(instance, WebdriverModule.KEY_CBT_SESSION_CREATED, false) as boolean
-
-            // if (cbtSessionCreated) {
-            //     return
-            // }
-
             const trackedContext = instance.getContext()
             const testFWName = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_FRAMEWORK_NAME) as string
             const testFWVersion = TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_FRAMEWORK_VERSION) as string
@@ -217,7 +211,6 @@ export default class TestHubModule extends BaseModule {
             this.logger.debug(`sendTestSessionEvent payload: ${JSON.stringify(payload)}`)
             await GrpcClient.getInstance().testSessionEvent(payload)
             this.logger.debug(`sendTestSessionEvent complete for testState: ${testState} hookState: ${hookState}`)
-            // TestFramework.setState(instance, WebdriverModule.KEY_CBT_SESSION_CREATED, response.success)
         } catch (error) {
             this.logger.error(`sendTestSessionEvent: Error sending grpc call: event=${JSON.stringify(args)}, error=${error}`)
             throw new Error(`Failed to send test session event: ${error}`)
