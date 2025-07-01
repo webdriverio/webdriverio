@@ -12,9 +12,15 @@ import type { saveElementScreenshot } from './node/saveElementScreenshot.js'
  */
 export const isNode = !!(typeof process !== 'undefined' && process.version)
 
-export interface EnvironmentDependencies {
-    readFileSync: typeof fs.readFileSync
+export interface EnvironmentVariables {
+    DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS?: string
+    WDIO_UNIT_TESTS?: string
+    WDIO_WORKER_ID?: string
+}
 
+export interface EnvironmentDependencies {
+    variables: EnvironmentVariables
+    readFileSync: typeof fs.readFileSync
     downloadFile: typeof downloadFile,
     savePDF: typeof savePDF,
     saveRecordingScreen: typeof saveRecordingScreen,
@@ -55,6 +61,9 @@ export const environment: {
         },
         get osType() {
             return () => 'browser'
+        },
+        get variables() {
+            return {} as EnvironmentVariables
         }
     }
 }

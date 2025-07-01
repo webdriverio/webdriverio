@@ -50,7 +50,7 @@ export default function (
          * internally where we don't want to have the message shown to the user. In these cases we
          * use the `DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS` env variable to suppress the message.
          */
-        if (typeof deprecated === 'string' && !process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS) {
+        if (typeof deprecated === 'string' && !environment.value.variables.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS) {
             const warning = deprecated.replace('This command', `The "${command}" command`)
             log.warn(warning)
             console.warn(`⚠️ [WEBDRIVERIO DEPRECATION NOTICE] ${warning}`)
@@ -222,7 +222,7 @@ export default function (
                 /**
                  * clear logger stream if session has been terminated
                  */
-                if (!process.env.WDIO_WORKER_ID) {
+                if (!environment.value.variables.WDIO_WORKER_ID) {
                     logger.clearLogger()
                 }
             }
