@@ -43,7 +43,8 @@ import {
     GIT_META_DATA_TRUNCATED,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
     APP_ALLY_ISSUES_ENDPOINT,
-    CLI_DEBUG_LOGS_FILE
+    CLI_DEBUG_LOGS_FILE,
+    WDIO_NAMING_PREFIX
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -393,7 +394,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         },
         browserstackAutomation: shouldAddServiceVersion(config, options.testObservability),
         framework_details: {
-            frameworkName: 'WebdriverIO-' + config.framework,
+            frameworkName: WDIO_NAMING_PREFIX + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,
             sdkVersion: bsConfig.bstackServiceVersion,
             language: 'ECMAScript',

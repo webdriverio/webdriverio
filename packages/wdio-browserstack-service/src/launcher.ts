@@ -22,7 +22,8 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     VALID_APP_EXTENSION,
     BROWSERSTACK_PERCY,
-    BROWSERSTACK_OBSERVABILITY
+    BROWSERSTACK_OBSERVABILITY,
+    WDIO_NAMING_PREFIX
 } from './constants.js'
 import {
     launchTestSession,
@@ -214,7 +215,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         try {
             if (config.framework === 'mocha') {
                 BrowserstackCLI.getInstance().setBrowserstackConfig(config)
-                CLIUtils.setFrameworkDetail('WebdriverIO-' + config.framework, 'WebdriverIO') // TODO: make this constant
+                CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO') // TODO: make this constant
                 const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options, this._buildTag)
                 await BrowserstackCLI.getInstance().bootstrap(this._options, binconfig)
                 BStackLogger.debug(`Is CLI running ${BrowserstackCLI.getInstance().isRunning()}`)
