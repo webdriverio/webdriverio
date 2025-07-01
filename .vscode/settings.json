@@ -10,7 +10,11 @@
   // Debugging.
   "debug.javascript.unmapMissingSources": true,
   "files.exclude": {
-    "*[!test]**/node_modules": true
+    "*[!test]**/node_modules": true,
+    "**/build": true
+  },
+  "search.exclude": {
+    "**/build": true
   },
   // Ensure enough terminal history is preserved when running tests.
   "terminal.integrated.scrollback": 10000,

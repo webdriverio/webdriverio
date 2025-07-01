@@ -1,12 +1,11 @@
-import crypto from 'node:crypto'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 import { isBase64Safe } from '../src/bidi/utils.js'
 
 // Helper functions for the tests
 const generateBase64 = (length: number): string => {
-    const randomBytes = crypto.randomBytes(length)
-    return Buffer.from(randomBytes).toString('base64')
+    const randomBytes = crypto.getRandomValues(new Uint8Array(length))
+    return btoa(String.fromCharCode(...randomBytes))
 }
 
 const generateInvalidBase64 = (length: number): string => {

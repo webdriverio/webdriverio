@@ -1,3 +1,5 @@
+import { environment } from '../environment.js'
+
 const sessionManager = new Map<string, Map<WebdriverIO.Browser, SessionManager>>()
 
 const listenerRegisteredSession = new Set<string>()
@@ -50,7 +52,7 @@ export class SessionManager {
             // we are in a Bidi session
             this.#browser.isBidi &&
             // we are not running unit tests
-            !process.env.WDIO_UNIT_TESTS
+            !environment.value.variables.WDIO_UNIT_TESTS
         )
     }
 
