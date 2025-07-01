@@ -126,7 +126,7 @@ export default class TestHubModule extends BaseModule {
                 uuid,
                 eventJson,
                 executionContext,
-                binSessionId: '' // TODO: Dummy value, not needed
+                binSessionId: ''
             }
             this.logger.debug(`sendTestFrameworkEvent payload: ${JSON.stringify(payload)}`)
             await GrpcClient.getInstance().testFrameworkEvent(payload)
@@ -236,7 +236,7 @@ export default class TestHubModule extends BaseModule {
                 platformIndex,
                 logs: [],
                 executionContext,
-                binSessionId: '' // TODO: Dummy value, not needed
+                binSessionId: ''
             }
             for (const logEntry of logEntries) {
                 // eslint-disable-next-line camelcase
