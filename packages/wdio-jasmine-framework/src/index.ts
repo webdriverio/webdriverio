@@ -361,7 +361,6 @@ class JasmineAdapter {
             break
         }
 
-        console.log('----F', params)
         return this.formatMessage(params)
     }
 

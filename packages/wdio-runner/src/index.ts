@@ -253,9 +253,9 @@ export default class Runner extends EventEmitter {
          */
         if (runner === 'local') {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
-            const frameworkInstance = framework.init(cid, config, specs, capabilities, reporter, expect)
+            const frameworkInstance = await framework.init(cid, config, specs, capabilities, reporter)
             if (frameworkInstance.setupExpect) {
-                frameworkInstance.setupExpect(expect, matchers, getConfig)
+                await frameworkInstance.setupExpect(expect, matchers, getConfig)
             }
             return frameworkInstance
         }
