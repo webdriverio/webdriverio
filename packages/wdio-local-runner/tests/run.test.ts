@@ -103,16 +103,16 @@ test('should call gracefulExit(130) and set sigintWasCalled on SIGINT', () => {
     expect(gracefulExitMock).toHaveBeenCalledWith(130)
 })
 
-test('exitHook should delay shutdown if SIGINT was received', async () => {
+test('should delay shutdown in exitHook if SIGINT was received', async () => {
     runner.sigintWasCalled = true
     const startTime = Date.now()
     await exitHookCallback?.()
     const endTime = Date.now()
     // Should wait at least SHUTDOWN_TIMEOUT (10ms in test due to mock)
-    expect(endTime - startTime).toBeGreaterThanOrEqual(5)
+    expect(endTime - startTime).toBeGreaterThanOrEqual(10)
 })
 
-test('exitHook should not delay if SIGINT was not received', async () => {
+test('should not delay in exitHook if SIGINT was not received', async () => {
     runner.sigintWasCalled = false
     const start = Date.now()
     await exitHookCallback?.()
