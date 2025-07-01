@@ -138,7 +138,9 @@ describe('bidi utils', () => {
             expect(isBase64Safe(invalidAtMiddleExact)).toBe(false)
         })
 
-        it('should validate random valid base64 strings of various lengths', () => {
+        it('should validate random valid base64 strings of various lengths', {
+            timeout: 60_000
+        }, () => {
             // Test valid strings
             for (let i = 0; i < 10000; i++) {
                 // Generate random length between 0 and 1000000
@@ -156,7 +158,9 @@ describe('bidi utils', () => {
             }
         })
 
-        it('should identify random invalid base64 strings of various lengths', () => {
+        it('should identify random invalid base64 strings of various lengths', {
+            timeout: 10_000
+        }, () => {
             // Test invalid strings
             for (let i = 0; i < 10000; i++) {
                 // Generate random length between 1 and 1000000

@@ -6,6 +6,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 // @ts-expect-error mock feature
 import { Local, mockStart } from 'browserstack-local'
 import logger from '@wdio/logger'
+import { SevereServiceError } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
 import BrowserstackLauncher from '../src/launcher.js'
@@ -804,7 +805,7 @@ describe('_updateCaps', () => {
         const capabilities = 1
 
         expect(() => service._updateCaps(capabilities as any, 'local'))
-            .toThrow(TypeError('Capabilities should be an object or Array!'))
+            .toThrow(new SevereServiceError('Capabilities should be an object or Array!'))
     })
 
     it('should update the local cap in capabilities', () => {
