@@ -1749,7 +1749,7 @@ export function setReadWriteAccess(dirPath: string) {
     }
 }
 
-export function getHierarchyFromTest(test: Frameworks.Test) {
+export function getMochaTestHierarchy(test: Frameworks.Test) {
     const value: string[] = []
     if (test.ctx && test.ctx.test) {
         // If we already have the parent object, utilize it else get from context

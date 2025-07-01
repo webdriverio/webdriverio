@@ -10,7 +10,7 @@ import TrackedInstance from '../instances/trackedInstance.js'
 import { TestFrameworkConstants } from './constants/testFrameworkConstants.js'
 import { BStackLogger as logger } from '../cliLogger.js'
 import type { Frameworks } from '@wdio/types'
-import { getGitMetaData, getHierarchyFromTest, getUniqueIdentifier, isUndefined, removeAnsiColors } from '../../util.js'
+import { getGitMetaData, getMochaTestHierarchy, getUniqueIdentifier, isUndefined, removeAnsiColors } from '../../util.js'
 import { TEST_ANALYTICS_ID } from '../../constants.js'
 
 export default class WdioMochaTestFramework extends TestFramework {
@@ -160,7 +160,7 @@ export default class WdioMochaTestFramework extends TestFramework {
             [TestFrameworkConstants.KEY_TEST_FILE_PATH]: (gitConfig?.root && filename) ? path.relative(gitConfig.root, filename) : undefined,
             [TestFrameworkConstants.KEY_TEST_LOCATION]: filename ? path.relative(process.cwd(), filename) : undefined,
             [TestFrameworkConstants.KEY_TEST_SCOPE]: fullTitle,
-            [TestFrameworkConstants.KEY_TEST_SCOPES]: getHierarchyFromTest(test),
+            [TestFrameworkConstants.KEY_TEST_SCOPES]: getMochaTestHierarchy(test),
         }
 
         return testData
