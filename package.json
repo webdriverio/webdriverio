@@ -2,7 +2,7 @@
   "name": "webdriverio-monorepo",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@9.0.4",
+  "packageManager": "pnpm@10.12.4",
   "scripts": {
     "create": "tsx ./scripts/generateSubPackage.ts",
     "backport": "tsx ./scripts/backport.ts",
