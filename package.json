@@ -74,7 +74,6 @@
     "@stencil/core": "^4.35.1",
     "@sveltejs/vite-plugin-svelte": "^5.1.0",
     "@types/archiver": "^6.0.3",
-    "@types/cheerio": "^1.0.0",
     "@types/inquirer": "^9.0.8",
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
