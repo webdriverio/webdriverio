@@ -1512,8 +1512,8 @@ importers:
         specifier: ^1.0.4
         version: 1.0.4
       htmlfy:
-        specifier: ^0.6.0
-        version: 0.6.7
+        specifier: ^0.8.1
+        version: 0.8.1
       is-plain-obj:
         specifier: ^4.1.0
         version: 4.1.0
@@ -8750,6 +8750,9 @@ packages:
 
   htmlfy@0.6.7:
     resolution: {integrity: sha512-r8hRd+oIM10lufovN+zr3VKPTYEIvIwqXGucidh2XQufmiw6sbUXFUFjWlfjo3AnefIDTyzykVzQ8IUVuT1peQ==}
+
+  htmlfy@0.8.1:
+    resolution: {integrity: sha512-xWROBw9+MEGwxpotll0h672KCaLrKKiCYzsyN8ZgL9cQbVumFnyvsk2JqiB9ELAV1GLj1GG/jxZUjV9OZZi/yQ==}
 
   htmlparser2@10.0.0:
     resolution: {integrity: sha512-TwAZM+zE5Tq3lrEHvOlvwgj1XLWQCtaaibSN11Q+gGBAS7Y1uZSWwXXRe4iF6OXnaq1riyQAPFOBtYc77Mxq0g==}
@@ -22915,6 +22918,8 @@ snapshots:
       webpack: 5.99.9(@swc/core@1.12.9)
 
   htmlfy@0.6.7: {}
+
+  htmlfy@0.8.1: {}
 
   htmlparser2@10.0.0:
     dependencies:
