@@ -38,6 +38,7 @@
   "devDependencies": {
     "@babel/plugin-transform-react-jsx-development": "^7.22.5",
     "@jspm/core": "^2.0.1",
+    "@sveltejs/vite-plugin-svelte": "^5.1.0",
     "@testing-library/jest-dom": "^6.2.0",
     "@testing-library/preact": "^3.2.3",
     "@testing-library/react": "^14.1.2",
