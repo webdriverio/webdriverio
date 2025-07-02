@@ -9,6 +9,15 @@ import * as bstackLogger from '../../src/bstackLogger.js'
 import { CLIUtils } from '../../src/cli/cliUtils.js'
 import TestHubModule from '../../src/cli/modules/testHubModule.js'
 
+vi.mock('../../src/cli/modules/testHubModule.js', () => ({
+    default: class TestHubModule {
+        static MODULE_NAME = 'TestHubModule'
+        configure = vi.fn().mockResolvedValue(undefined)
+        constructor() {
+        }
+    }
+}))
+
 // Mock child_process at the top level
 vi.mock('node:child_process')
 
@@ -23,30 +32,35 @@ vi.mock('../../src/cli/apiUtils.js', () => ({
 vi.mock('../../src/cli/modules/WebdriverIOModule.js', () => ({
     default: class WebdriverIOModule {
         static MODULE_NAME = 'webdriverio'
+        configure = vi.fn().mockResolvedValue(undefined)
     }
 }))
 
 vi.mock('../../src/cli/modules/AutomateModule.js', () => ({
     default: class AutomateModule {
         static MODULE_NAME = 'automate'
+        configure = vi.fn().mockResolvedValue(undefined)
     }
 }))
 
 vi.mock('../../src/cli/modules/ObservabilityModule.js', () => ({
     default: class ObservabilityModule {
         static MODULE_NAME = 'observability'
+        configure = vi.fn().mockResolvedValue(undefined)
     }
 }))
 
 vi.mock('../../src/cli/modules/AccessibilityModule.js', () => ({
     default: class AccessibilityModule {
         static MODULE_NAME = 'accessibility'
+        configure = vi.fn().mockResolvedValue(undefined)
     }
 }))
 
 vi.mock('../../src/cli/modules/PercyModule.js', () => ({
     default: class PercyModule {
         static MODULE_NAME = 'percy'
+        configure = vi.fn().mockResolvedValue(undefined)
     }
 }))
 
