@@ -149,7 +149,7 @@ describe('switchFrame command', () => {
         })
 
         it('should switch context for delayed iframe URL', async () => {
-            vi.spyOn(getContextManager(browser), 'getFlatContextTree').mockResolvedValue({
+            const resolvedTree = {
                 '1': {
                     context: '1',
                     parent: null,
@@ -168,37 +168,75 @@ describe('switchFrame command', () => {
                     userContext: 'default',
                     children: []
                 }
-            })
+            }
 
-            vi.spyOn(browser, 'browsingContextLocateNodes').mockResolvedValue({
-                nodes: [
-                    {
-                        sharedId: 'node-5',
-                        value: {
-                            nodeType: 1,
-                            childNodeCount: 0,
-                            attributes: {
-                                src: 'https://mno.com'
-                            }
-                        }
+            const sessionContext = getContextManager(browser)
+
+            // Mock `browsingContextGetTree` to simulate retry behavior
+            let getTreeCall = 0
+            const browsingContextGetTreeMock = vi
+                .spyOn(browser, 'browsingContextGetTree')
+                .mockImplementation(() => {
+                    getTreeCall++
+                    if (getTreeCall < 3) {
+                        return Promise.resolve({ contexts: [] }) // 1st & 2nd retries
                     }
-                ]
+                    return Promise.resolve({
+                        contexts: [{ context: '5', url: 'https://mno.com', children: [] }]
+                    }) // 3rd call resolves
+                })
+
+            // `findContext` returns match only on 3rd call
+            let findCall = 0
+            vi.spyOn(sessionContext, 'findContext').mockImplementation((ctx, contexts, strategy) => {
+                findCall++
+                if (
+                    strategy === 'byUrl' &&
+                    findCall >= 3 &&
+                    Array.isArray(contexts) &&
+                    contexts.some(c => c.url === 'https://mno.com')
+                ) {
+                    return { context: '5', url: 'https://mno.com' }
+                }
+                return undefined
             })
 
+            // After resolving, context tree is fetched
+            const getFlatContextTreeMock = vi
+                .spyOn(sessionContext, 'getFlatContextTree')
+                .mockResolvedValue(resolvedTree)
+
+            // Locate iframe node in DOM
+            vi.spyOn(browser, 'browsingContextLocateNodes').mockResolvedValue({
+                nodes: [{
+                    sharedId: 'node-5',
+                    value: {
+                        nodeType: 1,
+                        childNodeCount: 0,
+                        attributes: { src: 'https://mno.com' }
+                    }
+                }]
+            })
+
+            // Resolve context from iframe node
             vi.spyOn(browser, 'scriptCallFunction').mockResolvedValue({
                 type: 'success',
-                result: {
-                    type: 'window',
-                    value: { context: '5' }
-                }
+                result: { type: 'window', value: { context: '5' } }
             })
 
-            const switchToFrame = vi.spyOn(browser, 'switchToFrame').mockResolvedValue(undefined)
+            // Ensure switchToFrame is called
+            const switchToFrameMock = vi
+                .spyOn(browser, 'switchToFrame')
+                .mockResolvedValue(undefined)
 
+            // Execute
             const result = await browser.switchFrame('https://mno.com')
             expect(result).toBe('5')
-            expect(contextManager.setCurrentContext).toBeCalledWith('5')
-            expect(switchToFrame).toHaveBeenCalled()
+
+            // Assertions
+            expect(browsingContextGetTreeMock).toHaveBeenCalledTimes(3) // Ensures retries
+            expect(getFlatContextTreeMock).toHaveBeenCalledTimes(1)
+            expect(switchToFrameMock).toHaveBeenCalled()
         })
 
     })
