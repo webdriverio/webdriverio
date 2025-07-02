@@ -88,12 +88,6 @@ class _InsightsHandler {
             return
         }
         process.removeAllListeners(`bs:addLog:${process.pid}`)
-        if (this._framework === 'mocha' && BrowserstackCLI.getInstance().isRunning()) {
-            process.on(`bs:addLog:${process.pid}`, async (stdLog: StdLog) => {
-                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG, HookState.POST, { logEntry: stdLog })
-            })
-            return
-        }
         process.on(`bs:addLog:${process.pid}`, this.appendTestItemLog.bind(this))
     }
 
@@ -532,6 +526,11 @@ class _InsightsHandler {
 
     appendTestItemLog = async (stdLog: StdLog) => {
         try {
+            if (BrowserstackCLI.getInstance().isRunning()) {
+                await BrowserstackCLI.getInstance().getTestFramework()!.trackEvent(TestFrameworkState.LOG, HookState.POST, { logEntry: stdLog })
+                return
+            }
+
             if (this._currentHook.uuid && !this._currentHook.finished && (this._framework === 'mocha' || this._framework === 'cucumber')) {
                 stdLog.hook_run_uuid = this._currentHook.uuid
             } else if (InsightsHandler.currentTest.uuid && (this._framework === 'mocha' || this._framework === 'cucumber')) {
