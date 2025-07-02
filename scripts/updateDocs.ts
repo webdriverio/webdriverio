@@ -10,7 +10,7 @@ import { Upload } from '@aws-sdk/lib-storage'
 import mime from 'mime-types'
 import readDir from 'recursive-readdir'
 
-import pkg from '../lerna.json' assert { type: 'json' }
+import pkg from '../lerna.json' with { type: 'json' }
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 

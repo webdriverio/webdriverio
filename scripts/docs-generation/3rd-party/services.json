@@ -212,5 +212,11 @@
     "title": "QUnit",
     "githubUrl": "https://github.com/mauriciolauffer/wdio-qunit-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-qunit-service"
+  },
+  {
+    "packageName": "wdio-obsidian-service",
+    "title": "Obsidian Plugin Testing",
+    "githubUrl": "https://github.com/jesse-r-s-hines/wdio-obsidian-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-obsidian-service"
   }
 ]
