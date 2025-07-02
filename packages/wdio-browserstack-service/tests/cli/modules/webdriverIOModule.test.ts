@@ -266,8 +266,7 @@ describe('WebdriverIOModule', () => {
             expect(mockGrpcClient.driverInitEvent).toHaveBeenCalledWith({
                 platformIndex: 0,
                 ref: 'auto-ref-123',
-                userInputParams: Buffer.from(JSON.stringify(mockCapabilities)),
-                binSessionId: ''
+                userInputParams: Buffer.from(JSON.stringify(mockCapabilities))
             })
 
             expect(AutomationFramework.setState).toHaveBeenCalledWith(

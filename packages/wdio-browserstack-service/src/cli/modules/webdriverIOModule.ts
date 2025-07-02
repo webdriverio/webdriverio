@@ -119,11 +119,10 @@ export default class WebdriverIOModule extends BaseModule {
 
     async getBinDriverCapabilities(instance: AutomationFrameworkInstance, caps: WebdriverIO.Capabilities) {
         try {
-            const payload: DriverInitRequest = {
+            const payload: Omit<DriverInitRequest, 'binSessionId'> = {
                 platformIndex: process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0,
                 ref: instance.getRef(),
-                userInputParams: Buffer.from(JSON.stringify(caps).toString()),
-                binSessionId: ''
+                userInputParams: Buffer.from(JSON.stringify(caps).toString())
             }
 
             const response: DriverInitResponse = await GrpcClient.getInstance().driverInitEvent(payload)

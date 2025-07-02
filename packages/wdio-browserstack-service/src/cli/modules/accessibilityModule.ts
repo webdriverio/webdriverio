@@ -399,8 +399,7 @@ export default class AccessibilityModule extends BaseModule {
     }
 
     async getDriverExecuteParams() {
-        const payload: FetchDriverExecuteParamsEventRequest = {
-            binSessionId: '',
+        const payload: Omit<FetchDriverExecuteParamsEventRequest, 'binSessionId'> = {
             product: 'accessibility',
             scriptName: 'saveResults'
         }

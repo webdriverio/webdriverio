@@ -115,7 +115,7 @@ export default class TestHubModule extends BaseModule {
             const uuid =  TestFramework.getState(instance, TestFrameworkConstants.KEY_TEST_UUID) || instance.getRef()
             const eventJson = Buffer.from(JSON.stringify(Object.fromEntries(testData)))
             const executionContext = { hash: trackedContext.getId(), threadId: trackedContext.getThreadId().toString(), processId: trackedContext.getProcessId().toString() }
-            const payload: TestFrameworkEventRequest = {
+            const payload: Omit<TestFrameworkEventRequest, 'binSessionId'> = {
                 platformIndex,
                 testFrameworkName,
                 testFrameworkVersion,
@@ -125,8 +125,7 @@ export default class TestHubModule extends BaseModule {
                 endedAt,
                 uuid,
                 eventJson,
-                executionContext,
-                binSessionId: ''
+                executionContext
             }
             this.logger.debug(`sendTestFrameworkEvent payload: ${JSON.stringify(payload)}`)
             await GrpcClient.getInstance().testFrameworkEvent(payload)
@@ -157,8 +156,7 @@ export default class TestHubModule extends BaseModule {
                 processId: trackedContext.getProcessId().toString()
             }
 
-            const payload: TestSessionEventRequest = {
-                binSessionId: '',
+            const payload: Omit<TestSessionEventRequest, 'binSessionId'> = {
                 testFrameworkName: testFWName,
                 testFrameworkVersion: testFWVersion,
                 testFrameworkState: testState.toString(),
@@ -232,11 +230,10 @@ export default class TestHubModule extends BaseModule {
             this.logger.debug(`sendLogCreatedEvent testId: testFrameworkState: ${testFrameworkState} testHookState: ${testHookState}`)
             const platformIndex = process.env.WDIO_WORKER_ID ? parseInt(process.env.WDIO_WORKER_ID.split('-')[0]) : 0
             const executionContext = { hash: trackedContext.getId(), threadId: trackedContext.getThreadId().toString(), processId: trackedContext.getProcessId().toString() }
-            const payload: LogCreatedEventRequest = {
+            const payload: Omit<LogCreatedEventRequest, 'binSessionId'> = {
                 platformIndex,
                 logs: [],
-                executionContext,
-                binSessionId: ''
+                executionContext
             }
             for (const logEntry of logEntries) {
                 // eslint-disable-next-line camelcase

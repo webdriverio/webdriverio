@@ -243,7 +243,7 @@ export class GrpcClient {
         }
     }
 
-    async testSessionEvent(data: TestSessionEventRequest) {
+    async testSessionEvent(data: Omit<TestSessionEventRequest, 'binSessionId'>) {
         this.logger.info('Sending TestSessionEvent')
 
         try {
@@ -300,7 +300,7 @@ export class GrpcClient {
      * Send TestFrameworkEvent
      */
 
-    async testFrameworkEvent(data: TestFrameworkEventRequest) {
+    async testFrameworkEvent(data: Omit<TestFrameworkEventRequest, 'binSessionId'>) {
         this.logger.info('Sending TestFrameworkEvent')
         try {
             if (!this.client) {
@@ -347,7 +347,7 @@ export class GrpcClient {
      * Send driverInitEvent
      */
 
-    async driverInitEvent(data: DriverInitRequest) {
+    async driverInitEvent(data: Omit<DriverInitRequest, 'binSessionId'>) {
         this.logger.info('Sending driverInitEvent')
         try {
             if (!this.client) {
@@ -377,7 +377,7 @@ export class GrpcClient {
         }
     }
 
-    async logCreatedEvent(data: LogCreatedEventRequest) {
+    async logCreatedEvent(data: Omit<LogCreatedEventRequest, 'binSessionId'>) {
         this.logger.info('Sending LogCreatedEvent')
         try {
             if (!this.client) {
@@ -429,7 +429,7 @@ export class GrpcClient {
         }
     }
 
-    async fetchDriverExecuteParamsEvent(data: FetchDriverExecuteParamsEventRequest) {
+    async fetchDriverExecuteParamsEvent(data: Omit<FetchDriverExecuteParamsEventRequest, 'binSessionId'>) {
         this.logger.info('Sending fetchDriverExecuteParamsEvent')
         try {
             if (!this.client) {

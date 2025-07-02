@@ -74,8 +74,6 @@ export const LOG_KIND_USAGE_MAP = {
     'HTTP': 'http'
 }
 
-export const BROWSERSTACK_API_URL = 'https://api.browserstack.com'
-
 export const FUNNEL_INSTRUMENTATION_URL = 'https://api.browserstack.com/sdk/v1/event'
 
 export const EDS_URL = 'https://eds.browserstack.com'

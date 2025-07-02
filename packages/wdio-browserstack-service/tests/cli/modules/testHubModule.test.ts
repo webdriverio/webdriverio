@@ -271,8 +271,7 @@ describe('TestHubModule', () => {
                     hash: 'test-context-id',
                     threadId: 'thread-123',
                     processId: 'process-456'
-                },
-                binSessionId: ''
+                }
             })
         })
 
@@ -360,7 +359,6 @@ describe('TestHubModule', () => {
             await testHubModule.sendTestSessionEvent(mockArgs)
 
             expect(mockGrpcClient.testSessionEvent).toHaveBeenCalledWith({
-                binSessionId: '',
                 testFrameworkName: 'mocha',
                 testFrameworkVersion: '8.0.0',
                 testFrameworkState: 'TEST',
@@ -467,8 +465,7 @@ describe('TestHubModule', () => {
                     hash: 'test-context-id',
                     threadId: 'thread-123',
                     processId: 'process-456'
-                },
-                binSessionId: ''
+                }
             })
         })
 
