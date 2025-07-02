@@ -39,6 +39,7 @@ import APIUtils from './apiUtils.js'
 export class CLIUtils {
     static automationFrameworkDetail = {}
     static testFrameworkDetail = {}
+    static CLISupportedFrameworks = ['mocha']
 
     static isDevelopmentEnv() {
         return process.env.BROWSERSTACK_CLI_ENV === 'development'
@@ -481,6 +482,13 @@ export class CLIUtils {
             return [bstackBuildTag]
         }
         return []
+    }
+
+    static checkCLISupportedFrameworks(framework: string | undefined) {
+        if (framework === undefined) {
+            return false
+        }
+        return this.CLISupportedFrameworks.includes(framework)
     }
 
 }

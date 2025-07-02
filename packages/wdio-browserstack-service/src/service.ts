@@ -39,6 +39,7 @@ import AutomationFramework from './cli/frameworks/automationFramework.js'
 import type AutomationFrameworkInstance from './cli/instances/automationFrameworkInstance.js'
 import util from 'node:util'
 import APIUtils from './cli/apiUtils.js'
+import { CLIUtils } from './cli/cliUtils.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = `${APIUtils.BROWSERSTACK_AUTOMATE_API_URL}/automate/sessions`
@@ -124,7 +125,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
 
         try {
-            if (this._config.framework === 'mocha') {
+            if (CLIUtils.checkCLISupportedFrameworks(this._config.framework)) {
                 // Connect to Browserstack CLI from worker
                 await BrowserstackCLI.getInstance().bootstrap(this._options)
 
