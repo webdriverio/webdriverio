@@ -7,7 +7,7 @@ import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
 import type { ChainablePromiseElement } from '../../types.js'
-import { findIframeInShadowDOM } from '../../utils/shadowDom.js'
+import { findIframeInShadowDOM } from '../../scripts/shadowDom.js'
 
 const log = logger('webdriverio:switchFrame')
 
