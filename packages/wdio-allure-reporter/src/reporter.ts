@@ -1,8 +1,7 @@
 import { stringify } from 'csv-stringify/sync'
 import type {
     SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
-    AfterCommandArgs, Argument
-} from '@wdio/reporter'
+    AfterCommandArgs, Argument } from '@wdio/reporter'
 import { getBrowserName } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
@@ -115,11 +114,19 @@ export default class AllureReporter extends WDIOReporter {
         )
     }
 
-    attachJSON(name: string, json: unknown) {
-        const isStr = typeof json === 'string'
-        const content = isStr ? json : JSON.stringify(json, null, 2)
+    attachJSON(name: string, value: unknown) {
+        let isJson = !!value && (typeof value === 'object' || Array.isArray(value))
+        if (typeof value === 'string' && (value.trim().startsWith('{') || value.trim().startsWith('['))) {
+            try {
+                value = JSON.parse(value)
+                isJson = !!value
+            } catch {
+                isJson = false
+            }
+        }
 
-        this.attachFile(name, String(content), isStr ? ContentType.JSON : ContentType.TEXT)
+        const content = isJson ? JSON.stringify(value, null, 2) : value
+        this.attachFile(name, String(content), isJson ? ContentType.JSON: ContentType.TEXT)
     }
 
     attachScreenshot(name: string, content: Buffer) {
@@ -489,7 +496,7 @@ export default class AllureReporter extends WDIOReporter {
         this._skipTest()
     }
 
-    onBeforeCommand(command: BeforeCommandArgs) {
+    onBeforeCommand(beforeCommand: BeforeCommandArgs) {
         if (!this._state.currentAllureStepableEntity) {
             return
         }
@@ -499,14 +506,15 @@ export default class AllureReporter extends WDIOReporter {
         if (disableWebdriverStepsReporting || this._isMultiremote) {
             return
         }
-        const { method, endpoint } = command
 
-        const stepName = command.command ? command.command : `${method} ${endpoint}`
-        const payload = command.body || command.params
+        const { command, method = '', endpoint = '', body, params } = beforeCommand
+
+        const stepName = command ? command : `${method} ${endpoint}`.trim() || 'unknown command'
+        const payload = body || params
 
         this._startStep(stepName as string)
 
-        if (typeof payload === 'object' && !isEmpty(payload as object)) {
+        if (payload && (typeof payload === 'object' || Array.isArray(payload))  && !isEmpty(payload)) {
             this.attachJSON('Request', payload)
         }
     }
@@ -515,12 +523,12 @@ export default class AllureReporter extends WDIOReporter {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
         const commandResult = (
-            (command?.result as { value?: unknown } | undefined)?.value ||
-            (command?.result as { error?: Error } | undefined)?.error?.name ||
-            {}
+            (command.result as { value?: unknown } | undefined)?.value ||
+            (command.result as { error?: Error | undefined } | undefined)?.error?.name ||
+            undefined
         )
-        const isScreenshot = isScreenshotCommand(command)
-        if (!disableWebdriverScreenshotsReporting && isScreenshot && commandResult) {
+
+        if (!disableWebdriverScreenshotsReporting && isScreenshotCommand(command) && commandResult) {
             this.attachScreenshot('Screenshot', Buffer.from(commandResult as string, 'base64'))
         }
 
@@ -528,7 +536,9 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        this.attachJSON('Response', commandResult)
+        if (commandResult) {
+            this.attachJSON('Response', commandResult)
+        }
         this.endStep(AllureStatus.PASSED)
     }
 
