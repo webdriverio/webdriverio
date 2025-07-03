@@ -24,6 +24,7 @@ export const jasmine = {
             negativeCompare: vi.fn()
         })
     },
+    addMatchers: vi.fn(),
     addAsyncMatchers: vi.fn(),
     beforeAll: vi.fn((cb) => cb()),
     expectAsync: {
@@ -37,7 +38,7 @@ export const jasmine = {
     }
 }
 export default class JasmineMock {
-    args: any[]
+    args: unknown[]
     beforeAllHook = beforeAllHook
     executeHook = executeHook
     jasmine = jasmine
@@ -53,7 +54,7 @@ export default class JasmineMock {
     randomizeTests = vi.fn()
     execute = vi.fn()
 
-    constructor (...args: any[]) {
+    constructor (...args: unknown[]) {
         this.args = args
     }
 }

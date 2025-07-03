@@ -42,14 +42,15 @@
     "jasmine": "^5.0.0"
   },
   "devDependencies": {
-    "@types/jasmine": "5.1.5"
+    "@types/jasmine": "5.1.5",
+    "expect-webdriverio": "^5.3.4"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^5.3.2",
+    "@wdio/runner": "^9.16.2",
     "webdriverio": "^9.0.0"
   },
   "peerDependenciesMeta": {
-    "expect-webdriverio": {
+    "@wdio/runner": {
       "optional": false
     },
     "webdriverio": {

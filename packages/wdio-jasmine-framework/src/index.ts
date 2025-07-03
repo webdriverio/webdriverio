@@ -4,9 +4,9 @@ import type { EventEmitter } from 'node:events'
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
-import { expect as expectImport, matchers, getConfig } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import type { Services, Capabilities } from '@wdio/types'
+import type { expect as wdioExpectImport, matchers as wdioMatchersImport, getConfig as wdioGetConfig } from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
 import { jestResultToJasmine } from './utils.js'
@@ -209,18 +209,38 @@ class JasmineAdapter {
             executeMock.apply(this, args)
         }
 
+        return this
+    }
+
+    /**
+     * We have to ensure that `@wdio/runner` and `@wdio/jasmine-framework` are using the same `expect` and `matchers` globals.
+     * This is why we have the `@wdio/runner` package pass on these primitives to the jasmine framework so that we can use them
+     * to setup the jasmine environment.
+     *
+     * @param wdioExpect - WebdriverIO expect
+     * @param wdioMatchers - WebdriverIO matchers
+     * @param getConfig - WebdriverIO getConfig
+     */
+    async setupExpect(
+        wdioExpect: typeof wdioExpectImport,
+        wdioMatchers: typeof wdioMatchersImport,
+        getConfig: typeof wdioGetConfig
+    ) {
+        const { jasmine } = this._jrunner
+        // @ts-ignore outdated
+        const jasmineEnv = jasmine.getEnv()
+
         /**
          * set up WebdriverIO matchers with Jasmine
          */
         const expect = jasmineEnv.expectAsync
-        const matchers = this.#setupMatchers(jasmine)
+        const matchers = this.#setupMatchers(jasmine, wdioMatchers, getConfig)
         jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
 
         /**
          * make Jasmine and WebdriverIOs expect global more compatible by attaching
          * support asymmetric matchers to the `expect` global
          */
-        const wdioExpect = expectImport as ExpectWebdriverIO.Expect
         for (const matcher of EXPECT_ASYMMETRIC_MATCHERS) {
             expect[matcher] = wdioExpect[matcher]
         }
@@ -237,8 +257,6 @@ class JasmineAdapter {
          * overwrite Jasmine global expect with WebdriverIOs expect
          */
         _setGlobal('expect', expect, this._config.injectGlobals)
-
-        return this
     }
 
     async _loadFiles() {
@@ -343,7 +361,6 @@ class JasmineAdapter {
             break
         }
 
-        console.log('----F', params)
         return this.formatMessage(params)
     }
 
@@ -430,7 +447,11 @@ class JasmineAdapter {
         }, {} as jasmine.CustomAsyncMatcherFactories)
     }
 
-    #setupMatchers (jasmine: jasmine.Jasmine): jasmine.CustomAsyncMatcherFactories {
+    #setupMatchers (
+        jasmine: jasmine.Jasmine,
+        matchers: typeof wdioMatchersImport,
+        getConfig: typeof wdioGetConfig
+    ): jasmine.CustomAsyncMatcherFactories {
         /**
          * overwrite "jasmine.addMatchers" to be always async since the `expect` global we
          * have is the `expectAsync` from Jasmine, so we need to ensure that synchronous

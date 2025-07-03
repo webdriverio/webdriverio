@@ -23,7 +23,7 @@ export function parseOverwrite<
             ? bodyOverwrite
             : typeof bodyOverwrite === 'string'
                 ? { type: 'string', value: bodyOverwrite }
-                : { type: 'base64', value: Buffer.from(JSON.stringify(bodyOverwrite || '')).toString('base64') }
+                : { type: 'base64', value: btoa(JSON.stringify(bodyOverwrite || '')) }
     }
 
     if ('headers' in overwrite) {
