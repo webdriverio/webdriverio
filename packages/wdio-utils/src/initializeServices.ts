@@ -95,9 +95,9 @@ export async function initializeLauncherService (
     config: Omit<WebdriverIO.Config, 'capabilities' | keyof Services.HookFunctions>,
     caps: Capabilities.TestrunnerCapabilities
 ): Promise<{
-    ignoredWorkerServices: string[];
-    launcherServices: Services.ServiceInstance[];
-}> {
+        ignoredWorkerServices: string[];
+        launcherServices: Services.ServiceInstance[];
+    }> {
     const ignoredWorkerServices = []
     const launcherServices: Services.ServiceInstance[] = []
     let serviceLabelToBeInitialised = 'unknown'
