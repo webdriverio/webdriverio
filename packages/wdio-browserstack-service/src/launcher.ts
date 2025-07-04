@@ -214,10 +214,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         try {
             if (CLIUtils.checkCLISupportedFrameworks(config.framework)) {
-                BrowserstackCLI.getInstance().setBrowserstackConfig(config)
                 CLIUtils.setFrameworkDetail(WDIO_NAMING_PREFIX + config.framework, 'WebdriverIO') // TODO: make this constant
                 const binconfig = CLIUtils.getBinConfig(config, capabilities, this._options, this._buildTag)
-                await BrowserstackCLI.getInstance().bootstrap(this._options, binconfig)
+                await BrowserstackCLI.getInstance().bootstrap(this._options, binconfig, config)
                 BStackLogger.debug(`Is CLI running ${BrowserstackCLI.getInstance().isRunning()}`)
             }
         } catch (err) {
