@@ -127,7 +127,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         try {
             if (CLIUtils.checkCLISupportedFrameworks(this._config.framework)) {
                 // Connect to Browserstack CLI from worker
-                await BrowserstackCLI.getInstance().bootstrap(this._options, '', this._config)
+                await BrowserstackCLI.getInstance().bootstrap(this._options, this._config)
 
                 // Get the nearest hub and update it in config
                 const hubUrl = BrowserstackCLI.getInstance().getConfig().hubUrl as string

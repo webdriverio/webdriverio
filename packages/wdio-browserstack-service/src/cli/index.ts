@@ -76,7 +76,7 @@ export class BrowserstackCLI {
      * Initializes and starts the CLI based on environment settings
      * @returns {Promise<void>}
      */
-    async bootstrap(options: BrowserstackConfig & BrowserstackOptions, wdioConfig='', config?: Options.Testrunner) {
+    async bootstrap(options: BrowserstackConfig & BrowserstackOptions, config?: Options.Testrunner, wdioConfig='') {
         PerformanceTester.start(PerformanceEvents.SDK_CLI_ON_BOOTSTRAP)
         BrowserstackCLI.enabled = true
         this.options = options
