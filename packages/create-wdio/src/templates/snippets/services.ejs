@@ -1,0 +1,18 @@
+services: [<%- answers.services.map((service) => {
+    if (service === 'electron') {
+        return /*js*/`'electron'`
+    } else if (service === 'sauce' && answers.useSauceConnect) {
+        return /*js*/`[
+        'sauce',
+        {
+            sauceConnect: true,
+            sauceConnectOpts: {
+                // add Sauce Connect Options if needed
+                // see more at https://docs.saucelabs.com/dev/cli/sauce-connect-5/
+            }
+        }
+    ]`
+    }
+
+    return `'${service}'`
+}).join(', ') %>],
