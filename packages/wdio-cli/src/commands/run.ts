@@ -5,10 +5,10 @@ import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
-import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
-import { coerceOptsFor } from '../utils.js'
+import { coerceOptsFor,  } from '../utils.js'
 import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
+import { config } from 'create-wdio/config/cli'
 
 export const command = 'run <configPath>'
 
@@ -175,11 +175,11 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
 export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
 
-    const wdioConf = await formatConfigFilePaths(configPath)
-    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension, wdioConf.fullPath)
+    const wdioConf = await config.formatConfigFilePaths(configPath)
+    const confAccess = await config.canAccessConfigPath(wdioConf.fullPathNoExtension, wdioConf.fullPath)
     if (!confAccess) {
         try {
-            await missingConfigurationPrompt('run', wdioConf.fullPathNoExtension)
+            await config.missingConfigurationPrompt('run', wdioConf.fullPathNoExtension)
             if (process.env.WDIO_UNIT_TESTS) {
                 return
             }

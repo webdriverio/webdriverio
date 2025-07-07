@@ -50,6 +50,7 @@
     "async-exit-hook": "^2.0.1",
     "chalk": "^5.2.0",
     "chokidar": "^4.0.0",
+    "create-wdio": "workspace:*",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
     "execa": "^9.2.0",
@@ -59,7 +60,6 @@
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
     "read-pkg-up": "^10.0.0",
-    "recursive-readdir": "^2.2.3",
     "tsx": "^4.7.2",
     "webdriverio": "workspace:*",
     "yargs": "^17.7.2"
