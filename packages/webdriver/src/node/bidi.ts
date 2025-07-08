@@ -1,10 +1,14 @@
 import { isIP } from 'node:net'
 import dns from 'node:dns/promises'
 import { type LookupAddress } from 'node:dns'
+import type { Agent } from 'node:http'
+import { type ClientRequestArgs } from 'node:http'
 
 import logger from '@wdio/logger'
 
+import { environment } from '../environment.js'
 import WebSocket, { type ClientOptions } from 'ws'
+import { HttpsProxyAgent } from 'https-proxy-agent'
 
 const log = logger('webdriver')
 const CONNECTION_TIMEOUT = 10000
@@ -63,7 +67,24 @@ export async function connectWebsocket(candidateUrls: string[], options?: Client
     const websockets: WebSocket[] = candidateUrls.map((candidateUrl) => {
         log.debug(`Attempt to connect to webSocketUrl ${candidateUrl}`)
         try {
-            const ws = new WebSocket(candidateUrl, options)
+            const finalizedOptions: WebSocket.ClientOptions | ClientRequestArgs = { ...options }
+            const { PROXY_URL, NO_PROXY } = environment.value.variables
+            const shouldUseProxy =
+                PROXY_URL && !NO_PROXY?.some((str) => {
+                    try {
+                        // need to parse soemthing like wss://third-party.com:443/session/xxxx/se/bidi
+                        return (new URL(candidateUrl)).hostname.endsWith(str)
+                    } catch {
+                        return false
+                    }
+                })
+
+            if (shouldUseProxy) {
+                log.debug(`Adding proxy ${PROXY_URL} for webSocketUrl ${candidateUrl}`)
+                finalizedOptions.agent = (new HttpsProxyAgent(PROXY_URL)) as Agent
+            }
+
+            const ws = new WebSocket(candidateUrl, finalizedOptions)
             return ws
         } catch {
             return undefined
