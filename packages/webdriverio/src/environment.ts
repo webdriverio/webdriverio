@@ -63,7 +63,10 @@ export const environment: {
             return () => 'browser'
         },
         get variables() {
-            return {} as EnvironmentVariables
+            /**
+             * In unit tests we need to use the process.env object to set the environment variables.
+             */
+            return isNode ? process.env as EnvironmentVariables : {} as EnvironmentVariables
         }
     }
 }

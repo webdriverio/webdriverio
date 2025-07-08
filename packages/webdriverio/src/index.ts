@@ -70,7 +70,6 @@ export const remote = async function(
      */
     if ((params as Options.Testrunner).framework && !isStub(params.automationProtocol)) {
         instance.addCommand = instance.addCommand.bind(instance)
-
         instance.overwriteCommand = instance.overwriteCommand.bind(instance)
     }
 

@@ -2,10 +2,34 @@ import { describe, it, expect } from 'vitest'
 
 import { isBase64Safe } from '../src/bidi/utils.js'
 
+function getRandomBytes(length: number): Uint8Array {
+    const MAX_CHUNK = 65536
+    const result = new Uint8Array(length)
+
+    for (let i = 0; i < length; i += MAX_CHUNK) {
+        const chunkSize = Math.min(MAX_CHUNK, length - i)
+        const chunk = crypto.getRandomValues(new Uint8Array(chunkSize))
+        result.set(chunk, i)
+    }
+
+    return result
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+    // Avoid stack overflows by processing in chunks
+    let binary = ''
+    const CHUNK_SIZE = 8192
+    for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+        const chunk = bytes.subarray(i, i + CHUNK_SIZE)
+        binary += String.fromCharCode.apply(null, chunk as unknown as number[])
+    }
+    return btoa(binary)
+}
+
 // Helper functions for the tests
 const generateBase64 = (length: number): string => {
-    const randomBytes = crypto.getRandomValues(new Uint8Array(length))
-    return btoa(String.fromCharCode(...randomBytes))
+    const randomBytes = getRandomBytes(length)
+    return bytesToBase64(randomBytes)
 }
 
 const generateInvalidBase64 = (length: number): string => {

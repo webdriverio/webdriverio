@@ -72,14 +72,6 @@ describe('middleware', () => {
     })
 
     it('should successfully getAttribute of an element that falls stale after being re-found in Safari', async () => {
-        /**
-         * fails on CI due to: `AssertionError: expected [ [], [], [], [], [], [] ] to have a length of 1 but got 6`
-         * @todo(@christian-bromann): please fix this
-         */
-        if (process.env.CI) {
-            return
-        }
-
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
