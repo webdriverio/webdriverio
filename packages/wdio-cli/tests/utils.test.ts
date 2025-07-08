@@ -60,7 +60,6 @@ vi.mock('execa', () => ({
 }))
 
 vi.mock('../src/install', () => ({
-    installPackages: vi.fn(),
     getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
 }))
 

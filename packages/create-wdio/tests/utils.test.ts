@@ -30,7 +30,7 @@ import path from 'node:path'
 import { readPackageUp } from 'read-pkg-up'
 import type { Questionnair } from '../src/types.js'
 import inquirer from 'inquirer'
-import { installPackages } from '../src/cli/install.js'
+import { installPackages } from '../src/install.js'
 
 const consoleLog = console.log.bind(console)
 const processExit = process.exit.bind(process)

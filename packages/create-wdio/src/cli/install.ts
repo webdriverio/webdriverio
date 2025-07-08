@@ -18,8 +18,6 @@ import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants.js'
 import type { InstallCommandArguments, SupportedPackage } from '../types.js'
 import { canAccessConfigPath } from './utils.js'
 
-export { installPackages }
-
 const supportedInstallations = {
     runner: SUPPORTED_PACKAGES.runner.map(({ value }) => convertPackageHashToObject(value)),
     plugin: SUPPORTED_PACKAGES.plugin.map(({ value }) => convertPackageHashToObject(value)),
