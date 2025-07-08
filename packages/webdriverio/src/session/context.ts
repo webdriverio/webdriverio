@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 
 import { SessionManager } from './session.js'
 import { getMobileContext, getNativeContext } from '../utils/mobile.js'
+import { environment } from '../environment.js'
 
 const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
@@ -187,7 +188,7 @@ export class ContextManager extends SessionManager {
         /**
          * don't run this in unit tests
          */
-        if (process.env.WDIO_UNIT_TESTS) {
+        if (environment.value.variables.WDIO_UNIT_TESTS) {
             return ''
         }
 
