@@ -100,7 +100,7 @@
     "vite-plugin-top-level-await": "^1.4.1"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^5.3.2",
+    "expect-webdriverio": "^5.3.4",
     "webdriver": "^9.0.0",
     "webdriverio": "^9.0.0"
   },
@@ -116,13 +116,15 @@
     }
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^4.0.2",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-lib-source-maps": "^4.0.4",
     "@types/istanbul-reports": "^3.0.4",
     "esbuild": "^0.25.0",
     "geckodriver": "^5.0.0",
-    "mocha": "^10.7.3"
+    "mocha": "^10.7.3",
+    "webdriverio": "workspace:*"
   },
   "optionalDependencies": {
     "@nuxt/kit": "^3.12.4",

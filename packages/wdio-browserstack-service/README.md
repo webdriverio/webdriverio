@@ -353,7 +353,7 @@ To specify the path to file where the logs will be saved -
 ```js
 opts = { verbose: "true", logFile: "./local.log" };
 ```
-
+For a detailed list of BrowserStack WebdriverIO services, see the BrowserStack documentation for [App Automate](https://www.browserstack.com/docs/app-automate/appium/wdio-browserstack-capabilities)(app testing) and [Automate](https://www.browserstack.com/docs/automate/selenium/wdio-browserstack-capabilities) (web testing).
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).
