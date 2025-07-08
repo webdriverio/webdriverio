@@ -2,7 +2,7 @@
   "name": "create-wdio",
   "version": "9.0.0",
   "description": "Install and setup a WebdriverIO project with all its dependencies in a single run",
-  "author": "<your-name> <your@email.com>",
+  "author": "WebdriverIO Team <mail@webdriver.io>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/create-wdio",
   "license": "MIT",
   "type": "module",
@@ -35,7 +35,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/webdriverio/webdriverio.git"
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/create-wdio"
   },
   "keywords": [
     "webdriverio",
