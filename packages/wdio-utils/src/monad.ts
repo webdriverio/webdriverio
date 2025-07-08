@@ -211,6 +211,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
     unit.lift = function (name: string, func: Function, proto: Record<string, any>, origCommand?: Function) {
         (proto || prototype)[name] = function next(...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
+            this.emit('command', { command: name, body: args })
 
             /**
              * set name of function for better error stack
@@ -220,25 +221,42 @@ export default function WebDriver(options: object, modifier?: Function, properti
                 writable: false,
             })
 
-            const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
+            try {
+                const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
 
-            /**
-             * always transform result into promise
-             */
-            Promise.resolve(result).then((res: unknown) => {
-                const elem = res as { elementId: string, selector?: string }
-                let resultLog = res
-                if (elem instanceof SCOPE_TYPES.element) {
-                    resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
-                } else if (res instanceof SCOPE_TYPES.browser) {
-                    resultLog = 'WebdriverIO.Browser'
+                // When the result is a promise, we want to emit on then & catch
+                if (isPromiseLike(result)) {
+                    result.then((res: unknown) => {
+
+                        const elem = res as { elementId: string, selector?: string }
+                        let resultLog = res
+                        if (elem instanceof SCOPE_TYPES.element) {
+                            resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
+                        } else if (res instanceof SCOPE_TYPES.browser) {
+                            resultLog = 'WebdriverIO.Browser'
+                        }
+
+                        log.info('RESULT', resultLog)
+                        this.emit('result', {
+                            command: name,
+                            result: { value: res },
+                            name // Kept for legacy reasons, as the `command` property is now used in the reporter. To remove one day!
+                        })
+                    }).catch((error: Error) => {
+                        this.emit('result', { command: name, result: { error } })
+                    })
+                } else {
+                    // The function should always be a promise and not trigger the below, but for the sake of being bullet proof let's do it
+                    // When a function we can emit the result immediately
+                    this.emit('result', { command: name, result: { value: result } })
                 }
 
-                log.info('RESULT', resultLog)
-                this.emit('result', { name, result: res })
-            }).catch(() => { })
-
-            return result
+                return result
+            } catch (error) {
+                // The function should always be a promise and not trigger this error but for the sake of being bullet proof let's do it
+                this.emit('result', { command: name, result: { error } })
+                throw error
+            }
         }
     }
 
@@ -284,4 +302,8 @@ export default function WebDriver(options: object, modifier?: Function, properti
     }
 
     return unit
+}
+
+const isPromiseLike = (value: unknown): value is Promise<unknown> => {
+    return value !== null && typeof value === 'object' && typeof (value as Promise<unknown>).then === 'function' && typeof (value as Promise<unknown>).catch === 'function'
 }
