@@ -6,6 +6,7 @@ import WebDriver from './index.js'
 import { FetchRequest } from './request/node.js'
 import { FetchRequest as WebFetchRequest } from './request/web.js'
 import { createBidiConnection } from './node/bidi.js'
+import { killDriverProcess } from './node/utils.js'
 import type { BrowserSocket } from './bidi/socket.js'
 
 export default WebDriver
@@ -30,6 +31,7 @@ environment.value = {
     ) ? WebFetchRequest : FetchRequest,
     Socket: ws as unknown as typeof BrowserSocket,
     createBidiConnection,
+    killDriverProcess,
     variables: {
         WDIO_LOG_LEVEL: process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined,
         DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS: process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS,
