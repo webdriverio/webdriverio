@@ -1,15 +1,15 @@
 import { execa } from 'execa'
 import { detectPackageManager } from './utils.js'
-import type { PM } from './types.js'
+import type { PACKAGE_MANAGER } from './constants.js'
 
-const installCommand: Record<PM, string> = {
+const installCommand: Record<PACKAGE_MANAGER, string> = {
     npm: 'install',
     pnpm: 'add',
     yarn: 'add',
     bun: 'install'
 }
 
-const devFlag: Record<PM, string> = {
+const devFlag: Record<PACKAGE_MANAGER, string> = {
     npm: '--save-dev',
     pnpm: '--save-dev',
     yarn: '--dev',
@@ -42,7 +42,7 @@ export async function installPackages (cwd: string, packages: string[], dev: boo
     return true
 }
 
-export function getInstallCommand (pm: PM, packages: string[], dev: boolean) {
+export function getInstallCommand (pm: PACKAGE_MANAGER, packages: string[], dev: boolean) {
     const devParam = dev ? devFlag[pm] : ''
     return `${pm} ${installCommand[pm]} ${packages.join(' ')} ${devParam}`
 }
