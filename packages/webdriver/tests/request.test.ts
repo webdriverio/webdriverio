@@ -440,7 +440,6 @@ describe('webdriver request', () => {
         }, 20_000)
 
         it('should throw if request error is unknown', async () => {
-            console.log('TESTING', AbortSignal)
             const req = new WebFetchRequest('POST', '/sumoerror', {}, undefined, true)
             const result = await req.makeRequest({
                 protocol: 'https',
