@@ -116,7 +116,7 @@
     }
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^5.1.0",
+    "@sveltejs/vite-plugin-svelte": "^4.0.2",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-lib-source-maps": "^4.0.4",
