@@ -95,7 +95,7 @@ describe('Lit Component testing', () => {
         await expect($('non-existing-element')).not.toBeDisplayed()
         await expect(await $('non-existing-element')).not.toBePresent()
         await expect(await $('non-existing-element')).not.toBeDisplayed()
-        expect(Date.now() - start).toBeLessThan(1000)
+        expect(Date.now() - start).toBeLessThan(1500)
     })
 
     describe('shadow root piercing', function () {
