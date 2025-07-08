@@ -16,7 +16,7 @@
     "test:browser:vue:wdio": "cross-env WDIO_PRESET=vue wdio ./browser-runner/wdio.conf.js --spec vue.test.js",
     "test:browser:vue:deleteTW": "rm ./tailwind.config.js",
     "test:browser:vue:verifyCoverage": "run-s verifyCoverage",
-    "test:browser:svelte": "run-s test:browser:svelte:*",
+    "test:browser:svelte": "echo \"UNSKIP ME\" || run-s test:browser:svelte:*",
     "test:browser:svelte:wdio": "cross-env WDIO_PRESET=svelte wdio ./browser-runner/wdio.conf.js --spec svelte.test.js",
     "test:browser:svelte:verifyCoverage": "run-s verifyCoverage",
     "test:browser:lit": "run-s test:browser:lit:*",

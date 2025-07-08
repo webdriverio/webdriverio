@@ -33,8 +33,8 @@ importers:
         specifier: ^4.35.1
         version: 4.35.1
       '@sveltejs/vite-plugin-svelte':
-        specifier: ^5.1.0
-        version: 5.1.0(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))
+        specifier: 4.0.2
+        version: 4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))
       '@types/archiver':
         specifier: ^6.0.3
         version: 6.0.3
@@ -122,6 +122,9 @@ importers:
       ejs-lint:
         specifier: ^2.0.1
         version: 2.0.1
+      eslint:
+        specifier: ^9.30.0
+        version: 9.30.0(jiti@2.4.2)
       eta:
         specifier: ^3.5.0
         version: 3.5.0
@@ -386,6 +389,9 @@ importers:
       '@wdio/globals':
         specifier: workspace:*
         version: link:../../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../../packages/wdio-jasmine-framework
       '@wdio/junit-reporter':
         specifier: workspace:*
         version: link:../../packages/wdio-junit-reporter
@@ -436,8 +442,8 @@ importers:
         specifier: ^5.0.3
         version: 5.2.4(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1))(vue@3.5.17(typescript@5.8.3))
       expect-webdriverio:
-        specifier: 5.3.1
-        version: 5.3.1(@wdio/globals@9.16.2)(@wdio/logger@9.16.2)(webdriverio@9.16.2(puppeteer-core@24.11.2))
+        specifier: ^5.3.4
+        version: 5.3.4(@wdio/globals@9.16.2)(@wdio/logger@9.16.2)(webdriverio@9.16.2(puppeteer-core@24.11.2))
       mocha:
         specifier: ^10.2.0
         version: 10.8.2
@@ -638,8 +644,8 @@ importers:
         specifier: 30.0.0-alpha.7
         version: 30.0.0-alpha.7
       expect-webdriverio:
-        specifier: ^5.3.2
-        version: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2))
+        specifier: ^5.3.4
+        version: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       get-port:
         specifier: ^7.1.0
         version: 7.1.0
@@ -685,10 +691,10 @@ importers:
       webdriver:
         specifier: ^9.0.0
         version: 9.16.2
-      webdriverio:
-        specifier: ^9.0.0
-        version: 9.16.2(puppeteer-core@24.11.2)
     devDependencies:
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^4.0.2
+        version: 4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1))
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
         version: 2.0.6
@@ -710,6 +716,9 @@ importers:
       mocha:
         specifier: ^10.7.3
         version: 10.8.2
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
     optionalDependencies:
       '@nuxt/kit':
         specifier: ^3.12.4
@@ -999,7 +1008,7 @@ importers:
   packages/wdio-globals:
     dependencies:
       expect-webdriverio:
-        specifier: ^5.3.2
+        specifier: ^5.3.4
         version: 5.3.4(@wdio/globals@9.16.2)(@wdio/logger@9.16.2)(webdriverio@9.16.2(puppeteer-core@24.11.2))
       webdriverio:
         specifier: ^9.0.0
@@ -1016,15 +1025,15 @@ importers:
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
+      '@wdio/runner':
+        specifier: ^9.16.2
+        version: 9.16.2(expect-webdriverio@5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2)))(webdriverio@9.16.2(puppeteer-core@24.11.2))
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
       '@wdio/utils':
         specifier: workspace:*
         version: link:../wdio-utils
-      expect-webdriverio:
-        specifier: ^5.3.2
-        version: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2))
       jasmine:
         specifier: ^5.0.0
         version: 5.8.0
@@ -1035,6 +1044,9 @@ importers:
       '@types/jasmine':
         specifier: 5.1.5
         version: 5.1.5
+      expect-webdriverio:
+        specifier: ^5.3.4
+        version: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2))
 
   packages/wdio-json-reporter:
     dependencies:
@@ -1143,7 +1155,7 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       expect-webdriverio:
-        specifier: ^5.3.2
+        specifier: ^5.3.4
         version: 5.3.4(@wdio/globals@9.16.2)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2))
       split2:
         specifier: ^4.1.0
@@ -1261,7 +1273,7 @@ importers:
         specifier: ^7.0.3
         version: 7.1.5
       expect-webdriverio:
-        specifier: ^5.3.2
+        specifier: ^5.3.4
         version: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
@@ -1460,6 +1472,9 @@ importers:
       locate-app:
         specifier: ^2.2.24
         version: 2.5.0
+      mitt:
+        specifier: ^3.0.1
+        version: 3.0.1
       safaridriver:
         specifier: ^1.0.0
         version: 1.0.0
@@ -1724,7 +1739,7 @@ importers:
         specifier: workspace:*
         version: link:../packages/wdio-webdriver-mock-service
       expect-webdriverio:
-        specifier: ^5.3.1
+        specifier: ^5.3.4
         version: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
@@ -1897,7 +1912,7 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/wdio-utils
       expect-webdriverio:
-        specifier: ^5.3.1
+        specifier: ^5.3.4
         version: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@9.16.2)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
@@ -5294,20 +5309,20 @@ packages:
   '@surma/rollup-plugin-off-main-thread@2.2.3':
     resolution: {integrity: sha512-lR8q/9W7hZpMWweNiAKU7NQerBnzQQLvi8qnTDU/fxItPhtZVMbPV3lbCwjhIlNBe9Bbr5V+KHshvWmVSG9cxQ==}
 
-  '@sveltejs/vite-plugin-svelte-inspector@4.0.1':
-    resolution: {integrity: sha512-J/Nmb2Q2y7mck2hyCX4ckVHcR5tu2J+MtBEQqpDrrgELZ2uvraQcK/ioCV61AqkdXFgriksOKIceDcQmqnGhVw==}
+  '@sveltejs/vite-plugin-svelte-inspector@3.0.1':
+    resolution: {integrity: sha512-2CKypmj1sM4GE7HjllT7UKmo4Q6L5xFRd7VMGEWhYnZ+wc6AUVU01IBd7yUi6WnFndEwWoMNOd6e8UjoN0nbvQ==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22}
     peerDependencies:
-      '@sveltejs/vite-plugin-svelte': ^5.0.0
-      svelte: ^5.0.0
-      vite: ^6.0.0
+      '@sveltejs/vite-plugin-svelte': ^4.0.0-next.0||^4.0.0
+      svelte: ^5.0.0-next.96 || ^5.0.0
+      vite: ^5.0.0
 
-  '@sveltejs/vite-plugin-svelte@5.1.0':
-    resolution: {integrity: sha512-wojIS/7GYnJDYIg1higWj2ROA6sSRWvcR1PO/bqEyFr/5UZah26c8Cz4u0NaqjPeVltzsVpt2Tm8d2io0V+4Tw==}
+  '@sveltejs/vite-plugin-svelte@4.0.2':
+    resolution: {integrity: sha512-Y9r/fWy539XlAC7+5wfNJ4zH6TygUYoQ0Eegzp0zDDqhJ54+92gOyOX1l4MO1cJSx0O+Gp13YePT5XEa3+kX0w==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22}
     peerDependencies:
-      svelte: ^5.0.0
-      vite: ^6.0.0
+      svelte: ^5.0.0-next.96 || ^5.0.0
+      vite: ^5.0.0
 
   '@svgr/babel-plugin-add-jsx-attribute@8.0.0':
     resolution: {integrity: sha512-b9MIk7yhdS1pMCZM8VeNfUlSKVRhsHZNMl5O9SfaX0l0t5wjdgu4IDzGB8bpnGBBOjGST3rRFVsaaEtI4W6f7g==}
@@ -6100,6 +6115,10 @@ packages:
     resolution: {integrity: sha512-a7zDSNzpGgkb6mWrg9GWPmvh/sZFzaf86/iBjCv+n2DTY0+8v8NLruRQmWuCaQAlLVhM3XAqmB+fWLqxDhdvOA==}
     engines: {node: '>=18.20.0'}
 
+  '@wdio/dot-reporter@9.16.2':
+    resolution: {integrity: sha512-JzFegviZdpzgvt8w8uwI0pyJguIuJzfzlkkyWz1WUoqtilH4yrf5IYKzObnm3peh7iQ/y2J1SSeAjKr0Hr5xTg==}
+    engines: {node: '>=18.20.0'}
+
   '@wdio/eslint@0.1.2':
     resolution: {integrity: sha512-mn3qJcCtMcTqcyGBDLl/TExJ4/uIrIdz/wk2WHChINpHnHd6vHdz1p5cc6SXeffgMmLM2SYqgANHcfSrh+Tp3w==}
 
@@ -6120,6 +6139,17 @@ packages:
   '@wdio/repl@9.16.2':
     resolution: {integrity: sha512-FLTF0VL6+o5BSTCO7yLSXocm3kUnu31zYwzdsz4n9s5YWt83sCtzGZlZpt7TaTzb3jVUfxuHNQDTb8UMkCu0lQ==}
     engines: {node: '>=18.20.0'}
+
+  '@wdio/reporter@9.16.2':
+    resolution: {integrity: sha512-th+APMRuK03OzpiJKnfhCwnXoJb57mRmP/NQYGc+k9GEF3Z3yPDD7LxnBlwPANGxt/hdzirQ6OvQyJYLwpmmuQ==}
+    engines: {node: '>=18.20.0'}
+
+  '@wdio/runner@9.16.2':
+    resolution: {integrity: sha512-cETsJivOD2yzJfzwKi1n7NNXL3zF/yTcA+578fiu48iGVmhOJNhgW9sv4oVH/aDCt09PPUZw6DEBOT3mcKDSGw==}
+    engines: {node: '>=18.20.0'}
+    peerDependencies:
+      expect-webdriverio: ^5.3.2
+      webdriverio: ^9.0.0
 
   '@wdio/types@9.16.2':
     resolution: {integrity: sha512-P86FvM/4XQGpJKwlC2RKF3I21TglPvPOozJGG9HoL0Jmt6jRF20ggO/nRTxU0XiWkRdqESUTmfA87bdCO4GRkQ==}
@@ -8259,14 +8289,6 @@ packages:
   expect-type@1.2.1:
     resolution: {integrity: sha512-/kP8CAwxzLVEeFrMm4kMmy4CCDlpipyA7MYLVrdJIkV0fYF0UaigQHRsxHiuY/GEea+bh4KSv3TIlgr+2UL6bw==}
     engines: {node: '>=12.0.0'}
-
-  expect-webdriverio@5.3.1:
-    resolution: {integrity: sha512-xK3ZKMCeyKCXlE2C9RILFOhI0hgdY3cy6EXWLI9+EsYLEwy/8+2tDPwrL6ZPQ8mSCiV259sJYhNZzCSD/2/jaA==}
-    engines: {node: '>=18 || >=20 || >=22'}
-    peerDependencies:
-      '@wdio/globals': ^9.0.0
-      '@wdio/logger': ^9.0.0
-      webdriverio: ^9.0.0
 
   expect-webdriverio@5.3.4:
     resolution: {integrity: sha512-FU+96C0nqeYTXrJcGLUDB6hPKKaSm1/tVHjFDE4EDHGCYvajAHCC2MBQJ5MomjCmp6lGMz36lDHeZj52LHylyA==}
@@ -15843,7 +15865,7 @@ snapshots:
       '@cucumber/ci-environment': 10.0.1
       '@cucumber/cucumber-expressions': 17.1.0
       '@cucumber/gherkin': 28.0.0
-      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)
+      '@cucumber/gherkin-streams': 5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)
       '@cucumber/gherkin-utils': 9.0.0
       '@cucumber/html-formatter': 21.6.0(@cucumber/messages@24.1.0)
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -15883,7 +15905,7 @@ snapshots:
       yaml: 2.8.0
       yup: 1.2.0
 
-  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@24.1.0))(@cucumber/messages@24.1.0)':
+  '@cucumber/gherkin-streams@5.0.1(@cucumber/gherkin@28.0.0)(@cucumber/message-streams@4.0.1(@cucumber/messages@26.0.1))(@cucumber/messages@24.1.0)':
     dependencies:
       '@cucumber/gherkin': 28.0.0
       '@cucumber/message-streams': 4.0.1(@cucumber/messages@24.1.0)
@@ -18829,18 +18851,27 @@ snapshots:
       magic-string: 0.25.9
       string.prototype.matchall: 4.0.12
 
-  '@sveltejs/vite-plugin-svelte-inspector@4.0.1(@sveltejs/vite-plugin-svelte@5.1.0(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1)))(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))':
+  '@sveltejs/vite-plugin-svelte-inspector@3.0.1(@sveltejs/vite-plugin-svelte@4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1)))(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 5.1.0(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))
+      '@sveltejs/vite-plugin-svelte': 4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))
       debug: 4.4.1(supports-color@8.1.1)
       svelte: 4.2.20
       vite: 5.4.19(@types/node@20.19.2)(terser@5.43.1)
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte@5.1.0(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))':
+  '@sveltejs/vite-plugin-svelte-inspector@3.0.1(@sveltejs/vite-plugin-svelte@4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1)))(svelte@4.2.20)(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte-inspector': 4.0.1(@sveltejs/vite-plugin-svelte@5.1.0(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1)))(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))
+      '@sveltejs/vite-plugin-svelte': 4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1))
+      debug: 4.4.1(supports-color@8.1.1)
+      svelte: 4.2.20
+      vite: 5.4.19(@types/node@22.15.34)(terser@5.43.1)
+    transitivePeerDependencies:
+      - supports-color
+
+  '@sveltejs/vite-plugin-svelte@4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))':
+    dependencies:
+      '@sveltejs/vite-plugin-svelte-inspector': 3.0.1(@sveltejs/vite-plugin-svelte@4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1)))(svelte@4.2.20)(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))
       debug: 4.4.1(supports-color@8.1.1)
       deepmerge: 4.3.1
       kleur: 4.1.5
@@ -18848,6 +18879,19 @@ snapshots:
       svelte: 4.2.20
       vite: 5.4.19(@types/node@20.19.2)(terser@5.43.1)
       vitefu: 1.0.7(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1))
+    transitivePeerDependencies:
+      - supports-color
+
+  '@sveltejs/vite-plugin-svelte@4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1))':
+    dependencies:
+      '@sveltejs/vite-plugin-svelte-inspector': 3.0.1(@sveltejs/vite-plugin-svelte@4.0.2(svelte@4.2.20)(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1)))(svelte@4.2.20)(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1))
+      debug: 4.4.1(supports-color@8.1.1)
+      deepmerge: 4.3.1
+      kleur: 4.1.5
+      magic-string: 0.30.17
+      svelte: 4.2.20
+      vite: 5.4.19(@types/node@22.15.34)(terser@5.43.1)
+      vitefu: 1.0.7(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -19829,6 +19873,12 @@ snapshots:
       - bare-buffer
       - supports-color
 
+  '@wdio/dot-reporter@9.16.2':
+    dependencies:
+      '@wdio/reporter': 9.16.2
+      '@wdio/types': 9.16.2
+      chalk: 5.4.1
+
   '@wdio/eslint@0.1.2(@typescript-eslint/eslint-plugin@8.35.1(@typescript-eslint/parser@8.35.1(eslint@9.30.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.0(jiti@2.4.2))(typescript@5.8.3)':
     dependencies:
       '@eslint/js': 9.30.0
@@ -19845,9 +19895,9 @@ snapshots:
       - supports-color
       - typescript
 
-  '@wdio/globals@9.16.2(expect-webdriverio@5.3.1)(webdriverio@9.16.2(puppeteer-core@24.11.2))':
+  '@wdio/globals@9.16.2(expect-webdriverio@5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2)))(webdriverio@9.16.2(puppeteer-core@24.11.2))':
     dependencies:
-      expect-webdriverio: 5.3.1(@wdio/globals@9.16.2)(@wdio/logger@9.16.2)(webdriverio@9.16.2(puppeteer-core@24.11.2))
+      expect-webdriverio: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2))
       webdriverio: 9.16.2(puppeteer-core@24.11.2)
 
   '@wdio/globals@9.16.2(expect-webdriverio@5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio))(webdriverio@9.16.2(puppeteer-core@24.11.2))':
@@ -19872,6 +19922,33 @@ snapshots:
   '@wdio/repl@9.16.2':
     dependencies:
       '@types/node': 20.19.2
+
+  '@wdio/reporter@9.16.2':
+    dependencies:
+      '@types/node': 20.19.2
+      '@wdio/logger': 9.16.2
+      '@wdio/types': 9.16.2
+      diff: 7.0.0
+      object-inspect: 1.13.4
+
+  '@wdio/runner@9.16.2(expect-webdriverio@5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2)))(webdriverio@9.16.2(puppeteer-core@24.11.2))':
+    dependencies:
+      '@types/node': 20.19.2
+      '@wdio/config': 9.16.2
+      '@wdio/dot-reporter': 9.16.2
+      '@wdio/globals': 9.16.2(expect-webdriverio@5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2)))(webdriverio@9.16.2(puppeteer-core@24.11.2))
+      '@wdio/logger': 9.16.2
+      '@wdio/types': 9.16.2
+      '@wdio/utils': 9.16.2
+      deepmerge-ts: 7.1.5
+      expect-webdriverio: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@9.16.2(puppeteer-core@24.11.2))
+      webdriver: 9.16.2
+      webdriverio: 9.16.2(puppeteer-core@24.11.2)
+    transitivePeerDependencies:
+      - bare-buffer
+      - bufferutil
+      - supports-color
+      - utf-8-validate
 
   '@wdio/types@9.16.2':
     dependencies:
@@ -22358,16 +22435,6 @@ snapshots:
       homedir-polyfill: 1.0.3
 
   expect-type@1.2.1: {}
-
-  expect-webdriverio@5.3.1(@wdio/globals@9.16.2)(@wdio/logger@9.16.2)(webdriverio@9.16.2(puppeteer-core@24.11.2)):
-    dependencies:
-      '@vitest/snapshot': 3.2.4
-      '@wdio/globals': 9.16.2(expect-webdriverio@5.3.1)(webdriverio@9.16.2(puppeteer-core@24.11.2))
-      '@wdio/logger': 9.16.2
-      expect: 30.0.3
-      jest-matcher-utils: 30.0.3
-      lodash.isequal: 4.5.0
-      webdriverio: 9.16.2(puppeteer-core@24.11.2)
 
   expect-webdriverio@5.3.4(@wdio/globals@9.16.2)(@wdio/logger@9.16.2)(webdriverio@9.16.2(puppeteer-core@24.11.2)):
     dependencies:
@@ -28953,6 +29020,10 @@ snapshots:
   vitefu@1.0.7(vite@5.4.19(@types/node@20.19.2)(terser@5.43.1)):
     optionalDependencies:
       vite: 5.4.19(@types/node@20.19.2)(terser@5.43.1)
+
+  vitefu@1.0.7(vite@5.4.19(@types/node@22.15.34)(terser@5.43.1)):
+    optionalDependencies:
+      vite: 5.4.19(@types/node@22.15.34)(terser@5.43.1)
 
   vitest@3.2.4(@types/debug@4.1.12)(@types/node@20.19.2)(jsdom@26.1.0)(terser@5.43.1):
     dependencies:
