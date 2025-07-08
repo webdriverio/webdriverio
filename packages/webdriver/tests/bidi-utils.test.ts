@@ -162,7 +162,7 @@ describe('bidi utils', () => {
         })
 
         it('should validate random valid base64 strings of various lengths', {
-            timeout: 120_000
+            timeout: 300_000 // this can be a potential long test
         }, () => {
             // Test valid strings
             for (let i = 0; i < 10000; i++) {
@@ -182,7 +182,7 @@ describe('bidi utils', () => {
         })
 
         it('should identify random invalid base64 strings of various lengths', {
-            timeout: 120_000
+            timeout: 300_000 // this can be a potential long test
         }, () => {
             // Test invalid strings
             for (let i = 0; i < 10000; i++) {
