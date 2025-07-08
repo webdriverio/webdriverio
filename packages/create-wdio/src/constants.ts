@@ -1,5 +1,5 @@
 import { convertPackageHashToObject, detectPackageManager, getDefaultFiles, detectCompiler, getProjectRoot } from './utils.js'
-import pkg from '../package.json' with {type:'json'}
+import pkg from '../package.json' with { type:'json' }
 import path from 'node:path'
 import fs from 'node:fs'
 import type { Questionnair } from './types.js'
