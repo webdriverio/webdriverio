@@ -52,6 +52,12 @@ const DEFAULT_WAIT_STATE = 'complete'
  *
  * The command supports the following options:
  *
+ * :::note
+ *
+ * These features unfortunately won't be available to you if your remote environment doesn't support WebDriver Bidi. You can check if Bidi is support in your session by looking into the `browser.isBidi` property.
+ *
+ * :::
+ *
  * ### wait
  * The desired state the requested resource should be in before finishing the command.
  * It supports the following states:

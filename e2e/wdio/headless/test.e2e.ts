@@ -1,5 +1,6 @@
 /// <reference types="@wdio/lighthouse-service" />
 
+import fs from 'node:fs/promises'
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
@@ -16,7 +17,7 @@ describe('main suite 1', () => {
         await expect($('.findme')).toMatchSnapshot()
         await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
-  
+
     it('should support input value with sensitive information', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
@@ -632,7 +633,8 @@ describe('main suite 1', () => {
 
                 const screenshotPath = path.resolve(__dirname, 'iframe.png')
                 await browser.saveScreenshot(screenshotPath)
-                const dimensions = imageSize(screenshotPath) as { width: number, height: number }
+                const image = await fs.readFile(screenshotPath)
+                const dimensions = imageSize(image) as { width: number, height: number }
                 console.log(`Screenshot dimensions: ${JSON.stringify(dimensions)}`)
 
                 expect(dimensions.width).toBeGreaterThanOrEqual(170)

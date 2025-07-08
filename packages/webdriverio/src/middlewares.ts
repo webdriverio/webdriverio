@@ -5,7 +5,7 @@ import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { isStaleElementError } from './utils/index.js'
 
-const COMMANDS_TO_SKIP = ['getElement', 'getElements']
+const COMMANDS_TO_SKIP = ['getElement', 'getElements', 'emit']
 
 /**
  * This method is an command wrapper for elements that checks if a command is called

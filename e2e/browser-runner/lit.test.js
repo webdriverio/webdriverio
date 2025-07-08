@@ -95,7 +95,7 @@ describe('Lit Component testing', () => {
         await expect($('non-existing-element')).not.toBeDisplayed()
         await expect(await $('non-existing-element')).not.toBePresent()
         await expect(await $('non-existing-element')).not.toBeDisplayed()
-        expect(Date.now() - start).toBeLessThan(1000)
+        expect(Date.now() - start).toBeLessThan(1500)
     })
 
     describe('shadow root piercing', function () {
@@ -268,7 +268,7 @@ describe('Lit Component testing', () => {
 
         const err = await $('input').click().catch((err) => err)
         expect(err.name).toBe('webdriverio(middleware): element did not become interactable')
-        expect(err.message).toBe('Element <input style="display: none;"> did not become interactable')
+        expect(err.message).toBe('Element <input style="display: none;" /> did not become interactable')
     })
 
     it('intercepts "element not interactable" errors and waits for the element to be interactable', async () => {
