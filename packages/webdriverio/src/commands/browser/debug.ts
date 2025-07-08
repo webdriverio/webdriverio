@@ -1,6 +1,8 @@
 import { serializeError } from 'serialize-error'
 import WDIORepl from '@wdio/repl'
 
+import { environment } from '../../environment.js'
+
 /**
  *
  * This command helps you to debug your integration tests. It stops the running browser and gives
@@ -37,11 +39,12 @@ export function debug(
 ): Promise<void | unknown> {
     const repl = new WDIORepl()
     const { introMessage } = WDIORepl
+    const process = globalThis.process as NodeJS.Process
 
     /**
      * run repl in standalone mode
      */
-    if (!process.env.WDIO_WORKER_ID || typeof process.send !== 'function') {
+    if (!environment.value.variables.WDIO_WORKER_ID || typeof process.send !== 'function') {
         console.log(WDIORepl.introMessage)
         const context = {
             browser: this,
