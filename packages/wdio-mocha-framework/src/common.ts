@@ -119,7 +119,7 @@ export function requireExternalModules (mods: string[], loader = loadModule) {
             return Promise.resolve()
         }
 
-        mod = mod.replace(/.*:/, '')
+        mod = mod.includes(':') ? mod.substring(mod.lastIndexOf(':') + 1) : mod
 
         if (mod.startsWith('./') && globalThis.process) {
             mod = `${globalThis.process.cwd()}/${mod.slice(2)}`
