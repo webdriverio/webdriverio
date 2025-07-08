@@ -59,10 +59,6 @@ vi.mock('execa', () => ({
     $: vi.fn().mockReturnValue(async (sh: string) => sh)
 }))
 
-vi.mock('../src/install', () => ({
-    getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
-}))
-
 beforeEach(() => {
     global.console.log = vi.fn()
 
