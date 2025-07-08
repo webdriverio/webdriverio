@@ -83,7 +83,7 @@ export abstract class WebDriverRequest {
          * only apply body property if existing
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
-            const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
+            const contentLength = new TextEncoder().encode(JSON.stringify(this.body)).length
             requestOptions.body = this.body as unknown as BodyInit
             requestHeaders.set('Content-Length', `${contentLength}`)
         }

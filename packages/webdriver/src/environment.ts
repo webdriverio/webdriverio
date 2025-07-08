@@ -1,4 +1,5 @@
 import type WebSocket from 'ws'
+import type { Options } from '@wdio/types'
 
 import type { BrowserSocket } from './bidi/socket.js'
 import type { FetchRequest } from './request/web.js'
@@ -10,8 +11,12 @@ export const isNode = !!(typeof process !== 'undefined' && process.version)
 
 export interface EnvironmentVariables {
     WEBDRIVER_CACHE_DIR?: string
+    WDIO_LOG_LEVEL?: Options.WebDriverLogTypes
     PROXY_URL?: string
     NO_PROXY?: string[]
+    DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS?: string
+    WDIO_WORKER_ID?: string
+    WDIO_UNIT_TESTS?: string
 }
 
 export interface EnvironmentDependencies {
@@ -39,7 +44,7 @@ export const environment: {
             throw new Error('createBidiConnection is not available in this environment')
         },
         get variables(): EnvironmentDependencies['variables'] {
-            return {}
+            return {} as EnvironmentVariables
         }
     }
 }
