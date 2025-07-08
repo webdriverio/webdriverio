@@ -53,9 +53,9 @@ export default class WDIOCLInterface extends EventEmitter {
         reporter: Record<string, string[]>
         debugger: Record<string, string[]>
     } = {
-            reporter: {},
-            debugger: {}
-        }
+        reporter: {},
+        debugger: {}
+    }
 
     constructor(
         private _config: WebdriverIO.Config,
@@ -83,7 +83,7 @@ export default class WDIOCLInterface extends EventEmitter {
         this.onStart()
     }
 
-    #hasShard () {
+    #hasShard() {
         return this._config.shard && this._config.shard.total !== 1
     }
 
@@ -122,24 +122,24 @@ export default class WDIOCLInterface extends EventEmitter {
         this.log('')
     }
 
-    onSpecRunning (rid: string) {
+    onSpecRunning(rid: string) {
         this.onJobComplete(rid, this._jobs.get(rid), 0, chalk.bold(chalk.cyan('RUNNING')))
     }
 
-    onSpecRetry (rid: string, job?: Workers.Job, retries = 0) {
+    onSpecRetry(rid: string, job?: Workers.Job, retries = 0) {
         const delayMsg = this._specFileRetriesDelay > 0 ? ` after ${this._specFileRetriesDelay}s` : ''
         this.onJobComplete(rid, job, retries, chalk.bold(chalk.yellow('RETRYING') + delayMsg))
     }
 
-    onSpecPass (rid: string, job?: Workers.Job, retries = 0) {
+    onSpecPass(rid: string, job?: Workers.Job, retries = 0) {
         this.onJobComplete(rid, job, retries, chalk.bold(chalk.green('PASSED')))
     }
 
-    onSpecFailure (rid: string, job?: Workers.Job, retries = 0) {
+    onSpecFailure(rid: string, job?: Workers.Job, retries = 0) {
         this.onJobComplete(rid, job, retries, chalk.bold(chalk.red('FAILED')))
     }
 
-    onSpecSkip (rid: string, job?: Workers.Job) {
+    onSpecSkip(rid: string, job?: Workers.Job) {
         this.onJobComplete(rid, job, 0, 'SKIPPED', log.info)
     }
 
@@ -155,7 +155,7 @@ export default class WDIOCLInterface extends EventEmitter {
         return _logger(...details)
     }
 
-    onTestError (payload: CLIInterfaceEvent) {
+    onTestError(payload: CLIInterfaceEvent) {
         const error: TestError = {
             type: payload.error?.type || 'Error',
             message: payload.error?.message || (typeof payload.error === 'string' ? payload.error : 'Unknown error.'),
@@ -165,7 +165,7 @@ export default class WDIOCLInterface extends EventEmitter {
         return this.log(`[${payload.cid}]`, `${chalk.red(error.type)} in "${payload.fullTitle}"\n${chalk.red(error.stack || error.message)}`)
     }
 
-    getFilenames (specs: string[] = []) {
+    getFilenames(specs: string[] = []) {
         if (specs.length > 0) {
             return '- ' + specs.join(', ').replace(new RegExp(`${process.cwd()}`, 'g'), '')
         }
@@ -175,7 +175,7 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * add job to interface
      */
-    addJob ({ cid, caps, specs, hasTests }: Workers.Job & { cid: string }) {
+    addJob({ cid, caps, specs, hasTests }: Workers.Job & { cid: string }) {
         this._jobs.set(cid, { caps, specs, hasTests })
         if (hasTests) {
             this.onSpecRunning(cid)
@@ -187,7 +187,7 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * clear job from interface
      */
-    clearJob ({ cid, passed, retries }: { cid: string, passed: boolean, retries: number }) {
+    clearJob({ cid, passed, retries }: { cid: string, passed: boolean, retries: number }) {
         const job = this._jobs.get(cid)
 
         this._jobs.delete(cid)
@@ -217,12 +217,12 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * for testing purposes call console log in a static method
      */
-    log (...args: unknown[]) {
+    log(...args: unknown[]) {
         console.log(...args)
         return args
     }
 
-    logHookError (error: Error | HookError) {
+    logHookError(error: Error | HookError) {
         if (error instanceof HookError) {
             return this.log(`${chalk.red(error.name)} in "${error.origin}"\n${chalk.red(error.stack || error.message)}`)
         }
@@ -232,7 +232,7 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * event handler that is triggered when runner sends up events
      */
-    onMessage (event: CLIInterfaceEvent) {
+    onMessage(event: CLIInterfaceEvent) {
         if (event.name === 'reporterRealTime') {
             this.log(event.content)
             return

@@ -44,7 +44,7 @@ const packages = (
                 url.pathToFileURL(
                     path.resolve(rootDir, 'packages', project, 'package.json')
                 ).href,
-                { assert: { type: 'json' } }
+                { with: { type: 'json' } }
             )
             return [project, pkg.default]
         })
