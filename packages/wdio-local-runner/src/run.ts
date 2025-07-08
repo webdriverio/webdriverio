@@ -1,7 +1,7 @@
-import exitHook from 'exit-hook'
+import { asyncExitHook, gracefulExit } from 'exit-hook'
 
-import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
+import Runner from '@wdio/runner'
 import type { Workers } from '@wdio/types'
 
 import { SHUTDOWN_TIMEOUT } from './constants.js'
@@ -27,7 +27,7 @@ if (typeof process.send === 'function') {
 }
 
 export const runner = new Runner() as unknown as RunnerInterface
-runner.on('exit', process.exit.bind(process))
+runner.on('exit', (code = 0) => gracefulExit(code))
 runner.on('error', ({ name, message, stack }) => process.send!({
     origin: 'worker',
     name: 'error',
@@ -56,16 +56,24 @@ process.on('message', (m: Workers.WorkerCommand) => {
     )
 })
 
-/**
- * catch sigint messages as they are handled by main process
- */
-exitHook(() => {
+process.once('SIGINT', () => {
     runner.sigintWasCalled = true
-    log.info(`Received SIGINT, giving process ${SHUTDOWN_TIMEOUT}ms to shutdown gracefully`)
-
-    return new Promise<void>((resolve) => {
-        setTimeout(() => {
-            resolve()
-        }, SHUTDOWN_TIMEOUT)
-    })
+    gracefulExit(130)
 })
+
+/**
+ * registers an asynchronous exit hook to allow graceful shutdown
+ * if the process is being terminated due to SIGINT, delays exit for SHUTDOWN_TIMEOUT ms to allow cleanup
+ * otherwise, exits immediately without delay
+ */
+asyncExitHook(
+    async () => {
+        if (runner.sigintWasCalled) {
+            log.info(`Received SIGINT, giving process ${SHUTDOWN_TIMEOUT}ms to shutdown gracefully`)
+
+            return await new Promise(res => setTimeout(res, SHUTDOWN_TIMEOUT))
+        }
+    }, {
+        wait: SHUTDOWN_TIMEOUT
+    }
+)
