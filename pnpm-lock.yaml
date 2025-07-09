@@ -1536,6 +1536,9 @@ importers:
       deepmerge-ts:
         specifier: ^7.0.3
         version: 7.1.5
+      https-proxy-agent:
+        specifier: ^7.0.6
+        version: 7.0.6
       undici:
         specifier: ^6.20.1
         version: 6.21.3

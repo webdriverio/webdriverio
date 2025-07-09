@@ -23,6 +23,7 @@ export interface EnvironmentDependencies {
     Request: typeof FetchRequest,
     Socket: typeof BrowserSocket,
     createBidiConnection: (wsUrl?: string, options?: WebSocket.ClientOptions) => Promise<WebSocket | undefined>,
+    killDriverProcess: (capabilities: WebdriverIO.Capabilities, shutdownDriver: boolean) => void,
     variables: EnvironmentVariables
 }
 
@@ -42,6 +43,9 @@ export const environment: {
         },
         get createBidiConnection(): EnvironmentDependencies['createBidiConnection'] {
             throw new Error('createBidiConnection is not available in this environment')
+        },
+        get killDriverProcess(): EnvironmentDependencies['killDriverProcess'] {
+            throw new Error('killDriverProcess is not available in this environment')
         },
         get variables(): EnvironmentDependencies['variables'] {
             return {} as EnvironmentVariables

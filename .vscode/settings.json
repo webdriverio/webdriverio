@@ -10,8 +10,7 @@
   // Debugging.
   "debug.javascript.unmapMissingSources": true,
   "files.exclude": {
-    "*[!test]**/node_modules": true,
-    "**/build": true
+    "*[!test]**/node_modules": true
   },
   "search.exclude": {
     "**/build": true

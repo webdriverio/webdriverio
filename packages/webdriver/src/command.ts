@@ -191,33 +191,11 @@ export default function (
                 const browser = this as { _bidiHandler?: BidiHandler }
                 browser._bidiHandler?.close()
 
-                const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
                 /**
                  * kill driver process if there is one
                  */
-                if (shutdownDriver && 'wdio:driverPID' in this.capabilities && this.capabilities['wdio:driverPID']) {
-                    log.info(`Kill driver process with PID ${this.capabilities['wdio:driverPID']}`)
-                    try {
-                        const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
-                        if (!killedSuccessfully) {
-                            log.warn('Failed to kill driver process, manually clean-up might be required')
-                        }
-                    } catch (err) {
-                        log.warn('Failed to kill driver process', err)
-                    }
-
-                    setTimeout(() => {
-                        /**
-                         * clear up potential leaked TLS Socket handles
-                         * see https://github.com/puppeteer/puppeteer/pull/10667
-                         */
-                        for (const handle of process._getActiveHandles()) {
-                            if (handle.servername && handle.servername.includes('edgedl.me')) {
-                                handle.destroy()
-                            }
-                        }
-                    }, 10)
-                }
+                const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
+                environment.value.killDriverProcess(this.capabilities, shutdownDriver)
 
                 /**
                  * clear logger stream if session has been terminated
