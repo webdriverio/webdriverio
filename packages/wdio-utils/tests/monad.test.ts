@@ -1,6 +1,8 @@
 import path from 'node:path'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import webdriverMonad from '../src/monad.js'
+import logger from '@wdio/logger'
+const log = logger('webdriver')
 
 let prototype: any
 
@@ -146,5 +148,125 @@ describe('monad', () => {
         const monad = webdriverMonad({})
         const client = monad(sessionId)
         expect(client.commandList).toHaveLength(0)
+    })
+
+    describe('given custom command', () => {
+        let client: any
+        beforeEach(() => {
+            const monad = webdriverMonad({}, (client: any) => client, prototype)
+            const commandWrapperMock = vi.fn().mockImplementation((_name, fn) => fn)
+            client = monad(sessionId, commandWrapperMock)
+            client.emit = vi.fn()
+        })
+        describe('when custom command is a function', () => {
+            const fn = vi.fn().mockImplementation(() => 'command result')
+            const customCommandName = 'customFunctionCommand'
+            beforeEach(() => {
+                client.addCommand('customFunctionCommand', fn)
+            })
+
+            it('should return result when running custom command as a function and emit command and result', () => {
+                const result = client.customFunctionCommand()
+
+                expect(result).toBe('command result')
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [] })
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: { value: 'command result' } })
+                expect(client.emit).toHaveBeenCalledTimes(2)
+            })
+
+            it('should throw and emit result when throwing an error', () => {
+                const error1 = new Error('command error')
+                fn.mockImplementation(() => {throw error1})
+
+                expect(() => client.customFunctionCommand()).toThrowError('command error')
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [] })
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: { error: error1 } })
+                expect(client.emit).toHaveBeenCalledTimes(2)
+            })
+        })
+        describe('when custom command is a Promise', () => {
+            const expectedResult = 'command promise result'
+            const customCommandName = 'customPromiseCommand'
+            const fn = vi.fn().mockImplementation(async () => Promise.resolve(expectedResult))
+            beforeEach(() => {
+                client.addCommand(customCommandName, fn)
+            })
+
+            it('should return result when running custom command and emit command + result', async () => {
+                const result = await client.customPromiseCommand()
+
+                expect(result).toBe(expectedResult)
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [] })
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: { value: expectedResult }, name: customCommandName })
+                expect(client.emit).toHaveBeenCalledTimes(2)
+            })
+
+            it('should reject promise and emit result when throwing an error', async () => {
+                const error2 = new Error('command promise error')
+                fn.mockImplementation(async () => {throw error2})
+
+                const promise = client.customPromiseCommand()
+
+                expect(client.emit).toHaveBeenNthCalledWith(1, 'command', { command: customCommandName, body: [],  })
+                await expect(promise).rejects.toThrowError('command promise error')
+                expect(client.emit).toHaveBeenNthCalledWith(2, 'result', { command: customCommandName, result: { error: error2 } })
+                expect(client.emit).toHaveBeenCalledTimes(2)
+            })
+        })
+    })
+
+    describe('given element scope', () => {
+        let monad: any
+        let ElementCtor: any
+
+        beforeEach(() => {
+            monad = webdriverMonad({}, (client: any) => client, { scope: { value: 'element' } })
+            const elementInstance = monad('some-session-id')
+            ElementCtor = elementInstance.constructor
+        })
+
+        it('should log command and result for element scope', async () => {
+            const browser = monad(sessionId)
+
+            // Add a command that returns an instance of ElementCtor
+            browser.addCommand('myElementCommand', async function () {
+                // @ts-ignore
+                const element = new ElementCtor()
+                element.elementId = 'abc123'
+                return element
+            })
+
+            // Call the command
+            await browser.myElementCommand()
+            expect(log.info).toHaveBeenCalledWith('COMMAND', 'myElementCommand()')
+            expect(log.info).toHaveBeenCalledWith('RESULT', 'WebdriverIO.Element<abc123>')
+        })
+    })
+
+    describe('given browser scope', () => {
+        let monad: any
+        let BrowserCtor: any
+
+        beforeEach(() => {
+            monad = webdriverMonad({}, (client: any) => client, { scope: { value: 'browser' } })
+            const browserInstance = monad('some-session-id')
+            BrowserCtor = browserInstance.constructor
+        })
+
+        it('should log command and result for element scope', async () => {
+            const browser = monad(sessionId)
+
+            // Add a command that returns an instance of ElementCtor
+            browser.addCommand('myElementCommand', async function () {
+                // @ts-ignore
+                const browser = new BrowserCtor()
+                return browser
+            })
+
+            // Call the command
+            await browser.myElementCommand()
+            expect(log.info).toHaveBeenCalledWith('COMMAND', 'myElementCommand()')
+            expect(log.info).toHaveBeenCalledWith('RESULT', 'WebdriverIO.Browser')
+        })
     })
 })

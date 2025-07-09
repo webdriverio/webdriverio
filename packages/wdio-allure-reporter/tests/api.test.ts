@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { SpyInstance } from 'vitest'
+import type { MockInstance } from 'vitest'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { Status, ContentType } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
@@ -267,7 +267,7 @@ describe('event listeners', () => {
 describe('attachJSON', () => {
     const outputDir = temporaryDirectory()
     let reporterInstance: AllureReporter
-    let writeAttachmentSpy: SpyInstance
+    let writeAttachmentSpy: MockInstance
 
     beforeEach(() => {
         clean(outputDir)
@@ -279,25 +279,36 @@ describe('attachJSON', () => {
             title: 'my test',
             duration: 0,
             _duration: 0,
-            parent: undefined,
+            parent: '',
             type: 'scenario',
             start: new Date(),
             complete: vi.fn(),
         })
     })
 
-    it('writes json file for string content', () => {
-        const fixture = JSON.stringify({ foo: 'bar' })
+    it('writes json file for compatible json string content', () => {
+        const object = { foo: 'bar' }
+        const inlineJsonString = JSON.stringify(object)
 
-        reporterInstance.attachJSON('foobar', fixture)
+        reporterInstance.attachJSON('foobar', inlineJsonString)
 
-        expect(writeAttachmentSpy).toBeCalledWith(fixture, ContentType.JSON)
+        expect(writeAttachmentSpy).toBeCalledWith(JSON.stringify({ foo: 'bar' }, null, 2), ContentType.JSON)
     })
 
-    it('writes txt file for rest content types', () => {
-        reporterInstance.attachJSON('foobar', { foo: 'bar' })
+    it('writes json file for an object', () => {
+        const object = { foo: 'bar' }
 
-        expect(writeAttachmentSpy).toBeCalledWith(JSON.stringify({ foo: 'bar' }, null, 2), ContentType.TEXT)
+        reporterInstance.attachJSON('foobar', object)
+
+        expect(writeAttachmentSpy).toBeCalledWith(JSON.stringify(object, null, 2), ContentType.JSON)
+    })
+
+    it('writes json file for an array', () => {
+        const array = [{ foo: 'bar' }]
+
+        reporterInstance.attachJSON('foobar', array)
+
+        expect(writeAttachmentSpy).toBeCalledWith(JSON.stringify(array, null, 2), ContentType.JSON)
     })
 
     it('writes txt file for undefined value', () => {
@@ -305,12 +316,30 @@ describe('attachJSON', () => {
 
         expect(writeAttachmentSpy).toBeCalledWith('undefined', ContentType.TEXT)
     })
+
+    it('writes txt file for empty value', () => {
+        reporterInstance.attachJSON('foobar', undefined)
+
+        expect(writeAttachmentSpy).toBeCalledWith('undefined', ContentType.TEXT)
+    })
+
+    it('writes txt file for null value', () => {
+        reporterInstance.attachJSON('foobar', undefined)
+
+        expect(writeAttachmentSpy).toBeCalledWith('undefined', ContentType.TEXT)
+    })
+
+    it('writes txt file for non json string', () => {
+        reporterInstance.attachJSON('foobar', 'test')
+
+        expect(writeAttachmentSpy).toBeCalledWith('test', ContentType.TEXT)
+    })
 })
 
 describe('attachScreenshot', () => {
     const outputDir = temporaryDirectory()
     let reporterInstance: AllureReporter
-    let writeAttachmentSpy: SpyInstance
+    let writeAttachmentSpy: MockInstance
 
     beforeEach(() => {
         clean(outputDir)
@@ -341,7 +370,7 @@ describe('attachScreenshot', () => {
 describe('attachLogs', () => {
     const outputDir = temporaryDirectory()
     let reporterInstance: AllureReporter
-    let writeAttachmentSpy: SpyInstance
+    let writeAttachmentSpy: MockInstance
 
     beforeEach(() => {
         clean(outputDir)

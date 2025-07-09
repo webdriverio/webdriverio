@@ -109,11 +109,12 @@ export function generateDts(absWorkingDir: string, pkg: PackageJson): Plugin {
 }
 
 /**
- * Plugin to copy EJS templates from the `@wdio/cli` package to build directory
+ * Plugin to copy EJS templates from specified package to build directory
+ * @param {string} pkgName Name of the package to copy
  * @returns {Plugin} an Esbuild plugin
  */
-export function copyEJSTemplates() {
-    const cliPackage = path.resolve(__dirname, '..', '..', '..', 'packages', 'wdio-cli')
+export function copyEJSTemplates(pkgName: string): Plugin {
+    const cliPackage = path.resolve(__dirname, '..', '..', '..', 'packages', pkgName)
     return copy({
         resolveFrom: cliPackage,
         assets: [{

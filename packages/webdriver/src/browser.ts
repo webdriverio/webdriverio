@@ -15,6 +15,7 @@ const log = logger('webdriver')
 environment.value = {
     Request: FetchRequest,
     Socket: BrowserSocket,
+    killDriverProcess: () => { /* noop */ },
     createBidiConnection: (webSocketUrl: string, options: ClientOptions) => {
         log.info(`Connecting to webSocketUrl ${webSocketUrl}`)
         const ws = new BrowserSocket(webSocketUrl, options)

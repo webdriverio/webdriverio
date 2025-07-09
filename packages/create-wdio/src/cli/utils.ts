@@ -1,57 +1,70 @@
-import fs from 'node:fs/promises'
-import fss from 'node:fs'
 import path from 'node:path'
-
+import fs from 'node:fs/promises'
 import inquirer from 'inquirer'
-import type { Argv } from 'yargs'
+import { configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
+import type { ParsedAnswers } from '../types.js'
+import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages } from '../utils.js'
 
-import {
-    CONFIG_HELPER_INTRO, CLI_EPILOGUE, SUPPORTED_PACKAGES,
-    configHelperSuccessMessage, isNuxtProject, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_SERENITY_BANNER,
-} from '../constants.js'
-import {
-    convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps,
-    getProjectRoot, createPackageJSON, setupTypeScript, npmInstall,
-    createWDIOConfig, createWDIOScript, runAppiumInstaller, getSerenityPackages
-} from '../utils.js'
-import type { ConfigCommandArguments, ParsedAnswers } from '../types.js'
+export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string) {
+    console.log('\n')
 
-let hasYarnLock = false
-try {
-    fss.accessSync('yarn.lock')
-    hasYarnLock = true
-} catch {
-    hasYarnLock = false
+    await createPackageJSON(parsedAnswers)
+    await setupTypeScript(parsedAnswers)
+    await npmInstall(parsedAnswers, npmTag)
+    await createWDIOConfig(parsedAnswers)
+    await createWDIOScript(parsedAnswers)
+
+    /**
+     * print success message
+     */
+    console.log(
+        configHelperSuccessMessage({
+            projectRootDir: parsedAnswers.projectRootDir,
+            runScript: parsedAnswers.serenityAdapter ? 'serenity' : 'wdio',
+            extraInfo: parsedAnswers.serenityAdapter ? CONFIG_HELPER_SERENITY_BANNER : ''
+        }),
+    )
+
+    await runAppiumInstaller(parsedAnswers)
 }
 
-export const command = 'config'
-export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
+/**
+ * Helper utility used in `run` and `install` command to create config if none exist
+ * @param {string} command to be executed by user
+ * @param {string} configPath the path to a wdio.conf.[js/ts] file
+ * @param {Function} runConfigCmd runConfig method to be replaceable for unit testing
+ */
+export async function missingConfigurationPrompt(command: string, configPath: string, runConfigCmd: Function = runConfigCommand) {
+    const message = (
+        `Could not execute "${command}" due to missing configuration, file ` +
+        `"${path.parse(configPath).name}[.js/.ts]" not found! ` +
+        'Would you like to create one?'
+    )
 
-export const cmdArgs = {
-    yarn: {
-        type: 'boolean',
-        desc: 'Install packages via Yarn package manager.',
-        default: hasYarnLock
-    },
-    yes: {
-        alias: 'y',
-        desc: 'will fill in all config defaults without prompting',
-        type: 'boolean',
+    const { config } = await inquirer.prompt({
+        type: 'confirm',
+        name: 'config',
+        message,
         default: false
-    },
-    npmTag: {
-        alias: 't',
-        desc: 'define NPM tag to use for WebdriverIO related packages',
-        type: 'string',
-        default: 'latest'
-    }
-} as const
+    })
 
-export const builder = (yargs: Argv) => {
-    return yargs
-        .options(cmdArgs)
-        .epilogue(CLI_EPILOGUE)
-        .help()
+    /**
+     * don't exit if running unit tests
+     */
+    if (!config) {
+        /* istanbul ignore next */
+        console.log(`No WebdriverIO configuration found in "${process.cwd()}"`)
+
+        /* istanbul ignore next */
+        if (!process.env.WDIO_UNIT_TESTS) {
+            process.exit(0)
+        }
+        return configPath
+    }
+
+    const parsedAnswers = await parseAnswers(false)
+    await runConfigCmd(parsedAnswers, 'latest')
+    return configPath
 }
 
 export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers> {
@@ -145,59 +158,13 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     }
 }
 
-export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string) {
-    console.log('\n')
-
-    await createPackageJSON(parsedAnswers)
-    await setupTypeScript(parsedAnswers)
-    await npmInstall(parsedAnswers, npmTag)
-    await createWDIOConfig(parsedAnswers)
-    await createWDIOScript(parsedAnswers)
-
-    /**
-     * print success message
-     */
-    console.log(
-        configHelperSuccessMessage({
-            projectRootDir: parsedAnswers.projectRootDir,
-            runScript: parsedAnswers.serenityAdapter ? 'serenity' : 'wdio',
-            extraInfo: parsedAnswers.serenityAdapter ? CONFIG_HELPER_SERENITY_BANNER : ''
-        }),
-    )
-
-    await runAppiumInstaller(parsedAnswers)
-}
-
-export async function handler(argv: ConfigCommandArguments, runConfigCmd = runConfigCommand) {
-    const parsedAnswers = await parseAnswers(argv.yes)
-    await runConfigCmd(parsedAnswers, argv.npmTag)
-    return {
-        success: true,
-        parsedAnswers,
-        installedPackages: parsedAnswers.packagesToInstall.map((pkg) => pkg.split('--')[0])
-    }
-}
-
-/**
- * Helper utility used in `run` and `install` command to format a provided config path,
- * giving it back as an absolute path, and a version without the file extension
- * @param config the initially given file path to the WDIO config file
- */
-export async function formatConfigFilePaths(config: string) {
-    const fullPath = path.isAbsolute(config)
-        ? config
-        : path.join(process.cwd(), config)
-    const fullPathNoExtension = fullPath.substring(0, fullPath.lastIndexOf(path.extname(fullPath)))
-    return { fullPath, fullPathNoExtension }
-}
-
 /**
  * Helper utility used in `run` and `install` command to check whether a config file currently exists
  * @param configPathNoExtension the file path to the WDIO config file without extension
  * @param configPath the file path to the WDIO config file that is checked first if set
  * @returns {string} the path to the config file that exists, otherwise undefined
  */
-export async function canAccessConfigPath(configPathNoExtension:string, configPath?:string) {
+export async function canAccessConfigPath(configPathNoExtension:string, configPath?:string): Promise<string|undefined> {
     return new Promise<string | undefined>((resolve, reject)=>{
         if (configPath) {
             fs.access(configPath).then(()=>resolve(configPath), reject)
@@ -213,42 +180,3 @@ export async function canAccessConfigPath(configPathNoExtension:string, configPa
     ))
 }
 
-/**
- * Helper utility used in `run` and `install` command to create config if none exist
- * @param {string}   command        to be executed by user
- * @param {string}   configPath     the path to a wdio.conf.[js/ts] file
- * @param {boolean}  useYarn        parameter set to true if yarn is used
- * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
- */
-export async function missingConfigurationPrompt(command: string, configPath: string, runConfigCmd = runConfigCommand) {
-    const message = (
-        `Could not execute "${command}" due to missing configuration, file ` +
-        `"${path.parse(configPath).name}[.js/.ts]" not found! ` +
-        'Would you like to create one?'
-    )
-
-    const { config } = await inquirer.prompt({
-        type: 'confirm',
-        name: 'config',
-        message,
-        default: false
-    })
-
-    /**
-     * don't exit if running unit tests
-     */
-    if (!config) {
-        /* istanbul ignore next */
-        console.log(`No WebdriverIO configuration found in "${process.cwd()}"`)
-
-        /* istanbul ignore next */
-        if (!process.env.WDIO_UNIT_TESTS) {
-            process.exit(0)
-        }
-        return configPath
-    }
-
-    const parsedAnswers = await parseAnswers(false)
-    await runConfigCmd(parsedAnswers, 'latest')
-    return configPath
-}

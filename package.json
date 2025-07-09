@@ -35,7 +35,7 @@
     "test": "run-s test:eslint test:ejslint test:typings test:unit:run test:smoke test:component",
     "test:depcheck": "tsx ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",
-    "test:ejslint": "ejslint packages/wdio-cli/src/templates/**/*",
+    "test:ejslint": "ejslint packages/wdio-cli/src/templates/**/* packages/create-wdio/src/templates/**/*",
     "test:interop": "pnpm -r --filter=@wdio/test-interop-cjs run test",
     "test:typings": "pnpm install && run-p test:typings:*",
     "test:typings:webdriver": "cd tests/typings/webdriver && npx tsc --skipLibCheck",

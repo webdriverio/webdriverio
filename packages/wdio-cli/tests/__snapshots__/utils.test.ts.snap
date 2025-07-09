@@ -1,23 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`getAnswers 1`] = `
-{
-  "backend": "On my local machine",
-  "framework": "@wdio/mocha-framework$--$mocha",
-  "generateTestFiles": true,
-  "includeVisualTesting": false,
-  "isUsingTypeScript": false,
-  "npmInstall": true,
-  "plugins": [],
-  "reporters": [
-    "@wdio/spec-reporter$--$spec",
-  ],
-  "runner": "@wdio/local-runner$--$local$--$e2e",
-  "services": [],
-  "usePageObjects": true,
-}
-`;
-
 exports[`getCapabilities > should get capability from wdio.conf.js 1`] = `
 {
   "capabilities": {
@@ -98,54 +80,3 @@ exports[`getCapabilities > should throw capability not provided 1`] = `[Error: P
 exports[`getCapabilities > should throw config not found error 1`] = `[Error: Config File not found: ./test.js]`;
 
 exports[`getCapabilities > should throw config not found error 2`] = `[Error: Could not parse ./test.js, failed with error: ups]`;
-
-exports[`npmInstall 1`] = `
-[
-  [
-    "/foo/bar",
-    [
-      "foo$--$bar",
-      "bar$--$foo",
-      "@testing-library/vue",
-      "@testing-library/jest-dom",
-      "@wdio/visual-service",
-      "@types/jasmine",
-    ],
-    true,
-  ],
-]
-`;
-
-exports[`setupTypeScript 1`] = `
-"{
-    "compilerOptions": {
-        "moduleResolution": "node",
-        "module": "ESNext",
-        "target": "es2022",
-        "lib": [
-            "es2022",
-            "dom"
-        ],
-        "types": [
-            "node",
-            "@wdio/globals/types",
-            "expect-webdriverio",
-            "foo",
-            "wdio-electron-service"
-        ],
-        "skipLibCheck": true,
-        "noEmit": true,
-        "allowImportingTsExtensions": true,
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "strict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noFallthroughCasesInSwitch": true
-    },
-    "include": [
-        "test",
-        "wdio.conf.ts"
-    ]
-}"
-`;

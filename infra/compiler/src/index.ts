@@ -60,7 +60,7 @@ const packages = (
  */
 const esmPlugins: Record<string, Plugin[]> = {
     '@wdio/protocols': [generateTypes()],
-    '@wdio/cli': [copyEJSTemplates()],
+    'create-wdio': [copyEJSTemplates('create-wdio')],
     'webdriverio': [externalScripts()]
 }
 /**

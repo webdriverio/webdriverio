@@ -134,6 +134,7 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 
 ### Others
 
+- [create-wdio](https://github.com/webdriverio/webdriverio/tree/main/packages/create-wdio) - A CLI and utility to install and setup a WebdriverIO
 - [eslint-plugin-wdio](https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio) - Eslint rules for WebdriverIO
 - [@wdio/smoke-test-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-reporter) - A WebdriverIO utility to smoke test reporters for internal testing purposes
 - [@wdio/smoke-test-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service) - A WebdriverIO utility to smoke test services for internal testing purposes

@@ -7,7 +7,7 @@ import type { InlineConfig } from 'vite'
 import { hasFileByExtensions, hasDir } from '../utils.js'
 
 declare global {
-    // eslint-disable-next-line no-var
+
     var defineNuxtConfig: Function
 }
 
