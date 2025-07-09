@@ -5,7 +5,7 @@
 type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
 
 declare global {
-    // eslint-disable-next-line no-var
+
     var _wdioGlobals: Map<SupportedGlobals, any>
     namespace WebdriverIO {
         interface Browser {}
