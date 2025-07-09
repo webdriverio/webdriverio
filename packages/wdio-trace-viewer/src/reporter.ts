@@ -38,12 +38,32 @@ export default class TraceViewerReporter extends WDIOReporter {
         })
     }
 
-    onAfterCommand(command: AfterCommandArgs) {
+    onTestSkip(test: TestStats) {
         this.traceData.push({
-            type: 'command',
-            command,
-            timestamp: Date.now()
+            type: 'test:skip',
+            name: test.title,
+            end: Date.now()
         })
+    }
+
+    onAfterCommand(command: AfterCommandArgs) {
+        const isWebDriverCommand =
+        command.endpoint?.startsWith('/') && typeof command.method === 'string'
+
+        if (isWebDriverCommand) {
+            const cmd: any = command
+
+            this.traceData.push({
+                type: 'http',
+                method: command.method,
+                endpoint: command.endpoint,
+                requestBody: cmd.body ?? null,
+                responseBody: cmd.result ?? null,
+                sessionId: command.sessionId ?? null,
+                timestamp: Date.now(),
+                duration: cmd._duration ?? null
+            })
+        }
     }
 
     onRunnerEnd() {

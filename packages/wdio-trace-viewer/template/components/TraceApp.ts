@@ -55,7 +55,9 @@ export class TraceApp extends LitElement {
 
         for (const entry of rawData) {
             if (entry.type === 'test:start') {
-                if (currentTest) {tests.push(currentTest)}
+                if (currentTest) {
+                    tests.push(currentTest)
+                }
                 currentTest = {
                     name: entry.name,
                     events: [entry]
@@ -63,12 +65,24 @@ export class TraceApp extends LitElement {
                 continue
             }
 
+            // Handle skipped tests (no test:start)
+            if (entry.type === 'test:skip') {
+                tests.push({
+                    name: entry.name,
+                    events: [entry]
+                })
+                continue
+            }
+
+            // Append other events to current test
             if (currentTest) {
                 currentTest.events.push(entry)
             }
         }
 
-        if (currentTest) {tests.push(currentTest)}
+        if (currentTest) {
+            tests.push(currentTest)
+        }
 
         return tests
     }
