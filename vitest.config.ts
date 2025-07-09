@@ -13,6 +13,7 @@ export default defineConfig({
         env: {
             WDIO_SKIP_DRIVER_SETUP: '1'
         },
+        pool: 'threads',
         coverage: {
             enabled: false,
             provider: 'v8',
