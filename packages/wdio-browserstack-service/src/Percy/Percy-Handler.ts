@@ -59,7 +59,10 @@ class _PercyHandler {
                 }
 
                 this._percyCaptureMap?.increment(sessionName ? sessionName : (this._sessionName as string), eventName)
-                await (this._isAppAutomate ? PercySDK.screenshotApp(this._percyCaptureMap?.getName( sessionName ? sessionName : (this._sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, this._percyCaptureMap?.getName( sessionName ? sessionName : (this._sessionName as string), eventName)))
+                const performanceEventName = this._isAppAutomate ? PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.SCREENSHOT_APP : PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.SCREENSHOT
+                await PerformanceTester.measureWrapper(performanceEventName, async () => {
+                    await (this._isAppAutomate ? PercySDK.screenshotApp(this._percyCaptureMap?.getName( sessionName ? sessionName : (this._sessionName as string), eventName)) : await PercySDK.screenshot(this._browser, this._percyCaptureMap?.getName( sessionName ? sessionName : (this._sessionName as string), eventName)))
+                })()
                 this._percyScreenshotCounter -= 1
             }
         } catch (err: any) {

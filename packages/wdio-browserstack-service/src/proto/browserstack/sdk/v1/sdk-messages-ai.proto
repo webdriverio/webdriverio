@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package browserstack.sdk.v1;
+
+message AIBrowserExtensionRequest {
+    string bin_session_id = 1;
+    string browser_name = 2;
+    string browser_version = 3;
+}
+
+message AIBrowserExtensionResponse {
+    bool success = 1;
+    optional string extension = 2;
+    optional string error = 3;
+}
+
+message AISelfHealGetRequest {
+    string bin_session_id = 1;
+    optional string platform_index = 2;
+
+    string framework_session_id = 3;
+    string locator_type = 4;
+}
+
+message AISelfHealGetResponse {
+    bool success = 1;
+    string framework_session_id = 2;
+    optional string locator_type = 3;
+    optional string locator_value = 4;
+    optional bool ai_healing = 5;
+    optional string error = 6;
+}
+
+message AISelfHealStepRequest {
+    string bin_session_id = 1;
+    optional string platform_index = 2;
+
+    string framework_session_id = 3;
+    bool is_success = 4;
+    string locator_type = 5;
+    string locator_value = 6;
+    string test_name = 7;
+}
+
+message AISelfHealStepResponse {
+    string framework_session_id = 1;
+    string execute_script = 2;
+}

@@ -77,6 +77,8 @@ packages/**/package-lock.json
 .DS_Store
 e2e/screenshot.pdf
 
+packages/wdio-browserstack-service/src/proto/*.ts
+
 website/translated_docs
 website/build/
 website/sidebars.json
