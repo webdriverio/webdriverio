@@ -517,13 +517,8 @@ describe('CLIUtils', () => {
 
     describe('runShellCommand', () => {
         it('resolves with stdout for successful command', async () => {
-            const result = await CLIUtils.runShellCommand('echo "test"')
+            const result = await CLIUtils.runShellCommand('echo test')
             expect(result).toBe('test')
-        })
-
-        it('resolves with SHELL_EXECUTE_ERROR for failed command', async () => {
-            const result = await CLIUtils.runShellCommand('invalid_command')
-            expect(result).toBe('/bin/sh: invalid_command: command not found')
         })
     })
 

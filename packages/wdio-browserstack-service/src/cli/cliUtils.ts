@@ -32,7 +32,7 @@ import { EVENTS as PerformanceEvents } from '../instrumentation/performance/cons
 import { BStackLogger as logger } from './cliLogger.js'
 import { UPDATED_CLI_ENDPOINT } from '../constants.js'
 import type { Options, Capabilities } from '@wdio/types'
-import type { BrowserstackConfig, BrowserstackOptions, TestObservabilityOptions } from 'src/types.js'
+import type { BrowserstackConfig, BrowserstackOptions, TestObservabilityOptions } from '../types.js'
 import { TestFrameworkConstants } from './frameworks/constants/testFrameworkConstants.js'
 import APIUtils from './apiUtils.js'
 
