@@ -225,12 +225,6 @@ export default class AutomateModule extends BaseModule {
                         responseType: 'json'
                     }
 
-                    if (this.config.proxy) {
-                        options.agent = {
-                            https: new (require('https-proxy-agent'))(this.config.proxy)
-                        }
-                    }
-
                     const response = await got(options)
                     this.logger.debug('Session name updated:', response.body)
                     this.logger.debug(`Done for sessionId ${sessionId}`)
@@ -272,12 +266,6 @@ export default class AutomateModule extends BaseModule {
                         },
                         json: body,
                         responseType: 'json'
-                    }
-
-                    if (this.config.proxy) {
-                        options.agent = {
-                            https: new (require('https-proxy-agent'))(this.config.proxy)
-                        }
                     }
 
                     const response = await got(options)
