@@ -143,7 +143,21 @@ export default class WDIOCLInterface extends EventEmitter {
     onJobComplete(cid: string, job?: Workers.Job, retries = 0, message = '', _logger: Function = this.log) {
         const details = [`[${cid}]`, message]
         if (job) {
-            details.push('in', getRunnerName(job.caps as WebdriverIO.Capabilities), this.getFilenames(job.specs))
+            const caps = job.caps
+            const version = caps?.browserVersion || caps?.['appium:platformVersion']
+            const runnerName = getRunnerName(caps)
+
+            if (version) {
+                details.push('in', `${runnerName}(${version})`)
+            } else {
+                details.push('in', runnerName)
+            }
+
+            if (caps?.platformName || caps?.['appium:deviceName']) {
+                details.push('on', (caps?.platformName || caps?.['appium:deviceName']) as string)
+            }
+
+            details.push(this.getFilenames(job.specs))
         }
         if (retries > 0) {
             details.push(`(${retries} retries)`)
