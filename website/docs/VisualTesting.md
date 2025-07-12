@@ -50,8 +50,28 @@ npm install --save-dev @wdio/visual-service
 
 `@wdio/visual-service` can be used as a normal service. You can set it up in your configuration file with the following:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/config.js
+```js
+// @ts-check
+import path from 'node:path'
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    services: [
+        [
+            'visual',
+            {
+                // Some options, see the docs for more
+                baselineFolder: path.join(process.cwd(), 'tests', 'baseline'),
+                formatImageName: '{tag}-{logName}-{width}x{height}',
+                screenshotPath: path.join(process.cwd(), 'tmp'),
+                savePerInstance: true,
+                // ... more options
+            },
+        ],
+    ],
+    // ...
+})
 ```
 
 More service options can be found [here](/docs/visual-testing/service-options).
@@ -65,8 +85,42 @@ The `logName` allows you to assign a custom name to each capability, which can t
 
 To enable this, you can define `logName` in the `capabilities` section and ensure the `formatImageName` option in the Visual Testing service references it. Here's how you can set it up:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/capabilities.js
+```js
+// @ts-check
+import path from 'node:path'
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    capabilities: [
+        {
+            browserName: 'chrome',
+            'wdio-ics:options': {
+                logName: 'chrome-mac-15', // Custom log name for Chrome
+            },
+        },
+        {
+            browserName: 'firefox',
+            'wdio-ics:options': {
+                logName: 'firefox-mac-15', // Custom log name for Firefox
+            },
+        }
+    ],
+    services: [
+        [
+            'visual',
+            {
+                // Some options, see the docs for more
+                baselineFolder: path.join(process.cwd(), 'tests', 'baseline'),
+                screenshotPath: path.join(process.cwd(), 'tmp'),
+                // The format below will use the `logName` from capabilities
+                formatImageName: '{tag}-{logName}-{width}x{height}',
+                // ... more options
+            },
+        ],
+    ],
+    // ...
+})
 ```
 
 #### How it works
@@ -95,8 +149,38 @@ capabilities as you can see below. This will make sure that each screenshot will
 
 [Writing your tests](/docs/visual-testing/writing-tests) will not be any different in comparison to using the [testrunner](https://webdriver.io/docs/testrunner)
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/logs.js
+```js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    capabilities: {
+        chromeBrowserOne: {
+            capabilities: {
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    args: ['disable-infobars'],
+                },
+                // THIS!!!
+                'wdio-ics:options': {
+                    logName: 'chrome-latest-one',
+                },
+            },
+        },
+        chromeBrowserTwo: {
+            capabilities: {
+                browserName: 'chrome',
+                'goog:chromeOptions': {
+                    args: ['disable-infobars'],
+                },
+                // THIS!!!
+                'wdio-ics:options': {
+                    logName: 'chrome-latest-two',
+                },
+            },
+        },
+    },
+})
 ```
 
 ### Running Programmatically
@@ -220,8 +304,11 @@ import { join } from 'node:path';
 // Import the type definition
 import type { VisualServiceOptions } from '@wdio/visual-service';
 
-export const config = defineConfig({
+export const config = {
     // ...
+    // =====
+    // Setup
+    // =====
     services: [
         [
             "visual",
@@ -234,7 +321,7 @@ export const config = defineConfig({
         ],
     ],
     // ...
-});
+};
 ```
 
 ## System Requirements

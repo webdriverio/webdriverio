@@ -122,8 +122,29 @@ The only thing to do now in order to use this service is to assign it to the `se
 
 Modify your `wdio.conf.js` file to look like this:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service.js
+```js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+import CustomService from './service/my.custom.service'
+
+export const config = defineConfig({
+    // ...
+    services: [
+        /**
+         * use imported service class
+         */
+        [CustomService, {
+            someOption: true
+        }],
+        /**
+         * use absolute path to service
+         */
+        ['/path/to/service.js', {
+            someOption: true
+        }]
+    ],
+    // ...
+})
 ```
 
 ## Publish Service on NPM
@@ -137,8 +158,17 @@ To make services easier to consume and discover by the WebdriverIO community, pl
 
 Following the recommended naming pattern allows services to be added by name:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/custom-service/custom-service-npm.js
+Add wdio-custom-service
+
+```ts
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    services: ['custom'],
+    // ...
+})
 ```
 
 ### Add Published Service to WDIO CLI and Docs

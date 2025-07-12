@@ -7,12 +7,33 @@ You can use WebdriverIO with your existing Selenium Grid instance. To connect yo
 
 Here is a code snippet from sample wdio.conf.ts.
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/selenium-grid/selenium-grid-remote.js
+```js title=wdio.conf.js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    protocol: 'https',
+    hostname: 'yourseleniumgridhost.yourdomain.com',
+    port: 443,
+    path: '/wd/hub',
+    // ...
+})
 ```
 You need to provide the appropriate values for the protocol, hostname, port, and path based on your Selenium Grid setup.
 If you are running Selenium Grid on the same machine as your test scripts, here are some typical options:
 
+```ts title=wdio.conf.ts
+export const config: WebdriverIO.Config = {
+    // ...
+    protocol: 'http',
+    hostname: 'localhost',
+    port: 4444,
+    path: '/wd/hub',
+    // ...
+
+}
+```
 
 ### Basic authentication with protected Selenium Grid
 
@@ -39,8 +60,22 @@ When running test cases with a remote Selenium Grid, the browser runs on a remot
 
 For Chromium-based browsers, you can refer to the [Download file](https://webdriver.io/docs/api/browser/downloadFile) documentation. If your test scripts need to read the content of a downloaded file, you need to download it from the remote Selenium node to the test runner machine. Here is an example code snippet from the sample `wdio.conf.ts` configuration for the Chrome browser:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/file-downloads.js
+```js title=wdio.conf.js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    protocol: 'https',
+    hostname: 'yourseleniumgridhost.yourdomain.com',
+    port: 443,
+    path: '/wd/hub',
+    capabilities: [{
+        browserName: 'chrome',
+        'se:downloadsEnabled': true
+    }],
+    //...
+})
 ```
 
 ### File upload with remote Selenium Grid

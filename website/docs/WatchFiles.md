@@ -11,8 +11,18 @@ wdio wdio.conf.js --watch
 
 By default it only watches for changes in your `specs` files. However by setting a `filesToWatch` property in your `wdio.conf.js` that contains a list of file paths (globbing supported) it will also watch for these files to be changed in order to rerun the whole suite. This is useful if you want to automatically rerun all your tests if you have changed your application code, e.g.
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/files-to-watch.js
+```js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    filesToWatch: [
+        // watch for all JS files in my app
+        './src/app/**/*.js'
+    ],
+    // ...
+})
 ```
 
 :::info

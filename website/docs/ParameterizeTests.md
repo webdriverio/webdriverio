@@ -87,8 +87,17 @@ npx wdio run wdio.conf.js
 
 Similarly, configuration file can also read environment variables passed through the command line.
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/parameterize.js
+```js title=wdio.config.js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    baseURL: process.env.STAGING === '1'
+        ? 'http://staging.example.test/'
+        : 'http://example.test/',
+    // ...
+})
 ```
 
 Now, you can run tests against a staging or a production environment:

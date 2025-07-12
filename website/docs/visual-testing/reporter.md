@@ -11,8 +11,20 @@ To utilize this feature, ensure you have the required configuration to generate 
 
 Before using the Visual Reporter, make sure you have configured the Visual Testing service to generate JSON report files:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/visual-testing/generate-json-reports.js
+```ts
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    services: [
+        [
+            'visual',
+            {
+                createJsonReportFiles: true, // Generates the output.json file
+            },
+        ],
+    ],
+})
 ```
 
 For more detailed setup instructions, refer to the WebdriverIO [Visual Testing Documentation](./) or the [`createJsonReportFiles`](./service-options.md#createjsonreportfiles-new)

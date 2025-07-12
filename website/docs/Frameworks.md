@@ -499,8 +499,25 @@ Before using this function, make sure to set the following environment variables
 
 Here's an example of the necessary configurations and code samples for implementation:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/publish-report.js
+```js
+// @ts-check
+import { v4 as uuidv4 } from 'uuid'
+import { defineConfig } from '@wdio/config'
+import { publishCucumberReport } from '@wdio/cucumber-framework'
+
+export const config = defineConfig({
+    // ... Other Configuration Options
+    cucumberOpts: {
+        // ... Cucumber Options Configuration
+        format: [
+            ['message', `./reports/${uuidv4()}.ndjson`],
+            ['json', './reports/test-report.json']
+        ]
+    },
+    async onComplete() {
+        await publishCucumberReport('./reports')
+    }
+})
 ```
 
 Please note that `./reports/` is the directory where `cucumber message` reports will be stored.
@@ -592,13 +609,14 @@ export const config = defineConfig({
     runner: 'local',
 
     // Any other WebdriverIO configuration
-})
+});
 ```
 
 </TabItem>
 <TabItem value="wdio-conf-javascript" label="JavaScript">
 
-```ts title="wdio.conf.js"
+```js title="wdio.conf.js"
+// @ts-check
 import { defineConfig } from '@wdio/config'
 
 export const config = defineConfig({
@@ -641,7 +659,7 @@ export const config = defineConfig({
     runner: 'local',
 
     // Any other WebdriverIO configuration
-})
+});
 ```
 
 </TabItem>
@@ -699,7 +717,7 @@ where every actor can:
 
 This should be enough to help you get started with introducing test scenarios that follow the Screenplay Pattern even to an existing test suite, for example:
 
-```ts title="specs/example.spec.ts"
+```typescript title="specs/example.spec.ts"
 import { actorCalled } from '@serenity-js/core'
 import { Navigate, Page } from '@serenity-js/web'
 import { Ensure, equals } from '@serenity-js/assertions'

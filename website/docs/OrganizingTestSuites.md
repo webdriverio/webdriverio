@@ -73,8 +73,25 @@ You can group test specs in suites and run single specific suites instead of all
 
 First, define your suites in your WDIO config:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/grouping/grouping-specs-in-suites.js
+```ts
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // define all tests
+    specs: ['./test/specs/**/*.spec.js'],
+    // ...
+    // define specific suites
+    suites: {
+        login: [
+            './test/specs/login.success.spec.js',
+            './test/specs/login.failure.spec.js'
+        ],
+        otherFeature: [
+            // ...
+        ]
+    },
+    // ...
+})
 ```
 
 Now, if you want to only run a single suite, you can pass the suite name as a CLI argument:
@@ -300,6 +317,28 @@ but then, you will have different capabilities for your Android and iOS devices,
 
 If you require both of these capabilities in your config file, then the Android device will only run the tests under the "android" namespace, and the iOS tests will run only tests under the "ios" namespace!
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/grouping/grouping-test-suites.js
+```ts
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    'specs': [
+        'tests/general/**/*.js'
+    ],
+    'capabilities': [
+        {
+            platformName: 'Android',
+            specs: ['tests/android/**/*.js'],
+            //...
+        },
+        {
+            platformName: 'iOS',
+            specs: ['tests/ios/**/*.js'],
+            //...
+        },
+        {
+            platformName: 'Chrome',
+            //config level specs will be used
+        }
+    ]
+})
 ```

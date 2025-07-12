@@ -54,8 +54,15 @@ await browser.setTimeout({ 'implicit': 5000 })
 
 WebdriverIO provides multiple commands to wait on elements to reach a certain state (e.g. enabled, visible, existing). These commands take a selector argument and a timeout number, which determines how long the instance should wait for that element to reach the state. The `waitforTimeout` option allows you to set the global timeout for all `waitFor*` commands, so you don't need to set the same timeout over and over again. _(Note the lowercase `f`!)_
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/waitforTimeout.js
+```js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    waitforTimeout: 5000,
+    // ...
+})
 ```
 
 In your tests, you now can do this:
@@ -104,22 +111,52 @@ In Cucumber, the timeout applies to a single step definition. However, if you wa
 }>
 <TabItem value="mocha">
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/mocha.js
+```js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    framework: 'mocha',
+    mochaOpts: {
+        timeout: 20000
+    },
+    // ...
+})
 ```
 
 </TabItem>
 <TabItem value="jasmine">
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/jasmine.js
+```js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    framework: 'jasmine',
+    jasmineOpts: {
+        defaultTimeoutInterval: 20000
+    },
+    // ...
+})
 ```
 
 </TabItem>
 <TabItem value="cucumber">
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/timeouts/cucumber.js
+```js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    // ...
+    framework: 'cucumber',
+    cucumberOpts: {
+        timeout: 20000
+    },
+    // ...
+})
 ```
 
 </TabItem>

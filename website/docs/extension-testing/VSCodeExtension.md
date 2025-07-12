@@ -24,16 +24,51 @@ An installation wizard will guide you through the process. Ensure you select _"V
 
 ## Example Configuration
 
-To use the service you need to add `vscode` to your list of services, optionally followed by a configuration object. This will make WebdriverIO download given VSCode binaries and appropiate Chromedriver version:
+To use the service you need to add `vscode` to your list of services, optionally followed by a configuration object. This will make WebdriverIO download given VSCode binaries and appropriate Chromedriver version:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/vscode-extension/electron.js
+```ts
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    outputDir: 'trace',
+    // ...
+    capabilities: [{
+        browserName: 'vscode',
+        browserVersion: '1.71.0', // "insiders" or "stable" for latest VSCode version
+        'wdio:vscodeOptions': {
+            extensionPath: __dirname,
+            userSettings: {
+                'editor.fontSize': 14
+            }
+        }
+    }],
+    services: ['vscode'],
+    /**
+     * optionally you can define the path WebdriverIO stores all
+     * VSCode and Chromedriver binaries, e.g.:
+     * services: [['vscode', { cachePath: __dirname }]]
+     */
+    // ...
+})
 ```
 
 If you define `wdio:vscodeOptions` with any other `browserName` but `vscode`, e.g. `chrome`, the service will serve the extension as web extension. If you test on Chrome no additional driver service is required, e.g.:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/vscode-extension/chrome.js
+```ts
+import { defineConfig } from '@wdio/config'
+
+export const config = defineConfig({
+    outputDir: 'trace',
+    // ...
+    capabilities: [{
+        browserName: 'chrome',
+        'wdio:vscodeOptions': {
+            extensionPath: __dirname
+        }
+    }],
+    services: ['vscode'],
+    // ...
+})
 ```
 
 _Note:_ when testing web extensions you can only choose between `stable` or `insiders` as `browserVersion`.

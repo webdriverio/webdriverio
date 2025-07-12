@@ -12,6 +12,7 @@ For starters, it is extremely helpful to limit parallelism by setting `maxInstan
 In `wdio.conf`:
 
 ```js
+// @ts-check
 import { defineConfig } from '@wdio/config'
 
 export const config = defineConfig({
@@ -52,8 +53,22 @@ Note that `wdio.conf.js` can contain Javascript. Since you probably do not want 
 
 Using this technique, you can dynamically change the configuration:
 
-```ts reference useHTTPS
-https://github.com/webdriverio/webdriverio/blob/main/website/recipes/debugging.js
+```js
+// @ts-check
+import { defineConfig } from '@wdio/config'
+
+const debug = process.env.DEBUG
+
+export const config = defineConfig({
+    // ...
+    execArgv: debug ? ['--inspect'] : [],
+    maxInstances: debug ? 1 : 100,
+    capabilities: debug ? [{ browserName: 'chrome' }] : [{ browserName: 'firefox' }],
+    jasmineOpts: {
+        defaultTimeoutInterval: debug ? (24 * 60 * 60 * 1000) : 5000
+    }
+    // ...
+})
 ```
 
 You can then prefix the `wdio` command with the `debug` flag:
