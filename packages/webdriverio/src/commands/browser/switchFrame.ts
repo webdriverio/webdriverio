@@ -8,6 +8,7 @@ import { parseScriptResult } from '../../utils/bidi/index.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
 import { environment } from '../../environment.js'
 import type { ChainablePromiseElement } from '../../types.js'
+import findIframeInShadowDOM from '../../scripts/shadowDom.js'
 
 const log = logger('webdriverio:switchFrame')
 
@@ -215,6 +216,33 @@ export async function switchFrame (
                 } as FrameResult
             }))
         }))).flat(Infinity) as FrameResult[]
+
+        // if we didn't find any frames, we try to find an iframe in the shadow DOM
+        // that matches the url fragment or context id
+        if (allFrames.length === 0) {
+            const urlFragment = typeof context === 'string'
+                ? context.split('/').pop() ?? ''
+                : ''
+
+            // Execute browser-side script to locate a shadow DOM iframe with matching URL
+            const iframeFound = await this.execute(findIframeInShadowDOM, urlFragment)
+
+            if (iframeFound) {
+                /**
+                 * Re-query all iframes and match by src to convert DOM element into a WebdriverIO element.
+                 * Required because browser.execute returns a native DOM element, not a WebdriverIO-compatible one.
+                 */
+                const allFrames = await this.$$('iframe')
+                for (const frame of allFrames) {
+                    const src = await frame.getAttribute('src')
+                    if (src?.includes(urlFragment)) {
+                        return this.switchFrame(frame)
+                    }
+                }
+                // If we found an iframe in the shadow DOM but couldn't resolve it to a WebdriverIO element
+                log.warn(`Shadow DOM iframe with src containing "${urlFragment}" found, but could not be resolved into a WebdriverIO element.`)
+            }
+        }
 
         /**
          * Our desired frame may be somewhere nested in other frames. In order to properly
