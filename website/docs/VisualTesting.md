@@ -299,16 +299,12 @@ To ensure TypeScript recognizes the module types, add the following entry to the
 To enforce type checking on the service options, update your WebdriverIO configuration:
 
 ```ts
-// wdio.conf.ts
 import { join } from 'node:path';
 // Import the type definition
 import type { VisualServiceOptions } from '@wdio/visual-service';
 
-export const config = {
+export const config = defineConfig({
     // ...
-    // =====
-    // Setup
-    // =====
     services: [
         [
             "visual",
@@ -321,7 +317,7 @@ export const config = {
         ],
     ],
     // ...
-};
+});
 ```
 
 ## System Requirements
