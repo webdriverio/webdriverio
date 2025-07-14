@@ -31,7 +31,7 @@ vi.mock('child_process', () => {
         exec: vi.fn(),
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
-    return m
+    return { default: m }
 })
 
 vi.mock('read-pkg-up')
