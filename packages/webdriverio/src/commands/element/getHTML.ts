@@ -225,7 +225,8 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
         let previousHTML
         do {
             previousHTML = returnHTML
-            returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '').replace(/<!--[\s\S]*/g, '')
+            returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '') // Remove complete comments
+                                      .replace(/<!--.*?$/g, '')       // Remove incomplete comment starts
         } while (returnHTML !== previousHTML)
     }
     return options.prettify
