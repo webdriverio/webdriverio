@@ -235,7 +235,7 @@ describe('startWebDriver', () => {
         const res = await startWebDriver(options)
         expect(Boolean(res?.stdout)).toBe(true)
         expect(options).toEqual({
-            hostname: 'localhost',
+            hostname: '127.0.0.1',
             port: 1234,
             capabilities: {
                 browserName: 'chrome',
