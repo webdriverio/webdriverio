@@ -1,3 +1,5 @@
+import safeRegexTest from 'safe-regex-test'
+
 export const SENSITIVE_DATA_REPLACER = '**MASKED**'
 
 const skipError = (aFunction: Function) => {
@@ -6,37 +8,6 @@ const skipError = (aFunction: Function) => {
     } catch {
         return undefined
     }
-}
-
-/**
- * Validates a regex pattern to prevent ReDoS attacks
- * @param pattern - The regex pattern to validate
- * @param flags - The regex flags to validate
- * @returns true if the pattern is safe, false otherwise
- */
-const isRegexSafe = (pattern: string, flags?: string): boolean => {
-    // Basic length limits
-    if (pattern.length > 500) {return false}
-    if (flags && flags.length > 10) {return false}
-
-    // Check for potentially dangerous patterns that can cause catastrophic backtracking
-    const dangerousPatterns = [
-        // Nested quantifiers
-        /(\*.*\*)|(\+.*\+)|(\?.*\?)/,
-        // Alternation with overlapping patterns
-        /\([^)]*\|[^)]*\)\*|\([^)]*\|[^)]*\)\+/,
-        // Complex lookarounds
-        /\(\?=/,
-        /\(\?!/,
-        /\(\?<=/,
-        /\(\?<!/,
-        // Excessive repetition
-        /\{[0-9]{3,}\}/,
-        // Suspicious character classes with quantifiers
-        /\[.*\]\*.*\[.*\]\*|\[.*\]\+.*\[.*\]\+/
-    ]
-
-    return !dangerousPatterns.some(dangerous => dangerous.test(pattern))
 }
 
 /**
@@ -53,13 +24,23 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
     return regexStrings?.map((regexStr) => {
         const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
         if (!regexParts) {
+            const regexp = new RegExp(regexStr)
+            if (!safeRegexTest(regexp)) {
+                return undefined
+            }
+
             // When passing only a simple string without `/` or flags, aka `(--key=)([^ ]*)`
-            return isRegexSafe(regexStr) ? skipError(() => new RegExp(regexStr)) : undefined
-        } else if (regexParts?.[1]) {
+            return skipError(() => regexp)
+        }
+
+        if (regexParts?.[1]) {
+            const regexp = new RegExp(regexParts[1], regexParts[2])
+            if (!safeRegexTest(regexp)) {
+                return undefined
+            }
+
             // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
-            return isRegexSafe(regexParts[1], regexParts[2]) ?
-                skipError(() => regexParts[2] ? new RegExp(regexParts[1], regexParts[2]) : new RegExp(regexParts[1])) :
-                undefined
+            return skipError(() => regexParts[2] ? regexp : new RegExp(regexParts[1]))
         }
         return undefined
 

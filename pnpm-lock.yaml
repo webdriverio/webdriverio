@@ -1056,6 +1056,9 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
+      safe-regex-test:
+        specifier: ^1.1.0
+        version: 1.1.0
 
   packages/wdio-junit-reporter:
     dependencies:
@@ -1179,6 +1182,9 @@ importers:
       loglevel-plugin-prefix:
         specifier: ^0.8.4
         version: 0.8.4
+      safe-regex-test:
+        specifier: ^1.1.0
+        version: 1.1.0
       strip-ansi:
         specifier: ^7.1.0
         version: 7.1.0
