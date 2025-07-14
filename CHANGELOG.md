@@ -23,6 +23,113 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.17.0 (2025-07-09)
+
+#### :rocket: New Feature
+* `create-wdio`, `wdio-cli`
+  * [#14618](https://github.com/webdriverio/webdriverio/pull/14618) feat: integrate the `create-wdio` package ([@mato533](https://github.com/mato533))
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-cucumber-framework`, `wdio-globals`, `wdio-mocha-framework`, `wdio-utils`
+  * [#14626](https://github.com/webdriverio/webdriverio/pull/14626) chore(linter) fixed linter warnings with --fix ([@smarkows](https://github.com/smarkows))
+* `webdriver`
+  * [#14625](https://github.com/webdriverio/webdriverio/pull/14625) fix(webdriver): #14622 added ability to proxy websocket connections ([@smarkows](https://github.com/smarkows))
+  * [#14623](https://github.com/webdriverio/webdriverio/pull/14623) fix(webdriver): re-enable undici global dispatcher ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#14587](https://github.com/webdriverio/webdriverio/pull/14587) [BUG-14499] - Improved switchFrame for delayed iframe contexts ([@vishnuv688](https://github.com/vishnuv688))
+* `wdio-allure-reporter`, `wdio-reporter`, `wdio-utils`, `webdriverio`
+  * [#14581](https://github.com/webdriverio/webdriverio/pull/14581) fix: Emit browser custom command `beforeCommand` to fix broken reports ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-local-runner`
+  * [#14611](https://github.com/webdriverio/webdriverio/pull/14611) fix(@wdio/local-runner): added graceful exit on SIGINT ([@DQRI](https://github.com/DQRI))
+* `wdio-browser-runner`, `wdio-cli`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-local-runner`, `wdio-runner`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#14592](https://github.com/webdriverio/webdriverio/pull/14592) fix(@wdio/jasmine-framework): become independant from expect-webdriverio ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-mocha-framework`
+  * [#14506](https://github.com/webdriverio/webdriverio/pull/14506) fix(mocha-framework): report spec load error as failure in `after` hook ([@lezram](https://github.com/lezram))
+
+#### :memo: Documentation
+* Other
+  * [#14615](https://github.com/webdriverio/webdriverio/pull/14615) fix(docs): correct typos and improve clarity in Best Practices guide ([@Agnes-Au](https://github.com/Agnes-Au))
+  * [#14599](https://github.com/webdriverio/webdriverio/pull/14599) Update BoilerplateProjects.md ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+* `wdio-browserstack-service`
+  * [#14614](https://github.com/webdriverio/webdriverio/pull/14614) Add URLs to Browserstack WebDriverIO services ([@sindhupullapantula](https://github.com/sindhupullapantula))
+* `webdriverio`
+  * [#14612](https://github.com/webdriverio/webdriverio/pull/14612) docs: add note about WebDriver Bidi support in browser.url command ([@Siolto](https://github.com/Siolto))
+* `wdio-cli`
+  * [#14606](https://github.com/webdriverio/webdriverio/pull/14606) Add wdio-obsidian-service to docs and cli ([@jesse-r-s-hines](https://github.com/jesse-r-s-hines))
+
+#### :house: Internal
+* `wdio-browserstack-service`, `wdio-lighthouse-service`, `wdio-utils`
+  * [#14607](https://github.com/webdriverio/webdriverio/pull/14607) chore: replace asset to with at import statement ([@mato533](https://github.com/mato533))
+* Other
+  * [#14593](https://github.com/webdriverio/webdriverio/pull/14593) internal(security): update security policy with threat model ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 12
+- Agnes Au ([@Agnes-Au](https://github.com/Agnes-Au))
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Dmytro 🇺🇦 ([@DQRI](https://github.com/DQRI))
+- Jesse Hines ([@jesse-r-s-hines](https://github.com/jesse-r-s-hines))
+- Marcel ([@lezram](https://github.com/lezram))
+- Simon Coen ([@Siolto](https://github.com/Siolto))
+- Simon Markowski ([@smarkows](https://github.com/smarkows))
+- Sindhu Pullapantula ([@sindhupullapantula](https://github.com/sindhupullapantula))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- [@mato533](https://github.com/mato533)
+
+
+## v9.16.0 (2025-06-23)
+
+#### :eyeglasses: Spec Compliancy
+* [#14534](https://github.com/webdriverio/webdriverio/pull/14534) fix(infra) have not present required generate optional argument ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :rocket: New Feature
+* `wdio-config`, `wdio-runner`, `wdio-types`
+  * [#14546](https://github.com/webdriverio/webdriverio/pull/14546) feat(wdio-runner): automatically include SoftAssertionService ([@JustasMonkev](https://github.com/JustasMonkev))
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#14236](https://github.com/webdriverio/webdriverio/pull/14236) fix: Combines exclude and wdio:exclude. ([@damencho](https://github.com/damencho))
+* `wdio-utils`
+  * [#14572](https://github.com/webdriverio/webdriverio/pull/14572) Fix for isAndroid outside of test ([@AakashHotchandani](https://github.com/AakashHotchandani))
+  * [#14565](https://github.com/webdriverio/webdriverio/pull/14565) fix(wdio-utils):fix to support windows path string  ([@mato533](https://github.com/mato533))
+  * [#14531](https://github.com/webdriverio/webdriverio/pull/14531) fix(webdriverio): detect Samsung devices as Android in BrowserStack ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#14557](https://github.com/webdriverio/webdriverio/pull/14557) fix for accessibility build error [wdio-browsertstack-service] ([@rounak610](https://github.com/rounak610))
+* `webdriverio`
+  * [#14549](https://github.com/webdriverio/webdriverio/pull/14549) fix(types): Fix `overwriteCommand` inconsistent typing ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-local-runner`
+  * [#14511](https://github.com/webdriverio/webdriverio/pull/14511) refactor(wdio-local-runner): replace async-exit-hook with exit-hook ([@harsha509](https://github.com/harsha509))
+* `wdio-protocols`
+  * [#14522](https://github.com/webdriverio/webdriverio/pull/14522) fix(@wdio/protocols): Have `options` of appium terminateApp command optional  ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14538](https://github.com/webdriverio/webdriverio/pull/14538) Added support for running accessibility on Non-browserstack infrastructure ([@Bhargavi-BS](https://github.com/Bhargavi-BS))
+
+#### :memo: Documentation
+* Other
+  * [#14578](https://github.com/webdriverio/webdriverio/pull/14578) fix: Updates exclude docs. ([@damencho](https://github.com/damencho))
+  * [#14547](https://github.com/webdriverio/webdriverio/pull/14547) fix(docs) Masking doc glitches + update Appium required version following PR merge ([@dprevost-LMI](https://github.com/dprevost-LMI))
+* `wdio-appium-service`, `wdio-cli`, `wdio-protocols`, `wdio-types`, `webdriverio`
+  * [#14523](https://github.com/webdriverio/webdriverio/pull/14523) fix(docs): update various Appium-related links ([@eglitise](https://github.com/eglitise))
+
+#### :house: Internal
+* [#14569](https://github.com/webdriverio/webdriverio/pull/14569) fix(ci): hardening security of GH actions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 10
+- Aakash Hotchandani ([@AakashHotchandani](https://github.com/AakashHotchandani))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- Edgars Eglītis ([@eglitise](https://github.com/eglitise))
+- JustasM ([@JustasMonkev](https://github.com/JustasMonkev))
+- Rounak Bhatia ([@rounak610](https://github.com/rounak610))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- [@Bhargavi-BS](https://github.com/Bhargavi-BS)
+- [@mato533](https://github.com/mato533)
+- Дамян Минков ([@damencho](https://github.com/damencho))
+
+
 ## v9.15.0 (2025-05-30)
 
 #### :rocket: New Feature

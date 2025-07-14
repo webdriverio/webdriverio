@@ -1,0 +1,101 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`parseAnswers 1`] = `
+{
+  "_async": "async ",
+  "_await": "await ",
+  "backend": "On my local machine",
+  "baseUrl": "http://localhost",
+  "destPageObjectRootPath": "/tmp/foobar",
+  "destSerenityLibRootPath": "",
+  "destSpecRootPath": "/tmp/foobar",
+  "destStepRootPath": "/tmp/foobar",
+  "esmSupport": true,
+  "framework": "mocha",
+  "generateTestFiles": true,
+  "hasRootTSConfig": true,
+  "installTestingLibrary": false,
+  "isSync": false,
+  "isUsingTypeScript": false,
+  "npmInstall": true,
+  "packagesToInstall": [
+    "@wdio/local-runner",
+    "@wdio/mocha-framework",
+    "@sveltejs/vite-plugin-svelte",
+    "@wdio/spec-reporter",
+    "wdio-wait-for",
+    "@wdio/sauce-service",
+  ],
+  "pages": "/tmp/foobar/pageobjects",
+  "plugins": [
+    "wait-for",
+  ],
+  "preset": "svelte",
+  "projectName": "my-module",
+  "projectRootDir": "/foo/bar",
+  "purpose": undefined,
+  "rawAnswers": {
+    "backend": "On my local machine",
+    "baseUrl": "http://localhost",
+    "framework": "@wdio/mocha-framework$--$mocha",
+    "generateTestFiles": true,
+    "isUsingTypeScript": false,
+    "npmInstall": true,
+    "pages": "/tmp/foobar/pageobjects",
+    "plugins": [
+      "wdio-wait-for$--$wait-for",
+    ],
+    "preset": "@sveltejs/vite-plugin-svelte$--$svelte",
+    "reporters": [
+      "@wdio/spec-reporter$--$spec",
+    ],
+    "runner": "@wdio/local-runner$--$local",
+    "services": [
+      "@wdio/sauce-service$--$sauce",
+    ],
+    "specs": "/tmp/foobar/specs",
+    "stepDefinitions": "/tmp/foobar/steps",
+    "usePageObjects": true,
+  },
+  "relativePath": "",
+  "reporters": [
+    "spec",
+  ],
+  "runner": "local",
+  "serenityAdapter": false,
+  "services": [
+    "sauce",
+  ],
+  "specs": "./../../tmp/foobar/specs",
+  "stepDefinitions": "./../../tmp/foobar/steps",
+  "tsConfigFilePath": "/tmp/foobar/tsconfig.json",
+  "tsProject": "./../../tmp/foobar/tsconfig.json",
+  "usePageObjects": true,
+  "useSauceConnect": undefined,
+  "wdioConfigPath": "/foo/bar/wdio.conf.js",
+}
+`;
+
+exports[`runConfigCommand 1`] = `
+[
+  [
+    "
+",
+  ],
+  [
+    "
+🤖 Successfully setup project at /foo/bar 🎉
+
+Join our Discord Community Server and instantly find answers to your issues or queries. Or just join and say hi 👋!
+  🔗 https://discord.webdriver.io
+
+Visit the project on GitHub to report bugs 🐛 or raise feature requests 💡:
+  🔗 https://github.com/webdriverio/webdriverio
+
+To run your tests, execute:
+$ cd /foo/bar
+$ npm run wdio
+",
+  ],
+]
+`;

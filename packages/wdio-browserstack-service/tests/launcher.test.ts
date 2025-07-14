@@ -6,6 +6,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 // @ts-expect-error mock feature
 import { Local, mockStart } from 'browserstack-local'
 import logger from '@wdio/logger'
+import { SevereServiceError } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
 import BrowserstackLauncher from '../src/launcher.js'
@@ -804,7 +805,7 @@ describe('_updateCaps', () => {
         const capabilities = 1
 
         expect(() => service._updateCaps(capabilities as any, 'local'))
-            .toThrow(TypeError('Capabilities should be an object or Array!'))
+            .toThrow(new SevereServiceError('Capabilities should be an object or Array!'))
     })
 
     it('should update the local cap in capabilities', () => {
@@ -942,6 +943,32 @@ describe('_updateObjectTypeCaps', () => {
 
         service._updateObjectTypeCaps(caps, 'accessibilityOptions', { includeIssueType: { bestPractice: true, needsReview: true } })
         expect(caps.chromeBrowser.capabilities).toEqual({ 'browserstack.wdioService': pkg.version, 'browserstack.accessibilityOptions': { includeIssueType: { bestPractice: true, needsReview: true } } })
+    })
+
+    it('should set chromeOptions if capType is goog:chromeOptions and no existing options are present', () => {
+        const value = { args: ['--disable-gpu'] }
+        vi.spyOn(utils, 'validateCapsWithNonBstackA11y').mockImplementation(() => true)
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+        service._updateObjectTypeCaps(caps, 'goog:chromeOptions', value)
+        expect(caps[0]['goog:chromeOptions']).toEqual(value)
+    })
+
+    it('should merge chromeOptions if capType is goog:chromeOptions and value is provided', () => {
+        const caps: any = [{ 'goog:chromeOptions': { args: ['--headless'] } }]
+        const value = { args: ['--disable-gpu'] }
+        vi.spyOn(utils, 'validateCapsWithNonBstackA11y').mockImplementation(() => true)
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+        service._updateObjectTypeCaps(caps, 'goog:chromeOptions', value)
+        expect(caps[0]['goog:chromeOptions']).toEqual({ args: ['--headless', '--disable-gpu'] })
+    })
+
+    it('should update goog:chromeOptions in caps object if value is provided', () => {
+        const caps = { chromeBrowser: { capabilities: { 'goog:chromeOptions': { args: ['--headless'] }, 'bstack:options': {} } } }
+        const value = { args: ['--disable-gpu'] }
+        vi.spyOn(utils, 'validateCapsWithNonBstackA11y').mockImplementation(() => true)
+        const service = new BrowserstackLauncher(options as BrowserstackConfig & Options.Testrunner, caps, config)
+        service._updateObjectTypeCaps(caps, 'goog:chromeOptions', value)
+        expect(caps.chromeBrowser.capabilities['goog:chromeOptions']).toEqual({ args: ['--headless', '--disable-gpu'] })
     })
 
     it('should delete accessibilityOptions in caps array if value not passed in _updateObjectTypeCaps', () => {

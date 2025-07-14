@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
-import { expect, setOptions, SnapshotService } from 'expect-webdriverio'
+import { expect, setOptions, getConfig, matchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
 import type { Selector } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
@@ -72,13 +72,16 @@ export default class Runner extends EventEmitter {
         /**
          * add built-in services
          */
+        const softAssertionService = new SoftAssertionService({
+            autoAssertOnTestEnd: this._config.autoAssertOnTestEnd || true
+        }, this._caps, this._config)
+
         const snapshotService = SnapshotService.initiate({
             updateState: this._config.updateSnapshots,
             resolveSnapshotPath: this._config.resolveSnapshotPath
         })
-        // ToDo(Christian): resolve type incompatibility between v8 and v9
-        this._configParser.addService(snapshotService as any)
-
+        this._configParser.addService(softAssertionService)
+        this._configParser.addService(snapshotService)
         this._caps = this._isMultiremote
             /**
              * Filter driver instances based on 'wdio:exclude' capability and allow
@@ -257,7 +260,11 @@ export default class Runner extends EventEmitter {
          */
         if (runner === 'local') {
             const framework = (await initializePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
-            return framework.init(cid, config, specs, capabilities, reporter)
+            const frameworkInstance = await framework.init(cid, config, specs, capabilities, reporter)
+            if (frameworkInstance.setupExpect) {
+                await frameworkInstance.setupExpect(expect, matchers, getConfig)
+            }
+            return frameworkInstance
         }
 
         /**

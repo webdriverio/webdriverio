@@ -5,7 +5,7 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
 import * as runCmd from '../../src/commands/run.js'
-import * as configCmd from '../../src/commands/config.js'
+import { config as configCmd } from 'create-wdio/config/cli'
 
 vi.mock('yargs')
 vi.mock('node:child_process', () => ({
@@ -16,12 +16,21 @@ vi.mock('node:child_process', () => ({
     exec: vi.fn()
 }))
 vi.mock('node:fs/promises', async (orig) => ({
-    ...(await orig()) as any,
+    // ...(await orig()) as any,
     default: {
         access: vi.fn().mockResolvedValue(''),
         readFile: vi.fn()
     }
 }))
+vi.mock('create-wdio/config/cli', async (importActual)=>{
+    const actual = await importActual() as any
+    return {
+        config: {
+            ...actual.config,
+            missingConfigurationPrompt:vi.fn(),
+        }
+    }
+})
 vi.mock('./../../src/launcher', () => ({
     default: class {
         constructor (public wdioConfPath: string) {}
@@ -48,7 +57,7 @@ describe('Command: run', () => {
 
     beforeEach(() => {
         vi.mocked(fs.access).mockResolvedValue()
-        vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
+        vi.mocked(configCmd.missingConfigurationPrompt).mockImplementation((): Promise<never> => {
             return undefined as never
         })
         vi.spyOn(console, 'error')

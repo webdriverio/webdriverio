@@ -1,4 +1,6 @@
 import type { Capabilities, Services } from '@wdio/types'
+import type { getConfig, matchers } from 'expect-webdriverio'
+
 import type BaseReporter from './reporter.js'
 
 export type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
@@ -30,4 +32,9 @@ export interface TestFramework {
     ) => TestFramework
     run (): Promise<number>
     hasTests (): boolean
+    setupExpect?: (
+        wdioExpect: ExpectWebdriverIO.Expect,
+        wdioMatchers: typeof matchers,
+        getExpectConfig: typeof getConfig
+    ) => void
 }

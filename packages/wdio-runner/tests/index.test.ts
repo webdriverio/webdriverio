@@ -26,6 +26,7 @@ vi.mock('util')
 vi.mock('expect-webdriverio', () => ({
     setOptions: vi.fn(),
     expect: vi.fn(),
+    SoftAssertionService: vi.fn(),
     SnapshotService: {
         initiate: vi.fn().mockReturnValue({
             results: ['foobar']

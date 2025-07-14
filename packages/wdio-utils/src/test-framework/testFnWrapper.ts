@@ -10,9 +10,9 @@ import type {
 
 declare global {
     // Firstly variable '_wdioDynamicJasmineResultErrorList' gets reference to test result in packages/wdio-jasmine-framework/src/index.ts and then used here in wdio-utils/ as workaround for Jasmine
-    // eslint-disable-next-line no-var, @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any,no-var
     var _wdioDynamicJasmineResultErrorList: any | undefined
-    // eslint-disable-next-line no-var, @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any,no-var
     var _jasmineTestResult: any | undefined
 }
 

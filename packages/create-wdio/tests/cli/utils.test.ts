@@ -1,40 +1,13 @@
 import os from 'node:os'
-import path from 'node:path'
 import fs from 'node:fs/promises'
-
-import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest'
-import inquirer from 'inquirer'
-
-import {
-    builder,
-    canAccessConfigPath,
-    handler,
-    missingConfigurationPrompt,
-    parseAnswers,
-    runConfigCommand,
-} from '../../src/commands/config.js'
-import {
-    createPackageJSON,
-    createWDIOConfig,
-    createWDIOScript,
-    getAnswers,
-    npmInstall,
-    runAppiumInstaller,
-} from '../../src/utils.js'
+import { vi, test, expect, describe, beforeEach, it } from 'vitest'
+import { canAccessConfigPath, missingConfigurationPrompt, parseAnswers, runConfigCommand } from '../../src/cli/utils.js'
+import { createPackageJSON, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, getAnswers } from '../../src/utils.js'
 import { BackendChoice } from '../../src/constants.js'
+
+import inquirer from 'inquirer'
+import path from 'node:path'
 import type { Questionnair } from '../../src/types.js'
-
-const consoleLog = console.log.bind(console)
-beforeEach(() => {
-    console.log = vi.fn()
-})
-afterEach(() => {
-    console.log = consoleLog
-})
-
-const isUsingWindows = os.platform() === 'win32'
-
-process.cwd = () => '/foo/bar'
 
 vi.mock('node:fs/promises', async (orig) => ({
     ...(await orig()) as any,
@@ -43,7 +16,6 @@ vi.mock('node:fs/promises', async (orig) => ({
     }
 }))
 vi.mock('inquirer')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../src/utils.js', async () => {
     const actual = await vi.importActual('../../src/utils.js') as Promise<object>
     return {
@@ -65,44 +37,13 @@ vi.mock('../../src/utils.js', async () => {
     }
 })
 
-test('builder', () => {
-    const yargs = {} as any
-    yargs.options = vi.fn().mockReturnValue(yargs)
-    yargs.epilogue = vi.fn().mockReturnValue(yargs)
-    yargs.help = vi.fn().mockReturnValue(yargs)
-    builder(yargs)
-    expect(yargs.options).toBeCalledTimes(1)
-    expect(yargs.options).toBeCalledWith(expect.any(Object))
-    expect(yargs.epilogue).toBeCalledTimes(1)
-    expect(yargs.help).toBeCalledTimes(1)
-})
+vi.mock('../src/install', () => ({
+    installPackages: vi.fn(),
+    getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
+}))
+global.console.log = vi.fn()
 
-test.skipIf(isUsingWindows)('parseAnswers', async () => {
-    vi.mocked(getAnswers).mockResolvedValue({
-        backend: BackendChoice.Local,
-        specs: '/tmp/foobar/specs',
-        pages: '/tmp/foobar/pageobjects',
-        generateTestFiles: true,
-        usePageObjects: true,
-        baseUrl: 'http://localhost',
-        runner: '@wdio/local-runner$--$local',
-        framework: '@wdio/mocha-framework$--$mocha',
-        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
-        isUsingTypeScript: false,
-        reporters: [
-            '@wdio/spec-reporter$--$spec'
-        ],
-        plugins: [
-            'wdio-wait-for$--$wait-for'
-        ],
-        services: [
-            '@wdio/sauce-service$--$sauce'
-        ],
-        npmInstall: true
-    })
-    const parsedAnswers = await parseAnswers(true)
-    expect(parsedAnswers).toMatchSnapshot()
-})
+const isUsingWindows = os.platform() === 'win32'
 
 test('runConfigCommand', async () => {
     await runConfigCommand({ projectRootDir: '/foo/bar' } as any, 'next')
@@ -112,64 +53,6 @@ test('runConfigCommand', async () => {
     expect(createWDIOScript).toBeCalledTimes(1)
     expect(runAppiumInstaller).toBeCalledTimes(1)
     expect(vi.mocked(console.log).mock.calls).toMatchSnapshot()
-})
-
-test.skipIf(isUsingWindows)('handler', async () => {
-    vi.mocked(getAnswers).mockResolvedValue({
-        backend: BackendChoice.Local,
-        generateTestFiles: false,
-        baseUrl: 'http://localhost',
-        runner: '@wdio/local-runner$--$local',
-        framework: '@wdio/mocha-framework$--$mocha',
-        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
-        isUsingTypeScript: true,
-        reporters: [],
-        plugins: [],
-        services: [],
-        npmInstall: true
-    })
-    const runConfigCmd = vi.fn()
-    expect(await handler({} as any, runConfigCmd)).toMatchSnapshot()
-    expect(runConfigCmd).toBeCalledTimes(1)
-})
-
-test('missingConfigurationPrompt does not init wizard if user does not want to', async () => {
-    vi.mocked(getAnswers).mockResolvedValue({
-        backend: BackendChoice.Local,
-        generateTestFiles: false,
-        baseUrl: 'http://localhost',
-        runner: '@wdio/local-runner$--$local',
-        framework: '@wdio/mocha-framework$--$mocha',
-        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
-        reporters: [],
-        plugins: [],
-        services: [],
-        npmInstall: true
-    })
-    const runConfigCmd = vi.fn()
-    vi.mocked(inquirer.prompt).mockResolvedValue({})
-    await missingConfigurationPrompt('config', 'foobar', runConfigCmd)
-    expect(runConfigCmd).toBeCalledTimes(0)
-})
-
-test('missingConfigurationPrompt does run config if user agrees', async () => {
-    vi.mocked(getAnswers).mockResolvedValue({
-        backend: BackendChoice.Local,
-        generateTestFiles: false,
-        baseUrl: 'http://localhost',
-        runner: '@wdio/local-runner$--$local',
-        framework: '@wdio/mocha-framework$--$mocha',
-        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
-        reporters: [],
-        plugins: [],
-        services: [],
-        npmInstall: true
-    })
-    const runConfigCmd = vi.fn()
-
-    vi.mocked(inquirer.prompt).mockResolvedValue({ config: true })
-    await missingConfigurationPrompt('config', 'foobar', runConfigCmd)
-    expect(runConfigCmd).toBeCalledTimes(1)
 })
 
 describe('canAccessConfigPath', () => {
@@ -212,6 +95,52 @@ describe('canAccessConfigPath', () => {
         expect(fs.access).toBeCalledWith('/foo/bar.mts')
     })
 })
+test('missingConfigurationPrompt does not init wizard if user does not want to', async () => {
+    vi.mocked(getAnswers).mockResolvedValue({
+        backend: BackendChoice.Local,
+        generateTestFiles: false,
+        baseUrl: 'http://localhost',
+        runner: '@wdio/local-runner$--$local',
+        framework: '@wdio/mocha-framework$--$mocha',
+        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
+        reporters: [],
+        plugins: [],
+        services: [],
+        npmInstall: true
+    } as any)
+    const runConfigCmd = vi.fn()
+    vi.mocked(inquirer.prompt).mockResolvedValue({})
+    await missingConfigurationPrompt('config', 'foobar', runConfigCmd)
+    expect(runConfigCmd).toBeCalledTimes(0)
+})
+
+test.skipIf(isUsingWindows)('parseAnswers', async () => {
+    vi.mocked(getAnswers).mockResolvedValue({
+        backend: BackendChoice.Local,
+        specs: '/tmp/foobar/specs',
+        pages: '/tmp/foobar/pageobjects',
+        stepDefinitions: '/tmp/foobar/steps',
+        generateTestFiles: true,
+        usePageObjects: true,
+        baseUrl: 'http://localhost',
+        runner: '@wdio/local-runner$--$local',
+        framework: '@wdio/mocha-framework$--$mocha',
+        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
+        isUsingTypeScript: false,
+        reporters: [
+            '@wdio/spec-reporter$--$spec'
+        ],
+        plugins: [
+            'wdio-wait-for$--$wait-for'
+        ],
+        services: [
+            '@wdio/sauce-service$--$sauce'
+        ],
+        npmInstall: true
+    } as any)
+    const parsedAnswers = await parseAnswers(true)
+    expect(parsedAnswers).toMatchSnapshot()
+})
 
 describe('Serenity/JS project generation', () => {
 
@@ -231,7 +160,7 @@ describe('Serenity/JS project generation', () => {
         services: [],
         npmInstall: true,
         isUsingTypeScript: false,
-    }
+    } as any
 
     it('marks serenityAdapter as false and destSerenityLibRootPath as blank if not using Serenity/JS', async () => {
         vi.mocked(getAnswers).mockResolvedValue({
@@ -455,4 +384,24 @@ describe('Serenity/JS project generation', () => {
             ])
         })
     })
+})
+
+test('missingConfigurationPrompt does run config if user agrees', async () => {
+    vi.mocked(getAnswers).mockResolvedValue({
+        backend: BackendChoice.Local,
+        generateTestFiles: false,
+        baseUrl: 'http://localhost',
+        runner: '@wdio/local-runner$--$local',
+        framework: '@wdio/mocha-framework$--$mocha',
+        preset: '@sveltejs/vite-plugin-svelte$--$svelte',
+        reporters: [],
+        plugins: [],
+        services: [],
+        npmInstall: true
+    } as any)
+    const runConfigCmd = vi.fn()
+
+    vi.mocked(inquirer.prompt).mockResolvedValue({ config: true })
+    await missingConfigurationPrompt('config', 'foobar', runConfigCmd)
+    expect(runConfigCmd).toBeCalledTimes(1)
 })

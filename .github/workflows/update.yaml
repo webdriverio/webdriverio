@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Fetch PR metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v2.4.0
+        uses: dependabot/fetch-metadata@08eff52f33f11b29792d242ed87062144883395c # v2.4.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -27,7 +27,7 @@ jobs:
         # Don't merge updates to GitHub Actions versions automatically.
         # (Some repos may wish to limit by version range (major/minor/patch), or scope (dep vs dev-dep), too.)
         if: contains(steps.metadata.outputs.package-ecosystem, 'npm')
-        uses: lewagon/wait-on-check-action@v1.3.4
+        uses: lewagon/wait-on-check-action@0dceb95e7c4cad8cc7422aee3885998f5cab9c79 # v1.4.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}

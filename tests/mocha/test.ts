@@ -429,4 +429,14 @@ describe('Mocha smoke test', () => {
             expect(elem.elementId).toBeDefined()
         })
     })
+
+    it('supports inline snapshots', () => {
+        expect({ deep: { foo: 'bar' } }).toMatchInlineSnapshot(`
+          {
+            "deep": {
+              "foo": "bar",
+            },
+          }
+        `)
+    })
 })
