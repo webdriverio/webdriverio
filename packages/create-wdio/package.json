@@ -64,7 +64,7 @@
     "recursive-readdir": "^2.2.3",
     "semver": "^7.6.3",
     "type-fest": "^4.41.0",
-    "yargs": "^17.7.2"
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
