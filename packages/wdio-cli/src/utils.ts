@@ -1,7 +1,4 @@
 
-import { promisify } from 'node:util'
-
-import ejs from 'ejs'
 import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import { SevereServiceError } from 'webdriverio'
@@ -19,8 +16,6 @@ import type {
 } from './types.js'
 
 const log = logger('@wdio/cli:utils')
-
-export const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, unknown>) => Promise<string>
 
 export class HookError extends SevereServiceError {
     public origin: string

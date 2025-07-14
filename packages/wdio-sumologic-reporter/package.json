@@ -35,11 +35,9 @@
     "@wdio/logger": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
-    "dateformat": "4.5.1",
     "json-stringify-safe": "^5.0.1"
   },
   "devDependencies": {
-    "@types/dateformat": "^5.0.0",
     "@types/json-stringify-safe": "^5.0.0"
   },
   "publishConfig": {
