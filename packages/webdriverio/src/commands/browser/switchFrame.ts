@@ -6,7 +6,6 @@ import { getContextManager, type FlatContextTree } from '../../session/context.j
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../constant.js'
-import { environment } from '../../environment.js'
 import type { ChainablePromiseElement } from '../../types.js'
 
 const log = logger('webdriverio:switchFrame')
@@ -356,8 +355,18 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
  * deprecation message by setting a flag in the environment variable.
  */
 function switchToFrame (browser: WebdriverIO.Browser, frame: ElementReference | number | null) {
-    environment.value.variables.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = 'true'
-    return browser.switchToFrame(frame).finally(async () => {
-        delete environment.value.variables.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS
-    })
+    toggleDisableDeprecationWarning()
+    return browser.switchToFrame(frame).finally(toggleDisableDeprecationWarning)
+}
+
+/**
+ * Trigger the `DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS` environment variable
+ * only when running within a Node.js environment.
+ */
+function toggleDisableDeprecationWarning () {
+    if (typeof process !== 'undefined' && process.env) {
+        process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS
+            ? undefined
+            : 'true'
+    }
 }

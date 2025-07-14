@@ -14,7 +14,6 @@ export interface EnvironmentVariables {
     WDIO_LOG_LEVEL?: Options.WebDriverLogTypes
     PROXY_URL?: string
     NO_PROXY?: string[]
-    DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS?: string
     WDIO_WORKER_ID?: string
     WDIO_UNIT_TESTS?: string
 }
