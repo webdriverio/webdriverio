@@ -15,7 +15,7 @@ import type { InstallOptions } from '@puppeteer/browsers'
 
 import type { Capabilities } from '@wdio/types'
 
-import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir } from './utils.js'
+import { parseParams, setupPuppeteerBrowser, setupChromedriver, getCacheDir, generateDefaultPrefs } from './utils.js'
 import { isChrome, isFirefox, isEdge, isSafari, isAppiumCapability } from '../utils.js'
 import { SUPPORTED_BROWSERNAMES } from '../constants.js'
 
@@ -84,8 +84,10 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
             ? { executablePath: chromedriverBinary }
             : await setupChromedriver(cacheDir, browserVersion)
 
+        const prefs = generateDefaultPrefs(caps)
         caps['goog:chromeOptions'] = deepmerge(
-            { binary: chromeExecuteablePath, prefs: { 'profile.password_manager_leak_detection': false } },
+            { binary: chromeExecuteablePath },
+            prefs,
             caps['goog:chromeOptions'] || {}
         )
         chromedriverOptions.allowedOrigins = chromedriverOptions.allowedOrigins || ['*']
