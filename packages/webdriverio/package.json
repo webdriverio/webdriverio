@@ -97,7 +97,7 @@
     "query-selector-shadow-dom": "^1.0.1",
     "resq": "^1.11.0",
     "rgb2hex": "0.2.5",
-    "serialize-error": "^12.0.0",
+    "serialize-error": "^11.0.3",
     "urlpattern-polyfill": "^10.0.0",
     "webdriver": "workspace:*"
   },
