@@ -323,3 +323,9 @@ export function setupGeckodriver (cacheDir: string, driverVersion?: string) {
 export function setupEdgedriver (cacheDir: string, driverVersion?: string) {
     return downloadEdgedriver(driverVersion, cacheDir)
 }
+
+export function generateDefaultPrefs(caps: WebdriverIO.Capabilities) {
+    return caps['goog:chromeOptions']?.debuggerAddress
+        ? {}
+        : { prefs: { 'profile.password_manager_leak_detection': false } }
+}
