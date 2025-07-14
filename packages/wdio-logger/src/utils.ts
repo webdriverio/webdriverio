@@ -1,5 +1,4 @@
-import escapeStringRegexp from 'escape-string-regexp'
-import safeRegexTest from 'safe-regex-test'
+import safeRegexTest from 'safe-regex2'
 
 export const SENSITIVE_DATA_REPLACER = '**MASKED**'
 
@@ -23,39 +22,20 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
     const regexStrings = maskingRegexString?.split(/,\s*/).filter((regexStr) => regexStr.trim() !== '')
 
     return regexStrings?.map((regexStr) => {
-        try {
-            const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
-            if (!regexParts) {
-                const regexp = new RegExp(escapeStringRegexp(regexStr))
-                if (!safeRegexTest(regexp)) {
-                    return undefined
-                }
-
-                // When passing only a simple string without `/` or flags, aka `(--key=)([^ ]*)`
-                return skipError(() => regexp)
-            }
-
-            if (regexParts?.[2]) {
-                const regexp = new RegExp(escapeStringRegexp(regexParts[1]), regexParts[2])
-                if (!safeRegexTest(regexp)) {
-                    return undefined
-                }
-
-                return skipError(() => regexp)
-            }
-
-            if (regexParts?.[1]) {
-                const regexp = new RegExp(escapeStringRegexp(regexParts[1]))
-                if (!safeRegexTest(regexp)) {
-                    return undefined
-                }
-
-                // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
-                return skipError(() => regexp)
-            }
-        } catch {
-            return undefined
+        const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
+        if (!regexParts && safeRegexTest(regexStr)) {
+            // When passing only a simple string without `/` or flags, aka `(--key=)([^ ]*)`
+            return skipError(() => new RegExp(regexStr))
         }
+
+        if (regexParts?.[1] && safeRegexTest(regexParts[1])) {
+            // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
+            return  skipError(() => (
+                regexParts[2]
+                    ? new RegExp(regexParts[1], regexParts[2])
+                    : new RegExp(regexParts[1])))
+        }
+
         return undefined
     }).filter((regex) => regex !== undefined)
 }

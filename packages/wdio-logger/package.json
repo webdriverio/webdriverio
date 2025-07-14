@@ -38,10 +38,9 @@
   },
   "dependencies": {
     "chalk": "^5.1.2",
-    "escape-string-regexp": "^5.0.0",
     "loglevel": "^1.6.0",
     "loglevel-plugin-prefix": "^0.8.4",
-    "safe-regex-test": "^1.1.0",
+    "safe-regex2": "^5.0.0",
     "strip-ansi": "^7.1.0"
   },
   "publishConfig": {

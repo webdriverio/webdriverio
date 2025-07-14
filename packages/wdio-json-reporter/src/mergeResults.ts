@@ -1,8 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import escapeStringRegexp from 'escape-string-regexp'
-import safeRegexTest from 'safe-regex-test'
+import safeRegexTest from 'safe-regex2'
 
 import type { ResultSet } from './types.js'
 
@@ -35,13 +34,14 @@ async function getDataFromFiles (dir: string, filePattern: string | RegExp) {
     let safePattern: RegExp
 
     if (filePattern instanceof RegExp) {
-        safePattern = filePattern
+        // For existing RegExp objects, test them for safety
+        safePattern = safeRegexTest(filePattern) ? filePattern : /\.json$/
     } else if (typeof filePattern === 'string') {
         try {
-            const regexp = new RegExp(escapeStringRegexp(filePattern))
-            safePattern = safeRegexTest(regexp) ? regexp : /\.json$/
+            // Test the created RegExp for safety
+            safePattern = safeRegexTest(filePattern) ? new RegExp(filePattern) : /\.json$/
         } catch {
-            // If the pattern is invalid, fall back to a safe default
+            // If the pattern syntax is invalid, fall back to a safe default
             safePattern = /\.json$/
         }
     } else {
