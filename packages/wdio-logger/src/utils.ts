@@ -22,28 +22,40 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
     const regexStrings = maskingRegexString?.split(/,\s*/).filter((regexStr) => regexStr.trim() !== '')
 
     return regexStrings?.map((regexStr) => {
-        const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
-        if (!regexParts) {
-            const regexp = new RegExp(regexStr)
-            if (!safeRegexTest(regexp)) {
-                return undefined
+        try {
+            const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
+            if (!regexParts) {
+                const regexp = new RegExp(regexStr)
+                if (!safeRegexTest(regexp)) {
+                    return undefined
+                }
+
+                // When passing only a simple string without `/` or flags, aka `(--key=)([^ ]*)`
+                return skipError(() => regexp)
             }
 
-            // When passing only a simple string without `/` or flags, aka `(--key=)([^ ]*)`
-            return skipError(() => regexp)
-        }
+            if (regexParts?.[2]) {
+                const regexp = new RegExp(regexParts[1], regexParts[2])
+                if (!safeRegexTest(regexp)) {
+                    return undefined
+                }
 
-        if (regexParts?.[1]) {
-            const regexp = new RegExp(regexParts[1], regexParts[2])
-            if (!safeRegexTest(regexp)) {
-                return undefined
+                return skipError(() => regexp)
             }
 
-            // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
-            return skipError(() => regexParts[2] ? regexp : new RegExp(regexParts[1]))
+            if (regexParts?.[1]) {
+                const regexp = new RegExp(regexParts[1])
+                if (!safeRegexTest(regexp)) {
+                    return undefined
+                }
+
+                // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
+                return skipError(() => regexp)
+            }
+        } catch {
+            return undefined
         }
         return undefined
-
     }).filter((regex) => regex !== undefined)
 }
 
