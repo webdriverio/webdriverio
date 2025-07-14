@@ -13,7 +13,6 @@ import type { saveElementScreenshot } from './node/saveElementScreenshot.js'
 export const isNode = !!(typeof process !== 'undefined' && process.version)
 
 export interface EnvironmentVariables {
-    DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS?: string
     WDIO_UNIT_TESTS?: string
     WDIO_WORKER_ID?: string
 }
