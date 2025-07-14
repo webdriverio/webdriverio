@@ -826,6 +826,9 @@ importers:
       async-exit-hook:
         specifier: ^2.0.1
         version: 2.0.1
+      chalk:
+        specifier: ^5.4.1
+        version: 5.4.1
       chokidar:
         specifier: ^4.0.0
         version: 4.0.3

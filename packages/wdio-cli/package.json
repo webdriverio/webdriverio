@@ -47,6 +47,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "async-exit-hook": "^2.0.1",
+    "chalk": "^5.4.1",
     "chokidar": "^4.0.0",
     "create-wdio": "workspace:*",
     "dotenv": "^17.2.0",
