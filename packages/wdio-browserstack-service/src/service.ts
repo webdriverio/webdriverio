@@ -137,10 +137,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
             if (BrowserstackCLI.getInstance().isRunning()) {
                 await BrowserstackCLI.getInstance().getAutomationFramework()!.trackEvent(AutomationFrameworkState.CREATE, HookState.PRE, { caps: capabilities })
+                const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
+                const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
+                Object.assign(capabilities, caps)
             }
-            const instance = AutomationFramework.getTrackedInstance() as AutomationFrameworkInstance
-            const caps = AutomationFramework.getState(instance, AutomationFrameworkConstants.KEY_CAPABILITIES)
-            Object.assign(capabilities, caps)
         } catch (err) {
             BStackLogger.error(`Error while connecting to Browserstack CLI: ${err}`)
         }
