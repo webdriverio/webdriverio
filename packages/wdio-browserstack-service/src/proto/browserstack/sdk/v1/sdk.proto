@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package browserstack.sdk.v1;
+
+// import "google/protobuf/struct.proto";
+import "sdk-messages-ai.proto";
+import "sdk-messages-accessibility.proto";
+import "sdk-messages-observability.proto";
+import "sdk-messages.proto";
+
+
+service SDK {
+    rpc StartBinSession(StartBinSessionRequest) returns (StartBinSessionResponse);
+    rpc ConnectBinSession(ConnectBinSessionRequest) returns (ConnectBinSessionResponse);
+    rpc StopBinSession(StopBinSessionRequest) returns (StopBinSessionResponse);
+
+    rpc DriverInit(DriverInitRequest) returns (DriverInitResponse);
+    rpc AutomationFrameworkInit(AutomationFrameworkInitRequest) returns (AutomationFrameworkInitResponse);
+    rpc AutomationFrameworkStart(AutomationFrameworkStartRequest) returns (AutomationFrameworkStartResponse); // session-start
+    rpc AutomationFrameworkStop(AutomationFrameworkStopRequest) returns (AutomationFrameworkStopResponse);
+    rpc TestOrchestration(TestOrchestrationRequest) returns (TestOrchestrationResponse);
+
+    rpc FindNearestHub(FindNearestHubRequest) returns (FindNearestHubResponse);
+
+    rpc AIBrowserExtension(AIBrowserExtensionRequest) returns (AIBrowserExtensionResponse);
+    rpc AISelfHealStep(AISelfHealStepRequest) returns (AISelfHealStepResponse);
+    rpc AISelfHealGetResult(AISelfHealGetRequest) returns (AISelfHealGetResponse);
+
+    rpc AccessibilityConfig(AccessibilityConfigRequest) returns (AccessibilityConfigResponse);
+    rpc ObservabilityConfig(ObservabilityConfigRequest) returns (ObservabilityConfigResponse);
+
+    rpc AccessibilityResult(AccessibilityResultRequest) returns (AccessibilityResultResponse);
+
+    rpc TestFrameworkEvent(TestFrameworkEventRequest) returns (TestFrameworkEventResponse);
+    rpc TestSessionEvent(TestSessionEventRequest) returns (TestSessionEventResponse);
+    rpc EnqueueTestEvent(EnqueueTestEventRequest) returns (EnqueueTestEventResponse);
+
+    rpc LogCreatedEvent(LogCreatedEventRequest) returns (LogCreatedEventResponse);
+
+    rpc FetchDriverExecuteParamsEvent(FetchDriverExecuteParamsEventRequest) returns (FetchDriverExecuteParamsEventResponse);
+}

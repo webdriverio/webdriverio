@@ -1,0 +1,268 @@
+syntax = "proto3";
+
+package browserstack.sdk.v1;
+
+import "sdk-messages-testhub.proto";
+import "sdk-messages-observability.proto";
+import "sdk-messages-accessibility.proto";
+import "sdk-messages-percy.proto";
+
+message DriverInitRequest {
+    string bin_session_id = 1;
+    uint32 platform_index = 2;
+    string ref = 3;
+    bytes user_input_params = 4;
+}
+
+message DriverInitResponse {
+    bool success = 1;
+    string bin_session_id = 2;
+    bytes capabilities = 3;
+    optional string hub_url = 4;
+}
+
+message AutomationFrameworkInitRequest {
+    string bin_session_id = 1;
+    uint32 platform_index = 2;
+    string framework_name = 3;
+    string framework_version = 4;
+    string ref = 5;
+    string hub_url = 6;
+}
+
+message AutomationFrameworkInitResponse {
+    bool success = 1;
+    optional string hub_url = 2;
+}
+
+message AutomationFrameworkStartRequest {
+    string bin_session_id = 1;
+    uint32 platform_index = 2;
+    string framework_name = 3;
+    string framework_version = 4;
+    string ref = 5;
+    string framework_session_id = 6;
+    string hub_url = 7;
+}
+
+message AutomationFrameworkStartResponse {
+    bool success = 1;
+}
+
+message AutomationFrameworkStopRequest {
+    string bin_session_id = 1;
+    uint32 platform_index = 2;
+    string framework_name = 3;
+    string framework_version = 4;
+    string ref = 5;
+    string framework_session_id = 6;
+    string hub_url = 7;
+}
+
+message AutomationFrameworkStopResponse {
+    bool success = 1;
+}
+
+message FindNearestHubRequest {
+    string bin_session_id = 1;
+}
+
+message FindNearestHubResponse {
+    string url = 1;
+    uint32 latency = 2;
+}
+
+message StartBinSessionRequest {
+    string bin_session_id = 1;
+    string sdk_language = 2;
+    string sdk_version = 3;
+    string path_project = 4;
+    string path_config = 5;
+    map<string, string> env_vars = 6;
+    repeated string cli_args = 7;
+    repeated string frameworks = 8;
+    map<string, string> framework_versions = 9;
+    string language = 10;
+    optional string language_version = 11;
+    string test_framework = 12;
+    optional string wdio_config = 13;
+}
+
+message StartBinSessionResponse {
+    string bin_session_id = 1;
+    string config = 2;
+    optional TestHub testhub = 3;
+    optional Observability observability = 4;
+    optional Accessibility accessibility = 5;
+    optional Percy percy = 6;
+    optional string session_framework = 7;
+}
+
+message ConnectBinSessionResponse {
+    string bin_session_id = 1;
+    string config = 2;
+    optional TestHub testhub = 3;
+    optional Observability observability = 4;
+    optional Accessibility accessibility = 5;
+    optional Percy percy = 6;
+    optional string session_framework = 7;
+    optional TestOrchestration test_orchestration = 8;
+}
+
+message TestOrchestration {
+    optional bool run_previously_failed_first = 1;
+    optional RetryTestsOnFailure retry_tests_on_failure = 2;
+    optional AbortBuildOnFailure abort_build_on_failure = 3;
+}
+
+message RetryTestsOnFailure {
+    bool enabled = 1;
+    uint32 max_retries = 2;
+}
+
+message AbortBuildOnFailure {
+    bool enabled = 1;
+    uint32 max_failures = 2;
+}
+
+message TestOrchestrationRequest{
+    string bin_session_id = 1;
+    repeated string test_files = 2;
+    optional string orchestration_strategy = 3;
+}
+
+message TestOrchestrationResponse{
+    bool success = 1;
+    repeated string ordered_test_files = 2;
+}
+
+message StopBinSessionRequest {
+    string bin_session_id = 1;
+    optional uint32 exit_code = 2;
+    optional string exit_signal = 3;
+    optional string exit_reason = 4;
+    optional string custom_metadata = 5;
+}
+
+message StopBinSessionResponse {
+    bool success = 1;
+    optional string error = 2;
+    optional string automate_buildlink = 3;
+    optional string hashed_id = 4;
+}
+
+message ConnectBinSessionRequest {
+    string bin_session_id = 1;
+    optional uint32 platform_index = 2;
+}
+
+message TestFrameworkEventRequest {
+    string bin_session_id = 1;
+    uint32 platform_index = 2;
+
+    string test_framework_name = 3;
+    string test_framework_version = 4;
+
+    string uuid = 5;
+    bytes event_json = 6;
+
+    // event type
+    string test_framework_state = 7;
+    string test_hook_state = 8;
+
+    string started_at = 9;
+    optional string ended_at = 10;
+    optional ExecutionContext execution_context = 11;
+}
+
+message ExecutionContext {
+    string thread_id = 1;
+    optional string process_id = 2;
+    optional string hash = 3;
+}
+
+message TestFrameworkEventResponse {
+    bool success = 1;
+    optional string error = 2;
+}
+
+message EnqueueTestEventRequest {
+    string bin_session_id = 1;
+    string event_url = 2;
+    bytes event_data_json = 3;
+}
+
+message EnqueueTestEventResponse {
+    bool success = 1;
+    optional string error = 2;
+}
+
+message LogCreatedEventRequest {
+    string bin_session_id = 1;
+    uint32 platform_index = 2;
+    repeated LogEntry logs = 3;
+    optional ExecutionContext execution_context = 4;
+
+    message LogEntry {
+        string test_framework_name = 1;
+        string test_framework_version = 2;
+        string test_framework_state = 3;
+        string timestamp = 4;
+        string uuid = 5;
+        string kind = 6;
+        bytes message = 7;
+        optional string level = 8;
+        optional string file_name = 9;
+        optional int64 file_size = 10;
+        optional string file_path = 11;
+    }
+}
+
+message LogCreatedEventResponse {
+    bool success = 1;
+    optional string error = 2;
+}
+
+message TestSessionEventRequest {
+    string bin_session_id = 1;
+    uint32 platform_index = 2;
+
+    string test_framework_name = 3;
+    string test_framework_version = 4;
+    string test_framework_state = 5;
+    string test_hook_state = 6;
+    string test_uuid = 7;
+
+    repeated AutomationSession automation_sessions = 8;
+    optional ExecutionContext execution_context = 9;
+
+    optional bytes capabilities = 10;
+
+    message AutomationSession {
+        string provider = 1;
+        optional string product = 2;
+        string framework_name = 3;
+        string framework_version = 4;
+        string framework_session_id = 5;
+        optional string ref = 6;
+        optional string hub_url = 7;
+    }
+}
+
+message TestSessionEventResponse {
+    bool success = 1;
+    optional string error = 2;
+}
+
+message FetchDriverExecuteParamsEventRequest {
+    string bin_session_id = 1;
+    string product = 2; 
+    optional string script_name = 3;
+}
+
+message FetchDriverExecuteParamsEventResponse {
+    bool success = 1;
+    optional string script = 2;
+    optional bytes  accessibility_execute_params = 3;
+    optional string error = 4;
+}

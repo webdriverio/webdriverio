@@ -14,6 +14,7 @@ import type { Options } from '@wdio/types'
 import { BROWSERSTACK_TESTHUB_UUID } from '../constants.js'
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
+import APIUtils from '../cli/apiUtils.js'
 
 const logDir = 'logs'
 
@@ -144,7 +145,7 @@ class Percy {
                     username: getBrowserStackUser(this.#config),
                     password: getBrowserStackKey(this.#config)
                 },
-                'https://api.browserstack.com'
+                APIUtils.BROWSERSTACK_PERCY_API_URL
             )
             PercyLogger.debug('Percy fetch token success : ' + response.token)
             if (!this.#options.percy && response.success) {
