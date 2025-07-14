@@ -49,7 +49,7 @@
     "formdata-node": "5.0.1",
     "git-repo-info": "^2.1.1",
     "gitconfiglocal": "^2.1.0",
-    "undici": "^7.11.0",
+    "undici": "^6.21.3",
     "uuid": "^11.1.0",
     "webdriverio": "workspace:*",
     "winston-transport": "^4.5.0",
