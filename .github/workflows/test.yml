@@ -9,6 +9,8 @@ on:
       - v7
       - v8
       - '!l10n_main'
+    paths-ignore:
+      - '**/*.md'
   pull_request:
     branches-ignore:
       - 'l10n_main'
