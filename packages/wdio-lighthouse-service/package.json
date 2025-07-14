@@ -46,7 +46,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "babel-plugin-istanbul": "^6.1.1",
-    "devtools-protocol": "^0.0.1483532",
+    "devtools-protocol": "^0.0.1485358",
     "istanbul-lib-coverage": "^3.2.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
