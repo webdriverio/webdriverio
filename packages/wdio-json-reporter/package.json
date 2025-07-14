@@ -39,6 +39,7 @@
   "dependencies": {
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
+    "escape-string-regexp": "^5.0.0",
     "safe-regex-test": "^1.1.0"
   },
   "publishConfig": {

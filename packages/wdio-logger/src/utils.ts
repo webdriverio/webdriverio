@@ -1,3 +1,4 @@
+import escapeStringRegexp from 'escape-string-regexp'
 import safeRegexTest from 'safe-regex-test'
 
 export const SENSITIVE_DATA_REPLACER = '**MASKED**'
@@ -25,7 +26,7 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
         try {
             const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
             if (!regexParts) {
-                const regexp = new RegExp(regexStr)
+                const regexp = new RegExp(escapeStringRegexp(regexStr))
                 if (!safeRegexTest(regexp)) {
                     return undefined
                 }
@@ -35,7 +36,7 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
             }
 
             if (regexParts?.[2]) {
-                const regexp = new RegExp(regexParts[1], regexParts[2])
+                const regexp = new RegExp(escapeStringRegexp(regexParts[1]), regexParts[2])
                 if (!safeRegexTest(regexp)) {
                     return undefined
                 }
@@ -44,7 +45,7 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
             }
 
             if (regexParts?.[1]) {
-                const regexp = new RegExp(regexParts[1])
+                const regexp = new RegExp(escapeStringRegexp(regexParts[1]))
                 if (!safeRegexTest(regexp)) {
                     return undefined
                 }
