@@ -1,10 +1,8 @@
 import path from 'node:path'
-import * as cp from 'node:child_process'
+import cp from 'node:child_process'
 import fs from 'node:fs/promises'
 
 import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
-import ejs from 'ejs'
-import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
 import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
@@ -19,8 +17,6 @@ import {
     getCapabilities,
 } from '../src/utils.js'
 
-vi.mock('ejs')
-vi.mock('inquirer')
 vi.mock('recursive-readdir', () => ({
     default: vi.fn().mockResolvedValue([
         '/foo/bar/loo/page.js.ejs',
@@ -35,7 +31,7 @@ vi.mock('child_process', () => {
         exec: vi.fn(),
         spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
-    return m
+    return { default: m }
 })
 
 vi.mock('read-pkg-up')
@@ -53,10 +49,6 @@ vi.mock('@wdio/config/node', () => ({
         initialize() { }
         getCapabilities() { }
     }
-}))
-
-vi.mock('execa', () => ({
-    $: vi.fn().mockReturnValue(async (sh: string) => sh)
 }))
 
 beforeEach(() => {
@@ -323,11 +315,9 @@ describe('getCapabilities', () => {
 })
 
 afterEach(() => {
-    vi.mocked(inquirer.prompt).mockClear()
     vi.mocked(console.log).mockRestore()
     vi.mocked(readDir).mockClear()
     vi.mocked(fs.writeFile).mockClear()
     vi.mocked(cp.spawn).mockClear()
     vi.mocked(fs.mkdir).mockClear()
-    vi.mocked(ejs.renderFile).mockClear()
 })
