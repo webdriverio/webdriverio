@@ -8,5 +8,9 @@
   "include": [
     "src/**/*",
     "../../@types"
+  ],
+  "exclude": [
+    "build/**/*",
+    "node_modules/**/*"
   ]
 }
