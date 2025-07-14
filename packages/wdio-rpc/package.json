@@ -2,30 +2,44 @@
   "name": "@wdio/rpc",
   "version": "1.0.0",
   "description": "WebdriverIO internal RPC communication layer powered by birpc",
-  "engines": {
-    "node": ">=18.20.0"
-  },
-  "keywords": [
-    "webdriver",
-    "wdio",
-    "wdio-rpc"
-  ],
-  "bugs": {
-    "url": "https://github.com/webdriverio/webdriverio/issues"
-  },
+  "author": "Christian Bromann <mail@christian-bromann.dev>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-rpc",
+  "license": "MIT",
   "type": "module",
-  "types": "./build/index.d.ts",
-  "main": "./dist/index.js",
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
       "import": "./build/index.js"
     }
   },
+  "types": "./build/index.d.ts",
+  "main": "./build/index.js",
   "typeScriptVersion": "3.8.3",
+  "engines": {
+    "node": ">=18.20.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-rpc"
+  },
+  "keywords": [
+    "webdriverio",
+    "webdriver",
+    "wdio",
+    "wdio-rpc",
+    "rpc",
+    "birpc"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
   "dependencies": {
     "@wdio/types": "workspace:*",
     "birpc": "^2.3.0"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.5"
   },
   "publishConfig": {
     "access": "public"
