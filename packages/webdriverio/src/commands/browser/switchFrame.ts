@@ -226,21 +226,21 @@ export async function switchFrame (
             // Execute browser-side script to locate a shadow DOM iframe with matching URL
             const iframeFound = await this.execute(findIframeInShadowDOM, urlFragment)
 
-            if (iframeFound) {
-                /**
-                 * Re-query all iframes and match by src to convert DOM element into a WebdriverIO element.
-                 * Required because browser.execute returns a native DOM element, not a WebdriverIO-compatible one.
-                 */
-                const allFrames = await this.$$('iframe')
-                for (const frame of allFrames) {
-                    const src = await frame.getAttribute('src')
-                    if (src?.includes(urlFragment)) {
-                        return this.switchFrame(frame)
-                    }
+            // If an iframe was found in the shadow DOM, and it's a valid WebDriver element reference,
+            // convert it into a WebdriverIO-compatible element using `this.$`,
+            // then attempt to switch the frame context to it.
+            if (
+                iframeFound &&
+                typeof iframeFound === 'object' &&
+                iframeFound[ELEMENT_KEY]
+            ) {
+                const iframeElement = await this.$(iframeFound)
+                if (iframeElement) {
+                    return this.switchFrame(iframeElement)
                 }
-                // If we found an iframe in the shadow DOM but couldn't resolve it to a WebdriverIO element
-                log.warn(`Shadow DOM iframe with src containing "${urlFragment}" found, but could not be resolved into a WebdriverIO element.`)
             }
+            // If we found an iframe in the shadow DOM but couldn't resolve it to a WebdriverIO element
+            log.warn(`Shadow DOM iframe with src containing "${urlFragment}" found, but could not be resolved into a WebdriverIO element.`)
         }
 
         /**
