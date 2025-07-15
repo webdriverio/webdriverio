@@ -72,7 +72,7 @@
     "@preact/preset-vite": "^2.10.2",
     "@serenity-js/core": "^3.32.2",
     "@stencil/core": "^4.35.1",
-    "@sveltejs/vite-plugin-svelte": "4.0.2",
+    "@sveltejs/vite-plugin-svelte": "6.0.0",
     "@types/archiver": "^6.0.3",
     "@types/inquirer": "^9.0.8",
     "@types/lodash.clonedeep": "^4.5.9",
