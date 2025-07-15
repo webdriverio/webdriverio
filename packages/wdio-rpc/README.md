@@ -134,16 +134,16 @@ const framework = new BrowserFramework(cid, config, specs, reporter)
 ## Message Flow
 
 ```
-┌──────────────────────────────┐      Node.js RPC      ┌──────────────────────────────┐
-│   Test Runner (Node.js RPC) │ ◄───────────────────► │  Browser Runner (Browser RPC)│
-│   (Server)                  │                        │    (Client)                  │
-└──────────────────────────────┘                        └──────────────────────────────┘
-         │   Worker IPC   │
-         │───────────────▶│
-         ▼                ▼
-┌──────────────────────────────┐        Browser IPC     ┌──────────────────────────────┐
-│   Worker Process            │───────────────────────►│   Browser Environment        │
-└──────────────────────────────┘                        └──────────────────────────────┘
+┌──────────────────────────────┐    RPC Messages    ┌──────────────────────────────┐
+│   Test Runner (Node.js RPC) │ ◄────────────────► │  Browser Runner (Browser RPC)│
+│   (Server)                  │                    │    (Client)                  │
+└──────────────────────────────┘                    └──────────────────────────────┘
+         │                                               │
+         │                                               │
+         ▼                                               ▼
+┌──────────────────────────────┐                    ┌──────────────────────────────┐
+│   Worker Process            │                    │   Browser Environment        │
+└──────────────────────────────┘                    └──────────────────────────────┘
 ```
 
 **Implementation file references:**

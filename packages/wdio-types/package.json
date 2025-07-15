@@ -33,5 +33,13 @@
   },
   "dependencies": {
     "@types/node": "^20.1.0",
+    "@wdio/globals": "workspace:*",
+    "@wdio/runner": "workspace:*",
+    "@wdio/utils": "workspace:*",
+    "webdriverio": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@vitest/snapshot": "^2.1.1"
   }
 }

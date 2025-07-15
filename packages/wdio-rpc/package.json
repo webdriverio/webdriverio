@@ -1,6 +1,6 @@
 {
   "name": "@wdio/rpc",
-  "version": "1.0.0",
+  "version": "9.0.0",
   "description": "WebdriverIO internal RPC communication layer powered by birpc",
   "author": "Christian Bromann <mail@christian-bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-rpc",
