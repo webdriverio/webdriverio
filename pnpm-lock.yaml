@@ -1431,6 +1431,13 @@ importers:
         version: link:../wdio-globals
 
   packages/wdio-types:
+    dependencies:
+      '@wdio/globals':
+        specifier: 9.16.2
+        version: 9.16.2(expect-webdriverio@5.3.4)(webdriverio@9.17.0(puppeteer-core@24.12.1))
+      '@wdio/types':
+        specifier: 9.16.2
+        version: 9.16.2
     devDependencies:
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
@@ -19992,6 +19999,11 @@ snapshots:
       expect-webdriverio: 5.3.4(@wdio/globals@packages+wdio-globals)(@wdio/logger@packages+wdio-logger)(webdriverio@packages+webdriverio)
       webdriverio: 9.16.2(puppeteer-core@24.12.1)
 
+  '@wdio/globals@9.16.2(expect-webdriverio@5.3.4)(webdriverio@9.17.0(puppeteer-core@24.12.1))':
+    dependencies:
+      expect-webdriverio: 5.3.4(@wdio/globals@9.16.2)(@wdio/logger@9.16.2)(webdriverio@9.17.0(puppeteer-core@24.12.1))
+      webdriverio: 9.17.0(puppeteer-core@24.12.1)
+
   '@wdio/globals@9.17.0(expect-webdriverio@5.3.4)(webdriverio@9.16.2(puppeteer-core@24.12.1))':
     dependencies:
       expect-webdriverio: 5.3.4(@wdio/globals@9.17.0)(@wdio/logger@9.16.2)(webdriverio@9.16.2(puppeteer-core@24.12.1))
@@ -22560,6 +22572,16 @@ snapshots:
       homedir-polyfill: 1.0.3
 
   expect-type@1.2.1: {}
+
+  expect-webdriverio@5.3.4(@wdio/globals@9.16.2)(@wdio/logger@9.16.2)(webdriverio@9.17.0(puppeteer-core@24.12.1)):
+    dependencies:
+      '@vitest/snapshot': 3.2.4
+      '@wdio/globals': 9.16.2(expect-webdriverio@5.3.4)(webdriverio@9.17.0(puppeteer-core@24.12.1))
+      '@wdio/logger': 9.16.2
+      expect: 30.0.4
+      jest-matcher-utils: 30.0.3
+      lodash.isequal: 4.5.0
+      webdriverio: 9.17.0(puppeteer-core@24.12.1)
 
   expect-webdriverio@5.3.4(@wdio/globals@9.17.0)(@wdio/logger@9.16.2)(webdriverio@9.16.2(puppeteer-core@24.12.1)):
     dependencies:
