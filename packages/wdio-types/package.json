@@ -18,7 +18,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/webdriverio/webdriverio.git"
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-types"
   },
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
@@ -29,7 +30,11 @@
     "types",
     "typescript"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
+    "@types/node": "^20.1.0",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@vitest/snapshot": "^2.1.1"
   }
