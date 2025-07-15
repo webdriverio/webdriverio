@@ -100,8 +100,10 @@ The RPC system is automatically integrated into WebdriverIO's architecture:
 
 #### Browser Runner Integration
 ```typescript
-// In browser-runner communicator
 import { createServerRpc } from '@wdio/rpc'
+// Note: ServerWorkerCommunicator is a WebdriverIO internal utility, not exported by @wdio/rpc.
+// For demonstration, you can imagine it as:
+// class ServerWorkerCommunicator { constructor(config) { /* ... */ } }
 
 const communicator = new ServerWorkerCommunicator(config)
 communicator.register(server, worker)
@@ -112,6 +114,9 @@ communicator.register(server, worker)
 // - Coverage collection
 // - Custom commands
 ```
+
+> **Note:**
+> `ServerWorkerCommunicator` is a WebdriverIO internal utility used for managing communication between the test runner and worker processes. It is not exported by `@wdio/rpc`. In your own implementation, you may need to provide a similar communicator or use the WebdriverIO-provided one if available.
 
 #### Test Runner Integration
 ```typescript
@@ -129,18 +134,23 @@ const framework = new BrowserFramework(cid, config, specs, reporter)
 ## Message Flow
 
 ```
-┌─────────────────┐    RPC Messages    ┌─────────────────┐
-│   Test Runner   │ ◄────────────────► │  Browser Runner │
-│   (Server)      │                    │    (Client)     │
-└─────────────────┘                    └─────────────────┘
-         │                                       │
-         │                                       │
-         ▼                                       ▼
-┌─────────────────┐                    ┌─────────────────┐
-│   Worker        │                    │   Browser       │
-│   Process       │                    │   Environment   │
-└─────────────────┘                    └─────────────────┘
+┌──────────────────────────────┐      Node.js RPC      ┌──────────────────────────────┐
+│   Test Runner (Node.js RPC) │ ◄───────────────────► │  Browser Runner (Browser RPC)│
+│   (Server)                  │                        │    (Client)                  │
+└──────────────────────────────┘                        └──────────────────────────────┘
+         │   Worker IPC   │
+         │───────────────▶│
+         ▼                ▼
+┌──────────────────────────────┐        Browser IPC     ┌──────────────────────────────┐
+│   Worker Process            │───────────────────────►│   Browser Environment        │
+└──────────────────────────────┘                        └──────────────────────────────┘
 ```
+
+**Implementation file references:**
+- **Test Runner (Node.js RPC):** [`src/createServerRpc.ts`](./src/createServerRpc.ts)
+- **Browser Runner (Browser RPC):** [`src/createClientRpc.ts`](./src/createClientRpc.ts)
+- **Worker Process:** [`src/types.ts` (ServerFunctions)](./src/types.ts)
+- **Browser Environment:** [`src/types.ts` (ClientFunctions)](./src/types.ts)
 
 ## Migration from Legacy IPC
 
