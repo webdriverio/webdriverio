@@ -1,4 +1,5 @@
 import mitt from 'mitt'
+import type { Emitter } from 'mitt'
 import logger from '@wdio/logger'
 import { WS_MESSAGE_TYPES, type Workers } from '@wdio/types'
 
@@ -27,7 +28,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
     const prototype = Object.create(scopeType.prototype)
     const log = logger('webdriver')
 
-    const eventHandler = mitt()
+    let eventHandler: Emitter<Record<string, unknown>> = (mitt as unknown as () => Emitter<Record<string, unknown>>)()
 
     /**
      * WebDriver monad
@@ -239,28 +240,31 @@ export default function WebDriver(options: object, modifier?: Function, properti
     for (const eventCommand of EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [unknown, unknown]) {
             switch (eventCommand) {
-                case 'on':
-                    eventHandler.on(args[0] as string, args[1] as (event: unknown) => void)
-                    break
-                case 'off':
-                case 'removeListener':
-                    eventHandler.off(args[0] as string, args[1] as (event: unknown) => void)
-                    break
-                case 'emit':
-                    eventHandler.emit(args[0] as string, args[1])
-                    break
-                case 'once':
-                    // mitt does not support once natively, so we polyfill it
-                    const handler = (...eventArgs: unknown[]) => {
-                        eventHandler.off(args[0] as string, handler)
-                        (args[1] as (event: unknown) => void)(...eventArgs)
+            case 'on':
+                eventHandler.on(args[0] as string, args[1] as (event: unknown) => void)
+                break
+            case 'off':
+            case 'removeListener':
+                eventHandler.off(args[0] as string, args[1] as (event: unknown) => void)
+                break
+            case 'emit':
+                eventHandler.emit(args[0] as string, args[1])
+                break
+            case 'once': {
+                // mitt does not support once natively, so we polyfill it
+                const handler = (...eventArgs: unknown[]) => {
+                    eventHandler.off(args[0] as string, handler)
+                    if (typeof args[1] === 'function') {
+                        (args[1] as (...args: unknown[]) => void)(...(eventArgs as unknown[]))
                     }
-                    eventHandler.on(args[0] as string, handler)
-                    break
-                case 'removeAllListeners':
-                    // mitt does not support removeAllListeners, so we re-instantiate
-                    Object.assign(eventHandler, mitt())
-                    break
+                }
+                eventHandler.on(args[0] as string, handler)
+                break
+            }
+            case 'removeAllListeners':
+                // mitt does not support removeAllListeners, so we re-instantiate
+                eventHandler = (mitt as unknown as () => Emitter<Record<string, unknown>>)()
+                break
             }
             return this
         }

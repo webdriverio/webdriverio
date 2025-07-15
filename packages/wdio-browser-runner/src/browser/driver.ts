@@ -297,7 +297,7 @@ export default class ProxyDriver {
 
     static #consoleMessage (
         value: WSMessageValue[WS_MESSAGE_TYPES.consoleMessage])
-        : WSMessage<WS_MESSAGE_TYPES.consoleMessage> {
+    : WSMessage<WS_MESSAGE_TYPES.consoleMessage> {
         return {
             type: WS_MESSAGE_TYPES.consoleMessage,
             value

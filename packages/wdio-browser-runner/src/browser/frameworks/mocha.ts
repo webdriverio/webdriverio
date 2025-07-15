@@ -249,7 +249,7 @@ export class MochaFramework extends HTMLElement {
     }
 
     #hookTrigger (value: WSMessageValue[WS_MESSAGE_TYPES.hookTriggerMessage])
-        : WSMessage<WS_MESSAGE_TYPES.hookTriggerMessage> {
+    : WSMessage<WS_MESSAGE_TYPES.hookTriggerMessage> {
         return {
             type: WS_MESSAGE_TYPES.hookTriggerMessage,
             value: JSON.parse(safeStringify(value))

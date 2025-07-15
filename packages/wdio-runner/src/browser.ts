@@ -249,7 +249,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     #expectMatcherResponse (value: WSMessageValue[WS_MESSAGE_TYPES.expectMatchersResponse])
-        : WSMessage<WS_MESSAGE_TYPES.expectMatchersResponse> {
+    : WSMessage<WS_MESSAGE_TYPES.expectMatchersResponse> {
         return {
             type: WS_MESSAGE_TYPES.expectMatchersResponse,
             value
@@ -257,7 +257,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     #hookResponse (value: WSMessageValue[WS_MESSAGE_TYPES.hookResultMessage])
-        : WSMessage<WS_MESSAGE_TYPES.hookResultMessage> {
+    : WSMessage<WS_MESSAGE_TYPES.hookResultMessage> {
         return {
             type: WS_MESSAGE_TYPES.hookResultMessage,
             value
@@ -349,7 +349,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     #commandResponse (value: WSMessageValue[WS_MESSAGE_TYPES.commandResponseMessage])
-        : WSMessage<WS_MESSAGE_TYPES.commandResponseMessage> {
+    : WSMessage<WS_MESSAGE_TYPES.commandResponseMessage> {
         return {
             type: WS_MESSAGE_TYPES.commandResponseMessage,
             value
