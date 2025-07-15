@@ -1,6 +1,6 @@
 {
   "name": "@wdio/reporter",
-  "version": "9.16.2",
+  "version": "9.17.0",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-reporter",
@@ -40,11 +40,11 @@
     "@types/node": "^20.1.0",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
-    "diff": "^7.0.0",
+    "diff": "^8.0.2",
     "object-inspect": "^1.12.0"
   },
   "devDependencies": {
-    "@types/diff": "^5.0.2",
+    "@types/diff": "^8.0.0",
     "@types/object-inspect": "^1.8.1",
     "@types/supports-color": "^8.1.1",
     "@types/tmp": "^0.2.3",

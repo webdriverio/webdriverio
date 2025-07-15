@@ -34,7 +34,6 @@ environment.value = {
     killDriverProcess,
     variables: {
         WDIO_LOG_LEVEL: process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined,
-        DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS: process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS,
         WDIO_UNIT_TESTS: process.env.WDIO_UNIT_TESTS,
         WEBDRIVER_CACHE_DIR: process.env.WEBDRIVER_CACHE_DIR || os.tmpdir(),
         PROXY_URL: process.env.HTTP_PROXY || process.env.HTTPS_PROXY,

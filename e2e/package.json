@@ -68,7 +68,7 @@
     "graphql-request": "^6.1.0",
     "is-url": "^1.2.4",
     "mocha": "^10.2.0",
-    "puppeteer-core": "^22.2.0",
+    "puppeteer-core": "^24.12.1",
     "string-width": "^7.1.0",
     "tailwindcss": "^3.4.1",
     "vite": "^5.1.3",
