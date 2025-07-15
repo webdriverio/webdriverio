@@ -18,26 +18,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/webdriverio/webdriverio.git",
-    "directory": "packages/wdio-types"
+    "url": "git+https://github.com/webdriverio/webdriverio.git"
   },
-  "keywords": [
-    "webdriver",
-    "wdio"
-  ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "publishConfig": {
-    "access": "public"
-  },
-  "dependencies": {
-    "@types/node": "^20.1.0",
-    "@wdio/globals": "workspace:*",
-    "@wdio/runner": "workspace:*",
-    "@wdio/utils": "workspace:*",
-    "webdriverio": "workspace:*"
-  },
+  "keywords": [
+    "webdriverio",
+    "wdio",
+    "types",
+    "typescript"
+  ],
   "devDependencies": {
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@vitest/snapshot": "^2.1.1"
