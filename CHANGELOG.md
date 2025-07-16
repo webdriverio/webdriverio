@@ -23,6 +23,41 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.18.0 (2025-07-16)
+
+#### :bug: Bug Fix
+* `create-wdio`, `wdio-browserstack-service`, `wdio-cucumber-framework`, `wdio-json-reporter`, `wdio-logger`, `wdio-mocha-framework`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#14570](https://github.com/webdriverio/webdriverio/pull/14570) fix(security): address multiple security vulnerabilities across codebase ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#14642](https://github.com/webdriverio/webdriverio/pull/14642) fix: avoid starting a timeout if the timer was resolved immediately ([@sheremet-va](https://github.com/sheremet-va))
+* `webdriver`, `webdriverio`
+  * [#14640](https://github.com/webdriverio/webdriverio/pull/14640) fix(webdriverio): properly toggle DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#14634](https://github.com/webdriverio/webdriverio/pull/14634) feat: do not attach prefs when debuggerAddress is specified ([@uladhsi](https://github.com/uladhsi))
+* `wdio-cli`
+  * [#14632](https://github.com/webdriverio/webdriverio/pull/14632) feat(wdio-cli): enhance job completion logging format ([@NaamuKim](https://github.com/NaamuKim))
+
+#### :memo: Documentation
+* `create-wdio`
+  * [#14631](https://github.com/webdriverio/webdriverio/pull/14631) chore: Update services.json to add TV Labs service ([@regan-karlewicz](https://github.com/regan-karlewicz))
+
+#### :house: Internal
+* `wdio-browserstack-service`, `wdio-cli`, `wdio-lighthouse-service`, `wdio-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#14641](https://github.com/webdriverio/webdriverio/pull/14641) chore(*): update major dependencies where possible ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#14633](https://github.com/webdriverio/webdriverio/pull/14633) ci: skip test suite for pushes that change only markdown files ([@kitsiosk](https://github.com/kitsiosk))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kitsios Konstantinos ([@kitsiosk](https://github.com/kitsiosk))
+- Luke ([@NaamuKim](https://github.com/NaamuKim))
+- Regan Karlewicz ([@regan-karlewicz](https://github.com/regan-karlewicz))
+- Vladimir ([@sheremet-va](https://github.com/sheremet-va))
+- [@uladhsi](https://github.com/uladhsi)
+
+
 ## v9.17.0 (2025-07-09)
 
 #### :rocket: New Feature
