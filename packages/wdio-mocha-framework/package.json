@@ -41,7 +41,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "mocha": "^10.3.0"
+    "mocha": "^11.7.1"
   },
   "publishConfig": {
     "access": "public"
