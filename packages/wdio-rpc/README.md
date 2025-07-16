@@ -2,6 +2,8 @@
 
 WebdriverIO internal RPC communication layer powered by birpc.
 
+<!-- CLA signed - triggering re-check -->
+
 This package provides type-safe, bi-directional RPC communication between the main test runner and worker processes, as well as between the browser runner and test runner.
 
 ## Features
