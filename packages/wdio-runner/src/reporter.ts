@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 import DotReporter from '@wdio/dot-reporter'
 import { initializePlugin } from '@wdio/utils'
 import type { Options, Capabilities, Reporters } from '@wdio/types'
+import { IPC_MESSAGE_TYPES } from '@wdio/types'
 
 const log = logger('@wdio/runner')
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
@@ -86,13 +87,16 @@ export default class BaseReporter {
                  * When reporter throws an exception, log the error and continue with the next reporter
                  */
                 this.#emitData({
-                    origin: 'reporter',
-                    name: 'printFailureMessage',
-                    content: {
-                        cid: this._cid,
-                        // Destructing of message and stack is required else nothing is outputted
-                        error: { message: error.message, stack: error.stack },
-                        fullTitle: `reporter ${reporter.constructor.name}`,
+                    type: IPC_MESSAGE_TYPES.errorMessage,
+                    value: {
+                        origin: 'reporter',
+                        name: 'printFailureMessage',
+                        content: {
+                            cid: this._cid,
+                            // Destructing of message and stack is required else nothing is outputted
+                            error: { message: error.message, stack: error.stack },
+                            fullTitle: `reporter ${reporter.constructor.name}`,
+                        }
                     }
                 })
             }
@@ -147,10 +151,13 @@ export default class BaseReporter {
      */
     getWriteStreamObject (reporter: string) {
         return {
-            write: /* istanbul ignore next */ (content: unknown) => this.#emitData({
-                origin: 'reporter',
-                name: reporter,
-                content
+            write: (content: unknown) => this.#emitData({
+                type: IPC_MESSAGE_TYPES.reporterRealTime,
+                value: {
+                    origin: 'reporter',
+                    name: reporter,
+                    content
+                }
             })
         }
     }
