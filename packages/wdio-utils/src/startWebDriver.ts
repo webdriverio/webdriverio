@@ -21,7 +21,7 @@ export async function startWebDriver (options: Capabilities.RemoteConfig) {
         /**
          * import like this so Vite doesn't inline the import
          */
-        const nodeModule = './node.js'
+        const nodeModule = './node/index.js'
         const { startWebDriver } = await import(nodeModule)
         return startWebDriver(options)
     }
