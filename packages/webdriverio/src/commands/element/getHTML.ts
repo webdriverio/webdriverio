@@ -201,7 +201,7 @@ function populateHTML (
  * @param options command options
  * @returns a string with the cleaned up HTML
  */
-function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): string {
+export function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): string {
     /**
      * delete data-wdio-shadow-id attribute as it contains random ids that
      * can cause failures when taking a snapshot of a Shadow DOM element
@@ -215,12 +215,31 @@ function sanitizeHTML ($: CheerioAPI | string, options: GetHTMLOptions = {}): st
         for (const elemToRemove of (options.excludeElements || [])) {
             $(elemToRemove).remove()
         }
+
+        /**
+         * Remove HTML comments using Cheerio's built-in functionality
+         * This is more secure and reliable than regex-based removal
+         */
+        if (options.removeCommentNodes) {
+            // Find all comment nodes and remove them
+            $('*').contents().filter(function() {
+                return this.type === 'comment'
+            }).remove()
+        }
     }
 
     let returnHTML = isCheerioObject ? $('body').html() as string : $
-    if (options.removeCommentNodes) {
-        returnHTML = returnHTML?.replace(/<!--[\s\S]*?-->/g, '')
+
+    /**
+     * Fallback regex-based comment removal for string input
+     * Only used when we don't have a Cheerio object
+     */
+    if (!isCheerioObject && options.removeCommentNodes && returnHTML) {
+        // Use a simpler, safer regex that avoids catastrophic backtracking
+        // This regex matches complete HTML comments only
+        returnHTML = returnHTML.replace(/<!--[\s\S]*?-->/g, '')
     }
+
     return options.prettify
         ? prettifyFn(returnHTML)
         : returnHTML

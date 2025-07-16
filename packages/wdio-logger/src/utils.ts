@@ -1,3 +1,5 @@
+import safeRegexTest from 'safe-regex2'
+
 export const SENSITIVE_DATA_REPLACER = '**MASKED**'
 
 const skipError = (aFunction: Function) => {
@@ -21,15 +23,20 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
 
     return regexStrings?.map((regexStr) => {
         const regexParts = regexStr.match(/^\/(.*?)\/([gimsuy]*)$/)
-        if (!regexParts) {
+        if (!regexParts && safeRegexTest(regexStr)) {
             // When passing only a simple string without `/` or flags, aka `(--key=)([^ ]*)`
             return skipError(() => new RegExp(regexStr))
-        } else if (regexParts?.[1]) {
-            // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
-            return skipError(() => regexParts[2] ? new RegExp(regexParts[1], regexParts[2]) : new RegExp(regexParts[1]))
         }
-        return undefined
 
+        if (regexParts?.[1] && safeRegexTest(regexParts[1])) {
+            // Case with flag `/(--key=)([^ ]*)/i` or without flag `/(--key=)([^ ]*)/`
+            return  skipError(() => (
+                regexParts[2]
+                    ? new RegExp(regexParts[1], regexParts[2])
+                    : new RegExp(regexParts[1])))
+        }
+
+        return undefined
     }).filter((regex) => regex !== undefined)
 }
 
