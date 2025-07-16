@@ -1,5 +1,4 @@
 import type { Event } from '../Runner.js'
-import type { $, $$ } from '@wdio/globals'
 import type { CoverageMapData } from 'istanbul-lib-coverage'
 
 export enum WS_MESSAGE_TYPES {
@@ -85,7 +84,7 @@ interface ExpectRequestEvent {
     matcherName: string
     scope: unknown
     args: unknown[]
-    element?: ReturnType<typeof $> | ReturnType<typeof $$>[number] | undefined
+    element?: WebdriverIO.Element | WebdriverIO.ElementArray | undefined
     context?: 'WebdriverIO.Element' | 'WebdriverIO.Browser' | string
     errorStack?: string
 }
