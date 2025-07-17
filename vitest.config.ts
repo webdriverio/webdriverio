@@ -13,6 +13,9 @@ export default defineConfig({
         env: {
             WDIO_SKIP_DRIVER_SETUP: '1'
         },
+        // This is a measure to address Vitest errors.
+        // See also: https://github.com/vitest-dev/vitest/discussions/6511
+        pool: 'threads',
         coverage: {
             enabled: false,
             provider: 'v8',
