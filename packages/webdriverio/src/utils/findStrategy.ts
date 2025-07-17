@@ -18,7 +18,7 @@ const XPATH_SELECTOR_REGEXP = [
     // optional . or # + class or id
     /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
     // optional [attribute-name="attribute-selector"]
-    /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-z0-9\-_. ]+)(?:"|'))?\])?/,
+    /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-Z0-9\-_. ]+)(?:"|'))?\])?/,
     // optional case insensitive
     /(\.)?/,
     // *=query or =query
