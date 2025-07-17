@@ -39,7 +39,7 @@
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@vitest/snapshot": "^2.1.1",
+    "@vitest/snapshot": "^3.2.4",
     "@wdio/config": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
@@ -55,10 +55,10 @@
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
-    "read-pkg-up": "^10.0.0",
+    "read-pkg-up": "^11.0.0",
     "tsx": "^4.7.2",
     "webdriverio": "workspace:*",
-    "yargs": "^17.7.2"
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@types/async-exit-hook": "^2.0.0",
