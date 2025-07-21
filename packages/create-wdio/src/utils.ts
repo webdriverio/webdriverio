@@ -17,7 +17,7 @@ import type { SpawnOptions } from 'node:child_process'
 
 import spawn from 'cross-spawn'
 
-import { COMMUNITY_PACKAGES_WITH_TS_SUPPORT, DEPENDENCIES_INSTALLATION_MESSAGE, pkg, SUPPORTED_PACKAGE_MANAGERS, QUESTIONNAIRE, TESTING_LIBRARY_PACKAGES, TEMPLATE_ROOT_DIR, usesSerenity } from './constants.js'
+import { COMMUNITY_PACKAGES_WITH_TS_SUPPORT, DEPENDENCIES_INSTALLATION_MESSAGE, pkg, SUPPORTED_PACKAGE_MANAGERS, QUESTIONNAIRE, TESTING_LIBRARY_PACKAGES, usesSerenity } from './constants.js'
 import type { ParsedAnswers, ProjectProps, Questionnair, SupportedPackage } from './types.js'
 import chalk from 'chalk'
 import { getInstallCommand, installPackages } from './install.js'
