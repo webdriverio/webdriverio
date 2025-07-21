@@ -66,10 +66,18 @@ export function getBuildIdByChromePath(chromePath?: string) {
         return oldest
     }
 
-    const versionString = cp.execSync(`"${chromePath}" --version --no-sandbox`).toString()
-    const versionSanitized = versionString.trim().split(' ').find((s) => s.split('.').length === 4)
+    const result = cp.spawnSync(chromePath, ['--version', '--no-sandbox'], {
+        encoding: 'utf8',
+        env: process.env
+    })
+
+    if (result.error) {
+        throw result.error
+    }
+
+    const versionSanitized = result.stdout.trim().split(' ').find((s) => s.split('.').length === 4)
     if (!versionSanitized) {
-        throw new Error(`Couldn't find valid Chrome version from "${versionString}", please raise an issue in the WebdriverIO project (https://github.com/webdriverio/webdriverio/issues/new/choose)`)
+        throw new Error(`Couldn't find valid Chrome version from "${result.stdout}", please raise an issue in the WebdriverIO project (https://github.com/webdriverio/webdriverio/issues/new/choose)`)
     }
     return versionSanitized
 }
@@ -85,12 +93,20 @@ export async function getBuildIdByFirefoxPath(firefoxPath?: string) {
         return contents
             .split('\n')
             .filter((line) => line.startsWith('Version='))
-            .map((line) => line.replace('Version=', '').replace(/\r/, ''))
+            .map((line) => line.replace(/Version=/g, '').replace(/\r/g, ''))
             .pop()
     }
 
-    const versionString = cp.execSync(`"${firefoxPath}" --version`).toString()
-    return versionString.trim().split(' ').pop()?.trim()
+    const result = cp.spawnSync(firefoxPath, ['--version'], {
+        encoding: 'utf8',
+        env: process.env
+    })
+
+    if (result.error) {
+        throw result.error
+    }
+
+    return result.stdout.trim().split(' ').pop()?.trim()
 }
 
 let lastTimeCalled = Date.now()
