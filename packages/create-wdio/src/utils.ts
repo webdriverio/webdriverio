@@ -28,7 +28,11 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 process.on('SIGINT', () => printAndExit(undefined, 'SIGINT'))
 
-const TEMPLATE_ROOT_DIR = process.env.NODE_ENV === 'test'
+/**
+ * to resolve properly during WDIO unit tests we need resolve the template root dir
+ * based on the VITEST_WORKER_ID environment variable
+ */
+const TEMPLATE_ROOT_DIR = process.env.WDIO_UNIT_TESTS
     ? path.join(__dirname, 'templates', 'exampleFiles')
     : path.join(__dirname, '..', 'templates', 'exampleFiles')
 

@@ -308,7 +308,7 @@ export class ShadowRootTree {
         if (typeof scope === 'string' && treeArg instanceof ShadowRootTree) {
             const tree = this.find(scope) || this.findByShadowId(scope)
             if (!tree) {
-                throw new Error(`Couldn't find element with id ${scope}`)
+                return
             }
 
             tree.addShadowElement(treeArg)
