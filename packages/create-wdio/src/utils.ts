@@ -28,7 +28,13 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 process.on('SIGINT', () => printAndExit(undefined, 'SIGINT'))
 
-const TEMPLATE_ROOT_DIR = path.join(__dirname, '..', 'templates', 'exampleFiles')
+/**
+ * to resolve properly during WDIO unit tests we need resolve the template root dir
+ * based on the VITEST_WORKER_ID environment variable
+ */
+const TEMPLATE_ROOT_DIR = process.env.WDIO_UNIT_TESTS
+    ? path.join(__dirname, 'templates', 'exampleFiles')
+    : path.join(__dirname, '..', 'templates', 'exampleFiles')
 
 export function runProgram (command: string, args: string[], options: SpawnOptions) {
     const child = spawn(command, args, { stdio: 'inherit', ...options })
@@ -528,7 +534,7 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
 export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
     try {
         console.log('Creating a WebdriverIO config file...')
-        const tplPath = path.resolve(TEMPLATE_ROOT_DIR, 'wdio.conf.tpl.ejs')
+        const tplPath = path.resolve(__dirname, '..', 'templates', 'wdio.conf.tpl.ejs')
         const renderedTpl = await renderFile(tplPath, {
             answers: parsedAnswers,
             _: new EjsHelpers({ useEsm: parsedAnswers.esmSupport, useTypeScript: parsedAnswers.isUsingTypeScript })
