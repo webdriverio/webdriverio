@@ -17,7 +17,7 @@ import type { SpawnOptions } from 'node:child_process'
 
 import spawn from 'cross-spawn'
 
-import { COMMUNITY_PACKAGES_WITH_TS_SUPPORT, DEPENDENCIES_INSTALLATION_MESSAGE, pkg, SUPPORTED_PACKAGE_MANAGERS, QUESTIONNAIRE, TESTING_LIBRARY_PACKAGES, usesSerenity } from './constants.js'
+import { COMMUNITY_PACKAGES_WITH_TS_SUPPORT, DEPENDENCIES_INSTALLATION_MESSAGE, pkg, SUPPORTED_PACKAGE_MANAGERS, QUESTIONNAIRE, TESTING_LIBRARY_PACKAGES, TEMPLATE_ROOT_DIR, usesSerenity } from './constants.js'
 import type { ParsedAnswers, ProjectProps, Questionnair, SupportedPackage } from './types.js'
 import chalk from 'chalk'
 import { getInstallCommand, installPackages } from './install.js'
@@ -27,10 +27,6 @@ const NPM_COMMAND = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 process.on('SIGINT', () => printAndExit(undefined, 'SIGINT'))
-
-const TEMPLATE_ROOT_DIR = process.env.NODE_ENV === 'test'
-    ? path.join(__dirname, 'templates', 'exampleFiles')
-    : path.join(__dirname, '..', 'templates', 'exampleFiles')
 
 export function runProgram (command: string, args: string[], options: SpawnOptions) {
     const child = spawn(command, args, { stdio: 'inherit', ...options })
@@ -530,7 +526,7 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
 export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
     try {
         console.log('Creating a WebdriverIO config file...')
-        const tplPath = path.resolve(__dirname, '..', 'templates', 'wdio.conf.tpl.ejs')
+        const tplPath = path.resolve(TEMPLATE_ROOT_DIR, 'wdio.conf.tpl.ejs')
         const renderedTpl = await renderFile(tplPath, {
             answers: parsedAnswers,
             _: new EjsHelpers({ useEsm: parsedAnswers.esmSupport, useTypeScript: parsedAnswers.isUsingTypeScript })
