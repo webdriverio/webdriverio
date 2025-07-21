@@ -11,8 +11,6 @@ export const colorItBold = chalk.bold.rgb(234, 89, 6)
 export const colorIt = chalk.rgb(234, 89, 6)
 export type PACKAGE_MANAGER = 'npm' | 'pnpm' | 'yarn' | 'bun'
 
-export const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
-
 export const DEFAULT_NPM_TAG = 'latest'
 export const ASCII_ROBOT = `
                  -:...........................-:.
