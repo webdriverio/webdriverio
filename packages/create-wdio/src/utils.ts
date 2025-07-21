@@ -28,7 +28,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 process.on('SIGINT', () => printAndExit(undefined, 'SIGINT'))
 
-const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
+const TEMPLATE_ROOT_DIR = path.join(__dirname, '..', 'templates', 'exampleFiles')
 
 export function runProgram (command: string, args: string[], options: SpawnOptions) {
     const child = spawn(command, args, { stdio: 'inherit', ...options })
