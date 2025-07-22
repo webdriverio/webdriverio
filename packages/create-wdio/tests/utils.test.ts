@@ -653,7 +653,7 @@ test('setupTypeScript does not create tsconfig.json if TypeScript was not select
     expect(parsedAnswers.packagesToInstall).toEqual([])
 })
 
-test('setupTypeScript does not create tsconfig.json if there is already one', async () => {
+test('setupTypeScript does not create tsconfig.wdio.json if there is already one', async () => {
     const parsedAnswers = {
         isUsingTypeScript: true,
         esmSupport: true,
@@ -665,8 +665,8 @@ test('setupTypeScript does not create tsconfig.json if there is already one', as
             ]
         },
         packagesToInstall: [],
-        tsConfigFilePath: '/foobar/tsconfig.json',
-        hasRootTSConfig: true
+        tsConfigFilePath: '/foobar/tsconfig.wdio.json',
+        hasRootTSWdioConfig: true
     } as any
     await setupTypeScript(parsedAnswers)
     expect(fs.writeFile).not.toBeCalled()

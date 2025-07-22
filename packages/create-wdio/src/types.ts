@@ -76,7 +76,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     destStepRootPath: string;
     destSerenityLibRootPath: string
     relativePath: string
-    hasRootTSConfig: boolean
+    hasRootTSWdioConfig: boolean
     tsConfigFilePath: string
     tsProject: string
     wdioConfigPath: string
