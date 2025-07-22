@@ -1,5 +1,28 @@
 import type { WaitForOptions } from '../../types.js'
 
+interface WaitForDisplayedParams extends WaitForOptions {
+    /**
+     * `true` to check if the element is within the viewport. false by default.
+     */
+    withinViewport?: boolean
+    /**
+     * `true` to check if the element content-visibility property has (or inherits) the value auto,
+     * and it is currently skipping its rendering. `true` by default.
+     * @default true
+     */
+    contentVisibilityAuto?: boolean
+    /**
+     * `true` to check if the element opacity property has (or inherits) a value of 0. `true` by default.
+     * @default true
+     */
+    opacityProperty?: boolean
+    /**
+     * `true` to check if the element is invisible due to the value of its visibility property. `true` by default.
+     * @default true
+     */
+    visibilityProperty?: boolean
+}
+
 /**
  *
  * Wait for an element for the provided amount of milliseconds to be displayed or not displayed.
@@ -31,11 +54,15 @@ export function waitForDisplayed (
         interval = this.options.waitforInterval,
         reverse = false,
         withinViewport = false,
+        contentVisibilityAuto = true,
+        opacityProperty = true,
+        visibilityProperty = true,
         timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}displayed${withinViewport ? ' within viewport' : ''} after ${timeout}ms`,
-    }: WaitForOptions = {}
+    }: WaitForDisplayedParams = {}
 ) {
+
     return this.waitUntil(
-        async () => reverse !== await this.isDisplayed({ withinViewport }),
+        async () => reverse !== await this.isDisplayed({ withinViewport, contentVisibilityAuto, opacityProperty, visibilityProperty }),
         { timeout, interval, timeoutMsg }
     )
 }
