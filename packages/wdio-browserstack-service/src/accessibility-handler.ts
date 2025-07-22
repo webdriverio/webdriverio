@@ -160,16 +160,18 @@ class _AccessibilityHandler {
             return results
         }
 
-        (this._browser as WebdriverIO.Browser).startA11yScanning = () => {
+        (this._browser as WebdriverIO.Browser).startA11yScanning = async () => {
             AccessibilityHandler._a11yScanSessionMap[sessionId] = true
             this._testMetadata[this._testIdentifier as string] = {
                 scanTestForAccessibility : true,
                 accessibilityScanStarted : true
             }
+            await this._setAnnotation('Accessibility scanning has started')
         }
 
-        (this._browser as WebdriverIO.Browser).stopA11yScanning = () => {
+        (this._browser as WebdriverIO.Browser).stopA11yScanning = async () => {
             AccessibilityHandler._a11yScanSessionMap[sessionId] = false
+            await this._setAnnotation('Accessibility scanning has stopped')
         }
 
         if (!this._accessibility) {
@@ -350,8 +352,8 @@ class _AccessibilityHandler {
     }
 
     private async sendTestStopEvent(browser: WebdriverIO.Browser, dataForExtension: any) {
-        BStackLogger.debug('Performing scan before saving results')
         if (AccessibilityHandler._a11yScanSessionMap[this._sessionId as string]) {
+            BStackLogger.debug('Performing scan before saving results')
             await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.A11Y_EVENTS.PERFORM_SCAN, async () => {
                 await performA11yScan(this.isAppAutomate, browser, true, true)
             }, { command: 'afterTest' })()
@@ -406,6 +408,18 @@ class _AccessibilityHandler {
             script.toLowerCase().indexOf('browserstack_executor') !== -1 ||
             script.toLowerCase().indexOf('browserstack_accessibility_automation_script') !== -1
         )
+    }
+
+    private async _setAnnotation(message: string) {
+        if (this._accessibility && isBrowserstackSession(this._browser)) {
+            await (this._browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({
+                action: 'annotate',
+                arguments: {
+                    data: message,
+                    level: 'debug'
+                }
+            })}`)
+        }
     }
 }
 
