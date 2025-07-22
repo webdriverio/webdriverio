@@ -41,6 +41,9 @@ interface WaitForDisplayedParams extends WaitForOptions {
  * @param {String=}          options.timeoutMsg     if exists it overrides the default error message
  * @param {Number=}          options.interval       interval between checks (default: `waitforInterval`)
  * @param {Boolean=}         options.withinViewport set to `true` to wait until element is displayed within viewport (default: `false`)
+ * @param {Boolean=}         options.contentVisibilityAuto set to `true` to check if the element content-visibility property has (or inherits) the value auto, and it is currently skipping its rendering. `true` by default.
+ * @param {Boolean=}         options.opacityProperty set to `true` to check if the element opacity property has (or inherits) a value of 0. `true` by default.
+ * @param {Boolean=}         options.visibilityProperty set to `true` to check if the element is invisible due to the value of its visibility property. `true` by default.
  * @return {Boolean} true    if element is displayed (or doesn't if flag is set)
  * @uses utility/waitUntil, state/isDisplayed
  * @example https://github.com/webdriverio/example-recipes/blob/0bfb2b8d212b627a2659b10f4449184b657e1d59/waitForDisplayed/index.html#L3-L8
