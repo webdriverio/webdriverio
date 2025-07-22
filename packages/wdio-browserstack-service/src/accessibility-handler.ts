@@ -416,7 +416,7 @@ class _AccessibilityHandler {
                 action: 'annotate',
                 arguments: {
                     data: message,
-                    level: 'debug'
+                    level: 'info'
                 }
             })}`)
         }
