@@ -355,18 +355,5 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
  * deprecation message by setting a flag in the environment variable.
  */
 function switchToFrame (browser: WebdriverIO.Browser, frame: ElementReference | number | null) {
-    toggleDisableDeprecationWarning()
-    return browser.switchToFrame(frame).finally(toggleDisableDeprecationWarning)
-}
-
-/**
- * Trigger the `DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS` environment variable
- * only when running within a Node.js environment.
- */
-function toggleDisableDeprecationWarning () {
-    if (typeof process !== 'undefined' && process.env) {
-        process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS
-            ? undefined
-            : 'true'
-    }
+    return browser.switchToFrame(frame)
 }
