@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.18.3 (2025-07-22)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#14656](https://github.com/webdriverio/webdriverio/pull/14656) fix(webdriverio): fix element chaining if element is not found ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 1
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
 ## v9.18.2 (2025-07-21)
 
 #### :bug: Bug Fix
