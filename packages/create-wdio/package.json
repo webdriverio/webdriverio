@@ -1,6 +1,6 @@
 {
   "name": "create-wdio",
-  "version": "9.18.0",
+  "version": "9.18.2",
   "description": "Install and setup a WebdriverIO project with all its dependencies in a single run",
   "author": "WebdriverIO Team <mail@webdriver.io>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/create-wdio",

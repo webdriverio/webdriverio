@@ -23,6 +23,18 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.18.2 (2025-07-21)
+
+#### :bug: Bug Fix
+* `create-wdio`
+  * [#14650](https://github.com/webdriverio/webdriverio/pull/14650) fix(create-wdio): better resolve template directory in test ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- [@mato533](https://github.com/mato533)
+
+
 ## v9.18.0 (2025-07-16)
 
 #### :bug: Bug Fix
