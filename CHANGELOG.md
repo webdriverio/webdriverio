@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.18.4 (2025-07-23)
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#14659](https://github.com/webdriverio/webdriverio/pull/14659) polish(webdriverio): expose contentVisibilityAuto, opacityProperty and visibilityProperty to waitForDisplayed ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 1
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
 ## v9.18.3 (2025-07-22)
 
 #### :bug: Bug Fix
