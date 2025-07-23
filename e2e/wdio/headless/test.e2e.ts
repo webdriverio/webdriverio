@@ -665,6 +665,30 @@ describe('main suite 1', () => {
                 })
             })
         })
+
+        describe('switchFrame with iframe in shadow DOM', () => {
+            beforeEach(async () => {
+                await browser.url('https://guinea-pig.webdriver.io/iframeInShadowDom.html')
+            })
+
+            it('should switch to iframe inside shadow root via element', async () => {
+                const host = await browser.$('#wrapper')
+                const iframe = await host.shadow$('iframe')
+
+                // Switch to the iframe inside the shadow DOM
+                await browser.switchFrame(await browser.$(iframe))
+
+                const [title, url] = await browser.execute(() => [document.title, document.URL])
+                expect(title).toBe('Iframe Target')
+                expect(url).toContain('iframeTarget.html')
+            })
+
+            it('should work when using the url', async () => {
+                await browser.switchFrame('https://guinea-pig.webdriver.io/iframeTarget.html')
+                await expect($('h1')).toHaveText('Iframe Target')
+            })
+        })
+
     })
 
     describe('open resources with different protocols', () => {
