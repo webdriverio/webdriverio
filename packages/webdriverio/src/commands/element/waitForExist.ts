@@ -64,8 +64,7 @@ export async function waitForExist (
      * as the user may expect to be able to access an element id after it has
      * calling `waitForExist`.
      */
-    // only re-resolve if no elementId present (or if known to be stale)
-    if (!reverse && isExisting && typeof this.selector === 'string' && !this.elementId) {
+    if (!reverse && isExisting && typeof this.selector === 'string') {
         this.elementId = await this.parent.$(this.selector).elementId
         this[ELEMENT_KEY] = this.elementId
         delete this.error
