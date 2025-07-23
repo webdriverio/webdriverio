@@ -676,7 +676,7 @@ describe('main suite 1', () => {
                 const iframe = await host.shadow$('iframe')
 
                 // Switch to the iframe inside the shadow DOM
-                await browser.switchFrame(iframe)
+                await browser.switchFrame(await browser.$(iframe))
 
                 const [title, url] = await browser.execute(() => [document.title, document.URL])
                 expect(title).toBe('Iframe Target')
