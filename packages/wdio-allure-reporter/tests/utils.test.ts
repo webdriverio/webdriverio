@@ -13,7 +13,7 @@ import {
     findLast,
     isScreenshotCommand,
     getSuiteLabels,
-    isBeforeEachTypeHook,
+    isBeforeEachTypeHook, convertSuiteTagsToLabels,
 } from '../src/utils.js'
 import { suiteStart } from './__fixtures__/suite.js'
 import { linkPlaceholder } from '../src/constants.js'
@@ -202,7 +202,7 @@ describe('utils', () => {
         describe('suite stats with tags', () => {
             it('returns allure labels', () => {
                 expect(
-                    getSuiteLabels({
+                    convertSuiteTagsToLabels({
                         ...suiteStart(),
                         tags: [
                             {
@@ -222,7 +222,7 @@ describe('utils', () => {
         describe('suite stats with invalid tags', () => {
             it('returns empty array', () => {
                 expect(
-                    getSuiteLabels({
+                    convertSuiteTagsToLabels({
                         ...suiteStart(),
                         tags: [
                             {
@@ -239,7 +239,7 @@ describe('utils', () => {
 
         describe('suite stats without tags', () => {
             it('returns empty array', () => {
-                expect(getSuiteLabels({ ...suiteStart(), tags: undefined })).toEqual(
+                expect(convertSuiteTagsToLabels({ ...suiteStart(), tags: undefined })).toEqual(
                     []
                 )
             })

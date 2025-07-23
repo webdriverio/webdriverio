@@ -1,1008 +1,665 @@
+import { sep } from 'node:path'
+import process from 'node:process'
 import { stringify } from 'csv-stringify/sync'
+
 import type {
-    SuiteStats, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
-    AfterCommandArgs, Argument } from '@wdio/reporter'
-import { getBrowserName } from '@wdio/reporter'
+    AfterCommandArgs,
+    Argument,
+    BeforeCommandArgs,
+    HookStats,
+    RunnerStats,
+    SuiteStats,
+    TestStats,
+} from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
-import type { Label, MetadataMessage } from 'allure-js-commons'
+
+import type { ContentType, Stage, Status as AllureStatus, StatusDetails } from 'allure-js-commons'
 import {
-    AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName,
-    LinkType, ContentType, AllureCommandStepExecutable, ExecutableItemWrapper, AllureStep, Status
+    ContentType as AllureContentType,
+    description,
+    label,
+    LabelName,
+    Stage as AllureStage,
+    Status as AllureStatusEnum,
 } from 'allure-js-commons'
+import type { RuntimeMessage } from 'allure-js-commons/sdk'
+import { FileSystemWriter, getEnvironmentLabels, getSuiteLabels, ReporterRuntime, } from 'allure-js-commons/sdk/reporter'
+import { setGlobalTestRuntime } from 'allure-js-commons/sdk/runtime'
+
+import { WdioTestRuntime } from './WdioTestRuntime.js'
+import { AllureReportState } from './state.js'
 import {
-    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite,
-    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addAllureId,
-    addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
-} from './common/api.js'
-import { AllureReporterState } from './state.js'
-import {
-    getTestStatus, isEmpty, isEachTypeHooks, getErrorFromFailedTest,
-    isAllTypeHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setAllureIds, isBeforeTypeHook, cleanCucumberHooks, getHookStatus
+    convertSuiteTagsToLabels,
+    getCid,
+    getErrorFromFailedTest,
+    getStatusDetailsFromFailedTest,
+    getTestStatus,
+    isEmpty,
+    isScreenshotCommand,
 } from './utils.js'
-import { events } from './constants.js'
-import type {
-    AddAttachmentEventArgs, AddDescriptionEventArgs,
-    AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
-    AddEpicEventArgs, AddOwnerEventArgs, AddParentSuiteEventArgs, AddSubSuiteEventArgs,
-    AddLinkEventArgs, AddAllureIdEventArgs, AddSuiteEventArgs, AddTagEventArgs,
-    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, AllureStepableUnit } from './types.js'
-import {
-    TYPE as DescriptionType
-} from './types.js'
+import type { AddTestInfoEventArgs, AllureReporterOptions, WDIORuntimeMessage, } from './types.js'
+import { DEFAULT_CID, events } from './constants.js'
 
 export default class AllureReporter extends WDIOReporter {
-    private _allure: AllureRuntime
+    private _allureRuntime: ReporterRuntime
+    private _allureState: AllureReportState
     private _capabilities: Capabilities.ResolvedTestrunnerCapabilities
     private _isMultiremote?: boolean
     private _config?: Options.Testrunner
     private _options: AllureReporterOptions
-    private _consoleOutput: string
-    private _originalStdoutWrite: Function
+    private _consoleOutput = ''
+    private _originalStdoutWrite: typeof process.stdout.write
+    private _isFlushing = false
+    private _cid?: string
 
-    _state: AllureReporterState
+    private _currentCid(): string {
+        return this._cid || DEFAULT_CID
+    }
 
-    _runningUnits: Array<AllureGroup | AllureTest | AllureStep> = []
+    allureStatesByCid: Map<string, AllureReportState> = new Map()
 
-    constructor(options: AllureReporterOptions = {}) {
-        const { outputDir = 'allure-results', ...rest } = options
+    private static getTimeOrNow(d: unknown): number {
+        return typeof d === 'object' && d !== null && 'getTime' in (d as object) &&
+        typeof (d as Date).getTime === 'function'
+            ? (d as Date).getTime()
+            : Date.now()
+    }
 
-        super({
+    get isSynchronised() {
+        return !this._isFlushing
+    }
+
+    constructor(options: AllureReporterOptions) {
+        const { outputDir, resultsDir, ...rest } = options
+        super({ ...rest, outputDir })
+
+        this._originalStdoutWrite = process.stdout.write.bind(process.stdout) as typeof process.stdout.write
+
+        this._allureRuntime = new ReporterRuntime({
             ...rest,
-            outputDir,
+            environmentInfo: options.reportedEnvironmentVars,
+            writer: new FileSystemWriter({
+                resultsDir: outputDir || resultsDir || 'allure-results',
+            }),
         })
-        this._consoleOutput = ''
-        this._originalStdoutWrite = process.stdout.write.bind(process.stdout)
-        this._allure = new AllureRuntime({
-            resultsDir: outputDir,
-        })
-        this._state = new AllureReporterState()
+        this._allureState = new AllureReportState(this._allureRuntime)
         this._capabilities = {}
         this._options = options
 
-        this.registerListeners()
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const processObj: any = process
+        this._registerListeners()
 
         if (options.addConsoleLogs) {
-            processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
-                if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
-                    this._consoleOutput += chunk
+            const self = this
+            process.stdout.write = function (
+                chunk: string | Uint8Array,
+                encoding?: BufferEncoding | ((err?: Error) => void),
+                cb?: (err?: Error) => void
+            ): boolean {
+                const str = typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString('utf8')
+                if (!str.includes('mwebdriver')) {
+                    self._consoleOutput += str
                 }
-
-                return this._originalStdoutWrite(chunk, encoding, callback)
+                if (typeof encoding === 'function') {
+                    return self._originalStdoutWrite(chunk, undefined as unknown as BufferEncoding, encoding)
+                }
+                return self._originalStdoutWrite(chunk, encoding, cb)
             }
         }
-
-        const { reportedEnvironmentVars } = this._options
-        if (reportedEnvironmentVars) {
-            this._allure.writeEnvironmentInfo(reportedEnvironmentVars)
-        }
     }
 
-    attachLogs() {
-        if (!this._consoleOutput || !this._state.currentAllureStepableEntity) {
-            return
+    private _suiteStackByCid = new Map<string, string[]>()
+    private _suiteStack = (cid: string) => this._suiteStackByCid.get(cid) ?? (this._suiteStackByCid.set(cid, []).get(cid)!)
+    private _pkgByCid: Map<string, string> = new Map()
+
+    private _ensureState(cid: string): AllureReportState {
+        if (!this.allureStatesByCid.has(cid)) {
+            this.allureStatesByCid.set(cid, new AllureReportState(this._allureRuntime))
         }
-
-        const logsContent = `.........Console Logs.........\n\n${this._consoleOutput}`
-        const attachmentFilename = this._allure.writeAttachment(logsContent, ContentType.TEXT)
-
-        this._state.currentAllureStepableEntity.addAttachment(
-            'Console Logs',
-            {
-                contentType: ContentType.TEXT,
-            },
-            attachmentFilename,
-        )
+        return this.allureStatesByCid.get(cid)!
     }
 
-    attachFile(name: string, content: string | Buffer, contentType: ContentType) {
-        if (!this._state.currentAllureStepableEntity) {
-            throw new Error("There isn't any active test!")
-        }
+    private _pushRuntimeMessage(message: WDIORuntimeMessage): void {
+        const cid = this._currentCid()
+        const state = this._ensureState(cid)
+        state.pushRuntimeMessage(message)
+    }
 
-        const attachmentFilename = this._allure.writeAttachment(content, contentType)
-
-        this._state.currentAllureStepableEntity.addAttachment(
-            name,
-            {
+    private _attachFile(payload: { name: string; content: Buffer; contentType: ContentType }): void {
+        const { name, content, contentType } = payload
+        this._pushRuntimeMessage({
+            type: 'attachment_content',
+            data: {
+                name,
+                content: Buffer.from(content).toString('base64'),
                 contentType,
+                encoding: 'base64',
             },
-            attachmentFilename
-        )
+        })
     }
 
-    attachJSON(name: string, value: unknown) {
-        let isJson = !!value && (typeof value === 'object' || Array.isArray(value))
-        if (typeof value === 'string' && (value.trim().startsWith('{') || value.trim().startsWith('['))) {
-            try {
-                value = JSON.parse(value)
-                isJson = !!value
-            } catch {
-                isJson = false
-            }
-        }
-
-        const content = isJson ? JSON.stringify(value, null, 2) : value
-        this.attachFile(name, String(content), isJson ? ContentType.JSON: ContentType.TEXT)
-    }
-
-    attachScreenshot(name: string, content: Buffer) {
-        this.attachFile(name, content, ContentType.PNG)
-    }
-
-    _startSuite(suiteTitle: string) {
-        const newSuite: AllureGroup = this._state.currentSuite ? this._state.currentSuite.startGroup() : new AllureGroup(this._allure)
-
-        newSuite.name = suiteTitle
-
-        this._state.push(newSuite)
-    }
-
-    _endSuite() {
-        if (!this._state.currentSuite) {
-            throw new Error("There isn't any active suite!")
-        }
-
-        while (this._state.currentAllureStepableEntity) {
-            const currentElement = this._state.pop() as | AllureGroup | AllureStepableUnit
-            if (!(currentElement instanceof AllureGroup)) {
-                const isAnyStepFailed = currentElement.wrappedItem.steps.some((step) => step.status === AllureStatus.FAILED)
-                const isAnyStepBroken = currentElement.wrappedItem.steps.some((step) => step.status === AllureStatus.BROKEN)
-
-                currentElement.stage = Stage.FINISHED
-                currentElement.status = isAnyStepFailed
-                    ? AllureStatus.FAILED
-                    : isAnyStepBroken
-                        ? AllureStatus.BROKEN
-                        : AllureStatus.PASSED
-            }
-
-            if (currentElement instanceof AllureTest) {
-                setAllureIds(currentElement, this._state.currentSuite)
-                currentElement.endTest()
-            } else if (currentElement instanceof AllureStep) {
-                currentElement.endStep()
-            }
-        }
-
-        const currentSuite = this._state.pop() as AllureGroup
-        // if a hook were execute without a test the report will need a test to display the hook
-        if (this._state.stats.hooks > 0 && this._state.stats.test === 0) {
-            const test = currentSuite.startTest(currentSuite.name)
-            test.status = Status.BROKEN
-            test.endTest()
-        }
-        currentSuite.endGroup()
-    }
-
-    _startTest(testTitle: string, cid?: string) {
-        const newTest = this._state.currentSuite ? this._state.currentSuite.startTest() : new AllureTest(this._allure)
-
-        newTest.name = testTitle
-
-        this._state.push(newTest)
-        this.setTestParameters(cid)
-    }
-
-    _skipTest() {
-        if (!this._state.currentAllureStepableEntity) {
+    _attachLogs(): void {
+        if (!this._consoleOutput) {
             return
         }
-
-        const currentTest = this._state.pop() as AllureTest | AllureStep
-
-        currentTest.stage = Stage.PENDING
-        currentTest.status = AllureStatus.SKIPPED
-
-        if (currentTest instanceof AllureTest) {
-            setAllureIds(currentTest, this._state.currentSuite)
-            currentTest.endTest()
-        } else {
-            currentTest.endStep()
-        }
+        this._attachFile({
+            name: 'Console Logs',
+            content: Buffer.from(`.........Console Logs.........\n\n${this._consoleOutput}`, 'utf8'),
+            contentType: AllureContentType.TEXT,
+        })
+        this._consoleOutput = ''
     }
 
-    _endTest(status: AllureStatus, error?: Error, stage?: Stage) {
-        if (!this._state.currentAllureStepableEntity) {
-            return
-        }
-
-        const currentSpec = this._state.pop() as AllureStepableUnit
-
-        currentSpec.stage = stage ?? Stage.FINISHED
-        currentSpec.status = status
-
-        if (error) {
-            currentSpec.detailsMessage = error.message
-            currentSpec.detailsTrace = error.stack
-
-            // if some step or sub step fails the current test will fails.
-            if (this._state.currentTest) {
-                this._state.currentTest.statusDetails = { message: error.message, trace: error.stack }
-            }
-        }
-
-        if (currentSpec instanceof AllureTest) {
-            setAllureIds(currentSpec, this._state.currentSuite)
-            currentSpec.endTest()
-        } else if (currentSpec instanceof AllureStep) {
-            currentSpec.endStep()
-        }
+    _attachJSON(payload: { name: string; json: unknown }): void {
+        const { name, json } = payload
+        const content = typeof json === 'string' ? json : JSON.stringify(json, null, 2)
+        this._attachFile({
+            name,
+            content: Buffer.from(String(content), 'utf8'),
+            contentType: AllureContentType.JSON,
+        })
     }
 
-    _startStep(testTitle: string): void {
-        if (!this._state.currentAllureStepableEntity) {
-            throw new Error('There are no active steppable entities!')
-        }
-
-        const newStep = this._state.currentAllureStepableEntity.startStep(testTitle)
-
-        this._state.push(newStep)
+    _attachScreenshot(payload: { name: string; content: Buffer }): void {
+        const { name, content } = payload
+        this._attachFile({ name, content, contentType: AllureContentType.PNG })
     }
 
-    setTestParameters(cid?: string) {
-        if (!this._state.currentTest) {
-            return
-        }
+    private _startSuite(payload: { name: string; feature?: boolean }): void {
+        this._pushRuntimeMessage({ type: 'allure:suite:start', data: payload })
+    }
+
+    private _endSuite(): void {
+        this._pushRuntimeMessage({ type: 'allure:suite:end', data: {} })
+    }
+
+    private _startTest(payload: { name: string; start: number }): void {
+        this._pushRuntimeMessage({ type: 'allure:test:start', data: payload })
+        this._setTestParameters()
+    }
+
+    private _endTest(payload: {
+        status: AllureStatus
+        stop?: number
+        duration?: number
+        statusDetails?: StatusDetails
+        stage?: Stage
+    }): void {
+        this._pushRuntimeMessage({ type: 'allure:test:end', data: payload })
+    }
+
+    private _skipTest(): void {
+        this._endTest({ status: AllureStatusEnum.SKIPPED, stage: AllureStage.PENDING, stop: Date.now() })
+    }
+
+    private _startStep(payload: { name: string; start: number }): void {
+        this._pushRuntimeMessage({ type: 'step_start', data: payload })
+    }
+
+    private _endStep(payload: { status: AllureStatus; stop: number; statusDetails?: StatusDetails }): void {
+        this._pushRuntimeMessage({ type: 'step_stop', data: payload })
+    }
+
+    private _startHook(payload: { name: string; type: 'before' | 'after'; start: number }): void {
+        this._pushRuntimeMessage({ type: 'allure:hook:start', data: payload })
+    }
+
+    private _endHook(payload: {
+        status: AllureStatus
+        statusDetails?: StatusDetails
+        stop?: number
+        duration?: number
+    }): void {
+        const { status, statusDetails, stop = Date.now(), duration } = payload
+        this._pushRuntimeMessage({
+            type: 'allure:hook:end',
+            data: { status, statusDetails, stop, duration },
+        })
+    }
+
+    private _setTestParameters(): void {
+        const cid = getCid()
 
         if (!this._isMultiremote) {
             const caps = this._capabilities
-            // @ts-expect-error outdated JSONWP capabilities
-            const { desired, device } = caps
-            // @ts-expect-error outdated JSONWP capabilities
-            const deviceName = (desired || {}).deviceName || (desired || {})['appium:deviceName'] || caps.deviceName || caps['appium:deviceName']
-            let targetName = device || getBrowserName(caps) || deviceName || cid
-            // custom mobile grids can have device information in a `desired` cap
+            // @ts-expect-error legacy
+            const { browserName, desired, device } = caps
+            const deviceName =
+                (desired || {}).deviceName ||
+                (desired || {})['appium:deviceName'] ||
+                // @ts-expect-error legacy
+                caps.deviceName ||
+                caps['appium:deviceName']
+
+            let targetName = device || browserName || deviceName || cid
             if (desired && deviceName && desired['appium:platformVersion']) {
                 targetName = `${device || deviceName} ${desired['appium:platformVersion']}`
             }
-            // @ts-expect-error outdated JSONWP capabilities
+            // @ts-expect-error legacy
             const browserstackVersion = caps.os_version || caps.osVersion
-            // @ts-expect-error outdated JSONWP capabilities
-            const version = browserstackVersion || caps.browserVersion || caps.version || caps['appium:platformVersion'] || ''
-            const paramName = (deviceName || device) ? 'device' : 'browser'
+            const version =
+                browserstackVersion ||
+                caps.browserVersion ||
+                // @ts-expect-error legacy
+                caps.version ||
+                caps['appium:platformVersion'] ||
+                ''
+
+            const paramName = deviceName || device ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
 
-            if (!paramValue) {
-                return
+            if (paramValue) {
+                this._pushRuntimeMessage({
+                    type: 'metadata',
+                    data: { parameters: [{ name: paramName, value: paramValue }] },
+                })
+            }
+        } else {
+            this._pushRuntimeMessage({
+                type: 'metadata',
+                data: { parameters: [{ name: 'isMultiremote', value: 'true' }] },
+            })
+        }
+
+        if (this._allureState.currentFeature) {
+            this._pushRuntimeMessage({
+                type: 'metadata',
+                data: { labels: [{ name: LabelName.FEATURE, value: this._allureState.currentFeature }] },
+            })
+        }
+    }
+
+    private _registerListeners(): void {
+        setGlobalTestRuntime(new WdioTestRuntime())
+
+        process.on(events.addTestInfo, (payload: AddTestInfoEventArgs) => {
+            const { file, testPath, cid = DEFAULT_CID } = payload
+
+            this._pushRuntimeMessage({
+                type: 'allure:test:info',
+                data: { fullName: `${file}#${testPath.join(' ')}` },
+            })
+
+            if (file) {
+                this._pkgByCid.set(cid, file.replace(sep, '.'))
             }
 
-            this._state.currentTest.addParameter(paramName, paramValue)
-        } else {
-            this._state.currentTest.addParameter('isMultiremote', 'true')
-        }
+            const suitePath = [...this._suiteStack(cid)]
+            const pkg = this._pkgByCid.get(cid)
+            const labels = [
+                ...getSuiteLabels(suitePath),
+                ...(pkg ? [{ name: LabelName.PACKAGE, value: pkg }] : []),
+                { name: LabelName.LANGUAGE, value: 'javascript' },
+                { name: LabelName.FRAMEWORK, value: 'wdio' },
+                { name: LabelName.THREAD, value: cid },
+                ...getEnvironmentLabels(),
+            ]
+            if (testPath.length > 1) {
+                this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
+            }
 
-        // Allure analytics labels. See https://github.com/allure-framework/allure2/blob/master/Analytics.md
-        this._state.currentTest.addLabel(LabelName.LANGUAGE, 'javascript')
-        this._state.currentTest.addLabel(LabelName.FRAMEWORK, 'wdio')
+            if (cid !== DEFAULT_CID) {
+                this._pushRuntimeMessage({
+                    type: 'metadata',
+                    data: { labels: [{ name: LabelName.THREAD, value: cid }] },
+                })
+            }
+        })
 
-        if (this._state.currentPackageLabel) {
-            this._state.currentTest.addLabel(LabelName.PACKAGE, this._state.currentPackageLabel)
-        }
-
-        if (cid) {
-            this._state.currentTest.addLabel(LabelName.THREAD, cid)
-        }
-
-        if (!this._state.currentSuite) {
-            return
-        }
-
-        // TODO: need to add ability to get labels from allure entitites
-        // @ts-ignore
-        const isFeaturePresent = this._state.currentTest.wrappedItem.labels.some((label: Label) => label.name === LabelName.FEATURE)
-
-        this._state.currentTest.addLabel(LabelName.SUITE, this._state.currentSuite.name)
-
-        if (isFeaturePresent) {
-            return
-        }
-
-        this._state.currentTest.addLabel(LabelName.FEATURE, this._state.currentSuite.name)
+        process.on(events.startStep, (name: string) => {
+            this._pushRuntimeMessage({ type: 'step_start', data: { name, start: Date.now() } })
+        })
+        process.on(events.endStep, (status: AllureStatus) => {
+            this._pushRuntimeMessage({ type: 'step_stop', data: { status, stop: Date.now() } })
+        })
+        process.on(events.runtimeMessage, (payload: RuntimeMessage) => {
+            this._pushRuntimeMessage(payload as WDIORuntimeMessage)
+        })
     }
 
-    registerListeners() {
-        process.on(events.addLink, this.addLink.bind(this))
-        process.on(events.addLabel, this.addLabel.bind(this))
-        process.on(events.addAllureId, this.addAllureId.bind(this))
-        process.on(events.addFeature, this.addFeature.bind(this))
-        process.on(events.addStory, this.addStory.bind(this))
-        process.on(events.addSeverity, this.addSeverity.bind(this))
-        process.on(events.addSuite, this.addSuite.bind(this))
-        process.on(events.addSubSuite, this.addSubSuite.bind(this))
-        process.on(events.addOwner, this.addOwner.bind(this))
-        process.on(events.addTag, this.addTag.bind(this))
-        process.on(events.addParentSuite, this.addParentSuite.bind(this))
-        process.on(events.addEpic, this.addEpic.bind(this))
-        process.on(events.addIssue, this.addIssue.bind(this))
-        process.on(events.addTestId, this.addTestId.bind(this))
-        process.on(events.addAttachment, this.addAttachment.bind(this))
-        process.on(events.addDescription, this.addDescription.bind(this))
-        process.on(events.startStep, this.startStep.bind(this))
-        process.on(events.endStep, this.endStep.bind(this))
-        process.on(events.addStep, this.addStep.bind(this))
-        process.on(events.addArgument, this.addArgument.bind(this))
-        process.on(events.addAllureStep, this.addAllureStep.bind(this))
-    }
-
-    onRunnerStart(runner: RunnerStats) {
+    onRunnerStart(runner: RunnerStats): void {
+        this._cid = runner.cid
+        this._ensureState(runner.cid)
         this._config = runner.config
         this._capabilities = runner.capabilities
         this._isMultiremote = runner.isMultiremote || false
     }
 
-    onSuiteStart(suite: SuiteStats) {
-        const { useCucumberStepReporter } = this._options
+    async onRunnerEnd(_runner: RunnerStats): Promise<void> {
+        this._isFlushing = true
+        try {
+            for (const [cid, state] of this.allureStatesByCid) {
+                await state.processRuntimeMessage()
+                this.allureStatesByCid.delete(cid)
+            }
+        } finally {
+            if (this._options.addConsoleLogs) {
+                process.stdout.write = this._originalStdoutWrite
+            }
+            this._isFlushing = false
+        }
+        this._allureRuntime.writeEnvironmentInfo()
+    }
+
+    onSuiteStart(suite: SuiteStats & { start: Date }): void {
         const isScenario = suite.type === 'scenario'
         const isFeature = suite.type === 'feature'
-
-        this._state.currentFile = suite.file
-
-        // handle a cucumber scenario as allure "case" instead of "suite"
-        if (useCucumberStepReporter && isScenario) {
-            this._startTest(suite.title, suite.cid)
-
-            getSuiteLabels(suite).forEach((label: Label) => {
-                switch (label.name) {
-                case 'issue':
-                    this.addIssue({ issue: label.value, linkName: label.value  })
-                    break
-                case 'testId':
-                    this.addTestId({ testId: label.value, linkName: label.value  })
-                    break
-                default:
-                    this.addLabel(label)
-                }
-            })
-
-            if (suite.description) {
-                this.addDescription(suite)
-            }
-
+        if (!isScenario) {
+            this._suiteStack(this._currentCid()).push(suite.title)
+            this._startSuite({ name: suite.title, feature: isFeature })
             return
         }
 
-        const prefix = this._state.currentSuite ? this._state.currentSuite.name + ': ' : ''
-        const suiteTitle = isFeature ? suite.title : prefix + suite.title
+        const start = AllureReporter.getTimeOrNow(suite.start)
+        this._startTest({ name: suite.title, start })
+        convertSuiteTagsToLabels(suite?.tags || []).forEach((lbl) => {
+            switch (lbl.name) {
+            case 'issue':
+                label('issue', lbl.value)
+                break
+            case 'testId':
+                label('testId', lbl.value)
+                break
+            default:
+                label(lbl.name, lbl.value)
+            }
+        })
 
-        this._startSuite(suiteTitle)
+        if (suite.description) {
+            description(suite.description)
+        }
     }
 
-    onSuiteEnd(suite: SuiteStats) {
-        const { useCucumberStepReporter } = this._options
+    onSuiteEnd(suite: SuiteStats & { end: Date }): void {
         const isScenario = suite.type === 'scenario'
-
-        this._state.currentFile = undefined
-
-        if (useCucumberStepReporter && isScenario) {
-            // passing hooks are missing the 'state' property
-            suite.hooks = suite.hooks!.map((hook) => {
-                hook.state = hook.state || AllureStatus.PASSED
-                return hook
-            })
-
-            const suiteChildren = [...suite.tests!, ...suite.hooks]
-            // A scenario is it skipped if every steps are skipped and hooks are passed or skipped
-            const isSkipped = suite.tests.every(item => [AllureStatus.SKIPPED].includes(item.state as AllureStatus)) && suite.hooks.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
-
-            if (isSkipped) {
-                this._endTest(AllureStatus.SKIPPED, undefined, Stage.PENDING)
-                return
+        if (!isScenario) {
+            this._endSuite()
+            const stack = this._suiteStack(this._currentCid())
+            if (stack.length) {
+                stack.pop()
             }
-
-            const isFailed = suiteChildren.find(item => item.state === AllureStatus.FAILED)
-
-            if (isFailed) {
-                const testStatus = getTestStatus(isFailed)
-                const error = getErrorFromFailedTest(isFailed)
-
-                this._endTest(testStatus, error)
-                return
-            }
-
-            const isPassed = suiteChildren.every(item => item.state === AllureStatus.PASSED)
-            // A scenario is it passed if certain steps are passed and all other are skipped and every hooks are passed or skipped
-            const isPartiallySkipped = suiteChildren.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
-
-            if (isPassed || isPartiallySkipped) {
-                this._endTest(AllureStatus.PASSED)
-                return
-            }
-
-            // Only close passing and skipped tests because
-            // failing tests are closed in onTestFailed event
             return
         }
 
-        this._endSuite()
+        suite.hooks = suite.hooks!.map((h) => {
+            h.state = h.state || AllureStatusEnum.PASSED
+            return h
+        })
+
+        const suiteChildren = [...suite.tests!, ...suite.hooks]
+        const isSkipped =
+            suite.tests.every((t) => [AllureStatusEnum.SKIPPED].includes(t.state as AllureStatus)) &&
+            suite.hooks.every((h) =>
+                [AllureStatusEnum.PASSED, AllureStatusEnum.SKIPPED].includes(h.state as AllureStatus),
+            )
+
+        if (isSkipped) {
+            this._endTest({
+                status: AllureStatusEnum.SKIPPED,
+                stage: AllureStage.PENDING,
+                stop: AllureReporter.getTimeOrNow(suite.end),
+            })
+            return
+        }
+
+        const failed = suiteChildren.find((i) => i.state === AllureStatusEnum.FAILED)
+        if (failed) {
+            const status = getTestStatus(failed)
+            const error = getErrorFromFailedTest(failed)
+            this._endTest({
+                stage: AllureStage.FINISHED,
+                status,
+                statusDetails: error ? { message: error.message, trace: error.stack } : undefined,
+                stop: AllureReporter.getTimeOrNow(suite.end),
+            })
+            return
+        }
+
+        this._endTest({
+            stage: AllureStage.FINISHED,
+            status: AllureStatusEnum.PASSED,
+            stop: AllureReporter.getTimeOrNow(suite.end),
+        })
     }
 
-    onTestStart(test: TestStats | HookStats) {
-        const { useCucumberStepReporter } = this._options
+    onSuiteRetry(_suite: SuiteStats): void {
+        this._pushRuntimeMessage({
+            type: 'metadata',
+            data: { labels: [{ name: LabelName.TAG, value: 'retried' }] },
+        })
+    }
+
+    onTestStart(test: TestStats | HookStats): void {
         this._consoleOutput = ''
 
-        if (useCucumberStepReporter) {
-            const testObj = test as TestStats
-            const argument = testObj?.argument as Argument
-            const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
+        if (!this._isCucumberExecutable(test)) {
+            const start = AllureReporter.getTimeOrNow((test as TestStats).start)
+            this._startTest({ name: test.title, start })
+            const cid = this._currentCid()
+            this._pushRuntimeMessage({ type: 'allure:test:info', data: { fullName: (test as TestStats)?.fullTitle } })
+            const suitePath = [...this._suiteStack(cid)]
+            const pkg = this._pkgByCid.get(cid)
 
-            this._startStep(test.title)
+            const labels = [
+                ...getSuiteLabels(suitePath),
+                ...(pkg ? [{ name: LabelName.PACKAGE, value: pkg }] : []),
+                { name: LabelName.LANGUAGE, value: 'javascript' },
+                { name: LabelName.FRAMEWORK, value: 'wdio' },
+                { name: LabelName.THREAD, value: cid },
+                ...getEnvironmentLabels(),
+            ]
 
-            if (dataTable) {
-                this.attachFile('Data Table', stringify(dataTable), ContentType.CSV)
-            }
+            this._pushRuntimeMessage({ type: 'metadata', data: { labels } })
             return
         }
 
-        this._startTest(test.title, test.cid)
+        if (!this._hasPendingTest) {
+            return
+        }
+        const t = test as TestStats
+        const argument = t?.argument as Argument
+        const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
+        if (!dataTable) {
+            return
+        }
+
+        this._attachFile({
+            name: 'Data Table',
+            content: Buffer.from(stringify(dataTable), 'utf8'),
+            contentType: AllureContentType.CSV,
+        })
     }
 
-    onTestPass() {
-        this.attachLogs()
-        this._endTest(AllureStatus.PASSED)
+    onTestPass(test: TestStats | HookStats): void {
+        if (this._isCucumberExecutable(test)) {
+            return
+        }
+        this._attachLogs()
+        const end = AllureReporter.getTimeOrNow((test as TestStats).end)
+        this._endTest({
+            status: AllureStatusEnum.PASSED,
+            stage: AllureStage.FINISHED,
+            stop: end,
+            duration: (test as TestStats).duration,
+        })
     }
 
-    onTestRetry(test: TestStats) {
-        this.attachLogs()
-
+    onTestRetry(test: TestStats): void {
+        if (this._isCucumberExecutable(test)) {
+            return
+        }
+        this._attachLogs()
         const status = getTestStatus(test, this._config)
-
-        this._endTest(status, getErrorFromFailedTest(test))
+        this._endTest({
+            status,
+            statusDetails: getStatusDetailsFromFailedTest(test),
+            stop: AllureReporter.getTimeOrNow(test.end),
+            duration: test.duration,
+        })
     }
 
-    onTestFail(test: TestStats | HookStats) {
-        const { useCucumberStepReporter } = this._options
-
-        if (useCucumberStepReporter) {
-            this.attachLogs()
-
-            const testStatus = getTestStatus(test, this._config)
-
-            this._endTest(testStatus, getErrorFromFailedTest(test))
+    onTestFail(test: TestStats | HookStats): void {
+        if (this._isCucumberExecutable(test)) {
             return
         }
-
-        if (!this._state.currentAllureStepableEntity) {
+        if (!this._hasPendingTest) {
             this.onTestStart(test)
-        } else  if (this._state.currentAllureStepableEntity instanceof AllureTest){
-            this._state.currentAllureStepableEntity.name = test.title
         }
-
-        this.attachLogs()
-
-        const status = getTestStatus(test, this._config)
-
-        this._endTest(status, getErrorFromFailedTest(test))
+        this._attachLogs()
+        const status = getTestStatus(test as TestStats, this._config)
+        this._endTest({
+            status,
+            stage: AllureStage.FINISHED,
+            statusDetails: getStatusDetailsFromFailedTest(test as TestStats),
+            stop: AllureReporter.getTimeOrNow((test as TestStats).end),
+            duration: (test as TestStats).duration,
+        })
     }
 
-    onTestSkip(test: TestStats) {
-        const { useCucumberStepReporter } = this._options
-        this.attachLogs()
-
-        if (
-            !this._state.currentAllureStepableEntity || this._state.currentAllureStepableEntity.wrappedItem.name !==
-                test.title
-        ) {
-            if (useCucumberStepReporter) {
-                this.onTestStart(test)
-            } else {
-                this._startTest(test.title, test.cid)
-            }
+    onTestSkip(test: TestStats): void {
+        if (this._isCucumberExecutable(test)) {
+            return
         }
-
+        if (this._hasPendingTest) {
+            this._attachLogs()
+            this._skipTest()
+            return
+        }
+        const start = AllureReporter.getTimeOrNow(test.start)
+        this._startTest({ name: test.title, start })
+        this._attachLogs()
         this._skipTest()
     }
 
-    onBeforeCommand(beforeCommand: BeforeCommandArgs) {
-        if (!this._state.currentAllureStepableEntity) {
+    onBeforeCommand(command: BeforeCommandArgs): void {
+        const { disableWebdriverStepsReporting } = this._options
+        if (disableWebdriverStepsReporting || this._isMultiremote) {
             return
         }
 
-        const { disableWebdriverStepsReporting } = this._options
+        const { method, endpoint } = command
+        const stepName = command.command ? (command.command as string) : `${method} ${endpoint}`
+        const payload = (command as unknown as { body?: unknown; params?: unknown }).body ?? command.params
+
+        this._startStep({ name: stepName, start: Date.now() })
+        // @ts-expect-error
+        if (payload && !(typeof payload === 'object' && isEmpty(payload))) {
+            this._attachJSON({ name: 'Request', json: payload })
+        }
+    }
+
+    onAfterCommand(command: AfterCommandArgs): void {
+        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
+
+        const isShot = isScreenshotCommand(command)
+        const res = (command as unknown as { result?: unknown }).result
+        const commandResult =
+            res && typeof res === 'object' && res !== null && 'value' in (res as Record<string, unknown>)
+                ? (res as Record<string, unknown>)['value']
+                : res
+
+        if (!disableWebdriverScreenshotsReporting && isShot && commandResult) {
+            const base64 = typeof commandResult === 'string' ? commandResult : undefined
+            if (base64) {
+                this._attachScreenshot({ name: 'Screenshot', content: Buffer.from(base64, 'base64') })
+            }
+        }
 
         if (disableWebdriverStepsReporting || this._isMultiremote) {
             return
         }
 
-        const { command, method = '', endpoint = '', body, params } = beforeCommand
+        const hasData =
+            commandResult !== undefined &&
+            commandResult !== null &&
+            !(typeof commandResult === 'object' && isEmpty(commandResult as never))
 
-        const stepName = command ? command : `${method} ${endpoint}`.trim() || 'unknown command'
-        const payload = body || params
-
-        this._startStep(stepName as string)
-
-        if (payload && (typeof payload === 'object' || Array.isArray(payload))  && !isEmpty(payload)) {
-            this.attachJSON('Request', payload)
+        if (!isShot && hasData) {
+            this._attachJSON({ name: 'Response', json: commandResult })
         }
+
+        this._endStep({ status: AllureStatusEnum.PASSED, stop: Date.now() })
     }
 
-    onAfterCommand(command: AfterCommandArgs) {
-        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
-
-        const commandResult = (
-            (command.result as { value?: unknown } | undefined)?.value ||
-            (command.result as { error?: Error | undefined } | undefined)?.error?.name ||
-            undefined
-        )
-
-        if (!disableWebdriverScreenshotsReporting && isScreenshotCommand(command) && commandResult) {
-            this.attachScreenshot('Screenshot', Buffer.from(commandResult as string, 'base64'))
-        }
-
-        if (disableWebdriverStepsReporting || this._isMultiremote || !this._state.currentStep) {
+    onHookStart(hook: HookStats): void {
+        const { disableMochaHooks } = this._options
+        if (disableMochaHooks || !hook.parent || !this._hasPendingSuite) {
             return
         }
 
-        if (commandResult) {
-            this.attachJSON('Response', commandResult)
-        }
-        this.endStep(AllureStatus.PASSED)
+        const hookTypeFromName = hook.title && /before/i.test(hook.title) ? 'before' : 'after'
+        const hookType: 'before' | 'after' =
+            (hookTypeFromName as 'before' | 'after') ?? (this._hasPendingHook ? 'before' : 'after')
+
+        const start = AllureReporter.getTimeOrNow(hook.start)
+        this._startHook({
+            name: hook.title ?? 'Unnamed hook',
+            type: hookType,
+            start,
+        })
     }
 
-    onHookStart(hook: HookStats) {
-        const { disableMochaHooks, useCucumberStepReporter } = this._options
-
-        // ignore global hooks or hooks when option is set in false
-        // any hook is skipped if there is not a suite created.
-        if (!hook.parent || !this._state.currentSuite || disableMochaHooks) {
+    onHookEnd(hook: HookStats): void {
+        const { disableMochaHooks } = this._options
+        if (!this._hasPendingSuite || !hook.parent) {
+            return
+        }
+        if (disableMochaHooks && !hook.error) {
             return
         }
 
-        const isAllHook = isAllTypeHooks(hook.title) // if the hook is beforeAll or afterAll for mocha/jasmine
-        const isEachHook = isEachTypeHooks(hook.title) // if the hook is beforeEach or afterEach for mocha/jasmine
+        const hookTypeFromName = hook.title && /before/i.test(hook.title) ? 'before' : 'after'
+        const hookType: 'before' | 'after' =
+            (hookTypeFromName as 'before' | 'after') ?? (this._hasPendingHook ? 'before' : 'after')
 
-        // if the hook is before/after from mocha/jasmine
-        if (isAllHook || isEachHook) {
-            const hookExecutable = isBeforeTypeHook(hook.title)
-                ? this._state.currentSuite.addBefore()
-                : this._state.currentSuite.addAfter()
-            const hookStep = hookExecutable.startStep(hook.title)
-            this._state.push(hookExecutable)
-            this._state.push(hookStep)
-            // if the hook is custom by default, it will be reported as test (not usual)
-        } else if (!(isAllHook || isEachHook) && !useCucumberStepReporter) {
-            const customHookTest = this._state.currentSuite.startTest(
-                `hook:${hook.title}`,
-            )
-            this._state.push(customHookTest)
-            // hooks in cucumber mode will be treated as Test/Step
-        } else if (useCucumberStepReporter) {
-            this.onTestStart(hook)
-        }
-    }
-
-    onHookEnd(hook: HookStats) {
-        const { disableMochaHooks, useCucumberStepReporter } = this._options
-
-        // ignore global hooks
-        // any hook is skipped if there is not a suite created.
-        if (!hook.parent || !this._state.currentSuite) {
-            return
-        }
-
-        const isAllHook = isAllTypeHooks(hook.title) // if the hook is beforeAll or afterAll for mocha/jasmine
-        const isEachHook = isEachTypeHooks(hook.title) // if the hook is beforeEach or afterEach for mocha/jasmine
-
-        /****
-         * if the hook is before/after from mocha/jasmine and disableMochaHooks=false.
-         */
-        // if the hook is before/after from mocha/jasmine and disableMochaHooks=false.
-        if ((isAllHook || isEachHook) && !disableMochaHooks) {
-            // getting the hook root step, and the hook element from stack.
-            const currentHookRootStep = this._state.pop()
-            const currentHookRoot = this._state.pop()
-            // check if the elements exist
-            if (currentHookRootStep || currentHookRoot) {
-                // check if the elements related to hook
-                if (
-                    currentHookRootStep instanceof AllureStep &&
-                    currentHookRoot instanceof ExecutableItemWrapper
-                ) {
-                    getHookStatus(hook, currentHookRoot, currentHookRootStep)
-                    currentHookRootStep.endStep()
-
-                    if (isBeforeTypeHook(hook.title) && (hook.error || hook.errors?.length)) {
-                        this._startTest(hook.currentTest || hook.title, hook.cid)
-                        this._endTest(AllureStatus.BROKEN, getErrorFromFailedTest(hook))
-                    }
-
-                    return
-                }
-                // put them back to the list
-                if (currentHookRoot) {
-                    this._state.push(currentHookRoot)
-                }
-                if (currentHookRootStep) {
-                    this._state.push(currentHookRootStep)
-                }
-            }
-        }
-
-        /****
-         * if the hook is before/after from mocha/jasmine or cucumber by setting useCucumberStepReporter=true,
-         * and disableMochaHooks=true with a failed hook.
-         *
-         * Only if the hook fails, it will be reported.
-         */
-        if (disableMochaHooks && hook.error) {
-            // hook is from cucumber
-            if (useCucumberStepReporter){
-                // report a new allure hook (step)
-                this.onTestStart(hook)
-                // set the hook as failed one
-                this.onTestFail(hook)
-
-                // remove cucumber hook (reported as step) from suite if it has no steps or attachments.
-                const currentItem = this._state.currentAllureStepableEntity?.wrappedItem
-
-                if (currentItem) {
-                    cleanCucumberHooks(currentItem)
-                }
-                return
-            }
-
-            // hook is before/after from mocha/jasmine
-            const hookExecutable = isBeforeTypeHook(hook.title)
-                ? this._state.currentSuite.addBefore()
-                : this._state.currentSuite.addAfter()
-            const hookStep = hookExecutable.startStep(hook.title)
-
-            // register the hook
-            this._state.stats.hooks++
-
-            // updating the hook information
-            getHookStatus(hook, hookExecutable, hookStep)
-            hookStep.endStep()
-            return
-        }
-
-        /****
-         * if the hook is not before/after from mocha/jasmine (custom hook) and useCucumberStepReporter=false
-         * Custom hooks are not affected by "disableMochaHooks" option
-         */
-        if (!(isAllHook || isEachHook) && !useCucumberStepReporter) {
-            // getting the latest element
-            const lastElement = this._state.pop()
-            if (lastElement) {
-                const isCustomHook =
-                    lastElement instanceof AllureTest &&
-                    lastElement.wrappedItem.name?.startsWith('hook:')
-                this._state.push(lastElement)
-                if (isCustomHook) {
-                    // we end the test case (custom hook) that represents the custom hook call.
-                    this._endTest(getTestStatus(hook), hook.error)
-                }
-            }
-            return
-        }
-
-        /****
-         * if the hook comes from Cucumber useCucumberStepReporter=true
-         */
-        if (useCucumberStepReporter && !disableMochaHooks) {
-            // closing the cucumber hook (in this case, it's reported as a step)
-            if (hook.error) {
-                this.onTestFail(hook)
-            } else {
-                this.onTestPass()
-            }
-
-            // remove cucumber hook (reported as a step) from a suite if it has no steps or attachments.
-            const currentItem = this._state.currentAllureStepableEntity?.wrappedItem
-
-            if (currentItem) {
-                cleanCucumberHooks(currentItem)
-            }
-            return
-        }
-
-    }
-
-    addLabel({
-        name,
-        value
-    }: AddLabelEventArgs) {
-        if (!this._state.currentTest) {
-            return
-        }
-
-        this._state.currentTest.addLabel(name, value)
-    }
-
-    addLink({
-        name,
-        url,
-        type,
-    }: AddLinkEventArgs) {
-        if (!this._state.currentTest) {
-            return
-        }
-
-        this._state.currentTest.addLink(url, name, type)
-    }
-
-    addAllureId({
-        id,
-    }: AddAllureIdEventArgs) {
-        this.addLabel({
-            name: LabelName.AS_ID,
-            value: id,
-        })
-    }
-
-    addStory({
-        storyName
-    }: AddStoryEventArgs) {
-        this.addLabel({
-            name: LabelName.STORY,
-            value: storyName,
-        })
-    }
-
-    addFeature({
-        featureName
-    }: AddFeatureEventArgs) {
-        this.addLabel({
-            name: LabelName.FEATURE,
-            value: featureName,
-        })
-    }
-
-    addSeverity({
-        severity
-    }: AddSeverityEventArgs) {
-        this.addLabel({
-            name: LabelName.SEVERITY,
-            value: severity,
-        })
-    }
-
-    addEpic({
-        epicName,
-    }: AddEpicEventArgs) {
-        this.addLabel({
-            name: LabelName.EPIC,
-            value: epicName,
-        })
-    }
-
-    addOwner({
-        owner,
-    }: AddOwnerEventArgs) {
-        this.addLabel({
-            name: LabelName.OWNER,
-            value: owner,
-        })
-    }
-
-    addSuite({
-        suiteName,
-    }: AddSuiteEventArgs) {
-        this.addLabel({
-            name: LabelName.SUITE,
-            value: suiteName,
-        })
-    }
-
-    addParentSuite({
-        suiteName,
-    }: AddParentSuiteEventArgs) {
-        this.addLabel({
-            name: LabelName.PARENT_SUITE,
-            value: suiteName,
-        })
-    }
-
-    addSubSuite({
-        suiteName,
-    }: AddSubSuiteEventArgs) {
-        this.addLabel({
-            name: LabelName.SUB_SUITE,
-            value: suiteName,
-        })
-    }
-
-    addTag({
-        tag,
-    }: AddTagEventArgs) {
-        this.addLabel({
-            name: LabelName.TAG,
-            value: tag,
-        })
-    }
-
-    addTestId({
-        testId,
-        linkName,
-    }: AddTestIdEventArgs) {
-        if (!this._options.tmsLinkTemplate) {
-            this.addLabel({
-                name: 'tms',
-                value: testId
+        if (hook.error && !this._hasPendingTest && !this._hasPendingHook) {
+            const start = AllureReporter.getTimeOrNow(hook.start)
+            this._startTest({ name: hook.title, start })
+            this._startHook({ name: hook.title ?? 'Unnamed hook', type: hookType, start })
+            this._endHook({
+                status: AllureStatusEnum.BROKEN,
+                statusDetails: { message: hook.error.message, trace: hook.error.stack },
+                duration: hook.duration,
+            })
+            this._endTest({
+                status: AllureStatusEnum.BROKEN,
+                stage: AllureStage.FINISHED,
+                duration: hook.duration,
+                stop: AllureReporter.getTimeOrNow(hook.end),
             })
             return
         }
 
-        const tmsLink = getLinkByTemplate(this._options.tmsLinkTemplate, testId)
+        if (hook.error && this._hasPendingTest && !this._hasPendingHook) {
+            const start = AllureReporter.getTimeOrNow(hook.start)
+            this._startHook({ name: hook.title ?? 'Unnamed hook', type: hookType, start })
+        }
 
-        this.addLink({
-            url: tmsLink,
-            name: linkName || 'tms',
-            type: LinkType.TMS
+        this._endHook({
+            status: hook.error ? AllureStatusEnum.BROKEN : AllureStatusEnum.PASSED,
+            statusDetails: hook.error && { message: hook.error.message, trace: hook.error.stack },
+            stop: AllureReporter.getTimeOrNow(hook.end),
+            duration: hook.duration,
         })
     }
 
-    addIssue({
-        issue,
-        linkName,
-    }: AddIssueEventArgs) {
-        if (!this._options.issueLinkTemplate) {
-            this.addLabel({
-                name: 'issue',
-                value: issue,
-            })
-            return
-        }
-
-        const issueLink = getLinkByTemplate(this._options.issueLinkTemplate, issue)
-
-        this.addLink({
-            url: issueLink,
-            name: linkName,
-            type: LinkType.ISSUE
-        })
+    private get _hasPendingSuite() {
+        const current = this.allureStatesByCid.get(this._currentCid())
+        return current?.hasPendingSuite
     }
 
-    addDescription({
-        description,
-        descriptionType
-    }: AddDescriptionEventArgs) {
-        if (!this._state.currentTest) {
-            return
-        }
-
-        if (descriptionType === DescriptionType.HTML) {
-            this._state.currentTest.descriptionHtml = description
-            return
-        }
-
-        this._state.currentTest.description = description
+    private get _hasPendingTest() {
+        const current = this.allureStatesByCid.get(this._currentCid())
+        return current?.hasPendingTest
     }
 
-    addAttachment({
-        name,
-        content,
-        type = ContentType.TEXT
-    }: AddAttachmentEventArgs) {
-        if (!this._state.currentAllureStepableEntity) {
-            return
-        }
-
-        if (type === ContentType.JSON) {
-            this.attachJSON(name, content)
-            return
-        }
-
-        this.attachFile(name, Buffer.from(content as string), type as ContentType)
+    private get _hasPendingHook() {
+        const current = this.allureStatesByCid.get(this._currentCid())
+        return current?.hasPendingHook
     }
 
-    startStep(title: string) {
-        if (!this._state.currentAllureStepableEntity) {
-            return
-        }
-
-        this._startStep(title)
+    private _isCucumberExecutable(executable: TestStats | HookStats | SuiteStats): boolean {
+        const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        return uuidRe.test(executable.uid)
     }
-
-    endStep(status: AllureStatus) {
-        if (!this._state.currentAllureStepableEntity) {
-            return
-        }
-
-        this._endTest(status)
-    }
-
-    addStep({
-        step
-    }: { step: { title: string, attachment: { name: string, content: string, type: ContentType }, status: AllureStatus } }) {
-        if (!this._state.currentAllureStepableEntity) {
-            return
-        }
-
-        this._startStep(step.title)
-
-        if (step.attachment) {
-            this.attachFile(step.attachment.name, step.attachment.content, step.attachment.type || ContentType.TEXT)
-        }
-
-        this._endTest(step.status)
-    }
-
-    addArgument({
-        name,
-        value
-    }: { name: string, value: string }) {
-        if (!this._state.currentTest) {
-            return
-        }
-
-        this._state.currentTest.addParameter(name, value)
-    }
-
-    addAllureStep(metadata: MetadataMessage) {
-        const { currentAllureStepableEntity: currentAllureSpec } = this._state
-
-        if (!currentAllureSpec) {
-            throw new Error("Couldn't add step: no test case running!")
-        }
-
-        const {
-            attachments = [],
-            labels = [],
-            links = [],
-            parameter = [],
-            steps = [],
-            description,
-            descriptionHtml,
-        } = metadata
-
-        if (description) {
-            this.addDescription({
-                description,
-                descriptionType: DescriptionType.MARKDOWN
-            })
-        }
-
-        if (descriptionHtml) {
-            this.addDescription({
-                description: descriptionHtml,
-                descriptionType: DescriptionType.HTML
-            })
-        }
-
-        labels.forEach((label) => {
-            this.addLabel(label)
-        })
-        parameter.forEach((param) => {
-            this.addArgument(param)
-        })
-        links.forEach((link) => {
-            this.addLink(link)
-        })
-        attachments.forEach((attachment) => {
-            this.addAttachment(attachment)
-        })
-        steps.forEach((step) => {
-            currentAllureSpec.addStep(AllureCommandStepExecutable.toExecutableItem(this._allure, step))
-        })
-    }
-
-    /**
-     * public API attached to the reporter
-     * deprecated approach and only here for backwards compatibility
-     */
-    static addFeature = addFeature
-    static addLink = addLink
-    static addEpic = addEpic
-    static addOwner = addOwner
-    static addTag = addTag
-    static addLabel = addLabel
-    static addSeverity = addSeverity
-    static addIssue = addIssue
-    static addSuite = addSuite
-    static addSubSuite = addSubSuite
-    static addParentSuite = addParentSuite
-    static addTestId = addTestId
-    static addStory = addStory
-    static addDescription = addDescription
-    static addAttachment = addAttachment
-    static startStep = startStep
-    static endStep = endStep
-    static addStep = addStep
-    static addArgument = addArgument
-    static addAllureId = addAllureId
-    static step = step
 }
