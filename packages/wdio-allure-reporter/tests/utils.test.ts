@@ -13,7 +13,7 @@ import {
     findLast,
     isScreenshotCommand,
     getSuiteLabels,
-    isBeforeEachTypeHook,
+    isBeforeEachTypeHook, convertSuiteTagsToLabels,
 } from '../src/utils.js'
 import { suiteStart } from './__fixtures__/suite.js'
 import { linkPlaceholder } from '../src/constants.js'
@@ -202,14 +202,12 @@ describe('utils', () => {
         describe('suite stats with tags', () => {
             it('returns allure labels', () => {
                 expect(
-                    getSuiteLabels({
-                        ...suiteStart(),
-                        tags: [
-                            {
-                                name: '@foo=bar',
-                            }
-                        ]
-                    })
+                    convertSuiteTagsToLabels([
+                        {
+                            name: '@foo=bar',
+                            line: 1
+                        }
+                    ])
                 ).toEqual([
                     {
                         name: 'foo',
@@ -222,24 +220,23 @@ describe('utils', () => {
         describe('suite stats with invalid tags', () => {
             it('returns empty array', () => {
                 expect(
-                    getSuiteLabels({
-                        ...suiteStart(),
-                        tags: [
-                            {
-                                name: 'foo bar',
-                            },
-                            {
-                                name: 'foo,bar',
-                            }
-                        ]
-                    })
+                    convertSuiteTagsToLabels([
+                        {
+                            name: 'foo bar',
+                            line: 1
+                        },
+                        {
+                            name: 'foo,bar',
+                            line: 2
+                        }
+                    ])
                 ).toEqual([])
             })
         })
 
         describe('suite stats without tags', () => {
             it('returns empty array', () => {
-                expect(getSuiteLabels({ ...suiteStart(), tags: undefined })).toEqual(
+                expect(convertSuiteTagsToLabels([])).toEqual(
                     []
                 )
             })
