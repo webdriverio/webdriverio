@@ -38,6 +38,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
+    "@wdio/rpc": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
@@ -56,5 +57,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/istanbul-lib-coverage": "^2.0.6"
   }
 }

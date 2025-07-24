@@ -6,6 +6,7 @@ import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { AsymmetricMatchers } from 'expect-webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
 import { enableFileLogging } from '@wdio/utils'
+import type { BrowserData } from '@wdio/types'
 
 const log = logger('@wdio/runner')
 
@@ -145,16 +146,6 @@ export function filterLogTypes(
     }
 
     return logTypes
-}
-
-type BrowserData = {
-    sessionId: string
-    isW3C: boolean
-    protocol: string
-    hostname: string
-    port: number
-    path: string
-    queryParams: Record<string, string>
 }
 
 /**

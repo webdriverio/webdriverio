@@ -12,9 +12,9 @@
       "types": "./build/index.d.ts"
     },
     "./node": {
-      "source": "./src/node/index.ts",
-      "import": "./build/node.js",
-      "types": "./src/node/index.d.ts"
+      "import": "./build/node/index.js",
+      "types": "./build/node/index.d.ts",
+      "source": "./src/node/index.ts"
     }
   },
   "types": "./build/index.d.ts",
@@ -40,6 +40,7 @@
     "@puppeteer/browsers": "^2.2.0",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
+    "@wdio/rpc": "workspace:*",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^7.0.3",
     "edgedriver": "^6.1.2",
