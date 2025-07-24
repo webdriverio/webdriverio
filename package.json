@@ -21,7 +21,7 @@
     "compile": "pnpm -r --filter=@wdio/compiler run build",
     "compile:all": "run-s compile:all:*",
     "compile:all:core": "pnpm -r --filter=@wdio/compiler run build -p @wdio/logger -p @wdio/types -p @wdio/globals -p @wdio/protocols -p @wdio/repl",
-    "compile:all:main": "pnpm -r --filter=@wdio/compiler run build -p @wdio/utils -p @wdio/reporter -p @wdio/config -p webdriver -p webdriverio",
+    "compile:all:main": "pnpm -r --filter=@wdio/compiler run build -p @wdio/utils -p @wdio/reporter -p @wdio/config -p @wdio/xvfb -p webdriver -p webdriverio",
     "compile:all:all": "pnpm -r --filter=@wdio/compiler run build",
     "generate": "run-s generate:*",
     "generate:bidi": "tsx ./scripts/bidi/index.ts && pnpm eslint --fix packages/webdriver/src/bidi/",
