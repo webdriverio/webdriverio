@@ -1,10 +1,11 @@
 ---
 title: Avoid starting session for excluded specs
-author: Mykola Grybyk
-authorURL: http://github.com/mgrybyk
+authors: mgrybyk
 ---
 
 It's a common approach to filter specs with tags, grep or any other techniques, however we had a gotcha here before - a new session is created for every spec file which takes some time, especially for mobile tests.
+
+<!-- truncate -->
 
 We've added a [feature](https://github.com/webdriverio/webdriverio/pull/4531) that allows to filter spec files before a session is started. The feature is enabled by default for Cucumber framework only and is disabled by default for Mocha and Jasmine frameworks to avoid breaking changes. To use the feature, it has to be enabled in `wdio.conf.js` with feature flag, also all `browser` function calls like `browser.addCommand()` or any other have to be moved away from root scope. You can still use env flags, config or capabilities as before.
 

@@ -22,7 +22,7 @@ tasks:
       pnpm install
       pnpm run setup
       gp sync-done installation
-    command: pnpm run watch
+    command: pnpm run dev
   - name: Welcome Bash
     init: gp sync-await installation
     command: node .gitpod/welcome.mjs

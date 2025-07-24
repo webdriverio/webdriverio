@@ -1,6 +1,6 @@
 {
   "name": "@wdio/config",
-  "version": "9.0.0-alpha.0",
+  "version": "9.18.0",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
@@ -13,18 +13,18 @@
       "types": "./build/index.d.ts"
     },
     "./node": {
+      "importSource": "./src/node/index.ts",
       "import": "./build/node/index.js",
       "types": "./build/node/index.d.ts"
-    },
-    "./package.json": "./package.json"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-config"
   },
   "keywords": [
@@ -39,7 +39,6 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "decamelize": "^6.0.0",
     "deepmerge-ts": "^7.0.3",
     "glob": "^10.2.2",
     "import-meta-resolve": "^4.0.0"

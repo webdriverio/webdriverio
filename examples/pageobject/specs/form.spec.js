@@ -7,7 +7,9 @@ describe('auth form', () => {
         await FormPage.password.addValue('bar')
         await FormPage.submit()
 
-        await expect(FormPage.flash).toHaveTextContaining('Your username is invalid!')
+        await expect(FormPage.flash).toHaveText(
+            expect.stringContaining('Your username is invalid!')
+        )
     })
 
     it('should allow access with correct creds', async () => {
@@ -17,6 +19,8 @@ describe('auth form', () => {
         await FormPage.submit()
 
         await FormPage.flash.waitForDisplayed()
-        await expect(FormPage.flash).toHaveTextContaining('You logged into a secure area!')
+        await expect(FormPage.flash).toHaveText(
+            expect.stringContaining('You logged into a secure area!')
+        )
     })
 })

@@ -6,6 +6,7 @@ import type { Puppeteer, Browser as PuppeteerBrowser } from 'puppeteer-core'
 import { FF_REMOTE_DEBUG_ARG } from '../../constants.js'
 
 const log = logger('webdriverio')
+const DEBUG_PIPE_FLAG = 'remote-debugging-pipe'
 
 /**
  * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
@@ -17,8 +18,15 @@ const log = logger('webdriverio')
  * :::info
  *
  * Note that using Puppeteer requires support for Chrome DevTools protocol and e.g.
- * can not be used when running automated tests in the cloud. Find out more in the
- * [Automation Protocols](/docs/automationProtocols) section.
+ * can not be used when running automated tests in the cloud. Chrome DevTools protocol is not installed by default,
+ * use `npm install puppeteer-core` to install it.
+ * Find out more in the [Automation Protocols](/docs/automationProtocols) section.
+ *
+ * :::
+ *
+ * :::info
+ *
+ * Note: Puppeteer is currently __not__ supported when running [component tests](/docs/component-testing).
  *
  * :::
  *
@@ -43,6 +51,13 @@ const log = logger('webdriverio')
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
 export async function getPuppeteer (this: WebdriverIO.Browser): Promise<PuppeteerBrowser> {
+    /**
+     * Tell user that Puppeteer is not supported in browser runner
+     */
+    if (globalThis.wdio) {
+        throw new Error('Puppeteer is not supported in browser runner')
+    }
+
     const puppeteer = await userImport<Puppeteer>('puppeteer-core')
 
     if (!puppeteer) {
@@ -71,7 +86,7 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
             browserWSEndpoint: cdpEndpoint,
             defaultViewport: null,
             headers
-        }) as any as PuppeteerBrowser
+        }) as unknown as PuppeteerBrowser
         return this.puppeteer
     }
     /**
@@ -85,7 +100,7 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
             browserWSEndpoint: `ws://${hostname}:${port}/devtools/${this.sessionId}`,
             defaultViewport: null,
             headers
-        }) as any as PuppeteerBrowser
+        }) as unknown as PuppeteerBrowser
         return this.puppeteer
     }
     /**
@@ -96,8 +111,21 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
         this.puppeteer = await puppeteer.connect({
             browserURL: `http://${chromiumOptions.debuggerAddress.replace('localhost', '0.0.0.0')}`,
             defaultViewport: null
-        }) as any as PuppeteerBrowser
+        }) as unknown as PuppeteerBrowser
         return this.puppeteer
+    } else if (
+        /**
+         * if --remote-debugging-pipe is set as Chrome flag, we can't attach to the session
+         * as there won't be a `debuggerAddress` available in the capabilities. Provide this
+         * better error message to the user.
+         */
+        chromiumOptions &&
+        (
+            chromiumOptions.args?.includes(DEBUG_PIPE_FLAG) ||
+            chromiumOptions.args?.includes(`--${DEBUG_PIPE_FLAG}`)
+        )
+    ) {
+        throw new Error(`Cannot attach to Chrome Devtools session if --${DEBUG_PIPE_FLAG} is set as Chrome flag.`)
     }
 
     /**
@@ -137,8 +165,8 @@ export async function getPuppeteer (this: WebdriverIO.Browser): Promise<Puppetee
             this.puppeteer = await puppeteer.connect({
                 browserURL,
                 defaultViewport: null
-            }) as any as PuppeteerBrowser
-            return this.puppeteer as any as PuppeteerBrowser
+            }) as unknown as PuppeteerBrowser
+            return this.puppeteer as unknown as PuppeteerBrowser
         }
     }
 

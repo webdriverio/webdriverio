@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { EventEmitter } from 'node:events'
 import type { Testrunner as TestrunnerOptions } from './Options.js'
 
@@ -5,6 +6,9 @@ export interface Job {
     caps: WebdriverIO.Capabilities
     specs: string[]
     hasTests: boolean
+    baseUrl?: string
+    config?: TestrunnerOptions & { sessionId?: string }
+    capabilities?: WebdriverIO.Capabilities
 }
 
 export type WorkerMessageArgs = Omit<Job, 'caps' | 'specs' | 'hasTests'>
@@ -50,7 +54,7 @@ export interface WorkerMessage {
 
 export interface Worker
     extends Omit<TestrunnerOptions, 'capabilities' | 'specs' | 'rootDir'>,
-        EventEmitter {
+    EventEmitter {
     capabilities: WebdriverIO.Capabilities
     config: TestrunnerOptions,
     caps: WebdriverIO.Capabilities

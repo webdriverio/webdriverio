@@ -42,7 +42,7 @@ describe('element', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar-noW3C'
+                browserName: 'foobar'
             }
         })
 

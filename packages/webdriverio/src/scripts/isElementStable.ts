@@ -6,7 +6,7 @@
  */
 export default function isElementStable(elem: HTMLElement, done: (returnValue: boolean) => void) {
     if (document.visibilityState === 'hidden') {
-        throw Error('You are are checking for animations on an inactive tab, animations do not run for inactive tabs')
+        throw Error('You are checking for animations on an inactive tab, animations do not run for inactive tabs')
     }
     try {
         const previousPosition = elem.getBoundingClientRect()
@@ -22,7 +22,7 @@ export default function isElementStable(elem: HTMLElement, done: (returnValue: b
                 done(true)
             })
         })
-    } catch (error) {
+    } catch {
         done(false)
     }
 }

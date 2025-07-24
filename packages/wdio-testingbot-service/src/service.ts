@@ -71,8 +71,25 @@ export default class TestingBotService implements Services.ServiceInstance {
              */
             `${test.parent} - ${test.title}`
         )
+        return this.setAnnotation(`tb:test-context=${context}`)
+    }
 
-        this._browser.execute('tb:test-context=' + context)
+    /**
+     * Update the running test on TestingBot with an annotation
+     */
+    async setAnnotation (annotation: string) {
+        if (!this._browser) {
+            return
+        }
+
+        if (this._browser.isMultiremote) {
+            return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
+                const multiRemoteBrowser = (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)
+                return multiRemoteBrowser.executeScript(annotation, [])
+            }))
+        }
+
+        return (this._browser as WebdriverIO.Browser).executeScript(annotation, [])
     }
 
     afterSuite (suite: Frameworks.Suite) {
@@ -85,7 +102,7 @@ export default class TestingBotService implements Services.ServiceInstance {
      * After test
      * @param {object} test Test
      */
-    afterTest (test: Frameworks.Test, context: any, results: Frameworks.TestResult) {
+    afterTest (_test: Frameworks.Test, _context: unknown, results: Frameworks.TestResult) {
         if (!results.passed) {
             ++this._failures
         }
@@ -106,7 +123,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         }
 
         this._suiteTitle = feature.name
-        this._browser.execute('tb:test-context=Feature: ' + this._suiteTitle)
+        return this.setAnnotation(`tb:test-context=Feature: ${this._suiteTitle}`)
     }
 
     /**
@@ -120,7 +137,7 @@ export default class TestingBotService implements Services.ServiceInstance {
             return
         }
         const scenarioName = world.pickle.name
-        this._browser.execute('tb:test-context=Scenario: ' + scenarioName)
+        return this.setAnnotation(`tb:test-context=Scenario: ${scenarioName}`)
     }
 
     /**
@@ -225,7 +242,7 @@ export default class TestingBotService implements Services.ServiceInstance {
     }
 
     getBody (failures: number, calledOnReload = false, browserName?: string) {
-        const body = { test: {} as any }
+        const body = { test: {} as Record<string, string | undefined> }
 
         /**
          * set default values
@@ -245,11 +262,11 @@ export default class TestingBotService implements Services.ServiceInstance {
         }
 
         for (const prop of jobDataProperties) {
-            if (!(this._capabilities as Record<string, any>)[prop]) {
+            if (!(this._capabilities as Record<string, unknown>)[prop]) {
                 continue
             }
 
-            body.test[prop] = (this._capabilities as Record<string, any>)[prop]
+            body.test[prop] = (this._capabilities as Record<string, string>)[prop]
         }
 
         if (browserName) {

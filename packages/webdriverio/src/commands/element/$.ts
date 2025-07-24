@@ -22,6 +22,15 @@
  * const imageSrc = await $$('div')[1].nextElement().$$('img')[2].getAttribute('src')
  * ```
  *
+ * WebdriverIO seamlessly traverses shadow roots when using the `$` or `$$` commands, regardless of the nesting level or
+ * shadow root mode, for example:
+ *
+ * ```js
+ * await browser.url('https://ionicframework.com/docs/usage/v8/datetime/basic/demo.html?ionic:mode=md')
+ * await browser.$('button[aria-label="Sunday, August 4"]').click()
+*  await browser.$('.aux-input').getValue()
+* ```
+ *
  * :::info
  *
  * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.
@@ -48,7 +57,7 @@
  *
  * @alias $
  * @param {String|Function|Matcher} selector  selector, JS Function, or Matcher object to fetch a certain element
- * @return {Element}
+ * @return {WebdriverIO.Element}
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/singleElements.js#L9-L10
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/singleElements.js#L16-L25

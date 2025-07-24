@@ -65,6 +65,54 @@ describe('dragAndDrop', () => {
         expect(vi.mocked(fetch).mock.calls[4][1]?.method).toContain('DELETE')
     })
 
+    it('should resolve target element', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const elem = browser.$('#foo')
+        const subElem = elem.$('#subfoo')
+        // @ts-ignore mock feature
+        vi.mocked(fetch).setMockResponse([{ scrollX: 0, scrollY: 20 }])
+        await elem.dragAndDrop(subElem)
+
+        // move to
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[9][0].pathname).toContain('/foobar-123/actions')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions).toMatchSnapshot()
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[10][0].pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(fetch).mock.calls[10][1]?.method).toContain('DELETE')
+    })
+
+    it('should do a dragAndDrop for mobile', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+                platformName: 'iOS'
+            } as any
+        })
+
+        const elem = await browser.$('#foo')
+        const subElem = await elem.$('#subfoo')
+        // @ts-ignore mock feature
+        vi.mocked(fetch).setMockResponse([{ scrollX: 0, scrollY: 20 }])
+        await elem.dragAndDrop(subElem)
+
+        // move to
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname).toContain('/foobar-123/actions')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions).toMatchSnapshot()
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[4][0].pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(fetch).mock.calls[4][1]?.method).toContain('DELETE')
+    })
+
     it('should do a dragAndDrop with coordinates', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

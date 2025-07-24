@@ -1,4 +1,4 @@
-import { Given, BeforeAll, Before, After, AfterAll } from '../../../packages/wdio-cucumber-framework/build/index.js'
+import { Given, BeforeAll, Before, After, AfterAll } from '@wdio/cucumber-framework'
 
 browser.addCommand('rootLevel', () => {
     return true
@@ -91,4 +91,8 @@ Given('this is ambiguous', () => {
 
 Given('this is a step with timeout', { timeout: 6000 }, async () => {
     await browser.pause(5500)
+})
+
+Given('I use the snapshot matcher', async () => {
+    await expect({ foo: 'bar' }).toMatchSnapshot()
 })

@@ -1,16 +1,16 @@
 {
   "name": "@wdio/lighthouse-service",
-  "version": "9.0.0-alpha.0",
+  "version": "9.18.4",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-lighthouse-service"
   },
   "keywords": [
@@ -33,8 +33,10 @@
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
@@ -43,13 +45,13 @@
     "@types/node": "^20.1.0",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
-    "babel-plugin-istanbul": "^6.1.1",
-    "devtools-protocol": "^0.0.1336433",
+    "babel-plugin-istanbul": "^7.0.0",
+    "devtools-protocol": "^0.0.1485358",
     "istanbul-lib-coverage": "^3.2.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
     "lighthouse": "8.6.0",
-    "puppeteer-core": "22.12.1",
+    "puppeteer-core": "^24.12.1",
     "webdriverio": "workspace:*"
   },
   "publishConfig": {

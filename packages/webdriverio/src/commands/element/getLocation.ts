@@ -1,7 +1,7 @@
 import type { RectReturn } from '@wdio/protocols'
 import { getElementRect } from '../../utils/index.js'
 
-export type Location = Pick<RectReturn, 'x' | 'y'>;
+export type Location = Pick<RectReturn, 'x' | 'y'>
 
 export function getLocation (this: WebdriverIO.Element): Promise<Location>
 export function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<number>
@@ -30,7 +30,7 @@ export function getLocation (this: WebdriverIO.Element, prop?: keyof Location): 
  *
  * @alias element.getLocation
  * @param {string} prop    can be "x" or "y" to get a result value directly for easier assertions
- * @return {Object|Number}  The X and Y coordinates for the element on the page (`{x:number, y:number}`)
+ * @return {Object|Number}  The X and Y coordinates for the element on the page `{x:number, y:number}`
  * @uses protocol/elementIdLocation
  * @type property
  */

@@ -1,11 +1,13 @@
 import type { Capabilities, Options } from '@wdio/types'
 
-import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT, TESTOPS_BUILD_ID_ENV } from './constants.js'
+import { BSTACK_SERVICE_VERSION, DATA_ENDPOINT, BROWSERSTACK_TESTHUB_UUID } from './constants.js'
 import type { BrowserstackConfig, CredentialsForCrashReportUpload, UserConfigforReporting } from './types.js'
 import { DEFAULT_REQUEST_CONFIG, getObservabilityKey, getObservabilityUser } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 
-type Dict = Record<string, any>
+import { _fetch as fetch } from './fetchWrapper.js'
+
+type Dict = Record<string, string>
 
 export default class CrashReporter {
     /* User test config for build run minus PII */
@@ -38,7 +40,7 @@ export default class CrashReporter {
         this.setCredentialsForCrashReportUpload(options, userConfig)
     }
 
-    static async uploadCrashReport(exception: any, stackTrace: string) {
+    static async uploadCrashReport(exception: string, stackTrace: string) {
         try {
             if (!this.credentialsForCrashReportUpload.username || !this.credentialsForCrashReportUpload.password) {
                 this.credentialsForCrashReportUpload = process.env.CREDENTIALS_FOR_CRASH_REPORTING !== undefined ? JSON.parse(process.env.CREDENTIALS_FOR_CRASH_REPORTING) : this.credentialsForCrashReportUpload
@@ -60,7 +62,7 @@ export default class CrashReporter {
         }
 
         const data = {
-            hashed_id: process.env[TESTOPS_BUILD_ID_ENV],
+            hashed_id: process.env[BROWSERSTACK_TESTHUB_UUID],
             observability_version: {
                 frameworkName: 'WebdriverIO-' + (this.userConfigForReporting.framework || 'null'),
                 sdkVersion: BSTACK_SERVICE_VERSION
@@ -74,7 +76,7 @@ export default class CrashReporter {
         const url = `${DATA_ENDPOINT}/api/v1/analytics`
 
         const encodedAuth = Buffer.from(`${this.credentialsForCrashReportUpload.username}:${this.credentialsForCrashReportUpload.password}`, 'utf8').toString('base64')
-        const headers: any = {
+        const headers: Record<string, string> = {
             ...DEFAULT_REQUEST_CONFIG.headers,
             Authorization: `Basic ${encodedAuth}`,
         }
@@ -109,7 +111,7 @@ export default class CrashReporter {
         }
     }
 
-    static deletePIIKeysFromObject(obj: {[key: string]: any}) {
+    static deletePIIKeysFromObject(obj: { [key: string]: unknown }) {
         if (!obj) {
             return
         }
@@ -133,15 +135,17 @@ export default class CrashReporter {
                 if (Array.isArray(serviceArray) && serviceArray.length >= 2 && serviceArray[0] === 'browserstack') {
                     for (let idx = 1; idx < serviceArray.length; idx++) {
                         this.deletePIIKeysFromObject(serviceArray[idx])
-                        serviceArray[idx] && this.deletePIIKeysFromObject(serviceArray[idx].testObservabilityOptions)
+                        if (serviceArray[idx]) {
+                            this.deletePIIKeysFromObject(serviceArray[idx].testObservabilityOptions)
+                        }
                     }
                     finalServices.push(serviceArray)
                     break
                 }
             }
-        } catch (err: any) {
+        } catch (err) {
             /* Wrong configuration like strings instead of json objects could break this method, needs no action */
-            BStackLogger.error(`Error in parsing user config PII with error ${err ? (err.stack || err) : err}`)
+            BStackLogger.error(`Error in parsing user config PII with error ${err ? ((err as Error).stack || err) : err}`)
             return configWithoutPII
         }
         configWithoutPII.services = finalServices

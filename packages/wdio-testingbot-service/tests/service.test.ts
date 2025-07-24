@@ -13,12 +13,10 @@ vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('wdio-testingbot-service', () => {
-    const execute = vi.fn()
-
     let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     beforeEach(() => {
         browser = {
-            execute,
+            executeScript: vi.fn(),
             sessionId: 'globalSessionId',
             requestHandler: {
                 auth: {
@@ -27,16 +25,18 @@ describe('wdio-testingbot-service', () => {
                 }
             },
             config: {},
-            getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
-            chromeA: { sessionId: 'sessionChromeA' },
-            chromeB: { sessionId: 'sessionChromeB' },
-            chromeC: { sessionId: 'sessionChromeC' },
+            getInstance: vi.fn().mockImplementation((browserName: string) => {
+                // @ts-expect-error
+                return browser[browserName] as WebdriverIO.Browser
+            }),
+            chromeA: { sessionId: 'sessionChromeA', executeScript: vi.fn() },
+            chromeB: { sessionId: 'sessionChromeB', executeScript: vi.fn() },
+            chromeC: { sessionId: 'sessionChromeC', executeScript: vi.fn() },
             instances: ['chromeA', 'chromeB', 'chromeC'],
-        } as any
+        } as unknown as WebdriverIO.MultiRemoteBrowser
     })
 
     afterEach(() => {
-        execute.mockReset()
         vi.mocked(fetch).mockClear()
     })
 
@@ -71,9 +71,10 @@ describe('wdio-testingbot-service', () => {
         expect(tbService['_suiteTitle']).toEqual(suiteTitle)
     })
 
-    it('beforeTest: execute not called', () => {
+    it('beforeTest: setAnnotation not called', () => {
         const tbService = new TestingBotService({}, {}, {})
         tbService['_browser'] = browser
+        tbService.setAnnotation = vi.fn()
         const test = {
             fullName: 'Test #1',
             parent: 'Test parent'
@@ -83,16 +84,17 @@ describe('wdio-testingbot-service', () => {
         tbService['_suiteTitle'] = 'Test suite'
         tbService.beforeTest(test)
 
-        expect(execute).not.toBeCalled()
+        expect(tbService.setAnnotation).not.toBeCalled()
         expect(tbService['_suiteTitle']).toEqual('Test suite')
     })
 
-    it('beforeTest: execute called', () => {
+    it('beforeTest: setAnnotation called', async () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
         })
         tbService['_browser'] = browser
+        tbService.setAnnotation = vi.fn()
         const test: Frameworks.Test = {
             name: 'Test name',
             fullName: 'Test #1',
@@ -100,18 +102,19 @@ describe('wdio-testingbot-service', () => {
             parent: 'Test parent'
         } as any
         tbService.beforeSuite({ title: 'Test suite' } as Frameworks.Suite)
-        tbService.beforeTest(test)
+        await tbService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('tb:test-context=Test #1')
+        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Test #1')
         expect(tbService['_suiteTitle']).toEqual('Test suite')
     })
 
-    it('beforeTest: execute called for Jasmine tests', () => {
+    it('beforeTest: setAnnotation called for Jasmine tests', async () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
         })
         tbService['_browser'] = browser
+        tbService.setAnnotation = vi.fn()
         const test: Frameworks.Test = {
             name: 'Test name',
             fullName: 'Test #1',
@@ -120,18 +123,19 @@ describe('wdio-testingbot-service', () => {
         } as any
 
         tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as Frameworks.Suite)
-        tbService.beforeTest(test)
+        await tbService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('tb:test-context=Test #1')
+        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Test #1')
         expect(tbService['_suiteTitle']).toEqual('Test ')
     })
 
-    it('beforeTest: execute called for Mocha test', () => {
+    it('beforeTest: setAnnotation called for Mocha test', () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
         })
         tbService['_browser'] = browser
+        tbService.setAnnotation = vi.fn()
         const test: Frameworks.Test = {
             name: 'Test name',
             title: 'Test title',
@@ -141,7 +145,7 @@ describe('wdio-testingbot-service', () => {
         tbService.beforeSuite({} as Frameworks.Suite)
         tbService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
+        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Test parent - Test title')
     })
 
     it('afterTest: failed test', () => {
@@ -168,24 +172,26 @@ describe('wdio-testingbot-service', () => {
         expect(tbService['_failures']).toEqual(1)
     })
 
-    it('beforeFeature: execute not called', () => {
+    it('beforeFeature: setAnnotation not called', () => {
         const tbService = new TestingBotService({}, {}, {})
         tbService['_browser'] = browser
+        tbService.setAnnotation = vi.fn()
         tbService.beforeFeature(uri, featureObject)
 
-        expect(execute).not.toBeCalled()
+        expect(tbService.setAnnotation).not.toBeCalled()
     })
 
-    it('beforeFeature: execute called', () => {
+    it('beforeFeature: setAnnotation called', () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
         })
         tbService['_browser'] = browser
+        tbService.setAnnotation = vi.fn()
         tbService.beforeFeature(uri, featureObject)
 
         expect(tbService['_suiteTitle']).toEqual('Create a feature')
-        expect(execute).toBeCalledWith('tb:test-context=Feature: Create a feature')
+        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Feature: Create a feature')
     })
 
     it('afterScenario: exception happened', () => {
@@ -208,26 +214,28 @@ describe('wdio-testingbot-service', () => {
         expect(tbService['_failures']).toBe(2)
     })
 
-    it('beforeScenario: execute not called', () => {
+    it('beforeScenario: setAnnotation not called', () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: undefined
         })
         tbService['_browser'] = browser
+        tbService.setAnnotation = vi.fn()
         tbService.beforeScenario({ pickle: {} })
 
-        expect(execute).not.toBeCalled()
+        expect(tbService.setAnnotation).not.toBeCalled()
     })
 
-    it('beforeScenario: execute called', () => {
+    it('beforeScenario: setAnnotation called', () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
         })
         tbService['_browser'] = browser
+        tbService.setAnnotation = vi.fn()
         tbService.beforeScenario({ pickle: { name: 'Scenario name' } })
 
-        expect(execute).toBeCalledWith('tb:test-context=Scenario: Scenario name')
+        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Scenario: Scenario name')
     })
 
     it('after: updatedJob not called', async () => {

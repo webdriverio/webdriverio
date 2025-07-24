@@ -274,6 +274,12 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## Deep Selectors
 
+:::warning
+
+Starting with `v9` of WebdriverIO there is no need for this special selector as WebdriverIO automatically pierces through the Shadow DOM for you. It is recommended to migrate off this selector by removing the `>>>` in front it.
+
+:::
+
 Many frontend applications heavily rely on elements with [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). It is technically impossible to query elements within the shadow DOM without workarounds. The [`shadow$`](https://webdriver.io/docs/api/element/shadow$) and [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) have been such workarounds that had their [limitations](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). With the deep selector you can now query all elements within any shadow DOM using the common query command.
 
 Given we have an application with the following structure:

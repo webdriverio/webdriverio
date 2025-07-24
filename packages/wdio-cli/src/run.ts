@@ -1,5 +1,3 @@
-import fs from 'node:fs'
-import url from 'node:url'
 import path from 'node:path'
 
 import yargs from 'yargs'
@@ -7,10 +5,8 @@ import { hideBin } from 'yargs/helpers'
 
 import { commands } from './commands/index.js'
 import { handler, cmdArgs } from './commands/run.js'
-import { CLI_EPILOGUE, pkg } from './constants.js'
+import { CLI_EPILOGUE, pkg, SUPPORTED_COMMANDS } from './constants.js'
 import type { RunCommandArguments } from './types.js'
-
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
 const DESCRIPTION = [
@@ -26,7 +22,6 @@ const DESCRIPTION = [
 ]
 
 export default async function run() {
-    const commandDir = path.join(__dirname, 'commands')
     const argv = yargs(hideBin(process.argv))
         .command(commands)
         .example('wdio run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
@@ -58,11 +53,7 @@ export default async function run() {
      * we don't have to check that again here.
      */
     const params = await argv.parse()
-    const supportedCommands = fs
-        .readdirSync(commandDir)
-        .map((file) => file.slice(0, -3))
-
-    if (!params._ || params._.find((param: string) => supportedCommands.includes(param))) {
+    if (!params._ || params._.find((param: string) => SUPPORTED_COMMANDS.includes(param))) {
         return
     }
 
@@ -74,18 +65,22 @@ export default async function run() {
     try {
         const cp = await handler(args)
         return cp
-    } catch (err: any) {
+    } catch (err) {
         const output = await new Promise((resolve) => (
             yargs(hideBin(process.argv)).parse('--help', (
                 err: Error,
-                argv: Record<string, any>,
+                argv: Record<string, string>,
                 output: string
             ) => resolve(output)))
         )
 
-        console.error(`${output}\n\n${err.stack}`)
+        console.error(`${output}\n\n${(err as Error).stack}`)
+
+        /**
+         * only exit process if we are run by a user and not running unit tests
+         */
         /* istanbul ignore if */
-        if (!process.env.VITEST_WORKER_ID) {
+        if (!process.env.WDIO_UNIT_TESTS) {
             process.exit(1)
         }
     }

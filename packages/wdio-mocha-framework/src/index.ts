@@ -7,7 +7,7 @@ import { handleRequires } from 'mocha/lib/cli/run-helpers.js'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
-import type { Services, Options } from '@wdio/types'
+import type { Services } from '@wdio/types'
 
 import { formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
@@ -19,8 +19,9 @@ const FILE_PROTOCOL = 'file://'
 
 type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
-interface ParsedConfiguration extends Required<Options.Testrunner> {
+interface ParsedConfiguration extends Required<WebdriverIO.Config> {
     rootDir: string
+    mochaOpts: MochaOptsImport
 }
 
 /**
@@ -67,7 +68,7 @@ class MochaAdapter {
         await mocha.loadFilesAsync({
             esmDecorator: (file: string) => `${file}?invalidateCache=${Math.random()}`
         })
-        mocha.reporter(NOOP as any)
+        mocha.reporter(NOOP as unknown as Mocha.Reporter)
         mocha.fullTrace()
 
         /**
@@ -104,13 +105,13 @@ class MochaAdapter {
             }
 
             this._hasTests = mochaRunner.total > 0
-        } catch (err: any) {
+        } catch (err) {
             const error = '' +
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialized.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
                 'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
                 `Spec file(s): ${this._specs.join(',')}\n` +
-                `Error: ${err.stack}`
+                `Error: ${(err as Error).stack}`
             this._specLoadError = new Error(error)
             log.warn(error)
         }
@@ -127,8 +128,8 @@ class MochaAdapter {
         const result = await new Promise((resolve) => {
             try {
                 this._runner = mocha.run(resolve)
-            } catch (err: any) {
-                runtimeError = err
+            } catch (err) {
+                runtimeError = err as Error
                 return resolve(1)
             }
 
@@ -138,7 +139,7 @@ class MochaAdapter {
             this._runner.suite.beforeAll(this.wrapHook('beforeSuite'))
             this._runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
-        await executeHooksWithArgs('after', this._config.after as Function, [runtimeError || result, this._capabilities, this._specs])
+        await executeHooksWithArgs('after', this._config.after as Function, [runtimeError || this._specLoadError || result, this._capabilities, this._specs])
 
         /**
          * in case the spec has a runtime error throw after the wdio hook
@@ -174,7 +175,10 @@ class MochaAdapter {
         case 'afterSuite':
             params.payload = this._runner?.suite.suites[0]
             if (params.payload) {
-                params.payload.duration = params.payload.duration || (Date.now() - this._suiteStartDate)
+                (params.payload as { duration: number }).duration = (
+                    (params.payload as { duration: number }).duration ||
+                    (Date.now() - this._suiteStartDate)
+                )
             }
             break
         case 'beforeTest':
@@ -186,7 +190,7 @@ class MochaAdapter {
         return formatMessage(params)
     }
 
-    emit (event: string, payload: any, err?: MochaError) {
+    emit (event: string, payload: Record<string, unknown>, err?: MochaError) {
         /**
          * For some reason, Mocha fires a second 'suite:end' event for the root suite,
          * with no matching 'suite:start', so this can be ignored.
@@ -265,7 +269,7 @@ class MochaAdapter {
 
 const adapterFactory: { init?: Function } = {}
 
-adapterFactory.init = async function (...args: any[]) {
+adapterFactory.init = async function (...args: unknown[]) {
     // @ts-ignore just passing through args
     const adapter = new MochaAdapter(...args)
     const instance = await adapter.init()

@@ -6,7 +6,8 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
-    userImport, getBrowserObject, enableFileLogging,
+    userImport, getBrowserObject, enableFileLogging, isAppiumCapability,
+    isAbsolute
 } from '../src/utils.js'
 
 describe('utils', () => {
@@ -14,6 +15,9 @@ describe('utils', () => {
         const stringFunction = 'return (function () => { })()'
         const asyncStringFunction = 'return (async function () => { })()'
         const anotherStringFunction = '!function(t,e){}'
+        const normalStringFunction = `
+            function webdriverioPolyfill() {`
+        const shortStringFunction = '() => { // ... }'
         expect(commandCallStructure(
             'foobar',
             [
@@ -25,11 +29,13 @@ describe('utils', () => {
                 stringFunction,
                 asyncStringFunction,
                 anotherStringFunction,
+                normalStringFunction,
+                shortStringFunction,
                 null,
                 undefined,
                 (Buffer.from('some screenshot')).toString('base64')
             ]
-        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
+        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
         expect(commandCallStructure('foobar', ['/html/body/a']))
             .toBe('foobar("<Screenshot[base64]>")')
         expect(commandCallStructure('findElement', ['/html/body/a']))
@@ -40,6 +46,10 @@ describe('utils', () => {
             .toBe('findElementFromElement("/html/body/a")')
         expect(commandCallStructure('findElementsFromElement', ['/html/body/a']))
             .toBe('findElementsFromElement("/html/body/a")')
+        expect(commandCallStructure('switchToWindow', ['9A562133B0552E0ECB7628F2E8A09E86']))
+            .toBe('switchToWindow("9A562133B0552E0ECB7628F2E8A09E86")')
+        expect(commandCallStructure('switchFrame', ['9A562133B0552E0ECB7628F2E8A09E86']))
+            .toBe('switchFrame("9A562133B0552E0ECB7628F2E8A09E86")')
     })
 
     it('transformCommandLogResult', () => {
@@ -255,6 +265,20 @@ describe('utils:userImport', () => {
     })
 })
 
+describe('utils:isAbsolute', () => {
+    it.each([
+        [true, 'absolute path for POSIX systems', '/path/to/file',],
+        [true, 'absolute path for Windows system', 'c:\\path\\to\\file'],
+        [false, 'relative path for POSIX system', 'path/to/file'],
+        [false, 'relative path for Windows system', 'path\\to\\file'],
+        [false, 'UNC path for Windows system', '\\\\server\\path\\to\\file'],
+        [false, 'null value', ''],
+    ])('should return %s when input %s', (expected:boolean, _pattern:string, pathString:string)=>{
+        expect(isAbsolute(pathString)).toBe(expected)
+    })
+
+})
+
 describe('getBrowserObject', () => {
     it('should traverse up', () => {
         expect(getBrowserObject({
@@ -299,5 +323,26 @@ describe('enableFileLogging', () => {
 
         expect(fs.mkdir).toHaveBeenCalledWith(path.join(outputDir), { recursive: true })
         expect(process.env.WDIO_LOG_PATH).toBe(expectedLogPath)
+    })
+})
+
+describe('isAppiumCapability', () => {
+    it('should return true if it indicates an Appium capability', () => {
+        expect(isAppiumCapability({})).toBe(false)
+        expect(isAppiumCapability({ browserName: 'chrome' })).toBe(false)
+        // @ts-expect-error outdated jsonwp cap
+        expect(isAppiumCapability({ automationName: 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:automationName': 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:options': { automationName: 'android' } })).toBe(true)
+        // @ts-expect-error outdated jsonwp cap
+        expect(isAppiumCapability({ deviceName: 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:deviceName': 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:options': { deviceName: 'android' } })).toBe(true)
+        expect(isAppiumCapability({ 'lt:options': { deviceName: 'android' } })).toBe(true)
+        // @ts-expect-error outdated jsonwp cap
+        expect(isAppiumCapability({ appiumVersion: 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:appiumVersion': 'android' })).toBe(true)
+        expect(isAppiumCapability({ 'appium:options': { appiumVersion: 'android' } })).toBe(true)
+        expect(isAppiumCapability({ 'lt:options': { appiumVersion: 'android' } })).toBe(true)
     })
 })

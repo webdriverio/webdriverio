@@ -14,6 +14,14 @@ const log = logger('webdriverio')
  * with lots of nested shadow roots, an alternative approach to `shadow$` is
  * to use the [deep selector](https://webdriver.io/docs/selectors#deep-selectors).
  *
+ * :::info
+ *
+ * WebdriverIO automatically pierces through shadow roots when using `$` or `$$` commands.
+ * This command is only needed if you automate within an environment that doesn't
+ * support WebDriver Bidi yet, e.g. mobile web testing with Appium.
+ *
+ * :::
+ *
  * <example>
     :shadow$$.js
     it('should return an element inside a shadowRoot', async () => {
@@ -24,7 +32,7 @@ const log = logger('webdriverio')
  *
  * @alias element.shadow$
  * @param {String|Function} selector  selector or JS Function to fetch a certain element
- * @return {Element}
+ * @return {WebdriverIO.Element}
  * @type utility
  *
  */
@@ -38,7 +46,7 @@ export async function shadow$ (
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         const res = await browser.findElementFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
         return getElement.call(this, selector as string, res, { isShadowElement: true })
-    } catch (err: unknown) {
+    } catch (err) {
         log.warn(
             `Failed to fetch element within shadow DOM using WebDriver command: ${(err as Error).message}!\n` +
             'Falling back to JavaScript shim.'

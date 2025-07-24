@@ -1,11 +1,11 @@
 ---
 title: TypeScript Support for WebDriver Bidi
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 With the release of WebdriverIO v8 we introduced the ability to connect with the [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/) protocol directly. This allowed users to access the new capabilities of the protocol in a rudimental way as its development progresses. Today, with every browser release more capabilities will be enabled, so it is time for WebdriverIO to step up its integration and make these easier accessible to the user.
+
+<!-- truncate -->
 
 With the release of WebdriverIO v8.11 we are adding new WebDriver Bidi interfaces and make them type safe 🎉
 

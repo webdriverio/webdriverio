@@ -75,7 +75,7 @@ describe('Lit Component testing', () => {
             document.body
         )
 
-        const innerElem = await $('simple-greeting').$('>>> p')
+        const innerElem = await $('simple-greeting').$('p')
         expect(await innerElem.getText()).toBe('Hello, WebdriverIO! How are you today?')
     })
 
@@ -86,7 +86,7 @@ describe('Lit Component testing', () => {
             document.body
         )
 
-        const innerElem = await $('simple-greeting').$('>>> p')
+        const innerElem = await $('simple-greeting').$('p')
         expect(await innerElem.getText()).toBe('Hello, WebdriverIO! Does this work?')
     })
 })
@@ -148,7 +148,7 @@ mock('./utils.ts', () => ({
 describe('Simple Button Component Test', () => {
     it('call click handler', async () => {
         render(html`<simple-button />`, document.body)
-        await $('simple-button').$('>>> button').click()
+        await $('simple-button').$('button').click()
         expect(handleClick).toHaveBeenCalledTimes(1)
     })
 })

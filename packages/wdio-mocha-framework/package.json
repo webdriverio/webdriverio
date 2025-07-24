@@ -1,16 +1,16 @@
 {
   "name": "@wdio/mocha-framework",
-  "version": "9.0.0-alpha.0",
+  "version": "9.18.0",
   "description": "A WebdriverIO plugin. Adapter for Mocha testing framework.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-mocha-framework",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-mocha-framework"
   },
   "keywords": [
@@ -28,8 +28,8 @@
       "types": "./build/index.d.ts"
     },
     "./common": {
-      "import": "./build/common.js",
-      "types": "./build/common.d.ts"
+      "source": "./src/common.ts",
+      "import": "./build/common.js"
     },
     "./package.json": "./package.json"
   },
@@ -38,9 +38,9 @@
   "dependencies": {
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.11.28",
-    "@wdio/logger": "workspace:9.0.0-alpha.0",
-    "@wdio/types": "workspace:9.0.0-alpha.0",
-    "@wdio/utils": "workspace:9.0.0-alpha.0",
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
     "mocha": "^10.3.0"
   },
   "publishConfig": {

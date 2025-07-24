@@ -1,28 +1,18 @@
-import path from 'node:path'
 import fs from 'node:fs/promises'
-import { execa } from 'execa'
+import path from 'node:path'
+
 import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
-import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
+import { coerceOptsFor,  } from '../utils.js'
 import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
+import { config } from 'create-wdio/config/cli'
 
 export const command = 'run <configPath>'
 
 export const desc = 'Run your WDIO configuration file to initialize your tests. (default)'
-
-const coerceOpts = (opts: { [x: string]: boolean | string | number }) => {
-    for (const key in opts) {
-        if (opts[key] === 'true') {
-            opts[key] = true
-        } else if (opts[key] === 'false') {
-            opts[key] = false
-        }
-    }
-    return opts
-}
 
 export const cmdArgs = {
     watch: {
@@ -97,11 +87,11 @@ export const cmdArgs = {
         type: 'array'
     },
     spec: {
-        desc: 'run only a certain spec file - overrides specs piped from stdin',
+        desc: 'run only a certain spec file or wildcard - overrides specs piped from stdin',
         type: 'array'
     },
     exclude: {
-        desc: 'exclude certain spec file from the test run - overrides exclude piped from stdin',
+        desc: 'exclude certain spec file or wildcard from the test run - overrides exclude piped from stdin',
         type: 'array'
     },
     'repeat': {
@@ -110,15 +100,15 @@ export const cmdArgs = {
     },
     mochaOpts: {
         desc: 'Mocha options',
-        coerce: coerceOpts
+        coerce: coerceOptsFor('mocha')
     },
     jasmineOpts: {
         desc: 'Jasmine options',
-        coerce: coerceOpts
+        coerce: coerceOptsFor('jasmine')
     },
     cucumberOpts: {
         desc: 'Cucumber options',
-        coerce: coerceOpts
+        coerce: coerceOptsFor('cucumber')
     },
     coverage: {
         desc: 'Enable coverage for browser runner'
@@ -169,96 +159,64 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
     return launcher.run()
         .then((...args) => {
             /* istanbul ignore if */
-            if (!process.env.VITEST_WORKER_ID) {
+            if (!process.env.WDIO_UNIT_TESTS) {
                 process.exit(...args)
             }
         })
         .catch(err => {
             console.error(err)
             /* istanbul ignore if */
-            if (!process.env.VITEST_WORKER_ID) {
+            if (!process.env.WDIO_UNIT_TESTS) {
                 process.exit(1)
             }
         })
 }
 
-enum NodeVersion {
-    'major' = 0,
-    'minor' = 1,
-    'patch' = 2
-}
-
-export function nodeVersion(type: keyof typeof NodeVersion): number {
-    return process.versions.node.split('.').map(Number)[NodeVersion[type]]
-}
-
 export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
 
-    const wdioConf = await formatConfigFilePaths(configPath)
-    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension)
+    const wdioConf = await config.formatConfigFilePaths(configPath)
+    const confAccess = await config.canAccessConfigPath(wdioConf.fullPathNoExtension, wdioConf.fullPath)
     if (!confAccess) {
         try {
-            await missingConfigurationPrompt('run', wdioConf.fullPathNoExtension)
+            await config.missingConfigurationPrompt('run', wdioConf.fullPathNoExtension)
+            if (process.env.WDIO_UNIT_TESTS) {
+                return
+            }
+
+            return handler(argv)
         } catch {
             process.exit(1)
         }
     }
 
     /**
-     * In order to load TypeScript files in ESM we need to apply the tsx loader.
-     * Let's have WebdriverIO set it automatically if the user doesn't.
+     * In order to support custom tsconfig path option we have to check here whether a custom path
+     * path was provided and set the `TSX_TSCONFIG_PATH` environment variable accordingly. In a later
+     * step within the Launcher we will then load tsx with the custom tsconfig path.
      */
-    const nodePath = process.argv[0]
-    let NODE_OPTIONS = process.env.NODE_OPTIONS || ''
-    const isTSFile = wdioConf.fullPath.endsWith('.ts') || wdioConf.fullPath.endsWith('.mts') || confAccess?.endsWith('.ts') || confAccess?.endsWith('.mts')
-    const runsWithLoader = (
-        Boolean(
-            process.argv.find((arg) => arg.startsWith('--import') || arg.startsWith('--loader')) &&
-            process.argv.find((arg) => arg.endsWith('tsx'))
-        ) ||
-        NODE_OPTIONS?.includes('tsx')
+    const tsConfigPathFromEnvVar = (
+        process.env.TSCONFIG_PATH && path.resolve(process.cwd(), process.env.TSCONFIG_PATH)
+    ) || (
+        process.env.TSX_TSCONFIG_PATH && path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH)
     )
-    if (isTSFile && !runsWithLoader && nodePath) {
-        // The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
-        // This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
-        // see https://nodejs.org/api/module.html#customization-hooks
-        // and https://tsx.is/node#es-modules-only
-        const moduleLoaderFlag = (nodeVersion('major') >= 20 && nodeVersion('minor') >= 6) ||
-          (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
-        NODE_OPTIONS += ` ${moduleLoaderFlag} tsx`
-        const tsConfigPathFromEnvVar = (process.env.TSCONFIG_PATH &&
-            path.resolve(process.cwd(), process.env.TSCONFIG_PATH)) || (process.env.TSX_TSCONFIG_PATH &&
-            path.resolve(process.cwd(), process.env.TSX_TSCONFIG_PATH))
-        const tsConfigPathFromParams = params.tsConfigPath &&
-            path.resolve(process.cwd(), params.tsConfigPath)
-        const tsConfigPathRelativeToWdioConfig = path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
-        if (tsConfigPathFromParams) {
-            console.log('Deprecated: use the TSCONFIG_PATH environment variable instead')
-        }
-        const localTSConfigPath = (
-            tsConfigPathFromEnvVar ||
-            tsConfigPathFromParams ||
-            tsConfigPathRelativeToWdioConfig)
-        const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
-        const p = await execa(nodePath, process.argv.slice(1), {
-            reject: false,
-            cwd: process.cwd(),
-            stdio: 'inherit',
-            env: {
-                ...process.env,
-                ...(hasLocalTSConfig ? { TSX_TSCONFIG_PATH: localTSConfigPath } : {}),
-                NODE_OPTIONS
-            }
-        })
-        return !process.env.VITEST_WORKER_ID && process.exit(p.exitCode)
+    const tsConfigPathFromParams = params.tsConfigPath && path.resolve(process.cwd(), params.tsConfigPath)
+    const tsConfigPathRelativeToWdioConfig = path.join(path.dirname(confAccess), 'tsconfig.json')
+    const localTSConfigPath = (
+        tsConfigPathFromEnvVar ||
+        tsConfigPathFromParams ||
+        tsConfigPathRelativeToWdioConfig
+    )
+    const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
+    if (hasLocalTSConfig) {
+        process.env.TSX_TSCONFIG_PATH = localTSConfigPath
     }
 
     /**
      * if `--watch` param is set, run launcher in watch mode
      */
     if (params.watch) {
-        const watcher = new Watcher(wdioConf.fullPath, params)
+        const watcher = new Watcher(confAccess, params)
         return watcher.watch()
     }
 
@@ -270,12 +228,12 @@ export async function handler(argv: RunCommandArguments) {
      * stdin.isTTY is false when command is from nodes spawn since it's treated as a pipe
      */
     if (process.stdin.isTTY || !process.stdout.isTTY) {
-        return launch(wdioConf.fullPath, params)
+        return launch(confAccess, params)
     }
 
     /*
      * get a list of spec files to run from stdin, overriding any other
      * configuration suite or specs.
      */
-    launchWithStdin(wdioConf.fullPath, params)
+    launchWithStdin(confAccess, params)
 }

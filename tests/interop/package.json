@@ -1,14 +1,27 @@
 {
-  "name": "interop-tests-cjs",
+  "name": "@wdio/test-interop-cjs",
   "type": "commonjs",
   "private": true,
+  "scripts": {
+    "test": "run-s test:*",
+    "test:webdriverio": "node ./webdriverio.e2e.js",
+    "test:webdriver": "node ./webdriver.e2e.js",
+    "test:cucumber-framework": "node ./cucumber-framework.e2e.js",
+    "test:allure-reporter": "node ./allure-reporter.e2e.js",
+    "test:junit-reporter": "node ./junit-reporter.e2e.js",
+    "test:share-store-service": "node ./shared-store.e2e.js",
+    "test:cli": "node ./wdio-cli.e2e.js",
+    "test:wdio-reporter": "node ./wdio-reporter.e2e.js"
+  },
   "dependencies": {
     "@wdio/cli": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/allure-reporter": "workspace:*",
+    "@wdio/junit-reporter": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/cucumber-framework": "workspace:*",
     "@wdio/shared-store-service": "workspace:*",
+    "npm-run-all2": "^8.0.4",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   }

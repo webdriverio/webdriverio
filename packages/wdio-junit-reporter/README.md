@@ -270,6 +270,50 @@ module.exports = {
 };
 ```
 
+### addWorkerLogs
+
+Optional parameter, set this parameter to true in order to attach console logs from the test in the reporter.
+
+Type: `Boolean`<br />
+Default: `false`<br />
+Example:
+
+```js
+// wdio.conf.js
+module.exports = {
+    // ...
+    reporters: [
+        'dot',
+        ['junit', {
+            outputDir: './',
+            addWorkerLogs: true
+        }]
+    ],
+    // ...
+};
+```
+
+## Adding custom properties to testcases
+
+This plugin provides a function `addProperty(name, value)`. This function may be used to add additional junit testcase properties to the currently running test step. These properties will be reported in the resulting xml as `<property name="${name}" value="${value}" />`.
+
+Typical usecase for this is adding a link to an issue or a testcase.
+
+
+### Usage example
+
+An example for mocha:
+
+```js
+import { addProperty } from '@wdio/junit-reporter'
+
+describe('Suite', () => {
+    it('Case', () => {
+        addProperty('test_case', 'TC-1234')
+    })
+})
+```
+
 ## Jenkins Setup
 
 Last but not least you need to tell your CI job (e.g. Jenkins) where it can find the xml file. To do that, add a post-build action to your job that gets executed after the test has run and point Jenkins (or your desired CI system) to your XML test results:

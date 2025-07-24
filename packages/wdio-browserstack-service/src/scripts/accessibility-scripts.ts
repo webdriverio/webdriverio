@@ -2,6 +2,18 @@ import path from 'node:path'
 import fs from 'node:fs'
 import os from 'node:os'
 
+interface Scripts {
+    scan: string
+    getResults: string
+    getResultsSummary: string
+    saveResults: string
+}
+
+interface Command {
+    name: string
+    class: string
+}
+
 class AccessibilityScripts {
     private static instance: AccessibilityScripts | null = null
 
@@ -9,13 +21,17 @@ class AccessibilityScripts {
     public getResults: string | null = null
     public getResultsSummary: string | null = null
     public saveTestResults: string | null = null
-    public commandsToWrap: Array<any> | null = null
+    public commandsToWrap: Array<Command> | null = null
+    public ChromeExtension: { [key: string]: unknown } = {}
 
-    public browserstackFolderPath = path.join(os.homedir(), '.browserstack')
-    public commandsPath = path.join(this.browserstackFolderPath, 'commands.json')
+    public browserstackFolderPath = ''
+    public commandsPath = ''
 
     // don't allow to create instances from it other than through `checkAndGetInstance`
-    private constructor() {}
+    private constructor() {
+        this.browserstackFolderPath = this.getWritableDir()
+        this.commandsPath = path.join(this.browserstackFolderPath, 'commands.json')
+    }
 
     public static checkAndGetInstance() {
         if (!AccessibilityScripts.instance) {
@@ -23,6 +39,30 @@ class AccessibilityScripts {
             AccessibilityScripts.instance.readFromExistingFile()
         }
         return AccessibilityScripts.instance
+    }
+
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    public getWritableDir(): string {
+        const orderedPaths = [
+            path.join(os.homedir(), '.browserstack'),
+            process.cwd(),
+            os.tmpdir()
+        ]
+        for (const orderedPath of orderedPaths) {
+            try {
+                if (fs.existsSync(orderedPath)) {
+                    fs.accessSync(orderedPath)
+                    return orderedPath
+                }
+
+                fs.mkdirSync(orderedPath, { recursive: true })
+                return orderedPath
+
+            } catch (error) {
+                /* no-empty */
+            }
+        }
+        return ''
     }
 
     public readFromExistingFile() {
@@ -33,12 +73,12 @@ class AccessibilityScripts {
                     this.update(JSON.parse(data))
                 }
             }
-        } catch (error: any) {
+        } catch {
             /* Do nothing */
         }
     }
 
-    public update(data: { commands: [any], scripts: { scan: null; getResults: null; getResultsSummary: null; saveResults: null; }; }) {
+    public update(data: { commands: [], scripts: Scripts, nonBStackInfraA11yChromeOptions: {} }) {
         if (data.scripts) {
             this.performScan = data.scripts.scan
             this.getResults = data.scripts.getResults
@@ -48,6 +88,10 @@ class AccessibilityScripts {
         if (data.commands && data.commands.length) {
             this.commandsToWrap = data.commands
         }
+        if (data.nonBStackInfraA11yChromeOptions){
+            this.ChromeExtension = data.nonBStackInfraA11yChromeOptions
+        }
+
     }
 
     public store() {
@@ -62,7 +106,8 @@ class AccessibilityScripts {
                 getResults: this.getResults,
                 getResultsSummary: this.getResultsSummary,
                 saveResults: this.saveTestResults,
-            }
+            },
+            nonBStackInfraA11yChromeOptions: this.ChromeExtension,
         }))
     }
 }

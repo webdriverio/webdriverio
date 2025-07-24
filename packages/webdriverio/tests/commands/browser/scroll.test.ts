@@ -70,7 +70,8 @@ describe('scroll', () => {
                 [executeCallUrl, executeCallOptions]
             ] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
-            expect(JSON.parse(executeCallOptions.body).script).toEqual('return ((x2, y2) => window.scrollBy(x2, y2)).apply(null, arguments)')
+            expect(JSON.parse(executeCallOptions.body).script).toEqual(
+                expect.stringContaining('return ((x2, y2) => window.scrollBy(x2, y2)).apply(null, arguments)'))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[0]).toEqual(10)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual(100)

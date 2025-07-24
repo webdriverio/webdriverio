@@ -29,7 +29,7 @@ describe('custom$', () => {
         expect(elems).toHaveLength(2)
         expect(typeof elems.selector).toBe('string')
         expect(typeof elems[0].selector).toBe('object')
-        expect(typeof (elems[0].selector as any as CustomStrategyReference).strategy).toBe('function')
+        expect(typeof (elems[0].selector as unknown as CustomStrategyReference).strategy).toBe('function')
         expect((elems[0].selector as CustomStrategyReference).strategyName).toBe('test')
         expect((elems[0].selector as CustomStrategyReference).strategyArguments).toHaveLength(1)
         expect((elems[0].selector as CustomStrategyReference).strategyArguments[0]).toBe('.test')

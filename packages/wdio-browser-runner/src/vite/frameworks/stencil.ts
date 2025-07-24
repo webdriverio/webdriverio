@@ -28,7 +28,7 @@ export async function optimizeForStencil(rootDir: string) {
     }
 
     if (stencilPlugins) {
-        const esbuildPlugin = stencilPlugins.find((plugin: any) => plugin.name === 'esbuild-plugin')
+        const esbuildPlugin = stencilPlugins.find((plugin: { name: string }) => plugin.name === 'esbuild-plugin')
         if (esbuildPlugin) {
             stencilOptimizations.optimizeDeps?.include?.push(...esbuildPlugin.options.include)
         }
@@ -47,7 +47,7 @@ export async function optimizeForStencil(rootDir: string) {
 
 async function stencilVitePlugin(rootDir: string): Promise<Plugin> {
     const { transpileSync, ts } = await import('@stencil/core/compiler/stencil.js')
-    const stencilHelperPath = path.resolve(__dirname, '..', '..', 'browser', 'integrations', 'stencil.js')
+    const stencilHelperPath = path.resolve(__dirname, 'browser', 'integrations', 'stencil.js')
     return {
         name: 'wdio-stencil',
         enforce: 'pre',
@@ -163,6 +163,7 @@ let _tsCompilerOptions: CompilerOptions | null = null
  * @param rootDir the location to search for the config file
  * @returns the configuration, or `null` if the file cannot be found
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getCompilerOptions(ts: any, rootDir: string): CompilerOptions | null {
     if (_tsCompilerOptions) {
         return _tsCompilerOptions

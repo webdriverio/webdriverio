@@ -94,7 +94,7 @@ describe('ViteServer', () => {
             plugins: ['testrunner plugin', 'mock hoisting plugin', 'worker plugin', 'foobar'],
             root: expect.any(String),
             server: {
-                port: 3210
+                port: 1234
             },
             someDefault: 'config'
         })
@@ -114,7 +114,7 @@ describe('ViteServer', () => {
             plugins: ['testrunner plugin', 'mock hoisting plugin', 'worker plugin', 'foobar'],
             root: expect.any(String),
             server: {
-                port: 3210
+                port: 1234
             },
             someDefault: 'config'
         })

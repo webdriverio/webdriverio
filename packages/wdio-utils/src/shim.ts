@@ -1,6 +1,5 @@
-/// <reference types="@wdio/globals/types" />
 import logger from '@wdio/logger'
-import type { Frameworks } from '@wdio/types'
+import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
@@ -23,7 +22,23 @@ const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
 
 const TIME_BUFFER = 3
 
-export async function executeHooksWithArgs<T> (this: any, hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
+/**
+ * we have to mock the WebdriverIO.Browser and WebdriverIO.MultiRemoteBrowser type
+ * here as this package can't access it given it is a dependency of webdriverio
+ */
+interface WebdriverIOInstance extends Services.Hooks {
+    selector: string
+    parent: WebdriverIOInstance
+    length: number
+    options: Options.Testrunner
+    waitUntil: Function
+    $$: Function
+    foundWith: string
+    wdioRetries: number
+    [i: number]: WebdriverIOInstance
+}
+
+export async function executeHooksWithArgs<T> (this: unknown, hookName: string, hooks: Function | Function[] = [], args: unknown[] = []): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -38,29 +53,37 @@ export async function executeHooksWithArgs<T> (this: any, hookName: string, hook
         args = [args]
     }
 
+    const rejectIfSkipped = function (e: unknown, rejectionFunc: (e?: Error) => void) {
+        /**
+         * When we use `this.skip()` inside a test or a hook, it's a signal that we want to stop that particular test.
+         * Mocha, the testing framework, knows how to handle this for its own built-in hooks and test steps.
+         * However, for our custom hooks, we need to reject the promise, which effectively skips the test case.
+         * For more details, refer to: https://github.com/mochajs/mocha/pull/3859#issuecomment-534116333
+         */
+        if (/^(sync|async) skip; aborting execution$/.test((e as Error).message)) {
+            rejectionFunc()
+            return true
+        }
+        /**
+         * in case of jasmine, when rejecting, we need to pass the message of rejection as well
+         */
+        if (/^=> marked Pending/.test(e as string)) {
+            rejectionFunc(e as Error)
+            return true
+        }
+    }
+
     const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve, reject) => {
         let result
 
         try {
             result = hook.apply(this, args)
-        } catch (e: any) {
-            /**
-             * When we use `this.skip()` inside a test or a hook, it's a signal that we want to stop that particular test.
-             * Mocha, the testing framework, knows how to handle this for its own built-in hooks and test steps.
-             * However, for our custom hooks, we need to reject the promise, which effectively skips the test case.
-             * For more details, refer to: https://github.com/mochajs/mocha/pull/3859#issuecomment-534116333
-             */
-            if (/^(sync|async) skip; aborting execution$/.test(e.message)) {
-                return reject()
+        } catch (e) {
+            if (rejectIfSkipped(e, reject)) {
+                return
             }
-            /**
-            * in case of jasmine, when rejecting, we need to pass the message of rejection as well
-            */
-            if (/^=> marked Pending/.test(e)) {
-                return reject(e)
-            }
-            log.error(e.stack)
-            return resolve(e)
+            log.error((e as Error).stack)
+            return resolve(e as Error)
         }
 
         /**
@@ -69,6 +92,9 @@ export async function executeHooksWithArgs<T> (this: any, hookName: string, hook
          */
         if (result && typeof result.then === 'function') {
             return result.then(resolve, (e: Error) => {
+                if (rejectIfSkipped(e, reject)) {
+                    return
+                }
                 log.error(e.stack || e.message)
                 resolve(e)
             })
@@ -90,8 +116,8 @@ export async function executeHooksWithArgs<T> (this: any, hookName: string, hook
  * @param commandName name of the command (e.g. getTitle)
  * @param fn          command function
  */
-export function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
-    async function wrapCommandFn(this: any, ...args: any[]) {
+export function wrapCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
+    async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
             inCommandHook = true
@@ -103,7 +129,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
         let commandError
         try {
             commandResult = await fn.apply(this, args)
-        } catch (err: any) {
+        } catch (err) {
             commandError = err
         }
 
@@ -121,7 +147,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
         return commandResult
     }
 
-    function wrapElementFn (promise: Promise<WebdriverIO.Browser>, cmd: Function, args: any[], prevInnerArgs?: { prop: string | number, args: any[] }): any {
+    function wrapElementFn (promise: Promise<WebdriverIO.Browser>, cmd: Function, args: unknown[], prevInnerArgs?: { prop: string | number, args: unknown[] }): unknown {
         return new Proxy(
             Promise.resolve(promise).then((ctx: WebdriverIO.Browser) => cmd.call(ctx, ...args)),
             {
@@ -129,7 +155,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                     /**
                      * handle symbols, e.g. async iterators
                      */
-                    if (typeof prop === 'symbol') {
+                    if (typeof prop === 'symbol'|| prop === 'entries') {
                         return () => ({
                             i: 0,
                             target,
@@ -140,6 +166,10 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                                 }
 
                                 if (this.i < elems.length) {
+                                    // For entries(), return [index, element] pair
+                                    if (prop === 'entries') {
+                                        return { value: [this.i, elems[this.i++]], done: false }
+                                    }
                                     return { value: elems[this.i++], done: false }
                                 }
 
@@ -161,15 +191,15 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                             /**
                              * `this` is an array of WebdriverIO elements
                              */
-                            function (this: any, index: number) {
+                            function (this: WebdriverIOInstance, index: number) {
                                 /**
                                  * if we access an index that is out of bounds we wait for the
                                  * array to get that long, and timeout eventually if it doesn't
                                  */
                                 if (index >= this.length) {
-                                    const browser = getBrowserObject(this) as any
+                                    const browser = getBrowserObject(this) as WebdriverIOInstance
                                     return browser.waitUntil(async () => {
-                                        const elems = await this.parent[this.foundWith as any as '$$'](this.selector)
+                                        const elems = await this.parent[this.foundWith as unknown as '$$'](this.selector)
                                         if (elems.length > index) {
                                             return elems[index]
                                         }
@@ -195,7 +225,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                      */
                     if (ELEMENT_QUERY_COMMANDS.includes(prop) || prop.endsWith('$')) {
                         // this: WebdriverIO.Element
-                        return wrapCommand(prop, function (this: any, ...args: any) {
+                        return wrapCommand(prop, function (this: Record<string, Function>, ...args: unknown[]) {
+                            // eslint-disable-next-line prefer-spread
                             return this[prop].apply(this, args)
                         })
                     }
@@ -210,7 +241,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                     if (commandName.endsWith('$$') && typeof iterators[prop as keyof typeof iterators] === 'function') {
                         return (mapIterator: Function) => wrapElementFn(
                             target,
-                            function (this: never, mapIterator: Function): any {
+                            function (this: never, mapIterator: Function) {
                                 // @ts-ignore
                                 return iterators[prop](this, mapIterator)
                             },
@@ -255,7 +286,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
                      * const tagName = await $('foo').$('bar').getTagName()
                      * ```
                      */
-                    return (...args: any[]) => target.then(async (elem) => {
+                    return (...args: unknown[]) => target.then(async (elem) => {
                         if (!elem) {
                             let errMsg = 'Element could not be found'
                             const prevElem = await promise
@@ -289,11 +320,11 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
         )
     }
 
-    function chainElementQuery(this: Promise<WebdriverIO.Browser>, ...args: any[]): any {
+    function chainElementQuery(this: Promise<WebdriverIO.Browser>, ...args: unknown[]): unknown {
         return wrapElementFn(this, wrapCommandFn, args)
     }
 
-    return function (this: WebdriverIO.Browser, ...args: any[]) {
+    return function (this: WebdriverIO.Browser, ...args: unknown[]) {
         /**
          * if the command suppose to return an element, we apply `chainElementQuery` to allow
          * chaining of these promises.
@@ -321,7 +352,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: any
  * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to complete
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-export async function executeAsync(this: any, fn: Function, retries: Frameworks.TestRetries, args: any[] = [], timeout: number = 20000): Promise<unknown> {
+export async function executeAsync(this: WebdriverIOInstance, fn: Function, retries: Frameworks.TestRetries, args: unknown[] = [], timeout: number = 20000): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
     try {
@@ -352,11 +383,11 @@ export async function executeAsync(this: any, fn: Function, retries: Frameworks.
         done = true
 
         if (result !== null && typeof result === 'object' && 'finally' in result && typeof result.finally === 'function') {
-            result.catch((err: any) => err)
+            result.catch((err: unknown) => err)
         }
 
         return await result
-    } catch (err: any) {
+    } catch (err) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
             return await executeAsync.call(this, fn, retries, args)

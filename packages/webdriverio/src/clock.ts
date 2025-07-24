@@ -20,9 +20,12 @@ function uninstallFakeTimers () {
     window.__clock.uninstall()
 }
 
+declare const WDIO_FAKER_SCRIPT: string
+const fakerScript = WDIO_FAKER_SCRIPT
+
 export class ClockManager {
     #browser: WebdriverIO.Browser
-    #resetFn: (() => Promise<any>) = () => Promise.resolve()
+    #resetFn: (() => Promise<unknown>) = () => Promise.resolve()
     #isInstalled = false
 
     constructor(browser: WebdriverIO.Browser) {
@@ -51,15 +54,8 @@ export class ClockManager {
         /**
          * load Node.js specific modules dynamically to avoid loading them in the browser
          */
-        const url = await import('node:url')
-        const path = await import('node:path')
-        const fs = await import('node:fs/promises')
-
-        const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-        const rootDir = path.resolve(__dirname, '..')
         const emulateOptions = options || {} as FakeTimerInstallOpts
-        const scriptPath = path.join(rootDir, 'third_party', 'fake-timers.js')
-        const functionDeclaration = await fs.readFile(scriptPath, 'utf-8')
+        const functionDeclaration = fakerScript
         const installOptions: FakeTimerInstallOpts = {
             ...emulateOptions,
             now: emulateOptions.now && (emulateOptions.now instanceof Date) ? emulateOptions.now.getTime() : emulateOptions.now
@@ -69,7 +65,7 @@ export class ClockManager {
             /**
              * install fake timers for current ex
              */
-            this.#browser.execute(`return (${functionDeclaration}).apply(null, arguments)`, []).then(() => (
+            this.#browser.executeScript(`return (${functionDeclaration}).apply(null, arguments)`, []).then(() => (
                 this.#browser.execute(installFakeTimers, installOptions)
             )),
             /**

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 
 describe('my app', () => {
     before(() => console.log('inner before hook'))

@@ -1,0 +1,32 @@
+name: Continuous Releases
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: 👷 Bootstrap Packages
+        run: pnpm run setup
+        shell: bash
+        env:
+          NODE_ENV: production
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish
+        run: pnpx pkg-pr-new publish --pnpm './packages/*'

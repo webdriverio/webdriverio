@@ -5,7 +5,6 @@ import { builtinModules } from 'node:module'
 import logger from '@wdio/logger'
 import { polyfillPath } from 'modern-node-polyfills'
 import { deepmerge } from 'deepmerge-ts'
-import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
 import {
@@ -20,6 +19,7 @@ import { getTemplate, getErrorTemplate, normalizeId } from '../utils.js'
 const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const commands = deepmerge<any>(
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
@@ -29,7 +29,6 @@ const protocolCommandList = Object.values(commands).map(
         ({ command }) => command
     )
 ).flat()
-const WDIO_PACKAGES = ['webdriverio', 'expect-webdriverio']
 const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
@@ -42,7 +41,7 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
 const MODULES_TO_MOCK = [
     'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'ws', 'decamelize',
     'geckodriver', 'safaridriver', 'edgedriver', '@puppeteer/browsers', 'locate-app', 'wait-port',
-    'lodash.isequal', '@wdio/repl'
+    'lodash.isequal', '@wdio/repl', 'jszip'
 ]
 
 const POLYFILLS = [
@@ -50,7 +49,7 @@ const POLYFILLS = [
     ...builtinModules.map((m) => `node:${m}`)
 ]
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
-    const browserModules = path.resolve(__dirname, '..', '..', 'browser')
+    const browserModules = path.resolve(__dirname, 'browser')
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(browserModules, 'driver.js')).pathname}`
     const mockModulePath = path.resolve(browserModules, 'mock.js')
     const setupModulePath = path.resolve(browserModules, 'setup.js')
@@ -92,17 +91,17 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
             }
 
             /**
-             * make sure WDIO imports are resolved properly as ESM module
-             */
-            if (id.startsWith('@wdio') || WDIO_PACKAGES.includes(id)) {
-                return url.fileURLToPath(await resolve(id, import.meta.url))
-            }
-
-            /**
              * mock out imports that we can't transpile into browser land
              */
             if (MODULES_TO_MOCK.includes(id)) {
                 return mockModulePath
+            }
+
+            /**
+             * redirect requests to 3rd party dependencies
+             */
+            if (id.startsWith('/@wdio/browser-runner/third_party/')) {
+                return path.resolve(__dirname, ...id.split('/').slice(3))
             }
         },
         load(id) {
@@ -166,9 +165,9 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                         const template = await getTemplate(options, env, spec)
                         log.debug(`Render template for ${req.originalUrl}`)
                         res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
-                    } catch (err: any) {
-                        const template = getErrorTemplate(req.originalUrl, err)
-                        log.error(`Failed to render template: ${err.message}`)
+                    } catch (err) {
+                        const template = getErrorTemplate(req.originalUrl, err as Error)
+                        log.error(`Failed to render template: ${(err as Error).message}`)
                         res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
                     }
 

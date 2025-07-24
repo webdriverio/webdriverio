@@ -10,6 +10,7 @@ import { CreateProjectAnimation, CreateMacOSProjectAnimation } from '../componen
 import { ImageSwitcher } from '../components/ImageSwitcher.tsx'
 import { CreateFlowcharts } from '../components/CreateFlowcharts.tsx'
 import { EventList, EventSignup, EventDetails } from '../components/Events.tsx'
+import { PhoneMock } from '../components/phoneMock.tsx'
 import Card from './card.tsx'
 
 export default {
@@ -25,5 +26,6 @@ export default {
     EventList,
     EventSignup,
     EventDetails,
-    Card
+    Card,
+    PhoneMock
 }

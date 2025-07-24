@@ -1,11 +1,11 @@
 ---
 title: Sync API Deprecation
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 For many years one of the selling features of the WebdriverIO framework was its synchronous API. Especially for folks coming from more synchronous oriented languages such as Java or Ruby, it has helped to avoid race conditions when executing commands. But also people that are more familiar with [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) tend to prefer synchronous execution as it made the code easier to read and handle.
+
+<!-- truncate -->
 
 Running asynchronous commands in a synchronous way was possible with the help of the [`@wdio/sync`](https://www.npmjs.com/package/@wdio/sync) package. If installed, WebdriverIO would automatically wrap the commands with utility methods that were using the [`fibers`](https://www.npmjs.com/package/fibers) package to create a synchronous execution environment. It uses some internal V8 APIs to allow to jump between multiple call stacks from within a single thread. This approach also has been popular among other projects, e.g. [Meteor](https://www.meteor.com/), where most of the code is written using asynchronous APIs which causes developers to constantly start the line of code with `await`.
 

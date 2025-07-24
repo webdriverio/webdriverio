@@ -60,7 +60,9 @@ function isChrome(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
-    return Boolean(capabilities['goog:chromeOptions'] && capabilities.browserName === 'chrome')
+    return Boolean(capabilities['goog:chromeOptions'] &&
+        (capabilities.browserName === 'chrome' || capabilities.browserName === 'chrome-headless-shell')
+    )
 }
 
 /**
@@ -93,16 +95,47 @@ function isFirefox(capabilities?: WebdriverIO.Capabilities) {
     )
 }
 
+// Some drivers (e.g. Appium for Windows) return capabilities with flattened,
+// non-namespaced keys like `automationName` instead of `appium:automationName`.
+// We extend the base type here to safely support those runtime shapes.
+interface ExtendedCapabilities extends WebdriverIO.Capabilities {
+    automationName?: string;
+}
+
+/**
+ * get the automation name value of the session
+ *
+ * @param  {Object}  capabilities  capabilities
+ * @return {Boolean}               true if platform is mobile device
+ */
+function getAutomationName(capabilities: ExtendedCapabilities) {
+    return capabilities['appium:options']?.automationName || capabilities['appium:automationName'] || capabilities['automationName']
+}
+
 /**
  * check if current platform is mobile device
  *
- * @param  {Object}  caps  capabilities
- * @return {Boolean}       true if platform is mobile device
+ * @param  {Object}  capabilities  capabilities
+ * @return {Boolean}               true if platform is mobile device
  */
 function isMobile(capabilities: WebdriverIO.Capabilities) {
     const browserName = (capabilities.browserName || '').toLowerCase()
     const bsOptions = capabilities['bstack:options'] || {}
     const browserstackBrowserName = (bsOptions.browserName || '').toLowerCase()
+
+    /**
+     * There are cases where sessions with `appium:*` prefixed capabilities do not fully support
+     * all "native"-mobile commands. In this case the `appium:automationName` is set with something
+     * else than the `xcuitest|uiautomator2|flutter|espress|..` value. This can be a browser driver or
+     * a "wrapped" appium browser-driver. See also https://github.com/webdriverio/webdriverio/issues/13947
+     * Return `isMobile:false` for those cases. There we also accepts that specific mobile browser
+     * tests (like the FF one on Android) are not seen as a mobile one
+     */
+    const automationName = getAutomationName(capabilities)
+    if (automationName && ['gecko', 'safari', 'chrome', 'chromium'].includes(automationName.toLocaleLowerCase())) {
+        return false
+    }
+
     /**
      * we have mobile capabilities if
      */
@@ -166,12 +199,55 @@ function isAndroid(capabilities?: WebdriverIO.Capabilities) {
         return false
     }
 
-    return Boolean(
+    const hasAndroidPlatform = Boolean(
         (capabilities.platformName && capabilities.platformName.match(/Android/i)) ||
         (/Android/i.test(bsOptions.platformName || '')) ||
         (/Android/i.test(bsOptions.browserName || '')) ||
         (capabilities.browserName && capabilities.browserName.match(/Android/i))
     )
+
+    const deviceName = bsOptions.deviceName || ''
+    const hasAndroidDeviceName = /android|galaxy|pixel|nexus|oneplus|lg|htc|motorola|sony|huawei|vivo|oppo|xiaomi|redmi|realme|samsung/i.test(deviceName)
+
+    return Boolean(hasAndroidPlatform || hasAndroidDeviceName)
+}
+
+/**
+ * Check if session uses a specific automation name
+ * @param  {Object}  capabilities  caps of session response
+ * @param  {String}  platform      platform to check for (e.g., 'windows', 'mac2')
+ * @return {Boolean}               true if run for specified platform
+ */
+function matchesAppAutomationName(automationNameValue: string, capabilities?: WebdriverIO.Capabilities): boolean {
+    if (!capabilities) {
+        return false
+    }
+
+    const automationName = getAutomationName(capabilities)
+
+    if (!automationName) {
+        return false
+    }
+
+    return Boolean(automationName.match(new RegExp(automationNameValue, 'i')))
+}
+
+/**
+ * Check if session is run for Windows apps
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run for Windows Apps
+ */
+function isWindowsApp(capabilities?: WebdriverIO.Capabilities): boolean {
+    return matchesAppAutomationName('windows', capabilities)
+}
+
+/**
+ * Check if session is run for Mac apps
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run for Mac Apps
+ */
+function isMacApp(capabilities?: WebdriverIO.Capabilities): boolean {
+    return matchesAppAutomationName('mac2', capabilities)
 }
 
 /**
@@ -194,16 +270,16 @@ function isSauce(capabilities?: Capabilities.WithRequestedCapabilities['capabili
 }
 
 /**
- * detects if session has support for WebDriver Bidi
- * @param  {object}  capabilities session capabilities
+ * Detects if session has support for WebDriver Bidi.
+ * @param  {object}  capabilities resolved session capabilities send back from the driver
  * @return {Boolean}              true if session has WebDriver Bidi support
  */
-function isBidi(capabilities?: WebdriverIO.Capabilities) {
+export function isBidi(capabilities: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
 
-    return Boolean(capabilities.webSocketUrl)
+    return typeof capabilities.webSocketUrl === 'string'
 }
 
 /**
@@ -254,7 +330,9 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(capabilities),
         isBidi: isBidi(capabilities),
-        isChromium: isChromium(capabilities)
+        isChromium: isChromium(capabilities),
+        isWindowsApp: isWindowsApp(capabilities),
+        isMacApp: isMacApp(capabilities)
     }
 }
 
@@ -281,6 +359,8 @@ export function sessionEnvironmentDetector({
         isSauce: isSauce(requestedCapabilities),
         isSeleniumStandalone: isSeleniumStandalone(capabilities),
         isBidi: isBidi(capabilities),
-        isChromium: isChromium(capabilities)
+        isChromium: isChromium(capabilities),
+        isWindowsApp: isWindowsApp(capabilities),
+        isMacApp: isMacApp(capabilities)
     }
 }

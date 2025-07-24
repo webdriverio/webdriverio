@@ -18,6 +18,16 @@ updates:
     # updates to Node.js requires update to .nvmrc
     - dependency-name: "@types/node"
       update-types: ["version-update:semver-major"]
+  groups:
+    patch-deps-updates-main:
+      update-types:
+        - "patch"
+    minor-deps-updates-main:
+      update-types:
+        - "minor"
+    major-deps-updates-main:
+      update-types:
+        - "major"
 - package-ecosystem: npm
   directory: "/"
   target-branch: v8
@@ -44,13 +54,34 @@ updates:
     - dependency-name: "inquirer"
     - dependency-name: "read-pkg-up"
     - dependency-name: "formdata-node"
-    - dependency-name: "cli-spinners"
     # fails to update and requires investigations
     - dependency-name: "vite"
     - dependency-name: "puppeteer-core"
+    # requires manual upgrade
+    - dependency-name: "allure-js-commons"
+  groups:
+    patch-deps-updates-v8:
+      update-types:
+        - "patch"
+    minor-deps-updates-v8:
+      update-types:
+        - "minor"
+    major-deps-updates-v8:
+      update-types:
+        - "major"
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
     interval: weekly
     time: "11:00"
   open-pull-requests-limit: 10
+  groups:
+    patch-deps-updates:
+      update-types:
+        - "patch"
+    minor-deps-updates:
+      update-types:
+        - "minor"
+    major-deps-updates:
+      update-types:
+        - "major"

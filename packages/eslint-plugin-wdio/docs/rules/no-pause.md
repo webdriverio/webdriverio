@@ -26,3 +26,17 @@ describe('my feature', () => {
     });
 });
 ```
+
+## Config
+
+An object containing:
+
+- `instances`: **string[]** name of instances to check, default is `["browser"]`, this is useful if you are using [multiremote](https://webdriver.io/docs/multiremote) instances.
+
+### Config examples
+
+```js
+{
+    'wdio/no-pause': ['error', { instances: ['myChromeBrowser', 'myFirefoxBrowser'] }]
+}
+```

@@ -1,13 +1,13 @@
 ---
 title: WebdriverIO, meet Serenity/JS
-author: Jan Molak
-authorURL: https://www.linkedin.com/in/janmolak/
-authorImageURL: https://avatars.githubusercontent.com/u/1089173?s=400&v=4
+authors: jan
 ---
 
 WebdriverIO is one of the most popular test frameworks and an excellent Web integration tool.
 
 In fact, it's one of my favourites ❤️
+
+<!-- truncate -->
 
 But, to write **truly great acceptance tests** you need more than that:
 

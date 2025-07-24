@@ -1,6 +1,5 @@
 import { basename, join, resolve } from 'node:path'
 import { kebabCase } from 'change-case'
-
 import type { ArgValue, KeyValueArgs } from './types.js'
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
@@ -29,6 +28,14 @@ export function formatCliArgs(args: KeyValueArgs): string[] {
         const value: ArgValue = args[key]
         // If the value is false or null the argument is discarded
         if ((typeof value === 'boolean' && !value) || value === null) {
+            continue
+        }
+
+        /**
+         * there are some special options that should not be transformed
+         */
+        if (key === 'chromedriver_autodownload') {
+            cliArgs.push(key)
             continue
         }
 

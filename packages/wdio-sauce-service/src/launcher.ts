@@ -1,6 +1,5 @@
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 
-import ip from 'ip'
 import {
     default as SauceLabs,
     type SauceLabsOptions,
@@ -12,6 +11,7 @@ import type { Services, Capabilities, Options } from '@wdio/types'
 
 import { makeCapabilityFactory } from './utils.js'
 import type { SauceServiceConfig } from './types.js'
+import { DEFAULT_RUNNER_NAME } from './constants.js'
 import path from 'node:path'
 
 const MAX_SC_START_TRIALS = 3
@@ -40,29 +40,29 @@ export default class SauceLauncher implements Services.ServiceInstance {
             return
         }
 
-        const sauceConnectTunnelIdentifier = (
-            this._options.sauceConnectOpts?.tunnelIdentifier ||
+        const sauceConnectTunnelName = (
+            this._options.sauceConnectOpts?.tunnelName ||
             /**
              * generate random identifier if not provided
              */
             `SC-tunnel-${Math.random().toString().slice(2)}`)
 
+        let metadata = this._options.sauceConnectOpts?.metadata || ''
+        if (!metadata.includes('runner=')) {
+            metadata += `runner=${DEFAULT_RUNNER_NAME}`
+        }
+
         const sauceConnectOpts: SauceConnectOptions = {
-            noAutodetect: true,
-            tunnelIdentifier: sauceConnectTunnelIdentifier,
+            tunnelName: sauceConnectTunnelName,
             ...this._options.sauceConnectOpts,
-            noSslBumpDomains: `127.0.0.1,localhost,${ip.address()}` + (
-                this._options.sauceConnectOpts?.noSslBumpDomains
-                    ? `,${this._options.sauceConnectOpts.noSslBumpDomains}`
-                    : ''
-            ),
+            metadata: metadata,
             logger: this._options.sauceConnectOpts?.logger || ((output) => log.debug(`Sauce Connect Log: ${output}`)),
-            ...(!this._options.sauceConnectOpts?.logfile && this._config.outputDir
-                ? { logfile: path.join(this._config.outputDir, 'wdio-sauce-connect-tunnel.log') }
+            ...(!this._options.sauceConnectOpts?.logFile && this._config.outputDir
+                ? { logFile: path.join(this._config.outputDir, 'wdio-sauce-connect-tunnel.log') }
                 : {}
             )
         }
-        const prepareCapability = makeCapabilityFactory(sauceConnectTunnelIdentifier)
+        const prepareCapability = makeCapabilityFactory(sauceConnectTunnelName)
         if (Array.isArray(capabilities)) {
             for (const capability of capabilities) {
                 /**
@@ -105,12 +105,13 @@ export default class SauceLauncher implements Services.ServiceInstance {
         try {
             const scProcess = await this._api.startSauceConnect(sauceConnectOpts)
             return scProcess
-        } catch (err: any) {
+        } catch (err) {
             ++retryCount
             /**
              * fail starting Sauce Connect eventually
              */
             if (
+                err instanceof Error &&
                 /**
                  * only fail for ENOENT errors due to racing condition
                  * see: https://github.com/saucelabs/node-saucelabs/issues/86
@@ -123,7 +124,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
             ) {
                 throw err
             }
-            log.debug(`Failed to start Sauce Connect Proxy due to ${err.stack}`)
+            log.debug(`Failed to start Sauce Connect Proxy due to ${(err as Error).stack}`)
             log.debug(`Retrying ${retryCount}/${MAX_SC_START_TRIALS}`)
             return this.startTunnel(sauceConnectOpts, retryCount)
         }

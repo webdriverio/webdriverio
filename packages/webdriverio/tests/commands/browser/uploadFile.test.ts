@@ -4,6 +4,8 @@ import path from 'node:path'
 import archiver from 'archiver'
 import { remote } from '../../../src/index.js'
 
+import '../../../src/node.js'
+
 vi.mock('node:fs', () => ({
     default: {
         createReadStream: vi.fn(),

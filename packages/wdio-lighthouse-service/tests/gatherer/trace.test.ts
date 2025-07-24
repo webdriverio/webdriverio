@@ -9,7 +9,7 @@ import TraceGatherer from '../../src/gatherer/trace.js'
 import { FRAME_LOAD_START_TIMEOUT, CLICK_TRANSITION } from '../../src/constants.js'
 import type { GathererDriver } from '../../src/types.js'
 
-import TRACELOG from '../__fixtures__/tracelog.json' assert { type: 'json' }
+import TRACELOG from '../__fixtures__/tracelog.json' with { type: 'json' }
 
 vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
 vi.mock('lighthouse/lighthouse-core/gather/driver/wait-for-condition')
@@ -43,7 +43,7 @@ const frame = {
 const driver = {
     beginTrace: vi.fn(),
     endTrace: vi.fn().mockReturnValue(Promise.resolve(TRACELOG))
-} as any as GathererDriver
+} as unknown as GathererDriver
 
 vi.useFakeTimers()
 vi.spyOn(global, 'setTimeout')

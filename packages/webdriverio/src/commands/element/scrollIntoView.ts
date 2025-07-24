@@ -2,31 +2,24 @@ import logger from '@wdio/logger'
 import { ELEMENT_KEY } from 'webdriver'
 
 import { getBrowserObject } from '@wdio/utils'
+import type { ChainablePromiseElement, CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
+import { MobileScrollDirection } from '../../types.js'
 
 const log = logger('webdriverio')
 
-function scrollIntoViewWeb (
-    this: WebdriverIO.Element,
-    options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
-) {
-    const browser = getBrowserObject(this)
-    return browser.execute(
-        (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
-        {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId, // jsonwp compatible
-        } as any as HTMLElement,
-        options,
-    )
-}
-
 /**
  *
- * Scroll element into viewport ([MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView)).
+ * Scroll element into viewport for Desktop/Mobile Web <strong>AND</strong> Mobile Native Apps.
+ *
+ * :::info
+ *
+ * Scrolling for Mobile Native Apps is done based on the mobile `swipe` command.
+ *
+ * :::
  *
  * <example>
-    :scrollIntoView.js
-    it('should demonstrate the scrollIntoView command', async () => {
+    :desktop.mobile.web.scrollIntoView.js
+    it('should demonstrate the desktop/mobile web scrollIntoView command', async () => {
         const elem = await $('#myElement');
         // scroll to specific element
         await elem.scrollIntoView();
@@ -35,22 +28,55 @@ function scrollIntoViewWeb (
     });
  * </example>
  *
+ * <example>
+    :mobile.native.app.scrollIntoView.js
+    it('should demonstrate the mobile native app scrollIntoView command', async () => {
+        const elem = await $('#myElement');
+        // scroll to a specific element in the default scrollable element for Android or iOS for a maximum of 10 scrolls
+        await elem.scrollIntoView();
+        // Scroll to the left in the scrollable element called '#scrollable' for a maximum of 5 scrolls
+        await elem.scrollIntoView({
+            direction: 'left',
+            maxScrolls: 5,
+            scrollableElement: $('#scrollable')
+        });
+    });
+ * </example>
+ *
  * @alias element.scrollIntoView
- * @param {object|boolean=} scrollIntoViewOptions  options for `Element.scrollIntoView()` (default: `{ block: 'start', inline: 'nearest' }`)
+ * @param {object|boolean=} options                   options for `Element.scrollIntoView()`. Default for desktop/mobile web: <br/> `{ block: 'start', inline: 'nearest' }` <br /> Default for Mobile Native App <br /> `{ maxScrolls: 10, scrollDirection: 'down' }`
+ * @rowInfo Desktop/Mobile Web Only
+ * @param {string=}         options.behavior          See [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView). <br /><strong>WEB-ONLY</strong> (Desktop/Mobile)
+ * @param {string=}         options.block             See [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView). <br /><strong>WEB-ONLY</strong> (Desktop/Mobile)
+ * @param {string=}         options.inline            See [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView). <br /><strong>WEB-ONLY</strong> (Desktop/Mobile)
+ * @rowInfo Mobile Native App Only
+ * @param {string=}         options.direction         Can be one of `down`, `up`, `left` or `right`, default is `up`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {number=}         options.maxScrolls        The max amount of scrolls until it will stop searching for the element, default is `10`. <br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {number=}         options.duration          The duration in milliseconds for the swipe. Default is `1500` ms. The lower the value, the faster the swipe.<br /><strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {Element=}        options.scrollableElement Element that is used to scroll within. If no element is provided it will use the following selector for iOS `-ios predicate string:type == "XCUIElementTypeApplication"` and the following for Android `//android.widget.ScrollView'`. If more elements match the default selector, then by default it will pick the first matching element. <br /> <strong>MOBILE-NATIVE-APP-ONLY</strong>
+ * @param {number=}         options.percent           The percentage of the (default) scrollable element to swipe. This is a value between 0 and 1. Default is `0.95`.<br /><strong>NEVER</strong> swipe from the exact top|bottom|left|right of the screen, you might trigger for example the notification bar or other OS/App features which can lead to unexpected results.<br /> <strong>MOBILE-NATIVE-APP-ONLY</strong>
  * @uses protocol/execute
  * @type utility
  *
  */
 export async function scrollIntoView (
     this: WebdriverIO.Element,
-    options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
-) {
+    options: CustomScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
+): Promise<void|unknown> {
     const browser = getBrowserObject(this)
 
     /**
      * Appium does not support the "wheel" action
      */
     if (browser.isMobile) {
+        if (await browser.isNativeContext) {
+            return nativeMobileScrollIntoView({
+                browser,
+                element: this,
+                options: (options as CustomScrollIntoViewOptions) || {}
+            })
+        }
+
         return scrollIntoViewWeb.call(this, options)
     }
 
@@ -106,11 +132,119 @@ export async function scrollIntoView (
         await browser.action('wheel')
             .scroll({ duration: 0, x: deltaX, y: deltaY, origin: this })
             .perform()
-    } catch (err: any) {
+    } catch (err) {
         log.warn(
-            `Failed to execute "scrollIntoView" using WebDriver Actions API: ${err.message}!\n` +
+            `Failed to execute "scrollIntoView" using WebDriver Actions API: ${(err as Error).message}!\n` +
             'Re-attempting using `Element.scrollIntoView` via Web API.'
         )
         await scrollIntoViewWeb.call(this, options)
     }
+}
+
+type MobileScrollUntilVisibleOptions = {
+    browser: WebdriverIO.Browser;
+    element: WebdriverIO.Element;
+    maxScrolls: number;
+    direction: `${MobileScrollDirection}`;
+    scrollableElement?: WebdriverIO.Element | ChainablePromiseElement | null;
+    duration?: number;
+    percent?: number;
+}
+
+async function mobileScrollUntilVisible({
+    browser,
+    direction,
+    duration,
+    element,
+    maxScrolls,
+    percent,
+    scrollableElement,
+}: MobileScrollUntilVisibleOptions): Promise<{ hasScrolled: boolean; isVisible: boolean;  }> {
+    let isVisible = false
+    let hasScrolled = false
+    let scrolls = 0
+
+    while (!isVisible && scrolls < maxScrolls) {
+        try {
+            isVisible = await element.isDisplayed()
+        } catch {
+            isVisible = false
+        }
+
+        if (isVisible) {break}
+
+        await browser.swipe({
+            direction,
+            ...(duration ? { duration } : {}),
+            ...(percent ? { percent } : {}),
+            ...(scrollableElement ? { scrollableElement } : {}),
+        })
+        hasScrolled = true
+
+        scrolls++
+    }
+
+    return { hasScrolled, isVisible }
+}
+
+async function nativeMobileScrollIntoView({
+    browser,
+    element,
+    options
+}: {
+    browser: WebdriverIO.Browser,
+    element: WebdriverIO.Element,
+    options: MobileScrollIntoViewOptions
+}) {
+    const defaultOptions = {
+        maxScrolls: 10,
+        direction: MobileScrollDirection.Up,
+    }
+    const mobileOptions = {
+        ...defaultOptions,
+        ...(options || {}),
+    }
+    const { hasScrolled, isVisible } = await mobileScrollUntilVisible({
+        browser,
+        element,
+        maxScrolls: mobileOptions.maxScrolls,
+        direction: mobileOptions.direction,
+        ...(mobileOptions?.duration ? { duration: mobileOptions.duration } : {}),
+        ...(mobileOptions?.percent ? { percent: mobileOptions.percent } : {}),
+        ...(mobileOptions?.scrollableElement ? { scrollableElement: mobileOptions.scrollableElement } : {}),
+    })
+
+    if (hasScrolled && isVisible) {
+        // Pause for stabilization
+        // eslint-disable-next-line wdio/no-pause
+        return browser.pause(1000)
+    } else if (isVisible) {
+        // Element is already visible
+        return
+    }
+
+    throw new Error(`Element not found within scroll limit of ${mobileOptions.maxScrolls} scrolls by scrolling "${mobileOptions.direction}". ` +
+        `Are you sure the element is within the scrollable element or the direction is correct? You can change the scrollable element or direction like this:
+
+await elem.scrollIntoView({
+    direction: 'left' // possible options are: 'up|down|left|right'
+    scrollableElement: $('#scrollable'),
+});
+
+        `)
+}
+
+function scrollIntoViewWeb (
+    this: WebdriverIO.Element,
+    options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
+) {
+    const browser = getBrowserObject(this)
+    return browser.execute(
+        (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
+        {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId, // jsonwp compatible
+        } as unknown as HTMLElement,
+        options,
+    )
 }

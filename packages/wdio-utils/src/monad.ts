@@ -1,19 +1,25 @@
-import { EventEmitter } from 'node:events'
 import logger from '@wdio/logger'
 import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import _mitt from 'mitt'
 
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
-    browser: /* istanbul ignore next */ function Browser () {},
-    element: /* istanbul ignore next */ function Element () {}
+    browser: /* istanbul ignore next */ function Browser() { },
+    element: /* istanbul ignore next */ function Element() { }
 }
+
+/**
+ * @see https://github.com/developit/mitt/issues/191
+ */
+const mitt = _mitt as unknown as typeof _mitt.default
+const EVENTHANDLER_FUNCTIONS = ['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners'] as const
 
 interface PropertiesObject {
     [key: string | symbol]: PropertyDescriptor
 }
 
-export default function WebDriver (options: Record<string, any>, modifier?: Function, propertiesObject: PropertiesObject = {}) {
+export default function WebDriver(options: object, modifier?: Function, propertiesObject: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
@@ -25,20 +31,44 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     const prototype = Object.create(scopeType.prototype)
     const log = logger('webdriver')
 
-    const eventHandler = new EventEmitter()
-    const EVENTHANDLER_FUNCTIONS = Object.getPrototypeOf(eventHandler)
+    const mittInstance = mitt()
+
+    // Create EventEmitter-compatible interface
+    const eventHandler = {
+        on: mittInstance.on.bind(mittInstance),
+        off: mittInstance.off.bind(mittInstance),
+        emit: mittInstance.emit.bind(mittInstance),
+        once: (type: string, handler: Function) => {
+            const onceWrapper = (...args: unknown[]) => {
+                mittInstance.off(type, onceWrapper)
+                handler(...args)
+            }
+            mittInstance.on(type, onceWrapper)
+        },
+        removeListener: mittInstance.off.bind(mittInstance),
+        removeAllListeners: (type?: string) => {
+            if (type) {
+                mittInstance.off(type)
+            } else {
+                // Clear all event handlers by creating new mitt instance
+                Object.assign(mittInstance, mitt())
+            }
+        }
+    }
 
     /**
      * WebDriver monad
      */
-    function unit (this: void, sessionId: string, commandWrapper?: Function) {
+    function unit(this: void, sessionId: string, commandWrapper?: Function) {
         /**
          * capabilities attached to the instance prototype not being shown if
          * logging the instance
          */
         propertiesObject.commandList = { value: Object.keys(propertiesObject) }
         propertiesObject.options = { value: options }
-        propertiesObject.requestedCapabilities = { value: options.requestedCapabilities }
+        if ('requestedCapabilities' in options) {
+            propertiesObject.requestedCapabilities = { value: options.requestedCapabilities }
+        }
 
         /**
          * allow to wrap commands if necessary
@@ -78,7 +108,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
         /**
          * register capabilities only to browser scope
          */
-        if (scopeType.name === 'Browser') {
+        if (scopeType.name === 'Browser' && 'capabilities' in options) {
             client.capabilities = options.capabilities
         }
 
@@ -86,7 +116,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, unknown>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
@@ -140,7 +170,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
          * @param  {Object=}  proto             prototype to add function to (optional)
          * @param  {Object=}  instances         multiremote instances
          */
-        client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+        client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, unknown>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
@@ -161,7 +191,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
             } else if (client[name]) {
                 const origCommand = client[name]
                 delete client[name]
-                unit.lift(name, customCommand, proto, (...args: any[]) => origCommand.apply(this, args))
+                unit.lift(name, customCommand, proto, (...args: unknown[]) => origCommand.apply(this, args))
             } else {
                 throw new Error('overwriteCommand: no command to be overwritten: ' + name)
             }
@@ -177,9 +207,11 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
      * @param  {Object}   proto         prototype to add function to (optional)
      * @param  {Function} origCommand   original command to be passed to custom command as first argument
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     unit.lift = function (name: string, func: Function, proto: Record<string, any>, origCommand?: Function) {
-        (proto || prototype)[name] = function next (...args: any[]) {
+        (proto || prototype)[name] = function next(...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
+            this.emit('command', { command: name, body: args })
 
             /**
              * set name of function for better error stack
@@ -189,52 +221,89 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
                 writable: false,
             })
 
-            const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
+            try {
+                const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
 
-            /**
-             * always transform result into promise
-             */
-            Promise.resolve(result).then((res: unknown) => {
-                const elem = res as { elementId: string, selector?: string }
-                let resultLog = res
-                if (elem instanceof SCOPE_TYPES.element) {
-                    resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
-                } else if (res instanceof SCOPE_TYPES.browser) {
-                    resultLog = 'WebdriverIO.Browser'
+                // When the result is a promise, we want to emit on then & catch
+                if (isPromiseLike(result)) {
+                    result.then((res: unknown) => {
+
+                        const elem = res as { elementId: string, selector?: string }
+                        let resultLog = res
+                        if (elem instanceof SCOPE_TYPES.element) {
+                            resultLog = `WebdriverIO.Element<${elem.elementId || elem.selector}>`
+                        } else if (res instanceof SCOPE_TYPES.browser) {
+                            resultLog = 'WebdriverIO.Browser'
+                        }
+
+                        log.info('RESULT', resultLog)
+                        this.emit('result', {
+                            command: name,
+                            result: { value: res },
+                            name // Kept for legacy reasons, as the `command` property is now used in the reporter. To remove one day!
+                        })
+                    }).catch((error: Error) => {
+                        this.emit('result', { command: name, result: { error } })
+                    })
+                } else {
+                    // The function should always be a promise and not trigger the below, but for the sake of being bullet proof let's do it
+                    // When a function we can emit the result immediately
+                    this.emit('result', { command: name, result: { value: result } })
                 }
 
-                log.info('RESULT', resultLog)
-                this.emit('result', { name, result: res })
-            }).catch(() => {})
-
-            return result
+                return result
+            } catch (error) {
+                // The function should always be a promise and not trigger this error but for the sake of being bullet proof let's do it
+                this.emit('result', { command: name, result: { error } })
+                throw error
+            }
         }
     }
 
     /**
      * register event emitter
      */
-    for (const eventCommand in EVENTHANDLER_FUNCTIONS) {
-        prototype[eventCommand] = function (...args: [any, any]) {
-            const method = eventCommand as keyof EventEmitter
-
+    for (const eventCommand of EVENTHANDLER_FUNCTIONS) {
+        prototype[eventCommand] = function (...args: [unknown, unknown]) {
             /**
              * Emit an event when a dialog listener is registered or unregistered.
              * This is used in `packages/webdriverio/src/dialog.ts`
              * to decide whether to propagate a `dialog` event to
              * the user or automatically accept or dismiss the dialog.
              */
-            if (method === 'on' && args[0] === 'dialog') {
+            if (eventCommand === 'on' && args[0] === 'dialog') {
                 eventHandler.emit('_dialogListenerRegistered')
             }
-            if (method === 'off' && args[0] === 'dialog') {
+            if (eventCommand === 'off' && args[0] === 'dialog') {
                 eventHandler.emit('_dialogListenerRemoved')
             }
 
-            eventHandler[method]?.(...args as [never, any])
+            // Call the appropriate method based on eventCommand
+            switch (eventCommand) {
+            case 'on':
+                eventHandler.on(args[0] as string, args[1] as (event: unknown) => void)
+                break
+            case 'off':
+            case 'removeListener':
+                eventHandler.off(args[0] as string, args[1] as (event: unknown) => void)
+                break
+            case 'emit':
+                eventHandler.emit(args[0] as string, args[1])
+                break
+            case 'once':
+                eventHandler.once(args[0] as string, args[1] as (event: unknown) => void)
+                break
+            case 'removeAllListeners':
+                eventHandler.removeAllListeners(args[0] as string)
+                break
+            }
             return this
         }
     }
 
     return unit
+}
+
+const isPromiseLike = (value: unknown): value is Promise<unknown> => {
+    return value !== null && typeof value === 'object' && typeof (value as Promise<unknown>).then === 'function' && typeof (value as Promise<unknown>).catch === 'function'
 }

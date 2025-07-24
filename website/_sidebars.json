@@ -49,7 +49,8 @@
             "id": "bestpractices"
           },
           "items": [
-            "best-practices/file-download"
+            "best-practices/file-download",
+            "best-practices/browser-logs"
           ]
         },
         "selectors",
@@ -62,7 +63,8 @@
         "pageobjects",
         "debugging",
         "repl",
-        "record"
+        "record",
+        "security"
       ]
     },
     {
@@ -189,6 +191,7 @@
           ]
         },
         "visual-testing/test-output",
+        "visual-testing/visual-reporter",
         "visual-testing/considerations",
         {
           "type": "category",
@@ -201,6 +204,11 @@
             "visual-testing/integrate-with-percy",
             "visual-testing/integrate-with-app-percy"
           ]
+        },
+        {
+          "type": "doc",
+          "id": "visual-testing/argos",
+          "label": "Argos"
         },
         "visual-testing/faq"
       ],
@@ -228,7 +236,8 @@
         "docker",
         "githubactions",
         "jenkins",
-        "bamboo"
+        "bamboo",
+        "seleniumgrid"
       ]
     }
   ],

@@ -8,11 +8,13 @@ on:
 jobs:
   cloud_check:
     name: Cloud Connection Tests
+    permissions:
+      contents: read
     runs-on: 'ubuntu-latest'
     if: github.ref == 'refs/heads/main'
     steps:
       - name: ⬇️ Checkout Code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: 🧑‍🔧 Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies
@@ -23,10 +25,6 @@ jobs:
           name: webdriverio
           path: .
           filename: webdriverio-build.zip
-
-      - name: Link Packages
-        run: pnpm run link
-        shell: bash
 
       - name: E2E Connection Test
         run: pnpm run test:e2e:cloud
@@ -42,7 +40,15 @@ jobs:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}
 
-      - uses: actions/upload-artifact@v4
+      - name: E2E Connection AWS Device Farm
+        run: pnpm run test:e2e:launch
+        if: github.ref == 'refs/heads/main'
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          AWS_DEVICE_FARM_ARN: ${{secrets.AWS_DEVICE_FARM_ARN}}
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: e2e-cloud-connection-tests-logs

@@ -1,0 +1,253 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`swipe test > does not find the default scroll element for Android and throws an error 1`] = `
+[Error: Default scrollable element '//android.widget.ScrollView' was not found. Our advice is to provide a scrollable element like this:
+
+await browser.swipe({ scrollableElement: $('#scrollable') });
+
+        ]
+`;
+
+exports[`swipe test > should be able to swipe based on provided coordinates 1`] = `
+{
+  "actions": [
+    {
+      "button": 0,
+      "duration": 100,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 10,
+      "y": 20,
+    },
+    {
+      "button": 0,
+      "type": "pointerDown",
+    },
+    {
+      "duration": 10,
+      "type": "pause",
+    },
+    {
+      "button": 0,
+      "duration": 1500,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 30,
+      "y": 40,
+    },
+    {
+      "button": 0,
+      "type": "pointerUp",
+    },
+  ],
+  "id": "action4",
+  "parameters": {
+    "pointerType": "touch",
+  },
+  "type": "pointer",
+}
+`;
+
+exports[`swipe test > should call a swipe down command with 25% for a scrollable element 1`] = `
+{
+  "actions": [
+    {
+      "button": 0,
+      "duration": 100,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 250,
+      "y": 350,
+    },
+    {
+      "button": 0,
+      "type": "pointerDown",
+    },
+    {
+      "duration": 10,
+      "type": "pause",
+    },
+    {
+      "button": 0,
+      "duration": 1500,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 250,
+      "y": 450,
+    },
+    {
+      "button": 0,
+      "type": "pointerUp",
+    },
+  ],
+  "id": "action8",
+  "parameters": {
+    "pointerType": "touch",
+  },
+  "type": "pointer",
+}
+`;
+
+exports[`swipe test > should call a swipe down command with duration 5000 for a scrollable element 1`] = `
+{
+  "actions": [
+    {
+      "button": 0,
+      "duration": 100,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 250,
+      "y": 590,
+    },
+    {
+      "button": 0,
+      "type": "pointerDown",
+    },
+    {
+      "duration": 10,
+      "type": "pause",
+    },
+    {
+      "button": 0,
+      "duration": 5000,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 250,
+      "y": 210,
+    },
+    {
+      "button": 0,
+      "type": "pointerUp",
+    },
+  ],
+  "id": "action12",
+  "parameters": {
+    "pointerType": "touch",
+  },
+  "type": "pointer",
+}
+`;
+
+exports[`swipe test > should call a swipe left command with 50% for a scrollable element 1`] = `
+{
+  "actions": [
+    {
+      "button": 0,
+      "duration": 100,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 325,
+      "y": 400,
+    },
+    {
+      "button": 0,
+      "type": "pointerDown",
+    },
+    {
+      "duration": 10,
+      "type": "pause",
+    },
+    {
+      "button": 0,
+      "duration": 1500,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 175,
+      "y": 400,
+    },
+    {
+      "button": 0,
+      "type": "pointerUp",
+    },
+  ],
+  "id": "action10",
+  "parameters": {
+    "pointerType": "touch",
+  },
+  "type": "pointer",
+}
+`;
+
+exports[`swipe test > should call a swipe right command with 75% for a scrollable element 1`] = `
+{
+  "actions": [
+    {
+      "button": 0,
+      "duration": 100,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 138,
+      "y": 400,
+    },
+    {
+      "button": 0,
+      "type": "pointerDown",
+    },
+    {
+      "duration": 10,
+      "type": "pause",
+    },
+    {
+      "button": 0,
+      "duration": 1500,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 363,
+      "y": 400,
+    },
+    {
+      "button": 0,
+      "type": "pointerUp",
+    },
+  ],
+  "id": "action11",
+  "parameters": {
+    "pointerType": "touch",
+  },
+  "type": "pointer",
+}
+`;
+
+exports[`swipe test > should call a swipe up command with 45% for a scrollable element 1`] = `
+{
+  "actions": [
+    {
+      "button": 0,
+      "duration": 100,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 250,
+      "y": 490,
+    },
+    {
+      "button": 0,
+      "type": "pointerDown",
+    },
+    {
+      "duration": 10,
+      "type": "pause",
+    },
+    {
+      "button": 0,
+      "duration": 1500,
+      "origin": "viewport",
+      "type": "pointerMove",
+      "x": 250,
+      "y": 310,
+    },
+    {
+      "button": 0,
+      "type": "pointerUp",
+    },
+  ],
+  "id": "action9",
+  "parameters": {
+    "pointerType": "touch",
+  },
+  "type": "pointer",
+}
+`;
+
+exports[`swipe test > should throw an error a swipe command for direction foo 1`] = `[Error: Unknown direction: foo]`;
+
+exports[`swipe test > should throw an error if the swipe command is called for a browser session 1`] = `[Error: The swipe command is only available for mobile platforms in the NATIVE context.]`;

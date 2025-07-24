@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { EventEmitter } from 'node:events'
 import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
 import type { Capabilities, Options, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
 
-import type { Dialog as DialogImport } from './dialog.js'
+import type { Dialog as DialogImport } from './session/dialog.js'
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
@@ -18,6 +19,10 @@ export * from './utils/interception/types.js'
  * re-export action primitives
  */
 export * from './utils/actions/index.js'
+/**
+ * re-export command types
+ */
+export { InitScript } from './commands/browser/addInitScript.js'
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
@@ -87,10 +92,12 @@ interface AsyncIterators<T> {
     filter: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<WebdriverIO.Element[]>;
     filterSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: T) => Promise<WebdriverIO.Element[]>;
     reduce: <T, U>(callback: (accumulator: U, currentValue: WebdriverIO.Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
+    entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>;
 }
 
 export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
+    [Symbol.iterator](): IterableIterator<WebdriverIO.Element>
 
     /**
      * Amount of element fetched.
@@ -115,6 +122,11 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
      * get the `WebdriverIO.Element[]` list
      */
     getElements(): Promise<WebdriverIO.ElementArray>
+
+    /**
+     * Returns an async iterator of key/value pairs for every index in the array.
+     */
+    entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>
 }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
@@ -177,7 +189,7 @@ type AddCommandFnScoped<
     InstanceType = WebdriverIO.Browser,
     IsElement extends boolean = false
 > = (
-    this: IsElement extends true ? Element : InstanceType,
+    this: IsElement extends true ? WebdriverIO.Element : InstanceType,
     ...args: any[]
 ) => any
 
@@ -189,7 +201,7 @@ type OverwriteCommandFnScoped<
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
-    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
+    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
@@ -198,21 +210,25 @@ type OverwriteCommandFn<
     BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
-    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
+    this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
+    originalCommand: IsElement extends true ? OmitThisParameter<$ElementCommands[ElementKey]> : OmitThisParameter<$BrowserCommands[BrowserKey]>,
     ...args: any[]
 ) => Promise<any>
 
 export type CustomLocatorReturnValue = HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
+
+type Instances = WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+
 export interface CustomInstanceCommands<T> {
     /**
      * add command to `browser` or `element` scope
      */
-    addCommand<IsElement extends boolean = false>(
+    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
         name: string,
-        func: AddCommandFn | AddCommandFnScoped<T, IsElement>,
+        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Instances>
     ): void;
 
     /**
@@ -220,10 +236,10 @@ export interface CustomInstanceCommands<T> {
      */
     overwriteCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = false>(
         name: IsElement extends true ? ElementKey : BrowserKey,
-        func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
+        func: IsElement extends true ? OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement> : OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Instances>
     ): void;
 
     /**
@@ -273,7 +289,7 @@ export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Webdri
     capabilities: WebdriverIO.Capabilities
 }
 
-type WebdriverIOEventMap = EventMap & {
+export type WebdriverIOEventMap = EventMap & {
     'dialog': WebdriverIO.Dialog
 }
 
@@ -452,7 +468,7 @@ export interface ActionParameter {
     actions: Action[]
 }
 
-export type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
+export type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release'
 export interface TouchAction {
     action: ActionTypes,
     x?: number,
@@ -460,8 +476,8 @@ export interface TouchAction {
     element?: WebdriverIO.Element,
     ms?: number
 }
-export type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
-export type TouchActions = TouchActionParameter | TouchActionParameter[];
+export type TouchActionParameter = string | string[] | TouchAction | TouchAction[]
+export type TouchActions = TouchActionParameter | TouchActionParameter[]
 
 export type Matcher = {
     name: string,
@@ -470,8 +486,8 @@ export type Matcher = {
 }
 
 export type ReactSelectorOptions = {
-    props?: object,
-    state?: any[] | number | string | object | boolean
+    props?: Record<string, unknown>
+    state?: Record<string, unknown>
 }
 
 export type MoveToOptions = {
@@ -484,15 +500,30 @@ export type DragAndDropOptions = {
 }
 
 export type NewWindowOptions = {
+    type?: 'tab' | 'window',
     windowName?: string,
     windowFeatures?: string
 }
 
-export type ClickOptions = {
-    button: Button | ButtonNames,
+export type TapOptions = MobileScrollIntoViewOptions & {
+    x?: number,
+    y?: number
+}
+
+export type LongPressOptions = {
     x: number,
     y: number,
-    skipRelease:boolean
+    duration: number
+}
+
+export type ClickOptions = LongPressOptions & {
+    button: Button | ButtonNames,
+    skipRelease: boolean
+}
+
+export type PinchAndZoomOptions = {
+    duration: number
+    scale: number,
 }
 
 export type WaitForOptions = {
@@ -501,6 +532,92 @@ export type WaitForOptions = {
     timeoutMsg?: string,
     reverse?: boolean,
     withinViewport?: boolean
+}
+
+export enum MobileScrollDirection {
+    Down = 'down',
+    Up = 'up',
+    Left = 'left',
+    Right = 'right',
+}
+
+export type XY = {
+    x: number,
+    y: number
+}
+
+export type SwipeOptions = {
+    direction?: `${MobileScrollDirection}`;
+    duration?: number;
+    from?: XY;
+    percent?: number;
+    scrollableElement?: WebdriverIO.Element | ChainablePromiseElement ;
+    to?: XY;
+}
+
+export type MobileScrollIntoViewOptions = SwipeOptions & {
+    maxScrolls?: number;
+}
+
+export interface CustomScrollIntoViewOptions extends ScrollIntoViewOptions, MobileScrollIntoViewOptions {
+}
+
+export type SwitchContextOptions = {
+    appIdentifier?: string;
+    title?: string | RegExp;
+    url?: string | RegExp;
+
+    // Extra for the getContexts command for Android
+    androidWebviewConnectionRetryTime?: number;
+    androidWebviewConnectTimeout?: number;
+}
+
+type AppiumDetailedContextInterface = {
+    id: string;
+    title?: string;
+    url?: string;
+}
+
+type IosContextBundleId  = {
+    bundleId?: string;
+}
+
+export type IosDetailedContext = AppiumDetailedContextInterface & IosContextBundleId
+
+export type AndroidDetailedContext = AppiumDetailedContextInterface & {
+    androidWebviewData?: {
+        attached: boolean;
+        empty: boolean;
+        height: number;
+        neverAttached: boolean;
+        screenX: number;
+        screenY: number;
+        visible: boolean;
+        width: number;
+    };
+    packageName?: string;
+    webviewPageId?: string;
+}
+
+export type AppiumDetailedCrossPlatformContexts = (IosDetailedContext | AndroidDetailedContext)[]
+
+export type GetContextsOptions = {
+    androidWebviewConnectionRetryTime?: number;
+    androidWebviewConnectTimeout?: number;
+    filterByCurrentAndroidApp?: boolean;
+    isAndroidWebviewVisible?: boolean;
+    returnAndroidDescriptionData?: boolean;
+    returnDetailedContexts?: boolean;
+}
+
+export type ActiveAppInfo = {
+    pid: number;
+    bundleId: string;
+    name: string;
+    processArguments: {
+        args: string[];
+        env: Record<string, string>;
+    };
 }
 
 export type WaitUntilOptions = {
@@ -536,6 +653,56 @@ export interface ExtendedElementReference {
 
 export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock' | 'device'
 export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
+
+export interface SaveScreenshotOptions {
+    /**
+     * Whether to take a screenshot of the full page or just the current viewport.
+     * @default false
+     */
+    fullPage?: boolean
+    /**
+     * The format of the screenshot.
+     * @default 'png'
+     */
+    format?: 'png' | 'jpeg' | 'jpg'
+    /**
+     * The quality of the screenshot in case of JPEG format in range 0-100 percent.
+     * @default 100
+     */
+    quality?: number
+    /**
+     * Clipping a rectangle of the screenshot.
+     */
+    clip?: {
+        x: number
+        y: number
+        width: number
+        height: number
+    }
+}
+
+export type TransformElement<T> =
+    T extends WebdriverIO.Element ? HTMLElement :
+        T extends ChainablePromiseElement ? HTMLElement :
+            T extends WebdriverIO.Element[] ? HTMLElement[] :
+                T extends ChainablePromiseArray ? HTMLElement[] :
+                    T extends [infer First, ...infer Rest] ? [TransformElement<First>, ...TransformElement<Rest>] :
+                        T extends Array<infer U> ? Array<TransformElement<U>> :
+                            T
+
+export type TransformReturn<T> =
+    T extends HTMLElement ? WebdriverIO.Element :
+        T extends HTMLElement[] ? WebdriverIO.Element[] :
+            T extends [infer First, ...infer Rest] ? [TransformReturn<First>, ...TransformReturn<Rest>] :
+                T extends Array<infer U> ? Array<TransformReturn<U>> :
+                    T
+
+/**
+ * Additional options outside of the WebDriver spec, exclusively for WebdriverIO, only for runtime, and not sent to Appium
+ */
+export interface InputOptions {
+    mask?: boolean
+}
 
 declare global {
     namespace WebdriverIO {

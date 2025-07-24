@@ -105,7 +105,7 @@ await clock.restore()
 console.log(await browser.execute(() => (new Date()).toString()))
 // returns "Thu Aug 01 2024 17:59:59 GMT-0700 (Pacific Daylight Time)"
 
-await browser.url('http://guinea-pig.webdriver.io/pointer.html')
+await browser.url('https://guinea-pig.webdriver.io/pointer.html')
 console.log(await browser.execute(() => (new Date()).toString()))
 // returns "Thu Aug 01 2024 17:59:59 GMT-0700 (Pacific Daylight Time)"
 ```
@@ -155,7 +155,7 @@ The `emulate` command also supports emulating a certain mobile or desktop device
 For example, to switch the user agent and viewport to an iPhone 15, just run:
 
 ```ts
-const restore = await browser.emulate('iPhone 15')
+const restore = await browser.emulate('device', 'iPhone 15')
 // test your application ...
 
 // reset to original viewport and user agent

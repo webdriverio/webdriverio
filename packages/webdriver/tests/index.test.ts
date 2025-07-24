@@ -5,9 +5,12 @@ import logger, { logMock } from '@wdio/logger'
 import { sessionEnvironmentDetector } from '@wdio/utils'
 import { startWebDriver } from '@wdio/utils'
 
+import '../src/browser.js'
+
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
 import { initCount } from '../src/bidi/core.js'
+import * as utils from '../src/utils.js'
 import type { Client } from '../src/types.js'
 
 vi.mock('geckodriver', () => ({ start: vi.fn() }))
@@ -26,6 +29,9 @@ vi.mock('../src/bidi/core.js', () => {
             connect = vi.fn().mockResolvedValue({})
             constructor () {
                 ++initCount
+            }
+            waitForConnected() {
+                return Promise.resolve()
             }
             get socket () {
                 return {
@@ -90,13 +96,10 @@ describe('WebDriver', () => {
                     capabilities: {
                         alwaysMatch: {
                             browserName: 'firefox',
-                            webSocketUrl: true
+                            webSocketUrl: true,
+                            unhandledPromptBehavior: 'ignore'
                         },
                         firstMatch: [{}]
-                    },
-                    desiredCapabilities: {
-                        browserName: 'firefox',
-                        webSocketUrl: true
                     }
                 }) })
             )
@@ -117,13 +120,10 @@ describe('WebDriver', () => {
                     capabilities: {
                         alwaysMatch: {
                             browserName: 'firefox',
-                            webSocketUrl: true
+                            webSocketUrl: true,
+                            unhandledPromptBehavior: 'ignore'
                         },
                         firstMatch: [{}]
-                    },
-                    desiredCapabilities: {
-                        browserName: 'firefox',
-                        webSocketUrl: true
                     }
                 }) })
             )
@@ -161,18 +161,38 @@ describe('WebDriver', () => {
         })
 
         it('attaches bidi handler if socket url is given', async () => {
+            const wid = process.env.WDIO_UNIT_TESTS
+            delete process.env.WDIO_UNIT_TESTS
             vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl: 'ws://foo/bar' } }))
             await WebDriver.newSession({
                 path: '/',
                 capabilities: { browserName: 'firefox' }
             })
             expect(initCount()).toBe(1)
+            process.env.WDIO_UNIT_TESTS = wid
+        })
+
+        it('should call "initiateBidi" with correct arguments', async () => {
+            const webSocketUrl = 'ws://foo/bar'
+            const strictSSL = true
+            const headers = { 'Authorization': 'OAuth 12345' }
+
+            vi.spyOn(utils, 'initiateBidi')
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl } }))
+            await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' },
+                strictSSL,
+                headers
+            })
+
+            expect(utils.initiateBidi).toHaveBeenCalledWith(webSocketUrl, strictSSL, headers)
         })
     })
 
     describe('attachToSession', () => {
         it('should allow to attach to existing session', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as any as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as unknown as TestClient
             await client.getUrl()
             expect(fetch).toHaveBeenCalledWith(
                 expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
@@ -182,7 +202,7 @@ describe('WebDriver', () => {
         })
 
         it('should allow to attach to existing session2', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions }) as unknown as TestClient
             await client.getUrl()
             expect(fetch).toHaveBeenCalledWith(
                 expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
@@ -192,7 +212,7 @@ describe('WebDriver', () => {
         })
 
         it('should allow to attach to existing session - W3C', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions }) as unknown as TestClient
             await client.getUrl()
 
             expect(client.isChromium).toBeFalsy()
@@ -207,7 +227,7 @@ describe('WebDriver', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isChromium: true,
                 isMobile: true
-            }) as any as TestClient
+            }) as unknown as TestClient
 
             await client.getUrl()
 
@@ -225,7 +245,9 @@ describe('WebDriver', () => {
                 isIOS: false,
                 isAndroid: false,
                 isChromium: false,
-                isSauce: false
+                isSauce: false,
+                isWindowsApp: false,
+                isMacApp: false
             })
             expect(client.isW3C).toBe(false)
             expect(client.isMobile).toBe(false)
@@ -233,6 +255,8 @@ describe('WebDriver', () => {
             expect(client.isAndroid).toBe(false)
             expect(client.isChromium).toBe(false)
             expect(client.isSauce).toBe(false)
+            expect(client.isWindowsApp).toBe(false)
+            expect(client.isMacApp).toBe(false)
 
             const anotherClient = WebDriver.attachToSession({ ...sessionOptions,
                 isW3C: true,
@@ -240,7 +264,9 @@ describe('WebDriver', () => {
                 isIOS: true,
                 isAndroid: true,
                 isChromium: true,
-                isSauce: true
+                isSauce: true,
+                isWindowsApp: true,
+                isMacApp: true
             })
             expect(anotherClient.isW3C).toBe(true)
             expect(anotherClient.isMobile).toBe(true)
@@ -248,6 +274,8 @@ describe('WebDriver', () => {
             expect(anotherClient.isAndroid).toBe(true)
             expect(anotherClient.isChromium).toBe(true)
             expect(anotherClient.isSauce).toBe(true)
+            expect(anotherClient.isWindowsApp).toBe(true)
+            expect(anotherClient.isMacApp).toBe(true)
         })
 
         it('should apply default connection details', () => {
@@ -265,7 +293,7 @@ describe('WebDriver', () => {
                     'appium:automationName': 'foo',
                     'platformName': 'ios',
                 }
-            }) as any as TestClient
+            }) as unknown as TestClient
             expect(client.isMobile).toBe(true)
             expect(client.isLocked).toBeTruthy()
             expect(client.shake).toBeTruthy()

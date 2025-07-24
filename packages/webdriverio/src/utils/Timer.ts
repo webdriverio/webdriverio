@@ -11,6 +11,7 @@ const NOOP = () => {}
  * @return {promise} Promise-based Timer.
  */
 class Timer {
+    #retPromise: Promise<boolean>
     private _conditionExecutedCnt = 0
     private _resolve: Function = NOOP
     private _reject: Function = NOOP
@@ -25,16 +26,23 @@ class Timer {
         private _delay: number,
         private _timeout: number,
         private _fn: Function,
-        private _leading = false
+        private _leading = false,
+        private _signal?: AbortSignal
     ) {
-        const retPromise = new Promise<boolean>((resolve, reject) => {
+        this.#retPromise = new Promise<boolean>((resolve, reject) => {
             this._resolve = resolve
             this._reject = reject
         })
 
         this._start()
+    }
 
-        return retPromise as any
+    then (thennable?: (result: boolean) => void, catchable?: (reason: Error) => boolean) {
+        return this.#retPromise.then(thennable, catchable)
+    }
+
+    catch<ReturnValue> (catchable?: (reason: Error) => ReturnValue): Promise<ReturnValue> {
+        return this.#retPromise.catch(catchable) as Promise<ReturnValue>
     }
 
     private _start () {
@@ -43,6 +51,10 @@ class Timer {
             this._tick()
         } else {
             this._timeoutId = setTimeout(this._tick.bind(this), this._delay)
+        }
+
+        if (this._wasConditionExecuted()) {
+            return
         }
 
         this._mainTimeoutId = setTimeout(() => {
@@ -73,25 +85,41 @@ class Timer {
     }
 
     private _tick () {
-        const result = this._fn()
+        try {
+            const result = this._fn()
 
-        if (typeof result.then !== 'function') {
             if (!result) {
                 return this._checkCondition(new Error(TIMEOUT_ERROR))
             }
 
-            return this._checkCondition(undefined, result)
-        }
+            if (typeof result.then !== 'function') {
+                return this._checkCondition(undefined, result)
+            }
 
-        result.then(
-            (res: any) => this._checkCondition(undefined, res),
-            (err: Error) => this._checkCondition(err)
-        )
+            result.then(
+                (res: unknown) => this._checkCondition(undefined, res),
+                (err: Error) => this._checkCondition(err)
+            )
+        } catch (err) {
+            return this._checkCondition(err as Error)
+        }
     }
 
-    private _checkCondition (err?: Error, res?: any) {
-        ++this._conditionExecutedCnt
+    private _checkCondition (err?: Error, res?: unknown) {
         this._lastError = err
+
+        /**
+         * If the signal is aborted, reject the promise with the last error or a new error
+         * and stop the timer
+         */
+        if (this._signal?.aborted) {
+            this._reject(this._lastError || new Error('Aborted'))
+            this._stop()
+            this._stopMain()
+            return
+        }
+
+        ++this._conditionExecutedCnt
 
         // resolve timer only on truthy values
         if (res) {

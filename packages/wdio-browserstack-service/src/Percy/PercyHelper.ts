@@ -8,14 +8,14 @@ import type { Options } from '@wdio/types'
 import { PercyLogger } from './PercyLogger.js'
 import Percy from './Percy.js'
 
-export const startPercy = async (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig): Promise<Percy> => {
+export const startPercy = async (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig): Promise<Percy|undefined> => {
     PercyLogger.debug('Starting percy')
     const percy = new Percy(options, config, bsConfig)
     const response = await percy.start()
     if (response) {
         return percy
     }
-    return ({} as Percy)
+    return undefined
 }
 
 export const stopPercy = async (percy: Percy) => {
@@ -23,12 +23,12 @@ export const stopPercy = async (percy: Percy) => {
     return percy.stop()
 }
 
-export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.TestrunnerCapabilities) : any => {
+export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.TestrunnerCapabilities) => {
     try {
-        const percyBrowserPreference: any = { 'chrome': 0, 'firefox': 1, 'edge': 2, 'safari': 3 }
+        const percyBrowserPreference = { 'chrome': 0, 'firefox': 1, 'edge': 2, 'safari': 3 }
 
-        let bestPlatformCaps: any = null
-        let bestBrowser: any = null
+        let bestPlatformCaps: WebdriverIO.Capabilities | undefined
+        let bestBrowser: string | undefined
 
         if (Array.isArray(capabilities)) {
             capabilities
@@ -46,10 +46,11 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Test
                     if (capability['bstack:options']) {
                         currBrowserName = capability['bstack:options'].browserName || currBrowserName
                     }
+                    // @ts-expect-error
                     if (!bestBrowser || !bestPlatformCaps || (bestPlatformCaps.deviceName || bestPlatformCaps['bstack:options']?.deviceName)) {
                         bestBrowser = currBrowserName
                         bestPlatformCaps = capability
-                    } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase()] < percyBrowserPreference[bestBrowser.toLowerCase()]) {
+                    } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase() as keyof typeof percyBrowserPreference] < percyBrowserPreference[bestBrowser.toLowerCase() as keyof typeof percyBrowserPreference]) {
                         bestBrowser = currBrowserName
                         bestPlatformCaps = capability
                     }
@@ -61,17 +62,18 @@ export const getBestPlatformForPercySnapshot = (capabilities?: Capabilities.Test
                 if ((caps.capabilities as WebdriverIO.Capabilities)['bstack:options']) {
                     currBrowserName = (caps.capabilities as WebdriverIO.Capabilities)['bstack:options']?.browserName || currBrowserName
                 }
+                // @ts-expect-error
                 if (!bestBrowser || !bestPlatformCaps || (bestPlatformCaps.deviceName || bestPlatformCaps['bstack:options']?.deviceName)) {
                     bestBrowser = currBrowserName
                     bestPlatformCaps = (caps.capabilities as WebdriverIO.Capabilities)
-                } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase()] < percyBrowserPreference[bestBrowser.toLowerCase()]) {
+                } else if (currBrowserName && percyBrowserPreference[currBrowserName.toLowerCase() as keyof typeof percyBrowserPreference] < percyBrowserPreference[bestBrowser.toLowerCase() as keyof typeof percyBrowserPreference]) {
                     bestBrowser = currBrowserName
                     bestPlatformCaps = (caps.capabilities as WebdriverIO.Capabilities)
                 }
             })
             return bestPlatformCaps
         }
-    } catch (err: any) {
+    } catch (err) {
         PercyLogger.error(`Error while trying to determine best platform for Percy snapshot ${err}`)
         return null
     }

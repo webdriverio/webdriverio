@@ -1,6 +1,5 @@
 import path from 'node:path'
 import assert from 'node:assert'
-import type { Options } from '@wdio/types'
 
 describe('Mocha smoke test', () => {
     const testJs = path.join('tests', 'mocha', 'test.ts')
@@ -30,7 +29,7 @@ describe('Mocha smoke test', () => {
     })
 
     it('has a testrunner config object', () => {
-        const opts = browser.options as Options.Testrunner
+        const opts = browser.options as WebdriverIO.Config
         expect(Array.isArray(opts.services)).toBe(true)
         expect(opts).toHaveProperty('mochaOpts')
         expect(opts).toHaveProperty('jasmineOpts')
@@ -129,7 +128,7 @@ describe('Mocha smoke test', () => {
                 await elem.click()
                 return false
             }, { timeout: 1000 })
-        } catch (err) {
+        } catch {
             // ignored
         }
         assert.equal(JSON.stringify(await elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
@@ -338,9 +337,9 @@ describe('Mocha smoke test', () => {
         it('should throw if promise rejects', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('deleteCookies', (async (origCommand: Function, fail: boolean) => {
-                const result = await origCommand()
-                return fail ? Promise.reject(new Error(result)) : result
+            browser.overwriteCommand('deleteCookies', (async (origCommand: Function) => {
+                await origCommand()
+                return Promise.reject(new Error('deleteAllCookies'))
             }) as any)
 
             await assert.rejects(
@@ -362,9 +361,9 @@ describe('Mocha smoke test', () => {
         it('should throw if promise rejects (async execution)', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('deleteCookies', async (origCommand, fail) => {
-                const result = (await origCommand()) as any as string
-                return fail ? Promise.reject(new Error(result)) : result
+            browser.overwriteCommand('deleteCookies', async (origCommand: Function) => {
+                await origCommand()
+                return Promise.reject(new Error('deleteAllCookies'))
             })
 
             await assert.rejects(
@@ -408,5 +407,36 @@ describe('Mocha smoke test', () => {
             await browser.refetchElementScenario()
             expect(await browser.$$('.foo')[3].getText()).toBe('some element text 4')
         })
+    })
+
+    describe('request retries', () => {
+        it('should retry request', async () => {
+            // @ts-expect-error mock feature
+            await browser.requestRetryScenario()
+            await browser.url('https://mymockpage.com')
+        })
+    })
+
+    describe('waitForExist', () => {
+        it('should return true if element exists', async () => {
+            // @ts-expect-error custom command
+            await browser.waitForExistScenario()
+            const elem = await $('elem')
+            expect(elem.error).toBeDefined()
+            expect(elem.elementId).toBeUndefined()
+            expect(await elem.waitForExist()).toBe(true)
+            expect(elem.error).toBeUndefined()
+            expect(elem.elementId).toBeDefined()
+        })
+    })
+
+    it('supports inline snapshots', () => {
+        expect({ deep: { foo: 'bar' } }).toMatchInlineSnapshot(`
+          {
+            "deep": {
+              "foo": "bar",
+            },
+          }
+        `)
     })
 })

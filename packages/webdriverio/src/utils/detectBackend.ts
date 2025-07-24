@@ -10,10 +10,7 @@ const REGION_MAPPING = {
     'us': 'us-west-1.', // default endpoint
     'eu': 'eu-central-1.',
     'eu-central-1': 'eu-central-1.',
-    'us-east-1': 'us-east-1.',
     'us-east-4': 'us-east-4.',
-    'apac': 'apac-southeast-1.',
-    'apac-southeast-1': 'apac-southeast-1',
 }
 
 interface BackendConfigurations {
@@ -23,7 +20,6 @@ interface BackendConfigurations {
     key?: string
     protocol?: string
     region?: Options.SauceRegions
-    headless?: boolean
     path?: string
     capabilities?: Capabilities.RequestedStandaloneCapabilities
 }
@@ -46,7 +42,7 @@ function getSauceEndpoint (
  * helper to detect the Selenium backend according to given capabilities
  */
 export default function detectBackend(options: BackendConfigurations = {}) {
-    const { port, hostname, user, key, protocol, region, headless, path, capabilities } = options
+    const { port, hostname, user, key, protocol, region, path, capabilities } = options
 
     /**
      * browserstack
@@ -86,8 +82,7 @@ export default function detectBackend(options: BackendConfigurations = {}) {
         // Or only RDC or visual
         isVisual
     ) {
-        // Sauce headless is currently only in us-east-1
-        const sauceRegion = headless ? 'us-east-1' : region as keyof typeof REGION_MAPPING
+        const sauceRegion = region as keyof typeof REGION_MAPPING
 
         return {
             protocol: protocol || 'https',

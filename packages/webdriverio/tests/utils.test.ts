@@ -11,8 +11,6 @@ import {
     findElements,
     verifyArgsAndStripIfElement,
     getElementRect,
-    getAbsoluteFilepath,
-    assertDirectoryExists,
     validateUrl
 } from '../src/utils/index.js'
 
@@ -164,8 +162,11 @@ describe('utils', () => {
                 findElementFromElement: vi.fn(),
                 findElements: vi.fn(),
                 findElement: vi.fn(),
-                execute: vi.fn()
-            } as any as WebdriverIO.Element
+                execute: vi.fn(),
+                executeScript: vi.fn(),
+                on: vi.fn(),
+                removeAllListeners: vi.fn()
+            } as unknown as WebdriverIO.Element
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -193,20 +194,20 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
+            vi.mocked(scope.executeScript).mockResolvedValue(elementResponse)
             const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
-            expect(scope.execute).toBeCalled()
+            expect(scope.executeScript).toBeCalled()
             expect(elem[ELEMENT_KEY]).toBe('foobar')
-            expect(vi.mocked(scope.execute).mock.calls[0][1]).toEqual(scope)
+            expect(vi.mocked(scope.executeScript).mock.calls[0][1]).toEqual([scope])
         })
 
         it('should return only one element if multiple are returned', async () => {
             vi.mocked(scope.execute).mockResolvedValue(elementsResponse)
             const elem = await findElement.call(
                 scope as any,
-                (() => { return global.document.body as any as ElementReference }) as any
+                (() => { return global.document.body as unknown as ElementReference }) as any
             ) as Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
@@ -222,11 +223,14 @@ describe('utils', () => {
         })
 
         it('throws if selector is neither string nor function', async () => {
-            const expectedMatch = 'selector needs to be typeof `string` or `function`'
-            await expect(findElement.call(scope as any, null)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElement.call(scope as any, 123)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElement.call(scope as any, false)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElement.call(scope as any)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElement.call(scope as any, null)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `object`'))
+            await expect(findElement.call(scope as any, 123)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `number`'))
+            await expect(findElement.call(scope as any, false)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `boolean`'))
+            await expect(findElement.call(scope as any)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `undefined`'))
         })
 
         it('should use execute if shadow selector is used', async () => {
@@ -235,7 +239,7 @@ describe('utils', () => {
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 false,
                 '.foobar',
                 undefined
@@ -250,7 +254,7 @@ describe('utils', () => {
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 false,
                 '.foobar',
                 scope
@@ -274,8 +278,9 @@ describe('utils', () => {
                 findElementFromElement: vi.fn(),
                 findElements: vi.fn(),
                 findElement: vi.fn(),
-                execute: vi.fn()
-            } as any as WebdriverIO.Element
+                execute: vi.fn(),
+                executeScript: vi.fn()
+            } as unknown as WebdriverIO.Element
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -304,14 +309,14 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
+            vi.mocked(scope.executeScript).mockResolvedValue(elementResponse)
             const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
-            expect(scope.execute).toBeCalled()
+            expect(scope.executeScript).toBeCalled()
             expect(elem).toHaveLength(1)
             expect(elem[0][ELEMENT_KEY]).toBe('foobar')
-            expect(vi.mocked(scope.execute).mock.calls[0][1]).toEqual(scope)
+            expect(vi.mocked(scope.executeScript).mock.calls[0][1]).toEqual([scope])
         })
 
         it('should return multiple elements if multiple are returned', async () => {
@@ -339,11 +344,14 @@ describe('utils', () => {
         })
 
         it('throws if selector is neither string nor function', async () => {
-            const expectedMatch = 'selector needs to be typeof `string` or `function`'
-            await expect(findElements.call(scope, null)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElements.call(scope, 123)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElements.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElements.call(scope)).rejects.toEqual(new Error(expectedMatch))
+            await expect(findElements.call(scope, null)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `object`'))
+            await expect(findElements.call(scope, 123)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `number`'))
+            await expect(findElements.call(scope, false)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `boolean`'))
+            await expect(findElements.call(scope)).rejects.toEqual(
+                new Error('selector needs to be typeof `string` or `function`, but found: `undefined`'))
         })
 
         it('fetches element using a function with browser scope', async () => {
@@ -352,7 +360,7 @@ describe('utils', () => {
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 true,
                 '.foobar',
                 undefined
@@ -368,7 +376,7 @@ describe('utils', () => {
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(String),
+                expect.any(Function),
                 true,
                 '.foobar',
                 scope
@@ -435,7 +443,7 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: vi.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
                 execute: vi.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
-            } as any as WebdriverIO.Element
+            } as unknown as WebdriverIO.Element
             expect(await getElementRect(fakeScope as any)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()
@@ -446,41 +454,10 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: vi.fn(() => Promise.resolve({ x: 10, y: 0, width: 300, height: 400 })),
                 execute: vi.fn(() => Promise.reject(new Error('Method is not implemented')))
-            } as any as WebdriverIO.Element
+            } as unknown as WebdriverIO.Element
             expect(await getElementRect(fakeScope as any)).toEqual({ x: 10, y: 0, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).not.toHaveBeenCalled()
-        })
-    })
-
-    describe('getAbsoluteFilepath', () => {
-        it('should not change filepath if starts with forward slash', () => {
-            const filepath = '/packages/bar.png'
-            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
-        })
-
-        it('should not change filepath if starts with backslash slash', () => {
-            const filepath = '\\packages\\bar.png'
-            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
-        })
-
-        it('should not change filepath if starts with windows drive letter', async () => {
-            const filepath = 'E:\\foo\\bar.png'
-            expect(getAbsoluteFilepath(filepath)).toEqual(filepath)
-        })
-
-        it('should change filepath if does not start with forward or back slash', async () => {
-            const filepath = 'packages/bar.png'
-            expect(getAbsoluteFilepath(filepath)).toEqual(path.join(process.cwd(), 'packages/bar.png'))
-        })
-    })
-
-    describe('assertDirectoryExists', () => {
-        it('should fail if not existing directory', async () => {
-            await expect(() => assertDirectoryExists('/i/dont/exist.png')).rejects.toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
-        })
-        it('should not fail if directory exists', async () => {
-            expect(await assertDirectoryExists('.')).toBe(undefined)
         })
     })
 

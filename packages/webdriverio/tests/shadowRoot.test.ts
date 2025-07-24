@@ -1,11 +1,13 @@
 import { describe, it, vi, expect, beforeEach } from 'vitest'
 
-import { getShadowRootManager, ShadowRootTree } from '../src/shadowRoot.js'
+import { getShadowRootManager, ShadowRootTree } from '../src/session/shadowRoot.js'
 
 const defaultBrowser = {
+    sessionId: '123',
     sessionSubscribe: vi.fn().mockResolvedValue({}),
     on: vi.fn(),
     scriptAddPreloadScript: vi.fn(),
+    capabilities: {}
 }
 
 describe('ShadowRootManager', () => {
@@ -24,32 +26,35 @@ describe('ShadowRootManager', () => {
     })
 
     it('registers correct event listeners', async () => {
-        const wid = process.env.VITEST_WORKER_ID
-        delete process.env.VITEST_WORKER_ID
-        const browser = { ...defaultBrowser, isBidi: true, options: { automationProtocol: 'webdriver' } } as any
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const browser = { ...defaultBrowser, isBidi: true, options: { capabilities: { webSocketUrl: './' } } } as any
+        browser.sessionId = '234'
         const manager = getShadowRootManager(browser)
-        process.env.VITEST_WORKER_ID = wid
+        process.env.WDIO_UNIT_TESTS = wid
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(1)
-        expect(browser.on).toBeCalledTimes(2)
+        expect(browser.on).toBeCalledTimes(4)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(1)
     })
 
     it('should not register event listeners if not in bidi mode', async () => {
         const browser = { ...defaultBrowser } as any
+        browser.sessionId = '345'
         const manager = getShadowRootManager(browser)
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(0)
-        expect(browser.on).toBeCalledTimes(0)
+        expect(browser.on).toBeCalledTimes(1)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(0)
     })
 
     it('should not register event listeners if not using webdriver as automation protocol', async () => {
         const browser = { ...defaultBrowser, isBidi: true, automationProtocol: './protocol-stub.js' } as any
+        browser.sessionId = '456'
         const manager = getShadowRootManager(browser)
         expect(await manager.initialize()).toBe(true)
         expect(browser.sessionSubscribe).toBeCalledTimes(0)
-        expect(browser.on).toBeCalledTimes(0)
+        expect(browser.on).toBeCalledTimes(1)
         expect(browser.scriptAddPreloadScript).toBeCalledTimes(0)
     })
 
@@ -123,6 +128,10 @@ describe('ShadowRootTree', () => {
     root.addShadowElement('8', new ShadowRootTree('10', '11'))
     root.addShadowElement('8', new ShadowRootTree('12', '13'))
     root.addShadowElement('12', new ShadowRootTree('14', '15'))
+    root.addShadowElement(new ShadowRootTree('16', '17'))
+    root.addShadowElement('16', new ShadowRootTree('18', '19'))
+    root.addShadowElement('16', new ShadowRootTree('18', '19'))
+    root.addShadowElement('18', new ShadowRootTree('20', '21'))
 
     it('can find the root of a tree', () => {
         const tree = root.find('8')
@@ -148,6 +157,10 @@ describe('ShadowRootTree', () => {
             "13",
             "15",
             "7",
+            "17",
+            "19",
+            "21",
+            "19",
           ]
         `)
         expect(root.find('8')?.getAllLookupScopes()).toMatchInlineSnapshot(`
@@ -170,6 +183,22 @@ describe('ShadowRootTree', () => {
             "3",
             "5",
             "7",
+            "17",
+            "19",
+            "21",
+            "19",
+          ]
+        `)
+    })
+
+    it('can delete children in the right order', () => {
+        expect(root.remove('18')).toBe(true)
+        const child = root.find('16')
+        expect(child?.getAllLookupScopes()).toMatchInlineSnapshot(`
+          [
+            "17",
+            "19",
+            "21",
           ]
         `)
     })

@@ -1,23 +1,20 @@
 import type { EventEmitter } from 'node:events'
 import { deepmergeCustom } from 'deepmerge-ts'
 
-import logger from '@wdio/logger'
-import type { Protocol } from '@wdio/protocols'
+import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
+import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
-import { transformCommandLogResult } from '@wdio/utils'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
-import Request from './request/request.js'
 import command from './command.js'
+import { environment } from './environment.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
-import { REG_EXPS } from './constants.js'
-import type { WebDriverResponse } from './request/index.js'
-import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig } from './types.js'
+import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig, CommandRuntimeOptions } from './types.js'
 
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })
@@ -29,17 +26,105 @@ const BROWSER_DRIVER_ERRORS = [
     'Command not found' // iedriver
 ]
 
+interface SessionInitializationResponse {
+    value: {
+        sessionId?: string,
+        capabilities?: WebdriverIO.Capabilities
+    },
+    sessionId: string
+}
+
 /**
  * start browser session with WebDriver protocol
  */
 export async function startWebDriverSession (params: RemoteConfig): Promise<{ sessionId: string, capabilities: WebdriverIO.Capabilities }> {
     /**
+     * the user could have passed in either w3c style or jsonwp style caps
+     * and we want to pass both styles to the server, which means we need
+     * to check what style the user sent in so we know how to construct the
+     * object for the other style
+     */
+    const capabilities = params.capabilities && 'alwaysMatch' in params.capabilities
+        /**
+         * in case W3C compliant capabilities are provided
+         */
+        ? params.capabilities
+        /**
+         * otherwise assume they passed in jsonwp-style caps (flat object)
+         */
+        : { alwaysMatch: params.capabilities, firstMatch: [{}] }
+
+    /**
+     * automatically opt-into WebDriver Bidi (@ref https://w3c.github.io/webdriver-bidi/)
+     */
+    if (
+        /**
+         * except, if user does not want to opt-in
+         */
+        !capabilities.alwaysMatch['wdio:enforceWebDriverClassic'] &&
+        /**
+         * or user requests a Safari session which does not support Bidi
+         */
+        typeof capabilities.alwaysMatch.browserName === 'string' &&
+        capabilities.alwaysMatch.browserName.toLowerCase() !== 'safari'
+    ) {
+        /**
+         * opt-into WebDriver Bidi
+         */
+        capabilities.alwaysMatch.webSocketUrl = true
+        /**
+         * allow WebdriverIO to handle alerts
+         */
+        capabilities.alwaysMatch.unhandledPromptBehavior = 'ignore'
+    }
+
+    validateCapabilities(capabilities.alwaysMatch)
+    const sessionRequest = new environment.value.Request(
+        'POST',
+        '/session',
+        { capabilities }
+    )
+
+    let response: SessionInitializationResponse
+    try {
+        response = await sessionRequest.makeRequest(params) as SessionInitializationResponse
+    } catch (err) {
+        log.error(err)
+        const message = getSessionError(err as Error, params)
+        throw new Error(message)
+    }
+    const sessionId = response.value.sessionId || response.sessionId
+
+    /**
+     * save actual received session details
+     */
+    params.capabilities = (response.value.capabilities || response.value) as WebdriverIO.Capabilities
+
+    return { sessionId, capabilities: params.capabilities }
+}
+
+/**
+ * Validates the given WebdriverIO capabilities.
+ *
+ * @param {WebdriverIO.Capabilities} capabilities - The capabilities to validate.
+ * @throws {Error} If the capabilities contain incognito mode.
+ */
+export function validateCapabilities (capabilities: WebdriverIO.Capabilities) {
+    const chromeArgs = capabilities['goog:chromeOptions']?.args || []
+    if (chromeArgs.includes('incognito') || chromeArgs.includes('--incognito')) {
+        throw new Error(
+            'Please remove "incognito" from `"goog:chromeOptions".args` as it is not supported running Chrome with WebDriver. ' +
+            'WebDriver sessions are always incognito mode and do not persist across browser sessions.'
+        )
+    }
+
+    /**
      * validate capabilities to check if there are no obvious mix between
      * JSONWireProtocol and WebDriver protocol, e.g.
      */
-    if (params.capabilities) {
-        const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
-        const invalidWebDriverCaps = Object.keys(params.capabilities)
+    if (capabilities) {
+        const extensionCaps = Object.keys(capabilities).filter((cap) => cap.includes(':'))
+        const invalidWebDriverCaps = Object.keys(capabilities)
             .filter((cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'))
 
         /**
@@ -57,58 +142,6 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
             )
         }
     }
-
-    /**
-     * the user could have passed in either w3c style or jsonwp style caps
-     * and we want to pass both styles to the server, which means we need
-     * to check what style the user sent in so we know how to construct the
-     * object for the other style
-     */
-    const [w3cCaps, jsonwpCaps] = params.capabilities && 'alwaysMatch' in params.capabilities
-        /**
-         * in case W3C compliant capabilities are provided
-         */
-        ? [params.capabilities, params.capabilities.alwaysMatch]
-        /**
-         * otherwise assume they passed in jsonwp-style caps (flat object)
-         */
-        : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
-
-    /**
-     * automatically opt-into WebDriver Bid (@ref https://w3c.github.io/webdriver-bidi/)
-     */
-    if (!w3cCaps.alwaysMatch['wdio:enforceWebDriverClassic'] && typeof w3cCaps.alwaysMatch.browserName === 'string' && w3cCaps.alwaysMatch.browserName !== 'safari') {
-        w3cCaps.alwaysMatch.webSocketUrl = true
-    }
-    if (!jsonwpCaps['wdio:enforceWebDriverClassic'] && typeof jsonwpCaps.browserName === 'string' && jsonwpCaps.browserName !== 'safari') {
-        jsonwpCaps.webSocketUrl = true
-    }
-
-    const sessionRequest = new Request(
-        'POST',
-        '/session',
-        {
-            capabilities: w3cCaps, // W3C compliant
-            desiredCapabilities: jsonwpCaps // JSONWP compliant
-        }
-    )
-
-    let response
-    try {
-        response = await sessionRequest.makeRequest(params)
-    } catch (err: any) {
-        log.error(err)
-        const message = getSessionError(err, params)
-        throw new Error('Failed to create session.\n' + message)
-    }
-    const sessionId = response.value.sessionId || response.sessionId
-
-    /**
-     * save actual received session details
-     */
-    params.capabilities = (response.value.capabilities || response.value) as WebdriverIO.Capabilities
-
-    return { sessionId, capabilities: params.capabilities }
 }
 
 /**
@@ -117,11 +150,11 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
  * @param  {Object}  body       body payload of response
  * @return {Boolean}            true if request was successful
  */
-export function isSuccessfulResponse (statusCode?: number, body?: WebDriverResponse) {
+export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
     /**
      * response contains a body
      */
-    if (!body || typeof body.value === 'undefined') {
+    if (!body || typeof body !== 'object' || !('value' in body) || typeof body.value === 'undefined') {
         log.debug('request failed due to missing body')
         return false
     }
@@ -130,7 +163,8 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * ignore failing element request to enable lazy loading capability
      */
     if (
-        body.status === 7 && body.value && body.value.message &&
+        'status' in body && body.status === 7 && body.value && typeof body.value === 'object' &&
+        'message' in body.value && body.value.message && typeof body.value.message === 'string' &&
         (
             body.value.message.toLowerCase().startsWith('no such element') ||
             // Appium
@@ -146,12 +180,16 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * if it has a status property, it should be 0
      * (just here to stay backwards compatible to the jsonwire protocol)
      */
-    if (body.status && body.status !== 0) {
+    if ('status' in body && body.status && body.status !== 0) {
         log.debug(`request failed due to status ${body.status}`)
         return false
     }
 
-    const hasErrorResponse = body.value && (body.value.error || body.value.stackTrace || body.value.stacktrace)
+    const hasErrorResponse = body.value && (
+        (typeof body.value === 'object' && 'error' in body.value && body.value.error) ||
+        (typeof body.value === 'object' && 'stackTrace' in body.value && body.value.stackTrace) ||
+        (typeof body.value === 'object' && 'stacktrace' in body.value && body.value.stacktrace)
+    )
 
     /**
      * check status code
@@ -164,7 +202,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * if an element was not found we don't flag it as failed request because
      * we lazy load it
      */
-    if (statusCode === 404 && body.value && body.value.error === 'no such element') {
+    if (statusCode === 404 && typeof body.value === 'object' && body.value && 'error' in body.value && body.value.error === 'no such element') {
         return true
     }
 
@@ -172,7 +210,8 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * that has no error property (Appium only)
      */
     if (hasErrorResponse) {
-        log.debug('request failed due to response error:', body.value.error)
+        const errMsg = typeof body.value === 'object' && body.value && 'error' in body.value ? body.value.error : body.value
+        log.debug('request failed due to response error:', errMsg)
         return false
     }
 
@@ -184,6 +223,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
  */
 export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
@@ -191,6 +231,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
          * (e.g. set/get geolocation)
          */
         isMobile
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
             : WebDriverProtocol,
         /**
@@ -200,6 +241,7 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
         /**
          * only apply mobile protocol if session is actually for mobile
          */
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         isMobile ? deepmerge<any>(MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chromium commands if session is using Chrome or Edge
@@ -231,83 +273,12 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
 }
 
 /**
- * helper method to determine the error from webdriver response
- * @param  {Object} body body object
- * @return {Object} error
- */
-export function getErrorFromResponseBody (body: any, requestOptions: any) {
-    if (!body) {
-        return new Error('Response has empty body')
-    }
-
-    if (typeof body === 'string' && body.length) {
-        return new Error(body)
-    }
-
-    if (typeof body !== 'object') {
-        return new Error('Unknown error')
-    }
-
-    return new CustomRequestError(body, requestOptions)
-}
-
-//Exporting for testability
-export class CustomRequestError extends Error {
-    constructor (body: WebDriverResponse, requestOptions: any) {
-        const errorObj = body.value || body
-        /**
-         * e.g. in Firefox or Safari, error are following the following structure:
-         * ```
-         * {
-         *   value: {
-         *     error: '...',
-         *     message: '...',
-         *     stacktrace: '...'
-         *   }
-         * }
-         * ```
-         */
-        let errorMessage = errorObj.message || errorObj.error || errorObj.class || 'unknown error'
-
-        /**
-         * Improve Chromedriver's error message for an invalid selector
-         *
-         * Chrome:
-         *  error: 'invalid argument'
-         * message: 'invalid argument: invalid locator\n  (Session info: chrome=122.0.6261.94)'
-         * Firefox:
-         *  error: 'invalid selector'
-         *  message: 'Given xpath expression "//button" is invalid: NotSupportedError: Operation is not supported'
-         * Safari:
-         *  error: 'timeout'
-         *  message: ''
-         */
-        if (typeof errorMessage === 'string' && errorMessage.includes('invalid locator')) {
-            errorMessage = (
-                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid!`
-            )
-        }
-
-        super(errorMessage)
-        if (errorObj.error) {
-            this.name = errorObj.error
-        } else if (errorMessage && errorMessage.includes('stale element reference')) {
-            this.name = 'stale element reference'
-        } else {
-            this.name = errorObj.name || 'WebDriver Error'
-        }
-
-        Error.captureStackTrace(this, CustomRequestError)
-    }
-}
-
-/**
  * return all supported flags and return them in a format so we can attach them
  * to the instance protocol
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isBidi, isChromium }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -316,8 +287,19 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefo
         isFirefox: { value: isFirefox },
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone },
-        isBidi: { value: isBidi },
+        isBidi: {
+            /**
+             * Return the value of this flag dynamically based on whether the
+             * BidiHandler was able to connect to the `webSocketUrl` url provided
+             * by the session response.
+             */
+            get: function (this: Client & { _bidiHandler?: BidiHandler }) {
+                return Boolean(this._bidiHandler?.isConnected)
+            }
+        },
         isChromium: { value: isChromium },
+        isWindowsApp: { value: isWindowsApp },
+        isMacApp: { value: isMacApp }
     }
 }
 
@@ -346,8 +328,9 @@ export function setupDirectConnect(client: Client) {
 }
 
 /**
- * get human readable message from response error
+ * get human-readable message from response error
  * @param {Error} err response error
+ * @param params
  */
 export const getSessionError = (err: JSONWPCommandError, params: Partial<Options.WebDriver> = {}) => {
     // browser driver / service is not started
@@ -393,7 +376,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
             '\nIf you use a grid server ' + w3cCapMessage
     }
 
-    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && params.hostname?.endsWith('saucelabs.com')) {
+    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && (params.hostname === 'saucelabs.com' || params.hostname?.endsWith('.saucelabs.com'))) {
         return 'Session request was not authorized because you either did provide a wrong access key or tried to run ' +
             'in a region that has not been enabled for your user. If have registered a free trial account it is connected ' +
             'to a specific region. Ensure this region is set in your configuration (https://webdriver.io/docs/options.html#region).'
@@ -403,79 +386,120 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 }
 
 /**
- * return timeout error with information about the executing command on which the test hangs
- */
-export function getTimeoutError(error: Error, requestOptions: RequestInit, url: URL): Error {
-    const cmdName = getExecCmdName(url)
-    const cmdArgs = getExecCmdArgs(requestOptions)
-
-    const cmdInfoMsg = `when running "${cmdName}" with method "${requestOptions.method}"`
-    const cmdArgsMsg = cmdArgs ? ` and args ${cmdArgs}` : ''
-
-    const timeoutErr = new Error(`${error.message} ${cmdInfoMsg}${cmdArgsMsg}`)
-    return Object.assign(timeoutErr, error)
-}
-
-function getExecCmdName(url: URL): string {
-    const { href } = url
-    const res = href.match(REG_EXPS.commandName) || []
-
-    return res[1] || href
-}
-
-function getExecCmdArgs(requestOptions: RequestInit): string {
-    const { body: cmdJson }: any = requestOptions
-
-    if (typeof cmdJson !== 'object') {
-        return ''
-    }
-
-    const transformedRes = transformCommandLogResult(cmdJson)
-
-    if (typeof transformedRes === 'string') {
-        return transformedRes
-    }
-
-    if (typeof cmdJson.script === 'string') {
-        const scriptRes = cmdJson.script.match(REG_EXPS.execFn) || []
-
-        return `"${scriptRes[1] || cmdJson.script}"`
-    }
-
-    return Object.keys(cmdJson).length ? `"${JSON.stringify(cmdJson)}"` : ''
-}
-
-/**
  * Enhance the monad with WebDriver Bidi primitives if a connection can be established successfully
  * @param socketUrl url to bidi interface
+ * @param strictSSL
+ * @param userHeaders
  * @returns prototype with interface for bidi primitives
  */
-export function initiateBidi (socketUrl: string, strictSSL: boolean = true): PropertyDescriptorMap {
+export function initiateBidi (
+    socketUrl: string,
+    strictSSL: boolean = true,
+    userHeaders?: Record<string, string>
+): PropertyDescriptorMap {
+    /**
+     * don't connect and stale unit tests when the websocket url is set to a dummy value
+     */
+    const isUnitTesting = environment.value.variables.WDIO_UNIT_TESTS
+    if (isUnitTesting) {
+        log.info('Skip connecting to WebDriver Bidi interface due to unit tests')
+        return {
+            _bidiHandler: {
+                value: {
+                    isConnected: true,
+                    waitForConnected: () => Promise.resolve(),
+                    socket: { on: () => {}, off: () => {} }
+                }
+            }
+        }
+    }
+
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
-    const bidiReqOpts = strictSSL ? {} : { rejectUnauthorized: false }
+    const bidiReqOpts: { rejectUnauthorized?: boolean, headers?: Record<string, string> } = strictSSL ? {} : { rejectUnauthorized: false }
+    if (userHeaders) {
+        bidiReqOpts.headers = userHeaders
+    }
     const handler = new BidiHandler(socketUrl, bidiReqOpts)
-    handler.connect().then(() => log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
+    handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 
     return {
         _bidiHandler: { value: handler },
         ...Object.values(WebDriverBidiProtocol).map((def) => def.socket).reduce((acc, cur) => {
             acc[cur.command] = {
-                value: handler[cur.command]?.bind(handler)
+                value: function (this: Client, ...args: unknown[]) {
+                    const bidiFn = handler[cur.command] as Function | undefined
+
+                    /**
+                     * attach the client to the handler to emit events
+                     */
+                    handler.attachClient(this)
+
+                    this.emit(cur.command, args)
+                    return bidiFn?.apply(handler, args)
+                }
             }
             return acc
         }, {} as PropertyDescriptorMap)
     }
 }
 
-export function parseBidiMessage (this: EventEmitter, data: Buffer) {
+export function parseBidiMessage (this: EventEmitter, data: ArrayBuffer) {
     try {
         const payload: Event = JSON.parse(data.toString())
         if (payload.type !== 'event') {
             return
         }
 
-        this.emit(payload.method, payload.params)
-    } catch (err: unknown) {
+        this.emit(payload.method as string, payload.params)
+    } catch (err) {
         log.error(`Failed parse WebDriver Bidi message: ${(err as Error).message}`)
+    }
+}
+
+/**
+ * Masks the `text` parameter in a WebDriver command if masking is enabled in the options.
+ *
+ * - If `options.mask` is not set or the command does not have a `text` parameter, returns the original body and args.
+ * - If masking is enabled and a `text` parameter is present and non-empty, replaces its value with the mask in both the body and args.
+ *
+ * @param {CommandEndpoint} commandInfo - The command endpoint metadata, including parameters and variables.
+ * @param {CommandRuntimeOptions} options - Runtime options for the command, including the `mask` flag.
+ * @param {Record<string, unknown>} body - The request body object to potentially mask.
+ * @param {unknown[]} args - The arguments array to potentially mask.
+ * @returns {{
+ *   maskedBody: Record<string, unknown>,
+ *   maskedArgs: unknown[],
+ *   isMasked: boolean
+ * }} An object containing the (possibly) masked body and args, and a flag indicating if masking was applied.
+ */
+export function mask(commandInfo: CommandEndpoint, options: CommandRuntimeOptions, body: Record<string, unknown>, args: unknown[]) {
+    const unmaskedResult = { maskedBody: body, maskedArgs: args, isMasked: false }
+    if (!options.mask) {
+        return unmaskedResult
+    }
+
+    const textValueParamIndex = commandInfo.parameters.findIndex((param) => param.name === 'text')
+    if (textValueParamIndex === -1 ) {
+        return unmaskedResult
+    }
+
+    const textValueIndexInArgs = (commandInfo.variables?.length ?? 0) + textValueParamIndex
+    const text = args[textValueIndexInArgs]
+    if (typeof text !== 'string' || !text) {
+        return unmaskedResult
+    }
+
+    const maskedBody = {
+        ...body,
+        text: SENSITIVE_DATA_REPLACER
+    } satisfies Record<string, unknown> as Record<string, unknown>
+
+    const textValueArgsIndex = textValueParamIndex + (commandInfo.variables?.length ?? 0)
+    const maskedArgs = args.slice(0, textValueArgsIndex).concat(SENSITIVE_DATA_REPLACER).concat(args.slice(textValueArgsIndex + 1))
+
+    return {
+        maskedBody,
+        maskedArgs,
+        isMasked: true,
     }
 }

@@ -15,7 +15,9 @@ import {
     getGitMetaData,
     removeAnsiColors,
     getHookType,
-    getPlatformVersion
+    getPlatformVersion,
+    isObjectEmpty,
+    generateHashCodeFromFields
 } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
@@ -32,9 +34,10 @@ class _TestReporter extends WDIOReporter {
     private _gitConfigPath?: string
     private _gitConfigured: boolean = false
     private _currentHook: CurrentRunInfo = {}
-    private _currentTest: CurrentRunInfo = {}
+    public static currentTest: CurrentRunInfo = {}
     private _userCaps?: Capabilities.ResolvedTestrunnerCapabilities = {}
     private listener = Listener.getInstance()
+    public static hashCodeToHandleTestSkip: Record<string, string> = {}
 
     async onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as WebdriverIO.Capabilities
@@ -63,8 +66,8 @@ class _TestReporter extends WDIOReporter {
     public async appendTestItemLog(stdLog: StdLog) {
         if (this._currentHook.uuid && !this._currentHook.finished) {
             stdLog.hook_run_uuid = this._currentHook.uuid
-        } else if (this._currentTest.uuid) {
-            stdLog.test_run_uuid = this._currentTest.uuid
+        } else if (_TestReporter.currentTest.uuid) {
+            stdLog.test_run_uuid = _TestReporter.currentTest.uuid
         }
         if (stdLog.hook_run_uuid || stdLog.test_run_uuid) {
             this.listener.logCreated([stdLog])
@@ -111,7 +114,7 @@ class _TestReporter extends WDIOReporter {
                     // Sometimes in cases where a file has two suites. Then the file name be unknown for second suite, so getting the filename from first suite
                     filename = this._suiteName || suiteStats.file
                 }
-            } catch (e) {
+            } catch {
                 BStackLogger.debug('Error in decoding file name of suite')
             }
         }
@@ -158,7 +161,7 @@ class _TestReporter extends WDIOReporter {
             return
         }
         const uuid = uuidv4()
-        this._currentTest.uuid = uuid
+        _TestReporter.currentTest.uuid = uuid
 
         _TestReporter._tests[testStats.fullTitle] = {
             uuid: uuid,
@@ -213,7 +216,26 @@ class _TestReporter extends WDIOReporter {
 
         testStats.start ||= new Date()
         testStats.end ||= new Date()
-        this.listener.testFinished(await this.getRunData(testStats, 'TestRunSkipped'))
+        const testData = await this.getRunData(testStats, 'TestRunSkipped')
+        const testFinishHashCode = generateHashCodeFromFields(
+            [
+                testData.integrations?.browserstack?.browser ?? '',
+                testData.integrations?.browserstack?.browser_version ?? '',
+                testData.integrations?.browserstack?.platform ?? '',
+                testData.integrations?.browserstack?.session_id ?? '',
+                testData.integrations?.capabilities ?? {},
+                testData.file_name ?? '',
+                testData.scopes ?? [],
+                testData.name ?? ''
+            ]
+        )
+        if (_TestReporter.hashCodeToHandleTestSkip !== null && !isObjectEmpty(_TestReporter.hashCodeToHandleTestSkip) && testFinishHashCode in _TestReporter.hashCodeToHandleTestSkip) {
+            if (_TestReporter.hashCodeToHandleTestSkip[testFinishHashCode] !== '') {
+                testData.uuid = _TestReporter.hashCodeToHandleTestSkip[testFinishHashCode]
+            }
+        }
+
+        this.listener.testFinished(testData)
     }
 
     async getRunData(testStats: TestStats | HookStats, eventType: string) {
@@ -225,6 +247,10 @@ class _TestReporter extends WDIOReporter {
 
         // If no describe block present, onSuiteStart doesn't get called. Use specs list for filename
         const suiteFileName = this._suiteName || (this.specs?.length > 0 ? this.specs[this.specs.length - 1]?.replace('file:', '') : undefined)
+
+        if (eventType === 'TestRunStarted') {
+            _TestReporter.currentTest.name = testStats.title
+        }
 
         await this.configureGit()
         const testData: TestData = {
@@ -263,7 +289,7 @@ class _TestReporter extends WDIOReporter {
                 browser: this._capabilities?.browserName,
                 browser_version: this._capabilities?.browserVersion,
                 platform: this._capabilities?.platformName,
-                platform_version: getPlatformVersion(this._userCaps as WebdriverIO.Capabilities)
+                platform_version: getPlatformVersion(this._capabilities, this._userCaps as WebdriverIO.Capabilities)
             }
         }
 
@@ -273,7 +299,7 @@ class _TestReporter extends WDIOReporter {
             if (failed) {
                 testData.result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
                 if (error && testData.result !== 'skipped') {
-                    testData.failure = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
+                    testData.failure = [{ backtrace: [removeAnsiColors(error.message), removeAnsiColors(error.stack || '')] }] // add all errors here
                     testData.failure_reason = removeAnsiColors(error.message)
                     testData.failure_type = error.message === null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
                 }

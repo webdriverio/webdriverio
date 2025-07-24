@@ -10,10 +10,11 @@ import type {
     TestStep,
     Feature,
     Pickle,
-    TestStepResultStatus
+    TestStepResultStatus,
+    FeatureChild
 } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
-import type { ReporterStep, TestHookDefinitionConfig } from './types.js'
+import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')
 
@@ -46,7 +47,7 @@ export function createStepArgument ({ argument }: PickleStep) {
  * format message
  * @param {object} message { type: string, payload: object }
  */
-export function formatMessage ({ payload = {} }: any) {
+export function formatMessage ({ payload = {} }: { payload: Payload }): Payload {
     const content = { ...payload }
 
     /**
@@ -157,7 +158,7 @@ export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
 
             const rules  = feature.children.filter((child)=> Object.keys(child)[0]=== 'rule')
             let featureChildren = feature.children.filter((child)=> Object.keys(child)[0]!== 'rule')
-            const rulesChildrens:any = rules.map((child)=>child.rule?.children).flat()
+            const rulesChildrens = rules.map((child) => child.rule?.children as FeatureChild).flat()
             featureChildren = featureChildren.concat(rulesChildrens)
 
             featureChildren.find((child) =>
@@ -204,10 +205,10 @@ export function generateSkipTagsFromCapabilities(capabilities: Capabilities.Reso
             const pos = splitItem.indexOf('=')
             if (pos > 0) {
                 try {
-                    acc[splitItem.substring(0, pos)] = eval(
+                    acc[splitItem.substring(0, pos)] = (0, eval)(
                         splitItem.substring(pos + 1)
                     )
-                } catch (err: any) {
+                } catch {
                     log.error(`Couldn't use tag "${splitItem}" for filtering because it is malformed`)
                 }
             }
@@ -219,9 +220,9 @@ export function generateSkipTagsFromCapabilities(capabilities: Capabilities.Reso
         if (matched) {
             const isSkip = [parse(matched[1] ?? '')]
                 .find((filter: WebdriverIO.Capabilities) => Object.keys(filter)
-                    .every((key: keyof WebdriverIO.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp)))
+                    .every((key: keyof WebdriverIO.Capabilities) => match((capabilities as Record<string, string>)[key], filter[key] as RegExp)))
             if (isSkip) {
-                generatedTags.push(`(not ${tag.replace(/(\(|\))/g, '\\$1')})`)
+                generatedTags.push(`(not ${tag.replace(/[()[\]{}^$*+?.|\\]/g, '\\$&')})`)
             }
         }
     })
@@ -233,7 +234,7 @@ export function generateSkipTagsFromCapabilities(capabilities: Capabilities.Reso
  * Retrives scenario description if available.
  */
 export function getScenarioDescription(feature: Feature, scenarioId: string){
-    const children = feature.children?.find((child) => child?.scenario?.id === scenarioId)!
+    const children = feature.children?.find((child) => child?.scenario?.id === scenarioId)
     return children?.scenario?.description || ''
 }
 
@@ -247,14 +248,31 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
         options[hookName].forEach((testRunHookDefinition: TestHookDefinitionConfig) => {
             const hookFn = testRunHookDefinition.code
             if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async function (this: World, ...args: any) {
+                const userHookAsyncFn = async function (this: World, ...args: unknown[]) {
                     return hookFn.apply(this, args)
                 }
-                const userHookFn = function (this: World, ...args: any) {
+                const userHookFn = function (this: World, ...args: unknown[]) {
                     return hookFn.apply(this, args)
                 }
                 testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
             }
         })
     })
+}
+/**
+ * Convert Cucumber status to WebdriverIO test status for reporting.
+ * Maps statuses like PASSED, PENDING, etc., to WebdriverIO's shorthand test status values.
+ * @param {TestStepResultStatus} status - The Cucumber status (e.g., 'PENDING')
+ * @returns {'pass' | 'fail' | 'skip' | 'pending'} - The corresponding WebdriverIO test status
+ */
+export function convertStatus(status: TestStepResultStatus): 'pass' | 'fail' | 'skip' | 'pending' {
+    switch (status) {
+    case 'PASSED': return 'pass'
+    case 'PENDING': return 'pending'
+    case 'SKIPPED': return 'skip'
+    case 'AMBIGUOUS': return 'skip'
+    case 'FAILED': return 'fail'
+    case 'UNDEFINED': return 'pass'
+    default: return 'fail'
+    }
 }

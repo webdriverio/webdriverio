@@ -1,11 +1,11 @@
 ---
 title: Shadow DOM Support & reusable component objects
-author: John Robinson
-authorURL: https://www.github.com/jrobinson01
-authorImageURL: https://avatars0.githubusercontent.com/u/1584296?s=460&v=4
+authors: robinson
 ---
 
 Shadow DOM is one of the key browser features that make up web components. Web components are a really great way to build reusable elements, and are able to scale all the way up to complete web applications. Style encapsulation, the feature that gives shadow DOM it's power, has been a bit of a pain when it comes to E2E or UI testing. Things just got a little easier though, as WebdriverIO v5.5.0 introduced built-in support for shadow DOM via two new commands, [`shadow$`](https://webdriver.io/docs/api/element/shadow$.html) and [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$.html). Let's dig into what they're all about.
+
+<!-- truncate -->
 
 ## History
 

@@ -1,6 +1,11 @@
-import { verifyArgsAndStripIfElement } from '../../utils/index.js'
-
+import { getBrowserObject } from '@wdio/utils'
+import type { TransformElement } from '../../types.js'
 /**
+ * :::warning
+ * The `executeAsync` command is deprecated and will be removed in a future version.
+ * Please use the `execute` command instead as it provides better support for
+ * error handling via `async`/`await`.
+ * :::
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected
  * frame using the given element as scope, because it is on the element scope it means that WebdriverIO will
@@ -31,7 +36,23 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
                 done(elem.textContent + a + b + c + d)
             }, 3000);
         }, 1, 2, 3, 4);
+
         // node.js context - client and console are available
+        console.log(text); // outputs "Hello World1234"
+    });
+
+    :executeAsync.ts
+    it('should wait for the element to exist, then executes async javascript on the page with the element as first argument', async () => {
+        await browser.setTimeout({ script: 5000 })
+
+        // explicitly type the return value of the script to ensure type safety
+        const text: number = await $('div').execute((elem, a, b, c, d) => {
+            // browser context - you may not access client or console
+            setTimeout(() => {
+                done(elem.textContent + a + b + c + d)
+            }, 3000);
+        }, 1, 2, 3, 4);
+
         // node.js context - client and console are available
         console.log(text); // outputs "Hello World1234"
     });
@@ -44,29 +65,24 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-execute-async-script
  * @type protocol
- *
+ * @deprecated Please use `execute` instead
  */
-export async function executeAsync<ReturnValue, InnerArguments extends any[]> (
-    this: ChainablePromiseElement,
+export async function executeAsync<ReturnValue, InnerArguments extends unknown[]> (
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     script:
         string |
-        ((...args: [...innerArgs: [WebdriverIO.Element, ...InnerArguments], callback: (result?: ReturnValue) => void]) => void),
+        (
+            (
+                ...args: [
+                    element: HTMLElement,
+                    ...innerArgs: { [K in keyof InnerArguments]: TransformElement<InnerArguments[K]> },
+                    callback: (result?: TransformElement<ReturnValue>) => void
+                ]
+            ) => void
+        ),
     ...args: InnerArguments
 ): Promise<ReturnValue> {
-    /**
-     * parameter check
-     */
-    if ((typeof script !== 'string' && typeof script !== 'function')) {
-        throw new Error('number or type of arguments don\'t agree with execute protocol command')
-    }
-
-    /**
-     * instances started as multibrowserinstance can't getting called with
-     * a function parameter, therefore we need to check if it starts with "function () {"
-     */
-    if (typeof script === 'function') {
-        script = `return (${script}).apply(null, arguments)`
-    }
-
-    return this.executeAsyncScript(script, verifyArgsAndStripIfElement([this, ...args]))
+    const scope = this as WebdriverIO.Element
+    const browser = getBrowserObject(scope)
+    return browser.executeAsync(script, scope, ...args)
 }

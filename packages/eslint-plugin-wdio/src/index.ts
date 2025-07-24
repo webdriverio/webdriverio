@@ -44,10 +44,8 @@ const flatConfig = {
     },
 }
 
-export = {
-    ...index,
-    configs: {
-        'flat/recommended': flatConfig,
-        recommended: legacyConfig,
-    },
+export const configs = {
+    'flat/recommended': flatConfig,
+    recommended: legacyConfig,
 }
+export const rules = index.rules

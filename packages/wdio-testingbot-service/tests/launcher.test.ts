@@ -99,7 +99,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: Capabilities.MultiRemoteCapabilities = {
+        const caps: Capabilities.RequestedMultiremoteCapabilities = {
             browserA: {
                 capabilities: {
                     'tb:options': {
@@ -151,7 +151,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: Capabilities.MultiRemoteCapabilities[] = [{
+        const caps: Capabilities.RequestedMultiremoteCapabilities[] = [{
             browserA: {
                 capabilities: {
                     'tb:options': {
@@ -258,7 +258,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: Capabilities.MultiRemoteCapabilities = {
+        const caps: Capabilities.RequestedMultiremoteCapabilities = {
             browserA: {
                 capabilities: {}
             },
@@ -273,9 +273,9 @@ describe('wdio-testingbot-service', () => {
         const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare(config, caps as any)
-        expect(Object.keys((caps.browserA.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any))
+        expect(Object.keys((caps.browserA.capabilities as WebdriverIO.Capabilities)['tb:options'] as any))
             .toContain('tunnel-identifier')
-        expect(Object.keys((caps.browserB.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any))
+        expect(Object.keys((caps.browserB.capabilities as WebdriverIO.Capabilities)['tb:options'] as any))
             .toContain('build')
     })
 

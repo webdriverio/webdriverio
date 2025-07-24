@@ -1,13 +1,13 @@
 {
   "name": "@wdio/allure-reporter",
-  "version": "9.0.0-alpha.0",
+  "version": "9.18.0",
   "description": "A WebdriverIO reporter plugin to create Allure Test Reports",
   "author": "Boris Osipov <osipov.boris@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-allure-reporter",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-allure-reporter"
   },
   "keywords": [
@@ -24,19 +24,16 @@
   "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./cjs/common/api.js"
-      },
-      "./cjs/common/api.js"
-    ],
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "requireSource": "./src/common/api.ts",
+      "require": "./build/index.cjs"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "dependencies": {
     "@types/node": "^20.1.0",
@@ -50,6 +47,6 @@
     "access": "public"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5"
+    "rimraf": "^6.0.1"
   }
 }

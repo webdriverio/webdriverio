@@ -27,22 +27,6 @@ describe('getValue', () => {
             .toBe('/session/foobar-123/element/some-elem-123/property/value')
     })
 
-    it('should get the value using getElementAttribute', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar-noW3C'
-            }
-        })
-
-        const elem = await browser.$('#foo')
-
-        await elem.getValue()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/attribute/value')
-    })
-
     it('should get value in mobile mode', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -55,6 +39,7 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
+        // Due to mobileMode being enabled we will have extra calls to fetch
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/attribute/value')

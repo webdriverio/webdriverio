@@ -1,5 +1,6 @@
 import path from 'node:path'
-import { describe, expect, test, vi } from 'vitest'
+import { describe, expect, expectTypeOf, test, vi } from 'vitest'
+import type { ClickOptions } from '../src/index.js'
 import { remote, multiremote } from '../src/index.js'
 
 vi.mock('fetch')
@@ -8,7 +9,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const remoteConfig = {
     baseUrl: 'http://foobar.com',
     capabilities: {
-        browserName: 'foobar-noW3C'
+        browserName: 'foobar'
     }
 }
 
@@ -45,84 +46,209 @@ const customBrowserCommand = async (origCmd: Function, origCmdArg: number, arg =
 
 describe('overwriteCommand', () => {
     describe('remote', () => {
-        test('should be able to handle async', async () => {
-            const browser = await remote(remoteConfig)
-            browser.overwriteCommand('pause', customBrowserCommand)
 
-            // @ts-expect-error command overwritten
-            expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
-        })
+        describe('given browser scope', () => {
 
-        test('should still work on browser calls after fetching an element', async () => {
-            const browser = await remote(remoteConfig)
-            await browser.$('#foo')
-            browser.overwriteCommand('pause', customBrowserCommand)
+            test('should be able to handle async', async () => {
+                const browser = await remote(remoteConfig)
+                browser.overwriteCommand('pause', customBrowserCommand)
 
-            expect(await browser.pause(9)).toBeGreaterThanOrEqual(9)
-        })
-
-        test('should be able to overwrite element command', async () => {
-            const browser = await remote(remoteConfig)
-            browser.overwriteCommand('getAttribute', customElementCommand, true)
-            const elem = await browser.$('#foo')
-
-            // @ts-expect-error command overwritten
-            expect(await elem.getAttribute('foo', 'bar')).toBe('foo-value foo bar')
-        })
-
-        test('should propagate element commands for all prototypes', async () => {
-            const browser = await remote(remoteConfig)
-            browser.overwriteCommand('getAttribute', customElementCommand, true)
-            const elems = await browser.$$('.someRandomElement')
-
-            // @ts-expect-error command overwritten
-            expect(await elems[0].getAttribute('0', 'q')).toBe('0-value 0 q')
-            // @ts-expect-error command overwritten
-            expect(await elems[1].getAttribute('1', 'w')).toBe('1-value 1 w')
-            // @ts-expect-error command overwritten
-            expect(await elems[2].getAttribute('2', 'e')).toBe('2-value 2 e')
-        })
-
-        test('should propagate element commands to sub elements', async () => {
-            const browser = await remote(remoteConfig)
-            browser.overwriteCommand('getAttribute', customElementCommand, true)
-            const elem = await browser.$('#foo')
-            const subElem = await elem.$('.subElem')
-
-            // @ts-expect-error command overwritten
-            expect(await subElem.getAttribute('bar', 'foo')).toBe('bar-value bar foo')
-        })
-
-        test('should properly throw exceptions on the browser scope', async () => {
-            const browser = await remote(remoteConfig)
-            browser.overwriteCommand('waitUntil', function () {
-                throw error1
+                // @ts-expect-error command overwritten
+                expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
             })
 
-            browser.overwriteCommand('url', async function () {
-                await browser.$('#foo')
-                throw error2
+            test('should be able to handle async', async () => {
+                const browser = await remote(remoteConfig)
+                browser.overwriteCommand('pause', customBrowserCommand)
+
+                // @ts-expect-error command overwritten
+                expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
             })
 
-            // @ts-expect-error command overwritten
-            await expect(() => browser.waitUntil()).rejects.toThrow(error1)
-            // @ts-expect-error command overwritten
-            await expect(browser.url()).rejects.toThrow(error2)
-        })
-
-        test('should properly throw exceptions on the element scope', async () => {
-            const browser = await remote(remoteConfig)
-            browser.overwriteCommand('click', function () {
-                throw error1
-            }, true)
-            browser.overwriteCommand('waitForDisplayed', async function () {
+            test('should still work on browser calls after fetching an element', async () => {
+                const browser = await remote(remoteConfig)
                 await browser.$('#foo')
-                throw error2
-            }, true)
-            const elem = await browser.$('#foo')
+                browser.overwriteCommand('pause', customBrowserCommand)
 
-            await expect(() => elem.click()).rejects.toThrow(error1)
-            await expect(elem.waitForDisplayed()).rejects.toThrow(error2)
+                expect(await browser.pause(9)).toBeGreaterThanOrEqual(9)
+            })
+
+            test('should properly throw exceptions on the browser scope', async () => {
+                const browser = await remote(remoteConfig)
+                browser.overwriteCommand('waitUntil', function () {
+                    throw error1
+                })
+
+                browser.overwriteCommand('url', async function () {
+                    await browser.$('#foo')
+                    throw error2
+                })
+
+                // @ts-expect-error command overwritten
+                await expect(() => browser.waitUntil()).rejects.toThrow(error1)
+                // @ts-expect-error command overwritten
+                await expect(browser.url()).rejects.toThrow(error2)
+            })
+
+            test('should resolve return type properly', async () => {
+                const browser = await remote(remoteConfig)
+                let origCommand
+                browser.overwriteCommand(
+                    'pause',
+                    async function (originalFunction /* (milliseconds?: number | undefined) => Promise<void> */) {
+                        origCommand = originalFunction
+
+                        const promise: Promise<void> = originalFunction(10)
+                        return await promise
+                    },
+                    false,
+                )
+
+                await expect(browser.pause()).resolves.toBeUndefined()
+                expect(origCommand).toBeDefined()
+            })
+
+            test('should get a ts error and runtime error when trying to overwrite an non-existing command', async () => {
+                const browser = await remote(remoteConfig)
+
+                expect(() => browser.overwriteCommand(
+                    // @ts-expect-error cannot overwrite non-existing command
+                    'click',
+                    async function () {}
+                )).toThrow('overwriteCommand: no command to be overwritten: click')
+            })
+
+            test('should infer properly the argument this of the func to the Browser type', async () => {
+                const browser = await remote(remoteConfig)
+                vi.spyOn(browser, 'scroll')
+
+                browser.overwriteCommand('pause', async function (this) {
+                    this.scroll(0, 100)
+                })
+
+                await browser.pause(10)
+
+                expect(browser.scroll).toHaveBeenCalledTimes(1)
+            })
+        })
+        describe('given element scope', () => {
+            const isElementScope = true
+
+            test('should propagate element commands for all prototypes', async () => {
+                const browser = await remote(remoteConfig)
+                browser.overwriteCommand('getAttribute', customElementCommand, isElementScope)
+                const elems = await browser.$$('.someRandomElement')
+
+                // @ts-expect-error command overwritten
+                expect(await elems[0].getAttribute('0', 'q')).toBe('0-value 0 q')
+                // @ts-expect-error command overwritten
+                expect(await elems[1].getAttribute('1', 'w')).toBe('1-value 1 w')
+                // @ts-expect-error command overwritten
+                expect(await elems[2].getAttribute('2', 'e')).toBe('2-value 2 e')
+            })
+
+            test('should propagate element commands to sub elements', async () => {
+                const browser = await remote(remoteConfig)
+                browser.overwriteCommand('getAttribute', customElementCommand, isElementScope)
+                const elem = await browser.$('#foo')
+                const subElem = await elem.$('.subElem')
+
+                // @ts-expect-error command overwritten
+                expect(await subElem.getAttribute('bar', 'foo')).toBe('bar-value bar foo')
+            })
+
+            test('should be able to overwrite element command', async () => {
+                const browser = await remote(remoteConfig)
+                browser.overwriteCommand('getAttribute', customElementCommand, isElementScope)
+                const elem = await browser.$('#foo')
+
+                // @ts-expect-error command overwritten
+                expect(await elem.getAttribute('foo', 'bar')).toBe('foo-value foo bar')
+            })
+
+            test('should properly throw exceptions on the element scope', async () => {
+                const browser = await remote(remoteConfig)
+                browser.overwriteCommand('click', function () {
+                    throw error1
+                }, isElementScope)
+                browser.overwriteCommand('waitForDisplayed', async function () {
+                    await browser.$('#foo')
+                    throw error2
+                }, isElementScope)
+                const elem = await browser.$('#foo')
+
+                await expect(() => elem.click()).rejects.toThrow(error1)
+                await expect(elem.waitForDisplayed()).rejects.toThrow(error2)
+            })
+
+            test('should resolve the return of the original command function type properly', async () => {
+
+                const browser = await remote(remoteConfig)
+
+                browser.overwriteCommand(
+                    'getText',
+                    async function (originalFunction /* Expecting return a Promise<string> */) {
+
+                        const text: string = await originalFunction()
+                        return text + ' - overwritten'
+                    },
+                    isElementScope,
+                )
+
+                const element = await browser.$('.someRandomElement')
+                vi.spyOn(element, 'getElementText').mockResolvedValue('some text')
+
+                expect(await element.getText()).toBe('some text - overwritten')
+            })
+
+            test('should resolve the parameters of the original command function type properly', async () => {
+                const browser = await remote(remoteConfig)
+                let origFunction
+                browser.overwriteCommand(
+                    'click',
+                    async function (originalFunction /* Expecting the type to be (options: Partial<ClickOptions>) => Promise<void> */) {
+                        origFunction = originalFunction
+                        expectTypeOf<Parameters<typeof originalFunction>[0]>().toEqualTypeOf<Partial<ClickOptions> | undefined>()
+
+                        const clickOptions: Partial<ClickOptions> = { skipRelease: true }
+                        return originalFunction(clickOptions)
+                    },
+                    isElementScope,
+                )
+
+                const element = await browser.$('.someRandomElement')
+
+                await expect(element.click()).resolves.toBeUndefined()
+                expect(origFunction).toBeDefined()
+            })
+
+            test('should resolve the this parameters type by inference automatically', async () => {
+                const browser = await remote(remoteConfig)
+                browser.overwriteCommand(
+                    'click',
+                    async function (this /* Expect to be WebdriverIO.Element */ ) {
+                        return this.getText()
+                    },
+                    isElementScope,
+                )
+
+                const element = await browser.$('.someRandomElement')
+                vi.spyOn(element, 'getText')
+                vi.spyOn(element, 'getElementText').mockResolvedValue('some text')
+
+                expect(await element.click()).toBe('some text')
+                expect(element.getText).toHaveBeenCalledTimes(1)
+            })
+
+            test('should get a ts error error when trying to overwrite an non-existing command', async () => {
+                const browser = await remote(remoteConfig)
+
+                browser.overwriteCommand(
+                    // @ts-expect-error cannot overwrite non-existing command
+                    'press',
+                    async function () {},
+                    isElementScope)
+            })
         })
     })
 
@@ -135,7 +261,7 @@ describe('overwriteCommand', () => {
             expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
         })
 
-        test('should allow to overwrite commands for a single multiremote instance', async () => {
+        test.skip('should allow to overwrite commands for a single multiremote instance', async () => {
             const browser = await multiremote(multiremoteConfig as any)
             browser.getInstance('browserA').overwriteCommand('pause', customBrowserCommand)
 

@@ -1,13 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ChildProcess } from 'node:child_process'
 
 import logger from '@wdio/logger'
 
-import { webdriverMonad, sessionEnvironmentDetector, startWebDriver } from '@wdio/utils'
+import { webdriverMonad, sessionEnvironmentDetector, startWebDriver, isBidi } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { Capabilities, Options } from '@wdio/types'
 
 import command from './command.js'
 import { DEFAULTS } from './constants.js'
+import type { BidiHandler } from './bidi/handler.js'
+import { environment as environmentValue } from './environment.js'
 import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect, initiateBidi, parseBidiMessage } from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types.js'
 
@@ -20,7 +23,7 @@ export default class WebDriver {
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<Client> {
-        const envLogLevel = process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined
+        const envLogLevel = environmentValue.value.variables.WDIO_LOG_LEVEL
         options.logLevel = envLogLevel ?? options.logLevel
         const params = validateConfig(DEFAULTS, options)
 
@@ -48,9 +51,13 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        if (capabilities.webSocketUrl) {
+        if (isBidi(capabilities)) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(capabilities.webSocketUrl as any as string, options.strictSSL))
+            Object.assign(bidiPrototype, initiateBidi(
+                capabilities.webSocketUrl as unknown as string,
+                options.strictSSL,
+                options.headers
+            ))
         }
 
         const monad = webdriverMonad(
@@ -68,10 +75,13 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (capabilities.webSocketUrl) {
-            // make sure the Bidi connection is established before returning
-            await client._bidiHandler.connect()
-            client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+        if (isBidi(capabilities)) {
+            /**
+             * make sure the Bidi connection is established before returning
+             */
+            if (await client._bidiHandler.waitForConnected()) {
+                client._bidiHandler.socket?.on('message', parseBidiMessage.bind(client))
+            }
         }
 
         /**
@@ -122,10 +132,14 @@ export default class WebDriver {
          * initiate WebDriver Bidi
          */
         const bidiPrototype: PropertyDescriptorMap = {}
-        const webSocketUrl = options.capabilities?.webSocketUrl as unknown as string
-        if (typeof webSocketUrl === 'string') {
+        if (isBidi(options.capabilities || {})) {
+            const webSocketUrl = options.capabilities?.webSocketUrl as unknown as string
             log.info(`Register BiDi handler for session with id ${options.sessionId}`)
-            Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string, options.strictSSL))
+            Object.assign(bidiPrototype, initiateBidi(
+                webSocketUrl as string,
+                options.strictSSL,
+                options.headers
+            ))
         }
 
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype, ...bidiPrototype }
@@ -135,8 +149,10 @@ export default class WebDriver {
         /**
          * parse and propagate all Bidi events to the browser instance
          */
-        if (webSocketUrl) {
-            client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+        if (isBidi(options.capabilities || {})) {
+            client._bidiHandler?.waitForConnected().then(()=>{
+                client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+            })
         }
         return client
     }
@@ -148,7 +164,7 @@ export default class WebDriver {
      * @param   {object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
      */
-    static async reloadSession(instance: Client, newCapabilities?: WebdriverIO.Capabilities) {
+    static async reloadSession(instance: Client & { _bidiHandler?: BidiHandler }, newCapabilities?: WebdriverIO.Capabilities) {
         const capabilities = newCapabilities ? newCapabilities : Object.assign({}, instance.requestedCapabilities) as WebdriverIO.Capabilities
         let params: Capabilities.RemoteConfig = { ...instance.options, capabilities }
 
@@ -188,9 +204,22 @@ export default class WebDriver {
         for (const prop in instance.requestedCapabilities) {
             delete instance.requestedCapabilities[prop as keyof typeof instance.requestedCapabilities]
         }
+
+        const driverPid = instance.capabilities['wdio:driverPID']
         instance.sessionId = sessionId
         instance.capabilities = newSessionCapabilities
+        instance.capabilities['wdio:driverPID'] = driverPid
         Object.assign(instance.requestedCapabilities, capabilities)
+
+        /**
+         * reconnect to new Bidi session
+         */
+        if (isBidi(instance.capabilities || {})) {
+            const bidiReqOpts = instance.options.strictSSL ? {} : { rejectUnauthorized: false }
+            await instance._bidiHandler?.reconnect(newSessionCapabilities.webSocketUrl as unknown as string, bidiReqOpts)
+            instance._bidiHandler?.socket?.on('message', parseBidiMessage.bind(instance))
+        }
+
         return sessionId
     }
 
@@ -202,7 +231,7 @@ export default class WebDriver {
 /**
  * Helper methods consumed by webdriverio package
  */
-export { getPrototype, DEFAULTS, command, getEnvironmentVars, initiateBidi, parseBidiMessage }
+export { getPrototype, DEFAULTS, command, getEnvironmentVars, initiateBidi, parseBidiMessage, WebDriver }
 export * from './types.js'
 export * from './constants.js'
 export * from './bidi/handler.js'

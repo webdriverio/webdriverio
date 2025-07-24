@@ -1,32 +1,32 @@
 {
   "name": "webdriver",
-  "version": "9.0.0-alpha.0",
+  "version": "9.18.0",
   "description": "A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
   "license": "MIT",
-  "main": "./build/index.cjs",
   "type": "module",
+  "main": "./build/index.cjs",
   "module": "./build/index.js",
   "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./build/index.cjs"
-      },
-      "./build/index.cjs"
-    ],
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "browserSource": "./src/browser.js",
+      "browser": "./build/index.js",
+      "importSource": "./src/node.ts",
+      "import": "./build/node.js",
+      "requireSource": "./src/index.cts",
+      "require": "./build/index.cjs"
+    }
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/webdriver"
   },
   "keywords": [
@@ -44,6 +44,8 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
+    "https-proxy-agent": "^7.0.6",
+    "undici": "^6.21.3",
     "ws": "^8.8.0"
   }
 }

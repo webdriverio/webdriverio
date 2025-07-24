@@ -23,7 +23,7 @@ In order to use the service you just need to add the service to your service lis
 // wdio.conf.js
 export const config = {
     // ...
-    services: ['devtools'],
+    services: ['lighthouse'],
     // ...
 };
 ```
@@ -68,17 +68,6 @@ describe('JSON.org page', () => {
     after(async () => {
         await browser.disablePerformanceAudits()
     })
-})
-```
-
-You can emulate a mobile device by using the `emulateDevice` command, throttling CPU and network as well as setting `mobile` as form factor:
-
-```js
-await browser.emulateDevice('iPhone X')
-await browser.enablePerformanceAudits({
-    networkThrottling: 'Good 3G',
-    cpuThrottling: 4,
-    formFactor: 'mobile'
 })
 ```
 
@@ -200,7 +189,7 @@ expect(result.passed).toBe(true)
 
 ### `startTracing(categories, samplingFrequency)` Command
 
-Start tracing the browser. You can optionally pass in custom tracing categories (defaults to [this list](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service/src/constants.js#L1-L9)) and the sampling frequency (defaults to `10000`).
+Start tracing the browser. You can optionally pass in custom tracing categories (defaults to [this list](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-lighthouse-service/src/constants.ts#L12-L56)) and the sampling frequency (defaults to `10000`).
 
 ```js
 await browser.startTracing()

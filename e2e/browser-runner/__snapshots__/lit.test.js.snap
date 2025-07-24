@@ -41,3 +41,22 @@ exports[`snapshot testing > of objects 3`] = `
   "foo": "bar",
 }
 `;
+
+exports[`snapshot testing > of objects 5`] = `
+{
+  "parsed": {
+    "alpha": 0,
+    "hex": "#000000",
+    "rgba": "rgba(0,0,0,0)",
+    "type": "color",
+  },
+  "property": "background-color",
+  "value": "rgba(0,0,0,0)",
+}
+`;
+
+exports[`snapshot testing > of objects 7`] = `
+{
+  "foo": "bar",
+}
+`;

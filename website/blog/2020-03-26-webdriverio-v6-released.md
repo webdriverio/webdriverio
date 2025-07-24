@@ -1,11 +1,11 @@
 ---
 title: WebdriverIO v6 Released
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 If you read this and are already about to freak out because you just spent a lot of time migrating to v5, don't worry! This major update is far less "breaking" than the one last year. While all the architectural changes last year left us no choice to break a lot of things, we were very careful this time and made sure that upgrading the framework won't become a big task.
+
+<!-- truncate -->
 
 This major update is much more reasonable and contains subtle changes that will help the project further grow while remaining performant at the same time. This blog post will go into details about all major changes and will explain what you need to do to transition from v5 to the v6.
 

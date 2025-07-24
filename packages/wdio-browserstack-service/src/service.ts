@@ -1,5 +1,4 @@
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
-import PerformanceTester from './performance-tester.js'
 
 import {
     getBrowserDescription,
@@ -7,9 +6,10 @@ import {
     isBrowserstackCapability,
     getParentSuiteName,
     isBrowserstackSession,
-    patchConsoleLogs
+    patchConsoleLogs,
+    isTrue
 } from './util.js'
-import type { BrowserstackConfig, MultiRemoteAction } from './types.js'
+import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import TestReporter from './reporter.js'
@@ -21,6 +21,12 @@ import PercyHandler from './Percy/Percy-Handler.js'
 import Listener from './testOps/listener.js'
 import { saveWorkerData } from './data-store.js'
 import UsageStats from './testOps/usageStats.js'
+import { shouldProcessEventForTesthub } from './testHub/utils.js'
+import AiHandler from './ai-handler.js'
+import PerformanceTester from './instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants.js'
+
+import { _fetch as fetch } from './fetchWrapper.js'
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -31,7 +37,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _suiteTitle?: string
     private _suiteFile?: string
     private _fullTitle?: string
-    private _options: BrowserstackConfig & Options.Testrunner
+    private _options: BrowserstackConfig & BrowserstackOptions
     private _specsRan: boolean = false
     private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
@@ -39,6 +45,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _accessibility
     private _accessibilityHandler?: AccessibilityHandler
     private _percy
+    private _percyCaptureMode: string | undefined = undefined
     private _percyHandler?: PercyHandler
     private _turboScale
 
@@ -49,22 +56,25 @@ export default class BrowserstackService implements Services.ServiceInstance {
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         // added to maintain backward compatibility with webdriverIO v5
-        this._config || (this._config = this._options)
+        if (!this._config) {
+            this._config = this._options
+        }
+
         this._observability = this._options.testObservability
         this._accessibility = this._options.accessibility
-        this._percy = this._options.percy
+        this._percy = isTrue(process.env.BROWSERSTACK_PERCY)
+        this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
         this._turboScale = this._options.turboScale
 
-        if (this._observability) {
+        PerformanceTester.startMonitoring('performance-report-service.csv')
+        if (shouldProcessEventForTesthub('')) {
             this._config.reporters?.push(TestReporter)
-            if (process.env[PERF_MEASUREMENT_ENV]) {
-                PerformanceTester.startMonitoring('performance-report-service.csv')
-            }
         }
 
         if (process.env.BROWSERSTACK_TURBOSCALE) {
             this._turboScale = process.env.BROWSERSTACK_TURBOSCALE === 'true'
         }
+        process.env.BROWSERSTACK_TURBOSCALE_INTERNAL = String(this._turboScale)
 
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
@@ -88,6 +98,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return fn(this._caps as WebdriverIO.Capabilities)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeSession' })
     beforeSession (config: Options.Testrunner) {
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
@@ -104,9 +115,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'before' })
     async before(caps: Capabilities.ResolvedTestrunnerCapabilities, specs: string[], browser: WebdriverIO.Browser) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : globalThis.browser
+        PerformanceTester.browser = this._browser
+
+        // Healing Support:
+        if (!isBrowserstackSession(this._browser)) {
+            try {
+                await AiHandler.selfHeal(this._options, caps, this._browser)
+            } catch (err) {
+                if (this._options.selfHeal === true) {
+                    BStackLogger.warn(`Error while setting up self-healing: ${err}. Disabling healing for this session.`)
+                }
+            }
+        }
 
         // Ensure capabilities are not null in case of multiremote
 
@@ -119,53 +143,48 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         this._scenariosThatRan = []
+        PerformanceTester.scenarioThatRan = this._scenariosThatRan
 
         if (this._browser) {
-            if (this._percy) {
-                this._percyHandler = new PercyHandler(
-                    this._options.percyCaptureMode,
-                    this._browser,
-                    this._caps,
-                    this._isAppAutomate(),
-                    this._config.framework
-                )
-                this._percyHandler.before()
-            }
             try {
                 const sessionId = this._browser.sessionId
-                if (this._observability) {
+
+                try {
+                    this._accessibilityHandler = new AccessibilityHandler(
+                        this._browser,
+                        this._caps,
+                        this._options,
+                        this._isAppAutomate(),
+                        this._config,
+                        this._config.framework,
+                        this._accessibility,
+                        this._turboScale,
+                        this._options.accessibilityOptions
+                    )
+                    await this._accessibilityHandler.before(sessionId)
+
+                    Listener.setAccessibilityOptions(this._options.accessibilityOptions)
+                } catch (err) {
+                    BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
+                }
+
+                if (shouldProcessEventForTesthub('')) {
                     patchConsoleLogs()
 
                     this._insightsHandler = new InsightsHandler(
                         this._browser,
-                        this._isAppAutomate(),
                         this._config.framework,
-                        this._caps
+                        this._caps,
+                        this._options
                     )
                     await this._insightsHandler.before()
-                }
-
-                if (isBrowserstackSession(this._browser)) {
-                    try {
-                        this._accessibilityHandler = new AccessibilityHandler(
-                            this._browser,
-                            this._caps,
-                            this._isAppAutomate(),
-                            this._config.framework,
-                            this._accessibility,
-                            this._options.accessibilityOptions
-                        )
-                        await this._accessibilityHandler.before(sessionId)
-                    } catch (err) {
-                        BStackLogger.error(`[Accessibility Test Run] Error in service class before function: ${err}`)
-                    }
                 }
 
                 /**
                  * register command event
                  */
                 this._browser.on('command', async (command) => {
-                    if (this._observability) {
+                    if (shouldProcessEventForTesthub('')) {
                         this._insightsHandler?.browserCommand(
                             'client:beforeCommand',
                             Object.assign(command, { sessionId }),
@@ -181,7 +200,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                  * register result event
                  */
                 this._browser.on('result', (result) => {
-                    if (this._observability) {
+                    if (shouldProcessEventForTesthub('')) {
                         this._insightsHandler?.browserCommand(
                             'client:afterCommand',
                             Object.assign(result, { sessionId }),
@@ -194,9 +213,20 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 })
             } catch (err) {
                 BStackLogger.error(`Error in service class before function: ${err}`)
-                if (this._observability) {
-                    CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
+                if (shouldProcessEventForTesthub('')) {
+                    CrashReporter.uploadCrashReport(`Error in service class before function: ${err}`, err ? (err as Error).stack as string : 'unknown error')
                 }
+            }
+
+            if (this._percy) {
+                this._percyHandler = new PercyHandler(
+                    this._percyCaptureMode,
+                    this._browser,
+                    this._caps,
+                    this._isAppAutomate(),
+                    this._config.framework
+                )
+                this._percyHandler.before()
             }
         }
 
@@ -210,6 +240,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * Don't do this for Jasmine because `suite.title` is `Jasmine__TopLevel__Suite`
      * and `suite.fullTitle` is `undefined`, so no alternative to use for the job name.
      */
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeSuite' })
     async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
         this._insightsHandler?.setSuiteFile(suite.file)
@@ -220,17 +251,20 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    async beforeHook (test: Frameworks.Test|CucumberHook, context: any) {
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeHook' })
+    async beforeHook (test: Frameworks.Test|CucumberHook, context: unknown) {
         if (this._config.framework !== 'cucumber') {
             this._currentTest = test as Frameworks.Test // not update currentTest when this is called for cucumber step
         }
         await this._insightsHandler?.beforeHook(test, context)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterHook' })
     async afterHook(test: Frameworks.Test | CucumberHook, context: unknown, result: Frameworks.TestResult) {
         await this._insightsHandler?.afterHook(test, result)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeTest' })
     async beforeTest (test: Frameworks.Test) {
         this._currentTest = test
         let suiteTitle = this._suiteTitle
@@ -248,21 +282,23 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._setSessionName(suiteTitle, test)
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
-        await this._insightsHandler?.beforeTest(test)
         await this._accessibilityHandler?.beforeTest(suiteTitle, test)
+        await this._insightsHandler?.beforeTest(test)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterTest' })
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         this._specsRan = true
         const { error, passed } = results
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
+        await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
         await this._insightsHandler?.afterTest(test, results)
         await this._percyHandler?.afterTest()
-        await this._accessibilityHandler?.afterTest(this._suiteTitle, test)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'after' })
     async after (result: number) {
         const { preferScenarioName, setSessionName, setSessionStatus } = this._options
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
@@ -271,22 +307,34 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._fullTitle = this._scenariosThatRan.pop()
         }
 
-        if (setSessionStatus) {
-            const hasReasons = this._failReasons.length > 0
-            await this._updateJob({
-                status: result === 0 && this._specsRan ? 'passed' : 'failed',
-                ...(setSessionName ? { name: this._fullTitle } : {}),
-                ...(result === 0 && this._specsRan ?
-                    {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
-            })
-        }
+        // if (setSessionStatus) {
+        //     const hasReasons = this._failReasons.length > 0
+        //     await this._updateJob({
+        //         status: result === 0 && this._specsRan ? 'passed' : 'failed',
+        //         ...(setSessionName ? { name: this._fullTitle } : {}),
+        //         ...(result === 0 && this._specsRan ?
+        //             {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
+        //     })
+        // }
+
+        await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.SESSION_STATUS, async () => {
+            if (setSessionStatus) {
+                const hasReasons = this._failReasons.length > 0
+                await this._updateJob({
+                    status: result === 0 && this._specsRan ? 'passed' : 'failed',
+                    ...(setSessionName ? { name: this._fullTitle } : {}),
+                    ...(result === 0 && this._specsRan ?
+                        {} : hasReasons ? { reason: this._failReasons.join('\n') } : {})
+                })
+            }
+        })()
 
         await Listener.getInstance().onWorkerEnd()
         await this._percyHandler?.teardown()
         this.saveWorkerData()
 
+        await PerformanceTester.stopAndGenerate('performance-service.html')
         if (process.env[PERF_MEASUREMENT_ENV]) {
-            await PerformanceTester.stopAndGenerate('performance-service.html')
             PerformanceTester.calculateTimes([
                 'onRunnerStart', 'onSuiteStart', 'onSuiteEnd',
                 'onTestStart', 'onTestEnd', 'onTestSkip', 'before',
@@ -300,6 +348,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * For CucumberJS
      */
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeFeature' })
     async beforeFeature(uri: string, feature: Feature) {
         this._suiteTitle = feature.name
         await this._setSessionName(feature.name)
@@ -311,14 +360,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * Runs before a Cucumber Scenario.
      * @param world world object containing information on pickle and test step
      */
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeScenario' })
     async beforeScenario (world: ITestCaseHookParameter) {
         this._currentTest = world
-        await this._insightsHandler?.beforeScenario(world)
         await this._accessibilityHandler?.beforeScenario(world)
+        await this._insightsHandler?.beforeScenario(world)
         const scenarioName = world.pickle.name || 'unknown scenario'
         await this._setAnnotation(`Scenario: ${scenarioName}`)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterScenario' })
     async afterScenario (world: ITestCaseHookParameter) {
         this._specsRan = true
         const status = world.result?.status.toLowerCase()
@@ -338,20 +389,23 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failReasons.push(exception)
         }
 
+        await this._accessibilityHandler?.afterScenario(world)
         await this._insightsHandler?.afterScenario(world)
         await this._percyHandler?.afterScenario()
-        await this._accessibilityHandler?.afterScenario(world)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'beforeStep' })
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
         await this._insightsHandler?.beforeStep(step, scenario)
         await this._setAnnotation(`Step: ${step.keyword}${step.text}`)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'afterStep' })
     async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
         await this._insightsHandler?.afterStep(step, scenario, result)
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.EVENTS.SDK_HOOK, { hookType: 'onReload' })
     async onReload(oldSessionId: string, newSessionId: string) {
         if (!this._browser) {
             return Promise.resolve()
@@ -364,8 +418,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (!this._browser.isMultiremote) {
             BStackLogger.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
-            const browserName = (this._browser as any as WebdriverIO.MultiRemoteBrowser).instances.filter(
-                (browserName: string) => this._browser && (this._browser as any as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
+            const browserName = (this._browser as unknown as WebdriverIO.MultiRemoteBrowser).instances.filter(
+                (browserName: string) => this._browser && (this._browser as unknown as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
             BStackLogger.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
@@ -389,11 +443,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     _isAppAutomate(): boolean {
         const browserDesiredCapabilities = (this._browser?.capabilities ?? {})
-        const desiredCapabilities = (this._caps ?? {})
-        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!(( desiredCapabilities as any)['appium:options']?.app)
+        const desiredCapabilities = (this._caps ?? {}) as WebdriverIO.Capabilities
+        return (
+            !!browserDesiredCapabilities['appium:app'] ||
+            !!desiredCapabilities['appium:app'] ||
+            !!desiredCapabilities['appium:options']?.app
+        )
     }
 
-    _updateJob (requestBody: any) {
+    _updateJob (requestBody: unknown) {
         return this._multiRemoteAction((sessionId: string, browserName: string) => {
             BStackLogger.info(browserName
                 ? `Update multiremote job for browser "${browserName}" and sessionId ${sessionId}`
@@ -412,7 +470,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return action(this._browser.sessionId)
         }
 
-        const multiremotebrowser = this._browser as any as WebdriverIO.MultiRemoteBrowser
+        const multiremotebrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
         return Promise.all(multiremotebrowser.instances
             .filter((browserName: string) => {
                 const cap = getBrowserCapabilities(multiremotebrowser, this._caps, browserName)
@@ -424,7 +482,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         )
     }
 
-    _update(sessionId: string, requestBody: any) {
+    _update(sessionId: string, requestBody: unknown) {
         if (!isBrowserstackSession(this._browser)) {
             return Promise.resolve()
         }
@@ -432,7 +490,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         BStackLogger.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
 
         const encodedAuth = Buffer.from(`${this._config.user}:${this._config.key}`, 'utf8').toString('base64')
-        const headers: any = {
+        const headers: Record<string, string> = {
             'Content-Type': 'application/json; charset=utf-8',
             Authorization: `Basic ${encodedAuth}`,
         }
@@ -451,6 +509,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         })
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.PRINT_BUILDLINK)
     async _printSessionURL() {
         if (!this._browser || !isBrowserstackSession(this._browser)) {
             return Promise.resolve()
@@ -462,7 +521,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             let browserUrl
 
             const encodedAuth = Buffer.from(`${this._config.user}:${this._config.key}`, 'utf8').toString('base64')
-            const headers: any = {
+            const headers: Record<string, string> = {
                 'Content-Type': 'application/json; charset=utf-8',
                 Authorization: `Basic ${encodedAuth}`,
             }
@@ -525,7 +584,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return this._executeCommand('annotate', { data, level: 'info' })
     }
 
-    private async _executeCommand<T = any>(
+    private async _executeCommand(
         action: string,
         args?: object,
     ) {
@@ -537,14 +596,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const script = `browserstack_executor: ${JSON.stringify(cmd)}`
 
         if (this._browser.isMultiremote) {
-            const multiRemoteBrowser = this._browser as any as WebdriverIO.MultiRemoteBrowser
+            const multiRemoteBrowser = this._browser as unknown as WebdriverIO.MultiRemoteBrowser
             return Promise.all(Object.keys(this._caps).map(async (browserName) => {
                 const browser = multiRemoteBrowser.getInstance(browserName)
-                return (await browser.execute<T, []>(script))
+                return (await browser.executeScript(script, []))
             }))
         }
 
-        return (await this._browser.execute<T, []>(script))
+        return (await this._browser.executeScript(script, []))
     }
 
     private saveWorkerData() {

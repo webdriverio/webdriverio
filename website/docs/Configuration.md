@@ -71,7 +71,7 @@ Next to the WebDriver based capabilities you can apply browser and vendor specif
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/), which helps you create this object by clicking together your desired capabilities.
+Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://docs.saucelabs.com/basics/platform-configurator/), which helps you create this object by clicking together your desired capabilities.
 
 Type: `Object`<br />
 Default: `null`
@@ -86,7 +86,7 @@ Default: `null`
 }
 ```
 
-If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/) for more details.
+If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](https://appium.io/docs/en/latest/guides/caps/) for more details.
 
 ### logLevel
 
@@ -135,13 +135,27 @@ Default:
 
 ### headers
 
-Specify custom `headers` to pass into every WebDriver request and when connect to browser through Puppeteer using CDP protocol.
+Specify custom `headers` to pass into every WebDriver request. If your Selenium Grid requires Basic Authentification we recommend to pass in an `Authorization` header through this option to authenticate your WebDriver requests, e.g.:
 
-:::caution
+```ts wdio.conf.ts
+import { Buffer } from 'buffer';
+// Read the username and password from environment variables
+const username = process.env.SELENIUM_GRID_USERNAME;
+const password = process.env.SELENIUM_GRID_PASSWORD;
 
-These headers __aren't__ passed into browser request. If you are looking for modifying request headers of browser requests, please get involved in [#6361](https://github.com/webdriverio/webdriverio/issues/6361)!
+// Combine the username and password with a colon separator
+const credentials = `${username}:${password}`;
+// Encode the credentials using Base64
+const encodedCredentials = Buffer.from(credentials).toString('base64');
 
-:::
+export const config: WebdriverIO.Config = {
+    // ...
+    headers: {
+        Authorization: `Basic ${encodedCredentials}`
+    }
+    // ...
+}
+```
 
 Type: `Object`<br />
 Default: `{}`
@@ -183,6 +197,23 @@ The path to the root of the cache directory. This directory is used to store all
 Type: `String`<br />
 Default: `process.env.WEBDRIVER_CACHE_DIR || os.tmpdir()`
 
+### maskingPatterns
+
+For more secure logging, regular expressions set with `maskingPatterns` can obfuscate sensitive information from the log.
+ - The string format is a regular expression with or without flags (e.g. `/.../i`) and comma-separated for multiple regular expressions.
+ - For more details on masking patterns, see the [Masking Patterns section in the WDIO Logger README](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-logger/README.md#masking-patterns).
+
+Type: `String`<br />
+Default: `undefined`
+
+**Example:**
+
+```js
+{
+    maskingPatterns: '/--key=([^ ]*)/i,/RESULT (.*)/'
+}
+```
+
 ---
 
 ## WebdriverIO
@@ -191,15 +222,57 @@ The following options (including the ones listed above) can be used with Webdriv
 
 ### automationProtocol
 
-:::warning Deprecation
+Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) is supported, as it is the main browser automation technology WebdriverIO uses.
 
-WebdriverIO is deprecating the use of Chrome Devtools as automation protocol through a WebDriver like interface. Instead, you should use [`webdriver`](https://www.npmjs.com/package/webdriver) .
+If you want to automate the browser using a different automation technology, make you set this property to a path that resolves to a module that adheres to the following interface:
 
-:::
+```ts
+import type { Capabilities } from '@wdio/types';
+import type { Client, AttachOptions } from 'webdriver';
 
-Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
+export default class YourAutomationLibrary {
+    /**
+     * Start a automation session and return a WebdriverIO [monad](https://github.com/webdriverio/webdriverio/blob/940cd30939864bdbdacb2e94ee6e8ada9b1cc74c/packages/wdio-utils/src/monad.ts)
+     * with respective automation commands. See the [webdriver](https://www.npmjs.com/package/webdriver) package
+     * as a reference implementation
+     *
+     * @param {Capabilities.RemoteConfig} options WebdriverIO options
+     * @param {Function} hook that allows to modify the client before it gets released from the function
+     * @param {PropertyDescriptorMap} userPrototype allows user to add custom protocol commands
+     * @param {Function} customCommandWrapper allows to modify the command execution
+     * @returns a WebdriverIO compatible client instance
+     */
+    static newSession(
+        options: Capabilities.RemoteConfig,
+        modifier?: (...args: any[]) => any,
+        userPrototype?: PropertyDescriptorMap,
+        customCommandWrapper?: (...args: any[]) => any
+    ): Promise<Client>;
 
-If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
+    /**
+     * allows user to attach to existing sessions
+     * @optional
+     */
+    static attachToSession(
+        options?: AttachOptions,
+        modifier?: (...args: any[]) => any, userPrototype?: {},
+        commandWrapper?: (...args: any[]) => any
+    ): Client;
+
+    /**
+     * Changes The instance session id and browser capabilities for the new session
+     * directly into the passed in browser object
+     *
+     * @optional
+     * @param   {object} instance  the object we get from a new browser session.
+     * @returns {string}           the new session id of the browser
+     */
+    static reloadSession(
+        instance: Client,
+        newCapabilities?: WebdriverIO.Capabilitie
+    ): Promise<string>;
+}
+```
 
 Type: `String`<br />
 Default: `webdriver`
@@ -227,7 +300,7 @@ Default: `5000`
 Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
 
 Type: `Number`<br />
-Default: `500`
+Default: `100`
 
 ### region
 
@@ -263,25 +336,27 @@ Default: `[]`
 
 ### suites
 
-An object describing various of suites, which you can then specify with the `--suite` option on the `wdio` CLI.
+An object describing various suites, which you can then specify with the `--suite` option on the `wdio` CLI.
 
 Type: `Object`<br />
 Default: `{}`
 
 ### capabilities
 
-The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
+The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](/docs/multiremote) object, or multiple WebDriver sessions in an array for parallel execution.
 
 You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
 
 Type: `Object`|`Object[]`<br />
-Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
+Default: `[{ 'wdio:maxInstances': 5, browserName: 'firefox' }]`
 
 ### maxInstances
 
 Maximum number of total parallel running workers.
 
 __Note:__ that it may be a number as high as `100`, when the tests are being performed on some external vendors such as Sauce Labs's machines. There, the tests are not tested on a single machine, but rather, on multiple VMs. If the tests are to be run on a local development machine, use a number that is more reasonable, such as `3`, `4`, or `5`. Essentially, this is the number of browsers that will be concurrently started and running your tests at the same time, so it depends on how much RAM there is on your machine, and how many other apps are running on your machine.
+
+You can also apply `maxInstances` within your capability objects using the `wdio:maxInstances` capability. This will limit the amount of parallel sessions for that particular capability.
 
 Type: `Number`<br />
 Default: `100`
@@ -348,6 +423,13 @@ By default, it is set to `false` so logs are printed in real-time.
 
 Type: `Boolean`<br />
 Default: `false`
+
+### autoAssertOnTestEnd
+
+Controls whether WebdriverIO automatically asserts all soft assertions at the end of each test. When set to `true`, any accumulated soft assertions will be automatically checked and cause the test to fail if any assertions failed. When set to `false`, you must manually call the assert method to check soft assertions.
+
+Type: `Boolean`<br />
+Default: `true`
 
 ### services
 
@@ -451,7 +533,7 @@ Default: stores snapshot files in `__snapshots__` directory next to test file
 
 WDIO uses `tsx` to compile TypeScript files.  Your TSConfig is automatically detected from the current working directory but you can specify a custom path here or by setting the TSX_TSCONFIG_PATH environment variable.
 
-See the `tsx` docs: https://tsx.is/usage#custom-tsconfig-json-path
+See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
 
 Type: `String`<br />
 Default: `null`<br />

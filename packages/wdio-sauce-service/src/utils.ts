@@ -40,7 +40,7 @@
  *  deviceContextId: ''
  * }
  */
-export function isRDC (caps: WebdriverIO.Capabilities){
+export function isRDC(caps: WebdriverIO.Capabilities) {
     // @ts-expect-error outdated JSONWP capabilities
     const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
     const name = appiumDeviceName || deviceName
@@ -53,7 +53,7 @@ export function isRDC (caps: WebdriverIO.Capabilities){
  * @param {object} caps
  * @returns {boolean}
  */
-export function isEmuSim (caps: WebdriverIO.Capabilities){
+export function isEmuSim(caps: WebdriverIO.Capabilities) {
     // @ts-expect-error outdated JSONWP capabilities
     const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
     const name = appiumDeviceName || deviceName
@@ -62,25 +62,22 @@ export function isEmuSim (caps: WebdriverIO.Capabilities){
 }
 
 /** Ensure capabilities are in the correct format for Sauce Labs
- * @param {string} tunnelIdentifier - The default Sauce Connect tunnel identifier
+ * @param {string} tunnelName - The default Sauce Connect tunnel identifier
  * @param {object} options - Additional options to set on the capability
  * @returns {function(object): void} - A function that mutates a single capability
  */
-export function makeCapabilityFactory(tunnelIdentifier: string) {
+export function makeCapabilityFactory(tunnelName: string) {
     return (capability: WebdriverIO.Capabilities) => {
         // If the `sauce:options` are not provided and it is a W3C session then add it
         if (!capability['sauce:options']) {
             capability['sauce:options'] = {}
         }
 
-        capability['sauce:options'].tunnelIdentifier = (
-            capability['sauce:options'].tunnelIdentifier ||
-            tunnelIdentifier
-        )
+        capability['sauce:options'].tunnelName = (capability['sauce:options'].tunnelName || tunnelName)
     }
 }
 
-export function ansiRegex () {
+export function ansiRegex() {
     const pattern = [
         '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
         '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'

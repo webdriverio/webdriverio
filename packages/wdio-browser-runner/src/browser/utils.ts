@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function getCID() {
     const urlParamString = new URLSearchParams(window.location.search)
     const cid = (
@@ -50,7 +51,7 @@ export function sanitizeConsoleArgs(args: unknown[]) {
             if (arg && typeof arg.sessionId === 'string') {
                 return `WebdriverIO.Browser<${arg.capabilities.browserName}>`
             }
-        } catch (err) {
+        } catch {
             // ignore
         }
 

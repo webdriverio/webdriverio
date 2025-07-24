@@ -18,7 +18,7 @@ export * from './element/getElement.js'
  * don't expose this method as it should not be attached to the `WebdriverIO.Element` prototype.
  */
 // export * from './element/getElements.js'
-export * from './element/getHTML.js'
+export { getHTML } from './element/getHTML.js'
 export * from './element/getLocation.js'
 export * from './element/getProperty.js'
 export * from './element/getSize.js'
@@ -54,3 +54,11 @@ export * from './element/waitForEnabled.js'
 export * from './element/waitForExist.js'
 export * from './element/waitForStable.js'
 export * from './element/waitUntil.js'
+/**
+ * Add it to the Element scope, but not to the docs by providing a different folder
+ */
+export * from './mobile/dragAndDrop.js'
+export * from './mobile/longPress.js'
+export * from './mobile/pinch.js'
+export * from './mobile/tap.js'
+export * from './mobile/zoom.js'

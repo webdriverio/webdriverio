@@ -19,8 +19,11 @@ vi.mock('@wdio/utils')
 vi.mock('@wdio/utils/node')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber', async (orig) => {
-    const origMod = await orig() as typeof Cucumber
+
+    const { default: _def, ...origMod } = await orig() as typeof Cucumber
+
     const mod = {
+        ...origMod,
         setDefinitionFunctionWrapper: vi.fn(),
         BeforeAll: vi.fn(),
         AfterAll: vi.fn(),
@@ -71,12 +74,12 @@ vi.mock('../src/utils.js', async () => {
 })
 
 declare global {
-    /* eslint-disable no-var */
+
     var MODULE_A_WAS_LOADED: boolean
     var MODULE_B_WAS_LOADED_WITH: any
     var MODULE_INLINE_WAS_LOADED: boolean
     var MODULE_C_WAS_LOADED: boolean
-    /* eslint-enable no-var */
+
 }
 
 describe('CucumberAdapter', () => {
@@ -106,6 +109,10 @@ describe('CucumberAdapter', () => {
             .toContain('World')
         expect(Object.keys(packageExports))
             .toContain('DataTable')
+        expect(Object.keys(packageExports))
+            .toContain('world')
+        expect(Object.keys(packageExports))
+            .toContain('context')
     })
 
     it('can be initiated with tests', async () => {
@@ -199,7 +206,7 @@ describe('CucumberAdapter', () => {
 
     it('loadSpecFiles', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
-        adapter.loadFilesWithType = vi.fn().mockReturnValue([process.cwd() + '/__mocks__/moduleC.ts'])
+        adapter.loadFilesWithType = vi.fn().mockReturnValue([path.resolve(process.cwd(), '__mocks__', 'moduleC.ts')])
 
         expect(global.MODULE_C_WAS_LOADED).toBe(undefined)
         await adapter.loadFiles()

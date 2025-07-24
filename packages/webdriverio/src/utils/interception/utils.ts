@@ -1,6 +1,8 @@
 import type { local, remote } from 'webdriver'
 import type { RequestWithOptions, RespondWithOptions } from './types.js'
 
+type Overwrite<T> = Omit<T extends RequestWithOptions ? remote.NetworkContinueRequestParameters : remote.NetworkContinueResponseParameters, 'request'>
+
 /**
  * parse request or response overwrites to make it compatible with Bidis protocol
  * @param overwrite request or response overwrite
@@ -11,30 +13,17 @@ export function parseOverwrite<
 >(
     overwrite: T,
     request: local.NetworkBeforeRequestSentParameters | local.NetworkResponseCompletedParameters
-) {
-    const result: Omit<T extends RequestWithOptions ? remote.NetworkContinueRequestParameters : remote.NetworkContinueResponseParameters, 'request'> = {} as any
+): Overwrite<T> {
+    const result: Overwrite<T> = {} as unknown as Overwrite<T>
     if ('body' in overwrite && overwrite.body) {
         const bodyOverwrite = typeof overwrite.body === 'function'
             ? overwrite.body(request as local.NetworkBeforeRequestSentParameters)
             : overwrite.body
-        result.body = typeof bodyOverwrite === 'string' ?
-            /**
-             * if body is a string we can pass it as is
-             */
-            {
-                type: 'string',
-                value: bodyOverwrite
-            }
-            :
-            /**
-             * if body is an object we need to encode it
-             */
-            {
-                type: 'base64',
-                value: globalThis.Buffer
-                    ? globalThis.Buffer.from(JSON.stringify(bodyOverwrite || '')).toString('base64')
-                    : btoa(JSON.stringify(bodyOverwrite))
-            }
+        result.body = (bodyOverwrite?.type === 'string' || bodyOverwrite?.type === 'base64')
+            ? bodyOverwrite
+            : typeof bodyOverwrite === 'string'
+                ? { type: 'string', value: bodyOverwrite }
+                : { type: 'base64', value: btoa(JSON.stringify(bodyOverwrite || '')) }
     }
 
     if ('headers' in overwrite) {

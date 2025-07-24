@@ -1,18 +1,21 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const esmModule = import('./node.js')
+
 function command (method: string, encodeUri: string, commandInfo: any, doubleEncodeVariables = false) {
     return async function protocolCommand(this: unknown, ...args: unknown[]) {
-        const commandESM = await import('./command.js')
-        return commandESM.default(method, encodeUri, commandInfo, doubleEncodeVariables).apply(this, args)
+        const commandESM = await esmModule
+        return commandESM.command(method, encodeUri, commandInfo, doubleEncodeVariables).apply(this, args)
     }
 }
 
 class WebDriver {
     static async newSession(
         options: any,
-        modifier?: (...args: any[]) => any,
+        modifier?: () => any,
         userPrototype = {},
-        customCommandWrapper?: (...args: any[]) => any
+        customCommandWrapper?: () => any
     ): Promise<any> {
-        const WebDriver = (await import('./index.js')).default
+        const WebDriver = (await esmModule).WebDriver
         return WebDriver.newSession(options, modifier, userPrototype, customCommandWrapper)
     }
 
@@ -21,23 +24,23 @@ class WebDriver {
      */
     static async attachToSession (
         options?: any,
-        modifier?: (...args: any[]) => any,
+        modifier?: () => any,
         userPrototype = {},
-        commandWrapper?: (...args: any[]) => any
+        commandWrapper?: () => any
     ): Promise<any> {
-        const WebDriver = (await import('./index.js')).default
+        const WebDriver = (await esmModule).WebDriver
         return WebDriver.attachToSession(options, modifier, userPrototype, commandWrapper)
     }
 
     /**
      * Changes The instance session id and browser capabilities for the new session
-     * directly into the passed in browser object
+     * directly into the passed in browser object!!
      *
      * @param   {object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
      */
     static async reloadSession (instance: any) {
-        const WebDriver = (await import('./index.js')).default
+        const WebDriver = (await esmModule).WebDriver
         return WebDriver.reloadSession(instance)
     }
 

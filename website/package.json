@@ -13,16 +13,16 @@
     "translate": "docusaurus write-translations"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.3.2",
-    "@docusaurus/module-type-aliases": "^3.3.2",
-    "@docusaurus/plugin-client-redirects": "^3.3.2",
-    "@docusaurus/plugin-google-analytics": "^3.3.2",
-    "@docusaurus/plugin-ideal-image": "^3.3.2",
-    "@docusaurus/plugin-pwa": "^3.3.2",
-    "@docusaurus/preset-classic": "^3.3.2",
-    "@docusaurus/remark-plugin-npm2yarn": "^3.3.2",
-    "@docusaurus/theme-search-algolia": "^3.3.2",
-    "@docusaurus/tsconfig": "^3.3.2",
+    "@docusaurus/core": "^3.5.2",
+    "@docusaurus/module-type-aliases": "^3.5.2",
+    "@docusaurus/plugin-client-redirects": "^3.5.2",
+    "@docusaurus/plugin-google-analytics": "^3.5.2",
+    "@docusaurus/plugin-ideal-image": "^3.5.2",
+    "@docusaurus/plugin-pwa": "^3.5.2",
+    "@docusaurus/preset-classic": "^3.5.2",
+    "@docusaurus/remark-plugin-npm2yarn": "^3.5.2",
+    "@docusaurus/theme-search-algolia": "^3.5.2",
+    "@docusaurus/tsconfig": "^3.5.2",
     "@mdx-js/react": "^3.0.1",
     "@mendable/search": "^0.0.206",
     "@tsconfig/docusaurus": "^2.0.3",
@@ -31,7 +31,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-lite-youtube-embed": "^2.4.0",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.4",
     "workbox-routing": "^7.1.0",
     "workbox-strategies": "^7.1.0"
   },
@@ -51,6 +51,7 @@
     ]
   },
   "devDependencies": {
-    "@docusaurus/theme-common": "^3.3.2"
+    "@docusaurus/theme-common": "^3.5.2",
+    "babel-loader": "^9.1.3"
   }
 }

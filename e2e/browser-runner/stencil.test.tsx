@@ -1,4 +1,4 @@
-import { $, browser, expect } from '@wdio/globals'
+import { $, $$, browser, expect } from '@wdio/globals'
 import { render, waitForChanges } from '@wdio/browser-runner/stencil'
 
 import { AppProfile } from './components/StencilComponent.jsx'
@@ -7,6 +7,14 @@ import { NoShadowComponent } from './components/StencilComponentNoShadow.jsx'
 
 describe('Stencil Component Testing', () => {
     it('should render component correctly', async () => {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         const page = render({
             components: [AppProfile, NestedComponent],
             autoApplyChanges: true,
@@ -21,7 +29,7 @@ describe('Stencil Component Testing', () => {
         expect(typeof (await page.$container).elementId).toBe('string')
         expect(typeof (await page.$root).elementId).toBe('string')
 
-        await expect($('>>>.app-profile')).toHaveText(
+        await expect($('.app-profile')).toHaveText(
             expect.stringContaining('Hello! My name is Stencil.')
         )
 
@@ -29,12 +37,12 @@ describe('Stencil Component Testing', () => {
          * this assertion for Safari due to: https://github.com/w3c/webdriver/issues/1786
          */
         if ((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase() !== 'safari') {
-            await expect($('>>>.app-profile')).toHaveText(
+            await expect($('.app-profile')).toHaveText(
                 expect.stringContaining('I am a nested component!')
             )
         }
 
-        await expect($('>>>.app-profile').getCSSProperty('font-weight'))
+        await expect($('.app-profile').getCSSProperty('font-weight'))
             .toMatchInlineSnapshot(`
           {
             "parsed": {
@@ -67,12 +75,20 @@ describe('Stencil Component Testing', () => {
     })
 
     it('can render via html', async () => {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         const page = render({
             components: [NestedComponent],
             html: '<nested-component></nested-component>'
         })
 
-        await expect(page.$root.$('>>> i')).toHaveText('I am a unknown!')
+        await expect(page.$root.$('i')).toHaveText('I am a unknown!')
     })
 
     it('can wait for changes', async () => {
@@ -83,7 +99,7 @@ describe('Stencil Component Testing', () => {
 
         expect(page.root.outerHTML).toBe('<no-shadow-component></no-shadow-component>')
         await waitForChanges()
-        expect(page.root.outerHTML).toBe('<no-shadow-component>Hello World!</no-shadow-component>')
+        expect(page.root.outerHTML).toBe('<no-shadow-component class="hydrated">Hello World!</no-shadow-component>')
     })
 
     it('can unmount', async () => {
@@ -97,8 +113,12 @@ describe('Stencil Component Testing', () => {
         await expect(page.root).not.toBeExisting()
     })
 
+    /**
+     * Started to fail due to "stale element exception" due to the fact that the element
+     * was looked up in a different frame
+     */
     it.skip('can auto peirce shadow dom', async () => {
-        if ((browser.capabilities as WebdriverIO.Capabilities).browserName?.toLowerCase() === 'safari') {
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
             return
         }
         render({

@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
+import type { ChildProcessWithoutNullStreams } from 'node:child_process'
 
 import { spawn } from 'node:child_process'
 
@@ -11,6 +12,9 @@ import PercyBinary from './PercyBinary.js'
 
 import type { BrowserstackConfig, UserConfig } from '../types.js'
 import type { Options } from '@wdio/types'
+import { BROWSERSTACK_TESTHUB_UUID } from '../constants.js'
+import PerformanceTester from '../instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
 
 const logDir = 'logs'
 
@@ -18,20 +22,26 @@ class Percy {
     #logfile: string = path.join(logDir, 'percy.log')
     #address: string = process.env.PERCY_SERVER_ADDRESS || 'http://127.0.0.1:5338'
 
-    #binaryPath: string | any = null
+    #binaryPath: string | null = null
     #options: BrowserstackConfig & Options.Testrunner
     #config: Options.Testrunner
-    #proc: any = null
+    #proc: ChildProcessWithoutNullStreams | null = null
     #isApp: boolean
     #projectName: string | undefined = undefined
 
     isProcessRunning = false
+    percyCaptureMode?: string
+    buildId: number | null = null
+    percyAutoEnabled = false
+    percy: boolean
 
     constructor(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
         this.#options = options
         this.#config = config
         this.#isApp = Boolean(options.app)
         this.#projectName = bsConfig.projectName
+        this.percyCaptureMode = options.percyCaptureMode
+        this.percy = options.percy ?? false
     }
 
     async #getBinaryPath(): Promise<string> {
@@ -44,15 +54,17 @@ class Percy {
 
     async healthcheck() {
         try {
-            const resp = await nodeRequest('GET', 'percy/healthcheck', null, this.#address)
+            const resp = await nodeRequest('GET', 'percy/healthcheck', {}, this.#address)
             if (resp) {
+                this.buildId = resp.build.id
                 return true
             }
-        } catch (err) {
+        } catch {
             return false
         }
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.START)
     async start() {
         const binaryPath: string = await this.#getBinaryPath()
         const logStream = fs.createWriteStream(this.#logfile, { flags: 'a' })
@@ -72,7 +84,7 @@ class Percy {
         this.#proc = spawn(
             binaryPath,
             commandArgs,
-            { env: { ...process.env, PERCY_TOKEN: token } }
+            { env: { ...process.env, PERCY_TOKEN: token, TH_BUILD_UUID: process.env[BROWSERSTACK_TESTHUB_UUID] } }
         )
 
         this.#proc.stdout.pipe(logStream)
@@ -97,11 +109,12 @@ class Percy {
         return false
     }
 
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.STOP)
     async stop() {
         const binaryPath = await this.#getBinaryPath()
         return new Promise( (resolve) => {
             const proc = spawn(binaryPath, ['exec:stop'])
-            proc.on('close', (code: any) => {
+            proc.on('close', (code: number) => {
                 this.isProcessRunning = false
                 resolve(code)
             })
@@ -114,21 +127,38 @@ class Percy {
 
     async fetchPercyToken() {
         const projectName = this.#projectName
-
         try {
             const type = this.#isApp ? 'app' : 'automate'
-            const response = await nodeRequest(
-                'GET',
-                `api/app_percy/get_project_token?name=${projectName}&type=${type}`,
-                {
-                    username: getBrowserStackUser(this.#config),
-                    password: getBrowserStackKey(this.#config)
+            const params = new URLSearchParams()
+            if (projectName) {
+                params.set('name', projectName)
+            }
+            if (type) {
+                params.set('type', type)
+            }
+            if (this.#options.percyCaptureMode) {
+                params.set('percy_capture_mode', this.#options.percyCaptureMode)
+            }
+            params.set('percy', String(this.#options.percy))
+            const query = `api/app_percy/get_project_token?${params.toString()}`
+            const requestInit: RequestInit = {
+                headers: {
+                    Authorization: `Basic ${Buffer.from(`${getBrowserStackUser(this.#config)}:${getBrowserStackKey(this.#config)}`).toString('base64')}`,
                 },
-                'https://api.browserstack.com'
-            )
-            PercyLogger.debug('Percy fetch token success : ' + response.token)
-            return response.token
-        } catch (err: any) {
+            }
+            const response = await nodeRequest('GET', query, requestInit, 'https://api.browserstack.com')
+            if (!this.#options.percy && response.success) {
+                this.percyAutoEnabled = response.success
+            }
+            this.percyCaptureMode = response.percy_capture_mode
+            this.percy = response.success
+            if (response.token) {
+                PercyLogger.debug('Percy fetch token success: ' + response.token)
+                return response.token
+            }
+            PercyLogger.error('Unable to fetch percy project token')
+            return null
+        } catch (err) {
             PercyLogger.error(`Percy unable to fetch project token: ${err}`)
             return null
         }
@@ -152,7 +182,7 @@ class Percy {
                 JSON.stringify(
                     percyOptions
                 ),
-                (err: any) => {
+                (err: unknown) => {
                     if (err) {
                         PercyLogger.error(`Error creating percy config: ${err}`)
                         resolve(null)

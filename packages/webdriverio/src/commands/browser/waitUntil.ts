@@ -1,3 +1,6 @@
+import { getBrowserObject } from '@wdio/utils'
+import type { WebDriverResultEvent } from 'webdriver'
+
 import Timer from '../../utils/Timer.js'
 import type { WaitUntilOptions } from '../../types.js'
 
@@ -28,7 +31,7 @@ export function waitUntil<ReturnValue>(
         interval = this.options.waitforInterval,
         timeoutMsg
     }: Partial<WaitUntilOptions> = {}
-): Promise<Exclude<ReturnValue, boolean>> {
+): Promise<Exclude<ReturnValue, false | 0 | '' | null | undefined>> {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
     }
@@ -44,9 +47,21 @@ export function waitUntil<ReturnValue>(
         interval = this.options.waitforInterval as number
     }
 
+    /**
+     * abort the Timer if the session is deleted during the wait
+     */
+    const browser = getBrowserObject(this)
+    const abort = new AbortController()
+    const abortOnSessionEnd = (result: WebDriverResultEvent) => {
+        if (result.command === 'deleteSession') {
+            abort.abort()
+        }
+    }
+    browser.on('result', abortOnSessionEnd)
+
     const fn = condition.bind(this)
-    const timer = new Timer(interval as number, timeout as number, fn, true)
-    return (timer as any).catch((e: Error) => {
+    const timer = new Timer(interval as number, timeout as number, fn, true, abort.signal)
+    return timer.catch<Exclude<ReturnValue, false | 0 | '' | null | undefined>>((e: Error) => {
         if (e.message === 'timeout') {
             if (typeof timeoutMsg === 'string') {
                 throw new Error(timeoutMsg)
@@ -54,6 +69,28 @@ export function waitUntil<ReturnValue>(
             throw new Error(`waitUntil condition timed out after ${timeout}ms`)
         }
 
-        throw new Error(`waitUntil condition failed with the following reason: ${(e && e.message) || e}`)
+        const err = new Error(`waitUntil condition failed with the following reason: ${e && e.message || e}`)
+        const origStack = e.stack
+        if (!origStack || !err.stack) {
+            throw err
+        }
+
+        /**
+         * sanitize error message and clean up stack trace
+         */
+        const [errMsg, ...waitUntilErrorStackLines] = err.stack.split('\n')
+        err.stack = [
+            errMsg,
+            ...(origStack.split('\n').slice(1)),
+            '    ---',
+            ...waitUntilErrorStackLines
+        ].filter((errorLine) => (
+            !errorLine.includes('/node_modules/webdriverio/') &&
+            !errorLine.includes('/node_modules/@wdio/')
+        )).join('\n')
+
+        throw err
+    }).finally(() => {
+        browser.off('result', abortOnSessionEnd)
     })
 }

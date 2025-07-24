@@ -14,14 +14,33 @@ const rule: Rule.RuleModule = {
             unexpectedPause: 'Unexpected browser.pause() not allowed'
         },
         hasSuggestions: true,
-        schema: [],
+        schema: [{
+            type: 'object',
+            properties: {
+                instances: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                    },
+                    description: 'List of browser instances to check (default: ["browser"])',
+                    default: ['browser'],
+                },
+            },
+            additionalProperties: false,
+        }],
     },
 
     create: function (context: Rule.RuleContext): Rule.RuleListener {
+        const options = context.options[0] || {}
+        const instances = options.instances || ['browser']
         return {
             CallExpression(node): void {
-                if (isCommand(node, 'pause')) {
-                    context.report({ node, messageId: 'unexpectedPause' })
+                if (isCommand(node, 'pause', instances)) {
+                    context.report({
+                        node,
+                        messageId: 'unexpectedPause',
+                        data: { instance: instances.join(', ') }
+                    })
                 }
             }
         }

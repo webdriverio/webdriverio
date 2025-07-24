@@ -14,7 +14,9 @@ const log = logger('webdriver')
  * give added capabilities like passing button type, coordinates etc. By default, when using options a release action
  * command is send after performing the click action, pass `option.skipRelease=true` to skip this action.
  *
- * Note: If you have fixed-position elements (such as a fixed header or footer) that cover up the
+ * :::info
+ *
+ * If you have fixed-position elements (such as a fixed header or footer) that cover up the
  * selected element after it is scrolled within the viewport, the click will be issued at the given coordinates, but will
  * be received by your fixed (overlaying) element. In these cased the following error is thrown:
  *
@@ -25,6 +27,15 @@ const log = logger('webdriver')
  * To work around this, try to find the overlaying element and remove it via `execute` command so it doesn't interfere
  * the click. You also can try to scroll to the element yourself using `scroll` with an offset appropriate for your
  * scenario.
+ *
+ * :::
+ *
+ * :::info
+ *
+ * The click command can also be used to simulate a long press on a mobile device. This is done by setting the `duration`.
+ * See the example below for more information.
+ *
+ * :::
  *
  * <example>
     :example.html
@@ -75,14 +86,25 @@ const log = logger('webdriver')
     })
  * </example>
  *
+ * <example>
+    :longpress.example.js
+    it('should be able to open the contacts menu on iOS by executing a longPress', async () => {
+        const contacts = await $('~Contacts')
+        // opens the Contacts menu on iOS where you can quickly create
+        // a new contact, edit your home screen, or remove the app
+        await contacts.click({ duration: 2000 })
+    })
+ * </example>
+ *
  * @alias element.click
  * @uses protocol/element, protocol/elementIdClick, protocol/performActions, protocol/positionClick
  * @type action
- * @param {ClickOptions=}     options        click options (optional)
- * @param {string= | number=} options.button can be one of [0, "left", 1, "middle", 2, "right"] (optional)
- * @param {number=}           options.x      Number (optional)
- * @param {number=}           options.y      Number (optional)
- * @param {boolean=}           options.skipRelease         Boolean (optional)
+ * @param {ClickOptions=}     options               Click options (optional)
+ * @param {string|number=} options.button        Can be one of `[0, "left", 1, "middle", 2, "right"]` <br /><strong>WEB-ONLY</strong> (Desktop/Mobile)
+ * @param {number=}           options.x             Clicks X horizontal pixels away from location of the element (from center point of element)<br /><strong>WEB and Native</strong> (Desktop/Mobile)
+ * @param {number=}           options.y             Clicks Y vertical pixels away from location of the element (from center point of element)<br /><strong>WEB and Native support</strong> (Desktop/Mobile)
+ * @param {boolean=}          options.skipRelease   Boolean (optional) <br /><strong>WEB-ONLY</strong> (Desktop/Mobile)
+ * @param {number=}           options.duration      Duration of the click, aka "LongPress" <br /><strong>MOBILE-NATIVE-APP-ONLY</strong> (Mobile)
  */
 export function click(
     this: WebdriverIO.Element,
@@ -111,6 +133,10 @@ async function elementClick(element: WebdriverIO.Element) {
     try {
         return await element.elementClick(element.elementId)
     } catch (error) {
+        // We will never reach this code in the case of a mobile app, the implicitWait will wait for the element but will throw
+        // an error with the following message:
+        // `Error: Can't call click on element with selector "<selector>" because element wasn't found at implicitWait`
+        // This means that he workaround is not reachable in the case of a mobile app and thus will not automatically scroll the element into view
         let err = error as Error
         if (typeof error === 'string') {
             err = new Error(error)
@@ -131,9 +157,10 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
         x: 0,
         y: 0,
         skipRelease: false,
+        duration: 0
     }
 
-    const { button, x, y, skipRelease }: ClickOptions = { ...defaultOptions, ...options }
+    const { button, x, y, skipRelease, duration }: ClickOptions = { ...defaultOptions, ...options }
 
     if (
         typeof x !== 'number'
@@ -160,10 +187,11 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
     }
     const clickNested = async () => {
         await browser.action('pointer', {
-            parameters: { pointerType: 'mouse' }
+            parameters: { pointerType: browser.isMobile ? 'touch' : 'mouse' }
         })
             .move({ origin: element, x, y })
             .down({ button })
+            .pause(duration)
             .up({ button })
             .perform(skipRelease)
     }

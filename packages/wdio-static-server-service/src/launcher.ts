@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
-import express from 'express'
+import express, { type Express } from 'express'
 import morgan from 'morgan'
 import logger from '@wdio/logger'
 import type { Services } from '@wdio/types'
@@ -16,7 +16,7 @@ export default class StaticServerLauncher implements Services.ServiceInstance {
     private _folders: FolderOption[] | null
     private _port: number
     private _middleware: MiddleWareOption[]
-    private _server?: express.Express
+    private _server?: Express
 
     constructor({ folders, port = 4567, middleware = [] }: { folders?: FolderOption[] | FolderOption, port?: number, middleware?: MiddleWareOption[] }) {
         this._folders = folders ? Array.isArray(folders) ? folders : [folders] : null
@@ -45,7 +45,7 @@ export default class StaticServerLauncher implements Services.ServiceInstance {
         this._middleware.forEach(
             (ware: MiddleWareOption) => this._server!.use(ware.mount, ware.middleware as unknown as express.Application))
 
-        const listen = <(port: number) => Promise<any>> promisify(this._server.listen.bind(this._server))
+        const listen = <(port: number) => Promise<unknown>> promisify(this._server.listen.bind(this._server))
         await listen(this._port)
         log.info(`Static server running at http://localhost:${this._port}`)
     }

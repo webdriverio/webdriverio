@@ -1,8 +1,9 @@
-import prettyMs from 'pretty-ms'
 import { format } from 'node:util'
+
+import prettyMs from 'pretty-ms'
 import type { Capabilities } from '@wdio/types'
 import { Chalk, type ChalkInstance } from 'chalk'
-import WDIOReporter, { TestStats } from '@wdio/reporter'
+import WDIOReporter, { TestStats, getBrowserName } from '@wdio/reporter'
 import type { SuiteStats, HookStats, RunnerStats, Argument } from '@wdio/reporter'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import { ChalkColors, type SpecReporterOptions, type TestLink, type StateCount, type Symbols, State } from './types.js'
@@ -29,18 +30,25 @@ export default class SpecReporter extends WDIOReporter {
     private _realtimeReporting = false
     private _showPreface = true
     private _suiteName = ''
+
+    private _isSuiteRetry = false
+    private _passingTestsSinceLastRetry = 0
+
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
         passed: 0,
         failed: 0,
-        skipped: 0
+        skipped: 0,
+        pending: 0,
+        retried: 0
     }
 
     private _symbols: Symbols = {
         passed: '✓',
         skipped: '-',
         pending: '?',
-        failed: '✖'
+        failed: '✖',
+        retried: '↻'
     }
     private _chalk: ChalkInstance
     private _onlyFailures = false
@@ -50,7 +58,7 @@ export default class SpecReporter extends WDIOReporter {
         /**
          * make spec reporter to write to output stream by default
          */
-        super(Object.assign({ stdout: true }, options))
+        super(Object.assign({ stdout: true } as Record<string, unknown>, options))
 
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
@@ -59,7 +67,8 @@ export default class SpecReporter extends WDIOReporter {
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
-        const processObj:any = process
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const processObj = process as any
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
@@ -98,6 +107,16 @@ export default class SpecReporter extends WDIOReporter {
 
     onSuiteEnd () {
         this._indents--
+        this._isSuiteRetry = false
+        this._passingTestsSinceLastRetry = 0
+    }
+
+    onSuiteRetry(): void {
+        this._stateCounts.failed--
+        this._stateCounts.retried++
+        this._stateCounts.passed -= this._passingTestsSinceLastRetry
+        this._isSuiteRetry = true
+        this._passingTestsSinceLastRetry = 0
     }
 
     onHookEnd (hook: HookStats) {
@@ -115,6 +134,9 @@ export default class SpecReporter extends WDIOReporter {
         this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.passed++
+        if (!this._isSuiteRetry) {
+            this._passingTestsSinceLastRetry++
+        }
     }
 
     onTestFail (testStat: TestStats) {
@@ -128,6 +150,13 @@ export default class SpecReporter extends WDIOReporter {
         this._pendingReasons.push(testStat.pendingReason as string)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
+    }
+
+    onTestPending(testStat: TestStats) {
+        this.printCurrentStats(testStat)
+        this._pendingReasons.push(testStat.pendingReason as string)
+        this._consoleLogs.push(this._consoleOutput)
+        this._stateCounts.pending++
     }
 
     onRunnerEnd (runner: RunnerStats) {
@@ -170,7 +199,7 @@ export default class SpecReporter extends WDIOReporter {
          *   - there is content to send
          *   - we are not running a unit test
          */
-        if (process.send && content && !process.env.VITEST_WORKER_ID) {
+        if (process.send && content && !process.env.WDIO_UNIT_TESTS) {
             process.send({ name: 'reporterRealTime', content })
         }
     }
@@ -190,6 +219,14 @@ export default class SpecReporter extends WDIOReporter {
 
         // Get the results
         const results = this.getResultDisplay(preface)
+
+        if (results.length === 0 && runner.error) {
+            results.push(
+                this.setMessageColor(`${this.getSymbol(State.FAILED)} Failed to create a session:`, State.FAILED),
+                runner.error,
+                ''
+            )
+        }
 
         // If there are no test results then return nothing
         if (results.length === 0) {
@@ -249,11 +286,9 @@ export default class SpecReporter extends WDIOReporter {
             }
 
             // VDC urls can be constructed / be made shared
-            const isUSEast1 = config.headless || (config.hostname?.includes('us-east-1'))
             const isUSEast4 = ['us-east-4'].includes(config?.region || '') || (config.hostname?.includes('us-east-4'))
             const isEUCentral = ['eu', 'eu-central-1'].includes(config?.region || '') || (config.hostname?.includes('eu-central'))
-            const isAPAC = ['apac', 'apac-southeast-1'].includes(config?.region || '') || (config.hostname?.includes('apac'))
-            const dc = isUSEast1 ? '.us-east-1' : isUSEast4 ? '.us-east-4' : isEUCentral ? '.eu-central-1' : isAPAC ? '.apac-southeast-1' : ''
+            const dc = isUSEast4 ? '.us-east-4' : isEUCentral ? '.eu-central-1' : ''
             const sauceLabsSharableLinks = this._sauceLabsSharableLinks
                 ? sauceAuthenticationToken( config.user, config.key, sessionId )
                 : ''
@@ -345,12 +380,17 @@ export default class SpecReporter extends WDIOReporter {
 
             // Display file path of spec
             if (suite.file && !specFileReferences.includes(suite.file)) {
-                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '')}`)
+                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '').slice(1)}`)
                 specFileReferences.push(suite.file)
             }
 
+            let retryAnnotation = ''
+            if (suite.retries > 0) {
+                retryAnnotation = this._chalk.yellow(` (${suite.retries}x retries)`)
+            }
+
             // Display the title of the suite
-            output.push(`${suiteIndent}${suite.title}`)
+            output.push(`${suiteIndent}${suite.title}${retryAnnotation}`)
 
             // display suite description (Cucumber only)
             if (suite.description) {
@@ -367,7 +407,10 @@ export default class SpecReporter extends WDIOReporter {
 
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
-                const testTitle = `${test.title} ${(test instanceof TestStats && test.retries && test.retries > 0) ? `(${test.retries} retries)` : ''}`
+                const testRetryAnnotation = (test instanceof TestStats && test.retries && test.retries > 0)
+                    ? this._chalk.yellow(`(${test.retries}x retries)`)
+                    : ''
+                const testTitle = `${test.title} ${testRetryAnnotation}`
                 const state = test.state as State
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
 
@@ -448,6 +491,19 @@ export default class SpecReporter extends WDIOReporter {
             output.push(this.setMessageColor(text, State.SKIPPED))
         }
 
+        // Get the pending tests
+        if (this._stateCounts.pending > 0) {
+            const text = `${this._stateCounts.pending} pending ${duration}`.trim()
+            output.push(this.setMessageColor(text, State.PENDING))
+            duration = ''
+        }
+
+        // Get the skipped tests
+        if (this._stateCounts.retried > 0) {
+            const text = `${this._stateCounts.retried} retried ${duration}`.trim()
+            output.push(this.setMessageColor(text, State.RETRIED))
+        }
+
         return output
     }
 
@@ -477,9 +533,11 @@ export default class SpecReporter extends WDIOReporter {
 
                 )
                 for (const error of errors) {
-                    !error?.stack?.includes('new AssertionError')
-                        ? output.push(this.setMessageColor(error.message, State.FAILED))
-                        : output.push(...error.message.split('\n'))
+                    if (!error?.stack?.includes('new AssertionError')) {
+                        output.push(this.setMessageColor(error.message, State.FAILED))
+                    } else {
+                        output.push(...error.message.split('\n'))
+                    }
                     if (error.stack) {
                         output.push(...error.stack.split(/\n/g).map(value => this.setMessageColor(value)))
                     }
@@ -576,6 +634,9 @@ export default class SpecReporter extends WDIOReporter {
         case State.FAILED:
             color = ChalkColors.RED
             break
+        case State.RETRIED:
+            color = ChalkColors.YELLOW
+            break
         }
 
         return color
@@ -598,11 +659,7 @@ export default class SpecReporter extends WDIOReporter {
         }
         const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
         const device = caps['appium:deviceName']
-        // @ts-expect-error outdated JSONWP capabilities
-        const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
-        const appName = app || caps['appium:bundleId'] || (caps as any).bundleId
-        // @ts-expect-error outdated JSONWP capabilities
-        const browser = caps.browserName || caps.browser || appName
+        const browser = getBrowserName(caps)
         /**
          * fallback to different capability types:
          * browserVersion: W3C format
@@ -623,7 +680,7 @@ export default class SpecReporter extends WDIOReporter {
 
         // Mobile capabilities
         if (device) {
-            const program = appName || caps.browserName
+            const program = getBrowserName(caps)
             const executing = program ? `executing ${program}` : ''
             if (!verbose) {
                 return `${device} ${platform} ${version}`

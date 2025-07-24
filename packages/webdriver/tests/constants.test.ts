@@ -1,4 +1,6 @@
 import { test, expect } from 'vitest'
+
+import '../src/browser.js'
 import { DEFAULTS } from '../src/constants.js'
 
 test('should do correct type check for "path"', () => {

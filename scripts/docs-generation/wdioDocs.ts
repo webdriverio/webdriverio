@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-// @ts-expect-error
-import dox from 'dox'
+import { parse } from 'comment-parser'
 import { Eta } from 'eta'
 import type { NavbarItem } from '../../website/node_modules/@docusaurus/theme-common/lib/index.js'
 
@@ -26,6 +26,7 @@ export async function generateWdioDocs (sidebars: any) {
     const COMMANDS = {
         browser: ['api/browser', fs.readdirSync(path.join(COMMAND_DIR, 'browser'))],
         element: ['api/element', fs.readdirSync(path.join(COMMAND_DIR, 'element'))],
+        mobile: ['api/mobile', fs.readdirSync(path.join(COMMAND_DIR, 'mobile'))],
         mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))],
         dialog: ['api/dialog', fs.readdirSync(path.join(COMMAND_DIR, 'dialog'))],
         clock: ['api/clock', fs.readdirSync(path.join(COMMAND_DIR, 'clock'))],
@@ -57,7 +58,7 @@ export async function generateWdioDocs (sidebars: any) {
 
             const raw = fs.readFileSync(filepath, 'utf-8')
             const data = compiler(raw)
-            const doc = dox.parseComments(data, { raw: true })
+            const doc = parse(data, { spacing: 'preserve' })
             const docfile = {
                 filename: filepath,
                 javadoc: doc,

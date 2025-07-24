@@ -67,24 +67,24 @@ export class BidiHandler extends BidiCore {
      * WebDriver Bidi command to send command method "session.subscribe" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-session-subscribe
      * @param params `remote.SessionSubscriptionRequest` {@link https://w3c.github.io/webdriver-bidi/#command-session-subscribe | command parameter}
-     * @returns `Promise<local.EmptyResult>`
+     * @returns `Promise<local.SessionSubscribeResult>`
      **/
-    async sessionSubscribe(params: remote.SessionSubscriptionRequest): Promise<local.EmptyResult> {
+    async sessionSubscribe(params: remote.SessionSubscriptionRequest): Promise<local.SessionSubscribeResult> {
         const result = await this.send({
             method: 'session.subscribe',
             params
         })
 
-        return result.result as local.EmptyResult
+        return result.result as local.SessionSubscribeResult
     }
 
     /**
      * WebDriver Bidi command to send command method "session.unsubscribe" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-session-unsubscribe
-     * @param params `remote.SessionSubscriptionRequest` {@link https://w3c.github.io/webdriver-bidi/#command-session-unsubscribe | command parameter}
+     * @param params `remote.SessionUnsubscribeParameters` {@link https://w3c.github.io/webdriver-bidi/#command-session-unsubscribe | command parameter}
      * @returns `Promise<local.EmptyResult>`
      **/
-    async sessionUnsubscribe(params: remote.SessionSubscriptionRequest): Promise<local.EmptyResult> {
+    async sessionUnsubscribe(params: remote.SessionUnsubscribeParameters): Promise<local.EmptyResult> {
         const result = await this.send({
             method: 'session.unsubscribe',
             params
@@ -111,16 +111,31 @@ export class BidiHandler extends BidiCore {
     /**
      * WebDriver Bidi command to send command method "browser.createUserContext" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-browser-createUserContext
-     * @param params `remote.EmptyParams` {@link https://w3c.github.io/webdriver-bidi/#command-browser-createUserContext | command parameter}
+     * @param params `remote.BrowserCreateUserContextParameters` {@link https://w3c.github.io/webdriver-bidi/#command-browser-createUserContext | command parameter}
      * @returns `Promise<local.BrowserCreateUserContextResult>`
      **/
-    async browserCreateUserContext(params: remote.EmptyParams): Promise<local.BrowserCreateUserContextResult> {
+    async browserCreateUserContext(params: remote.BrowserCreateUserContextParameters): Promise<local.BrowserCreateUserContextResult> {
         const result = await this.send({
             method: 'browser.createUserContext',
             params
         })
 
         return result.result as local.BrowserCreateUserContextResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "browser.getClientWindows" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-browser-getClientWindows
+     * @param params `remote.EmptyParams` {@link https://w3c.github.io/webdriver-bidi/#command-browser-getClientWindows | command parameter}
+     * @returns `Promise<local.BrowserGetClientWindowsResult>`
+     **/
+    async browserGetClientWindows(params: remote.EmptyParams): Promise<local.BrowserGetClientWindowsResult> {
+        const result = await this.send({
+            method: 'browser.getClientWindows',
+            params
+        })
+
+        return result.result as local.BrowserGetClientWindowsResult
     }
 
     /**
@@ -147,6 +162,21 @@ export class BidiHandler extends BidiCore {
     async browserRemoveUserContext(params: remote.BrowserRemoveUserContextParameters): Promise<local.EmptyResult> {
         const result = await this.send({
             method: 'browser.removeUserContext',
+            params
+        })
+
+        return result.result as local.EmptyResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "browser.setClientWindowState" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-browser-setClientWindowState
+     * @param params `remote.BrowserSetClientWindowStateParameters` {@link https://w3c.github.io/webdriver-bidi/#command-browser-setClientWindowState | command parameter}
+     * @returns `Promise<local.EmptyResult>`
+     **/
+    async browserSetClientWindowState(params: remote.BrowserSetClientWindowStateParameters): Promise<local.EmptyResult> {
+        const result = await this.send({
+            method: 'browser.setClientWindowState',
             params
         })
 
@@ -334,6 +364,21 @@ export class BidiHandler extends BidiCore {
     }
 
     /**
+     * WebDriver Bidi command to send command method "emulation.setGeolocationOverride" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-emulation-setGeolocationOverride
+     * @param params `remote.EmulationSetGeolocationOverrideParameters` {@link https://w3c.github.io/webdriver-bidi/#command-emulation-setGeolocationOverride | command parameter}
+     * @returns `Promise<local.EmptyResult>`
+     **/
+    async emulationSetGeolocationOverride(params: remote.EmulationSetGeolocationOverrideParameters): Promise<local.EmptyResult> {
+        const result = await this.send({
+            method: 'emulation.setGeolocationOverride',
+            params
+        })
+
+        return result.result as local.EmptyResult
+    }
+
+    /**
      * WebDriver Bidi command to send command method "network.addIntercept" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-network-addIntercept
      * @param params `remote.NetworkAddInterceptParameters` {@link https://w3c.github.io/webdriver-bidi/#command-network-addIntercept | command parameter}
@@ -439,6 +484,21 @@ export class BidiHandler extends BidiCore {
     }
 
     /**
+     * WebDriver Bidi command to send command method "network.setCacheBehavior" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-network-setCacheBehavior
+     * @param params `remote.NetworkSetCacheBehaviorParameters` {@link https://w3c.github.io/webdriver-bidi/#command-network-setCacheBehavior | command parameter}
+     * @returns `Promise<local.EmptyResult>`
+     **/
+    async networkSetCacheBehavior(params: remote.NetworkSetCacheBehaviorParameters): Promise<local.EmptyResult> {
+        const result = await this.send({
+            method: 'network.setCacheBehavior',
+            params
+        })
+
+        return result.result as local.EmptyResult
+    }
+
+    /**
      * WebDriver Bidi command to send command method "script.addPreloadScript" with parameters.
      * @url https://w3c.github.io/webdriver-bidi/#command-script-addPreloadScript
      * @param params `remote.ScriptAddPreloadScriptParameters` {@link https://w3c.github.io/webdriver-bidi/#command-script-addPreloadScript | command parameter}
@@ -474,13 +534,13 @@ export class BidiHandler extends BidiCore {
      * @param params `remote.ScriptCallFunctionParameters` {@link https://w3c.github.io/webdriver-bidi/#command-script-callFunction | command parameter}
      * @returns `Promise<local.EmptyResult>`
      **/
-    async scriptCallFunction(params: remote.ScriptCallFunctionParameters): Promise<local.EmptyResult> {
+    async scriptCallFunction(params: remote.ScriptCallFunctionParameters): Promise<local.ScriptEvaluateResult> {
         const result = await this.send({
             method: 'script.callFunction',
             params
         })
 
-        return result.result as local.EmptyResult
+        return result.result as local.ScriptEvaluateResult
     }
 
     /**
@@ -612,6 +672,36 @@ export class BidiHandler extends BidiCore {
     async inputSetFiles(params: remote.InputSetFilesParameters): Promise<local.EmptyResult> {
         const result = await this.send({
             method: 'input.setFiles',
+            params
+        })
+
+        return result.result as local.EmptyResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "webExtension.install" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-webExtension-install
+     * @param params `remote.WebExtensionInstallParameters` {@link https://w3c.github.io/webdriver-bidi/#command-webExtension-install | command parameter}
+     * @returns `Promise<local.WebExtensionInstallResult>`
+     **/
+    async webExtensionInstall(params: remote.WebExtensionInstallParameters): Promise<local.WebExtensionInstallResult> {
+        const result = await this.send({
+            method: 'webExtension.install',
+            params
+        })
+
+        return result.result as local.WebExtensionInstallResult
+    }
+
+    /**
+     * WebDriver Bidi command to send command method "webExtension.uninstall" with parameters.
+     * @url https://w3c.github.io/webdriver-bidi/#command-webExtension-uninstall
+     * @param params `remote.WebExtensionUninstallParameters` {@link https://w3c.github.io/webdriver-bidi/#command-webExtension-uninstall | command parameter}
+     * @returns `Promise<local.EmptyResult>`
+     **/
+    async webExtensionUninstall(params: remote.WebExtensionUninstallParameters): Promise<local.EmptyResult> {
+        const result = await this.send({
+            method: 'webExtension.uninstall',
             params
         })
 

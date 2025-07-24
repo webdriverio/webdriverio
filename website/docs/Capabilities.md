@@ -30,7 +30,7 @@ While the amount of fixed defined capabilities is very low, everyone can provide
 
 ### Automation Engine Capability Extensions
 
-- `appium:xxx`: [Appium](https://appium.github.io/appium.io/docs/en/writing-running-appium/caps/)
+- `appium:xxx`: [Appium](https://appium.io/docs/en/latest/guides/caps/)
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 - and many more...
 
@@ -68,7 +68,7 @@ Type: `(String | String[])[]`
 
 #### `wdio:exclude`
 
-Exclude specs from test execution for that browser/capability. Same as the [regular `exclude` configuration option](configuration#exclude), but specific to the browser/capability. Takes precedence over `exclude`.
+Exclude specs from test execution for that browser/capability. Same as the [regular `exclude` configuration option](configuration#exclude), but specific to the browser/capability. Excludes after the global `exclude` configuration option is applied.
 
 Type: `String[]`
 
@@ -194,6 +194,12 @@ Comma-separated allowlist of request origins which are allowed to connect to Edg
 Type: `string[]`<br />
 Default: `['*']`
 
+##### spawnOpts
+Options to be passed into the driver process.
+
+Type: `SpawnOptionsWithoutStdio | SpawnOptionsWithStdioTuple<StdioOption, StdioOption, StdioOption>`<br />
+Default: `undefined`
+
 </TabItem>
 <TabItem value="firefox">
 
@@ -288,7 +294,7 @@ When testing on Chrome, WebdriverIO will automatically download the desired brow
 ```ts
 {
     browserName: 'chrome', // or 'chromium'
-    browserVersion: '116' // or '116.0.5845.96', 'stable', 'latest', 'dev', 'canary', 'beta'
+    browserVersion: '116' // or '116.0.5845.96', 'stable', 'dev', 'canary', 'beta' or 'latest' (same as 'canary')
 }
 ```
 

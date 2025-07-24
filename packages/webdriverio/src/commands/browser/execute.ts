@@ -1,4 +1,12 @@
-import { verifyArgsAndStripIfElement } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
+import type { remote } from 'webdriver'
+
+import { verifyArgsAndStripIfElement, createFunctionDeclarationFromString } from '../../utils/index.js'
+import { LocalValue } from '../../utils/bidi/value.js'
+import { parseScriptResult } from '../../utils/bidi/index.js'
+import { getContextManager } from '../../session/context.js'
+import { polyfillFn } from '../../scripts/polyfill.js'
+import type { TransformElement, TransformReturn } from '../../types.js'
 
 /**
  *
@@ -35,11 +43,11 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  * @type protocol
  *
  */
-export function execute<ReturnValue, InnerArguments extends any[]> (
-    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
-    script: string | ((...innerArgs: InnerArguments) => ReturnValue),
+export async function execute<ReturnValue, InnerArguments extends unknown[]> (
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    script: string | ((...innerArgs: TransformElement<InnerArguments>) => ReturnValue),
     ...args: InnerArguments
-): Promise<ReturnValue> {
+): Promise<TransformReturn<ReturnValue>> {
     /**
      * parameter check
      */
@@ -47,13 +55,35 @@ export function execute<ReturnValue, InnerArguments extends any[]> (
         throw new Error('number or type of arguments don\'t agree with execute protocol command')
     }
 
+    if (this.isBidi && !this.isMultiremote) {
+        const browser = getBrowserObject(this)
+        const contextManager = getContextManager(browser)
+        const context = await contextManager.getCurrentContext()
+        const userScript = typeof script === 'string' ? new Function(script) : script
+        const functionDeclaration = createFunctionDeclarationFromString(userScript)
+        const params: remote.ScriptCallFunctionParameters = {
+            functionDeclaration,
+            awaitPromise: true,
+            arguments: args.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
+            target: {
+                context
+            }
+        }
+        const result = await browser.scriptCallFunction(params)
+        return parseScriptResult(params, result)
+    }
+
     /**
      * instances started as multibrowserinstance can't getting called with
      * a function parameter, therefore we need to check if it starts with "function () {"
      */
     if (typeof script === 'function') {
-        script = `return (${script}).apply(null, arguments)`
+        script = `
+            ${polyfillFn}
+            webdriverioPolyfill()
+            return (${script}).apply(null, arguments)
+        `
     }
 
-    return this.executeScript(script, verifyArgsAndStripIfElement(args))
+    return this.executeScript(script, verifyArgsAndStripIfElement(args) as (string | number | boolean)[])
 }

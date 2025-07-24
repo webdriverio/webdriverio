@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import logger from '@wdio/logger'
 
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
-import { enableFileLogging, wrapCommand } from '@wdio/utils'
+import { enableFileLogging, wrapCommand, isBidi } from '@wdio/utils'
 import type { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
@@ -10,11 +11,11 @@ import MultiRemote from './multiremote.js'
 import SevereServiceErrorImport from './utils/SevereServiceError.js'
 import detectBackend from './utils/detectBackend.js'
 import { getProtocolDriver } from './utils/driver.js'
-import { WDIO_DEFAULTS, SupportedAutomationProtocols, Key as KeyConstant } from './constants.js'
+import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
-import { getShadowRootManager } from './shadowRoot.js'
-import { getNetworkManager } from './networkManager.js'
-import { getDialogManager } from './dialog.js'
+import { registerSessionManager } from './session/index.js'
+import { environment } from './environment.js'
+
 import type { AttachOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
@@ -39,7 +40,7 @@ export const remote = async function(
     params: Capabilities.WebdriverIOConfig,
     remoteModifier?: (client: WebDriverTypes.Client, options: Capabilities.WebdriverIOConfig) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
-    const keysToKeep = Object.keys(process.env.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof Capabilities.WebdriverIOConfig)[]
+    const keysToKeep = Object.keys(environment.value.variables.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof Capabilities.WebdriverIOConfig)[]
     const config = validateConfig<Capabilities.WebdriverIOConfig>(WDIO_DEFAULTS, params, keysToKeep)
 
     await enableFileLogging(config.outputDir)
@@ -68,23 +69,12 @@ export const remote = async function(
      * we need to overwrite the original addCommand and overwriteCommand
      */
     if ((params as Options.Testrunner).framework && !isStub(params.automationProtocol)) {
-        const origAddCommand = instance.addCommand.bind(instance) as typeof instance.addCommand
-        instance.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
-            origAddCommand(name, fn, attachToElement)
-        )
-
-        const origOverwriteCommand = instance.overwriteCommand.bind(instance) as typeof instance.overwriteCommand
-        instance.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
-            origOverwriteCommand<keyof typeof elementCommands, any, any>(name, fn, attachToElement)
-        )
+        instance.addCommand = instance.addCommand.bind(instance)
+        instance.overwriteCommand = instance.overwriteCommand.bind(instance)
     }
 
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
-    await Promise.all([
-        getShadowRootManager(instance).initialize(),
-        getNetworkManager(instance).initialize(),
-        getDialogManager(instance).initialize()
-    ])
+    await registerSessionManager(instance)
     return instance
 }
 
@@ -93,7 +83,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
      * copy instances properties into new object
      */
     const params: Capabilities.WebdriverIOConfig & { requestedCapabilities: Capabilities.RequestedStandaloneCapabilities } = {
-        automationProtocol: SupportedAutomationProtocols.webdriver,
+        automationProtocol: 'webdriver',
         ...attachOptions,
         ...detectBackend(attachOptions.options),
         capabilities: attachOptions.capabilities || {},
@@ -108,16 +98,15 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
         prototype,
         wrapCommand
     ) as WebdriverIO.Browser
-
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
-    // @ts-expect-error `bidiHandler` is a private property
-    await driver._bidiHandler?.connect().then(() => (
-        Promise.all([
-            getShadowRootManager(driver).initialize(),
-            getNetworkManager(driver).initialize(),
-            getDialogManager(driver).initialize()
-        ])
-    ))
+
+    /**
+     * Wait for the Bidi handler to be connected before registering the session manager
+     */
+    if (isBidi(driver.capabilities) && '_bidiHandler' in driver) {
+        await (driver['_bidiHandler'] as WebDriverTypes.BidiHandler).waitForConnected()
+    }
+    await registerSessionManager(driver)
     return driver
 }
 
@@ -167,8 +156,8 @@ export const multiremote = async function (
         logLevel: multibrowser.instances[browserNames[0]].options.logLevel
     }
 
-    const ProtocolDriver = automationProtocol && isStub(automationProtocol)
-        ? (await import(automationProtocol)).default
+    const ProtocolDriver = typeof automationProtocol === 'string'
+        ? (await import(/* @vite-ignore */automationProtocol)).default
         : WebDriver
     const driver = ProtocolDriver.attachToSession(
         sessionParams,
@@ -183,7 +172,11 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
+        driver.addCommand = (name: string, fn, attachToElement) => {
+            driver.instances.forEach(instanceName =>
+                driver.getInstance(instanceName).addCommand(name, fn, attachToElement)
+            )
+
             return origAddCommand(
                 name,
                 fn,
@@ -194,7 +187,7 @@ export const multiremote = async function (
         }
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver) as typeof driver.overwriteCommand
-        driver.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
+        driver.overwriteCommand = (name, fn, attachToElement) => {
             return origOverwriteCommand<keyof typeof elementCommands, any, any>(
                 name,
                 fn,

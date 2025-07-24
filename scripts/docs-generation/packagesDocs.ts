@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
@@ -31,7 +32,6 @@ export function generateReportersAndServicesDocs (sidebars: any) {
             const doc = [...preface, ...readme.split('\n').slice(3)].join('\n')
             fs.writeFileSync(path.join(__dirname, '..', '..', 'website', 'docs', `_${id}.md`), doc, { encoding: 'utf-8' })
 
-            // eslint-disable-next-line no-console
             console.log(`Generated docs for ${pkg}`)
             items.push(id)
         }

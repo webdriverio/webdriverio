@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
+import { registerSessionManager } from '../../session/index.js'
+
 const log = logger('webdriverio')
 
 /**
@@ -49,11 +51,11 @@ const log = logger('webdriverio')
  * </example>
  *
  * @alias browser.reloadSession
- * @param newCapabilities new capabilities to create a session with
+ * @param {WebdriverIO.Capabilities=} newCapabilities new capabilities to create a session with
  * @type utility
  *
  */
-export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?: WebdriverIO.Capabilities) {
+export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?: WebdriverIO.Capabilities): Promise<string> {
     const oldSessionId = (this as WebdriverIO.Browser).sessionId
 
     /**
@@ -66,13 +68,13 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
      */
     try {
         await this.deleteSession({ shutdownDriver })
-    } catch (err: any) {
+    } catch (err) {
         /**
          * ignoring all exceptions that could be caused by browser.deleteSession()
          * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)
          * this can be worked around in code but requires a lot of overhead
          */
-        log.warn(`Suppressing error closing the session: ${err.stack}`)
+        log.warn(`Suppressing error closing the session: ${(err as Error).stack}`)
     }
 
     if (this.puppeteer?.connected) {
@@ -80,13 +82,14 @@ export async function reloadSession (this: WebdriverIO.Browser, newCapabilities?
         log.debug('Disconnected puppeteer session')
     }
 
-    const ProtocolDriver = (await import(this.options.automationProtocol!)).default
+    const ProtocolDriver = (await import(/* @vite-ignore */this.options.automationProtocol!)).default
     await ProtocolDriver.reloadSession(this, newCapabilities)
+    await registerSessionManager(this)
 
     const options = this.options as Options.Testrunner
     if (Array.isArray(options.onReload) && options.onReload.length) {
         await Promise.all(options.onReload.map((hook) => hook(oldSessionId, (this as WebdriverIO.Browser).sessionId)))
     }
 
-    return this.sessionId as string
+    return this.sessionId
 }

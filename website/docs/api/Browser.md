@@ -20,9 +20,19 @@ A browser object has the following properties:
 | `sessionId` | `String` | Session id assigned from the remote server. |
 | `options` | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
 | `commandList` | `String[]` | A list of commands registered to the browser instance |
+| `isW3C` | `Boolean` | Indicates if this is a W3C session |
+| `isChrome` | `Boolean` | Indicates if this Chrome instance |
+| `isFirefox` | `Boolean` | Indicates if this Firefox instance |
+| `isBidi` | `Boolean` | Indicates if this session uses Bidi |
+| `isSauce` | `Boolean` | Indicates if this session is Running on Sauce Labs |
+| `isMacApp` | `Boolean` | Indicates if this session is Running for a native Mac App |
+| `isWindowsApp` | `Boolean` | Indicates if this session is Running for a native Windows App |
 | `isMobile` | `Boolean` | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags). |
 | `isIOS` | `Boolean` | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags). |
 | `isAndroid` | `Boolean` | Indicates an Android session. See more under [Mobile Flags](#mobile-flags). |
+| `isNativeContext` | `Boolean`  | Indicates if the mobile is in the `NATIVE_APP` context. See more under [Mobile Flags](#mobile-flags). |
+| `mobileContext` | `string`  | The will provide the **current** context the driver is in, for example `NATIVE_APP`, `WEBVIEW_<packageName>` for Android or `WEBVIEW_<pid>` for iOS. It will save an extra WebDriver to `driver.getContext()`. See more under [Mobile Flags](#mobile-flags). |
+
 
 ## Methods
 
@@ -111,6 +121,71 @@ The browser object is an EventEmitter and a couple of events are emitted for you
 
 Here is a list of events. Keep in mind that this is not the full list of available events yet.
 Feel free to contribute to update the document by adding descriptions of more events here.
+
+#### `command`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Classic command. It contains the following information:
+
+- `command`: the command name, e.g. `navigateTo`
+- `method`: the HTTP method used to send the command request, e.g. `POST`
+- `endpoint`: the command endpoint, e.g. `/session/fc8dbda381a8bea36a225bd5fd0c069b/url`
+- `body`: the command payload, e.g. `{ url: 'https://webdriver.io' }`
+
+#### `result`
+
+This event is emitted whenever WebdriverIO receives a result of a WebDriver Classic command. It contains the same information as the `command` event with the addition of the following information:
+
+- `result`: the command result
+
+#### `bidiCommand`
+
+This event is emitted whenever WebdriverIO sends a WebDriver Bidi command to the browser driver. It contains information about:
+
+- `method`: WebDriver Bidi command method
+- `params`: associated command parameter (see [API](/docs/api/webdriverBidi))
+
+#### `bidiResult`
+
+In case of a successful command execution, the event payload will be:
+
+- `type`: `success`
+- `id`: the command id
+- `result`: the command result (see [API](/docs/api/webdriverBidi))
+
+In case of a command error, the event payload will be:
+
+- `type`: `error`
+- `id`: the command id
+- `error`: the error code, e.g. `invalid argument`
+- `message`: details about the error
+- `stacktrace`: a stack trace
+
+#### `request.start`
+This event is fired before a WebDriver request is sent to the driver. It contains information about the request and its payload.
+
+```ts
+browser.on('request.start', (ev: RequestInit) => {
+    // ...
+})
+```
+
+#### `request.end`
+This event is fired once the request to the driver received a response. The event object either contains the response body as result or an error if the WebDriver command failed.
+
+```ts
+browser.on('request.end', (ev: { result: unknown, error?: Error }) => {
+    // ...
+})
+```
+
+#### `request.retry`
+The retry event can notify you when WebdriverIO attempts to retry running the command, e.g. due to a network issue. It contains information about the error that caused the retry and the amount of retries already done.
+
+```ts
+browser.on('request.retry', (ev: { error: Error, retryCount: number }) => {
+    // ...
+})
+```
 
 #### `request.performance`
 This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:

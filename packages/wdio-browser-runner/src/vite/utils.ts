@@ -1,4 +1,4 @@
-/* eslint-disable quotes */
+
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
@@ -11,10 +11,10 @@ import { MOCHA_VARIABELS } from '../constants.js'
 import type { Environment, FrameworkPreset } from '../types.js'
 
 const log = logger('@wdio/browser-runner')
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, p = process) {
     const root = options.rootDir || process.cwd()
-    const rootFileUrl = url.pathToFileURL(root).href
     const isHeadless = options.headless || Boolean(process.env.CI)
     const alias = (options.viteConfig as (InlineConfig | undefined))?.resolve?.alias || {}
     const usesTailwindCSS = await hasFileByExtensions(path.join(root, 'tailwind.config'))
@@ -26,45 +26,15 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         delete env.config.runner
     }
 
-    let vueDeps = ''
-    if (options.preset === 'vue') {
-        try {
-            const vueDir = path.dirname(url.fileURLToPath(await resolve('vue', `${rootFileUrl}/node_modules`)))
-            const vueScript = (await fs.readFile(path.join(vueDir, 'dist', 'vue.global.prod.js'), 'utf-8')).toString()
-            vueDeps += /*html*/`
-            <script type="module">
-                ${vueScript}
-                window.Vue = Vue
-            </script>`
-            const vueCompilerDir = path.dirname(url.fileURLToPath(await resolve('@vue/compiler-dom', `${rootFileUrl}/node_modules`)))
-            const vueCompilerScript = (await fs.readFile(path.join(vueCompilerDir, 'dist', 'compiler-dom.global.prod.js'))).toString()
-            vueDeps += /*html*/`
-            <script type="module">
-                ${vueCompilerScript}
-                window.VueCompilerDOM = VueCompilerDOM
-            </script>`
-        } catch (err: any) {
-            throw new Error(
-                `Fail to set-up Vue environment: ${err.message}\n\n` +
-                'Make sure you have "vue" and "@vue/compiler-dom" installed as dependencies!\n' +
-                `Error: ${err.stack}`
-            )
-        }
-    }
-
     let sourceMapScript = ''
     let sourceMapSetupCommand = ''
     try {
         const sourceMapSupportDir = await resolve('source-map-support', import.meta.url)
         sourceMapScript = /*html*/`<script src="/@fs/${url.fileURLToPath(path.dirname(sourceMapSupportDir))}/browser-source-map-support.js"></script>`
         sourceMapSetupCommand = 'sourceMapSupport.install()'
-    } catch (err: unknown) {
+    } catch (err) {
         log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
     }
-
-    const mochaPath = await resolve('mocha', `${rootFileUrl}/node_modules`)
-    const mochaCSSHref = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.css')
-    const mochaJSSrc = path.join(url.fileURLToPath(path.dirname(mochaPath)), 'mocha.js')
 
     return /* html */`
     <!doctype html>
@@ -72,7 +42,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            ${usesTailwindCSS ? /*html*/`<link rel="stylesheet" href="/node_modules/tailwindcss/tailwind.css">` : ''}
+            ${usesTailwindCSS ? /*html*/'<link rel="stylesheet" href="/node_modules/tailwindcss/tailwind.css">' : ''}
             <script type="module">
                 const alias = ${JSON.stringify(alias)}
                 window.__wdioMockCache__ = new Map()
@@ -99,8 +69,8 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                     return mod
                 }
             </script>
-            <link rel="stylesheet" href="/@fs/${mochaCSSHref}">
-            <script type="module" src="/@fs/${mochaJSSrc}"></script>
+            <link rel="stylesheet" href="@wdio/browser-runner/third_party/mocha.css">
+            <script type="module" src="@wdio/browser-runner/third_party/mocha.js"></script>
             ${sourceMapScript}
             <script type="module">
                 ${sourceMapSetupCommand}
@@ -141,7 +111,6 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                     margin: 0;
                 }
             </style>
-            ${vueDeps}
         </head>
         <body>
             <mocha-framework spec="${spec}" ${isHeadless ? 'style="display: none"' : ''}></mocha-framework>
@@ -156,7 +125,7 @@ export async function userfriendlyImport(preset: FrameworkPreset, pkg?: string) 
 
     try {
         return await import(pkg)
-    } catch (err: any) {
+    } catch {
         throw new Error(
             `Couldn't load preset "${preset}" given important dependency ("${pkg}") is not installed.\n` +
             `Please run:\n\n\tnpm install ${pkg}\n\tor\n\tyarn add --dev ${pkg}`

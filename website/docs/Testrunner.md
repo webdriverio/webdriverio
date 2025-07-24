@@ -3,7 +3,7 @@ id: testrunner
 title: Testrunner
 ---
 
-WebdriverIO comes with its own test runner to help you start testing as quickly as possible. It is suppose to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
+WebdriverIO comes with its own test runner to help you start testing as quickly as possible. It is supposed to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
 
 WebdriverIO's testrunner is bundled separately in the NPM package `@wdio/cli`.
 
@@ -34,7 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set. Switch over to the [Configuration File](/configurationfile)  section to see what that file should look like.
+Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set. Switch over to the [Configuration File](/docs/configuration)  section to see what that file should look like.
 
 With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
 
@@ -115,7 +115,7 @@ Options:
 --reporters, -r       reporters to print out the results on stdout      [array]
 --suite               overwrites the specs attribute and runs the defined
                         suite                                            [array]
---spec                run only a certain spec file - overrides specs piped
+--spec                run a certain spec file or wildcards - overrides specs piped
                         from stdin                                       [array]
 --exclude             exclude spec file(s) from a run - overrides specs piped
                         from stdin                                       [array]
@@ -125,7 +125,7 @@ Options:
 --cucumberOpts        Cucumber options
 ```
 
-> Note: Autocompiling can be easily controlled with `tsx` ENV Vars. See also the [TypeScript documentation](typeScript).
+> Note: Autocompiling can be easily controlled with `tsx` ENV Vars. See also the [TypeScript documentation](/docs/typescript).
 
 ### `wdio install`
 The `install` command allows you to add reporters and services to your WebdriverIO projects via the CLI.

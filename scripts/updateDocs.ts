@@ -10,56 +10,73 @@ import { Upload } from '@aws-sdk/lib-storage'
 import mime from 'mime-types'
 import readDir from 'recursive-readdir'
 
-import pkg from '../lerna.json' assert { type: 'json' }
+import pkg from '../lerna.json' with { type: 'json' }
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const region = 'eu-west-1'
 const PKG_VERSION = pkg.version
-const PRODUCTION_VERSION = 'v8'
+const PRODUCTION_VERSION = 'v9'
 const DISTRIBUTION_ID = process.env.DISTRIBUTION_ID
 const BUCKET_NAME = 'webdriver.io'
 const BUILD_DIR = path.resolve(__dirname, '..', 'website', 'build')
 const UPLOAD_OPTIONS = { partSize: 10 * 1024 * 1024, queueSize: 1 }
 const IGNORE_FILE_SUFFIX = ['*.rb']
 
-/* eslint-disable no-console */
 const timestamp = Date.now()
 const s3 = new S3({ region })
-const files = await readDir(BUILD_DIR, IGNORE_FILE_SUFFIX)
+const files: string[] = await readDir(BUILD_DIR, IGNORE_FILE_SUFFIX)
 
 const version = `v${PKG_VERSION.split('.')[0]}`
 const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${BUCKET_NAME}`
 
 /**
+ * Split array in series
+ * @param list array to split
+ * @param size size of each chunk
+ * @returns array of chunks
+ */
+function splitInSeries<T>(list: T[], size: number): T[][] {
+    const result: T[][] = []
+
+    for (let i = 0; i < list.length; i += size) {
+        result.push(list.slice(i, i + size))
+    }
+
+    return result
+}
+
+/**
  * upload assets
  */
 console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)
-await Promise.all(files.map(async (file) => {
-    try {
-        const mimeType = mime.lookup(file)
-        if (!mimeType) {
-            throw new Error(`Couldn't find mime type for ${file}`)
-        }
+for (const filesBatch of splitInSeries(files, 10)) {
+    await Promise.all(filesBatch.map(async (file) => {
+        try {
+            const mimeType = mime.lookup(file)
+            if (!mimeType) {
+                throw new Error(`Couldn't find mime type for ${file}`)
+            }
 
-        const res = await new Upload({
-            client: s3,
-            params: {
-                Bucket: bucketName,
-                Key: file.replace(BUILD_DIR + '/', ''),
-                Body: fs.createReadStream(file),
-                ContentType: mimeType,
-                ACL: 'public-read',
-            },
-            ...UPLOAD_OPTIONS
-        }).done()
-        console.log(`${file} uploaded`)
-        return res
-    } catch (err) {
-        console.error(`Couldn't upload file ${file}: ${(err as Error).stack}`)
-        throw err
-    }
-}))
+            const res = await new Upload({
+                client: s3,
+                params: {
+                    Bucket: bucketName,
+                    Key: file.replace(BUILD_DIR + '/', ''),
+                    Body: fs.createReadStream(file),
+                    ContentType: mimeType,
+                    ACL: 'public-read',
+                },
+                ...UPLOAD_OPTIONS
+            }).done()
+            console.log(`${file} uploaded`)
+            return res
+        } catch (err) {
+            console.error(`Couldn't upload file ${file}: ${(err as Error).stack}`)
+            throw err
+        }
+    }))
+}
 
 /**
  * invalidate distribution
@@ -100,4 +117,3 @@ await Promise.all(objectsToDelete.map((obj) => (
 )))
 console.log('Deleted obsolete items successfully')
 console.log('Successfully updated webdriver.io docs')
-/* eslint-enable no-console */

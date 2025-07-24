@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
@@ -39,7 +40,6 @@ describe('waitUntil', () => {
     it.each([false, '', 0])('Should throw an error when the waitUntil times out e.g. doesnt resolve to a truthy value: %i', async () => {
         let error
         let val
-        // @ts-ignore uses expect-webdriverio
         expect.assertions(2)
         try {
             val = await browser.waitUntil(
@@ -65,12 +65,11 @@ describe('waitUntil', () => {
     it('Should throw an error when the promise is rejected', async () => {
         let error
         let val
-        // @ts-ignore uses expect-webdriverio
-        expect.assertions(2)
+        expect.assertions(3)
         try {
             val = await browser.waitUntil(
                 () => new Promise<boolean>(
-                    (resolve, reject) => setTimeout(
+                    (_, reject) => setTimeout(
                         () => reject(new Error('foobar')),
                         200
                     )
@@ -84,6 +83,31 @@ describe('waitUntil', () => {
             error = err
         } finally {
             expect(error.message).toContain('waitUntil condition failed with the following reason: foobar')
+            expect(error.stack).toContain(`browser${path.sep}waitUntil.test.ts:73`)
+            expect(val).toBeUndefined()
+        }
+    })
+
+    it('should throw an error if the condition throws', async () => {
+        let error
+        let val
+        // @ts-ignore uses expect-webdriverio
+        expect.assertions(3)
+        try {
+            val = await browser.waitUntil(
+                () => {
+                    throw new Error('foobar')
+                }, {
+                    timeout: 500,
+                    timeoutMsg: 'Timed Out',
+                    interval: 200
+                }
+            )
+        } catch (err: any) {
+            error = err
+        } finally {
+            expect(error.message).toContain('waitUntil condition failed with the following reason: foobar')
+            expect(error.stack).toContain(`browser${path.sep}waitUntil.test.ts:99`)
             expect(val).toBeUndefined()
         }
     })
@@ -109,7 +133,9 @@ describe('waitUntil', () => {
         }
     })
 
-    it('Should use default timeout setting from config if passed in value is not a number', async () => {
+    it('Should use default timeout setting from config if passed in value is not a number', {
+        timeout: 10_000
+    }, async () => {
         let error
         let val
         // @ts-ignore uses expect-webdriverio

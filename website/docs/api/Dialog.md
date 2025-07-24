@@ -16,11 +16,11 @@ browser.on('dialog', async (dialog) => {
     await dialog.dismiss()
 })
 
-await page.evaluate(() => alert('Hello Dialog'))
+await browser.execute(() => alert('Hello Dialog'))
 ```
 
 :::note
 
-Dialogs are dismissed automatically, unless there is a `page.on('dialog')` listener. When listener is present, it must either [`dialog.accept()`](/docs/api/dialog/accept) or [`dialog.dismiss()`](/docs/api/dialog/dismiss) the dialog - otherwise the page will freeze waiting for the dialog, and actions like click will never finish.
+Dialogs are dismissed automatically, unless there is a `browser.on('dialog')` listener. When listener is present, it must either [`dialog.accept()`](/docs/api/dialog/accept) or [`dialog.dismiss()`](/docs/api/dialog/dismiss) the dialog - otherwise the page will freeze waiting for the dialog, and actions like click will never finish.
 
 :::

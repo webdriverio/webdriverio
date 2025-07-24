@@ -5,55 +5,28 @@ exports[`dragAndDrop > should allow drag and drop to 0 coordinates 1`] = `
   {
     "actions": [
       {
-        "altitudeAngle": 0,
-        "azimuthAngle": 0,
         "button": 0,
         "duration": 0,
-        "height": 0,
         "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
         },
-        "pressure": 0,
-        "tangentialPressure": 0,
-        "tiltX": 0,
-        "tiltY": 0,
-        "twist": 0,
         "type": "pointerMove",
-        "width": 0,
         "x": 0,
         "y": 0,
       },
       {
-        "altitudeAngle": 0,
-        "azimuthAngle": 0,
         "button": 0,
-        "height": 0,
-        "pressure": 0,
-        "tangentialPressure": 0,
-        "tiltX": 0,
-        "tiltY": 0,
-        "twist": 0,
         "type": "pointerDown",
-        "width": 0,
       },
       {
         "duration": 10,
         "type": "pause",
       },
       {
-        "altitudeAngle": 0,
-        "azimuthAngle": 0,
         "button": 0,
         "duration": 10,
-        "height": 0,
         "origin": "pointer",
-        "pressure": 0,
-        "tangentialPressure": 0,
-        "tiltX": 0,
-        "tiltY": 0,
-        "twist": 0,
         "type": "pointerMove",
-        "width": 0,
         "x": 0,
         "y": 0,
       },
@@ -62,7 +35,7 @@ exports[`dragAndDrop > should allow drag and drop to 0 coordinates 1`] = `
         "type": "pointerUp",
       },
     ],
-    "id": "action3",
+    "id": "action5",
     "parameters": {
       "pointerType": "mouse",
     },
@@ -76,57 +49,30 @@ exports[`dragAndDrop > should do a dragAndDrop 1`] = `
   {
     "actions": [
       {
-        "altitudeAngle": 0,
-        "azimuthAngle": 0,
         "button": 0,
         "duration": 0,
-        "height": 0,
         "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
         },
-        "pressure": 0,
-        "tangentialPressure": 0,
-        "tiltX": 0,
-        "tiltY": 0,
-        "twist": 0,
         "type": "pointerMove",
-        "width": 0,
         "x": 0,
         "y": 0,
       },
       {
-        "altitudeAngle": 0,
-        "azimuthAngle": 0,
         "button": 0,
-        "height": 0,
-        "pressure": 0,
-        "tangentialPressure": 0,
-        "tiltX": 0,
-        "tiltY": 0,
-        "twist": 0,
         "type": "pointerDown",
-        "width": 0,
       },
       {
         "duration": 10,
         "type": "pause",
       },
       {
-        "altitudeAngle": 0,
-        "azimuthAngle": 0,
         "button": 0,
         "duration": 10,
-        "height": 0,
         "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-sub-elem-321",
         },
-        "pressure": 0,
-        "tangentialPressure": 0,
-        "tiltX": 0,
-        "tiltY": 0,
-        "twist": 0,
         "type": "pointerMove",
-        "width": 0,
         "x": 0,
         "y": 0,
       },
@@ -144,60 +90,79 @@ exports[`dragAndDrop > should do a dragAndDrop 1`] = `
 ]
 `;
 
-exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
+exports[`dragAndDrop > should do a dragAndDrop for mobile 1`] = `
 [
   {
     "actions": [
       {
-        "altitudeAngle": 0,
-        "azimuthAngle": 0,
         "button": 0,
         "duration": 0,
-        "height": 0,
         "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
         },
-        "pressure": 0,
-        "tangentialPressure": 0,
-        "tiltX": 0,
-        "tiltY": 0,
-        "twist": 0,
         "type": "pointerMove",
-        "width": 0,
         "x": 0,
         "y": 0,
       },
       {
-        "altitudeAngle": 0,
-        "azimuthAngle": 0,
         "button": 0,
-        "height": 0,
-        "pressure": 0,
-        "tangentialPressure": 0,
-        "tiltX": 0,
-        "tiltY": 0,
-        "twist": 0,
         "type": "pointerDown",
-        "width": 0,
       },
       {
         "duration": 10,
         "type": "pause",
       },
       {
-        "altitudeAngle": 0,
-        "azimuthAngle": 0,
+        "button": 0,
+        "duration": 250,
+        "origin": {
+          "element-6066-11e4-a52e-4f735466cecf": "some-sub-elem-321",
+        },
+        "type": "pointerMove",
+        "x": 0,
+        "y": 0,
+      },
+      {
+        "button": 0,
+        "type": "pointerUp",
+      },
+    ],
+    "id": "action3",
+    "parameters": {
+      "pointerType": "touch",
+    },
+    "type": "pointer",
+  },
+]
+`;
+
+exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
+[
+  {
+    "actions": [
+      {
+        "button": 0,
+        "duration": 0,
+        "origin": {
+          "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+        },
+        "type": "pointerMove",
+        "x": 0,
+        "y": 0,
+      },
+      {
+        "button": 0,
+        "type": "pointerDown",
+      },
+      {
+        "duration": 10,
+        "type": "pause",
+      },
+      {
         "button": 0,
         "duration": 10,
-        "height": 0,
         "origin": "pointer",
-        "pressure": 0,
-        "tangentialPressure": 0,
-        "tiltX": 0,
-        "tiltY": 0,
-        "twist": 0,
         "type": "pointerMove",
-        "width": 0,
         "x": 123,
         "y": 321,
       },
@@ -206,7 +171,7 @@ exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
         "type": "pointerUp",
       },
     ],
-    "id": "action2",
+    "id": "action4",
     "parameters": {
       "pointerType": "mouse",
     },
@@ -214,3 +179,5 @@ exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
   },
 ]
 `;
+
+exports[`dragAndDrop > should resolve target element 1`] = `undefined`;

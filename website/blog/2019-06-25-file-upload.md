@@ -1,11 +1,11 @@
 ---
 title: File Uploads with WebdriverIO
-author: Christian Bromann
-authorURL: https://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 Testing an upload scenario in the browser is a rare but not uncommon case in the automation testing space. It is always important to evaluate the importance of such a test because in many situations you end up testing the browser more than your application. So always keep in mind how much additional functionality your frontend application puts on top of the default upload behavior of the browser. If for example most of the magic happens in the backend it makes much more sense to mimik an upload using a simple Node.js `POST` request using packages like [`request`](https://www.npmjs.com/package/request) or [`axios`](https://www.npmjs.com/package/axios).
+
+<!-- truncate -->
 
 ## Find and expose file inputs
 

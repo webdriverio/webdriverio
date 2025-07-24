@@ -27,7 +27,7 @@ const log = logger('@wdio/lighthouse-service:CommandHandler')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
 function isCDPSessionOnMessageObject(
-    data: any
+    data: unknown
 ): data is CDPSessionOnMessageObject {
     return (
         data !== null &&
@@ -116,10 +116,10 @@ export default class CommandHandler {
             if (!traceBuffer) {
                 throw new Error('No tracebuffer captured')
             }
-            this._traceEvents = JSON.parse(traceBuffer.toString('utf8'))
+            this._traceEvents = JSON.parse(traceBuffer.toString())
             this._isTracing = false
-        } catch (err: any) {
-            throw new Error(`Couldn't parse trace events: ${err.message}`)
+        } catch (err) {
+            throw new Error(`Couldn't parse trace events: ${(err as Error).message}`)
         }
 
         return this._traceEvents
@@ -194,7 +194,7 @@ export default class CommandHandler {
         return auditor._auditPWA(artifacts, auditsToBeRun)
     }
 
-    private _propagateWSEvents (data: any) {
+    private _propagateWSEvents (data: unknown) {
         if (!isCDPSessionOnMessageObject(data)) {
             return
         }
@@ -218,12 +218,12 @@ export default class CommandHandler {
          */
         await Promise.all(['Page', 'Network', 'Runtime'].map(
             (domain) => Promise.all([
-                this._session?.send(`${domain}.enable` as any)
+                this._session?.send(`${domain}.enable` as 'Page.enable' | 'Network.enable' | 'Runtime.enable'),
             ])
         ))
     }
 
-    _beforeCmd (commandName: string, params: any[]) {
+    _beforeCmd (commandName: string, params: unknown[]) {
         const isCommandNavigation = ['url', 'navigateTo'].some(cmdName => cmdName === commandName)
         if (!this._shouldRunPerformanceAudits || !this._traceGatherer || this._traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return
@@ -235,7 +235,7 @@ export default class CommandHandler {
         this.setThrottlingProfile(this._networkThrottling, this._cpuThrottling, this._cacheEnabled)
 
         const url = isCommandNavigation
-            ? params[0]
+            ? params[0] as string
             : CLICK_TRANSITION
         return this._traceGatherer.startTracing(url)
     }

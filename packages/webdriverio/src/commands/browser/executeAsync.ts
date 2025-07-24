@@ -1,6 +1,19 @@
+import { getBrowserObject } from '@wdio/utils'
+import type { remote } from 'webdriver'
+
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
+import { LocalValue } from '../../utils/bidi/value.js'
+import { parseScriptResult } from '../../utils/bidi/index.js'
+import { getContextManager } from '../../session/context.js'
+import { polyfillFn } from '../../scripts/polyfill.js'
+import type { TransformElement } from '../../types.js'
 
 /**
+ * :::warning
+ * The `executeAsync` command is deprecated and will be removed in a future version.
+ * Please use the `execute` command instead as it provides better support for
+ * error handling via `async`/`await`.
+ * :::
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected
  * frame. The executed script is assumed to be asynchronous and must signal that is done by invoking
@@ -32,6 +45,15 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
         // node.js context - client and console are available
         console.log(result) // outputs: 10
     });
+
+    :executeAsync.ts
+    // explicitly type the return value of the script to ensure type safety
+    const result: number = await browser.executeAsync(function(a, b, c, d, done) {
+        // browser context - you may not access client or console
+        setTimeout(() => {
+            done(a + b + c + d)
+        }, 3000);
+    }, 1, 2, 3, 4)
  * </example>
  *
  * @param {String|Function} script     The script to execute.
@@ -41,13 +63,18 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-execute-async-script
  * @type protocol
- *
+ * @deprecated Please use `execute` instead
  */
-export function executeAsync<ReturnValue, InnerArguments extends any[]>(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+export async function executeAsync<ReturnValue, InnerArguments extends unknown[]>(
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     script:
         string |
-        ((...args: [...innerArgs: InnerArguments, callback: (result?: ReturnValue) => void]) => void),
+        (
+            (
+                ...args: [...innerArgs: { [K in keyof InnerArguments]: TransformElement<InnerArguments[K]> },
+                callback: (result?: TransformElement<ReturnValue>) => void]
+            ) => void
+        ),
     ...args: InnerArguments
 ): Promise<ReturnValue> {
     /**
@@ -57,13 +84,45 @@ export function executeAsync<ReturnValue, InnerArguments extends any[]>(
         throw new Error('number or type of arguments don\'t agree with execute protocol command')
     }
 
+    if (this.isBidi && !this.isMultiremote) {
+        const browser = getBrowserObject(this)
+        const contextManager = getContextManager(browser)
+        const context = await contextManager.getCurrentContext()
+        const userScript = typeof script === 'string' ? new Function(script) : script
+        const functionDeclaration = new Function(`
+            const args = Array.from(arguments)
+            return new Promise(async (resolve, reject) => {
+                const cb = (result) => resolve(result)
+                try {
+                    await (${userScript.toString()}).apply(this, [...args, cb])
+                } catch (err) {
+                    return reject(err)
+                }
+            })
+        `).toString()
+        const params: remote.ScriptCallFunctionParameters = {
+            functionDeclaration,
+            awaitPromise: true,
+            arguments: args.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
+            target: {
+                context
+            }
+        }
+        const result = await browser.scriptCallFunction(params)
+        return parseScriptResult(params, result)
+    }
+
     /**
      * instances started as multibrowserinstance can't getting called with
      * a function parameter, therefore we need to check if it starts with "function () {"
      */
     if (typeof script === 'function') {
-        script = `return (${script}).apply(null, arguments)`
+        script = `
+            ${polyfillFn}
+            webdriverioPolyfill()
+            return (${script}).apply(null, arguments)
+        `
     }
 
-    return this.executeAsyncScript(script, verifyArgsAndStripIfElement(args))
+    return this.executeAsyncScript(script, verifyArgsAndStripIfElement(args) as (string | number | boolean)[])
 }

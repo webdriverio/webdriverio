@@ -1,11 +1,11 @@
 ---
 title: Keep Your Apps Accessible and Your e2e Tests Stable With WebdriverIOs New Accessibility Selector
-author: Christian Bromann
-authorURL: http://github.com/christian-bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 Fetching elements within e2e tests can sometimes be very hard. Complex CSS paths or arbitrary test ids make them either less readable or prone to failures. The disappointment we experience when our test fail is by far not comparable to a the bad experience people have when they need to use assistent devices like screen readers on applications build without accessibility in mind.
+
+<!-- truncate -->
 
 With the accessibility selector introduced in version `v7.24.0` WebdriverIO now provides a powerful way to fetch various of elements containing a certain accessibility name. Rather than applying arbitrary `data-testId` properties to elements which won't be recognised by assistent devices, developers or QA engineers can now either apply a correct accessibility name to the element themselves or ask the development team to improve the accessibility so that writing tests becomes easier.
 

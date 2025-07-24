@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 class Launcher {
     #esmLauncher: any
 
@@ -6,8 +7,8 @@ class Launcher {
         args: any = {},
         isWatchMode = false
     ) {
-        this.#esmLauncher = import('./launcher.js').then(
-            ({ default: Launcher }) => new Launcher(configFilePath, args, isWatchMode))
+        this.#esmLauncher = import('./index.js').then(
+            ({ Launcher }) => new Launcher(configFilePath, args, isWatchMode))
     }
 
     /**

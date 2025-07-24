@@ -1,3 +1,4 @@
+import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -11,30 +12,12 @@ import { sync as globSync } from 'glob'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
-import type { Capabilities, Options, Frameworks } from '@wdio/types'
+import type { Capabilities, Frameworks } from '@wdio/types'
 
 import {
-    After,
-    AfterAll,
-    AfterStep,
-
-    Before,
-    BeforeAll,
-    BeforeStep,
-
-    Given,
-    When,
-    Then,
-
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
     supportCodeLibraryBuilder,
-    setWorldConstructor,
-    defineParameterType,
-    defineStep,
-
-    DataTable,
-    World,
     Status,
 } from '@cucumber/cucumber'
 import Gherkin from '@cucumber/gherkin'
@@ -57,6 +40,7 @@ export const FILE_PROTOCOL = 'file://'
 const uuidFn = IdGenerator.uuid()
 const log = logger('@wdio/cucumber-framework')
 const require = createRequire(import.meta.url)
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 function getResultObject(
     world: Cucumber.ITestCaseHookParameter
@@ -70,7 +54,7 @@ function getResultObject(
     }
 }
 
-class CucumberAdapter {
+export class CucumberAdapter {
     private _cwd = process.cwd()
     private _newId = IdGenerator.incrementing()
     private _cucumberOpts: Required<CucumberOptions>
@@ -81,13 +65,13 @@ class CucumberAdapter {
 
     constructor(
         private _cid: string,
-        private _config: Options.Testrunner,
+        private _config: WebdriverIO.Config,
         private _specs: string[],
         private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _reporter: EventEmitter,
         private _eventEmitter: EventEmitter,
         private _generateSkipTags: boolean = true,
-        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(url.fileURLToPath(import.meta.url), '..', 'cucumberFormatter.js')).href
+        private _cucumberFormatter: string = url.pathToFileURL(path.resolve(__dirname, 'cucumberFormatter.js')).href
     ) {
         this._eventEmitter = new EventEmitter()
         this._cucumberOpts = Object.assign(
@@ -154,7 +138,7 @@ class CucumberAdapter {
     }
 
     readFiles(
-        filePaths: Options.Testrunner['specs'] = []
+        filePaths: WebdriverIO.Config['specs'] = []
     ): (string | string[])[] {
         return filePaths.map((filePath) => {
             return Array.isArray(filePath)
@@ -166,7 +150,7 @@ class CucumberAdapter {
     }
 
     getGherkinDocuments(
-        files: Options.Testrunner['specs'] = []
+        files: WebdriverIO.Config['specs'] = []
     ): (GherkinDocument | GherkinDocument[])[] {
         return this.readFiles(files).map((specContent, idx) => {
             const docs: GherkinDocument[] = [specContent].flat(1).map(
@@ -213,9 +197,12 @@ class CucumberAdapter {
         })
         this._specs = plan?.map((pl) => path.resolve(pl.uri))
 
-        // Filter the specs according to line numbers
-        if (this._config.cucumberFeaturesWithLineNumbers?.length! > 0) {
-            this._specs = this._config.cucumberFeaturesWithLineNumbers!
+        // Filter features (of which at least some have line numbers) against the already filtered specs
+        const lineNumbers = this._config.cucumberFeaturesWithLineNumbers?.length ?? 0
+        if (lineNumbers > 0) {
+            this._specs = this._config.cucumberFeaturesWithLineNumbers!.filter(feature =>
+                this._specs.some(spec => path.resolve(feature).startsWith(spec))
+            )
         }
 
         this._specs = [...new Set(this._specs)]
@@ -269,7 +256,7 @@ class CucumberAdapter {
             }
 
             const { runConfiguration } = await loadConfiguration(
-                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration> },
+                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration>, file: this._cucumberOpts.file },
                 environment
             )
 
@@ -290,7 +277,7 @@ class CucumberAdapter {
             if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
                 result = failedCount
             }
-        } catch (err: any) {
+        } catch (err) {
             runtimeError = err
             result = 1
         } finally {
@@ -340,8 +327,12 @@ class CucumberAdapter {
 
     async loadFilesWithType(fileList: string[]) {
         return fileList.reduce(
-            (files: string[], file: string) =>
-                files.concat(isGlob(file) ? globSync(file) : [file]),
+            (files: string[], file: string) => {
+                const filePath = os.platform() === 'win32'
+                    ? url.pathToFileURL(file).href
+                    : file
+                return files.concat(isGlob(filePath) ? globSync(filePath) : [filePath])
+            },
             []
         )
     }
@@ -350,11 +341,11 @@ class CucumberAdapter {
         const importedModules = []
 
         for (const module of modules) {
-            const filepath = path.isAbsolute(module)
-                ? module.startsWith(FILE_PROTOCOL)
-                    ? module
-                    : url.pathToFileURL(module).href
-                : url.pathToFileURL(path.join(process.cwd(), module)).href
+            const filepath = module.startsWith(FILE_PROTOCOL)
+                ? module
+                : path.isAbsolute(module)
+                    ? url.pathToFileURL(module).href
+                    : url.pathToFileURL(path.join(process.cwd(), module)).href
             // This allows rerunning a stepDefinitions file
             const stepDefPath = url.pathToFileURL(
                 require.resolve(url.fileURLToPath(filepath))
@@ -388,7 +379,7 @@ class CucumberAdapter {
      * @param {object} config config
      */
     addWdioHooks(
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         supportCodeLibraryBuilder: typeof Cucumber.supportCodeLibraryBuilder
     ) {
         const params: { uri?: string; feature?: Feature } = {}
@@ -449,11 +440,11 @@ class CucumberAdapter {
      * wraps step definition code with sync/async runner with a retry option
      * @param {object} config
      */
-    wrapSteps (config: Options.Testrunner) {
+    wrapSteps (config: WebdriverIO.Config) {
         const wrapStep = this.wrapStep
         const cid = this._cid
 
-        let params: any
+        let params: unknown
         this._eventEmitter.on('getHookParams', (payload) => {
             params = payload
         })
@@ -503,14 +494,14 @@ class CucumberAdapter {
     wrapStep(
         code: Function,
         isStep: boolean,
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         cid: string,
         options: StepDefinitionOptions,
         getHookParams: Function,
         timeout?: number,
         hookName: string | undefined = undefined,
     ): Function {
-        return function (this: Cucumber.World, ...args: any[]) {
+        return function (this: Cucumber.World, ...args: unknown[]) {
             const hookParams = getHookParams()
             const retryTest = isStep && isFinite(options.retry) ? options.retry : 0
 
@@ -522,8 +513,8 @@ class CucumberAdapter {
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },
-                { beforeFn: beforeFn as Function[], beforeFnArgs: (context: any) => [hookParams?.step, context] },
-                { afterFn: afterFn as Function[], afterFnArgs: (context: any) => [hookParams?.step, context] },
+                { beforeFn: beforeFn as Function[], beforeFnArgs: (context: unknown) => [hookParams?.step, context] },
+                { afterFn: afterFn as Function[], afterFnArgs: (context: unknown) => [hookParams?.step, context] },
                 cid,
                 retryTest, hookName, timeout)
         }
@@ -536,7 +527,7 @@ class CucumberAdapter {
  * @returns {Promise<void>} - A Promise that resolves when the report is successfully published.
  * @throws {Error} - Throws an error if there are issues with file reading or the publishing process.
  */
-const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> => {
+export const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> => {
     const url = process.env.CUCUMBER_PUBLISH_REPORT_URL || 'https://messages.cucumber.io/api/reports'
     const token = process.env.CUCUMBER_PUBLISH_REPORT_TOKEN
     if (!token) {
@@ -576,48 +567,21 @@ const publishCucumberReport = async (cucumberMessageDir: string): Promise<void> 
 }
 
 const _CucumberAdapter = CucumberAdapter
-const adapterFactory: { init?: Function } = {}
+export const adapterFactory: { init?: Function } = {}
 
 /**
  * tested by smoke tests
  */
 /* istanbul ignore next */
-adapterFactory.init = async function (...args: any[]) {
+adapterFactory.init = async function (...args: unknown[]) {
     // @ts-ignore just passing through args
-    const adapter = new _CucumberAdapter(...(args as any))
+    const adapter = new _CucumberAdapter(...(args as unknown))
     const instance = await adapter.init()
     return instance
 }
 
 export default adapterFactory
-export {
-    CucumberAdapter,
-    adapterFactory,
-
-    After,
-    AfterAll,
-    AfterStep,
-
-    Before,
-    BeforeAll,
-    BeforeStep,
-
-    Given,
-    When,
-    Then,
-
-    DataTable,
-
-    World,
-
-    setDefaultTimeout,
-    setDefinitionFunctionWrapper,
-    setWorldConstructor,
-    defineParameterType,
-    defineStep,
-
-    publishCucumberReport
-}
+export * from '@cucumber/cucumber'
 
 declare global {
     namespace WebdriverIO {

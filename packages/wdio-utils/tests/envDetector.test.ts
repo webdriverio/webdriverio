@@ -3,19 +3,19 @@ import type { Capabilities } from '@wdio/types'
 
 import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector.js'
 
-import appiumResponse from './__fixtures__/appium.response.json' assert { type: 'json' }
-import experitestResponse from './__fixtures__/experitest.response.json' assert { type: 'json' }
-import chromedriverResponse from './__fixtures__/chromedriver.response.json' assert { type: 'json' }
-import geckodriverResponse from './__fixtures__/geckodriver.response.json' assert { type: 'json' }
-import ghostdriverResponse from './__fixtures__/ghostdriver.response.json' assert { type: 'json' }
-import safaridriverResponse from './__fixtures__/safaridriver.response.json' assert { type: 'json' }
-import safaridriverdockerNpNResponse from './__fixtures__/safaridriverdockerNpN.response.json' assert { type: 'json' }
-import safaridriverdockerNbVResponse from './__fixtures__/safaridriverdockerNbV.response.json' assert { type: 'json' }
-import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json' assert { type: 'json' }
-import edgedriverResponse from './__fixtures__/edgedriver.response.json' assert { type: 'json' }
-import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json' assert { type: 'json' }
-import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json' assert { type: 'json' }
-import bidiResponse from './__fixtures__/bidi.response.json' assert { type: 'json' }
+import appiumResponse from './__fixtures__/appium.response.json' with { type: 'json' }
+import experitestResponse from './__fixtures__/experitest.response.json' with { type: 'json' }
+import chromedriverResponse from './__fixtures__/chromedriver.response.json' with { type: 'json' }
+import geckodriverResponse from './__fixtures__/geckodriver.response.json' with { type: 'json' }
+import ghostdriverResponse from './__fixtures__/ghostdriver.response.json' with { type: 'json' }
+import safaridriverResponse from './__fixtures__/safaridriver.response.json' with { type: 'json' }
+import safaridriverdockerNpNResponse from './__fixtures__/safaridriverdockerNpN.response.json' with { type: 'json' }
+import safaridriverdockerNbVResponse from './__fixtures__/safaridriverdockerNbV.response.json' with { type: 'json' }
+import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json' with { type: 'json' }
+import edgedriverResponse from './__fixtures__/edgedriver.response.json' with { type: 'json' }
+import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json' with { type: 'json' }
+import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json' with { type: 'json' }
+import bidiResponse from './__fixtures__/bidi.response.json' with { type: 'json' }
 
 describe('sessionEnvironmentDetector', () => {
     const chromeCaps = chromedriverResponse.value as WebdriverIO.Capabilities
@@ -60,6 +60,13 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: tvOSCapsBS, requestedCapabilities }).isMobile).toBe(true)
         const androidCapsBS = { 'bstack:options': { ...chromeCaps, 'platformName': 'Android' } }
         expect(sessionEnvironmentDetector({ capabilities: androidCapsBS, requestedCapabilities }).isMobile).toBe(true)
+
+        const geckoAppiumCaps = { 'appium:automationName': 'Gecko' }
+        expect(sessionEnvironmentDetector({ capabilities: geckoAppiumCaps, requestedCapabilities }).isMobile).toBe(false)
+        const safariAppiumCaps = { 'appium:options': { automationName: 'safari' } }
+        expect(sessionEnvironmentDetector({ capabilities: safariAppiumCaps, requestedCapabilities }).isMobile).toBe(false)
+        const chromiumAppiumCaps = { 'appium:automationName': 'chrome' }
+        expect(sessionEnvironmentDetector({ capabilities: chromiumAppiumCaps, requestedCapabilities }).isMobile).toBe(false)
     })
 
     it('isW3C', () => {
@@ -93,6 +100,30 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChrome).toBe(false)
+        const chromeHeadlessShellCaps = { ...chromeCaps, 'browserName': 'chrome-headless-shell' }
+        expect(sessionEnvironmentDetector({ capabilities: chromeHeadlessShellCaps, requestedCapabilities }).isChrome).toBe(true)
+    })
+
+    it('isWindowsApp', () => {
+        const requestedCapabilities = { browserName: '' }
+        const capabilities: WebdriverIO.Capabilities = {
+            platformName: 'windows',
+            'appium:automationName': 'windows',
+            'appium:deviceName': 'WindowsPC',
+        }
+        const {
+            isMobile,
+            isWindowsApp,
+            isMacApp,
+            isAndroid,
+            isIOS
+        } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+
+        expect(isMobile).toEqual(true)
+        expect(isWindowsApp).toEqual(true)
+        expect(isMacApp).toEqual(false)
+        expect(isAndroid).toEqual(false)
+        expect(isIOS).toEqual(false)
     })
 
     it('isChromium', () => {
@@ -116,13 +147,26 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isBidi', () => {
         const requestedCapabilities = { browserName: '' }
+        const requestedAppiumCapabilities = {
+            browserName: 'chrome',
+            platformName: 'windows',
+            'appium:automationName': 'Chromium',
+            'goog:chromeOptions': {
+                args: ['user-data-dir=C:/Users/me/AppData/Local/Google/Chrome/User Data'],
+            }
+        }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isBidi).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isBidi).toBe(false)
-        // @ts-expect-error JSON import is not properly typed
-        expect(sessionEnvironmentDetector({ capabilities: bidiResponse, requestedCapabilities }).isBidi).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: bidiResponse as unknown as WebdriverIO.Capabilities, requestedCapabilities }).isBidi)
+            .toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: bidiResponse as unknown as WebdriverIO.Capabilities, requestedCapabilities: requestedAppiumCapabilities }).isBidi)
+            .toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: {
+            webSocketUrl: true
+        }, requestedCapabilities: {} }).isBidi).toBe(false)
     })
 
     it('isSauce', () => {
@@ -155,6 +199,217 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
         requestedCapabilities.alwaysMatch = { 'sauce:options': {} }
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
+    })
+
+    describe('isAndroid', () => {
+        it('should detect Android device', () => {
+            const capabilities: WebdriverIO.Capabilities = {
+                'bstack:options': {
+                    osVersion: '15.0',
+                    deviceName: 'Samsung Galaxy S25',
+                    realMobile: true,
+                    appiumVersion: '2.4.1',
+                    projectName: 'ProjectName',
+                    buildName: 'BuildName + ' + new Date().toISOString(),
+                    sessionName: 'SessionName',
+                    seleniumVersion: '4.20.0',
+                    debug: true,
+                    networkLogs: true,
+                    consoleLogs: 'verbose',
+                },
+                browserName: 'chrome',
+            }
+            const requestedCapabilities = { browserName: 'chrome' }
+            const { isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+            expect(isAndroid).toEqual(true)
+        })
+
+        it('should detect Android by device name in bstack:options using sessionEnvironmentDetector', () => {
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Samsung Galaxy S21' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Google Pixel 7' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'OnePlus 9 Pro' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Nexus 5X' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+        })
+
+        it('should detect Android by device name in bstack:options using capabilitiesEnvironmentDetector', () => {
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'Samsung Galaxy S21' }
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'Google Pixel 7' }
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'OnePlus 9 Pro' }
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'Nexus 5X' }
+            }).isAndroid).toBe(true)
+        })
+
+        it('should detect Android by various manufacturer device names with sessionEnvironmentDetector', () => {
+            const androidDevices = [
+                'LG G8',
+                'HTC One',
+                'Motorola Edge',
+                'Sony Xperia',
+                'Huawei P30',
+                'Vivo V21',
+                'Oppo Find X3',
+                'Xiaomi Mi 11',
+                'Redmi Note 10',
+                'Realme GT',
+                'Samsung Galaxy Note'
+            ]
+
+            androidDevices.forEach(deviceName => {
+                expect(sessionEnvironmentDetector({
+                    capabilities: { 'bstack:options': { deviceName } },
+                    requestedCapabilities: {}
+                }).isAndroid).toBe(true)
+            })
+        })
+
+        it('should detect Android by various manufacturer device names with capabilitiesEnvironmentDetector', () => {
+            const androidDevices = [
+                'LG G8',
+                'HTC One',
+                'Motorola Edge',
+                'Sony Xperia',
+                'Huawei P30',
+                'Vivo V21',
+                'Oppo Find X3',
+                'Xiaomi Mi 11',
+                'Redmi Note 10',
+                'Realme GT',
+                'Samsung Galaxy Note'
+            ]
+
+            androidDevices.forEach(deviceName => {
+                expect(capabilitiesEnvironmentDetector({
+                    'bstack:options': { deviceName }
+                }).isAndroid).toBe(true)
+            })
+        })
+
+        it('should not detect Android for non-Android device names with sessionEnvironmentDetector', () => {
+            const nonAndroidDevices = [
+                'iPhone 13',
+                'iPad Pro',
+                'iPhone SE',
+                'iPad Mini',
+                'Desktop Chrome',
+                'MacBook Pro'
+            ]
+
+            nonAndroidDevices.forEach(deviceName => {
+                expect(sessionEnvironmentDetector({
+                    capabilities: { 'bstack:options': { deviceName } },
+                    requestedCapabilities: {}
+                }).isAndroid).toBe(false)
+            })
+        })
+
+        it('should not detect Android for non-Android device names with capabilitiesEnvironmentDetector', () => {
+            const nonAndroidDevices = [
+                'iPhone 13',
+                'iPad Pro',
+                'iPhone SE',
+                'iPad Mini',
+                'Desktop Chrome',
+                'MacBook Pro'
+            ]
+
+            nonAndroidDevices.forEach(deviceName => {
+                expect(capabilitiesEnvironmentDetector({
+                    'bstack:options': { deviceName }
+                }).isAndroid).toBe(false)
+            })
+        })
+
+        it('should detect Android case-insensitively by device name with both detectors', () => {
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'SAMSUNG GALAXY S21' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'google pixel 7' }
+            }).isAndroid).toBe(true)
+
+            expect(sessionEnvironmentDetector({
+                capabilities: { 'bstack:options': { deviceName: 'Galaxy S22' } },
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector({
+                'bstack:options': { deviceName: 'ONEPLUS 10' }
+            }).isAndroid).toBe(true)
+        })
+
+        it('should detect Android when both platform and device name are present', () => {
+            const capabilities = {
+                platformName: 'Android',
+                'bstack:options': { deviceName: 'Samsung Galaxy S21' }
+            }
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(true)
+        })
+
+        it('should detect Android when only device name is present without platform', () => {
+            const capabilities = { 'bstack:options': { deviceName: 'Pixel 7' } }
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
+            }).isAndroid).toBe(true)
+
+            expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(true)
+        })
+
+        it('should handle empty deviceName in bstack:options', () => {
+            const capabilities = { 'bstack:options': { deviceName: '' } }
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
+            }).isAndroid).toBe(false)
+
+            expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(false)
+        })
+
+        it('should handle missing deviceName in bstack:options', () => {
+            const capabilities = { 'bstack:options': {} }
+
+            expect(sessionEnvironmentDetector({
+                capabilities,
+                requestedCapabilities: {}
+            }).isAndroid).toBe(false)
+
+            expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(false)
+        })
     })
 
     it('isSeleniumStandalone', () => {
@@ -244,14 +499,30 @@ describe('sessionEnvironmentDetector', () => {
             platformName: 'WINDOWS',
             'ms:experimental-webdriver': true,
             'ms:waitForAppLaunch': 10,
-            app: 'C:\\Program Files\\foo\\bar.exe',
-            appArguments: '-noCloseConfirmationPopUp -shouldDisplayDiesToTake'
+            'appium:app': 'C:\\Program Files\\foo\\bar.exe',
+            'appium:appArguments': '-noCloseConfirmationPopUp -shouldDisplayDiesToTake',
+            'appium:automationName': 'Windows'
         }
         const requestedCapabilities = { browserName: '' }
-        const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        const { isMobile, isIOS, isAndroid, isWindowsApp } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)
         expect(isAndroid).toEqual(false)
+        expect(isWindowsApp).toEqual(true)
+    })
+
+    it('should detect a Mac application automated through Appium', () => {
+        const capabilities: any = {
+            platformName: 'mac',
+            'appium:appPath': '/Applications/MyAppName.app',
+            'appium:automationName': 'mac2'
+        }
+        const requestedCapabilities = { browserName: '' }
+        const { isMobile, isIOS, isAndroid, isMacApp } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        expect(isMobile).toEqual(true)
+        expect(isIOS).toEqual(false)
+        expect(isAndroid).toEqual(false)
+        expect(isMacApp).toEqual(true)
     })
 
     it('should detect Android mobile app', function () {

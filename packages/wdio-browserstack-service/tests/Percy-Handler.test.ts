@@ -61,7 +61,7 @@ beforeEach(() => {
         executeAsync: async () => { 'done' },
         getUrl: () => { return 'https://www.google.com/'},
         on: vi.fn(),
-    } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     caps = {
         browserName: 'chrome',
         'bstack:options': {
@@ -97,7 +97,7 @@ describe('teardown', () => {
     it('resolves promise if _percyScreenshotCounter is 0', async () => {
         percyHandler.teardown().then(() => {
             expect(percyHandler['_percyScreenshotCounter']).toEqual(0)
-        /* eslint-disable @typescript-eslint/no-unused-vars */
+
         }).catch((err: any) => {
             expect(percyHandler['_percyScreenshotCounter']).not.equal(0)
         })

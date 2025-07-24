@@ -1,9 +1,9 @@
+import type fs from 'node:fs'
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
-import fs from 'node:fs/promises'
 
-import { describe, it, vi, expect } from 'vitest'
+import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 import { resolve } from 'import-meta-resolve'
 
 import { getTemplate, userfriendlyImport, getErrorTemplate, getFilesFromDirectory } from '../../src/vite/utils.js'
@@ -26,15 +26,17 @@ vi.mock('fakeDep', () => ({
     default: 'I am fake'
 }))
 
+const join = vi.spyOn(path, 'join')
+beforeAll(() => {
+    join.mockImplementation((...args) => `/foo/bar/${args[args.length - 1]}`)
+})
+afterAll(() => {
+    join.mockRestore()
+})
+
 // skip for Windows
 if (os.platform() !== 'win32') {
     describe('getTemplate', () => {
-        it('fails if vue helpers are not installed', async () => {
-            vi.mocked(resolve).mockRejectedValue(new Error('not there'))
-            await expect(getTemplate({ preset: 'vue' }, { config: {} } as any, ''))
-                .rejects.toThrow(/Fail to set-up Vue environment/)
-        })
-
         it('renders template correctly', async () => {
             vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
             /**
@@ -44,8 +46,7 @@ if (os.platform() !== 'win32') {
                 process.env.CI = '1'
             }
             const p: any = { env: { some: 'env' }, cwd: () => '/some/cwd' }
-            expect(await getTemplate({ preset: 'vue' }, { config: {} } as any, '/spec.js', p)).toMatchSnapshot()
-            expect(fs.readFile).toBeCalledTimes(2)
+            expect(await getTemplate({ preset: 'lit' }, { config: {} } as any, '/spec.js', p)).toMatchSnapshot()
         })
     })
 }
@@ -76,6 +77,7 @@ describe('getFilesFromDirectory', () => {
     })
 
     it('returns all files and subfiles', async () => {
+        join.mockRestore()
         const files = await getFilesFromDirectory(path.join(__dirname, '..', '__fixtures__', '__mocks__'))
         expect(files.map((f) => path.basename(f))).toEqual(['otherModule.js', 'someModule.ts'])
     })

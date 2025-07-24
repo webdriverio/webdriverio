@@ -1,13 +1,13 @@
 ---
 title: WebdriverIO v8 Released
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 While it took a bit longer than expected the WebdriverIO team is excited to announce that we finally released `v8` today! 🎉 🎉 🎉
 
 As with almost all of the last major updates we again had to touch every single file of the project. This time our major goal for the new version was to finally transition from CommonJS to ESM which enables us to continue with important dependency updates and avoid security issues. Furthermore, we cleaned up some technical debt, e.g. removed all code related to synchronous command execution which was [deprecated](https://webdriver.io/blog/2021/07/28/sync-api-deprecation) last year, as well as implemented a new Action API interface and streamlined the way WebdriverIO deals with global objects using the test runner.
+
+<!-- truncate -->
 
 In this blog post, we go through every important change and explain what you need to do to upgrade to `v8`. Spoiler alert: in most cases no updates to your tests are necessary 😉
 

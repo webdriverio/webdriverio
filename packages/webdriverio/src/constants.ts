@@ -3,28 +3,33 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import type { RestoreMap } from './types.js'
 
-export enum SupportedAutomationProtocols {
-    webdriver = 'webdriver',
-    stub = './protocol-stub.js'
-}
-
 export const WDIO_DEFAULTS: Options.Definition<Capabilities.WebdriverIOConfig> = {
     /**
      * allows to specify automation protocol
      */
     automationProtocol: {
         type: 'string',
-        default: SupportedAutomationProtocols.webdriver,
-        validate: (param: Options.SupportedProtocols) => {
+        default: 'webdriver',
+        validate: (param: string) => {
             /**
              * path when proxy is used for browser testing
              */
-            if (param.endsWith('driver.js')) {
+            if (typeof param !== 'string') {
+                throw new Error('automationProtocol should be a string')
+            }
+
+            /**
+             * skip following check if user uses Node.js v20.5 or below
+             */
+            if (typeof import.meta.resolve !== 'function') {
                 return
             }
 
-            if (!Object.values(SupportedAutomationProtocols).includes(param.toLowerCase() as SupportedAutomationProtocols)) {
-                throw new Error(`Currently only "webdriver" and "devtools" is supported as automationProtocol, you set "${param}"`)
+            try {
+                import.meta.resolve(param)
+            } catch (err) {
+                const error = err instanceof Error ? err : new Error('unknown error')
+                throw new Error(`Couldn't find automation protocol "${param}": ${error.message}`)
             }
         }
     },
@@ -56,7 +61,7 @@ export const WDIO_DEFAULTS: Options.Definition<Capabilities.WebdriverIOConfig> =
      */
     waitforInterval: {
         type: 'number',
-        default: 500
+        default: 100
     },
     /**
      * Default timeout for all waitFor* commands

@@ -1,3 +1,4 @@
+import { expect } from '@wdio/globals'
 import { Task } from '@serenity-js/core'
 
 // eslint-disable-next-line no-undef
@@ -13,10 +14,10 @@ describe.skip('Source maps support for ESM projects', () => {
         const locations = frames.map(frame => frame.match(/.*\/(.*?\d+:\d+)/)[1]).slice(0, 4)
 
         expect(locations).toEqual([
-            'source-maps.e2e.ts:43:19',   // the line where we instantiate the Error object
-            'source-maps.e2e.ts:39:12',   // fn2 calls readStack
-            'source-maps.e2e.ts:35:12',   // fn1 calls fn2
-            'source-maps.e2e.ts:8:38',    // fn1 called in the spec
+            'source-maps.e2e.ts:44:19',   // the line where we instantiate the Error object
+            'source-maps.e2e.ts:40:12',   // fn2 calls readStack
+            'source-maps.e2e.ts:36:12',   // fn1 calls fn2
+            'source-maps.e2e.ts:9:38',    // fn1 called in the spec
         ])
     })
 

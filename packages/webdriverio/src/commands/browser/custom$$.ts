@@ -31,7 +31,7 @@ import type { CustomStrategyFunction, CustomStrategyReference } from '../../type
 export async function custom$$ (
     this: WebdriverIO.Browser,
     strategyName: string,
-    ...strategyArguments: any[]
+    ...strategyArguments: unknown[]
 ): Promise<WebdriverIO.ElementArray> {
     const strategy = this.strategies.get(strategyName) as CustomStrategyFunction
 

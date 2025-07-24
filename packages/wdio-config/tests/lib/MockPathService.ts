@@ -5,8 +5,8 @@ import { Minimatch } from 'minimatch'
 import type { FilePathAndContent } from './MockFileContentBuilder.js'
 import type { PathService } from '../../src/types.js'
 
-export type MockSystemFolderPath = string;
-export type MockSystemFilePath = string;
+export type MockSystemFolderPath = string
+export type MockSystemFilePath = string
 export type FilePathsAndContents = FilePathAndContent[]
 
 /**
@@ -24,7 +24,7 @@ export default class MockPathService implements PathService {
     isFileMock = vi.spyOn(this, 'isFile' as any)
     globMock = vi.spyOn(this, 'glob' as any)
 
-    private constructor({ cwd, files } : {cwd: MockSystemFolderPath, files: FilePathsAndContents}) {
+    private constructor({ cwd, files } : { cwd: MockSystemFolderPath, files: FilePathsAndContents }) {
         this.cwd = cwd
         this.files = files
     }
@@ -36,10 +36,10 @@ export default class MockPathService implements PathService {
      */
     getMocks() {
         return {
-            getcwdMock: this.getcwdMock as any as Function,
-            loadFileMock: this.loadFileMock as any as Function,
-            isFileMock: this.isFileMock as any as Function,
-            globMock: this.globMock as any as Function
+            getcwdMock: this.getcwdMock as unknown as Function,
+            loadFileMock: this.loadFileMock as unknown as Function,
+            isFileMock: this.isFileMock as unknown as Function,
+            globMock: this.globMock as unknown as Function
         }
     }
 
@@ -53,7 +53,7 @@ export default class MockPathService implements PathService {
         return this
     }
 
-    static inWorkingDirectoryWithFiles({ cwd, files } : {cwd: MockSystemFolderPath, files: FilePathsAndContents}) : MockPathService {
+    static inWorkingDirectoryWithFiles({ cwd, files } : { cwd: MockSystemFolderPath, files: FilePathsAndContents }) : MockPathService {
         return new MockPathService({ cwd, files })
     }
 

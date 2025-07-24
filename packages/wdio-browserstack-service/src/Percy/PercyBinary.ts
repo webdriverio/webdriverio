@@ -7,10 +7,15 @@ import path from 'node:path'
 import os from 'node:os'
 import { spawn } from 'node:child_process'
 import { PercyLogger } from './PercyLogger.js'
+import PerformanceTester from '../instrumentation/performance/performance-tester.js'
+import * as PERFORMANCE_SDK_EVENTS from '../instrumentation/performance/constants.js'
+import { BStackLogger } from '../bstackLogger.js'
+
+import { _fetch as fetch } from '../fetchWrapper.js'
 
 class PercyBinary {
     #hostOS = process.platform
-    #httpPath: any = null
+    #httpPath: string | null = null
     #binaryName = 'percy'
 
     #orderedPaths = [
@@ -44,8 +49,39 @@ class PercyBinary {
             if (hasDir) {
                 return true
             }
-        } catch (err) {
+        } catch {
             return false
+        }
+    }
+
+    // Get the path for storing the ETag
+    #getETagPath(destParentDir: string) {
+        return path.join(destParentDir, `${this.#binaryName}.etag`)
+    }
+
+    // Load the stored ETag if it exists
+    async #loadETag(destParentDir: string) {
+        const etagPath = this.#getETagPath(destParentDir)
+        if (await this.#checkPath(etagPath)) {
+            try {
+                const data = await fsp.readFile(etagPath, 'utf8')
+                return data.trim()
+            } catch (err) {
+                BStackLogger.warn(`Failed to read ETag file ${err}`)
+            }
+        }
+        return null
+    }
+
+    // Save the ETag for future use
+    async #saveETag(destParentDir: string, etag: string) {
+        if (!etag) {return}
+        try {
+            const etagPath = this.#getETagPath(destParentDir)
+            await fsp.writeFile(etagPath, etag)
+            BStackLogger.debug('Saved new ETag for percy binary')
+        } catch (err) {
+            BStackLogger.error(`Failed to save ETag file ${err}`)
         }
     }
 
@@ -62,17 +98,63 @@ class PercyBinary {
     async getBinaryPath(): Promise<string> {
         const destParentDir = await this.#getAvailableDirs()
         const binaryPath = path.join(destParentDir, this.#binaryName)
+        let response
         if (await this.#checkPath(binaryPath)) {
-            return binaryPath
+            const currentETag = await this.#loadETag(destParentDir)
+            if (currentETag) {
+                try {
+                    const result = await this.#checkForUpdate(currentETag)
+                    if (!result.needsUpdate) {
+                        BStackLogger.debug('Percy binary is up to date (ETag unchanged)')
+                        return binaryPath
+                    }
+                    response = result.response
+                    BStackLogger.debug('New Percy binary version available, downloading update')
+                } catch (err) {
+                    BStackLogger.warn(`Failed to check for binary updates, using existing binary ${err}`)
+                    return binaryPath
+                }
+            }
         }
-        const downloadedBinaryPath: string = await this.download(destParentDir)
+
+        const downloadedBinaryPath: string = await this.download(destParentDir, response)
         const isValid = await this.validateBinary(downloadedBinaryPath)
         if (!isValid) {
-            // retry once
             PercyLogger.error('Corrupt percy binary, retrying')
-            return await this.download(destParentDir)
+            return await this.download(destParentDir, response)
         }
         return downloadedBinaryPath
+    }
+
+    async #checkForUpdate(currentETag: string): Promise<{ needsUpdate: boolean; response?: Response }> {
+        try {
+            const headers: HeadersInit = {
+                'If-None-Match': currentETag
+            }
+
+            const fetchOptions: RequestInit = {
+                method: 'GET',
+                headers
+            }
+
+            const response = await fetch(this.#httpPath as unknown as URL, fetchOptions)
+
+            // If status is 304 Not Modified, binary is up-to-date
+            if (response.status === 304) {
+                return { needsUpdate: false } // No update needed
+            }
+
+            // Save the new ETag if available
+            const newETag = response.headers.get('eTag')
+            if (newETag) {
+                await this.#saveETag(path.dirname(this.#getETagPath(await this.#getAvailableDirs())), newETag)
+            }
+
+            return { needsUpdate: true, response }
+        } catch (error) {
+            BStackLogger.warn(`Error checking for Percy binary updates: ${error}`)
+            throw error
+        }
     }
 
     async validateBinary(binaryPath: string) {
@@ -92,7 +174,8 @@ class PercyBinary {
         })
     }
 
-    async download(destParentDir: any): Promise<string> {
+    @PerformanceTester.Measure(PERFORMANCE_SDK_EVENTS.PERCY_EVENTS.DOWNLOAD)
+    async download(destParentDir: string, response?: Response): Promise<string> {
         if (!await this.#checkPath(destParentDir)){
             await fsp.mkdir(destParentDir)
         }
@@ -101,9 +184,15 @@ class PercyBinary {
         const binaryPath = path.join(destParentDir, binaryName)
         const downloadedFileStream = fs.createWriteStream(zipFilePath)
 
-        const response = await fetch(this.#httpPath)
-
-        await pipeline(response.body as any, downloadedFileStream)
+        if (!response) {
+            response = await fetch(this.#httpPath as unknown as URL)
+        }
+        const newETag = response.headers.get('eTag')
+        if (newETag) {
+            await this.#saveETag(destParentDir, newETag)
+        }
+        // @ts-expect-error stream type
+        await pipeline(response.body as unknown as RequestInit, downloadedFileStream)
 
         return new Promise((resolve, reject) => {
             yauzl.open(zipFilePath, { lazyEntries: true }, function (err, zipfile) {
@@ -142,7 +231,7 @@ class PercyBinary {
                 })
 
                 zipfile.once('end', () => {
-                    fs.chmod(binaryPath, '0755', function (zipErr: any) {
+                    fs.chmod(binaryPath, '0755', function (zipErr: Error) {
                         if (zipErr) {
                             reject(zipErr)
                         }

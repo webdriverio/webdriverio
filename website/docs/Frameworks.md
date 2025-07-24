@@ -60,7 +60,23 @@ it('should test something', (done) => {
 
 ### Mocha Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. The following options however are supported:
+The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --mochaOpts.grep "my test" --mochaOpts.bail --no-mochaOpts.checkLeaks
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Mocha options are supported:
 
 #### require
 The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
@@ -162,37 +178,25 @@ npm install @wdio/jasmine-framework --save-dev
 
 You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
 
-### Intercept Assertion
-
-The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result.
-
-For example, it is pretty handy to take a screenshot every time an assertion fails. In your `jasmineOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
-
-The following example demonstrates how to take a screenshot if an assertion fails:
-
-```js
-jasmineOpts: {
-    defaultTimeoutInterval: 10000,
-    expectationResultHandler: function(passed, assertion) {
-        /**
-         * only take screenshot if assertion failed
-         */
-        if(passed) {
-            return
-        }
-
-        browser.saveScreenshot(`assertionError_${assertion.error.message}.png`)
-    }
-},
-```
-
-**Note:** You cannot stop test execution to do something async. It might happen that
-the command takes too much time and the website state has changed. (Though usually, after another 2
-commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.)
-
 ### Jasmine Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
+The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration). You can pass these framework options as arguments, e.g.:
+
+```sh
+wdio run wdio.conf.ts --jasmineOpts.grep "my test" --jasmineOpts.failSpecWithNoExpectations --no-jasmineOpts.random
+```
+
+This will pass along the following Mocha options:
+
+```ts
+{
+    grep: ['my-test'],
+    bail: true
+    checkLeacks: false
+}
+```
+
+The following Jasmine options are supported:
 
 #### defaultTimeoutInterval
 Default Timeout Interval for Jasmine operations.
@@ -279,7 +283,8 @@ For example, if you want to run only the tests that are tagged with `@smoke`, yo
 
 ```sh
 # When you only want to run tests that hold the tag "@smoke"
-npx wdio ./wdio.conf.js --cucumberOpts.tags="@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.tags="@smoke"
+npx wdio run ./wdio.conf.js --cucumberOpts.name="some scenario name" --cucumberOpts.failFast
 ```
 
 This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that only tests with this tag are executed.
@@ -345,7 +350,7 @@ Paths to where your support code is, for ESM.
 
 Type: `String[]`<br />
 Default: `[]`
-Example: 
+Example:
 
 ```js
 cucumberOpts: {
@@ -475,7 +480,7 @@ import { Given, When, Then } from '@cucumber/cucumber'
 Now, if you use Cucumber already for other types of tests unrelated to WebdriverIO for which you use a specific version you need to import these helpers in your e2e tests from the WebdriverIO Cucumber package, e.g.:
 
 ```js
-import { Given, When, Then } from '@wdio/cucumber-framework'
+import { Given, When, Then, world, context } from '@wdio/cucumber-framework'
 ```
 
 This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independent Cucumber version for other types of testing.
@@ -670,7 +675,7 @@ To produce Serenity BDD reports, your test suite must:
 - produce intermediate Serenity BDD `.json` reports, by registering [`SerenityBDDReporter`](https://serenity-js.org/api/serenity-bdd/class/SerenityBDDReporter/?pk_campaign=wdio8&pk_source=webdriver.io) as per the [configuration instructions](#configuring-serenityjs)
 - invoke the Serenity BDD CLI when you want to produce the report, by calling `serenity-bdd run`
 
-The pattern used by all the [Serenity/JS Project Templates](https://serenity-js.org/handbook/getting-started#serenityjs-project-templates?pk_campaign=wdio8&pk_source=webdriver.io) relies
+The pattern used by all the [Serenity/JS Project Templates](https://serenity-js.org/handbook/project-templates/?pk_campaign=wdio8&pk_source=webdriver.io#webdriverio) relies
 on using:
 - a [`postinstall`](https://docs.npmjs.com/cli/v9/using-npm/scripts#life-cycle-operation-order) NPM script to download the Serenity BDD CLI
 - [`npm-failsafe`](https://www.npmjs.com/package/npm-failsafe) to run the reporting process even if the test suite itself has failed (which is precisely when you need test reports the most...).

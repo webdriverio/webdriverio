@@ -29,7 +29,7 @@ const fakeScope = {
         beforeCommand: vi.fn(),
         afterCommand: vi.fn()
     }
-} as any as WebdriverIO.Browser
+} as unknown as WebdriverIO.Browser
 
 const scopeBrowserA = {
     ...fakeScope,

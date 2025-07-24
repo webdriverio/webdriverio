@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options.js'
 import type { RequestedStandaloneCapabilities, RequestedMultiremoteCapabilities, TestrunnerCapabilities, ResolvedTestrunnerCapabilities } from './Capabilities.js'
 import type { Suite, Test, TestResult } from './Frameworks.js'
@@ -30,7 +31,7 @@ export interface ServiceOption {
 }
 
 export interface ServiceClass {
-    new(options: ServiceOption, capabilities: ResolvedTestrunnerCapabilities, config: WebdriverIOOptions): ServiceInstance
+    new(options: WebdriverIO.ServiceOption, capabilities: ResolvedTestrunnerCapabilities, config: WebdriverIOOptions): ServiceInstance
 }
 
 export interface ServicePlugin extends ServiceClass {

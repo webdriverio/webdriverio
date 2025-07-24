@@ -17,7 +17,6 @@ export interface SuiteEvent extends jasmine.SuiteResult {
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
     error?: jasmine.FailedExpectation,
-    filename?: string
 }
 
 export interface TestEvent extends jasmine.SpecResult {
@@ -26,7 +25,6 @@ export interface TestEvent extends jasmine.SpecResult {
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
     error?: jasmine.FailedExpectation,
-    filename?: string
 }
 
 export interface ResultHandlerPayload {
@@ -37,6 +35,7 @@ export interface ResultHandlerPayload {
 
 export interface FrameworkMessage {
     type: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload?: any
     err?: jasmine.FailedExpectation
 }
@@ -55,7 +54,7 @@ export interface FormattedMessage {
     duration?: number
     currentTest?: string
     error?: jasmine.FailedExpectation
-    context?: any
+    context?: unknown
 
     /**
      * jasmine specific

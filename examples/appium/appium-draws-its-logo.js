@@ -44,6 +44,6 @@ const webviewApp = '/path/to/app'
     ])
     await driver.deleteSession()
 })().catch(
-    // eslint-disable-next-line no-console
+
     console.error
 )

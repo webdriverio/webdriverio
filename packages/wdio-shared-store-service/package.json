@@ -1,16 +1,16 @@
 {
   "name": "@wdio/shared-store-service",
-  "version": "9.0.0-alpha.0",
+  "version": "9.18.4",
   "description": "A WebdriverIO service to exchange data across processes",
   "author": "Mykola Grybyk <mykola.grybyk@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-shared-store-service"
   },
   "keywords": [
@@ -26,15 +26,12 @@
   "type": "module",
   "module": "./build/index.js",
   "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./build/index.cjs"
-      },
-      "./build/index.cjs"
-    ],
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "requireSource": "./src/index.cts",
+      "require": "./build/index.cjs"
+    }
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",

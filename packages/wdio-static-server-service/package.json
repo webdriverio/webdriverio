@@ -1,16 +1,16 @@
 {
   "name": "@wdio/static-server-service",
-  "version": "9.0.0-alpha.0",
+  "version": "9.18.0",
   "description": "A WebdriverIO service that can serve your static websites",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-static-server-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-static-server-service"
   },
   "keywords": [
@@ -29,18 +29,20 @@
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
-    "express": "^4.14.0",
+    "express": "^5.1.0",
     "morgan": "^1.7.0"
   },
   "devDependencies": {
-    "@types/express": "^4.17.8",
+    "@types/express": "^5.0.0",
     "@types/morgan": "^1.9.1"
   },
   "publishConfig": {

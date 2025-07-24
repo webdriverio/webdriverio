@@ -1,4 +1,5 @@
 import url from 'node:url'
+import path from 'node:path'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
@@ -22,7 +23,7 @@ export const config: WebdriverIO.Config = {
      */
     logLevel: 'trace',
     framework: 'mocha',
-    outputDir: __dirname,
+    outputDir: path.resolve(__dirname, 'logs'),
 
     reporters: ['spec', 'dot', 'junit'],
 
@@ -35,11 +36,11 @@ export const config: WebdriverIO.Config = {
      * hooks
      */
     onPrepare: function() {
-        // eslint-disable-next-line
+
         console.log('let\'s go')
     },
     onComplete: function() {
-        // eslint-disable-next-line
+
         console.log('that\'s it')
     }
 }

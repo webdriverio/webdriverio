@@ -53,12 +53,12 @@ beforeEach(() => {
         browserB: {},
         execute: vi.fn(),
         on: vi.fn(),
-    } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    insightsHandler = new InsightsHandler(browser, false, 'framework')
+    } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    insightsHandler = new InsightsHandler(browser, 'framework')
 })
 
 it('should initialize correctly', () => {
-    insightsHandler = new InsightsHandler(browser, false, 'framework')
+    insightsHandler = new InsightsHandler(browser, 'framework')
     expect(insightsHandler['_tests']).toEqual({})
     expect(insightsHandler['_hooks']).toEqual({})
     expect(insightsHandler['_commands']).toEqual({})
@@ -69,7 +69,7 @@ describe('before', () => {
     const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession')
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
         isBrowserstackSessionSpy.mockClear()
     })
 
@@ -89,7 +89,7 @@ describe('beforeScenario', () => {
     let insightsHandler: InsightsHandler
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
         vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         insightsHandler['getTestRunDataForCucumber'] = vi.fn()
         insightsHandler['_tests'] = {}
@@ -117,7 +117,7 @@ describe('afterScenario', () => {
     let insightsHandler: InsightsHandler
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
         insightsHandler['getTestRunDataForCucumber'] = vi.fn()
         insightsHandler['_tests'] = {}
     })
@@ -144,7 +144,7 @@ describe('beforeStep', () => {
     let insightsHandler: InsightsHandler
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
         vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         insightsHandler['getHierarchy'] = vi.fn().mockImplementation(() => { return [] })
     })
@@ -197,7 +197,7 @@ describe('afterStep', () => {
     let insightsHandler: InsightsHandler
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
         vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         insightsHandler['getHierarchy'] = vi.fn().mockImplementation(() => { return [] })
     })
@@ -320,7 +320,7 @@ describe('attachHookData', () => {
     let insightsHandler: InsightsHandler
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
     })
 
     it('add hooks data in test', () => {
@@ -369,7 +369,7 @@ describe('attachHookData', () => {
 describe('setHooksFromSuite', () => {
     let insightsHandler: InsightsHandler
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
         insightsHandler['_hooks'] = {}
     })
 
@@ -397,7 +397,7 @@ describe('getHierarchy', () => {
     let insightsHandler
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
     })
 
     it('return array of getHierarchy when context present', () => {
@@ -423,7 +423,7 @@ describe('getHierarchy', () => {
 describe('getTestRunId', function () {
     let insightsHandler: InsightsHandler
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
     })
 
     it('should return if null context', () => {
@@ -460,7 +460,7 @@ describe('getTestRunId', function () {
 describe('getTestRunIdFromSuite', function () {
     let insightsHandler: InsightsHandler
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
     })
 
     it('should return null if parent null', function () {
@@ -486,7 +486,7 @@ describe('beforeTest', () => {
 
     describe('mocha', () => {
         beforeEach(() => {
-            insightsHandler = new InsightsHandler(browser, false, 'mocha')
+            insightsHandler = new InsightsHandler(browser, 'mocha')
             insightsHandler['getRunData'] = vi.fn().mockImplementation(() => { return [] })
             vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
             insightsHandler['_tests'] = {}
@@ -504,7 +504,7 @@ describe('beforeTest', () => {
 
     describe('jasmine', () => {
         beforeEach(() => {
-            insightsHandler = new InsightsHandler(browser, false, 'jasmine')
+            insightsHandler = new InsightsHandler(browser, 'jasmine')
             insightsHandler['getRunData'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['_tests'] = {}
         })
@@ -522,7 +522,7 @@ describe('beforeHook', () => {
 
     describe('mocha', () => {
         beforeEach(() => {
-            insightsHandler = new InsightsHandler(browser, false, 'mocha')
+            insightsHandler = new InsightsHandler(browser, 'mocha')
             insightsHandler['getRunData'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['_tests'] = {}
@@ -544,7 +544,7 @@ describe('beforeHook', () => {
 
     describe('cucumber', () => {
         beforeEach(() => {
-            insightsHandler = new InsightsHandler(browser, false, 'cucumber')
+            insightsHandler = new InsightsHandler(browser, 'cucumber')
             insightsHandler['processCucumberHook'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['_framework'] = 'cucumber'
         })
@@ -561,7 +561,7 @@ describe('afterHook', () => {
 
     describe('mocha', () => {
         beforeEach(() => {
-            insightsHandler = new InsightsHandler(browser, false, 'mocha')
+            insightsHandler = new InsightsHandler(browser, 'mocha')
             insightsHandler['getRunData'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
 
@@ -588,7 +588,7 @@ describe('afterHook', () => {
 
     describe('cucumber', () => {
         beforeEach(() => {
-            insightsHandler = new InsightsHandler(browser, false, 'cucumber')
+            insightsHandler = new InsightsHandler(browser, 'cucumber')
             insightsHandler['processCucumberHook'] = vi.fn().mockImplementation(() => { return [] })
         })
 
@@ -608,7 +608,7 @@ describe('getIntegrationsObject', () => {
     })
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
         insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
     })
 
@@ -641,7 +641,7 @@ describe('browserCommand', () => {
     let commandSpy
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
         insightsHandler['getIdentifier'] = vi.fn().mockImplementation(() => { return 'test title' })
         insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
         insightsHandler['_commands'] = { 's_m_e': {} as any }
@@ -687,7 +687,7 @@ describe('getIdentifier', () => {
     let getUniqueIdentifierForCucumberSpy
 
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
         insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
 
         getUniqueIdentifierSpy = vi.spyOn(utils, 'getUniqueIdentifier')
@@ -743,7 +743,7 @@ describe('getCucumberHookType', function () {
 describe('getCucumberHookUniqueId', function () {
     let insightsHandler: InsightsHandler
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler = new InsightsHandler(browser, 'framework')
     })
 
     it('should return hookId for each hooks', function () {
@@ -772,13 +772,13 @@ describe('appendTestItemLog', function () {
     }
     let testLogObj: StdLog
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'mocha')
+        insightsHandler = new InsightsHandler(browser, 'mocha')
         sendDataSpy = vi.spyOn(insightsHandler['listener'], 'logCreated').mockImplementation(() => { return [] as any })
         testLogObj = { ...logObj }
     })
 
     it('should upload with current test uuid for log', function () {
-        insightsHandler['_currentTest'] = { uuid: 'some_uuid' }
+        InsightsHandler['currentTest'] = { uuid: 'some_uuid' }
         insightsHandler['appendTestItemLog'](testLogObj)
         expect(testLogObj.test_run_uuid).toBe('some_uuid')
         expect(sendDataSpy).toBeCalledTimes(1)
@@ -792,6 +792,7 @@ describe('appendTestItemLog', function () {
     })
 
     it('should not upload log if hook is finished', function () {
+        InsightsHandler['currentTest'] = {}
         insightsHandler['_currentHook'] = { uuid: 'some_uuid', finished: true }
         insightsHandler['appendTestItemLog'](testLogObj)
         expect(testLogObj.hook_run_uuid).toBe(undefined)
@@ -804,7 +805,7 @@ describe('processCucumberHook', function () {
     let insightsHandler: InsightsHandler
     let sendHookRunEventSpy, cucumberHookTypeSpy, cucumberHookUniqueIdSpy
     beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'mocha')
+        insightsHandler = new InsightsHandler(browser, 'mocha')
         sendHookRunEventSpy = vi.spyOn(insightsHandler, 'getHookRunDataForCucumber').mockImplementation(() => { return [] as any })
         cucumberHookTypeSpy = vi.spyOn(insightsHandler, 'getCucumberHookType')
         cucumberHookTypeSpy.mockImplementation(() => { return 'hii' })
@@ -819,7 +820,7 @@ describe('processCucumberHook', function () {
 
     it ('should send data for before event', function () {
         cucumberHookTypeSpy.mockReturnValue('BEFORE_ALL')
-        insightsHandler['_currentTest'].uuid = 'test_uuid'
+        InsightsHandler['currentTest'].uuid = 'test_uuid'
         insightsHandler['processCucumberHook'](undefined, { event: 'before', hookUUID: 'hook_uuid' })
         expect(sendHookRunEventSpy).toBeCalledWith(expect.objectContaining({
             uuid: 'hook_uuid',
@@ -836,5 +837,41 @@ describe('processCucumberHook', function () {
         insightsHandler['_tests']['hook_unique_id'] = hookObj
         insightsHandler['processCucumberHook'](undefined, { event: 'after' }, resultObj as any)
         expect(sendHookRunEventSpy).toBeCalledWith(hookObj, 'HookRunFinished', resultObj)
+    })
+})
+
+describe('sendCBTInfo', () => {
+    beforeAll(() => {
+        insightsHandler = new InsightsHandler(browser, 'framework')
+    })
+    it('should not call cbtSessionCreated', () => {
+        const cbtSessionCreatedSpy = vi.spyOn(insightsHandler['listener'], 'cbtSessionCreated').mockImplementation(() => { return [] as any })
+        insightsHandler.sendCBTInfo()
+        expect(cbtSessionCreatedSpy).toBeCalledTimes(0)
+    })
+    it('should call cbtSessionCreated', () => {
+        insightsHandler.currentTestId = 'abc'
+        const cbtSessionCreatedSpy = vi.spyOn(insightsHandler['listener'], 'cbtSessionCreated').mockImplementation(() => { return [] as any })
+        insightsHandler.sendCBTInfo()
+        expect(cbtSessionCreatedSpy).toBeCalled()
+    })
+})
+
+describe('flushCBTDataQueue', () => {
+    beforeAll(() => {
+        insightsHandler = new InsightsHandler(browser, 'framework')
+    })
+    it('flushCBTDataQueue should not call cbtSessionCreated', () => {
+        insightsHandler.cbtQueue = [{ uuid: 'abc', integrations: {} }]
+        const cbtSessionCreatedSpy = vi.spyOn(insightsHandler['listener'], 'cbtSessionCreated').mockImplementation(() => { return [] as any })
+        insightsHandler.flushCBTDataQueue()
+        expect(cbtSessionCreatedSpy).toBeCalledTimes(0)
+    })
+    it('flushCBTDataQueue should call cbtSessionCreated', () => {
+        insightsHandler.currentTestId = 'abc'
+        insightsHandler.cbtQueue = [{ uuid: 'abc', integrations: {} }]
+        const cbtSessionCreatedSpy = vi.spyOn(insightsHandler['listener'], 'cbtSessionCreated').mockImplementation(() => { return [] as any })
+        insightsHandler.flushCBTDataQueue()
+        expect(cbtSessionCreatedSpy).toBeCalled()
     })
 })

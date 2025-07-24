@@ -3,7 +3,7 @@ id: modules
 title: Modules
 ---
 
-WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
+WebdriverIO publishes various modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
 
 ## `webdriver` and `devtools`
 
@@ -32,7 +32,7 @@ const client = await WebDriver.newSession({
 })
 ```
 
-#### `attachSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
+#### `attachToSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
 
 Attaches to a running WebDriver or DevTools session.
 
@@ -51,7 +51,7 @@ Attaches to a running WebDriver or DevTools session.
 
 ```js
 const client = await WebDriver.newSession({...})
-const clonedClient = await WebDriver.attachSession(client)
+const clonedClient = await WebDriver.attachToSession(client)
 ```
 
 #### `reloadSession(instance)`

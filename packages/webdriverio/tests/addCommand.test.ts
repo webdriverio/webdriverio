@@ -1,22 +1,23 @@
 import path from 'node:path'
 import { describe, test, expect, vi } from 'vitest'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import { remote, multiremote } from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-const remoteConfig: Options.WebdriverIO = {
+const remoteConfig: Capabilities.WebdriverIOConfig = {
     baseUrl: 'http://foobar.com',
     capabilities: {
-        browserName: 'foobar-noW3C'
+        browserName: 'foobar'
     }
 }
 
 declare global {
     namespace WebdriverIO {
         interface Browser {
+            myCustomCommand: (arg: any) => Promise<void>
             myOtherCustomCommand: (param: string) => Promise<{ param: string, commandResult: string }>
         }
 
@@ -31,7 +32,7 @@ declare global {
     }
 }
 
-const multiremoteConfig: Capabilities.MultiRemoteCapabilities = {
+const multiremoteConfig: Capabilities.RequestedMultiremoteCapabilities = {
     browserA: {
         logLevel: 'debug',
         capabilities: {
@@ -58,6 +59,26 @@ const customCommand = async () => {
 
 describe('addCommand', () => {
     describe('remote', () => {
+
+        test('should resolve the this parameter by inference', async () => {
+            const browser = await remote(remoteConfig)
+            browser.addCommand(
+                'press',
+                async function (this /* Expect to be infer to WebDriverIO.Element by default */) {
+                    await this.click()
+                    return
+                },
+                true,
+            )
+
+            const element = await browser.$('.someRandomElement')
+            vi.spyOn(element, 'click')
+
+            // @ts-expect-error undefined custom command
+            expect(await element.press()).toBeUndefined()
+            expect(element.click).toBeCalledTimes(1)
+        })
+
         test('should be able to handle async', async () => {
             const browser = await remote(remoteConfig)
 
@@ -335,6 +356,35 @@ describe('addCommand', () => {
             // @ts-ignore uses expect-webdriverio
             expect.assertions(2)
         })
+
+        describe('when browser custom command is a function', () => {
+            test('should return result when running custom command as a function', async () => {
+                const browser = await remote(remoteConfig)
+                browser.addCommand(
+                    'press1',
+                    () => 'command result'
+                )
+
+                // @ts-expect-error undefined custom command
+                expect(await browser.press1()).toEqual('command result')
+            })
+        })
+
+        describe('when element custom command is a function', () => {
+            test('should return result when running custom command as a function', async () => {
+                const browser = await remote(remoteConfig)
+                browser.addCommand(
+                    'press2',
+                    () => {return 'command result'},
+                    true
+                )
+
+                const element = await browser.$('.someRandomElement')
+
+                // @ts-expect-error undefined custom command
+                expect(await element.press2()).toEqual('command result')
+            })
+        })
     })
 
     describe('multiremote', () => {
@@ -348,10 +398,24 @@ describe('addCommand', () => {
             })
 
             expect(typeof browser.myCustomCommand).toBe('function')
+            expect(typeof browser.getInstance('browserA').myCustomCommand).toBe('function')
+            expect(typeof browser.getInstance('browserB').myCustomCommand).toBe('function')
             // @ts-expect-error undefined custom command
             const { param, commandResult } = await browser.myCustomCommand('barfoo')
             expect(param).toBe('barfoo')
             expect(commandResult).toEqual(['foobar', 'foobar'])
+
+            const resultA = await browser.getInstance('browserA').myCustomCommand('barfoo')
+            // @ts-expect-error undefined custom command
+            expect(resultA.param).toBe('barfoo')
+            // @ts-expect-error undefined custom command
+            expect(resultA.commandResult).toEqual('foobar')
+
+            const resultB = await browser.getInstance('browserB').myCustomCommand('barfoo')
+            // @ts-expect-error undefined custom command
+            expect(resultB.param).toBe('barfoo')
+            // @ts-expect-error undefined custom command
+            expect(resultB.commandResult).toEqual('foobar')
         })
 
         test('should allow to register custom commands to a single multiremote instance', async () => {

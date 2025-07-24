@@ -15,20 +15,34 @@ import type { FormattedMessage, FrameworkMessage, MochaOpts } from './types.js'
 const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
 const DEFAULT_INTERFACE_TYPE = 'bdd'
 
+interface Payload {
+    title: string
+    parent?: Payload | null
+    file?: string
+    duration?: number
+    body?: string
+    context?: unknown
+    state?: string
+    pending?: boolean
+    ctx?: Mocha.Context
+}
+
 export function formatMessage (params: FrameworkMessage) {
     const message: FormattedMessage = {
         type: params.type
     }
+    const payload = params.payload as Payload | undefined
 
-    const mochaAllHooksIfPresent = params.payload?.title?.match(/^"(before|after)( all| each)?" hook/)
+    const mochaAllHooksIfPresent = payload?.title?.match(/^"(before|after)( all| each)?" hook/)
 
     if (params.err) {
         /**
          * replace "Ensure the done() callback is being called in this test." with a more meaningful message
          */
         if (params.err && params.err.message && params.err.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
+            const testName = (payload?.parent?.title ? `${payload.parent.title} ${payload.title}` : payload?.title) || 'unknown test'
             const replacement = (
-                `The execution in the test "${params.payload.parent.title} ${params.payload.title}" took too long. Try to reduce the run time or ` +
+                `The execution in the test "${testName}" took too long. Try to reduce the run time or ` +
                 'increase your timeout for test specs (https://webdriver.io/docs/timeouts).'
             )
             params.err.message = params.err.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
@@ -52,43 +66,43 @@ export function formatMessage (params: FrameworkMessage) {
         }
     }
 
-    if (params.payload) {
-        message.title = params.payload.title
-        message.parent = params.payload.parent ? params.payload.parent.title : null
+    if (payload) {
+        message.title = payload.title
+        message.parent = payload.parent ? payload.parent.title : undefined
 
         let fullTitle = message.title
-        if (params.payload.parent) {
-            let parent = params.payload.parent
+        if (payload.parent) {
+            let parent = payload.parent
             while (parent && parent.title) {
                 fullTitle = parent.title + '.' + fullTitle
-                parent = parent.parent
+                parent = parent.parent as Payload
             }
         }
 
         message.fullTitle = fullTitle
-        message.pending = params.payload.pending || false
-        message.file = params.payload.file
-        message.duration = params.payload.duration
-        message.body = params.payload.body
+        message.pending = payload.pending || false
+        message.file = payload.file
+        message.duration = payload.duration
+        message.body = payload.body
 
         /**
          * Add the current test title to the payload for cases where it helps to
          * identify the test, e.g. when running inside a beforeEach hook
          */
-        if (params.payload.ctx && params.payload.ctx.currentTest) {
-            message.currentTest = params.payload.ctx.currentTest.title
+        if (payload.ctx && payload.ctx.currentTest) {
+            message.currentTest = payload.ctx.currentTest.title
         }
 
         if (params.type.match(/Test/)) {
-            message.passed = (params.payload.state === 'passed')
+            message.passed = (payload.state === 'passed')
         }
 
-        if (params.payload.parent?.title && mochaAllHooksIfPresent) {
+        if (payload.parent?.title && mochaAllHooksIfPresent) {
             const hookName = mochaAllHooksIfPresent[0]
-            message.title = `${hookName} for ${params.payload.parent.title}`
+            message.title = `${hookName} for ${payload.parent.title}`
         }
 
-        if (params.payload.context) { message.context = params.payload.context }
+        if (payload.context) { message.context = payload.context }
     }
 
     return message
@@ -105,7 +119,7 @@ export function requireExternalModules (mods: string[], loader = loadModule) {
             return Promise.resolve()
         }
 
-        mod = mod.replace(/.*:/, '')
+        mod = mod.includes(':') ? mod.substring(mod.lastIndexOf(':') + 1) : mod
 
         if (mod.startsWith('./') && globalThis.process) {
             mod = `${globalThis.process.cwd()}/${mod.slice(2)}`
@@ -117,7 +131,7 @@ export function requireExternalModules (mods: string[], loader = loadModule) {
 
 type Hook = Function | Function[]
 export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, beforeHook: Hook, afterTest: Hook, afterHook: Hook) {
-    const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as any as [string, keyof typeof INTERFACES]
+    const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as unknown as [string, keyof typeof INTERFACES]
     const type: keyof typeof INTERFACES = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
 
     const hookArgsFn = (context: Mocha.Context) => {
@@ -145,8 +159,8 @@ export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, bef
 
 export async function loadModule (name: string) {
     try {
-        return await import(name)
-    } catch (err: any) {
+        return await import(/* @vite-ignore */name)
+    } catch {
         throw new Error(`Module ${name} can't get loaded. Are you sure you have installed it?\n` +
                         'Note: if you\'ve installed WebdriverIO globally you need to install ' +
                         'these external modules globally too!')

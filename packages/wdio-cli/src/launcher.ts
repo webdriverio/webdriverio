@@ -1,16 +1,16 @@
 import exitHook from 'async-exit-hook'
+import { resolve } from 'import-meta-resolve'
 
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
-import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
+import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
-import type { HookError } from './utils.js'
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
 
@@ -35,7 +35,11 @@ export interface EndMessage {
     retries: number
 }
 
+const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
+
 class Launcher {
+    #isInitialized: boolean = false
+
     public configParser: ConfigParser
     public isMultiremote = false
     public isParallelMultiremote = false
@@ -65,12 +69,12 @@ class Launcher {
      * @return  {Promise}  that only gets resolved with either an exitCode or an error
      */
     async run(): Promise<undefined | number> {
-        await this.configParser.initialize(this._args)
+        await this.initialize()
         const config = this.configParser.getConfig()
 
         const capabilities = this.configParser.getCapabilities()
         this.isParallelMultiremote = Array.isArray(capabilities) &&
-            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as any).capabilities))
+            capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
         this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
@@ -96,7 +100,7 @@ class Launcher {
             : 1
 
         this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
-        config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
+        config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport).toString()
 
         const [runnerName, runnerOptions] = Array.isArray(config.runner) ? config.runner : [config.runner, {} as WebdriverIO.BrowserRunnerOptions]
         const Runner = (await initializePlugin(runnerName, 'runner') as Services.RunnerPlugin).default
@@ -108,9 +112,9 @@ class Launcher {
         exitHook(this._exitHandler.bind(this))
         let exitCode = 0
         let error: HookError | undefined = undefined
+        const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
 
         try {
-            const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
             const { ignoredWorkerServices, launcherServices } = await initializeLauncherService(config, caps)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
@@ -137,23 +141,7 @@ class Launcher {
             ])
 
             exitCode = await this._runMode(config, caps)
-
-            /**
-             * run onComplete hook
-             * Even if it fails we still want to see result and end logger stream.
-             * Also ensure that user hooks are run before service hooks so that e.g.
-             * a user can use plugin service, e.g. shared store service is still
-             * available running hooks in this order
-             */
-            log.info('Run onComplete hook')
-            const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface.result)
-            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
-
-            // if any of the onComplete hooks failed, update the exit code
-            exitCode = onCompleteResults.includes(1) ? 1 : exitCode
-
             await logger.waitForBuffer()
-
             this.interface.finalise()
         } catch (err) {
             error = err as HookError
@@ -165,23 +153,103 @@ class Launcher {
                     exitCode = exitCode || 1
                 }
             }
+
+            exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
         }
 
         if (error) {
             this.interface.logHookError(error)
             throw error
         }
+
         return exitCode
+    }
+
+    /**
+     * initialize launcher by loading `tsx` if needed
+     */
+    async initialize () {
+        /**
+         * only initialize once
+         */
+        if (this.#isInitialized) {
+            return
+        }
+
+        /**
+         * add tsx to process NODE_OPTIONS so it will be passed along the worker process
+         */
+        const tsxPath = resolve('tsx', import.meta.url)
+        if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
+            /**
+             * The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
+             * This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
+             * see https://nodejs.org/api/module.html#customization-hooks and https://tsx.is/dev-api/node-cli#module-mode-only
+             */
+            const moduleLoaderFlag = nodeVersion('major') >= 21 ||
+                (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
+                (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
+            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} ${moduleLoaderFlag} ${tsxPath}`
+        }
+
+        /**
+         * load tsx in the main process if config file is a .ts file to allow config parser to load it
+         */
+        if (TS_FILE_EXTENSIONS.some((ext) => this._configFilePath.endsWith(ext))) {
+            await import(tsxPath)
+        }
+
+        this.#isInitialized = true
+
+        /**
+         * initialize config parser
+         */
+        await this.configParser.initialize(this._args)
+    }
+
+    /**
+     * run onComplete hook
+     * Even if it fails we still want to see result and end logger stream.
+     * Also ensure that user hooks are run before service hooks so that e.g.
+     * a user can use plugin service, e.g. shared store service is still
+     * available running hooks in this order
+     */
+    async #runOnCompleteHook (
+        config: Required<WebdriverIO.Config>,
+        caps: Capabilities.TestrunnerCapabilities,
+        exitCode: number
+    ): Promise<number> {
+        log.info('Run onComplete hook')
+        const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface!.result)
+        if (this._launcher) {
+            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
+        }
+
+        // if any of the onComplete hooks failed, update the exit code
+        return onCompleteResults.includes(1) ? 1 : exitCode
     }
 
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    private _runMode(config: Required<Options.Testrunner>, caps: Capabilities.TestrunnerCapabilities): Promise<number> {
+    private _runMode(config: Required<WebdriverIO.Config>, caps?: Capabilities.TestrunnerCapabilities): Promise<number> {
         /**
-         * fail if no caps were found
+         * fail if
          */
-        if (!caps) {
+        if (
+            /**
+             * no caps were provided
+             */
+            !caps ||
+            /**
+             * capability array is empty
+             */
+            (Array.isArray(caps) && caps.length === 0) ||
+            /**
+             * user wants to use multiremote but capability object is empty
+             */
+            (!Array.isArray(caps) && Object.keys(caps).length === 0)
+        ) {
             return new Promise((resolve) => {
                 log.error('Missing capabilities, exiting with failure')
                 return resolve(1)
@@ -311,7 +379,7 @@ class Launcher {
                 /**
                  * bail if number of errors exceeds allowed
                  */
-                .filter(() => {
+                .filter((session) => {
                     const filter = typeof config.bail !== 'number' || config.bail < 1 ||
                         config.bail > this._runnerFailed
 
@@ -320,22 +388,21 @@ class Launcher {
                      */
                     if (!filter) {
                         this._schedule.forEach((t) => { t.specs = [] })
+                        return false
                     }
 
-                    return filter
+                    /**
+                     * make sure complete number of running instances is not higher than general maxInstances number
+                     */
+                    if (this._getNumberOfRunningInstances() >= config.maxInstances) {
+                        return false
+                    }
+
+                    /**
+                     * make sure the capability has available capacities and still has caps to run
+                     */
+                    return session.availableInstances > 0 && session.specs.length > 0
                 })
-                /**
-                 * make sure complete number of running instances is not higher than general maxInstances number
-                 */
-                .filter(() => this._getNumberOfRunningInstances() < config.maxInstances)
-                /**
-                 * make sure the capability has available capacities
-                 */
-                .filter((a) => a.availableInstances > 0)
-                /**
-                 * make sure capability has still caps to run
-                 */
-                .filter((a) => a.specs.length > 0)
                 /**
                  * make sure we are running caps with less running instances first
                  */
@@ -415,8 +482,8 @@ class Launcher {
         let debugType
         let debugHost = ''
         const debugPort = process.debugPort
-        for (const i in process.execArgv) {
-            const debugArgs = process.execArgv[i].match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
+        for (const arg of process.execArgv) {
+            const debugArgs = arg.match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
             if (debugArgs) {
                 const [, type, host] = debugArgs
                 if (type) {
@@ -445,11 +512,14 @@ class Launcher {
         // bump up worker count
         this._runnerStarted++
 
+        // Prepare to pass different capability objects for each worker
+        const workerCaps = structuredClone(caps)
+
         // run worker hook to allow modify runtime and capabilities of a specific worker
         log.info('Run onWorkerStart hook')
-        await runLauncherHook(config.onWorkerStart, runnerId, caps, specs, this._args, execArgv)
+        await runLauncherHook(config.onWorkerStart, runnerId, workerCaps, specs, this._args, execArgv)
             .catch((error) => this._workerHookError(error))
-        await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, caps, specs, this._args, execArgv)
+        await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, workerCaps, specs, this._args, execArgv)
             .catch((error) => this._workerHookError(error))
 
         // prefer launcher settings in capabilities over general launcher
@@ -466,7 +536,7 @@ class Launcher {
                 user: config.user,
                 key: config.key
             },
-            caps,
+            caps: workerCaps,
             specs,
             execArgv,
             retries
@@ -524,7 +594,7 @@ class Launcher {
 
         if (!passed && retries > 0) {
             // Default is true, so test for false explicitly
-            const requeue = this.configParser.getConfig().specFileRetriesDeferred !== false ? 'push' : 'unshift'
+            const requeue = this.configParser.getConfig().specFileRetriesDeferred ? 'push' : 'unshift'
             this._schedule[parseInt(rid, 10)].specs[requeue]({ files: specs, retries: retries - 1, rid })
         } else {
             this._exitCode = this._isWatchModeHalted() ? 0 : this._exitCode || exitCode

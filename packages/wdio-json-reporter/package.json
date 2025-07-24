@@ -1,6 +1,6 @@
 {
   "name": "@wdio/json-reporter",
-  "version": "9.0.0-alpha.0",
+  "version": "9.18.0",
   "description": "A WebdriverIO plugin to report results in json format.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-json-reporter",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-json-reporter"
   },
   "keywords": [
@@ -25,18 +25,21 @@
   "type": "module",
   "exports": {
     "./mergeResults": {
-      "types": "./build/mergeResults.d.ts",
+      "source": "./src/mergeResults.ts",
       "import": "./build/mergeResults.js",
       "require": "./build/mergeResults.cjs"
     },
-    ".": "./build/index.js",
-    "./package.json": "./package.json"
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    }
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/reporter": "workspace:*",
-    "@wdio/types": "workspace:*"
+    "@wdio/types": "workspace:*",
+    "safe-regex2": "^5.0.0"
   },
   "publishConfig": {
     "access": "public"

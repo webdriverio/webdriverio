@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
@@ -5,9 +6,9 @@ import path from 'node:path'
 import { downloadFromGitHub } from '../utils/index.js'
 import { buildPreface } from '../utils/helpers.js'
 
-import reporters3rdParty from './3rd-party/reporters.json' assert { type: 'json' }
-import services3rdParty from './3rd-party/services.json' assert { type: 'json' }
-import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
+import reporters3rdParty from './3rd-party/reporters.json' with { type: 'json' }
+import services3rdParty from './3rd-party/services.json' with { type: 'json' }
+import api3rdParty from './3rd-party/api.json' with { type: 'json' }
 
 interface Plugin {
     packageName: string
@@ -97,7 +98,6 @@ export async function generate3rdPartyDocs (sidebars: any) {
                 return
             }
 
-            // eslint-disable-next-line no-console
             console.log(`Generated docs for ${packageName}`)
             items.push(category === 'api' ? `${category}/${id}` : id)
         }
@@ -127,7 +127,7 @@ function normalizeDoc(readme: string, githubUrl: string, branch: string, preface
      */
     let sliceIdx = 0
     for (let i = 0; i < readmeHeaderLines && sliceIdx === 0; i++) {
-        if (readmeHeaders.some(x => readmeArr[i].startsWith(x))) {
+        if (typeof readmeArr[i] === 'string' && readmeHeaders.some(x => readmeArr[i].startsWith(x))) {
             sliceIdx = i + 1
         }
     }

@@ -7,7 +7,12 @@ Each command in WebdriverIO is an asynchronous operation. A request is fired to 
 
 Therefore, time is a crucial component in the whole testing process. When a certain action depends on the state of a different action, you need to make sure that they get executed in the right order. Timeouts play an important role when dealing with these issues.
 
-## Selenium timeouts
+<LiteYouTubeEmbed
+    id="5oI37h4qxEw"
+    title="Timeouts"
+/>
+
+## WebDriver Timeouts
 
 ### Session Script Timeout
 
@@ -77,7 +82,7 @@ By default, the timeout is 10 seconds, which means that a single test should not
 A single test in Mocha looks like:
 
 ```js
-it('should login into the application', () => {
+it('should login into the application', async () => {
     await browser.url('/login')
 
     const form = await $('form')

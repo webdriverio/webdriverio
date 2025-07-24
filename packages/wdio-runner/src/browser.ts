@@ -6,7 +6,7 @@ import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { matchers } from 'expect-webdriverio'
 import { ELEMENT_KEY } from 'webdriver'
-import { type Workers, type Options, type Services, MESSAGE_TYPES } from '@wdio/types'
+import { type Workers, type Services, MESSAGE_TYPES } from '@wdio/types'
 
 import { transformExpectArgs } from './utils.js'
 import type BaseReporter from './reporter.js'
@@ -18,29 +18,45 @@ const ERROR_CHECK_INTERVAL = 500
 const DEFAULT_TIMEOUT = 60 * 1000
 
 type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
+
+interface Event {
+    type: string
+    title: string
+    fullTitle: string
+    specs: string[]
+}
 interface TestState {
     failures: number
-    events: any[]
+    events: Event[]
     errors?: WDIOErrorEvent[]
     hasViteError?: boolean
+}
+
+interface LogMessage {
+    level: string
+    message: string
+    source: string
+    timestamp: number
 }
 
 declare global {
     interface Window {
         __wdioErrors__: WDIOErrorEvent[]
-        __wdioEvents__: any[]
+        __wdioEvents__: Event[]
         __wdioFailures__: number
         __coverage__?: unknown
     }
 }
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
+    #retryOutdatedOptimizeDep = false
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
     #resolveTestStatePromise?: (value: TestState) => void
 
     constructor (
         private _cid: string,
-        private _config: Options.Testrunner & { sessionId?: string },
+        private _config: WebdriverIO.Config & { sessionId?: string },
         private _specs: string[],
         private _reporter: BaseReporter
     ) {
@@ -59,14 +75,15 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     init () {
-        return undefined as any as TestFramework
+        return undefined as unknown as TestFramework
     }
 
     async run () {
         try {
             const failures = await this.#loop()
             return failures
-        } catch (err: any) {
+        } catch (_err: unknown) {
+            const err = _err as Error
             if ((err as Error).message.includes('net::ERR_CONNECTION_REFUSE')) {
                 err.message = `Failed to load test page to run tests, make sure your browser can access "${browser.options.baseUrl}"`
             }
@@ -82,10 +99,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #loop () {
-        /**
-         * start tests
-         */
         let failures = 0
+
+        /**
+         * start tests in a single browser session, hence we use a for...of instead of using Promise concurrency
+         */
         for (const spec of this._specs) {
             failures += await this.#runSpec(spec)
         }
@@ -94,6 +112,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #runSpec (spec: string, retried = false): Promise<number> {
+        this.#retryOutdatedOptimizeDep = false
         const timeout = this._config.mochaOpts?.timeout || DEFAULT_TIMEOUT
         log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
@@ -111,7 +130,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * is no need to call the url command again
          */
         if (!this._config.sessionId) {
-            await browser.url(`/?cid=${this._cid}&spec=${url.parse(spec).pathname}`)
+            await browser.url(`/?cid=${this._cid}&spec=${(new URL(spec)).pathname}`)
         }
         // await browser.debug()
 
@@ -172,7 +191,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
              */
             if (!retried && errors.some((err) => (
                 err.includes('Failed to fetch dynamically imported module') ||
-                err.includes('the server responded with a status of 504 (Outdated Optimize Dep)')
+                err.includes('the server responded with a status of 504 (Outdated Optimize Dep)') ||
+                /**
+                 * this is specific to Preact and can bre resolved by rerunning the spec
+                 */
+                err.includes('undefined is not an object (evaluating \'r.__H\')')
             ))) {
                 log.info('Retry test run due to dynamic import error')
                 return this.#runSpec(spec, true)
@@ -337,7 +360,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 /**
                  * need await here since ElementArray functions return a promise
                  */
-                result = (await result.map((res: any) => ({
+                result = (await result.map((res: WebdriverIO.Element) => ({
                     [ELEMENT_KEY]: res.elementId
                 }))).filter(Boolean)
             }
@@ -345,8 +368,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const resultMsg = this.#commandResponse({ id: payload.id, result })
             log.debug(`Return command result: ${resultMsg}`)
             return this.#sendWorkerResponse(id, resultMsg)
-        } catch (error: any) {
-            const { message, stack, name } = error
+        } catch (error: unknown) {
+            const { message, stack, name } = error as Error
             return this.#sendWorkerResponse(id, this.#commandResponse({ id: payload.id, error: { message, stack, name } }))
         }
     }
@@ -403,7 +426,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 pass: result.pass,
                 message: result.message()
             }))
-        } catch (err: unknown) {
+        } catch (err) {
             const errorMessage = err instanceof Error ? (err as Error).stack : err
             const message = `Failed to execute expect command "${payload.matcherName}": ${errorMessage}`
             return this.#sendWorkerResponse(id, this.#expectResponse({ id: payload.id, pass: false, message }))
@@ -448,7 +471,20 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 : null
             const errors = viteError || window.__wdioErrors__ || loadError
             return { errors, hasViteError: Boolean(viteError) }
+        }).catch((err) => {
+            /**
+             * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
+             */
+            if (err.message.includes('Cannot find context with specified id')) {
+                return
+            }
+
+            throw err
         })
+
+        if (!testError) {
+            return
+        }
 
         if ((testError.errors && testError.errors.length > 0) || testError.hasViteError) {
             this.#resolveTestStatePromise?.({
@@ -457,9 +493,41 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 ...testError
             })
         }
+
+        /**
+         * check for outdated optimize dep errors that occasionally happen in Vite
+         */
+        const logs = typeof browser.getLogs === 'function'
+            ? (await browser.getLogs('browser').catch(() => []))
+            : []
+        const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE' && log.source !== 'deprecation') as LogMessage[]
+        if (severeLogs.length) {
+            if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
+                log.info('Retry test run due to outdated optimize dep')
+                this.#retryOutdatedOptimizeDep = true
+                return browser.refresh()
+            }
+
+            this.#resolveTestStatePromise?.({
+                events: [],
+                failures: 1,
+                hasViteError: false,
+                /**
+                 * error messages often look like:
+                 * "http://localhost:40167/node_modules/.vite/deps/expect.js?v=bca8e2f3 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
+                 */
+                errors: severeLogs.map((log) => {
+                    const [filename, message] = log.message!.split(' - ')
+                    return {
+                        filename: filename.startsWith('http') ? filename : undefined,
+                        message
+                    }
+                })
+            })
+        }
     }
 
-    static init (cid: string, config: any, specs: string[], _: unknown, reporter: BaseReporter) {
+    static init (cid: string, config: WebdriverIO.Config, specs: string[], _: unknown, reporter: BaseReporter) {
         const framework = new BrowserFramework(cid, config, specs, reporter)
         return framework
     }

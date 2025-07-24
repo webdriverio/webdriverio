@@ -1,33 +1,31 @@
 {
   "name": "@wdio/globals",
-  "version": "9.0.0-alpha.0",
+  "version": "9.17.0",
   "description": "A helper utility for importing global variables directly",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-globals",
   "license": "MIT",
-  "main": "./cjs/index.js",
+  "main": "./build/index.cjs",
   "type": "module",
   "module": "./build/index.js",
   "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./cjs/index.js"
-      },
-      "./cjs/index.js"
-    ],
-    "./types": "./types.d.ts",
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "require": "./build/index.cjs"
+    },
+    "./types": {
+      "types": "./types.d.ts"
+    }
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-globals"
   },
   "keywords": [
@@ -41,8 +39,16 @@
   "publishConfig": {
     "access": "public"
   },
-  "optionalDependencies": {
-    "expect-webdriverio": "5.0.0-alpha.2",
-    "webdriverio": "workspace:*"
+  "peerDependencies": {
+    "expect-webdriverio": "^5.3.4",
+    "webdriverio": "^9.0.0"
+  },
+  "peerDependenciesMeta": {
+    "expect-webdriverio": {
+      "optional": false
+    },
+    "webdriverio": {
+      "optional": false
+    }
   }
 }

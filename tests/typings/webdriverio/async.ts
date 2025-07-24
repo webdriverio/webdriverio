@@ -166,7 +166,7 @@ async function bar() {
         domain: '',
         path: '',
         expiry: 1,
-        sameSite: 'Lax',
+        sameSite: 'lax',
         secure: true,
         httpOnly: true
     }])
@@ -234,6 +234,9 @@ async function bar() {
     expectType<number>(y)
     expectType<number>(width)
     expectType<number>(height)
+
+    // getProperty return type
+    expectType<unknown>($('#foo').getProperty('bar'))
 
     // protocol command return unmapped object
     const { foo, bar } = await browser.takeHeapSnapshot()
@@ -310,7 +313,7 @@ async function bar() {
     const el4 = elems[0]
     const el5 = await el4.$('')
     expectType<string>(await el4.getAttribute('class'))
-    expectType<void>(await el5.scrollIntoView(false))
+    expectType<void|unknown>(await el5.scrollIntoView(false))
 
     // async iterator
     const iteratorResult = await $$('').map((el) => el.getText())
@@ -361,18 +364,18 @@ async function bar() {
     const reactWrapper = await browser.react$('')
     const reactWrapperWithOptions = await browser.react$('', {
         props: {},
-        state: true
+        state: { someValue: true }
     })
     const reactElement = await reactWrapper.react$('')
     const reactElementWithOptions = await reactWrapper.react$('', {
         props: {},
-        state: true
+        state: { someValue: true }
     })
     await reactElement.click()
     const reactElements = await reactWrapper.react$$('')
     const reactElementsWithOptions = await reactWrapper.react$$('', {
         props: {},
-        state: true
+        state: { someValue: true }
     })
     await reactElements[0].click()
 
@@ -489,6 +492,15 @@ async function bar() {
     expectType<WebdriverIO.Element[]>(
         await browser.$$('foo').filter(async () => true)
     )
+
+    for await (const el of browser.$$('foo')) {
+        expectType<WebdriverIO.Element>(el)
+    }
+    const panels = await browser.$$('foo')
+    for (const panel of panels) {
+        await expect(panel).toHaveAttr('class', 'false')
+    }
+
     type Random = {
         foo: WebdriverIO.Element
         bar: WebdriverIO.Browser
@@ -527,6 +539,23 @@ async function bar() {
     // @ts-expect-error
     const multiElementError2 = multiElements.getElement()
 
+    // test entries() functionality
+    for await (const [index, element] of await browser.$$('foo').entries()) {
+        expectType<number>(index)
+        expectType<WebdriverIO.Element>(element)
+    }
+
+    // test with elements array
+    const elemArray = await browser.$$('foo').getElements()
+    for await (const [index, element] of elemArray.entries()) {
+        expectType<number>(index)
+        expectType<WebdriverIO.Element>(element)
+    }
+
+    // test return type of entries()
+    const entriesIterator = browser.$$('foo').entries()
+    expectType<AsyncIterableIterator<[number, WebdriverIO.Element]>>(entriesIterator)
+
     // Emulate tests
     let restore = await browser.emulate('geolocation', { latitude: 1, longitude: 2 })
     await restore()
@@ -538,6 +567,26 @@ async function bar() {
     restore = await browser.emulate('foobar')
     const clock = await browser.emulate('clock', { now: new Date(2021, 3, 14) })
     await clock.restore()
+
+    browser.addInitScript(() => {
+        // nothing
+    })
+
+    browser.addInitScript((emit) => {
+        emit('hello')
+    })
+
+    browser.addInitScript((param, emit) => {
+        emit('hello' + param.toFixed())
+    }, 123)
+
+    browser.addInitScript((param, param2, emit) => {
+        emit('hello' + param.toFixed() + param2.charAt(1))
+    }, 123, 'hello')
+
+    browser.addInitScript((param, param2, param3, emit) => {
+        emit('hello' + param.toFixed() + param2.charAt(1) + param3.charAt(1))
+    }, 123, 'hello', 'true')
 }
 
 function testSevereServiceError_noParameters() {

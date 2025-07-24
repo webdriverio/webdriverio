@@ -1,3 +1,6 @@
+import { ELEMENT_KEY } from 'webdriver'
+import type { ElementReference } from '@wdio/protocols'
+
 import { getElementFromResponse } from '../../utils/index.js'
 
 /**
@@ -51,15 +54,17 @@ export async function selectByAttribute (
     * find option elememnt using xpath
     */
     const normalized = `[normalize-space(@${attribute.trim()}) = "${value.trim()}"]`
-    const optionElement = await this.findElementFromElement(
-        this.elementId,
-        'xpath',
-        `./option${normalized}|./optgroup/option${normalized}`
-    )
-
-    if (optionElement && (optionElement as any).error === 'no such element') {
-        throw new Error(`Option with attribute "${attribute}=${value}" not found.`)
-    }
+    let optionElement: ElementReference | undefined
+    await this.waitUntil(async () => {
+        optionElement = await this.findElementFromElement(
+            this.elementId,
+            'xpath',
+            `./option${normalized}|./optgroup/option${normalized}`
+        )
+        return ELEMENT_KEY in optionElement
+    }, {
+        timeoutMsg: `Option with attribute "${attribute}=${value}" not found.`
+    })
 
     /**
     * select option

@@ -1,12 +1,13 @@
 ---
 title: WebdriverIO V5 now also supports CucumberJS
-author: Wim Selles
-authorURL: http://github.com/wswebcreation
-authorImageURL: https://avatars2.githubusercontent.com/u/11979740?s=460&v=4
+authors: wim
 ---
 
 We are pleased to announce that we now have support for CucumberJS in WebdriverIO V5!!!!
 This has been a great challenge for the project committers so we're all very thankful for the time and effort they put into this.
+
+<!-- truncate -->
+
 So normally we would say
 
 ```sh

@@ -5,6 +5,9 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 
+import type { Payload } from './types.js'
+import { convertStatus } from './utils.js'
+
 const log = logger('CucumberFormatter')
 
 import type {
@@ -122,7 +125,7 @@ export default class CucumberFormatter extends Formatter {
         return path.isAbsolute(uri) ? uri : path.resolve(uri)
     }
 
-    emit(event: string, payload: any) {
+    emit(event: string, payload: Payload) {
         const message = formatMessage({ payload })
 
         message.cid = this.cid
@@ -170,7 +173,9 @@ export default class CucumberFormatter extends Formatter {
             type: 'hook',
             state: result.status,
             error,
-            duration: Date.now() - this._testStart!?.getTime(),
+            duration: this._testStart
+                ? Date.now() - this._testStart.getTime()
+                : 0,
         })
 
         this.emit('hook:end', payload)
@@ -183,25 +188,7 @@ export default class CucumberFormatter extends Formatter {
         step: PickleStep,
         result: TestStepResult
     ) {
-        let state = 'undefined'
-        switch (result.status) {
-        case Status.FAILED:
-        case Status.UNDEFINED:
-            state = 'fail'
-            break
-        case Status.PASSED:
-            state = 'pass'
-            break
-        case Status.PENDING:
-            state = 'pending'
-            break
-        case Status.SKIPPED:
-            state = 'skip'
-            break
-        case Status.AMBIGUOUS:
-            state = 'pending'
-            break
-        }
+        let state = convertStatus(result.status)
         let error = result.message ? new Error(result.message) : undefined
         let title = step ? step?.text : this.getTitle(scenario)
 
@@ -216,6 +203,7 @@ export default class CucumberFormatter extends Formatter {
                 /**
                  * mark test as failed
                  */
+                state = 'fail'
                 this.failedCount++
 
                 const err = new Error(
@@ -236,24 +224,25 @@ export default class CucumberFormatter extends Formatter {
 
                 error = err
             }
-        } else if (result.status === Status.FAILED && !(result as any as TestCaseFinished).willBeRetried) {
+        } else if (result.status === Status.FAILED && !(result as unknown as TestCaseFinished).willBeRetried) {
+            state = 'fail'
+            this.failedCount++
             error = new Error(result.message?.split('\n')[0])
             error.stack = result.message as string
-            this.failedCount++
         } else if (result.status === Status.AMBIGUOUS && this.failAmbiguousDefinitions) {
             state = 'fail'
             this.failedCount++
             error = new Error(result.message?.split('\n')[0])
             error.stack = result.message as string
-        } else if ((result as any as TestCaseFinished).willBeRetried) {
-            state = 'retry'
         }
 
         const common = {
             title: title,
             state,
             error,
-            duration: Date.now() - this._testStart!?.getTime(),
+            duration: this._testStart
+                ? Date.now() - this._testStart.getTime()
+                : 0,
             passed: ['pass', 'skip'].includes(state),
             file: uri,
         }
@@ -354,7 +343,9 @@ export default class CucumberFormatter extends Formatter {
                 title: this.getTitle(this._currentDoc.feature),
                 type: 'feature',
                 file: this._currentDoc.uri,
-                duration: Date.now() - this._featureStart!?.getTime(),
+                duration: this._featureStart
+                    ? Date.now() - this._featureStart.getTime()
+                    : 0,
                 tags: this._currentDoc.feature?.tags,
             }
             this.emit('suite:end', payload)
@@ -396,7 +387,7 @@ export default class CucumberFormatter extends Formatter {
 
         const reporterScenario: ReporterScenario = scenario
         reporterScenario.rule = getRule(
-            doc?.feature!,
+            doc?.feature as Feature,
             this._pickleMap.get(scenario.id)!
         )
 
@@ -412,6 +403,14 @@ export default class CucumberFormatter extends Formatter {
             file: scenario.uri,
             tags: reporterScenario.tags,
             rule: reporterScenario.rule,
+        }
+
+        /**
+         * if we are retrying a scenario, we need to emit the event as `suite:retry` instead of `suite:start`
+         */
+        const isRetry = typeof testcase.attempt === 'number' && testcase.attempt > 0
+        if (!this.scenarioLevelReporter && isRetry) {
+            return this.emit('suite:retry', payload)
         }
 
         this.emit(this.scenarioLevelReporter ? 'test:start' : 'suite:start', payload)
@@ -467,53 +466,55 @@ export default class CucumberFormatter extends Formatter {
     }
 
     onTestStepFinished(testStepFinishedEvent: TestStepFinished) {
-        if (!this.scenarioLevelReporter) {
-            const testcase = this._testCases.find(
-                (testcase) => testcase.id === this._currentTestCase?.testCaseId
-            )
-            const scenario = this._scenarios.find(
-                (sc) => sc.id === this._suiteMap.get(testcase?.pickleId as string)
-            )
-            const teststep = testcase?.testSteps?.find(
-                (step) => step.id === testStepFinishedEvent.testStepId
-            )
-            const step =
-                scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
-                teststep
-            const result = testStepFinishedEvent.testStepResult
+        if (this.scenarioLevelReporter) {
+            return
+        }
 
-            const doc = this._gherkinDocEvents.find(
-                (gde) => gde.uri === scenario?.uri
-            )
-            const uri = doc?.uri
-            const feature = doc?.feature
+        const testcase = this._testCases.find(
+            (testcase) => testcase.id === this._currentTestCase?.testCaseId
+        )
+        const scenario = this._scenarios.find(
+            (sc) => sc.id === this._suiteMap.get(testcase?.pickleId as string)
+        )
+        const teststep = testcase?.testSteps?.find(
+            (step) => step.id === testStepFinishedEvent.testStepId
+        )
+        const step =
+            scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) ||
+            teststep
+        const result = testStepFinishedEvent.testStepResult
 
-            /* istanbul ignore if */
-            if (!step) {
-                return
-            }
+        const doc = this._gherkinDocEvents.find(
+            (gde) => gde.uri === scenario?.uri
+        )
+        const uri = doc?.uri
+        const feature = doc?.feature
 
-            delete this._currentPickle
+        /* istanbul ignore if */
+        if (!step) {
+            return
+        }
 
-            const type = getStepType(step)
-            if (type === 'hook') {
-                return this.afterHook(
-                    uri as string,
-                    feature as Feature,
-                    scenario as Pickle,
-                    step,
-                    result
-                )
-            }
+        delete this._currentPickle
 
-            return this.afterTest(
+        const type = getStepType(step)
+        if (type === 'hook') {
+            return this.afterHook(
                 uri as string,
                 feature as Feature,
                 scenario as Pickle,
-                step as PickleStep,
+                step,
                 result
             )
         }
+
+        return this.afterTest(
+            uri as string,
+            feature as Feature,
+            scenario as Pickle,
+            step as PickleStep,
+            result
+        )
     }
 
     onTestCaseFinished(results: TestStepResult[]) {
@@ -547,7 +548,9 @@ export default class CucumberFormatter extends Formatter {
             parent: getFeatureId(doc?.uri as string, doc?.feature as Feature),
             type: 'scenario',
             file: doc?.uri,
-            duration: Date.now() - this._scenarioStart!?.getTime(),
+            duration: this._scenarioStart
+                ? Date.now() - this._scenarioStart.getTime()
+                : 0,
             tags: scenario.tags,
         }
 
@@ -571,7 +574,9 @@ export default class CucumberFormatter extends Formatter {
                 title: this.getTitle(this._currentDoc.feature as Feature),
                 type: 'feature',
                 file: this._currentDoc.uri,
-                duration: Date.now() - this._featureStart!?.getTime(),
+                duration: this._featureStart
+                    ? Date.now() - this._featureStart.getTime()
+                    : 0,
                 tags: this._currentDoc.feature?.tags,
             }
 
@@ -594,7 +599,9 @@ export default class CucumberFormatter extends Formatter {
             title: this.getTitle(gherkinDocEvent.feature as Feature),
             type: 'feature',
             file: gherkinDocEvent.uri,
-            duration: Date.now() - this._featureStart!?.getTime(),
+            duration: this._featureStart
+                ? Date.now() - this._featureStart.getTime()
+                : 0,
             tags: gherkinDocEvent.feature?.tags,
         }
 

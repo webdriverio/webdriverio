@@ -330,7 +330,7 @@ describe('test-reporter', () => {
         })
 
         it('should upload with current test uuid for log', function () {
-            reporter['_currentTest'] = { uuid: 'some_uuid' }
+            TestReporter['currentTest'] = { uuid: 'some_uuid' }
             reporter['appendTestItemLog'](testLogObj)
             expect(testLogObj.test_run_uuid).toBe('some_uuid')
             expect(sendDataSpy).toBeCalledTimes(1)
@@ -344,6 +344,7 @@ describe('test-reporter', () => {
         })
 
         it('should not upload log if hook is finished', function () {
+            TestReporter['currentTest'] = {}
             reporter['_currentHook'] = { uuid: 'some_uuid', finished: true }
             reporter['appendTestItemLog'](testLogObj)
             expect(testLogObj.hook_run_uuid).toBe(undefined)

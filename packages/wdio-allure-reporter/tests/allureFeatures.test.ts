@@ -281,7 +281,7 @@ describe('reporter runtime implementation', () => {
 
         reporter.onRunnerStart(runnerStart())
         reporter.onTestStart(testStart())
-        reporter.addAttachment({ name: 'foo', content: 'bar', type: ContentType.JSON })
+        reporter.addAttachment({ name: 'foo', content: { bar: 'bar' }, type: ContentType.JSON })
         reporter.onTestPass()
         reporter.onRunnerEnd(runnerEnd())
 
@@ -294,7 +294,7 @@ describe('reporter runtime implementation', () => {
             type: ContentType.JSON,
             source: expect.any(String),
         })
-        expect(attachJSONSpy).toHaveBeenCalledWith('foo', 'bar')
+        expect(attachJSONSpy).toHaveBeenCalledWith('foo', { bar: 'bar' })
     })
 
     it('should allow to start end step', () => {
@@ -1117,5 +1117,62 @@ describe('test step naming', () => {
         expect(testResult.steps[0].name).toEqual(
             'POST /session/:sessionId/element'
         )
+    })
+})
+
+describe('request fails', () => {
+    const outputDir = temporaryDirectory()
+    let reporter: any
+
+    beforeEach(() => {
+        clean(outputDir)
+        reporter = new AllureReporter({ outputDir, disableMochaHooks: false })
+    })
+
+    it('should attachJSON with error name in onAfterCommand when the command fails', () => {
+        const command = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/element',
+            result : {
+                error: {
+                    name: 'SomeError',
+                }
+            }
+        }
+        const attachJSONSpy = vi.spyOn(reporter, 'attachJSON')
+
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(testStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(command)
+
+        reporter.onAfterCommand(command)
+
+        reporter.onTestPass()
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        expect(attachJSONSpy).toHaveBeenCalledWith('Response', 'SomeError')
+    })
+
+    it('should not attachJSON in onAfterCommand when the command result has nothing', () => {
+        const command = {
+            method: 'POST',
+            endpoint: '/session/:sessionId/element',
+            result : {}
+        }
+        const attachJSONSpy = vi.spyOn(reporter, 'attachJSON')
+        reporter.onRunnerStart(runnerStart())
+        reporter.onSuiteStart(testStart())
+        reporter.onTestStart(testStart())
+        reporter.onBeforeCommand(command)
+
+        reporter.onAfterCommand(command)
+
+        reporter.onTestPass()
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        expect(attachJSONSpy).not.toHaveBeenCalled()
     })
 })

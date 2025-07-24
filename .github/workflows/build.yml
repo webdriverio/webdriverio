@@ -7,10 +7,13 @@ on:
 
 jobs:
   build:
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout Code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: 🧑‍🔧 Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies
@@ -19,11 +22,8 @@ jobs:
         run: pnpm run setup
         shell: bash
         env:
+          NODE_ENV: production
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🏗️ Generate Typings
-        run: pnpm run generate:typings
-        shell: bash
 
       - name: ⬆️ Upload Build Artifacts
         uses: ./.github/workflows/actions/upload-archive

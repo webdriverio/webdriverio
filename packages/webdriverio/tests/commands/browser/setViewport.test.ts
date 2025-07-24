@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { expect, describe, it, vi, beforeAll } from 'vitest'
+import { expect, describe, it, vi, beforeEach, beforeAll, type MockInstance } from 'vitest'
 import { remote } from '../../../src/index.js'
 
 vi.mock('fetch')
@@ -7,7 +7,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 describe('setWindowSize', () => {
     let browser: WebdriverIO.Browser
-    const browsingContextSetViewport = vi.fn()
+    let browsingContextSetViewport: MockInstance
 
     beforeAll(async () => {
         browser = await remote({
@@ -16,24 +16,25 @@ describe('setWindowSize', () => {
                 browserName: 'bidi',
             }
         })
-        // @ts-expect-error protocol names are not defined as names to be overwritten but it works
-        browser.overwriteCommand('browsingContextSetViewport', browsingContextSetViewport)
+        browsingContextSetViewport = vi.spyOn(browser, 'browsingContextSetViewport')
+        browsingContextSetViewport.mockImplementation(() => ({}))
+    })
+
+    beforeEach(() => {
+        browsingContextSetViewport.mockClear()
     })
 
     it('should resize W3C browser window', async () => {
         await browser.setViewport({ width: 777, height: 888, devicePixelRatio: 123 })
         expect(browsingContextSetViewport).toBeCalledTimes(1)
-        expect(browsingContextSetViewport).toBeCalledWith(
-            expect.any(Function),
-            {
-                context: 'window-handle-1',
-                viewport: {
-                    width: 777,
-                    height: 888,
-                },
-                devicePixelRatio: 123
-            }
-        )
+        expect(browsingContextSetViewport).toBeCalledWith({
+            context: '',
+            viewport: {
+                width: 777,
+                height: 888,
+            },
+            devicePixelRatio: 123
+        })
     })
 
     describe('input checks', () => {

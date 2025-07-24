@@ -1,7 +1,7 @@
-import fs from 'node:fs'
 import type { ARIARoleDefinitionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 import { roleElements } from 'aria-query'
 
+import { environment } from '../environment.js'
 import { DEEP_SELECTOR, ARIA_SELECTOR } from '../constants.js'
 
 const DEFAULT_STRATEGY = 'css selector'
@@ -18,7 +18,7 @@ const XPATH_SELECTOR_REGEXP = [
     // optional . or # + class or id
     /(?:(\.|#)(-?[_a-zA-Z]+[_a-zA-Z0-9-]*))?/,
     // optional [attribute-name="attribute-selector"]
-    /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-z0-9\-_. ]+)(?:"|'))?\])?/,
+    /(?:\[(-?[_a-zA-Z]+[_a-zA-Z0-9-]*)(?:=(?:"|')([a-zA-Z0-9\-_. ]+)(?:"|'))?\])?/,
     // optional case insensitive
     /(\.)?/,
     // *=query or =query
@@ -44,7 +44,7 @@ const defineStrategy = function (selector: SelectorStrategy) {
 
     const stringSelector = selector as string
     // Check if user has specified locator strategy directly
-    if (stringSelector.match(DIRECT_SELECTOR_REGEXP)) {
+    if (DIRECT_SELECTOR_REGEXP.test(stringSelector)) {
         return 'directly'
     }
     // Use appium image strategy if selector ends with certain text(.jpg,.gif..)
@@ -116,7 +116,7 @@ const defineStrategy = function (selector: SelectorStrategy) {
     if (stringSelector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))) {
         return 'xpath extended'
     }
-    if (stringSelector.match(/^\[role=[A-Za-z]+]$/)){
+    if (/^\[role=[A-Za-z]+]$/.test(stringSelector)){
         return 'role'
     }
 }
@@ -300,7 +300,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     }
     case '-image': {
         using = '-image'
-        value = fs.readFileSync(stringSelector, { encoding: 'base64' })
+        value = environment.value.readFileSync(stringSelector, { encoding: 'base64' })
         break
     }
     case 'role': {

@@ -76,11 +76,25 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-wiremock-service"
   },
   {
+    "packageName": "wdio-roku-service",
+    "title": "Roku",
+    "branch": "main",
+    "githubUrl": "https://github.com/theREDspace/wdio-roku-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-roku-service"
+  },
+  {
     "packageName": "wdio-slack-service",
     "title": "Slack",
     "branch": "master",
     "githubUrl": "https://github.com/carmenmitru/wdio-slack-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-slack-service"
+  },
+  {
+    "packageName": "@tvlabs/wdio-service",
+    "title": "TV Labs",
+    "branch": "main",
+    "githubUrl": "https://github.com/tv-labs/wdio-tvlabs-service/",
+    "npmUrl": "https://www.npmjs.com/package/@tvlabs/wdio-service"
   },
   {
     "packageName": "wdio-lambdatest-service",
@@ -195,12 +209,6 @@
     "npmUrl": "https://www.npmjs.com/package/@sap_oss/wdio-qmate-service"
   },
   {
-    "packageName": "wdio-vitaqai-service",
-    "title": "Vitaq AI",
-    "githubUrl": "https://github.com/RossVertizan/wdio-vitaqai-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-vitaqai-service"
-  },
-  {
     "packageName": "wdio-robonut-service",
     "title": "Robonut",
     "githubUrl": "https://github.com/udarrr/wdio-robonut-service",
@@ -211,5 +219,11 @@
     "title": "QUnit",
     "githubUrl": "https://github.com/mauriciolauffer/wdio-qunit-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-qunit-service"
+  },
+  {
+    "packageName": "wdio-obsidian-service",
+    "title": "Obsidian Plugin Testing",
+    "githubUrl": "https://github.com/jesse-r-s-hines/wdio-obsidian-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-obsidian-service"
   }
 ]

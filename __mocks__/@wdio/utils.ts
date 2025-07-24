@@ -9,6 +9,7 @@ import {
 import webdriverMonadOrig from '../../packages/wdio-utils/src/monad.js'
 import {
     isW3C as isW3cOrig,
+    isBidi as isBidiOrig,
     sessionEnvironmentDetector as sessionEnvDetector,
     capabilitiesEnvironmentDetector as capabilitiesEnvDetector
 } from '../../packages/wdio-utils/src/envDetector.js'
@@ -101,6 +102,7 @@ export const setWdioSyncSupport = (value: boolean) => { hasWdioSyncSupport = val
 export let hasWdioSyncSupport = false
 export const testFnWrapper = vi.fn()
 export const isW3C = isW3cOrig
+export const isBidi = isBidiOrig
 export const sessionEnvironmentDetector = vi.fn().mockImplementation(
     // @ts-ignore
     (...args) => sessionEnvDetector(...args))

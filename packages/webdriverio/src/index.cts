@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 exports.SevereServiceError = class SevereServiceError extends Error {
     constructor(message = 'Severe Service Error occurred.') {
         super(message)
@@ -80,14 +81,14 @@ exports.Key = {
  */
 exports.remote = async function(
     params: any,
-    remoteModifier?: (client: any, options: any) => any
-): Promise<WebdriverIO.Browser> {
-    const { remote } = await import('./index.js')
+    remoteModifier?: () => any
+) {
+    const { remote } = await import('./node.js')
     return remote(params, remoteModifier)
 }
 
-exports.attach = async function(attachOptions: any): Promise<WebdriverIO.Browser> {
-    const { attach } = await import('./index.js')
+exports.attach = async function(attachOptions: any) {
+    const { attach } = await import('./node.js')
     return attach(attachOptions)
 }
 
@@ -113,7 +114,7 @@ exports.attach = async function(attachOptions: any): Promise<WebdriverIO.Browser
 exports.multiremote = async function(
     params: any,
     { automationProtocol }: { automationProtocol?: string } = {}
-): Promise<WebdriverIO.MultiRemoteBrowser> {
-    const { multiremote } = await import('./index.js')
+) {
+    const { multiremote } = await import('./node.js')
     return multiremote(params, { automationProtocol })
 }

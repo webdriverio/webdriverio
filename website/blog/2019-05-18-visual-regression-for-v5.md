@@ -1,17 +1,17 @@
 ---
 title: Visual Regression for V5
-author: Wim Selles
-authorURL: http://github.com/wswebcreation
-authorImageURL: https://avatars2.githubusercontent.com/u/11979740?s=460&v=4
+authors: wim
 ---
+
+We are pleased to announce that we now have a new Visual Regression service for WebdriverIO V5 called `wdio-image-comparison-service`.
+
+<!-- truncate -->
 
 :::info NEW UPDATED SERVICE
 
 We have updated the service and renamed its package name as part of that update. Please find all documentation about WebdriverIO Visual Testing [in the docs](/docs/visual-testing).
 
 :::
-
-We are pleased to announce that we now have a new Visual Regression service for WebdriverIO V5 called `wdio-image-comparison-service`.
 
 ## What can it do?
 *wdio-image-comparison-service* is a lightweight *WebdriverIO* service for browsers / mobile browsers / hybrid apps to do image comparison on screens, elements or full page screens.

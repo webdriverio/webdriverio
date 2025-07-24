@@ -5,7 +5,7 @@ const ARRLENGTH = 10
 const STRINGLIMIT = 1000
 const STRINGTRUNCATE = 200
 
-export const limit = function (rawVal?: any) {
+export const limit = function (rawVal?: unknown) {
     if (!rawVal) {
         return rawVal
     }
@@ -20,7 +20,7 @@ export const limit = function (rawVal?: any) {
         }
 
         if (val.length > STRINGLIMIT) {
-            return val.substr(0, STRINGTRUNCATE) + ` ... (${val.length - STRINGTRUNCATE} more bytes)`
+            return val.substring(0, STRINGTRUNCATE) + ` ... (${val.length - STRINGTRUNCATE} more bytes)`
         }
 
         return val

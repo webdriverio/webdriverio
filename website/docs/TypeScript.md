@@ -17,7 +17,7 @@ WebdriverIO will automatically detect if these dependencies are installed and wi
 
 If you need to set a different path for `tsconfig.json` please set the TSCONFIG_PATH environment variable with your desired path, or use wdio config's [tsConfigPath setting](/docs/configurationfile).
 
-Alternatively, you can use the [environment variable](https://tsx.is/usage#custom-tsconfig-json-path) for `tsx`.
+Alternatively, you can use the [environment variable](https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path) for `tsx`.
 
 
 #### Type Checking
@@ -114,12 +114,19 @@ When running WebdriverIO commands all properties are usually typed so that you d
 ```ts
 import type { Options } from '@wdio/types'
 
-const config: Options.WebdriverIO = {
+// Here is an example where you might want to import the types directly
+const remoteConfig: Options.WebdriverIO = {
     hostname: 'http://localhost',
     port: '4444' // Error: Type 'string' is not assignable to type 'number'.ts(2322)
     capabilities: {
         browserName: 'chrome'
     }
+}
+
+// For other cases, you can use the `WebdriverIO` namespace
+export const config: WebdriverIO.Config = {
+  ...remoteConfig
+  // Other configs options
 }
 ```
 

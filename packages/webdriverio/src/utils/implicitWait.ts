@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { getBrowserObject } from '@wdio/utils'
 
 const log = logger('webdriverio')
 
@@ -8,7 +9,10 @@ const log = logger('webdriverio')
  *  - command is not explicit wait command for existance or displayedness
  */
 export default async function implicitWait (currentElement: WebdriverIO.Element, commandName: string): Promise<WebdriverIO.Element> {
-    if (!currentElement.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/)) {
+    const browser = getBrowserObject(currentElement)
+    const skipForMobileScroll = browser.isMobile && await browser.isNativeContext && (commandName === 'scrollIntoView' || commandName === 'tap')
+
+    if (!currentElement.elementId && !/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/.test(commandName) && !skipForMobileScroll) {
         log.debug(
             `command ${commandName} was called on an element ("${currentElement.selector}") ` +
             'that wasn\'t found, waiting for it...'

@@ -1,11 +1,11 @@
 ---
 title: "A New Contributor Stipend Program for WebdriverIO"
-author: Christian Bromann
-authorURL: http://twitter.com/bromann
-authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
+authors: bromann
 ---
 
 The WebdriverIO community is on the verge of an exciting new era, supported by strategic partnerships with [BrowserStack](https://www.browserstack.com/) and [Sauce Labs](https://saucelabs.com/), along with continuous support from other sponsors like [LambdaTest](https://www.lambdatest.com/). This collective endeavor signifies a crucial milestone for the WebdriverIO project, as we utilize these additional resources to foster the growth and enrichment of our ecosystem.
+
+<!-- truncate -->
 
 ## Towards a Sustainable Open Source Model
 

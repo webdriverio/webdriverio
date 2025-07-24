@@ -1,16 +1,16 @@
 {
   "name": "@wdio/webdriver-mock-service",
-  "version": "9.0.0-alpha.0",
+  "version": "9.18.4",
   "description": "A WebdriverIO service to stub all endpoints for internal testing purposes.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
     "directory": "packages/wdio-webdriver-mock-service"
   },
   "keywords": [],
@@ -20,16 +20,18 @@
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    }
   },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/uuid": "^10.0.0",
     "@wdio/protocols": "workspace:*",
     "@wdio/types": "workspace:*",
-    "nock": "14.0.0-beta.6",
-    "uuid": "^10.0.0",
+    "nock": "14.0.5",
+    "uuid": "^11.1.0",
     "webdriverio": "workspace:*"
   },
   "devDependencies": {

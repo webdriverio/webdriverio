@@ -4,11 +4,12 @@ import {
     SUITES,
     SUITE_UIDS,
     SUITES_NO_TESTS,
-    SUITES_WITH_RETRY,
+    SUITES_WITH_TEST_RETRY,
     SUITES_WITH_DATA_TABLE,
     SUITES_MULTIPLE_ERRORS,
     SUITES_WITH_DOC_STRING,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
+    SUITES_WITH_RETRIES
 } from './__fixtures__/testdata.js'
 import { State } from '../src/types.js'
 import SpecReporter from '../src/index.js'
@@ -45,8 +46,10 @@ describe('SpecReporter', () => {
             expect(reporter['_suiteIndents']).toEqual({})
             expect(reporter['_stateCounts']).toEqual({
                 passed: 0,
-                skipped: 0,
                 failed: 0,
+                skipped: 0,
+                pending: 0,
+                retried: 0
             })
         })
     })
@@ -257,7 +260,7 @@ describe('SpecReporter', () => {
             it('should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp)', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
-                        tunnelIdentifier: 'foobar',
+                        tunnelName: 'foobar',
                         ...defaultCaps
                     },
                     sessionId: fakeSessionId
@@ -283,18 +286,7 @@ describe('SpecReporter', () => {
                 printReporter.write.mockClear()
 
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.saucelabs.com',
-                    user: 'foobar',
-                    key: '123',
-                    region: 'apac'
-                }
-                printReporter.printReport(getRunnerConfig({}))
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
-
-                printReporter.write.mockClear()
-
-                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.us-east-1.saucelabs.com',
+                    hostname: 'ondemand.us-east-4.saucelabs.com',
                     user: 'foobar',
                     key: '123'
                 }
@@ -349,6 +341,16 @@ describe('SpecReporter', () => {
             printReporter.printReport(getRunnerConfig())
 
             expect(printReporter.write.mock.calls.length).toBe(0)
+        })
+
+        it('should print a report even if session could not be created', () => {
+            printReporter['_suiteUids'] = []
+            printReporter.suites = {}
+            const runner = getRunnerConfig()
+            runner.error = 'No tests found'
+
+            printReporter.printReport(runner)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
         })
     })
 
@@ -765,11 +767,35 @@ describe('SpecReporter', () => {
             printReporter = new SpecReporter({})
             printReporter.write = vi.fn()
             printReporter['_suiteUids'] = SUITE_UIDS
-            printReporter.suites = SUITES_WITH_RETRY
+            printReporter.suites = SUITES_WITH_TEST_RETRY
         })
 
         it('should group retried test cases', () => {
             runner.failures = 0
+            printReporter.printReport(runner)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
+        })
+    })
+
+    describe('suite retry', () => {
+        let printReporter: any = null
+        const runner = getRunnerConfig({ hostname: 'localhost' })
+
+        beforeEach(() => {
+            printReporter = new SpecReporter({})
+            printReporter.write = vi.fn()
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter.suites = SUITES_WITH_RETRIES
+        })
+
+        it('should group retried test suites', () => {
+            runner.failures = 0
+            printReporter.onTestPass({})
+            printReporter.onTestPass({})
+            printReporter.onTestFail({})
+            printReporter.onSuiteRetry()
+            printReporter.onTestPass({})
+            printReporter.onTestPass({})
             printReporter.printReport(runner)
             expect(printReporter.write.mock.calls).toMatchSnapshot()
         })
@@ -977,6 +1003,14 @@ describe('SpecReporter', () => {
             } as any, false)).toBe('Chrome 50 Windows')
         })
 
+        it('should return preface desktop combo when using W3C capabilities', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browserVersion: 50,
+                platformName: 'Windows',
+            } as any, false)).toBe('Chrome 50 Windows')
+        })
+
         it('should return verbose desktop combo without platform', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
@@ -995,9 +1029,45 @@ describe('SpecReporter', () => {
             expect(tmpReporter.getEnviromentCombo({
                 platformName: 'Mac',
                 automationName: 'Mac2',
-                bundleId: 'com.apple.calculator',
+                'appium:bundleId': 'com.apple.calculator',
                 sessionId: '53d1c8fd-23d9-4e81-a94b-011d2e694b9a'
             } as any, false)).toBe('com.apple.calculator Mac')
+        })
+
+        it('should recognise appPackage', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Android',
+                'appium:automationName': 'uiautomator2',
+                'appium:appPackage': 'com.example.android',
+                'appium:appActivity': '.MainActivity'
+            }, false)).toBe('com.example.android Android')
+        })
+
+        it('should prefer bundleId over app path', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Android',
+                'appium:automationName': 'uiautomator2',
+                'appium:bundleId': 'com.example.android',
+                'appium:appActivity': '.MainActivity',
+                'appium:app': '/foo/bar/loo.apk'
+            }, false)).toBe('com.example.android Android')
+        })
+
+        it('prefers app activity over app path', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Android',
+                'appium:automationName': 'uiautomator2',
+                'appium:appActivity': '.MainActivity',
+                'appium:app': '/foo/bar/foo/bar/foo/bar/foo/bar/foo/bar/foo/bar/loo.apk'
+            }, false)).toBe('.MainActivity Android')
+        })
+
+        it('uses file name as app path instead of long path', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                platformName: 'Android',
+                'appium:automationName': 'uiautomator2',
+                'appium:app': '/foo/bar/foo/bar/foo/bar/foo/bar/foo/bar/foo/bar/loo.apk'
+            }, false)).toBe('loo.apk Android')
         })
     })
 

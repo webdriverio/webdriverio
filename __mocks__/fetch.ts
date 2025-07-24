@@ -1,4 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest'
+
+/**
+ * This flag helps to indicate that WebdriverIO is running in a unit test environment.
+ * Setting this environment changes the behavior of some functions to e.g. not exit
+ * the process or enter code sections that are hard to mock out.
+ */
+process.env.WDIO_UNIT_TESTS = '1'
+globalThis.WDIO_RESQ_SCRIPT = ''
+globalThis.WDIO_FAKER_SCRIPT = ''
 
 const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
@@ -91,17 +101,39 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     if (
         body &&
         body.capabilities &&
-        body.capabilities.alwaysMatch.keepBrowserName
+        body.capabilities.alwaysMatch.mobileMode &&
+        body.capabilities.alwaysMatch.nativeAppMode
     ) {
-        sessionResponse.capabilities.browserName = body.capabilities.alwaysMatch.browserName
+        sessionResponse.capabilities.app = 'mockApp'
+        delete sessionResponse.capabilities.browserName
     }
 
     if (
         body &&
-        body.desiredCapabilities &&
-        body.desiredCapabilities['sauce:options']
+        body.capabilities &&
+        body.capabilities.alwaysMatch.mobileMode &&
+        body.capabilities.alwaysMatch.windowsAppMode
     ) {
-        sessionResponse.capabilities['sauce:options'] = body.desiredCapabilities['sauce:options']
+        sessionResponse.capabilities['appium:automationName'] = 'windows'
+        delete sessionResponse.capabilities.browserName
+    }
+
+    if (
+        body &&
+        body.capabilities &&
+        body.capabilities.alwaysMatch.mobileMode &&
+        body.capabilities.alwaysMatch.macAppMode
+    ) {
+        sessionResponse.capabilities['appium:automationName'] = 'mac2'
+        delete sessionResponse.capabilities.browserName
+    }
+
+    if (
+        body &&
+        body.capabilities &&
+        body.capabilities.alwaysMatch.keepBrowserName
+    ) {
+        sessionResponse.capabilities.browserName = body.capabilities.alwaysMatch.browserName
     }
 
     if (body?.capabilities?.alwaysMatch?.browserName === 'bidi') {
@@ -111,11 +143,6 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     switch (uri.pathname) {
     case path:
         value = sessionResponse
-
-        if (body.capabilities.alwaysMatch.browserName && body.capabilities.alwaysMatch.browserName.includes('noW3C')) {
-            value.desiredCapabilities = { browserName: 'mockBrowser' }
-            delete value.capabilities
-        }
 
         if (body.capabilities.alwaysMatch.browserName && body.capabilities.alwaysMatch.browserName.includes('devtools')) {
             value.capabilities['goog:chromeOptions'] = {
@@ -238,11 +265,13 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     case `${path}/${sessionId}/element/${genericElementId}/property/tagName`:
         value = 'BODY'
         break
+    case `/session/${sessionId}/element/${genericElementId}/css/display`:
+        value = 'contents'
+        break
     case `/session/${sessionId}/execute`:
     case `/session/${sessionId}/execute/sync`: {
         const script = Function(body.script)
         const args = transformPropertyWithMockFunction(body.args.map((arg: any) => (arg && (arg.ELEMENT || arg[ELEMENT_KEY])) || arg))
-
         let result: any = null
         if (body.script.includes('resq')) {
             if (body.script.includes('react$$')) {
@@ -281,6 +310,12 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         } else if (body.script.includes('scrollX')) {
             result = [0, 0]
         } else if (body.script.includes('function isFocused')) {
+            result = true
+        } else if (body.script.includes('mobile:')) {
+            result = true
+        } else if (body.script.includes('document.URL')) {
+            result = 'https://webdriver.io/?foo=bar'
+        } else if (body.script.includes('function checkVisibility')) {
             result = true
         } else {
             result = script.apply(this, args)
@@ -487,6 +522,11 @@ requestMock.setMockResponse = (value: any) => {
     manualMockResponse = value
 }
 requestMock.customResponseFor = (pattern: RegExp, response: any) => {
+    const existingEntry = Array.from(customResponses.values())
+        .find((p) => p.pattern.toString() === pattern.toString())
+    if (existingEntry) {
+        customResponses.delete(existingEntry)
+    }
     customResponses.add({ pattern, response })
 }
 

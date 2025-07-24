@@ -1,6 +1,5 @@
 import path from 'node:path'
-import exitHook from 'async-exit-hook'
-import { beforeAll, expect, test, afterAll, vi } from 'vitest'
+import { afterAll, beforeAll, expect, test, vi } from 'vitest'
 
 // @ts-ignore mock exports instances, package doesn't
 import { instances } from '@wdio/runner'
@@ -8,14 +7,27 @@ import { instances } from '@wdio/runner'
 vi.mock('@wdio/runner', () => import(path.join(process.cwd(), '__mocks__', '@wdio/runner')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+let exitHookCallback: Function | undefined
+const exitHookMock = vi.fn((callback: Function) => {
+    exitHookCallback = callback
+    return () => {} // return unsubscribe function
+})
+
+const gracefulExitMock = vi.fn()
+
+vi.mock('exit-hook', () => ({
+    default: exitHookMock,
+    asyncExitHook: exitHookMock,
+    gracefulExit: gracefulExitMock
+}))
+
 vi.mock('../src/constants', () => ({
-    SHUTDOWN_TIMEOUT: 1
+    SHUTDOWN_TIMEOUT: 10
 }))
 
 const sleep = (ms = 100) => new Promise(
     (resolve) => setTimeout(resolve, ms))
 
-let exitHookFn: Function
 let runner: any
 const origExit = process.exit.bind(process)
 
@@ -23,13 +35,14 @@ beforeAll(async () => {
     vi.spyOn(process, 'on')
     process.send = vi.fn()
     process.exit = vi.fn() as any
+
     const run = await import('../src/run.js')
-    exitHookFn = run.exitHookFn
     runner = run.runner
 })
 
-test.skip('should register exitHook', () => {
-    expect(exitHook).toHaveBeenCalled()
+test('should register exitHook', () => {
+    expect(exitHookMock).toHaveBeenCalled()
+    expect(exitHookCallback).toBeDefined()
 })
 
 test('should have registered runner listener', () => {
@@ -74,23 +87,43 @@ test('should exit process if failing to execute', async () => {
 
 })
 
-test('exitHookFn do nothing if no callback is provided', async () => {
-    exitHookFn()
-    await sleep()
-    expect(runner.sigintWasCalled).toBe(undefined)
+test('should call gracefulExit with exit code on exit', () => {
+    const exitListener = instances[0].on.mock.calls.find(([event]: [string]) => event === 'exit')?.[1]
+    expect(exitListener).toBeDefined()
+    exitListener?.(5)
+    expect(gracefulExitMock).toHaveBeenCalledWith(5)
 })
 
-test('exitHookFn should call callback after shutdown timeout', async () => {
-    const cb = vi.fn()
-    exitHookFn(cb)
+test('should call gracefulExit(130) and set sigintWasCalled on SIGINT', () => {
+    // Find SIGINT listener
+    const sigintListener = vi.mocked(process.on).mock.calls.find(([event]) => event === 'SIGINT')?.[1]
+    expect(sigintListener).toBeDefined()
+    sigintListener?.()
     expect(runner.sigintWasCalled).toBe(true)
-    expect(cb).toHaveBeenCalledTimes(0)
-    await sleep()
-    expect(cb).toHaveBeenCalledTimes(1)
+    expect(gracefulExitMock).toHaveBeenCalledWith(130)
+})
+
+test('should delay shutdown in exitHook if SIGINT was received', async () => {
+    runner.sigintWasCalled = true
+    const startTime = Date.now()
+    await exitHookCallback?.()
+    const endTime = Date.now()
+    // Should wait at least SHUTDOWN_TIMEOUT (10ms in test due to mock)
+    expect(endTime - startTime).toBeGreaterThanOrEqual(10)
+})
+
+test('should not delay in exitHook if SIGINT was not received', async () => {
+    runner.sigintWasCalled = false
+    const start = Date.now()
+    await exitHookCallback?.()
+    const end = Date.now()
+    // Should not wait (almost immediate) when sigintWasCalled = false
+    expect(end - start).toBeLessThan(10)
 })
 
 afterAll(() => {
     vi.mocked(process.on).mockRestore()
     vi.mocked(process.send)!.mockRestore()
+    gracefulExitMock.mockReset()
     process.exit = origExit
 })

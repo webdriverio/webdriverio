@@ -136,7 +136,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > should
     "suite:end",
     {
       "cid": "0-1",
-      "duration": NaN,
+      "duration": 0,
       "file": "/some/path/to/features/my-feature.feature",
       "specs": [
         "/foobar.js",
@@ -509,7 +509,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
     "suite:end",
     {
       "cid": "0-1",
-      "duration": NaN,
+      "duration": 0,
       "file": "/some/path/to/features/my-feature.feature",
       "specs": [
         "/foobar.js",

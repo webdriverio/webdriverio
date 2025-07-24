@@ -1,3 +1,4 @@
+/// <reference types="@wdio/globals/types" />
 import type { JsonPrimitive, JsonCompatible, JsonArray } from '@wdio/types'
 
 import SharedStoreLauncher from './launcher.js'

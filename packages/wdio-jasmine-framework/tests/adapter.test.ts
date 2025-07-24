@@ -2,6 +2,7 @@ import path from 'node:path'
 import { expect, test, vi, it, describe, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
+// @ts-expect-error mock
 import { jasmine } from 'jasmine'
 import type { EventEmitter } from 'node:events'
 
@@ -36,6 +37,7 @@ const wdioReporter: EventEmitter = {
 
 const hookPayload = (type: string, error?: Error) => ({
     debugLogs: null,
+    filename: '',
     id: '',
     description: `"${type} all" hook`,
     duration: null,
@@ -61,13 +63,14 @@ const adapterFactory = (config = {}) => new JasmineAdapter(
 
 test('comes with a factory', async () => {
     expect(typeof JasmineAdapterFactory.init).toBe('function')
-    const instance = await JasmineAdapterFactory.init!(
+    const instance: JasmineAdapter = await JasmineAdapterFactory.init!(
         '0-2',
         { beforeHook: [], afterHook: [] },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
     )
+    instance.setupExpect(expect as any, new Map(), vi.fn())
     const result = await instance.run()
     expect(result).toBe(0)
 
@@ -81,7 +84,7 @@ test('comes with a factory', async () => {
             }
         }
     })
-    expect(globalThis.jasmine.addAsyncMatchers).toBeCalledTimes(1)
+    expect(jasmine.addAsyncMatchers).toBeCalledTimes(1)
     const testMatcher = vi.mocked(globalThis.jasmine.addAsyncMatchers).mock.calls[0][0].testMatcher
     const { compare, negativeCompare } = testMatcher({} as any)
     expect(compare.constructor.name).toBe('AsyncFunction')
@@ -114,11 +117,7 @@ test('should properly set up jasmine', async () => {
     // @ts-ignore outdated types
     adapter['_jrunner']!.configureDefaultReporter()
 
-    expect(jasmine.addAsyncMatchers).toBeCalledTimes(1)
-    expect(jasmine.addAsyncMatchers).toBeCalledWith({
-        toBe: expect.any(Function),
-        toHaveTitle: expect.any(Function)
-    })
+    expect(globalThis.jasmine.addAsyncMatchers).toBeCalledTimes(1)
 })
 
 test('should propery wrap interfaces', async () => {
@@ -290,7 +289,7 @@ test('wrapHook if successful', async () => {
     await wrappedHook()
     expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0]).toBe('beforeAll')
     expect(vi.mocked(executeHooksWithArgs).mock.calls[0][1]).toBe('somehook')
-    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][2]![0].type).toBe('beforeAll')
+    expect((vi.mocked(executeHooksWithArgs).mock.calls[0][2]![0] as any).type).toBe('beforeAll')
 })
 
 test('wrapHook if failing', async () => {
@@ -303,7 +302,7 @@ test('wrapHook if failing', async () => {
     await wrappedHook()
     expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0]).toBe('beforeAll')
     expect(vi.mocked(executeHooksWithArgs).mock.calls[0][1]).toBe('somehook')
-    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][2]![0].type).toBe('beforeAll')
+    expect(vi.mocked((executeHooksWithArgs as any).mock.calls[0][2]![0] as any).type).toBe('beforeAll')
     expect(vi.mocked(logger('').info).mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups'))
         .toBe(true)
 })
@@ -528,6 +527,7 @@ describe('loadFiles', () => {
         delete adapter['_hasTests']
 
         // @ts-ignore outdated types
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         adapter['_jrunner']!.loadRequires = vi.fn().mockImplementation(() => { throw new Error('foo') }),
 
         adapter._loadFiles()

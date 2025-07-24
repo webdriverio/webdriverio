@@ -99,3 +99,14 @@ exports[`scrollIntoView test > desktop > scrolls element when using boolean scro
   ],
 }
 `;
+
+exports[`scrollIntoView test > mobile native app > does not find the element after max 5 scrolls 1`] = `
+"Element not found within scroll limit of 5 scrolls by scrolling "up". Are you sure the element is within the scrollable element or the direction is correct? You can change the scrollable element or direction like this:
+
+await elem.scrollIntoView({
+    direction: 'left' // possible options are: 'up|down|left|right'
+    scrollableElement: $('#scrollable'),
+});
+
+        "
+`;

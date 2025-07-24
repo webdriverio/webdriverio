@@ -7,8 +7,8 @@ import { checkUnicode } from '../../utils/index.js'
  * Send a sequence of key strokes to the "active" element. You can make an input element active by just clicking
  * on it. To use characters like "Left arrow" or "Back space", import the `Key` object from the WebdriverIO package.
  *
- * Modifier like `Control`, `Shift`, `Alt` and `Command` will stay pressed so you need to trigger them again to release
- * them. Modifiying a click however requires you to use the WebDriver Actions API through the
+ * Modifier like `Control`, `Shift`, `Alt` and `Command` will stay pressed throughout the sequence and will be released
+ * at the end. Modifying a click requires you to use the WebDriver Actions API through the
  * [performActions](https://webdriver.io/docs/api/webdriver#performactions) method.
  *
  * :::info
@@ -26,7 +26,7 @@ import { checkUnicode } from '../../utils/index.js'
 export async function keys (
     this: WebdriverIO.Browser,
     value: string | string[]
-) {
+): Promise<void> {
     let keySequence: string[] = []
 
     /**
@@ -35,7 +35,7 @@ export async function keys (
     if (typeof value === 'string') {
         keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS)
     } else if (Array.isArray(value)) {
-        const charArray: (keyof typeof UNICODE_CHARACTERS)[] = value as any
+        const charArray = value as (keyof typeof UNICODE_CHARACTERS)[]
         for (const charSet of charArray) {
             keySequence = keySequence.concat(checkUnicode(charSet))
         }

@@ -1,16 +1,12 @@
 import os from 'node:os'
 import path from 'node:path'
 import { test, vi, expect } from 'vitest'
-import { resolve } from 'import-meta-resolve'
 
 import { testrunner } from '../../../src/vite/plugins/testrunner.js'
 import { getTemplate, getErrorTemplate } from '../../../src/vite/utils.js'
 import { SESSIONS } from '../../../src/constants.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('import-meta-resolve', () => ({
-    resolve: vi.fn()
-}))
 vi.mock('../../../src/vite/utils.js', () => ({
     getTemplate: vi.fn(),
     getErrorTemplate: vi.fn(),
@@ -47,10 +43,6 @@ test('resolveId', async () => {
     expect(await (plugin[0].resolveId as Function)('@wdio/browser-runner'))
         .toContain(path.join('browser', 'spy.js'))
 
-    vi.mocked(resolve).mockResolvedValue('file:///foo/bar')
-    expect(await (plugin[0].resolveId as Function)('@wdio/config'))
-        .toBe('/foo/bar')
-
     expect(await (plugin[0].resolveId as Function)('node:module'))
         .toContain(path.join('nodelibs', 'browser', 'module.js'))
 })
@@ -58,7 +50,7 @@ test('resolveId', async () => {
 test('load', () => {
     const plugin = testrunner({})
     const js = (plugin[0].load as Function)('\0virtual:wdio')
-    expect(js).toContain('export const commands = ["newSession","deleteSession","status"')
+    expect(js).toContain('export const commands = ["newSession","deleteSession","getSession","status"')
     expect(js).toContain('export const automationProtocolPath =')
     expect((plugin[0].load as Function)('something else')).toBe(undefined)
 })

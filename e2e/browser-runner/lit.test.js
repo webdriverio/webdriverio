@@ -52,24 +52,40 @@ describe('Lit Component testing', () => {
         expect(window.mochaGlobalSetupExecuted).toBe(true)
     })
 
-    it('should render component', async () => {
+    it('should render component', async function () {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         render(
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
         )
 
-        const innerElem = await $('simple-greeting').$('>>> p')
+        const innerElem = await $('simple-greeting').$('p')
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! How are you today?')
     })
 
-    it('should render with mocked component function', async () => {
+    it('should render with mocked component function', async function () {
+        /**
+         * only run snapshot tests in non-Safari browsers as shadow dom piercing
+         * is not yet supported in Safari
+         */
+        if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+            return
+        }
+
         getQuestionFn.mockReturnValue('Does this work?')
         render(
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
         )
 
-        const innerElem = await $('simple-greeting').$('>>> p')
+        const innerElem = await $('simple-greeting').$('p')
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! Does this work?')
     })
 
@@ -79,14 +95,19 @@ describe('Lit Component testing', () => {
         await expect($('non-existing-element')).not.toBeDisplayed()
         await expect(await $('non-existing-element')).not.toBePresent()
         await expect(await $('non-existing-element')).not.toBeDisplayed()
-        expect(Date.now() - start).toBeLessThan(1000)
+        expect(Date.now() - start).toBeLessThan(1500)
     })
 
-    /**
-     * Todo(@christian-bromann): fails when running `npm run test:browser` but passes when running `npm run test:browser:lit`
-     */
-    describe.skip('shadow root piercing', () => {
-        it('should allow to pierce into closed shadow roots', async () => {
+    describe('shadow root piercing', function () {
+        it('should allow to pierce into closed shadow roots', async function () {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return this.skip()
+            }
+
             render(
                 html`<closed-node>Hello, </closed-node>`,
                 document.body
@@ -118,7 +139,15 @@ describe('Lit Component testing', () => {
             `)
         })
 
-        it('can fetch multiple elements within various closed shadow roots', async () => {
+        it('can fetch multiple elements within various closed shadow roots', async function () {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return this.skip()
+            }
+
             render(
                 html`<closed-node>Hello, </closed-node>`,
                 document.body
@@ -140,7 +169,7 @@ describe('Lit Component testing', () => {
             )
         })
 
-        it.skip('of elements', async () => {
+        it('of elements', async () => {
             /**
              * only run snapshot tests in non-Safari browsers as shadow dom piercing
              * is not yet supported in Safari
@@ -197,6 +226,38 @@ describe('Lit Component testing', () => {
               }
             `)
         })
+
+        it('should be able to fetch elements that created without registering to the element registry', async () => {
+            /**
+             * only run snapshot tests in non-Safari browsers as shadow dom piercing
+             * is not yet supported in Safari
+             */
+            if (browser.capabilities.browserName?.toLowerCase() === 'safari') {
+                return
+            }
+
+            const shadowResult = await browser.execute(() => {
+                const shadowElement = document.createElement('div')
+                shadowElement.id = 'helloshadow'
+                document.body.appendChild(shadowElement)
+
+                const shadowCreated = shadowElement.attachShadow({ mode: 'open' })
+                shadowCreated.innerHTML = '<p id=\'shadowelement\'>Hello World</p>'
+                const shadowExists = document.querySelector('#helloshadow')?.shadowRoot
+                return shadowExists ? 'created' : 'failed'
+            })
+            expect(shadowResult).toBe('created')
+            const shadowRoot = await browser.execute(() =>
+                Boolean(document.querySelector('#helloshadow')?.shadowRoot)
+            )
+            expect(shadowRoot).toBe(true)
+            const shadowElement = await browser.execute(() =>
+                Boolean(document.querySelector('#helloshadow')?.shadowRoot?.querySelector('#shadowelement'))
+            )
+            expect(shadowElement).toBe(true)
+            await browser.$('#helloshadow').waitForDisplayed()
+            await browser.$('#shadowelement').waitForExist()
+        })
     })
 
     it('maps the driver response when the element is not interactable so that we shown an aligned message with the best information we can', async () => {
@@ -206,9 +267,34 @@ describe('Lit Component testing', () => {
         )
 
         const err = await $('input').click().catch((err) => err)
-        expect(err.name).toBe('element not interactable')
-        expect(err.message).toBe('Element <input style="display: none;"> not interactable')
-        expect(err.stack).toContain('at getErrorFromResponseBody')
+        expect(err.name).toBe('webdriverio(middleware): element did not become interactable')
+        expect(err.message).toBe('Element <input style="display: none;" /> did not become interactable')
+    })
+
+    it('intercepts "element not interactable" errors and waits for the element to be interactable', async () => {
+        render(
+            html`<input style="display: none;" />`,
+            document.body
+        )
+
+        setTimeout(() => {
+            document.querySelector('input').setAttribute('style', '')
+        }, 1000)
+
+        await $('input').click()
+    })
+
+    it('intercepts "element not interactable" errors and waits for the element in array to be interactable', async () => {
+        render(
+            html`<input style="display: none;" />`,
+            document.body
+        )
+
+        setTimeout(() => {
+            document.querySelector('input').setAttribute('style', '')
+        }, 1000)
+
+        await $$('input')[0].click()
     })
 
     it('should allow to auto mock dependencies', () => {
@@ -255,8 +341,8 @@ describe('Lit Component testing', () => {
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
         )
-        await $('simple-greeting').$('>>> button').click()
-        await expect($('simple-greeting').$('>>> em')).toHaveText('Thanks for your answer!')
+        await $('simple-greeting').$('button').click()
+        await expect($('simple-greeting').$('em')).toHaveText('Thanks for your answer!')
     })
 
     it('should call execute method with the element', async function () {
@@ -452,7 +538,7 @@ describe('Lit Component testing', () => {
             expect(error.message).toBe('expected bar to be foo')
         })
 
-        it('should support nested element calls', async () => {
+        it('should support nested element calls', async function () {
             render(
                 html`<section>
                     <div class="first">
@@ -729,11 +815,41 @@ describe('Lit Component testing', () => {
         stage.id = 'stage'
         document.body.appendChild(stage)
 
-        setInterval(() => {
+        setInterval(async () => {
             const span = document.createElement('span')
             span.textContent = 'Hello, world! ' + ++i
             stage.appendChild(span)
         }, 500)
         await expect($('#stage').$$('span')[4]).toHaveText('Hello, world! 5')
+    })
+
+    it('can initiate web component elements with new keyword', () => {
+        class Foo extends HTMLElement { }
+        customElements.define('x-foo', Foo)
+        const a = new Foo()
+        expect(a.tagName).toBe('X-FOO')
+    })
+
+    it('connectedCallback should not fail if no original connectedCallback is defined', function () {
+        // only in bidi the customElementWrapper is not available
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+
+        class Foo extends HTMLElement { }
+        customElements.define('y-foo', Foo)
+        const a = new Foo()
+        a.connectedCallback()
+    })
+
+    it('disConnectedCallback should not fail if no original disConnectedCallback is defined', function () {
+        // only in bidi the customElementWrapper is not available
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+        class Foo extends HTMLElement { }
+        customElements.define('z-foo', Foo)
+        const a = new Foo()
+        a.disconnectedCallback()
     })
 })

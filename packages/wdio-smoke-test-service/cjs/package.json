@@ -1,5 +1,0 @@
-{
-  "name": "@wdio/smoke-test-service-cjs",
-  "type": "commonjs",
-  "private": true
-}

@@ -1,4 +1,4 @@
-import { Then } from '../../../packages/wdio-cucumber-framework/build/index.js'
+import { Then } from '@wdio/cucumber-framework'
 
 Then(/^the title of the page should be:$/, async (expectedTitle) => {
     const actualTitle = await browser.getTitle()
@@ -31,4 +31,18 @@ Then('this steps fails only the first time used', () => {
         fail = false
         expect(true).toBe(false)
     }
+})
+
+Then('it can take a file snapshot', () => {
+    expect({ deep: { foo: 'bar' } }).toMatchSnapshot()
+})
+
+Then('it can take an inline snapshot', () => {
+    expect({ deep: { foo: 'bar' } }).toMatchInlineSnapshot(`
+      {
+        "deep": {
+          "foo": "bar",
+        },
+      }
+    `)
 })

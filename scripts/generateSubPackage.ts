@@ -76,7 +76,7 @@ const mainPackageFolderFiles = [{
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git+https://github.com/webdriverio/webdriverio.git"
   },
   "keywords": [
     "webdriver",

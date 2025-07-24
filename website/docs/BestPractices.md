@@ -52,7 +52,7 @@ In the example we use the [Deep Selectors](https://webdriver.io/docs/selectors#d
 
 ``` js
 // 👍
-await $('custom-datepicker').$('>>>#calendar').$('aria/Select')
+await $('custom-datepicker').$('#calendar').$('aria/Select')
 ```
 
 ### Prefer locating a single element instead of taking one from a list
@@ -92,7 +92,7 @@ await expect(button).toBeDisplayed()
 
 ## Lazy loading and promise chaining
 
-WebdriverIO has some tricks up it's sleeve when it comes to writing clean code as it can lazy load the element which allows you to chain your promises and reduces the amount of `await`. This also allows you to pass the element as a ChainablePromiseElement instead of an Element and for easier use with page objects.
+WebdriverIO has some tricks up its sleeve when it comes to writing clean code as it can lazy load the element which allows you to chain your promises and reduces the amount of `await`. This also allows you to pass the element as a ChainablePromiseElement instead of an Element and for easier use with page objects.
 
 So when do you have to use `await`?
 You should always use `await` with the exception of the `$` and `$$` command.
@@ -100,18 +100,18 @@ You should always use `await` with the exception of the `$` and `$$` command.
 ```js
 // 👎
 const div = await $('div')
-const button = await div.$('>>>button')
+const button = await div.$('button')
 await button.click()
 // or
-await (await (await $('div')).$('>>>button')).click()
+await (await (await $('div')).$('button')).click()
 ```
 
 ```js
 // 👍
-const button = $('div').$('>>>button')
+const button = $('div').$('button')
 await button.click()
 // or
-await $('div').$('>>>button').click()
+await $('div').$('button').click()
 ```
 
 ## Don't overuse commands and assertions
@@ -131,7 +131,7 @@ await expect(button).toBeDisplayed()
 await expect(button).toBeDisplayed()
 ```
 
-No need to wait for an element to exist or be displayed when interacting or when asserting something like it's text unless the element can explicitly be invisible (opacity: 0 for example) or can explicitly be disabled (disabled attribute for example) in which case waiting for the element to be displayed makes sense.
+No need to wait for an element to exist or be displayed when interacting or when asserting something like its text unless the element can explicitly be invisible (opacity: 0 for example) or can explicitly be disabled (disabled attribute for example) in which case waiting for the element to be displayed makes sense.
 
 ```js
 // 👎
@@ -161,11 +161,11 @@ Use environment variables to store dynamic test data e.g. secret credentials, wi
 
 ## Lint your code
 
-Using eslint to lint your code you can potentionally catch errors early, use our [linting rules](https://www.npmjs.com/package/eslint-plugin-wdio) to make sure that some of the best practices are always applied.
+Using eslint to lint your code you can potentially catch errors early, use our [linting rules](https://www.npmjs.com/package/eslint-plugin-wdio) to make sure that some of the best practices are always applied.
 
 ## Don't pause
 
-It can be tempting to use the pause command but using this is a bad idea as it isn't resilient and will only cause for flaky tests in the long run.
+It can be tempting to use the pause command but using this is a bad idea as it isn't resilient and will only cause flaky tests in the long run.
 
 ```js
 // 👎
@@ -184,11 +184,11 @@ await submitFormButton.click()
 When you have some asynchronous code that you want to repeat, it is important to know that not all loops can do this.
 For example, the Array's forEach function does not allow for asynchronous callbacks as can be read over on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach).
 
-__Note:__ You can still use these when you do not need the operation to be synchronous like in shown in this example `console.log(await $$('h1').map((h1) => h1.getText()))`.
+__Note:__ You can still use these when you do not need the operation to be asynchronous like in shown in this example `console.log(await $$('h1').map((h1) => h1.getText()))`.
 
 Below are some examples of what this means.
 
-The following will not work as asynchronous callback are not supported.
+The following will not work as asynchronous callbacks are not supported.
 
 ```js
 // 👎
@@ -233,7 +233,7 @@ await expect($('th=Prices')).toExist();
 
 ```js
 // 👍 use unique identifiers (often used for custom elements)
-await expect($('[data-testid="Products"')).toHaveText('Products');
+await expect($('[data-testid="Products"]')).toHaveText('Products');
 // 👍 accessibility names (often used for native html elements)
 await expect($('aria/Product Prices')).toHaveText('Prices');
 ```

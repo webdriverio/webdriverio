@@ -4,7 +4,8 @@ import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import type { Options, Workers } from '@wdio/types'
+import type { Workers } from '@wdio/types'
+import type { ReplConfig } from '@wdio/repl'
 
 import logger from '@wdio/logger'
 
@@ -29,7 +30,7 @@ stdErrStream.pipe(process.stderr)
  */
 export default class WorkerInstance extends EventEmitter implements Workers.Worker {
     cid: string
-    config: Options.Testrunner
+    config: WebdriverIO.Config
     configFile: string
     // requestedCapabilities
     caps: WebdriverIO.Capabilities
@@ -42,7 +43,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     stderr: WritableStreamBuffer
     childProcess?: ChildProcess
     sessionId?: string
-    server?: Record<string, any>
+    server?: Record<string, string>
     logsAggregator: string[] = []
 
     instances?: Record<string, { sessionId: string }>
@@ -66,7 +67,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  {object}   execArgv    execution arguments for the test run
      */
     constructor(
-        config: Options.Testrunner,
+        config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
         stderr: WritableStreamBuffer
@@ -94,7 +95,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
-        const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
+        const runnerEnv = Object.assign({
+            NODE_OPTIONS: '--enable-source-maps',
+        }, process.env, this.config.runnerEnv, {
             WDIO_WORKER_ID: cid,
             NODE_ENV: process.env.NODE_ENV || 'test'
         })
@@ -104,22 +107,11 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         /**
-         * only attach ts loader if
+         * propagate node flags to child process, e.g. `--import tsx`
          */
-        if (
-            /**
-             * autoCompile feature is enabled
-             */
-            process.env.WDIO_LOAD_TSX === '1' &&
-            /**
-             * the `@wdio/cli` didn't already attached the loader to the environment
-             */
-            !(process.env.NODE_OPTIONS || '').includes('--import tsx')
-        ) {
-            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --import tsx'
-        }
+        runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
 
-        log.info(`Start worker ${cid} with arg: ${argv}`)
+        log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
         const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
             cwd: process.cwd(),
             env: runnerEnv,
@@ -132,7 +124,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         childProcess.on('exit', this._handleExit.bind(this))
 
         /* istanbul ignore if */
-        if (!process.env.VITEST_WORKER_ID) {
+        if (!process.env.WDIO_UNIT_TESTS) {
             if (childProcess.stdout !== null) {
                 if (this.config.groupLogsByTestSpec) {
                     // Test spec logs are collected only from child stdout stream
@@ -189,9 +181,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         if (childProcess && payload.origin === 'debugger' && payload.name === 'start') {
             replQueue.add(
                 childProcess,
-                { prompt: `[${cid}] \u203A `, ...payload.params },
+                { prompt: `[${cid}] \u203A `, ...payload.params } as ReplConfig,
                 () => this.emit('message', Object.assign(payload, { cid })),
-                (ev: any) => this.emit('message', ev)
+                (ev: unknown) => this.emit('message', ev)
             )
             return replQueue.next()
         }

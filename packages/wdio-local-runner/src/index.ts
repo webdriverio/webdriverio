@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import type { Options, Workers } from '@wdio/types'
+import type { Workers } from '@wdio/types'
 import { xvfb } from '@wdio/xvfb'
 
 import WorkerInstance from './worker.js'
@@ -12,7 +12,7 @@ export type { WorkerInstance }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
     command: string
-    args: any
+    args: Workers.WorkerMessageArgs
 }
 
 export default class LocalRunner {
@@ -24,7 +24,7 @@ export default class LocalRunner {
 
     constructor (
         private _options: never,
-        protected _config: Options.Testrunner
+        protected _config: WebdriverIO.Config
     ) {}
 
     /**
@@ -73,7 +73,7 @@ export default class LocalRunner {
 
         for (const [cid, worker] of Object.entries(this.workerPool)) {
             const { capabilities, server, sessionId, config, isMultiremote, instances } = worker
-            let payload = {}
+            let payload: Partial<Workers.WorkerMessageArgs> = {}
 
             /**
              * put connection information to payload if in watch mode
@@ -86,7 +86,7 @@ export default class LocalRunner {
                     watch: true,
                     isMultiremote,
                     instances
-                }
+                } as unknown as Workers.WorkerMessageArgs
             } else if (!worker.isBusy) {
                 delete this.workerPool[cid]
                 continue

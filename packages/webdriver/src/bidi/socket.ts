@@ -2,13 +2,12 @@
  * A WebSocket implementation that wraps the browser native WebSocket
  * interface and exposes a similar interface to the Node.js WebSocket
  */
-class BrowserSocket {
-    #callbacks = new Set<any>()
+export class BrowserSocket {
+    #callbacks = new Set<Callback>()
     #ws: WebSocket
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    constructor (wsUrl: string, opts: any) {
-        this.#ws = new globalThis.WebSocket(wsUrl) as any
+    constructor (wsUrl: string, _opts: unknown) {
+        this.#ws = new globalThis.WebSocket(wsUrl)
         this.#ws.onmessage = this.handleMessage.bind(this)
     }
 
@@ -22,7 +21,7 @@ class BrowserSocket {
         this.#ws.send(data)
     }
 
-    on (event: string, callback: (data: any, reason?: any) => void) {
+    on (event: string, callback: Callback) {
         if (event === 'open') {
             this.#ws.onopen = callback
         } else if (event === 'close') {
@@ -36,7 +35,7 @@ class BrowserSocket {
         return this
     }
 
-    off (event: string, callback: (data: any, reason?: any) => void) {
+    off (_event: string, callback: Callback) {
         this.#callbacks.delete(callback)
         return this
     }
@@ -46,9 +45,4 @@ class BrowserSocket {
     }
 }
 
-/**
- * make sure to use the correct WebSocket implementation based on the environment
- */
-export default globalThis.window
-    ? BrowserSocket
-    : (await import('ws')).default
+type Callback = (data: unknown, reason?: unknown) => void
