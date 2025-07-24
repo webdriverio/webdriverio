@@ -35,6 +35,7 @@
     "@wdio/repl": "workspace:*",
     "@wdio/runner": "workspace:*",
     "@wdio/types": "workspace:*",
+    "@wdio/xvfb": "workspace:*",
     "async-exit-hook": "^2.0.1",
     "split2": "^4.1.0",
     "stream-buffers": "^3.0.2"

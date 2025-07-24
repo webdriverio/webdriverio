@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
 import type { Options, Workers } from '@wdio/types'
+import { xvfb } from '@wdio/xvfb'
 
 import WorkerInstance from './worker.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
@@ -16,6 +17,7 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
+    private xvfbStarted = false
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -26,9 +28,19 @@ export default class LocalRunner {
     ) {}
 
     /**
-     * nothing to initialize when running locally
+     * initialize local runner environment
      */
-    initialize () {}
+    async initialize () {
+        // Start Xvfb if needed for headless testing
+        try {
+            this.xvfbStarted = await xvfb.start()
+            if (this.xvfbStarted) {
+                log.info(`Xvfb started on display ${xvfb.getDisplay()}`)
+            }
+        } catch (error) {
+            log.warn('Failed to start Xvfb, continuing without virtual display:', error)
+        }
+    }
 
     getWorkerCount () {
         return Object.keys(this.workerPool).length
@@ -56,7 +68,7 @@ export default class LocalRunner {
      * @return {Promise}  resolves when all worker have been shutdown or
      *                    a timeout was reached
      */
-    shutdown () {
+    async shutdown () {
         log.info('Shutting down spawned worker')
 
         for (const [cid, worker] of Object.entries(this.workerPool)) {
@@ -83,7 +95,7 @@ export default class LocalRunner {
             worker.postMessage('endSession', payload)
         }
 
-        return new Promise<boolean>((resolve) => {
+        const shutdownResult = await new Promise<boolean>((resolve) => {
             const timeout = setTimeout(resolve, SHUTDOWN_TIMEOUT)
             const interval = setInterval(() => {
                 const busyWorker = Object.entries(this.workerPool)
@@ -98,5 +110,17 @@ export default class LocalRunner {
                 }
             }, 250)
         })
+
+        // Clean up Xvfb after all workers are done
+        if (this.xvfbStarted) {
+            try {
+                await xvfb.stop()
+                log.info('Xvfb stopped')
+            } catch (error) {
+                log.warn('Failed to stop Xvfb cleanly:', error)
+            }
+        }
+
+        return shutdownResult
     }
 }
