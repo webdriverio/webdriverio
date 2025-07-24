@@ -30,7 +30,10 @@
   "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
-    ".": "./build/index.js",
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    },
     "./package.json": "./package.json"
   },
   "typeScriptVersion": "3.8.3",
