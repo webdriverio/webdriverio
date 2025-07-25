@@ -26,8 +26,7 @@ export const config: WebdriverIO.Config = {
      * capabilities
      */
     capabilities: [{
-        browserName: 'chrome',
-        // 'goog:loggingPrefs': { browser: 'ALL' }
+        browserName: 'chrome'
     }],
 
     /**
