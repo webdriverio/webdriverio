@@ -350,6 +350,9 @@ describe('XvfbManager', () => {
         it('should detect Ubuntu distribution', async () => {
             let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
+                if (cmd.includes('pgrep')) {
+                    return Promise.resolve({ stdout: '', stderr: '' }) // No existing process
+                }
                 callCount++
                 if (cmd === 'which Xvfb' && callCount === 1) {
                     return Promise.reject(new Error('not found'))
@@ -380,6 +383,9 @@ describe('XvfbManager', () => {
         it('should detect Fedora distribution', async () => {
             let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
+                if (cmd.includes('pgrep')) {
+                    return Promise.resolve({ stdout: '', stderr: '' }) // No existing process
+                }
                 callCount++
                 if (cmd === 'which Xvfb' && callCount === 1) {
                     return Promise.reject(new Error('not found'))
@@ -410,6 +416,9 @@ describe('XvfbManager', () => {
         it('should detect Arch Linux distribution', async () => {
             let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
+                if (cmd.includes('pgrep')) {
+                    return Promise.resolve({ stdout: '', stderr: '' }) // No existing process
+                }
                 callCount++
                 if (cmd === 'which Xvfb' && callCount === 1) {
                     return Promise.reject(new Error('not found'))
@@ -440,6 +449,9 @@ describe('XvfbManager', () => {
         it('should fallback to package manager detection', async () => {
             let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
+                if (cmd.includes('pgrep')) {
+                    return Promise.resolve({ stdout: '', stderr: '' }) // No existing process
+                }
                 callCount++
                 if (cmd === 'which Xvfb' && callCount === 1) {
                     return Promise.reject(new Error('not found'))
