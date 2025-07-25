@@ -1334,7 +1334,7 @@ describe('setAnnotation', () => {
     })
 })
 
-describe('ignoreHookStatus feature', () => {
+describe('ignoreHooksStatus feature', () => {
     let service: BrowserstackService
 
     beforeEach(() => {
@@ -1342,31 +1342,31 @@ describe('ignoreHookStatus feature', () => {
         service['_browser'] = browser
     })
 
-    describe('afterHook with ignoreHookStatus=true', () => {
+    describe('afterHook with ignoreHooksStatus=true', () => {
         beforeEach(() => {
             service = new BrowserstackService({
                 testObservability: false,
-                testObservabilityOptions: { ignoreHookStatus: true }
+                testObservabilityOptions: { ignoreHooksStatus: true }
             } as any, [] as any, { user: 'foo', key: 'bar' } as any)
             service['_browser'] = browser
             service['_insightsHandler'] = new InsightsHandler(browser)
         })
 
-        it('should track hook failures but not add them to main _failReasons when ignoreHookStatus=true', async () => {
+        it('should track hook failures but not add them to main _failReasons when ignoreHooksStatus=true', async () => {
             const methodSpy = vi.spyOn(service['_insightsHandler'], 'afterHook')
 
             await service.afterHook({ title: 'foo', parent: 'bar' } as any,
                 undefined as never, { passed: false, error: { message: 'Hook failed' } } as any)
 
             expect(service['_hookFailReasons']).toEqual(['Hook failed'])
-            expect(service['_failReasons']).toEqual([]) // Should not be added when ignoreHookStatus=true
+            expect(service['_failReasons']).toEqual([]) // Should not be added when ignoreHooksStatus=true
             expect(methodSpy).toBeCalled()
         })
 
-        it('should add hook failures to _failReasons when ignoreHookStatus=false', async () => {
+        it('should add hook failures to _failReasons when ignoreHooksStatus=false', async () => {
             service = new BrowserstackService({
                 testObservability: false,
-                testObservabilityOptions: { ignoreHookStatus: false }
+                testObservabilityOptions: { ignoreHooksStatus: false }
             } as any, [] as any, { user: 'foo', key: 'bar' } as any)
             service['_insightsHandler'] = new InsightsHandler(browser)
 
@@ -1374,10 +1374,10 @@ describe('ignoreHookStatus feature', () => {
                 undefined as never, { passed: false, error: { message: 'Hook failed' } } as any)
 
             expect(service['_hookFailReasons']).toEqual(['Hook failed'])
-            expect(service['_failReasons']).toEqual(['Hook failed']) // Should be added when ignoreHookStatus=false
+            expect(service['_failReasons']).toEqual(['Hook failed']) // Should be added when ignoreHooksStatus=false
         })
 
-        it('should add hook failures to _failReasons when ignoreHookStatus is not set', async () => {
+        it('should add hook failures to _failReasons when ignoreHooksStatus is not set', async () => {
             service = new BrowserstackService({
                 testObservability: false
             } as any, [] as any, { user: 'foo', key: 'bar' } as any)
@@ -1387,7 +1387,7 @@ describe('ignoreHookStatus feature', () => {
                 undefined as never, { passed: false, error: { message: 'Hook failed' } } as any)
 
             expect(service['_hookFailReasons']).toEqual(['Hook failed'])
-            expect(service['_failReasons']).toEqual(['Hook failed']) // Should be added when ignoreHookStatus not set (default behavior)
+            expect(service['_failReasons']).toEqual(['Hook failed']) // Should be added when ignoreHooksStatus not set (default behavior)
         })
     })
 
@@ -1395,7 +1395,7 @@ describe('ignoreHookStatus feature', () => {
         beforeEach(() => {
             service = new BrowserstackService({
                 testObservability: false,
-                testObservabilityOptions: { ignoreHookStatus: true }
+                testObservabilityOptions: { ignoreHooksStatus: true }
             } as any, [] as any, { user: 'foo', key: 'bar' } as any)
             service['_browser'] = browser
             service['_insightsHandler'] = new InsightsHandler(browser)
@@ -1410,11 +1410,11 @@ describe('ignoreHookStatus feature', () => {
         })
     })
 
-    describe('session status with ignoreHookStatus=true', () => {
+    describe('session status with ignoreHooksStatus=true', () => {
         beforeEach(() => {
             service = new BrowserstackService({
                 testObservability: false,
-                testObservabilityOptions: { ignoreHookStatus: true },
+                testObservabilityOptions: { ignoreHooksStatus: true },
                 setSessionStatus: true
             } as any, [] as any, { user: 'foo', key: 'bar' } as any)
             service['_browser'] = browser
@@ -1422,7 +1422,7 @@ describe('ignoreHookStatus feature', () => {
             vi.spyOn(service, '_updateJob').mockResolvedValue({} as any)
         })
 
-        it('should mark session as passed when only hooks fail and ignoreHookStatus=true', async () => {
+        it('should mark session as passed when only hooks fail and ignoreHooksStatus=true', async () => {
             // Simulate hook failure
             await service.afterHook({ title: 'hook', parent: 'suite' } as any,
                 undefined as never, { passed: false, error: { message: 'Hook failed' } } as any)
@@ -1437,7 +1437,7 @@ describe('ignoreHookStatus feature', () => {
             })
         })
 
-        it('should mark session as failed when tests fail even with ignoreHookStatus=true', async () => {
+        it('should mark session as failed when tests fail even with ignoreHooksStatus=true', async () => {
             // Simulate hook failure
             await service.afterHook({ title: 'hook', parent: 'suite' } as any,
                 undefined as never, { passed: false, error: { message: 'Hook failed' } } as any)
@@ -1454,10 +1454,10 @@ describe('ignoreHookStatus feature', () => {
             })
         })
 
-        it('should include hook and test failures in reason when ignoreHookStatus=false', async () => {
+        it('should include hook and test failures in reason when ignoreHooksStatus=false', async () => {
             service = new BrowserstackService({
                 testObservability: false,
-                testObservabilityOptions: { ignoreHookStatus: false },
+                testObservabilityOptions: { ignoreHooksStatus: false },
                 setSessionStatus: true
             } as any, [] as any, { user: 'foo', key: 'bar' } as any)
             service['_browser'] = browser
@@ -1481,11 +1481,11 @@ describe('ignoreHookStatus feature', () => {
         })
     })
 
-    describe('onReload with ignoreHookStatus=true', () => {
+    describe('onReload with ignoreHooksStatus=true', () => {
         beforeEach(() => {
             service = new BrowserstackService({
                 testObservability: false,
-                testObservabilityOptions: { ignoreHookStatus: true },
+                testObservabilityOptions: { ignoreHooksStatus: true },
                 setSessionStatus: true
             } as any, [] as any, { user: 'foo', key: 'bar' } as any)
             service['_browser'] = browser
@@ -1493,7 +1493,7 @@ describe('ignoreHookStatus feature', () => {
             vi.spyOn(service, '_update').mockResolvedValue({} as any)
         })
 
-        it('should use pure test failures for status when ignoreHookStatus=true', async () => {
+        it('should use pure test failures for status when ignoreHooksStatus=true', async () => {
             // Add hook failure
             service['_hookFailReasons'].push('Hook failed')
             service['_failReasons'].push('Test failed') // This would normally include hook failures too
@@ -1507,7 +1507,7 @@ describe('ignoreHookStatus feature', () => {
             })
         })
 
-        it('should pass when only hook failures exist and ignoreHookStatus=true', async () => {
+        it('should pass when only hook failures exist and ignoreHooksStatus=true', async () => {
             // Add only hook failure
             service['_hookFailReasons'].push('Hook failed')
             // No pure test failures
@@ -1533,13 +1533,13 @@ describe('ignoreHookStatus feature', () => {
         })
     })
 
-    describe('ignoreHookStatus feature - Comprehensive Test Suite', () => {
+    describe('ignoreHooksStatus feature - Comprehensive Test Suite', () => {
         describe('afterHook method - Extended Coverage', () => {
-            describe('when ignoreHookStatus is true', () => {
+            describe('when ignoreHooksStatus is true', () => {
                 beforeEach(() => {
                     service = new BrowserstackService({
                         testObservability: false,
-                        testObservabilityOptions: { ignoreHookStatus: true },
+                        testObservabilityOptions: { ignoreHooksStatus: true },
                         setSessionStatus: true
                     } as any, [] as any, { user: 'foo', key: 'bar' } as any)
                     service['_browser'] = browser
@@ -1555,7 +1555,7 @@ describe('ignoreHookStatus feature', () => {
                     await service.afterHook({ title: 'beforeAll' } as any, undefined, { passed: false, error: hook3Error } as any)
 
                     expect(service['_hookFailReasons']).toEqual(['Before hook failed', 'After hook failed', 'Setup hook failed'])
-                    expect(service['_failReasons']).toEqual([]) // Should remain empty with ignoreHookStatus=true
+                    expect(service['_failReasons']).toEqual([]) // Should remain empty with ignoreHooksStatus=true
                 })
 
                 it('should handle hooks that pass after failures correctly', async () => {
@@ -1579,7 +1579,7 @@ describe('ignoreHookStatus feature', () => {
                 })
             })
 
-            describe('when ignoreHookStatus is undefined/not specified', () => {
+            describe('when ignoreHooksStatus is undefined/not specified', () => {
                 it('should default to false and add hook failures to failReasons', async () => {
                     service = new BrowserstackService({
                         testObservability: false,
@@ -1598,11 +1598,11 @@ describe('ignoreHookStatus feature', () => {
         })
 
         describe('after method - Complex Session Status Scenarios', () => {
-            describe('when ignoreHookStatus is true', () => {
+            describe('when ignoreHooksStatus is true', () => {
                 beforeEach(() => {
                     service = new BrowserstackService({
                         testObservability: false,
-                        testObservabilityOptions: { ignoreHookStatus: true },
+                        testObservabilityOptions: { ignoreHooksStatus: true },
                         setSessionStatus: true
                     } as any, [] as any, { user: 'foo', key: 'bar' } as any)
                     service['_browser'] = browser
@@ -1665,7 +1665,7 @@ describe('ignoreHookStatus feature', () => {
                 it('should handle scenario where setSessionName is enabled', async () => {
                     service = new BrowserstackService({
                         testObservability: false,
-                        testObservabilityOptions: { ignoreHookStatus: true },
+                        testObservabilityOptions: { ignoreHooksStatus: true },
                         setSessionStatus: true,
                         setSessionName: true
                     } as any, [] as any, { user: 'foo', key: 'bar' } as any)
@@ -1689,7 +1689,7 @@ describe('ignoreHookStatus feature', () => {
                 it('should respect session name and status options independently', async () => {
                     service = new BrowserstackService({
                         testObservability: false,
-                        testObservabilityOptions: { ignoreHookStatus: true },
+                        testObservabilityOptions: { ignoreHooksStatus: true },
                         setSessionStatus: false, // Disabled
                         setSessionName: true
                     } as any, [] as any, { user: 'foo', key: 'bar' } as any)
@@ -1708,18 +1708,18 @@ describe('ignoreHookStatus feature', () => {
                 })
             })
 
-            describe('comparison with ignoreHookStatus disabled', () => {
+            describe('comparison with ignoreHooksStatus disabled', () => {
                 beforeEach(() => {
                     service = new BrowserstackService({
                         testObservability: false,
-                        testObservabilityOptions: { ignoreHookStatus: false },
+                        testObservabilityOptions: { ignoreHooksStatus: false },
                         setSessionStatus: true
                     } as any, [] as any, { user: 'foo', key: 'bar' } as any)
                     service['_browser'] = browser
                     vi.spyOn(service, '_updateJob').mockResolvedValue({} as any)
                 })
 
-                it('should mark as failed when hooks fail (ignoreHookStatus=false)', async () => {
+                it('should mark as failed when hooks fail (ignoreHooksStatus=false)', async () => {
                     service['_specsRan'] = true
                     service['_hookFailReasons'] = ['Hook failed']
                     service['_failReasons'] = ['Hook failed'] // Includes hook failures
@@ -1753,7 +1753,7 @@ describe('ignoreHookStatus feature', () => {
             beforeEach(() => {
                 service = new BrowserstackService({
                     testObservability: false,
-                    testObservabilityOptions: { ignoreHookStatus: true },
+                    testObservabilityOptions: { ignoreHooksStatus: true },
                     setSessionStatus: true
                 } as any, [] as any, { user: 'foo', key: 'bar' } as any)
                 service['_browser'] = browser
@@ -1854,7 +1854,7 @@ describe('ignoreHookStatus feature', () => {
             beforeEach(() => {
                 service = new BrowserstackService({
                     testObservability: false,
-                    testObservabilityOptions: { ignoreHookStatus: true },
+                    testObservabilityOptions: { ignoreHooksStatus: true },
                     setSessionStatus: true
                 } as any, [] as any, { user: 'foo', key: 'bar' } as any)
                 service['_browser'] = browser

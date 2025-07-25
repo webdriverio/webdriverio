@@ -265,8 +265,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const hookError = (result.error && result.error.message) || 'Hook failed'
             this._hookFailReasons.push(hookError)
 
-            // Still add to main failReasons for backward compatibility if ignoreHookStatus is not enabled
-            if (!this._options.testObservabilityOptions?.ignoreHookStatus) {
+            // Still add to main failReasons for backward compatibility if ignoreHooksStatus is not enabled
+            if (!this._options.testObservabilityOptions?.ignoreHooksStatus) {
                 this._failReasons.push(hookError)
             }
         }
@@ -322,13 +322,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await PerformanceTester.measureWrapper(PERFORMANCE_SDK_EVENTS.AUTOMATE_EVENTS.SESSION_STATUS, async () => {
             if (setSessionStatus) {
-                const ignoreHookStatus = this._options.testObservabilityOptions?.ignoreHookStatus === true
+                const ignoreHooksStatus = this._options.testObservabilityOptions?.ignoreHooksStatus === true
                 let sessionStatus: string
                 let failureReason: string | undefined
 
                 if (result === 0 && this._specsRan) {
                     // Test runner reported success and tests ran
-                    if (ignoreHookStatus) {
+                    if (ignoreHooksStatus) {
                         // Only consider pure test failures, ignore hook failures
                         const hasPureTestFailures = this._pureTestFailReasons.length > 0
                         sessionStatus = hasPureTestFailures ? 'failed' : 'passed'
@@ -339,14 +339,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
                         sessionStatus = hasReasons ? 'failed' : 'passed'
                         failureReason = hasReasons ? this._failReasons.join('\n') : undefined
                     }
-                } else if (ignoreHookStatus && this._specsRan) {
-                    // Test runner reported failure but ignoreHookStatus is enabled
+                } else if (ignoreHooksStatus && this._specsRan) {
+                    // Test runner reported failure but ignoreHooksStatus is enabled
                     // Check if we only have hook failures and no pure test failures
                     const hasPureTestFailures = this._pureTestFailReasons.length > 0
                     const hasOnlyHookFailures = this._failReasons.length === 0 && this._hookFailReasons.length > 0
 
                     if (hasOnlyHookFailures && !hasPureTestFailures) {
-                        // Only hook failures exist - mark as passed when ignoreHookStatus is true
+                        // Only hook failures exist - mark as passed when ignoreHooksStatus is true
                         sessionStatus = 'passed'
                         failureReason = undefined
                     } else {
@@ -357,7 +357,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 } else {
                     // Default behavior: mark as failed (test runner reported failure or no tests ran)
                     sessionStatus = 'failed'
-                    if (ignoreHookStatus && this._pureTestFailReasons.length > 0) {
+                    if (ignoreHooksStatus && this._pureTestFailReasons.length > 0) {
                         failureReason = this._pureTestFailReasons.join('\n')
                     } else if (this._failReasons.length > 0) {
                         failureReason = this._failReasons.join('\n')
@@ -388,10 +388,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
             ])
         }
 
-        // Override process exit when we have only hook failures and ignoreHookStatus is true
-        const ignoreHookStatus = this._options.testObservabilityOptions?.ignoreHookStatus === true
+        // Override process exit when we have only hook failures and ignoreHooksStatus is true
+        const ignoreHooksStatus = this._options.testObservabilityOptions?.ignoreHooksStatus === true
         const hasOnlyHookFailures = this._failReasons.length === 0 && this._hookFailReasons.length > 0
-        const shouldOverrideResult = ignoreHookStatus && this._specsRan && hasOnlyHookFailures
+        const shouldOverrideResult = ignoreHooksStatus && this._specsRan && hasOnlyHookFailures
 
         if (shouldOverrideResult && result !== 0) {
             // Use setTimeout to allow any pending async operations to complete
@@ -444,9 +444,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 )
             )
 
-            // For Cucumber with ignoreHookStatus, check if failure is due to test steps or hooks
-            const ignoreHookStatus = this._options.testObservabilityOptions?.ignoreHookStatus === true
-            if (ignoreHookStatus && this._insightsHandler) {
+            // For Cucumber with ignoreHooksStatus, check if failure is due to test steps or hooks
+            const ignoreHooksStatus = this._options.testObservabilityOptions?.ignoreHooksStatus === true
+            if (ignoreHooksStatus && this._insightsHandler) {
                 // Check if any test steps failed (excluding hook failures)
                 const hasTestStepFailures = this._insightsHandler.hasTestStepFailures(world)
                 if (hasTestStepFailures) {
@@ -485,12 +485,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         const { setSessionName, setSessionStatus } = this._options
-        const ignoreHookStatus = this._options.testObservabilityOptions?.ignoreHookStatus === true
+        const ignoreHooksStatus = this._options.testObservabilityOptions?.ignoreHooksStatus === true
 
         let sessionStatus: string
         let failureReason: string | undefined
 
-        if (ignoreHookStatus) {
+        if (ignoreHooksStatus) {
             // Only consider pure test failures, ignore hook failures
             const hasPureTestFailures = this._pureTestFailReasons.length > 0
             sessionStatus = hasPureTestFailures ? 'failed' : 'passed'

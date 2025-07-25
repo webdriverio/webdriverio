@@ -45,7 +45,7 @@ export interface TestObservabilityOptions {
      * When set to false or not set (default), hook failures will mark tests as "failed".
      * @default false
      */
-    ignoreHookStatus?: boolean
+    ignoreHooksStatus?: boolean
 }
 
 export interface BrowserstackOptions extends Options.Testrunner {

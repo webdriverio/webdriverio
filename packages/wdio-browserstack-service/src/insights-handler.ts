@@ -570,7 +570,7 @@ class _InsightsHandler {
 
     /**
      * Check if any test steps failed (excluding hook failures)
-     * This is used when ignoreHookStatus is true to determine test status based only on test steps
+     * This is used when ignoreHooksStatus is true to determine test status based only on test steps
      */
     public hasTestStepFailures(world: ITestCaseHookParameter): boolean {
         if (!world?.pickle) {
@@ -819,9 +819,9 @@ class _InsightsHandler {
                 result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
             }
 
-            // Handle ignoreHookStatus: when enabled and scenario failed, check if it's due to hook failures only
-            const ignoreHookStatus = this._options?.testObservabilityOptions?.ignoreHookStatus === true
-            if (ignoreHookStatus && result === 'failed' && world) {
+            // Handle ignoreHooksStatus: when enabled and scenario failed, check if it's due to hook failures only
+            const ignoreHooksStatus = this._options?.testObservabilityOptions?.ignoreHooksStatus === true
+            if (ignoreHooksStatus && result === 'failed' && world) {
                 // Check if any test steps failed (excluding hook failures)
                 const hasTestStepFailures = this.hasTestStepFailures(world)
                 if (!hasTestStepFailures) {
