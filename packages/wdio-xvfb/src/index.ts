@@ -15,7 +15,6 @@ const execAsync = promisify(exec)
 export class XvfbManager {
     private force: boolean
     private log: ReturnType<typeof logger>
-    private xvfbRunAvailable = false
 
     constructor(options: XvfbOptions = {}) {
         this.force = options.force ?? false
@@ -62,34 +61,12 @@ export class XvfbManager {
 
         try {
             await this.ensureXvfbRunAvailable()
-            this.xvfbRunAvailable = true
             this.log.info('xvfb-run is ready for use')
             return true
         } catch (error) {
             this.log.error('Failed to setup xvfb-run:', error)
             throw error
         }
-    }
-
-    /**
-     * Execute a command with xvfb-run
-     * @param command - The command to run under Xvfb
-     * @param options - Additional spawn options
-     * @returns Promise<{ stdout: string, stderr: string }>
-     */
-    async runWithXvfb(command: string, options: { cwd?: string; env?: Record<string, string> } = {}): Promise<{ stdout: string; stderr: string }> {
-        if (!this.xvfbRunAvailable) {
-            throw new Error('xvfb-run is not available. Call init() first.')
-        }
-
-        this.log.debug(`Running with xvfb-run: ${command}`)
-
-        const { stdout, stderr } = await execAsync(`xvfb-run --auto-servernum -- ${command}`, {
-            cwd: options.cwd,
-            env: { ...process.env, ...options.env }
-        })
-
-        return { stdout, stderr }
     }
 
     /**

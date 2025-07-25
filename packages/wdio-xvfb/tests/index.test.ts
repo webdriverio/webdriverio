@@ -195,52 +195,6 @@ describe('XvfbManager', () => {
         })
     })
 
-    describe('runWithXvfb', () => {
-        beforeEach(() => {
-            mockPlatform.mockReturnValue('linux')
-        })
-
-        it('should execute command with xvfb-run', async () => {
-            manager = new XvfbManager()
-            await manager.init()
-
-            const result = await manager.runWithXvfb('wdio run ./wdio.conf.js')
-
-            expect(result.stdout).toBe('Command executed successfully')
-            expect(mockExecAsync).toHaveBeenCalledWith(
-                'xvfb-run --auto-servernum -- wdio run ./wdio.conf.js',
-                { cwd: undefined, env: { ...process.env } }
-            )
-        })
-
-        it('should throw error if xvfb-run is not available', async () => {
-            manager = new XvfbManager()
-            // Don't call init() to simulate xvfb-run not being available
-
-            await expect(manager.runWithXvfb('wdio run ./wdio.conf.js')).rejects.toThrow(
-                'xvfb-run is not available. Call init() first.'
-            )
-        })
-
-        it('should pass environment variables and working directory', async () => {
-            manager = new XvfbManager()
-            await manager.init()
-
-            await manager.runWithXvfb('wdio run ./wdio.conf.js', {
-                cwd: '/test/dir',
-                env: { TEST_VAR: 'value' }
-            })
-
-            expect(mockExecAsync).toHaveBeenCalledWith(
-                expect.any(String),
-                {
-                    cwd: '/test/dir',
-                    env: { ...process.env, TEST_VAR: 'value' }
-                }
-            )
-        })
-    })
-
     describe('cross-distribution support', () => {
         beforeEach(() => {
             mockPlatform.mockReturnValue('linux')
