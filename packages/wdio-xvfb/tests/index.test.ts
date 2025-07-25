@@ -75,7 +75,12 @@ describe('XvfbManager', () => {
             if (cmd === 'which Xvfb') {
                 return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
             }
+            if (cmd.includes('pgrep')) {
+                // By default, no existing Xvfb process found (empty output means no process)
+                return Promise.resolve({ stdout: '', stderr: '' })
+            }
             if (cmd.includes('xdpyinfo') || cmd.includes('DISPLAY=')) {
+                // For waitForXvfb, succeed to indicate display is ready
                 return Promise.resolve({ stdout: '', stderr: '' })
             }
             if (cmd.includes('pkill')) {
@@ -234,6 +239,30 @@ describe('XvfbManager', () => {
 
             expect(onMock).toHaveBeenCalledWith('error', expect.any(Function))
             expect(onMock).toHaveBeenCalledWith('exit', expect.any(Function))
+        })
+
+        it('should skip startup if display is already in use', async () => {
+            // Mock pgrep to return a PID, indicating existing Xvfb process
+            mockExecAsync.mockImplementation((cmd: string) => {
+                if (cmd === 'which Xvfb') {
+                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
+                }
+                if (cmd.includes('pgrep')) {
+                    return Promise.resolve({ stdout: '12345', stderr: '' }) // Existing process PID
+                }
+                if (cmd.includes('xdpyinfo')) {
+                    return Promise.resolve({ stdout: 'display info', stderr: '' })
+                }
+                return Promise.resolve({ stdout: '', stderr: '' })
+            })
+
+            manager = new XvfbManager()
+
+            const result = await manager.start()
+
+            expect(result).toBe(true)
+            expect(mockSpawn).not.toHaveBeenCalled()
+            expect(manager.isXvfbRunning()).toBe(false) // Our instance is not running
         })
     })
 

@@ -92,6 +92,15 @@ export class XvfbManager {
             return false
         }
 
+        // Check if Xvfb is already running on this display
+        if (await this.isDisplayInUse()) {
+            this.log.info(`Display :${this.display} is already in use, skipping Xvfb startup`)
+            // Set environment variables even if we're not starting our own process
+            this.originalDisplay = process.env.DISPLAY
+            process.env.DISPLAY = `:${this.display}`
+            return true
+        }
+
         try {
             await this.setupEnvironment()
             await this.startXvfb()
@@ -128,6 +137,25 @@ export class XvfbManager {
      */
     isXvfbRunning(): boolean {
         return this.isRunning
+    }
+
+    /**
+     * Check if the target display is already in use by another Xvfb process
+     */
+    private async isDisplayInUse(): Promise<boolean> {
+        try {
+            // Look for existing Xvfb process on this display
+            const { stdout } = await execAsync(`pgrep -f "Xvfb :${this.display}" || true`)
+            if (stdout.trim()) {
+                this.log.info(`Found existing Xvfb process for display :${this.display}: PID ${stdout.trim()}`)
+                return true
+            }
+            return false
+        } catch {
+            // pgrep failed or not available, assume display is free
+            this.log.debug('pgrep command failed, assuming display is free')
+            return false
+        }
     }
 
     private async detectDistribution(): Promise<string> {
