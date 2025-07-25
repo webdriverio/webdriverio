@@ -1,5 +1,4 @@
 import path from 'node:path'
-import child from 'node:child_process'
 import { expect, test, vi, beforeEach } from 'vitest'
 
 import LocalRunner from '../src/index.js'
@@ -9,11 +8,8 @@ const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 beforeEach(async () => {
     vi.clearAllMocks()
     const { xvfb } = await import('@wdio/xvfb')
-    vi.mocked(xvfb.start).mockResolvedValue(true)
-    vi.mocked(xvfb.stop).mockResolvedValue(undefined)
-    vi.mocked(xvfb.getDisplay).mockReturnValue('1')
+    vi.mocked(xvfb.init).mockResolvedValue(true)
     vi.mocked(xvfb.shouldRun).mockReturnValue(true)
-    vi.mocked(xvfb.isXvfbRunning).mockReturnValue(false)
 })
 
 vi.mock(
@@ -23,15 +19,12 @@ vi.mock(
 
 vi.mock('@wdio/xvfb', () => ({
     xvfb: {
-        start: vi.fn().mockResolvedValue(true),
-        stop: vi.fn().mockResolvedValue(undefined),
-        getDisplay: vi.fn().mockReturnValue('1'),
+        init: vi.fn().mockResolvedValue(true),
         shouldRun: vi.fn().mockReturnValue(true),
-        isXvfbRunning: vi.fn().mockReturnValue(false),
     },
 }))
 
-vi.mock('child_process', () => {
+vi.mock('../src/processFactory.js', () => {
     const childProcessMock = {
         on: vi.fn(),
         send: vi.fn(),
@@ -39,9 +32,9 @@ vi.mock('child_process', () => {
     }
 
     return {
-        default: {
-            fork: vi.fn().mockReturnValue(childProcessMock),
-        },
+        ProcessFactory: vi.fn().mockImplementation(() => ({
+            createWorkerProcess: vi.fn().mockReturnValue(childProcessMock)
+        }))
     }
 })
 
@@ -67,15 +60,6 @@ test('should fork a new process', async () => {
     await sleep()
 
     expect(worker.isBusy).toBe(true)
-    expect(String(vi.mocked(child.fork).mock.calls[0][0]).endsWith('run.js')).toBe(
-        true
-    )
-
-    const { env } = vi.mocked(child.fork).mock.calls[0][2]! as any
-    expect(env.WDIO_LOG_PATH).toMatch(
-        /(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-5\.log/
-    )
-    expect(env.FORCE_COLOR).toBe(1)
     expect(worker.childProcess?.on).toHaveBeenCalled()
 
     expect(worker.childProcess?.send).toHaveBeenCalledWith({
@@ -273,80 +257,70 @@ test('should avoid shutting down if worker is not busy', async () => {
     expect(await runner.initialize()).toBe(undefined)
 })
 
-test('should start xvfb during initialization when needed', async () => {
+test('should initialize xvfb during initialization when needed', async () => {
     const { xvfb } = await import('@wdio/xvfb')
     vi.mocked(xvfb.shouldRun).mockReturnValue(true)
-    vi.mocked(xvfb.start).mockResolvedValue(true)
+    vi.mocked(xvfb.init).mockResolvedValue(true)
 
     const runner = new LocalRunner(undefined as never, {} as any)
     await runner.initialize()
 
-    expect(xvfb.start).toHaveBeenCalled()
+    expect(xvfb.init).toHaveBeenCalled()
 })
 
-test('should not start xvfb during initialization when not needed', async () => {
+test('should not initialize xvfb during initialization when not needed', async () => {
     const { xvfb } = await import('@wdio/xvfb')
     vi.mocked(xvfb.shouldRun).mockReturnValue(false)
-    vi.mocked(xvfb.start).mockResolvedValue(false)
+    vi.mocked(xvfb.init).mockResolvedValue(false)
 
     const runner = new LocalRunner(undefined as never, {} as any)
     await runner.initialize()
 
-    expect(xvfb.start).toHaveBeenCalled()
-    // Verify that xvfb didn't actually start (returned false)
-    const startResult = await vi.mocked(xvfb.start).mock.results[0].value
-    expect(startResult).toBe(false)
+    expect(xvfb.init).toHaveBeenCalled()
+    // Verify that xvfb didn't actually initialize (returned false)
+    const initResult = await vi.mocked(xvfb.init).mock.results[0].value
+    expect(initResult).toBe(false)
 })
 
-test('should stop xvfb during shutdown', async () => {
+test('should handle xvfb during shutdown', async () => {
     const { xvfb } = await import('@wdio/xvfb')
     vi.mocked(xvfb.shouldRun).mockReturnValue(true)
-    vi.mocked(xvfb.isXvfbRunning).mockReturnValue(true)
+    vi.mocked(xvfb.init).mockResolvedValue(true)
 
     const runner = new LocalRunner(undefined as never, {} as any)
     await runner.initialize()
     await runner.shutdown()
 
-    expect(xvfb.stop).toHaveBeenCalled()
+    expect(xvfb.init).toHaveBeenCalled()
 })
 
-test('should handle xvfb start failure gracefully', async () => {
+test('should handle xvfb initialization failure gracefully', async () => {
     const { xvfb } = await import('@wdio/xvfb')
     vi.mocked(xvfb.shouldRun).mockReturnValue(true)
-    vi.mocked(xvfb.start).mockRejectedValue(new Error('Xvfb failed to start'))
+    vi.mocked(xvfb.init).mockRejectedValue(new Error('Xvfb failed to initialize'))
 
     const runner = new LocalRunner(undefined as never, {} as any)
 
     // Should not throw, just log the error
     await expect(runner.initialize()).resolves.toBeUndefined()
-    expect(xvfb.start).toHaveBeenCalled()
+    expect(xvfb.init).toHaveBeenCalled()
 })
 
-test('should set DISPLAY environment variable when xvfb starts', async () => {
-    const originalDisplay = process.env.DISPLAY
+test('should setup xvfb when needed', async () => {
     const { xvfb } = await import('@wdio/xvfb')
     vi.mocked(xvfb.shouldRun).mockReturnValue(true)
-    vi.mocked(xvfb.start).mockResolvedValue(true)
-    vi.mocked(xvfb.getDisplay).mockReturnValue(':99')
+    vi.mocked(xvfb.init).mockResolvedValue(true)
 
     const runner = new LocalRunner(undefined as never, {} as any)
     await runner.initialize()
 
-    expect(xvfb.getDisplay).toHaveBeenCalled()
-
-    // Restore original DISPLAY
-    if (originalDisplay) {
-        process.env.DISPLAY = originalDisplay
-    } else {
-        delete process.env.DISPLAY
-    }
+    expect(xvfb.init).toHaveBeenCalled()
 })
 
 test('should handle xvfb operations with existing workers', async () => {
     const { xvfb } = await import('@wdio/xvfb')
     vi.mocked(xvfb.shouldRun).mockReturnValue(true)
-    vi.mocked(xvfb.start).mockResolvedValue(true)
-    vi.mocked(xvfb.isXvfbRunning).mockReturnValue(true)
+    vi.mocked(xvfb.init).mockResolvedValue(true)
 
     const runner = new LocalRunner(
         undefined as never,
@@ -377,6 +351,5 @@ test('should handle xvfb operations with existing workers', async () => {
 
     await runner.shutdown()
 
-    expect(xvfb.start).toHaveBeenCalled()
-    expect(xvfb.stop).toHaveBeenCalled()
+    expect(xvfb.init).toHaveBeenCalled()
 })

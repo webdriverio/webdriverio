@@ -4,6 +4,7 @@ import type { Workers } from '@wdio/types'
 import { xvfb } from '@wdio/xvfb'
 
 import WorkerInstance from './worker.js'
+import { ProcessFactory } from './processFactory.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
 
 const log = logger('@wdio/local-runner')
@@ -17,7 +18,7 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
-    private xvfbStarted = false
+    private processFactory: ProcessFactory
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -25,20 +26,22 @@ export default class LocalRunner {
     constructor (
         private _options: never,
         protected _config: WebdriverIO.Config
-    ) {}
+    ) {
+        this.processFactory = new ProcessFactory(xvfb)
+    }
 
     /**
      * initialize local runner environment
      */
     async initialize () {
-        // Start Xvfb if needed for headless testing
+        // Initialize Xvfb if needed for headless testing
         try {
-            this.xvfbStarted = await xvfb.start()
-            if (this.xvfbStarted) {
-                log.info(`Xvfb started on display ${xvfb.getDisplay()}`)
+            const xvfbInitialized = await xvfb.init()
+            if (xvfbInitialized) {
+                log.info('Xvfb is ready for use')
             }
         } catch (error) {
-            log.warn('Failed to start Xvfb, continuing without virtual display:', error)
+            log.warn('Failed to initialize Xvfb, continuing without virtual display:', error)
         }
     }
 
@@ -56,7 +59,7 @@ export default class LocalRunner {
             process.stderr.setMaxListeners(workerCnt + 2)
         }
 
-        const worker = new WorkerInstance(this._config, workerOptions, this.stdout, this.stderr)
+        const worker = new WorkerInstance(this._config, workerOptions, this.stdout, this.stderr, this.processFactory)
         this.workerPool[workerOptions.cid] = worker
         worker.postMessage(command, args)
         return worker
@@ -111,14 +114,9 @@ export default class LocalRunner {
             }, 250)
         })
 
-        // Clean up Xvfb after all workers are done
-        if (this.xvfbStarted) {
-            try {
-                await xvfb.stop()
-                log.info('Xvfb stopped')
-            } catch (error) {
-                log.warn('Failed to stop Xvfb cleanly:', error)
-            }
+        // Xvfb cleanup is handled automatically by xvfb-run
+        if (xvfb.shouldRun()) {
+            log.info('Xvfb cleanup handled automatically by xvfb-run')
         }
 
         return shutdownResult

@@ -1,6 +1,5 @@
 import url from 'node:url'
 import path from 'node:path'
-import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
@@ -12,6 +11,7 @@ import logger from '@wdio/logger'
 import runnerTransformStream from './transformStream.js'
 import ReplQueue from './replQueue.js'
 import RunnerStream from './stdStream.js'
+import type { ProcessCreator } from './processFactory.js'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -45,6 +45,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     sessionId?: string
     server?: Record<string, string>
     logsAggregator: string[] = []
+    processCreator: ProcessCreator
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -70,7 +71,8 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
-        stderr: WritableStreamBuffer
+        stderr: WritableStreamBuffer,
+        processCreator: ProcessCreator
     ) {
         super()
         this.cid = cid
@@ -83,6 +85,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.retries = retries
         this.stdout = stdout
         this.stderr = stderr
+        this.processCreator = processCreator
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
@@ -112,12 +115,18 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
-        const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
-            cwd: process.cwd(),
-            env: runnerEnv,
-            execArgv,
-            stdio: ['inherit', 'pipe', 'pipe', 'ipc']
-        })
+
+        // Use ProcessFactory to create the appropriate process
+        const childProcess = this.childProcess = this.processCreator.createWorkerProcess(
+            path.join(__dirname, 'run.js'),
+            argv,
+            {
+                cwd: process.cwd(),
+                env: runnerEnv,
+                execArgv,
+                stdio: ['inherit', 'pipe', 'pipe', 'ipc']
+            }
+        )
 
         childProcess.on('message', this._handleMessage.bind(this))
         childProcess.on('error', this._handleError.bind(this))
