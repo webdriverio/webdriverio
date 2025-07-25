@@ -295,9 +295,14 @@ export class XvfbManager {
         this.log.info(`Starting Xvfb with args: ${xvfbArgs.join(' ')}`)
 
         this.xvfbProcess = spawn('Xvfb', xvfbArgs, {
-            detached: false,
+            detached: true,
             stdio: ['ignore', 'pipe', 'pipe'],
         })
+
+        // Unreference the process so it can run independently
+        if (this.xvfbProcess.unref) {
+            this.xvfbProcess.unref()
+        }
 
         this.xvfbProcess.stdout?.on('data', (data) => {
             this.log.info(`Xvfb stdout: ${data}`)

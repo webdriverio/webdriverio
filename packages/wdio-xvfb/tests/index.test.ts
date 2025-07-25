@@ -65,6 +65,7 @@ describe('XvfbManager', () => {
             on: vi.fn().mockReturnValue(mockProcess),
             stdout: { on: vi.fn() } as any,
             stderr: { on: vi.fn() } as any,
+            unref: vi.fn(),
         }
 
         mockSpawn.mockReturnValue(mockProcess as ChildProcess)
@@ -217,7 +218,7 @@ describe('XvfbManager', () => {
                     '--test-arg',
                 ],
                 {
-                    detached: false,
+                    detached: true,
                     stdio: ['ignore', 'pipe', 'pipe'],
                 }
             )
