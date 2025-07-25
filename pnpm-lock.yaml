@@ -291,6 +291,9 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../packages/wdio-types
+      '@wdio/xvfb':
+        specifier: workspace:*
+        version: link:../packages/wdio-xvfb
       babel-plugin-transform-hook-names:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.27.7)
