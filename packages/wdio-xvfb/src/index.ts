@@ -1,57 +1,25 @@
-import { spawn } from 'node:child_process'
 import { promisify } from 'node:util'
 import { exec } from 'node:child_process'
-import type { ChildProcess } from 'node:child_process'
 import os from 'node:os'
 import logger from '@wdio/logger'
 
 export interface XvfbOptions {
     /**
-     * Display number to use (default: 99)
-     */
-    display?: number;
-    /**
-     * Screen resolution (default: '1024x768x24')
-     */
-    screen?: string;
-    /**
-     * DPI setting (default: 96)
-     */
-    dpi?: number;
-    /**
-     * Additional Xvfb arguments
-     */
-    args?: string[];
-    /**
      * Force Xvfb to run even on non-Linux systems (for testing)
      */
     force?: boolean;
-    /**
-     * Logger instance (optional, will create default if not provided)
-     */
-    logger?: ReturnType<typeof logger>;
 }
 
 const execAsync = promisify(exec)
 
 export class XvfbManager {
-    private xvfbProcess?: ChildProcess
-    private display: number
-    private screen: string
-    private dpi: number
-    private args: string[]
     private force: boolean
-    private originalDisplay?: string
     private log: ReturnType<typeof logger>
-    private isRunning = false
+    private xvfbRunAvailable = false
 
     constructor(options: XvfbOptions = {}) {
-        this.display = options.display ?? 99
-        this.screen = options.screen ?? '1024x768x24'
-        this.dpi = options.dpi ?? 96
-        this.args = options.args ?? []
         this.force = options.force ?? false
-        this.log = options.logger ?? logger('@wdio/xvfb')
+        this.log = logger('@wdio/xvfb')
     }
 
     /**
@@ -69,92 +37,86 @@ export class XvfbManager {
 
         // Check if we're in a headless environment (no DISPLAY set or in CI)
         const hasDisplay = process.env.DISPLAY
-        const isCI =
+        const isCI = !!(
             process.env.CI ||
             process.env.GITHUB_ACTIONS ||
-            process.env.JENKINS_URL
-
-        return !hasDisplay || !!isCI
+            process.env.JENKINS_URL ||
+            process.env.TRAVIS ||
+            process.env.CIRCLECI ||
+            process.env.GITLAB_CI ||
+            process.env.BUILDKITE ||
+            process.env.APPVEYOR
+        )
+        return !hasDisplay || isCI
     }
 
     /**
-     * Start Xvfb if needed
-     * @returns Promise<boolean> - true if Xvfb was started, false if not needed
+     * Initialize xvfb-run for use
+     * @returns Promise<boolean> - true if xvfb-run is ready, false if not needed
      */
-    async start(): Promise<boolean> {
-        if (this.isRunning) {
-            this.log.debug('Xvfb is already running')
-            return true
-        }
-
+    async init(): Promise<boolean> {
         if (!this.shouldRun()) {
             this.log.info('Xvfb not needed on current platform')
             return false
         }
 
-        // Check if Xvfb is already running on this display
-        if (await this.isDisplayInUse()) {
-            this.log.info(`Display :${this.display} is already in use, skipping Xvfb startup`)
-            // Set environment variables even if we're not starting our own process
-            this.originalDisplay = process.env.DISPLAY
-            process.env.DISPLAY = `:${this.display}`
-            return true
-        }
-
         try {
-            await this.setupEnvironment()
-            await this.startXvfb()
-            this.isRunning = true
+            await this.ensureXvfbRunAvailable()
+            this.xvfbRunAvailable = true
+            this.log.info('xvfb-run is ready for use')
             return true
         } catch (error) {
-            this.log.error('Failed to start Xvfb:', error)
+            this.log.error('Failed to setup xvfb-run:', error)
             throw error
         }
     }
 
     /**
-     * Stop Xvfb and cleanup
+     * Execute a command with xvfb-run
+     * @param command - The command to run under Xvfb
+     * @param options - Additional spawn options
+     * @returns Promise<{ stdout: string, stderr: string }>
      */
-    async stop(): Promise<void> {
-        if (!this.isRunning) {
-            this.log.debug('Xvfb is not running')
-            return
+    async runWithXvfb(command: string, options: { cwd?: string; env?: Record<string, string> } = {}): Promise<{ stdout: string; stderr: string }> {
+        if (!this.xvfbRunAvailable) {
+            throw new Error('xvfb-run is not available. Call init() first.')
         }
 
-        await this.cleanup()
-        this.isRunning = false
+        this.log.debug(`Running with xvfb-run: ${command}`)
+
+        const { stdout, stderr } = await execAsync(`xvfb-run --auto-servernum -- ${command}`, {
+            cwd: options.cwd,
+            env: { ...process.env, ...options.env }
+        })
+
+        return { stdout, stderr }
     }
 
     /**
-     * Get the current display number
+     * Ensure xvfb-run is available, installing if necessary
      */
-    getDisplay(): string {
-        return `:${this.display}`
-    }
-
-    /**
-     * Check if Xvfb is currently running
-     */
-    isXvfbRunning(): boolean {
-        return this.isRunning
-    }
-
-    /**
-     * Check if the target display is already in use by another Xvfb process
-     */
-    private async isDisplayInUse(): Promise<boolean> {
+    private async ensureXvfbRunAvailable(): Promise<void> {
         try {
-            // Look for existing Xvfb process on this display
-            const { stdout } = await execAsync(`pgrep -f "Xvfb :${this.display}" || true`)
-            if (stdout.trim()) {
-                this.log.info(`Found existing Xvfb process for display :${this.display}: PID ${stdout.trim()}`)
-                return true
-            }
-            return false
+            // Check if xvfb-run is already available
+            await execAsync('which xvfb-run')
+            this.log.info('xvfb-run found in PATH')
+            return
         } catch {
-            // pgrep failed or not available, assume display is free
-            this.log.debug('pgrep command failed, assuming display is free')
-            return false
+            this.log.info('xvfb-run not found, installing xvfb packages...')
+        }
+
+        // Install packages that include xvfb-run
+        await this.installXvfbPackages()
+
+        // Verify xvfb-run is now available
+        try {
+            const { stdout } = await execAsync('which xvfb-run')
+            this.log.info(`Successfully installed xvfb-run at: ${stdout.trim()}`)
+        } catch (error) {
+            this.log.error('Failed to install xvfb-run:', error)
+            throw new Error(
+                "xvfb-run is not available after installation. Please install it manually using your distribution's package manager."
+            )
         }
     }
 
@@ -226,14 +188,14 @@ export class XvfbManager {
         const distro = await this.detectDistribution()
 
         const installCommands: Record<string, string> = {
-            ubuntu: 'sudo apt-get update -qq && sudo apt-get install -y xvfb x11-utils',
-            debian: 'sudo apt-get update -qq && sudo apt-get install -y xvfb x11-utils',
-            fedora: 'sudo dnf install -y xorg-x11-server-Xvfb xorg-x11-utils',
-            centos: 'sudo yum install -y xorg-x11-server-Xvfb xorg-x11-utils',
-            rhel: 'sudo yum install -y xorg-x11-server-Xvfb xorg-x11-utils',
-            suse: 'sudo zypper install -y xvfb x11-utils',
-            arch: 'sudo pacman -S --noconfirm xorg-server-xvfb xorg-xdpyinfo',
-            alpine: 'sudo apk add --no-cache xvfb x11vnc',
+            ubuntu: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
+            debian: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
+            fedora: 'sudo dnf install -y xorg-x11-server-Xvfb',
+            centos: 'sudo yum install -y xorg-x11-server-Xvfb',
+            rhel: 'sudo yum install -y xorg-x11-server-Xvfb',
+            suse: 'sudo zypper install -y xvfb',
+            arch: 'sudo pacman -S --noconfirm xorg-server-xvfb',
+            alpine: 'sudo apk add --no-cache xvfb',
         }
 
         const command = installCommands[distro]
@@ -249,182 +211,6 @@ export class XvfbManager {
         await execAsync(command)
     }
 
-    private getDesktopEnvironment(): string {
-        // Try to detect actual desktop environment first
-        const currentDesktop = process.env.XDG_CURRENT_DESKTOP
-        if (currentDesktop) {
-            return currentDesktop
-        }
-
-        // Fallback based on common patterns
-        if (
-            process.env.GNOME_DESKTOP_SESSION_ID ||
-            process.env.GNOME_SHELL_SESSION_MODE
-        ) {
-            return 'GNOME'
-        }
-        if (process.env.KDE_FULL_SESSION) {
-            return 'KDE'
-        }
-        if (process.env.XFCE4_SESSION) {
-            return 'XFCE'
-        }
-
-        // Generic fallback that works across distros
-        return 'X-Generic'
-    }
-
-    private async setupEnvironment(): Promise<void> {
-        this.log.info('Setting up environment for Xvfb')
-
-        // Install required packages
-        try {
-            const { stdout } = await execAsync('which Xvfb')
-            this.log.info(`Found Xvfb at: ${stdout.trim()}`)
-        } catch (error) {
-            this.log.info(`Xvfb not found in PATH: ${error}`)
-            this.log.info('Installing XVFB and X11 utilities...')
-            try {
-                await this.installXvfbPackages()
-                // Verify installation worked
-                const { stdout } = await execAsync('which Xvfb')
-                this.log.info(`Successfully installed Xvfb at: ${stdout.trim()}`)
-            } catch (error) {
-                this.log.warn('Failed to install xvfb automatically:', error)
-                throw new Error(
-                    "Xvfb is not installed. Please install it manually using your distribution's package manager."
-                )
-            }
-        }
-
-        // Set environment variables
-        this.originalDisplay = process.env.DISPLAY
-        process.env.DISPLAY = `:${this.display}`
-        process.env.XDG_SESSION_TYPE = 'x11'
-        process.env.XDG_CURRENT_DESKTOP = this.getDesktopEnvironment()
-
-        this.log.info(`Set DISPLAY to :${this.display}`)
-    }
-
-    private async startXvfb(): Promise<void> {
-        const xvfbArgs = [
-            `:${this.display}`,
-            '-screen',
-            '0',
-            this.screen,
-            '-ac',
-            '-nolisten',
-            'tcp',
-            '-dpi',
-            this.dpi.toString(),
-            ...this.args,
-        ]
-
-        this.log.info(`Starting Xvfb with args: ${xvfbArgs.join(' ')}`)
-
-        this.xvfbProcess = spawn('Xvfb', xvfbArgs, {
-            detached: true,
-            stdio: ['ignore', 'pipe', 'pipe'],
-        })
-
-        // Unreference the process so it can run independently
-        if (this.xvfbProcess.unref) {
-            this.xvfbProcess.unref()
-        }
-
-        this.xvfbProcess.stdout?.on('data', (data) => {
-            this.log.info(`Xvfb stdout: ${data}`)
-        })
-
-        this.xvfbProcess.stderr?.on('data', (data) => {
-            this.log.info(`Xvfb stderr: ${data}`)
-        })
-
-        this.xvfbProcess.on('error', (error) => {
-            this.log.error('Xvfb process error:', error)
-            this.isRunning = false
-        })
-
-        this.xvfbProcess.on('exit', (code, signal) => {
-            if (code !== null && code !== 0) {
-                this.log.error(`Xvfb exited with code ${code}`)
-            } else if (signal) {
-                this.log.info(`Xvfb terminated with signal ${signal}`)
-            }
-            this.isRunning = false
-        })
-
-        // Wait for Xvfb to be ready
-        await this.waitForXvfb()
-        this.log.info(
-            `Xvfb started successfully on display :${this.display} (PID: ${this.xvfbProcess.pid})`
-        )
-    }
-
-    private async waitForXvfb(timeout = 10000): Promise<void> {
-        const startTime = Date.now()
-
-        while (Date.now() - startTime < timeout) {
-            try {
-                await execAsync(
-                    `DISPLAY=:${this.display} xdpyinfo > /dev/null 2>&1`
-                )
-                return
-            } catch {
-                await new Promise((resolve) => setTimeout(resolve, 100))
-            }
-        }
-
-        throw new Error(`Xvfb did not become ready within ${timeout}ms`)
-    }
-
-    private async cleanup(): Promise<void> {
-        if (this.xvfbProcess) {
-            this.log.info(
-                `Cleaning up Xvfb process (PID: ${this.xvfbProcess.pid})`
-            )
-
-            try {
-                this.xvfbProcess.kill('SIGTERM')
-
-                // Wait for graceful shutdown
-                await new Promise<void>((resolve) => {
-                    const timeout = setTimeout(() => {
-                        if (this.xvfbProcess && !this.xvfbProcess.killed) {
-                            this.log.warn('Force killing Xvfb process')
-                            this.xvfbProcess.kill('SIGKILL')
-                        }
-                        resolve()
-                    }, 5000)
-
-                    this.xvfbProcess?.on('exit', () => {
-                        clearTimeout(timeout)
-                        resolve()
-                    })
-                })
-            } catch (error) {
-                this.log.warn('Error during Xvfb cleanup:', error)
-            }
-
-            this.xvfbProcess = undefined
-        }
-
-        // Try to cleanup any remaining Xvfb processes
-        try {
-            await execAsync(`pkill -f "Xvfb :${this.display}" || true`)
-        } catch {
-            // Ignore errors
-        }
-
-        // Restore original DISPLAY
-        if (this.originalDisplay !== undefined) {
-            process.env.DISPLAY = this.originalDisplay
-        } else {
-            delete process.env.DISPLAY
-        }
-
-        this.log.info('Xvfb cleanup completed')
-    }
 }
 
 // Export a default instance for convenience

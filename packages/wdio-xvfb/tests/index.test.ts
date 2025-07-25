@@ -59,6 +59,8 @@ describe('XvfbManager', () => {
         delete process.env.VITEST_MODE
         delete process.env.WDIO_UNIT_TESTS
 
+        // Set default mock values (mockIsCI is immutable from hoisted function)
+
         mockProcess = {
             pid: 12345,
             kill: vi.fn(),
@@ -72,19 +74,18 @@ describe('XvfbManager', () => {
 
         // Set up default mock implementation
         mockExecAsync.mockImplementation((cmd: string) => {
-            if (cmd === 'which Xvfb') {
-                return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
+            if (cmd === 'which xvfb-run') {
+                return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
             }
-            if (cmd.includes('pgrep')) {
-                // By default, no existing Xvfb process found (empty output means no process)
-                return Promise.resolve({ stdout: '', stderr: '' })
+            if (cmd.includes('xvfb-run')) {
+                // Mock xvfb-run command execution
+                return Promise.resolve({ stdout: 'Command executed successfully', stderr: '' })
             }
-            if (cmd.includes('xdpyinfo') || cmd.includes('DISPLAY=')) {
-                // For waitForXvfb, succeed to indicate display is ready
-                return Promise.resolve({ stdout: '', stderr: '' })
+            if (cmd === 'cat /etc/os-release') {
+                return Promise.resolve({ stdout: 'NAME="Ubuntu 20.04 LTS"', stderr: '' })
             }
-            if (cmd.includes('pkill')) {
-                return Promise.resolve({ stdout: '', stderr: '' })
+            if (cmd.includes('apt-get install')) {
+                return Promise.resolve({ stdout: 'Packages installed', stderr: '' })
             }
             return Promise.resolve({ stdout: '', stderr: '' })
         })
@@ -92,21 +93,17 @@ describe('XvfbManager', () => {
 
     afterEach(async () => {
         vi.restoreAllMocks()
-        if (manager) {
-            await manager.stop()
-        }
     })
 
     describe('constructor', () => {
         it('should create instance with default options', () => {
             manager = new XvfbManager()
             expect(manager).toBeInstanceOf(XvfbManager)
-            expect(manager.getDisplay()).toBe(':99')
         })
 
         it('should create instance with custom options', () => {
-            manager = new XvfbManager({ display: 42, screen: '800x600x24' })
-            expect(manager.getDisplay()).toBe(':42')
+            manager = new XvfbManager({ force: true })
+            expect(manager).toBeInstanceOf(XvfbManager)
         })
     })
 
@@ -150,195 +147,97 @@ describe('XvfbManager', () => {
         })
     })
 
-    describe('start', () => {
+    describe('init', () => {
         beforeEach(() => {
             mockPlatform.mockReturnValue('linux')
         })
 
-        it('should start Xvfb when needed', async () => {
+        it('should setup xvfb-run when needed', async () => {
             manager = new XvfbManager()
 
-            const result = await manager.start()
+            const result = await manager.init()
 
             expect(result).toBe(true)
-            expect(manager.isXvfbRunning()).toBe(true)
-            expect(mockSpawn).toHaveBeenCalled()
+            expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
         })
 
-        it('should not start when not needed', async () => {
+        it('should not setup when not needed', async () => {
             manager = new XvfbManager()
             mockPlatform.mockReturnValue('darwin')
 
-            const result = await manager.start()
+            const result = await manager.init()
 
             expect(result).toBe(false)
-            expect(manager.isXvfbRunning()).toBe(false)
-            expect(mockSpawn).not.toHaveBeenCalled()
         })
 
-        it('should not start if already running', async () => {
-            manager = new XvfbManager()
-
-            await manager.start()
-            mockSpawn.mockClear()
-
-            const result = await manager.start()
-
-            expect(result).toBe(true)
-            expect(mockSpawn).not.toHaveBeenCalled()
-        })
-
-        it('should set environment variables', async () => {
-            manager = new XvfbManager({ display: 42 })
-
-            await manager.start()
-
-            expect(process.env.DISPLAY).toBe(':42')
-            expect(process.env.XDG_SESSION_TYPE).toBe('x11')
-            expect(process.env.XDG_CURRENT_DESKTOP).toBeDefined()
-        })
-
-        it('should start Xvfb with correct arguments', async () => {
-            manager = new XvfbManager({
-                display: 42,
-                screen: '800x600x16',
-                dpi: 72,
-                args: ['--test-arg'],
-            })
-
-            await manager.start()
-
-            expect(mockSpawn).toHaveBeenCalledWith(
-                'Xvfb',
-                [
-                    ':42',
-                    '-screen',
-                    '0',
-                    '800x600x16',
-                    '-ac',
-                    '-nolisten',
-                    'tcp',
-                    '-dpi',
-                    '72',
-                    '--test-arg',
-                ],
-                {
-                    detached: true,
-                    stdio: ['ignore', 'pipe', 'pipe'],
-                }
-            )
-        })
-
-        it('should handle process events', async () => {
-            const onMock = vi.fn()
-            mockProcess.on = onMock
-
-            manager = new XvfbManager()
-
-            await manager.start()
-
-            expect(onMock).toHaveBeenCalledWith('error', expect.any(Function))
-            expect(onMock).toHaveBeenCalledWith('exit', expect.any(Function))
-        })
-
-        it('should skip startup if display is already in use', async () => {
-            // Mock pgrep to return a PID, indicating existing Xvfb process
+        it('should install xvfb when xvfb-run is not available', async () => {
             mockExecAsync.mockImplementation((cmd: string) => {
-                if (cmd === 'which Xvfb') {
-                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
+                if (cmd === 'which xvfb-run' && mockExecAsync.mock.calls.length <= 1) {
+                    return Promise.reject(new Error('not found'))
                 }
-                if (cmd.includes('pgrep')) {
-                    return Promise.resolve({ stdout: '12345', stderr: '' }) // Existing process PID
+                if (cmd === 'which xvfb-run' && mockExecAsync.mock.calls.length > 1) {
+                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
-                if (cmd.includes('xdpyinfo')) {
-                    return Promise.resolve({ stdout: 'display info', stderr: '' })
+                if (cmd === 'cat /etc/os-release') {
+                    return Promise.resolve({ stdout: 'NAME="Ubuntu 20.04 LTS"', stderr: '' })
+                }
+                if (cmd.includes('apt-get install')) {
+                    return Promise.resolve({ stdout: 'Packages installed', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
             })
 
             manager = new XvfbManager()
-
-            const result = await manager.start()
+            const result = await manager.init()
 
             expect(result).toBe(true)
-            expect(mockSpawn).not.toHaveBeenCalled()
-            expect(manager.isXvfbRunning()).toBe(false) // Our instance is not running
+            expect(mockExecAsync).toHaveBeenCalledWith('sudo apt-get update -qq && sudo apt-get install -y xvfb')
         })
     })
 
-    describe('stop', () => {
+    describe('runWithXvfb', () => {
         beforeEach(() => {
             mockPlatform.mockReturnValue('linux')
         })
 
-        it('should stop Xvfb process', async () => {
-            const killMock = vi.fn()
-            mockProcess.kill = killMock
-
-            // Mock the exit event to be triggered immediately after kill
-            const onMock = vi.fn().mockImplementation((event, callback) => {
-                if (event === 'exit') {
-                    setTimeout(() => callback(0, null), 10)
-                }
-                return mockProcess
-            })
-            mockProcess.on = onMock
-
+        it('should execute command with xvfb-run', async () => {
             manager = new XvfbManager()
-            await manager.start()
-            await manager.stop()
+            await manager.init()
 
-            expect(killMock).toHaveBeenCalledWith('SIGTERM')
-            expect(manager.isXvfbRunning()).toBe(false)
-        }, 10000)
+            const result = await manager.runWithXvfb('wdio run ./wdio.conf.js')
 
-        it('should restore original DISPLAY environment', async () => {
-            process.env.DISPLAY = ':original'
+            expect(result.stdout).toBe('Command executed successfully')
+            expect(mockExecAsync).toHaveBeenCalledWith(
+                'xvfb-run --auto-servernum -- wdio run ./wdio.conf.js',
+                { cwd: undefined, env: { ...process.env } }
+            )
+        })
 
-            // Mock the exit event to resolve immediately
-            const onMock = vi.fn().mockImplementation((event, callback) => {
-                if (event === 'exit') {
-                    setTimeout(() => callback(0, null), 10)
-                }
-                return mockProcess
+        it('should throw error if xvfb-run is not available', async () => {
+            manager = new XvfbManager()
+            // Don't call init() to simulate xvfb-run not being available
+
+            await expect(manager.runWithXvfb('wdio run ./wdio.conf.js')).rejects.toThrow(
+                'xvfb-run is not available. Call init() first.'
+            )
+        })
+
+        it('should pass environment variables and working directory', async () => {
+            manager = new XvfbManager()
+            await manager.init()
+
+            await manager.runWithXvfb('wdio run ./wdio.conf.js', {
+                cwd: '/test/dir',
+                env: { TEST_VAR: 'value' }
             })
-            mockProcess.on = onMock
-
-            manager = new XvfbManager({ force: true })
-
-            await manager.start()
-            expect(process.env.DISPLAY).toBe(':99')
-
-            await manager.stop()
-            expect(process.env.DISPLAY).toBe(':original')
-        }, 15000)
-
-        it('should cleanup remaining processes', async () => {
-            // Mock the exit event to resolve immediately
-            const onMock = vi.fn().mockImplementation((event, callback) => {
-                if (event === 'exit') {
-                    setTimeout(() => callback(0, null), 10)
-                }
-                return mockProcess
-            })
-            mockProcess.on = onMock
-
-            manager = new XvfbManager({ display: 42 })
-
-            await manager.start()
-            await manager.stop()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'pkill -f "Xvfb :42" || true'
+                expect.any(String),
+                {
+                    cwd: '/test/dir',
+                    env: { ...process.env, TEST_VAR: 'value' }
+                }
             )
-        }, 10000)
-
-        it('should do nothing if not running', async () => {
-            manager = new XvfbManager()
-
-            await manager.stop()
-
-            expect(manager.isXvfbRunning()).toBe(false)
         })
     })
 
@@ -350,110 +249,89 @@ describe('XvfbManager', () => {
         it('should detect Ubuntu distribution', async () => {
             let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
-                if (cmd.includes('pgrep')) {
-                    return Promise.resolve({ stdout: '', stderr: '' }) // No existing process
-                }
                 callCount++
-                if (cmd === 'which Xvfb' && callCount === 1) {
+                if (cmd === 'which xvfb-run' && callCount === 1) {
                     return Promise.reject(new Error('not found'))
                 }
                 if (cmd === 'cat /etc/os-release') {
                     return Promise.resolve({ stdout: 'NAME="Ubuntu 20.04 LTS"', stderr: '' })
                 }
-                if (cmd === 'sudo apt-get update -qq && sudo apt-get install -y xvfb x11-utils') {
+                if (cmd === 'sudo apt-get update -qq && sudo apt-get install -y xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
                 }
-                if (cmd === 'which Xvfb' && callCount > 1) {
-                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
-                }
-                if (cmd.includes('xdpyinfo')) {
-                    return Promise.resolve({ stdout: '', stderr: '' })
+                if (cmd === 'which xvfb-run' && callCount > 1) {
+                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
             })
 
             manager = new XvfbManager()
-            await manager.start()
+            await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo apt-get update -qq && sudo apt-get install -y xvfb x11-utils'
+                'sudo apt-get update -qq && sudo apt-get install -y xvfb'
             )
         })
 
         it('should detect Fedora distribution', async () => {
             let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
-                if (cmd.includes('pgrep')) {
-                    return Promise.resolve({ stdout: '', stderr: '' }) // No existing process
-                }
                 callCount++
-                if (cmd === 'which Xvfb' && callCount === 1) {
+                if (cmd === 'which xvfb-run' && callCount === 1) {
                     return Promise.reject(new Error('not found'))
                 }
                 if (cmd === 'cat /etc/os-release') {
                     return Promise.resolve({ stdout: 'NAME="Fedora Linux 35"', stderr: '' })
                 }
-                if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb xorg-x11-utils') {
+                if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
                 }
-                if (cmd === 'which Xvfb' && callCount > 1) {
-                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
-                }
-                if (cmd.includes('xdpyinfo')) {
-                    return Promise.resolve({ stdout: '', stderr: '' })
+                if (cmd === 'which xvfb-run' && callCount > 1) {
+                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
             })
 
             manager = new XvfbManager()
-            await manager.start()
+            await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo dnf install -y xorg-x11-server-Xvfb xorg-x11-utils'
+                'sudo dnf install -y xorg-x11-server-Xvfb'
             )
         })
 
         it('should detect Arch Linux distribution', async () => {
             let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
-                if (cmd.includes('pgrep')) {
-                    return Promise.resolve({ stdout: '', stderr: '' }) // No existing process
-                }
                 callCount++
-                if (cmd === 'which Xvfb' && callCount === 1) {
+                if (cmd === 'which xvfb-run' && callCount === 1) {
                     return Promise.reject(new Error('not found'))
                 }
                 if (cmd === 'cat /etc/os-release') {
                     return Promise.resolve({ stdout: 'NAME="Arch Linux"', stderr: '' })
                 }
-                if (cmd === 'sudo pacman -S --noconfirm xorg-server-xvfb xorg-xdpyinfo') {
+                if (cmd === 'sudo pacman -S --noconfirm xorg-server-xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
                 }
-                if (cmd === 'which Xvfb' && callCount > 1) {
-                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
-                }
-                if (cmd.includes('xdpyinfo')) {
-                    return Promise.resolve({ stdout: '', stderr: '' })
+                if (cmd === 'which xvfb-run' && callCount > 1) {
+                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
             })
 
             manager = new XvfbManager()
-            await manager.start()
+            await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo pacman -S --noconfirm xorg-server-xvfb xorg-xdpyinfo'
+                'sudo pacman -S --noconfirm xorg-server-xvfb'
             )
         })
 
         it('should fallback to package manager detection', async () => {
             let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
-                if (cmd.includes('pgrep')) {
-                    return Promise.resolve({ stdout: '', stderr: '' }) // No existing process
-                }
                 callCount++
-                if (cmd === 'which Xvfb' && callCount === 1) {
+                if (cmd === 'which xvfb-run' && callCount === 1) {
                     return Promise.reject(new Error('not found'))
                 }
                 if (cmd === 'cat /etc/os-release') {
@@ -468,29 +346,26 @@ describe('XvfbManager', () => {
                 if (cmd === 'which dnf') {
                     return Promise.resolve({ stdout: '/usr/bin/dnf', stderr: '' })
                 }
-                if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb xorg-x11-utils') {
+                if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
                 }
-                if (cmd === 'which Xvfb' && callCount > 1) {
-                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
-                }
-                if (cmd.includes('xdpyinfo')) {
-                    return Promise.resolve({ stdout: '', stderr: '' })
+                if (cmd === 'which xvfb-run' && callCount > 1) {
+                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
             })
 
             manager = new XvfbManager()
-            await manager.start()
+            await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo dnf install -y xorg-x11-server-Xvfb xorg-x11-utils'
+                'sudo dnf install -y xorg-x11-server-Xvfb'
             )
         })
 
         it('should handle unsupported distributions gracefully', async () => {
             mockExecAsync.mockImplementation((cmd: string) => {
-                if (cmd === 'which Xvfb') {
+                if (cmd === 'which xvfb-run') {
                     return Promise.reject(new Error('not found'))
                 }
                 if (cmd === 'cat /etc/os-release') {
@@ -504,45 +379,9 @@ describe('XvfbManager', () => {
 
             manager = new XvfbManager()
 
-            await expect(manager.start()).rejects.toThrow(
-                "Xvfb is not installed. Please install it manually using your distribution's package manager."
+            await expect(manager.init()).rejects.toThrow(
+                'Unsupported distribution: unknown. Please install Xvfb manually.'
             )
-        })
-    })
-
-    describe('desktop environment detection', () => {
-        beforeEach(() => {
-            mockPlatform.mockReturnValue('linux')
-            // Clear environment variables
-            delete process.env.XDG_CURRENT_DESKTOP
-            delete process.env.GNOME_DESKTOP_SESSION_ID
-            delete process.env.KDE_FULL_SESSION
-            delete process.env.XFCE4_SESSION
-        })
-
-        it('should use existing XDG_CURRENT_DESKTOP', async () => {
-            process.env.XDG_CURRENT_DESKTOP = 'KDE'
-
-            manager = new XvfbManager()
-            await manager.start()
-
-            expect(process.env.XDG_CURRENT_DESKTOP).toBe('KDE')
-        })
-
-        it('should detect GNOME environment', async () => {
-            process.env.GNOME_DESKTOP_SESSION_ID = 'this-session'
-
-            manager = new XvfbManager()
-            await manager.start()
-
-            expect(process.env.XDG_CURRENT_DESKTOP).toBe('GNOME')
-        })
-
-        it('should fallback to generic desktop', async () => {
-            manager = new XvfbManager()
-            await manager.start()
-
-            expect(process.env.XDG_CURRENT_DESKTOP).toBe('X-Generic')
         })
     })
 
@@ -554,22 +393,10 @@ describe('XvfbManager', () => {
         it('should work with default instance', async () => {
             mockPlatform.mockReturnValue('linux')
 
-            // Mock the exit event to resolve immediately
-            const onMock = vi.fn().mockImplementation((event, callback) => {
-                if (event === 'exit') {
-                    setTimeout(() => callback(0, null), 10)
-                }
-                return mockProcess
-            })
-            mockProcess.on = onMock
-
             const testManager = new XvfbManager()
 
-            const result = await testManager.start()
+            const result = await testManager.init()
             expect(result).toBe(true)
-
-            await testManager.stop()
-            expect(testManager.isXvfbRunning()).toBe(false)
-        }, 15000)
+        })
     })
 })
