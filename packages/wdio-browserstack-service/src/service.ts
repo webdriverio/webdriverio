@@ -394,10 +394,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const shouldOverrideResult = ignoreHooksStatus && this._specsRan && hasOnlyHookFailures
 
         if (shouldOverrideResult && result !== 0) {
-            // Use setTimeout to allow any pending async operations to complete
-
-            // Uncommenting this line would result in the test to start passing inside the terminal as well:
-            // setTimeout(() => process.exit(0), 10)
             return
         }
     }
