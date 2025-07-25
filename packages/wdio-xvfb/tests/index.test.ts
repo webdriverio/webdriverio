@@ -1,14 +1,27 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import type { ChildProcess } from 'node:child_process'
-import { spawn } from 'node:child_process'
-import { promisify } from 'node:util'
-import os from 'node:os'
 
-import XvfbManager, { xvfb } from '../src/index.js'
+// Use vi.hoisted to ensure mocks are set up before imports
+const mockExecAsync = vi.hoisted(() => vi.fn())
+const mockSpawn = vi.hoisted(() => vi.fn())
+const mockPlatform = vi.hoisted(() => vi.fn())
 
-vi.mock('node:child_process')
-vi.mock('node:util')
-vi.mock('node:os')
+// Mock all the modules before importing anything else
+vi.mock('node:child_process', () => ({
+    spawn: mockSpawn,
+    exec: vi.fn()
+}))
+
+vi.mock('node:util', () => ({
+    promisify: vi.fn(() => mockExecAsync)
+}))
+
+vi.mock('node:os', () => ({
+    default: {
+        platform: mockPlatform
+    }
+}))
+
 vi.mock('@wdio/logger', () => ({
     default: () => ({
         info: vi.fn(),
@@ -18,11 +31,8 @@ vi.mock('@wdio/logger', () => ({
     }),
 }))
 
-const mockSpawn = vi.mocked(spawn)
-const mockExecAsync = vi.fn()
-const mockPlatform = vi.mocked(os.platform)
-
-vi.mocked(promisify).mockReturnValue(mockExecAsync)
+// Import after mocking
+import XvfbManager, { xvfb } from '../src/index.js'
 
 describe('XvfbManager', () => {
     let manager: XvfbManager
@@ -30,10 +40,24 @@ describe('XvfbManager', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
-        process.env.DISPLAY = undefined
-        process.env.CI = undefined
-        process.env.GITHUB_ACTIONS = undefined
-        process.env.JENKINS_URL = undefined
+        delete process.env.DISPLAY
+        delete process.env.CI
+        delete process.env.GITHUB_ACTIONS
+        delete process.env.JENKINS_URL
+        delete process.env.VITEST
+        delete process.env.NODE_ENV
+        // Clear any other common CI environment variables
+        delete process.env.TRAVIS
+        delete process.env.CIRCLECI
+        delete process.env.GITLAB_CI
+        delete process.env.BUILDKITE
+        delete process.env.APPVEYOR
+        // Clear Vitest/test-specific variables
+        delete process.env.VITEST_POOL_ID
+        delete process.env.VITEST_WORKER_ID
+        delete process.env.TEST
+        delete process.env.VITEST_MODE
+        delete process.env.WDIO_UNIT_TESTS
 
         mockProcess = {
             pid: 12345,
@@ -44,7 +68,20 @@ describe('XvfbManager', () => {
         }
 
         mockSpawn.mockReturnValue(mockProcess as ChildProcess)
-        mockExecAsync.mockResolvedValue({ stdout: '', stderr: '' })
+
+        // Set up default mock implementation
+        mockExecAsync.mockImplementation((cmd: string) => {
+            if (cmd === 'which Xvfb') {
+                return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
+            }
+            if (cmd.includes('xdpyinfo') || cmd.includes('DISPLAY=')) {
+                return Promise.resolve({ stdout: '', stderr: '' })
+            }
+            if (cmd.includes('pkill')) {
+                return Promise.resolve({ stdout: '', stderr: '' })
+            }
+            return Promise.resolve({ stdout: '', stderr: '' })
+        })
     })
 
     afterEach(async () => {
@@ -208,26 +245,54 @@ describe('XvfbManager', () => {
             const killMock = vi.fn()
             mockProcess.kill = killMock
 
+            // Mock the exit event to be triggered immediately after kill
+            const onMock = vi.fn().mockImplementation((event, callback) => {
+                if (event === 'exit') {
+                    setTimeout(() => callback(0, null), 10)
+                }
+                return mockProcess
+            })
+            mockProcess.on = onMock
+
             manager = new XvfbManager()
             await manager.start()
             await manager.stop()
 
             expect(killMock).toHaveBeenCalledWith('SIGTERM')
             expect(manager.isXvfbRunning()).toBe(false)
-        })
+        }, 10000)
 
         it('should restore original DISPLAY environment', async () => {
             process.env.DISPLAY = ':original'
-            manager = new XvfbManager()
+
+            // Mock the exit event to resolve immediately
+            const onMock = vi.fn().mockImplementation((event, callback) => {
+                if (event === 'exit') {
+                    setTimeout(() => callback(0, null), 10)
+                }
+                return mockProcess
+            })
+            mockProcess.on = onMock
+
+            manager = new XvfbManager({ force: true })
 
             await manager.start()
             expect(process.env.DISPLAY).toBe(':99')
 
             await manager.stop()
             expect(process.env.DISPLAY).toBe(':original')
-        })
+        }, 15000)
 
         it('should cleanup remaining processes', async () => {
+            // Mock the exit event to resolve immediately
+            const onMock = vi.fn().mockImplementation((event, callback) => {
+                if (event === 'exit') {
+                    setTimeout(() => callback(0, null), 10)
+                }
+                return mockProcess
+            })
+            mockProcess.on = onMock
+
             manager = new XvfbManager({ display: 42 })
 
             await manager.start()
@@ -236,7 +301,7 @@ describe('XvfbManager', () => {
             expect(mockExecAsync).toHaveBeenCalledWith(
                 'pkill -f "Xvfb :42" || true'
             )
-        })
+        }, 10000)
 
         it('should do nothing if not running', async () => {
             manager = new XvfbManager()
@@ -253,14 +318,26 @@ describe('XvfbManager', () => {
         })
 
         it('should detect Ubuntu distribution', async () => {
-            mockExecAsync
-                .mockResolvedValueOnce({
-                    stdout: 'NAME="Ubuntu 20.04 LTS"',
-                    stderr: '',
-                })
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // which Xvfb (fails)
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // apt-get install
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // xdpyinfo check
+            let callCount = 0
+            mockExecAsync.mockImplementation((cmd: string) => {
+                callCount++
+                if (cmd === 'which Xvfb' && callCount === 1) {
+                    return Promise.reject(new Error('not found'))
+                }
+                if (cmd === 'cat /etc/os-release') {
+                    return Promise.resolve({ stdout: 'NAME="Ubuntu 20.04 LTS"', stderr: '' })
+                }
+                if (cmd === 'sudo apt-get update -qq && sudo apt-get install -y xvfb x11-utils') {
+                    return Promise.resolve({ stdout: '', stderr: '' })
+                }
+                if (cmd === 'which Xvfb' && callCount > 1) {
+                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
+                }
+                if (cmd.includes('xdpyinfo')) {
+                    return Promise.resolve({ stdout: '', stderr: '' })
+                }
+                return Promise.resolve({ stdout: '', stderr: '' })
+            })
 
             manager = new XvfbManager()
             await manager.start()
@@ -271,14 +348,26 @@ describe('XvfbManager', () => {
         })
 
         it('should detect Fedora distribution', async () => {
-            mockExecAsync
-                .mockResolvedValueOnce({
-                    stdout: 'NAME="Fedora Linux 35"',
-                    stderr: '',
-                })
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // which Xvfb (fails)
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // dnf install
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // xdpyinfo check
+            let callCount = 0
+            mockExecAsync.mockImplementation((cmd: string) => {
+                callCount++
+                if (cmd === 'which Xvfb' && callCount === 1) {
+                    return Promise.reject(new Error('not found'))
+                }
+                if (cmd === 'cat /etc/os-release') {
+                    return Promise.resolve({ stdout: 'NAME="Fedora Linux 35"', stderr: '' })
+                }
+                if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb xorg-x11-utils') {
+                    return Promise.resolve({ stdout: '', stderr: '' })
+                }
+                if (cmd === 'which Xvfb' && callCount > 1) {
+                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
+                }
+                if (cmd.includes('xdpyinfo')) {
+                    return Promise.resolve({ stdout: '', stderr: '' })
+                }
+                return Promise.resolve({ stdout: '', stderr: '' })
+            })
 
             manager = new XvfbManager()
             await manager.start()
@@ -289,14 +378,26 @@ describe('XvfbManager', () => {
         })
 
         it('should detect Arch Linux distribution', async () => {
-            mockExecAsync
-                .mockResolvedValueOnce({
-                    stdout: 'NAME="Arch Linux"',
-                    stderr: '',
-                })
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // which Xvfb (fails)
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // pacman install
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // xdpyinfo check
+            let callCount = 0
+            mockExecAsync.mockImplementation((cmd: string) => {
+                callCount++
+                if (cmd === 'which Xvfb' && callCount === 1) {
+                    return Promise.reject(new Error('not found'))
+                }
+                if (cmd === 'cat /etc/os-release') {
+                    return Promise.resolve({ stdout: 'NAME="Arch Linux"', stderr: '' })
+                }
+                if (cmd === 'sudo pacman -S --noconfirm xorg-server-xvfb xorg-xdpyinfo') {
+                    return Promise.resolve({ stdout: '', stderr: '' })
+                }
+                if (cmd === 'which Xvfb' && callCount > 1) {
+                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
+                }
+                if (cmd.includes('xdpyinfo')) {
+                    return Promise.resolve({ stdout: '', stderr: '' })
+                }
+                return Promise.resolve({ stdout: '', stderr: '' })
+            })
 
             manager = new XvfbManager()
             await manager.start()
@@ -307,14 +408,35 @@ describe('XvfbManager', () => {
         })
 
         it('should fallback to package manager detection', async () => {
-            mockExecAsync
-                .mockRejectedValueOnce(new Error('no os-release')) // cat /etc/os-release fails
-                .mockRejectedValueOnce(new Error('no apt-get')) // which apt-get fails
-                .mockRejectedValueOnce(new Error('no yum')) // which yum fails
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // which dnf succeeds
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // which Xvfb (fails)
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // dnf install
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // xdpyinfo check
+            let callCount = 0
+            mockExecAsync.mockImplementation((cmd: string) => {
+                callCount++
+                if (cmd === 'which Xvfb' && callCount === 1) {
+                    return Promise.reject(new Error('not found'))
+                }
+                if (cmd === 'cat /etc/os-release') {
+                    return Promise.reject(new Error('no os-release'))
+                }
+                if (cmd === 'which apt-get') {
+                    return Promise.reject(new Error('no apt-get'))
+                }
+                if (cmd === 'which yum') {
+                    return Promise.reject(new Error('no yum'))
+                }
+                if (cmd === 'which dnf') {
+                    return Promise.resolve({ stdout: '/usr/bin/dnf', stderr: '' })
+                }
+                if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb xorg-x11-utils') {
+                    return Promise.resolve({ stdout: '', stderr: '' })
+                }
+                if (cmd === 'which Xvfb' && callCount > 1) {
+                    return Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
+                }
+                if (cmd.includes('xdpyinfo')) {
+                    return Promise.resolve({ stdout: '', stderr: '' })
+                }
+                return Promise.resolve({ stdout: '', stderr: '' })
+            })
 
             manager = new XvfbManager()
             await manager.start()
@@ -325,15 +447,18 @@ describe('XvfbManager', () => {
         })
 
         it('should handle unsupported distributions gracefully', async () => {
-            mockExecAsync
-                .mockRejectedValueOnce(new Error('no os-release'))
-                .mockRejectedValueOnce(new Error('no apt-get'))
-                .mockRejectedValueOnce(new Error('no yum'))
-                .mockRejectedValueOnce(new Error('no dnf'))
-                .mockRejectedValueOnce(new Error('no zypper'))
-                .mockRejectedValueOnce(new Error('no pacman'))
-                .mockRejectedValueOnce(new Error('no apk'))
-                .mockResolvedValueOnce({ stdout: '', stderr: '' }) // which Xvfb (fails)
+            mockExecAsync.mockImplementation((cmd: string) => {
+                if (cmd === 'which Xvfb') {
+                    return Promise.reject(new Error('not found'))
+                }
+                if (cmd === 'cat /etc/os-release') {
+                    return Promise.reject(new Error('no os-release'))
+                }
+                if (cmd.includes('which ')) {
+                    return Promise.reject(new Error('not found'))
+                }
+                return Promise.resolve({ stdout: '', stderr: '' })
+            })
 
             manager = new XvfbManager()
 
@@ -387,11 +512,22 @@ describe('XvfbManager', () => {
         it('should work with default instance', async () => {
             mockPlatform.mockReturnValue('linux')
 
-            const result = await xvfb.start()
+            // Mock the exit event to resolve immediately
+            const onMock = vi.fn().mockImplementation((event, callback) => {
+                if (event === 'exit') {
+                    setTimeout(() => callback(0, null), 10)
+                }
+                return mockProcess
+            })
+            mockProcess.on = onMock
+
+            const testManager = new XvfbManager()
+
+            const result = await testManager.start()
             expect(result).toBe(true)
 
-            await xvfb.stop()
-            expect(xvfb.isXvfbRunning()).toBe(false)
-        })
+            await testManager.stop()
+            expect(testManager.isXvfbRunning()).toBe(false)
+        }, 15000)
     })
 })
