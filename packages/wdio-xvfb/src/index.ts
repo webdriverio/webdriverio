@@ -97,7 +97,7 @@ export class XvfbManager {
         }
     }
 
-    private async detectDistribution(): Promise<string> {
+    protected async detectDistribution(): Promise<string> {
         try {
             const { stdout } = await execAsync('cat /etc/os-release')
             if (stdout.includes('ubuntu') || stdout.includes('Ubuntu')) {

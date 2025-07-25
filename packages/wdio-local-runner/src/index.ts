@@ -10,6 +10,7 @@ import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
 const log = logger('@wdio/local-runner')
 
 export type { WorkerInstance }
+export { ProcessFactory }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
     command: string
