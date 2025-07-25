@@ -251,11 +251,16 @@ export class XvfbManager {
 
         // Install required packages
         try {
-            await execAsync('which Xvfb')
-        } catch {
+            const { stdout } = await execAsync('which Xvfb')
+            this.log.info(`Found Xvfb at: ${stdout.trim()}`)
+        } catch (error) {
+            this.log.info(`Xvfb not found in PATH: ${error}`)
             this.log.info('Installing XVFB and X11 utilities...')
             try {
                 await this.installXvfbPackages()
+                // Verify installation worked
+                const { stdout } = await execAsync('which Xvfb')
+                this.log.info(`Successfully installed Xvfb at: ${stdout.trim()}`)
             } catch (error) {
                 this.log.warn('Failed to install xvfb automatically:', error)
                 throw new Error(
@@ -295,11 +300,11 @@ export class XvfbManager {
         })
 
         this.xvfbProcess.stdout?.on('data', (data) => {
-            this.log.debug(`Xvfb stdout: ${data}`)
+            this.log.info(`Xvfb stdout: ${data}`)
         })
 
         this.xvfbProcess.stderr?.on('data', (data) => {
-            this.log.debug(`Xvfb stderr: ${data}`)
+            this.log.info(`Xvfb stderr: ${data}`)
         })
 
         this.xvfbProcess.on('error', (error) => {
