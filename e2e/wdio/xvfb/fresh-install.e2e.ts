@@ -59,7 +59,7 @@ describe('xvfb fresh installation', () => {
 
         // Import ProcessFactory and test its behavior
         const { ProcessFactory } = await import('@wdio/local-runner')
-        const processFactory = new ProcessFactory(xvfbManager)
+        const processFactory = new ProcessFactory()
 
         // Create a mock worker process
         const mockProcess = processFactory.createWorkerProcess(
@@ -83,16 +83,16 @@ describe('xvfb fresh installation', () => {
     })
 
     it('should handle installation failures gracefully', async () => {
-        // Create a manager that will fail installation by simulating unsupported distro
+        // Create a manager that will fail installation by simulating unsupported package manager
         const failingManager = new (class extends XvfbManager {
-            // Override detectDistribution to return unsupported distro
-            protected async detectDistribution(): Promise<string> {
-                return 'unsupported-distro'
+            // Override detectPackageManager to return unsupported package manager
+            protected async detectPackageManager(): Promise<string> {
+                return 'unsupported-manager'
             }
         })()
 
-        // Should throw error for unsupported distribution
-        await expect(failingManager.init()).rejects.toThrow('Unsupported distribution')
+        // Should throw error for unsupported package manager
+        await expect(failingManager.init()).rejects.toThrow('Unsupported package manager')
     })
 
     afterEach(() => {

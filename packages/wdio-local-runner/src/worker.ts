@@ -11,7 +11,7 @@ import logger from '@wdio/logger'
 import runnerTransformStream from './transformStream.js'
 import ReplQueue from './replQueue.js'
 import RunnerStream from './stdStream.js'
-import type { ProcessCreator } from './processFactory.js'
+import { ProcessFactory } from './processFactory.js'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -45,7 +45,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     sessionId?: string
     server?: Record<string, string>
     logsAggregator: string[] = []
-    processCreator: ProcessCreator
+    #processFactory = new ProcessFactory()
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -71,8 +71,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
-        stderr: WritableStreamBuffer,
-        processCreator: ProcessCreator
+        stderr: WritableStreamBuffer
     ) {
         super()
         this.cid = cid
@@ -85,7 +84,6 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.retries = retries
         this.stdout = stdout
         this.stderr = stderr
-        this.processCreator = processCreator
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
@@ -117,7 +115,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 
         // Use ProcessFactory to create the appropriate process
-        const childProcess = this.childProcess = this.processCreator.createWorkerProcess(
+        const childProcess = this.childProcess = this.#processFactory.createWorkerProcess(
             path.join(__dirname, 'run.js'),
             argv,
             {

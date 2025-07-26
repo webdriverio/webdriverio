@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
+import { xvfb } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
@@ -18,7 +19,6 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
-    #processFactory = new ProcessFactory()
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -64,8 +64,7 @@ export default class LocalRunner {
             this._config,
             workerOptions,
             this.stdout,
-            this.stderr,
-            this.#processFactory
+            this.stderr
         )
         this.workerPool[workerOptions.cid] = worker
         worker.postMessage(command, args)
