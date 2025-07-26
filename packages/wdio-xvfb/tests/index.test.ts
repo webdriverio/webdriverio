@@ -22,6 +22,10 @@ vi.mock('node:os', () => ({
     }
 }))
 
+vi.mock('is-ci', () => ({
+    default: vi.fn(() => true)
+}))
+
 vi.mock('@wdio/logger', () => ({
     default: () => ({
         info: vi.fn(),
