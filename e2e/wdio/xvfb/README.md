@@ -20,9 +20,14 @@ This directory contains end-to-end tests for the WebDriverIO xvfb integration fu
 
 Each test scenario runs in multiple Linux distributions:
 
-- **Ubuntu 22.04**: Clean and with-xvfb variants
-- **Fedora 38**: Clean and with-xvfb variants  
-- **Alpine 3.18**: Clean and with-xvfb variants
+- **Ubuntu 24.04**: Clean and with-xvfb variants
+- **Debian 12**: Clean and with-xvfb variants
+- **Fedora 40**: Clean and with-xvfb variants
+- **Rocky Linux 9**: Clean and with-xvfb variants (CentOS replacement)
+- **CentOS Stream 9**: Clean and with-xvfb variants (upstream RHEL)
+- **Arch Linux**: Clean and with-xvfb variants
+- **SUSE Leap 15.6**: Clean and with-xvfb variants
+- **Alpine 3.20**: Clean and with-xvfb variants
 
 ### Configuration
 
@@ -54,11 +59,16 @@ The workflow creates Docker containers for each distribution/scenario combinatio
 
 ## Test Matrix
 
-| Distribution | Version | Clean System | With XVFB |
-|-------------|---------|--------------|-----------|
-| Ubuntu      | 22.04   | ✅           | ✅        |
-| Fedora      | 38      | ✅           | ✅        |
-| Alpine      | 3.18    | ✅           | ✅        |
+| Distribution    | Version | Clean System | With XVFB |
+|----------------|---------|--------------|-----------|
+| Ubuntu         | 24.04   | ✅           | ✅        |
+| Debian         | 12      | ✅           | ✅        |
+| Fedora         | 40      | ✅           | ✅        |
+| Rocky Linux    | 9       | ✅           | ✅        |
+| CentOS Stream  | 9       | ✅           | ✅        |
+| Arch Linux     | latest  | ✅           | ✅        |
+| SUSE Leap      | 15.6    | ✅           | ✅        |
+| Alpine         | 3.20    | ✅           | ✅        |
 
 ## What These Tests Verify
 
