@@ -13,53 +13,44 @@ npm install @wdio/xvfb
 ### Basic Usage
 
 ```js
-import { xvfb } from '@wdio/xvfb'
+import { xvfb } from "@wdio/xvfb";
 
-// Start Xvfb if needed (only on Linux in headless environments)
-const started = await xvfb.start()
+// Initialize xvfb-run (only works on Linux in headless environments)
+const ready = await xvfb.init();
 
-if (started) {
-    console.log(`Xvfb running on display ${xvfb.getDisplay()}`)
-    
-    // Your headless browser tests here...
-    
-    // Clean up when done
-    await xvfb.stop()
+if (ready) {
+    console.log("xvfb-run is ready for use");
+    // Use xvfb-run to execute commands that need a display
+    // e.g., xvfb-run npm test
 }
 ```
 
 ### Custom Instance
 
 ```js
-import XvfbManager from '@wdio/xvfb'
+import XvfbManager from "@wdio/xvfb";
 
 const manager = new XvfbManager({
-    display: 42,
-    screen: '1280x720x24',
-    dpi: 96,
-    args: ['--extension', 'GLX']
-})
+    force: true, // Force on non-Linux systems for testing
+});
 
-await manager.start()
-// ... your tests
-await manager.stop()
+const ready = await manager.init();
+if (ready) {
+    // xvfb-run is available for use
+}
 ```
 
 ### Integration with @wdio/local-runner
 
-The `@wdio/local-runner` can use this utility to ensure Xvfb is running:
+The `@wdio/local-runner` can use this utility to ensure xvfb-run is available:
 
 ```js
 // In local-runner
-import { xvfb } from '@wdio/xvfb'
+import { xvfb } from "@wdio/xvfb";
 
 export class LocalRunner {
     async onPrepare() {
-        await xvfb.start()
-    }
-    
-    async onComplete() {
-        await xvfb.stop()
+        await xvfb.init(); // Ensures xvfb-run is available
     }
 }
 ```
@@ -72,133 +63,146 @@ export class LocalRunner {
 
 ```ts
 interface XvfbOptions {
-    display?: number              // Display number (default: 99)
-    screen?: string              // Screen resolution (default: '1024x768x24')
-    dpi?: number                 // DPI setting (default: 96)
-    args?: string[]              // Additional Xvfb arguments
-    force?: boolean              // Force Xvfb even on non-Linux systems
-    logger?: Logger              // Custom logger instance
+    force?: boolean; // Force Xvfb even on non-Linux systems (for testing)
 }
 ```
 
 #### Methods
 
-- **`shouldRun(): boolean`** - Check if Xvfb should run on this system
-- **`start(): Promise<boolean>`** - Start Xvfb if needed, returns true if started
-- **`stop(): Promise<void>`** - Stop Xvfb and cleanup
-- **`getDisplay(): string`** - Get the current display (e.g., ':99')
-- **`isXvfbRunning(): boolean`** - Check if Xvfb is currently running
+-   **`shouldRun(): boolean`** - Check if Xvfb should run on this system
+-   **`init(): Promise<boolean>`** - Initialize xvfb-run, returns true if ready, false if not needed
 
 ### Default Instance
 
 A default instance is exported for convenience:
 
 ```js
-import { xvfb } from '@wdio/xvfb'
+import { xvfb } from "@wdio/xvfb";
 ```
 
 ## When does it run?
 
 The utility automatically detects when Xvfb is needed:
 
-- ✅ Linux systems without a DISPLAY environment variable
-- ✅ Linux systems in CI environments (CI, GITHUB_ACTIONS, JENKINS_URL)
-- ❌ Non-Linux systems (unless `force: true`)
-- ❌ Linux systems with existing DISPLAY (unless in CI)
+-   ✅ Linux systems without a DISPLAY environment variable
+-   ✅ Linux systems in CI environments (uses `is-ci` package for detection)
+-   ❌ Non-Linux systems (unless `force: true`)
+-   ❌ Linux systems with existing DISPLAY (unless in CI)
 
 ## Features
 
-- **Conditional execution**: Only runs on Linux systems in headless environments
-- **Cross-distro support**: Works on Ubuntu, Debian, Fedora, CentOS, RHEL, SUSE, Arch, and Alpine
-- **Automatic setup**: Installs required packages if not present using the appropriate package manager
-- **Environment management**: Sets up proper display and desktop environment variables
-- **Graceful cleanup**: Properly terminates Xvfb processes on cleanup
-- **State tracking**: Prevents duplicate starts and handles multiple calls safely
-- **Flexible logging**: Configurable logger support
+-   **Conditional execution**: Only runs on Linux systems in headless environments
+-   **Cross-distro support**: Works on Ubuntu, Debian, Fedora, CentOS, RHEL, SUSE, Arch, and Alpine
+-   **Automatic setup**: Installs required packages if not present using the appropriate package manager
+-   **Command execution**: Execute commands under Xvfb using `xvfb-run`
+-   **Graceful cleanup**: Automatic cleanup when commands complete
+-   **State tracking**: Prevents duplicate starts and handles multiple calls safely
+-   **Flexible logging**: Configurable logger support
 
-## Environment Variables Set
+## Implementation Details
 
-When active, the utility sets these environment variables:
+This package uses `xvfb-run` to manage Xvfb sessions, which:
 
-- `DISPLAY`: Set to `:${display}` (e.g., `:99`)
-- `XDG_SESSION_TYPE`: Set to `x11`
-- `XDG_CURRENT_DESKTOP`: Auto-detected based on current environment or set to generic fallback
+-   Automatically selects available display numbers with `--auto-servernum`
+-   Configures screen resolution, DPI, and other display settings
+-   Handles process cleanup automatically when commands complete
+-   Supports custom arguments for advanced Xvfb configuration
 
 ## Supported Linux Distributions
 
 The utility automatically detects and supports package installation on:
 
-- **Ubuntu/Debian**: Uses `apt-get` to install `xvfb` and `x11-utils`
-- **Fedora**: Uses `dnf` to install `xorg-x11-server-Xvfb` and `xorg-x11-utils`
-- **CentOS/RHEL**: Uses `yum` to install `xorg-x11-server-Xvfb` and `xorg-x11-utils`
-- **SUSE**: Uses `zypper` to install `xvfb` and `x11-utils`
-- **Arch Linux**: Uses `pacman` to install `xorg-server-xvfb` and `xorg-xdpyinfo`
-- **Alpine**: Uses `apk` to install `xvfb` and `x11vnc`
+-   **Ubuntu/Debian**: Uses `apt-get` to install `xvfb`
+-   **Fedora**: Uses `dnf` to install `xorg-x11-server-Xvfb`
+-   **Rocky Linux**: Uses `dnf` to install `xorg-x11-server-Xvfb`
+-   **CentOS/RHEL**: Uses `yum` to install `xorg-x11-server-Xvfb`
+-   **SUSE**: Uses `zypper` to install `xvfb`
+-   **Arch Linux**: Uses `pacman` to install `xorg-server-xvfb`
+-   **Alpine**: Uses `apk` to install `xvfb`
 
 ## Examples
+
+### Basic Setup for Testing
+
+```js
+import { xvfb } from "@wdio/xvfb";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
+async function runTests() {
+    // Ensure xvfb-run is available
+    const ready = await xvfb.init();
+
+    if (ready) {
+        // Use xvfb-run to execute tests that need a display
+        const { stdout, stderr } = await execAsync("xvfb-run npm test");
+        console.log("Test output:", stdout);
+        if (stderr) console.error("Errors:", stderr);
+    } else {
+        // Not on Linux or display already available
+        const { stdout, stderr } = await execAsync("npm test");
+        console.log("Test output:", stdout);
+    }
+}
+```
 
 ### Electron Testing
 
 ```js
-import { xvfb } from '@wdio/xvfb'
-import { spawn } from 'child_process'
+import { xvfb } from "@wdio/xvfb";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 async function testElectronApp() {
-    await xvfb.start()
-    
-    const electron = spawn('electron', ['./app'])
-    
-    // Wait for tests to complete
-    await new Promise(resolve => electron.on('exit', resolve))
-    
-    await xvfb.stop()
+    const ready = await xvfb.init();
+
+    const command = ready
+        ? "xvfb-run electron ./app --test"
+        : "electron ./app --test";
+    const { stdout, stderr } = await execAsync(command);
+
+    console.log("Electron output:", stdout);
 }
 ```
 
-### Browser Testing Setup
+### Force Mode for Testing
 
 ```js
-import { xvfb } from '@wdio/xvfb'
-import { Builder } from 'selenium-webdriver'
-import chrome from 'selenium-webdriver/chrome.js'
+import XvfbManager from "@wdio/xvfb";
 
-async function setupBrowser() {
-    await xvfb.start()
-    
-    const options = new chrome.Options()
-    if (xvfb.isXvfbRunning()) {
-        options.addArguments('--no-sandbox')
-        options.addArguments('--disable-dev-shm-usage')
+const manager = new XvfbManager({
+    force: true, // Force even on non-Linux systems
+});
+
+async function runTestsWithForce() {
+    const ready = await manager.init();
+
+    if (ready) {
+        console.log("xvfb-run is ready for use");
+        // Proceed with xvfb-run commands
     }
-    
-    const driver = await new Builder()
-        .forBrowser('chrome')
-        .setChromeOptions(options)
-        .build()
-    
-    return driver
 }
 ```
 
-### Custom Display Management
+### Multiple Instances
 
 ```js
-import XvfbManager from '@wdio/xvfb'
+import XvfbManager from "@wdio/xvfb";
 
-// Multiple displays for parallel testing
-const displays = [
-    new XvfbManager({ display: 99 }),
-    new XvfbManager({ display: 100 }),
-    new XvfbManager({ display: 101 })
-]
+// Multiple managers for different scenarios
+const managers = [
+    new XvfbManager(), // Default
+    new XvfbManager({ force: true }), // Forced
+];
 
-// Start all displays
-await Promise.all(displays.map(d => d.start()))
+// Initialize all managers
+const results = await Promise.all(managers.map((m) => m.init()));
 
-// Run parallel tests on different displays...
-
-// Cleanup all displays
-await Promise.all(displays.map(d => d.stop()))
+console.log("Managers ready:", results);
 ```
 
 ## Logging
@@ -209,31 +213,7 @@ The utility uses `@wdio/logger` with the namespace `@wdio/xvfb`. Enable debug lo
 DEBUG=@wdio/xvfb npm run test
 ```
 
-Or provide a custom logger:
-
-```js
-import logger from '@wdio/logger'
-import XvfbManager from '@wdio/xvfb'
-
-const customLogger = logger('my-app:xvfb')
-const manager = new XvfbManager({ logger: customLogger })
-```
-
-## Requirements
-
-- Linux system (for automatic operation)
-- `sudo` access for installing packages
-- Node.js >= 18
-
-## Error Handling
-
-The utility handles common error scenarios:
-
-- **Missing Xvfb**: Attempts automatic installation
-- **Unsupported distros**: Provides clear error messages
-- **Process failures**: Graceful cleanup and error reporting
-- **Multiple starts**: Safe to call `start()` multiple times
-- **Cleanup failures**: Best-effort cleanup with logging
+The logger is automatically created with the namespace `@wdio/xvfb` and cannot be customized in the current interface.
 
 ## License
 
