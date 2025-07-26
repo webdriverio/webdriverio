@@ -130,6 +130,9 @@ jobs:
             -e WDIO_LOG_LEVEL=debug \
             xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
             bash -c "
+              set -e
+              set -o pipefail
+              
               # Fix permissions for testuser to access workspace
               sudo chown -R testuser:testuser /workspace/
               sudo chmod -R 755 /workspace/
@@ -138,20 +141,13 @@ jobs:
               pnpm install --frozen-lockfile
               
               # Run the appropriate E2E test based on scenario
-              TEST_EXIT_CODE=0
               if [ '${{ matrix.scenario }}' = 'clean' ]; then
                 cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec fresh-install.e2e.ts 2>&1 | tee /workspace/e2e/wdio/xvfb/test-output.log
-                TEST_EXIT_CODE=\$?
               else
                 cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec existing-xvfb.e2e.ts 2>&1 | tee /workspace/e2e/wdio/xvfb/test-output.log
-                TEST_EXIT_CODE=\$?
               fi
               
-              if [ \$TEST_EXIT_CODE -ne 0 ]; then
-                echo 'Test failed - see logs above'
-              fi
-              
-              # Display logs on failure for debugging
+              # Display logs for debugging
               if [ -f /workspace/e2e/wdio/xvfb/test-output.log ]; then
                 echo '=== WDIO Test Output ==='
                 cat /workspace/e2e/wdio/xvfb/test-output.log
@@ -172,9 +168,6 @@ jobs:
                 echo '=== Chromedriver Log ==='
                 cat /workspace/e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log
               fi
-              
-              # Exit with the test result code to fail the job if tests failed
-              exit \$TEST_EXIT_CODE
             "
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
