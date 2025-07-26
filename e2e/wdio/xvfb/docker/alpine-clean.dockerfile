@@ -22,6 +22,9 @@ RUN apk add --no-cache chromium
 # Set Chrome binary path for Alpine (uses chromium)
 ENV CHROME_BIN=/usr/bin/chromium-browser
 
+# Ensure clean environment by removing any xvfb packages
+RUN apk del xvfb xvfb-run || true
+
 # Verify xvfb-run is NOT available
 RUN ! which xvfb-run || exit 1
 

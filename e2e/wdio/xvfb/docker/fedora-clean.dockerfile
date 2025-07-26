@@ -27,6 +27,11 @@ RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \
     dnf install -y google-chrome-stable && \
     dnf clean all
 
+# Ensure clean environment by removing any xvfb packages
+RUN dnf remove -y xorg-x11-server-Xvfb xvfb-run || true && \
+    dnf autoremove -y && \
+    dnf clean all
+
 # Verify xvfb-run is NOT available  
 RUN ! which xvfb-run || exit 1
 

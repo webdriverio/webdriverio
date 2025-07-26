@@ -20,6 +20,9 @@ RUN npm install -g pnpm
 # Install Chrome for testing
 RUN pacman -S --noconfirm google-chrome
 
+# Ensure clean environment by removing any xvfb packages
+RUN pacman -R --noconfirm xorg-server-xvfb xvfb-run || true
+
 # Verify xvfb-run is NOT available  
 RUN ! which xvfb-run || exit 1
 

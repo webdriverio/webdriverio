@@ -22,6 +22,11 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Ensure clean environment by removing any xvfb packages
+RUN apt-get remove -y xvfb xvfb-run || true && \
+    apt-get autoremove -y && \
+    apt-get clean
+
 # Install Node.js 18 (current LTS)
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs
