@@ -1,17 +1,20 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
+import { xvfb } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
+import { ProcessFactory } from './processFactory.js'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
 
 const log = logger('@wdio/local-runner')
 
 export type { WorkerInstance }
+export { ProcessFactory }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
-    command: string
-    args: Workers.WorkerMessageArgs
+    command: string;
+    args: Workers.WorkerMessageArgs;
 }
 
 export default class LocalRunner {
@@ -20,21 +23,34 @@ export default class LocalRunner {
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
 
-    constructor (
+    constructor(
         private _options: never,
         protected _config: WebdriverIO.Config
     ) {}
 
     /**
-     * nothing to initialize when running locally
+     * initialize local runner environment
      */
-    initialize () {}
+    async initialize() {
+        // Initialize Xvfb if needed for headless testing
+        try {
+            const xvfbInitialized = await xvfb.init()
+            if (xvfbInitialized) {
+                log.info('Xvfb is ready for use')
+            }
+        } catch (error) {
+            log.warn(
+                'Failed to initialize Xvfb, continuing without virtual display:',
+                error
+            )
+        }
+    }
 
-    getWorkerCount () {
+    getWorkerCount() {
         return Object.keys(this.workerPool).length
     }
 
-    async run ({ command, args, ...workerOptions }: RunArgs) {
+    async run({ command, args, ...workerOptions }: RunArgs) {
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */
@@ -44,7 +60,12 @@ export default class LocalRunner {
             process.stderr.setMaxListeners(workerCnt + 2)
         }
 
-        const worker = new WorkerInstance(this._config, workerOptions, this.stdout, this.stderr)
+        const worker = new WorkerInstance(
+            this._config,
+            workerOptions,
+            this.stdout,
+            this.stderr
+        )
         this.workerPool[workerOptions.cid] = worker
         worker.postMessage(command, args)
         return worker
@@ -56,11 +77,18 @@ export default class LocalRunner {
      * @return {Promise}  resolves when all worker have been shutdown or
      *                    a timeout was reached
      */
-    shutdown () {
+    async shutdown() {
         log.info('Shutting down spawned worker')
 
         for (const [cid, worker] of Object.entries(this.workerPool)) {
-            const { capabilities, server, sessionId, config, isMultiremote, instances } = worker
+            const {
+                capabilities,
+                server,
+                sessionId,
+                config,
+                isMultiremote,
+                instances,
+            } = worker
             let payload: Partial<Workers.WorkerMessageArgs> = {}
 
             /**
@@ -73,7 +101,7 @@ export default class LocalRunner {
                     capabilities,
                     watch: true,
                     isMultiremote,
-                    instances
+                    instances,
                 } as unknown as Workers.WorkerMessageArgs
             } else if (!worker.isBusy) {
                 delete this.workerPool[cid]
@@ -83,11 +111,12 @@ export default class LocalRunner {
             worker.postMessage('endSession', payload)
         }
 
-        return new Promise<boolean>((resolve) => {
+        const shutdownResult = await new Promise<boolean>((resolve) => {
             const timeout = setTimeout(resolve, SHUTDOWN_TIMEOUT)
             const interval = setInterval(() => {
-                const busyWorker = Object.entries(this.workerPool)
-                    .filter(([, worker]) => worker.isBusy).length
+                const busyWorker = Object.entries(this.workerPool).filter(
+                    ([, worker]) => worker.isBusy
+                ).length
 
                 log.info(`Waiting for ${busyWorker} to shut down gracefully`)
                 if (busyWorker === 0) {
@@ -98,5 +127,12 @@ export default class LocalRunner {
                 }
             }, 250)
         })
+
+        // Xvfb cleanup is handled automatically by xvfb-run
+        if (xvfb.shouldRun()) {
+            log.info('Xvfb cleanup handled automatically by xvfb-run')
+        }
+
+        return shutdownResult
     }
 }
