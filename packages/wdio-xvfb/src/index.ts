@@ -1,6 +1,7 @@
 import { promisify } from 'node:util'
 import { exec } from 'node:child_process'
 import os from 'node:os'
+import isCI from 'is-ci'
 import logger from '@wdio/logger'
 
 export interface XvfbOptions {
@@ -36,16 +37,6 @@ export class XvfbManager {
 
         // Check if we're in a headless environment (no DISPLAY set or in CI)
         const hasDisplay = process.env.DISPLAY
-        const isCI = !!(
-            process.env.CI ||
-            process.env.GITHUB_ACTIONS ||
-            process.env.JENKINS_URL ||
-            process.env.TRAVIS ||
-            process.env.CIRCLECI ||
-            process.env.GITLAB_CI ||
-            process.env.BUILDKITE ||
-            process.env.APPVEYOR
-        )
         return !hasDisplay || isCI
     }
 
