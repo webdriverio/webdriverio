@@ -88,54 +88,22 @@ export class XvfbManager {
         }
     }
 
-    protected async detectDistribution(): Promise<string> {
-        // First try parsing /etc/os-release for accurate distribution detection
-        try {
-            const { stdout } = await execAsync('cat /etc/os-release')
-            const osRelease = stdout.toLowerCase()
+    protected async detectPackageManager(): Promise<string> {
+        const packageManagers = [
+            { command: 'apt-get', name: 'apt' },
+            { command: 'dnf', name: 'dnf' },
+            { command: 'yum', name: 'yum' },
+            { command: 'zypper', name: 'zypper' },
+            { command: 'pacman', name: 'pacman' },
+            { command: 'apk', name: 'apk' }
+        ]
 
-            const distributions = [
-                { pattern: /ubuntu/, name: 'ubuntu' },
-                { pattern: /debian/, name: 'debian' },
-                { pattern: /fedora/, name: 'fedora' },
-                { pattern: /centos stream/, name: 'centos-stream' },
-                { pattern: /centos/, name: 'centos' },
-                { pattern: /rhel|red hat/, name: 'rhel' },
-                { pattern: /rocky linux|rocky/, name: 'rocky' },
-                { pattern: /suse/, name: 'suse' },
-                { pattern: /arch/, name: 'arch' },
-                { pattern: /alpine/, name: 'alpine' }
-            ]
-
-            for (const { pattern, name } of distributions) {
-                if (pattern.test(osRelease)) {
-                    return name
-                }
-            }
-        } catch {
-            // Fallback: detect by available package managers
-            const packageManagers = [
-                { command: 'apt-get', distribution: 'debian' },
-                { command: 'dnf', distribution: 'fedora' },
-                { command: 'yum', distribution: 'rhel' },
-                { command: 'zypper', distribution: 'suse' },
-                { command: 'pacman', distribution: 'arch' },
-                { command: 'apk', distribution: 'alpine' }
-            ]
-
-            const results = await Promise.allSettled(
-                packageManagers.map(async ({ command, distribution }) => {
-                    await execAsync(`which ${command}`)
-                    return distribution
-                })
-            )
-
-            const detected = results
-                .filter(result => result.status === 'fulfilled')
-                .map(result => (result as PromiseFulfilledResult<string>).value)
-
-            if (detected.length > 0) {
-                return detected[0]
+        for (const { command, name } of packageManagers) {
+            try {
+                await execAsync(`which ${command}`)
+                return name
+            } catch {
+                // Continue to next package manager
             }
         }
 
@@ -143,30 +111,26 @@ export class XvfbManager {
     }
 
     private async installXvfbPackages(): Promise<void> {
-        const distro = await this.detectDistribution()
+        const packageManager = await this.detectPackageManager()
 
         const installCommands: Record<string, string> = {
-            ubuntu: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
-            debian: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
-            fedora: 'sudo dnf install -y xorg-x11-server-Xvfb',
-            centos: 'sudo yum install -y xorg-x11-server-Xvfb',
-            'centos-stream': 'sudo dnf install -y xorg-x11-server-Xvfb',
-            rhel: 'sudo yum install -y xorg-x11-server-Xvfb',
-            rocky: 'sudo dnf install -y xorg-x11-server-Xvfb',
-            suse: 'sudo zypper install -y xvfb',
-            arch: 'sudo pacman -S --noconfirm xorg-server-xvfb',
-            alpine: 'sudo apk add --no-cache xvfb',
+            apt: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
+            dnf: 'sudo dnf install -y xorg-x11-server-Xvfb',
+            yum: 'sudo yum install -y xorg-x11-server-Xvfb',
+            zypper: 'sudo zypper install -y xvfb',
+            pacman: 'sudo pacman -S --noconfirm xorg-server-xvfb',
+            apk: 'sudo apk add --no-cache xvfb',
         }
 
-        const command = installCommands[distro]
+        const command = installCommands[packageManager]
         if (!command) {
             throw new Error(
-                `Unsupported distribution: ${distro}. Please install Xvfb manually.`
+                `Unsupported package manager: ${packageManager}. Please install Xvfb manually.`
             )
         }
 
         this.log.info(
-            `Detected ${distro} distribution, installing packages...`
+            `Detected ${packageManager} package manager, installing xvfb packages...`
         )
         await execAsync(command)
     }
