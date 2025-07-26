@@ -5,6 +5,7 @@ import type { ChildProcess } from 'node:child_process'
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockSpawn = vi.hoisted(() => vi.fn())
 const mockPlatform = vi.hoisted(() => vi.fn())
+const mockIsCI = vi.hoisted(() => ({ value: false }))
 
 // Mock all the modules before importing anything else
 vi.mock('node:child_process', () => ({
@@ -23,7 +24,9 @@ vi.mock('node:os', () => ({
 }))
 
 vi.mock('is-ci', () => ({
-    default: vi.fn(() => true)
+    get default() {
+        return mockIsCI.value
+    }
 }))
 
 vi.mock('@wdio/logger', () => ({
@@ -44,6 +47,7 @@ describe('XvfbManager', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
+        mockIsCI.value = false
         delete process.env.DISPLAY
         delete process.env.CI
         delete process.env.GITHUB_ACTIONS
@@ -136,7 +140,7 @@ describe('XvfbManager', () => {
         it('should return true on Linux in CI environment', () => {
             manager = new XvfbManager()
             mockPlatform.mockReturnValue('linux')
-            process.env.CI = 'true'
+            mockIsCI.value = true
             process.env.DISPLAY = ':0'
 
             expect(manager.shouldRun()).toBe(true)
@@ -145,6 +149,7 @@ describe('XvfbManager', () => {
         it('should return false on Linux with existing DISPLAY (not in CI)', () => {
             manager = new XvfbManager()
             mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
             process.env.DISPLAY = ':0'
 
             expect(manager.shouldRun()).toBe(false)
