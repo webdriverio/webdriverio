@@ -28,7 +28,8 @@ RUN zypper addrepo -f http://dl.google.com/linux/chrome/rpm/stable/x86_64 google
 RUN which xvfb-run
 
 # Create test user with sudo access
-RUN useradd -m -s /bin/bash testuser && \
+RUN groupadd testuser && \
+    useradd -m -g testuser -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /app

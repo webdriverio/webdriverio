@@ -31,7 +31,8 @@ RUN zypper remove -y xorg-x11-server-Xvfb xvfb-run || true && \
 RUN ! which xvfb-run || exit 1
 
 # Create test user with sudo access
-RUN useradd -m -s /bin/bash testuser && \
+RUN groupadd testuser && \
+    useradd -m -g testuser -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /app
