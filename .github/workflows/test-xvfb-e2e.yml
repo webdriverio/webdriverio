@@ -129,6 +129,9 @@ jobs:
             -e NODE_ENV=test \
             xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
             bash -c "
+              # Fix permissions for testuser to write logs
+              sudo chown -R testuser:testuser /workspace/e2e/wdio/xvfb/
+              
               # Install dependencies in container (pnpm already installed in Docker image)
               pnpm install --frozen-lockfile
               
