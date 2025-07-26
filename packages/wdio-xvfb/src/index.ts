@@ -98,66 +98,56 @@ export class XvfbManager {
     }
 
     protected async detectDistribution(): Promise<string> {
+        // First try parsing /etc/os-release for accurate distribution detection
         try {
             const { stdout } = await execAsync('cat /etc/os-release')
-            if (stdout.includes('ubuntu') || stdout.includes('Ubuntu')) {
-                return 'ubuntu'
-            }
-            if (stdout.includes('debian') || stdout.includes('Debian')) {
-                return 'debian'
-            }
-            if (stdout.includes('fedora') || stdout.includes('Fedora')) {
-                return 'fedora'
-            }
-            if (stdout.includes('centos') || stdout.includes('CentOS')) {
-                return 'centos'
-            }
-            if (stdout.includes('rhel') || stdout.includes('Red Hat')) {
-                return 'rhel'
-            }
-            if (stdout.includes('suse') || stdout.includes('SUSE')) {
-                return 'suse'
-            }
-            if (stdout.includes('arch') || stdout.includes('Arch')) {
-                return 'arch'
-            }
-            if (stdout.includes('alpine') || stdout.includes('Alpine')) {
-                return 'alpine'
-            }
-        } catch {
-            // Fallback detection methods
-            try {
-                await execAsync('which apt-get')
-                return 'debian'
-            } catch {
-                try {
-                    await execAsync('which yum')
-                    return 'rhel'
-                } catch {
-                    try {
-                        await execAsync('which dnf')
-                        return 'fedora'
-                    } catch {
-                        try {
-                            await execAsync('which zypper')
-                            return 'suse'
-                        } catch {
-                            try {
-                                await execAsync('which pacman')
-                                return 'arch'
-                            } catch {
-                                try {
-                                    await execAsync('which apk')
-                                    return 'alpine'
-                                } catch {
-                                    return 'unknown'
-                                }
-                            }
-                        }
-                    }
+            const osRelease = stdout.toLowerCase()
+
+            const distributions = [
+                { pattern: /ubuntu/, name: 'ubuntu' },
+                { pattern: /debian/, name: 'debian' },
+                { pattern: /fedora/, name: 'fedora' },
+                { pattern: /centos stream/, name: 'centos-stream' },
+                { pattern: /centos/, name: 'centos' },
+                { pattern: /rhel|red hat/, name: 'rhel' },
+                { pattern: /rocky linux|rocky/, name: 'rocky' },
+                { pattern: /suse/, name: 'suse' },
+                { pattern: /arch/, name: 'arch' },
+                { pattern: /alpine/, name: 'alpine' }
+            ]
+
+            for (const { pattern, name } of distributions) {
+                if (pattern.test(osRelease)) {
+                    return name
                 }
             }
+        } catch {
+            // Fallback: detect by available package managers
+            const packageManagers = [
+                { command: 'apt-get', distribution: 'debian' },
+                { command: 'dnf', distribution: 'fedora' },
+                { command: 'yum', distribution: 'rhel' },
+                { command: 'zypper', distribution: 'suse' },
+                { command: 'pacman', distribution: 'arch' },
+                { command: 'apk', distribution: 'alpine' }
+            ]
+
+            const results = await Promise.allSettled(
+                packageManagers.map(async ({ command, distribution }) => {
+                    await execAsync(`which ${command}`)
+                    return distribution
+                })
+            )
+
+            const detected = results
+                .filter(result => result.status === 'fulfilled')
+                .map(result => (result as PromiseFulfilledResult<string>).value)
+
+            if (detected.length > 0) {
+                return detected[0]
+            }
         }
+
         return 'unknown'
     }
 
@@ -169,7 +159,9 @@ export class XvfbManager {
             debian: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
             fedora: 'sudo dnf install -y xorg-x11-server-Xvfb',
             centos: 'sudo yum install -y xorg-x11-server-Xvfb',
+            'centos-stream': 'sudo dnf install -y xorg-x11-server-Xvfb',
             rhel: 'sudo yum install -y xorg-x11-server-Xvfb',
+            rocky: 'sudo dnf install -y xorg-x11-server-Xvfb',
             suse: 'sudo zypper install -y xvfb',
             arch: 'sudo pacman -S --noconfirm xorg-server-xvfb',
             alpine: 'sudo apk add --no-cache xvfb',
