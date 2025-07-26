@@ -27,7 +27,11 @@ RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \
     dnf install -y google-chrome-stable && \
     dnf clean all
 
-# Ensure clean environment by removing any xvfb packages
+# Create test user with sudo access
+RUN useradd -m -s /bin/bash testuser && \
+    echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# Ensure clean environment by removing any xvfb packages (do this at the very end)
 RUN dnf remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps || true && \
     dnf autoremove -y && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
@@ -35,10 +39,6 @@ RUN dnf remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps || true && \
 
 # Verify xvfb-run is NOT available  
 RUN ! which xvfb-run || exit 1
-
-# Create test user with sudo access
-RUN useradd -m -s /bin/bash testuser && \
-    echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /app
 USER testuser

@@ -44,7 +44,7 @@ export class XvfbManager {
      * Initialize xvfb-run for use
      * @returns Promise<boolean> - true if xvfb-run is ready, false if not needed
      */
-    async init(): Promise<boolean> {
+    public async init(): Promise<boolean> {
         if (!this.shouldRun()) {
             this.log.info('Xvfb not needed on current platform')
             return false
@@ -75,6 +75,12 @@ export class XvfbManager {
 
         // Install packages that include xvfb-run
         await this.installXvfbPackages()
+
+        // For SUSE, we need to create xvfb-run script manually
+        const packageManager = await this.detectPackageManager()
+        if (packageManager === 'zypper') {
+            await this.createXvfbRunScript()
+        }
 
         // Verify xvfb-run is now available
         try {
@@ -117,7 +123,7 @@ export class XvfbManager {
             apt: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
             dnf: 'sudo dnf install -y xorg-x11-server-Xvfb',
             yum: 'sudo yum install -y xorg-x11-server-Xvfb',
-            zypper: 'sudo zypper install -y xvfb-run || sudo zypper install -y xorg-x11-server-Xvfb xorg-x11-apps',
+            zypper: 'sudo zypper install -y xorg-x11-server-Xvfb xorg-x11-apps',
             pacman: 'sudo pacman -S --noconfirm xorg-server-xvfb',
             apk: 'sudo apk add --no-cache xvfb-run',
         }
@@ -133,6 +139,65 @@ export class XvfbManager {
             `Detected ${packageManager} package manager, installing xvfb packages...`
         )
         await execAsync(command)
+    }
+
+    /**
+     * Create xvfb-run script for SUSE systems
+     */
+    private async createXvfbRunScript(): Promise<void> {
+        const script = `#!/bin/bash
+# Simple xvfb-run implementation for SUSE
+DISPLAY_NUM=99
+XVFB_ARGS="-screen 0 1024x768x24"
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --help)
+            echo "Usage: xvfb-run [options] command [args...]"
+            echo "Options:"
+            echo "  --help        Show this help"
+            echo "  -a            Auto-select display number"
+            echo "  -s ARG        Xvfb screen argument"
+            exit 0
+            ;;
+        -a)
+            # Auto-select display number - just use 99 for simplicity
+            shift
+            ;;
+        -s)
+            XVFB_ARGS="$2"
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Start Xvfb in background
+Xvfb :$DISPLAY_NUM $XVFB_ARGS >/dev/null 2>&1 &
+XVFB_PID=$!
+
+# Set DISPLAY environment variable
+export DISPLAY=:$DISPLAY_NUM
+
+# Run the command
+"$@"
+RESULT=$?
+
+# Clean up
+kill $XVFB_PID 2>/dev/null || true
+wait $XVFB_PID 2>/dev/null || true
+
+exit $RESULT`
+
+        this.log.info('Creating xvfb-run script for SUSE')
+        await execAsync(`echo '${script}' | sudo tee /usr/bin/xvfb-run > /dev/null`)
+        await execAsync('sudo chmod +x /usr/bin/xvfb-run')
     }
 
 }

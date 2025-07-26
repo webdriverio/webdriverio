@@ -92,7 +92,7 @@ describe('xvfb fresh installation', () => {
         })()
 
         // Should throw error for unsupported package manager
-        await expect(failingManager.init()).rejects.toThrow('Unsupported package manager')
+        await expect(failingManager.init()).rejects.toThrow('Unsupported package manager: unsupported-manager')
     })
 
     afterEach(() => {

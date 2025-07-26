@@ -22,16 +22,16 @@ RUN apk add --no-cache chromium
 # Set Chrome binary path for Alpine (uses chromium)
 ENV CHROME_BIN=/usr/bin/chromium-browser
 
-# Ensure clean environment by removing any xvfb packages
+# Create test user with sudo access
+RUN adduser -D -s /bin/bash testuser && \
+    echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# Ensure clean environment by removing any xvfb packages (do this at the very end)
 RUN apk del xvfb xvfb-run xorg-server || true && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run
 
 # Verify xvfb-run is NOT available
 RUN ! which xvfb-run || exit 1
-
-# Create test user with sudo access
-RUN adduser -D -s /bin/bash testuser && \
-    echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /app
 USER testuser

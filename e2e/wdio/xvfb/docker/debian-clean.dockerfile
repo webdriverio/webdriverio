@@ -22,12 +22,6 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Ensure clean environment by removing any xvfb packages
-RUN apt-get remove -y xvfb xvfb-run xserver-xorg-video-dummy || true && \
-    apt-get autoremove -y && \
-    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
-    apt-get clean
-
 # Install Node.js 18 (current LTS)
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs
@@ -35,12 +29,20 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
 # Install pnpm globally as root
 RUN npm install -g pnpm
 
-# Verify xvfb-run is NOT available
-RUN ! which xvfb-run || exit 1
-
 # Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# Ensure clean environment by removing any xvfb packages (do this at the very end)
+RUN apt-get update -qq && \
+    apt-get remove -y xvfb xvfb-run xserver-xorg-video-dummy xserver-xorg-core xorg || true && \
+    apt-get autoremove -y && \
+    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Verify xvfb-run is NOT available
+RUN ! which xvfb-run || exit 1
 
 WORKDIR /app
 USER testuser
