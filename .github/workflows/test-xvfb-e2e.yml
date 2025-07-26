@@ -127,19 +127,43 @@ jobs:
             -w /workspace \
             -e CI=true \
             -e NODE_ENV=test \
+            -e WDIO_LOG_LEVEL=debug \
             xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
             bash -c "
               # Fix permissions for testuser to write logs
               sudo chown -R testuser:testuser /workspace/e2e/wdio/xvfb/
+              sudo chmod -R 755 /workspace/e2e/wdio/xvfb/
               
               # Install dependencies in container (pnpm already installed in Docker image)
               pnpm install --frozen-lockfile
               
               # Run the appropriate E2E test based on scenario
               if [ '${{ matrix.scenario }}' = 'clean' ]; then
-                cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec fresh-install.e2e.ts
+                cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec fresh-install.e2e.ts 2>&1 | tee /workspace/e2e/wdio/xvfb/test-output.log || echo 'Test failed - see logs above'
               else
-                cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec existing-xvfb.e2e.ts
+                cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec existing-xvfb.e2e.ts 2>&1 | tee /workspace/e2e/wdio/xvfb/test-output.log || echo 'Test failed - see logs above'
+              fi
+              
+              # Display logs on failure for debugging
+              if [ -f /workspace/e2e/wdio/xvfb/test-output.log ]; then
+                echo '=== WDIO Test Output ==='
+                cat /workspace/e2e/wdio/xvfb/test-output.log
+              fi
+              
+              # Show WDIO-generated log files
+              if [ -f /workspace/e2e/wdio/xvfb/logs/wdio.log ]; then
+                echo '=== WDIO Main Log ==='
+                cat /workspace/e2e/wdio/xvfb/logs/wdio.log
+              fi
+              
+              if [ -f /workspace/e2e/wdio/xvfb/logs/wdio-0-0.log ]; then
+                echo '=== WDIO Worker Log ==='
+                cat /workspace/e2e/wdio/xvfb/logs/wdio-0-0.log
+              fi
+              
+              if [ -f /workspace/e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log ]; then
+                echo '=== Chromedriver Log ==='
+                cat /workspace/e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log
               fi
             "
 
@@ -148,8 +172,9 @@ jobs:
         with:
           name: xvfb-e2e-logs-${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}
           path: |
-            e2e/wdio/xvfb/*.log
+            e2e/wdio/xvfb/logs/
             e2e/wdio/xvfb/screenshots/
+            e2e/wdio/xvfb/test-output.log
 
   xvfb-integration-test:
     runs-on: ubuntu-latest

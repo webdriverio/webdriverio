@@ -10,11 +10,15 @@ RUN pacman -Syu --noconfirm && \
         ca-certificates \
         sudo \
         nodejs \
-        npm && \
+        npm \
+        which && \
     pacman -Scc --noconfirm
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
+
+# Install Chrome for testing
+RUN pacman -S --noconfirm google-chrome
 
 # Verify xvfb-run is NOT available  
 RUN ! which xvfb-run || exit 1

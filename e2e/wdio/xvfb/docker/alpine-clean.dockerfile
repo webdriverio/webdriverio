@@ -10,10 +10,17 @@ RUN apk add --no-cache \
         sudo \
         nodejs \
         npm \
-        bash
+        bash \
+        which
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
+
+# Install Chrome for testing
+RUN apk add --no-cache chromium
+
+# Set Chrome binary path for Alpine (uses chromium)
+ENV CHROME_BIN=/usr/bin/chromium-browser
 
 # Verify xvfb-run is NOT available
 RUN ! which xvfb-run || exit 1

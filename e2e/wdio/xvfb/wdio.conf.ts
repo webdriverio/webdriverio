@@ -27,7 +27,9 @@ export const config: WebdriverIO.Config = {
                 '--disable-background-timer-throttling',
                 '--disable-backgrounding-occluded-windows',
                 '--disable-renderer-backgrounding'
-            ]
+            ],
+            // Handle Alpine Linux with chromium-browser
+            ...(process.env.CHROME_BIN && { binary: process.env.CHROME_BIN })
         }
     }],
 
@@ -36,7 +38,7 @@ export const config: WebdriverIO.Config = {
      */
     logLevel: 'info',
     framework: 'mocha',
-    outputDir: __dirname,
+    outputDir: path.join(__dirname, 'logs'),
 
     /**
      * Use local runner to test xvfb integration
