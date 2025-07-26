@@ -24,7 +24,8 @@ RUN zypper addrepo -f http://dl.google.com/linux/chrome/rpm/stable/x86_64 google
     zypper clean -a
 
 # Ensure clean environment by removing any xvfb packages
-RUN zypper remove -y xorg-x11-server-Xvfb xvfb-run || true && \
+RUN zypper remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps xorg-x11 || true && \
+    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
     zypper clean -a
 
 # Verify xvfb-run is NOT available  

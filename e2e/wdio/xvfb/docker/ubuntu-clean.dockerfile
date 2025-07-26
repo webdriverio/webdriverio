@@ -23,8 +23,9 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor
     rm -rf /var/lib/apt/lists/*
 
 # Ensure clean environment by removing any xvfb packages
-RUN apt-get remove -y xvfb xvfb-run || true && \
+RUN apt-get remove -y xvfb xvfb-run xserver-xorg-video-dummy || true && \
     apt-get autoremove -y && \
+    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
     apt-get clean
 
 # Install Node.js 18 (current LTS)

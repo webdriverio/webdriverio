@@ -24,7 +24,8 @@ RUN pacman -S --noconfirm chromium
 ENV CHROME_BIN=/usr/bin/chromium
 
 # Ensure clean environment by removing any xvfb packages
-RUN pacman -R --noconfirm xorg-server-xvfb xvfb-run || true
+RUN pacman -R --noconfirm xorg-server-xvfb xvfb-run xorg-apps || true && \
+    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run
 
 # Verify xvfb-run is NOT available  
 RUN ! which xvfb-run || exit 1

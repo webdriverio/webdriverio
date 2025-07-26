@@ -23,7 +23,8 @@ RUN apk add --no-cache chromium
 ENV CHROME_BIN=/usr/bin/chromium-browser
 
 # Ensure clean environment by removing any xvfb packages
-RUN apk del xvfb xvfb-run || true
+RUN apk del xvfb xvfb-run xorg-server || true && \
+    rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run
 
 # Verify xvfb-run is NOT available
 RUN ! which xvfb-run || exit 1
