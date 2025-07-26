@@ -17,8 +17,11 @@ RUN pacman -Syu --noconfirm && \
 # Install pnpm globally as root
 RUN npm install -g pnpm
 
-# Install Chrome for testing
-RUN pacman -S --noconfirm google-chrome
+# Install Chrome for testing (Arch doesn't have google-chrome in main repos, use chromium)
+RUN pacman -S --noconfirm chromium
+
+# Set Chrome binary path for Arch (uses chromium)
+ENV CHROME_BIN=/usr/bin/chromium
 
 # Ensure clean environment by removing any xvfb packages
 RUN pacman -R --noconfirm xorg-server-xvfb xvfb-run || true
