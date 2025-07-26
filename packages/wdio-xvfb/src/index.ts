@@ -117,7 +117,7 @@ export class XvfbManager {
             apt: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
             dnf: 'sudo dnf install -y xorg-x11-server-Xvfb',
             yum: 'sudo yum install -y xorg-x11-server-Xvfb',
-            zypper: 'sudo zypper install -y xorg-x11-server-Xvfb',
+            zypper: 'sudo zypper install -y xvfb-run || sudo zypper install -y xorg-x11-server-Xvfb xorg-x11-apps',
             pacman: 'sudo pacman -S --noconfirm xorg-server-xvfb',
             apk: 'sudo apk add --no-cache xvfb-run',
         }
