@@ -130,9 +130,9 @@ jobs:
             -e WDIO_LOG_LEVEL=debug \
             xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
             bash -c "
-              # Fix permissions for testuser to write logs
-              sudo chown -R testuser:testuser /workspace/e2e/wdio/xvfb/
-              sudo chmod -R 755 /workspace/e2e/wdio/xvfb/
+              # Fix permissions for testuser to access workspace
+              sudo chown -R testuser:testuser /workspace/
+              sudo chmod -R 755 /workspace/
               
               # Install dependencies in container (pnpm already installed in Docker image)
               pnpm install --frozen-lockfile
