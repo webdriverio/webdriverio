@@ -1,4 +1,4 @@
-FROM fedora:40
+FROM rockylinux:9
 
 # Set environment variables
 ENV CI=true
@@ -9,10 +9,12 @@ RUN dnf update -y && \
         curl \
         ca-certificates \
         sudo \
-        nodejs \
-        npm \
         xorg-x11-server-Xvfb && \
     dnf clean all
+
+# Install Node.js 18 from NodeSource
+RUN curl -fsSL https://rpm.nodesource.com/setup_18.x | bash - && \
+    dnf install -y nodejs
 
 # Install pnpm globally as root
 RUN npm install -g pnpm

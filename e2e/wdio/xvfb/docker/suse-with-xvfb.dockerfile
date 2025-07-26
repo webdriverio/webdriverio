@@ -1,18 +1,18 @@
-FROM fedora:40
+FROM opensuse/leap:15.6
 
 # Set environment variables
 ENV CI=true
 
 # Install requirements including xvfb
-RUN dnf update -y && \
-    dnf install -y \
+RUN zypper refresh && \
+    zypper install -y \
         curl \
         ca-certificates \
         sudo \
-        nodejs \
-        npm \
-        xorg-x11-server-Xvfb && \
-    dnf clean all
+        nodejs18 \
+        npm18 \
+        xvfb && \
+    zypper clean -a
 
 # Install pnpm globally as root
 RUN npm install -g pnpm

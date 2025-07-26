@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -18,6 +18,9 @@ RUN apt-get update -qq && \
 # Install Node.js 18 (current LTS)
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs
+
+# Install pnpm globally as root
+RUN npm install -g pnpm
 
 # Verify xvfb-run is available
 RUN which xvfb-run

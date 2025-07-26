@@ -1,18 +1,18 @@
-FROM fedora:40
+FROM archlinux:latest
 
 # Set environment variables
 ENV CI=true
 
-# Install requirements including xvfb
-RUN dnf update -y && \
-    dnf install -y \
+# Update system and install requirements including xvfb
+RUN pacman -Syu --noconfirm && \
+    pacman -S --noconfirm \
         curl \
         ca-certificates \
         sudo \
         nodejs \
         npm \
-        xorg-x11-server-Xvfb && \
-    dnf clean all
+        xorg-server-xvfb && \
+    pacman -Scc --noconfirm
 
 # Install pnpm globally as root
 RUN npm install -g pnpm

@@ -1,4 +1,4 @@
-FROM fedora:38
+FROM fedora:40
 
 # Set environment variables
 ENV CI=true
@@ -12,6 +12,9 @@ RUN dnf update -y && \
         nodejs \
         npm && \
     dnf clean all
+
+# Install pnpm globally as root
+RUN npm install -g pnpm
 
 # Verify xvfb-run is NOT available  
 RUN ! which xvfb-run || exit 1

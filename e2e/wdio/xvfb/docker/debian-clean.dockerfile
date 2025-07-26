@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM debian:12
 
 # Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive

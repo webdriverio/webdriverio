@@ -1,4 +1,4 @@
-FROM alpine:3.18
+FROM alpine:3.20
 
 # Set environment variables
 ENV CI=true
@@ -12,6 +12,9 @@ RUN apk add --no-cache \
         npm \
         bash \
         xvfb
+
+# Install pnpm globally as root
+RUN npm install -g pnpm
 
 # Verify xvfb-run is available
 RUN which xvfb-run

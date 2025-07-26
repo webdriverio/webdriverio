@@ -1,24 +1,23 @@
-FROM fedora:40
+FROM opensuse/leap:15.6
 
 # Set environment variables
 ENV CI=true
 
-# Install requirements including xvfb
-RUN dnf update -y && \
-    dnf install -y \
+# Install basic requirements but explicitly NOT xvfb
+RUN zypper refresh && \
+    zypper install -y \
         curl \
         ca-certificates \
         sudo \
-        nodejs \
-        npm \
-        xorg-x11-server-Xvfb && \
-    dnf clean all
+        nodejs18 \
+        npm18 && \
+    zypper clean -a
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
 
-# Verify xvfb-run is available
-RUN which xvfb-run
+# Verify xvfb-run is NOT available  
+RUN ! which xvfb-run || exit 1
 
 # Create test user with sudo access
 RUN useradd -m -s /bin/bash testuser && \

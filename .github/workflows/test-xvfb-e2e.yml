@@ -15,33 +15,83 @@ jobs:
         include:
           # Ubuntu scenarios
           - distro: ubuntu
-            version: "22.04"
+            version: "24.04"
             scenario: clean
             dockerfile: ubuntu-clean.dockerfile
           - distro: ubuntu  
-            version: "22.04"
+            version: "24.04"
             scenario: with-xvfb
             dockerfile: ubuntu-with-xvfb.dockerfile
           
           # Fedora scenarios
           - distro: fedora
-            version: "38"
+            version: "40"
             scenario: clean
             dockerfile: fedora-clean.dockerfile
           - distro: fedora
-            version: "38" 
+            version: "40" 
             scenario: with-xvfb
             dockerfile: fedora-with-xvfb.dockerfile
             
           # Alpine scenarios
           - distro: alpine
-            version: "3.18"
+            version: "3.20"
             scenario: clean
             dockerfile: alpine-clean.dockerfile
           - distro: alpine
-            version: "3.18"
+            version: "3.20"
             scenario: with-xvfb
             dockerfile: alpine-with-xvfb.dockerfile
+          
+          # Debian scenarios
+          - distro: debian
+            version: "12"
+            scenario: clean
+            dockerfile: debian-clean.dockerfile
+          - distro: debian
+            version: "12"
+            scenario: with-xvfb
+            dockerfile: debian-with-xvfb.dockerfile
+          
+          # Rocky Linux scenarios (CentOS replacement)
+          - distro: rocky
+            version: "9"
+            scenario: clean
+            dockerfile: rocky-clean.dockerfile
+          - distro: rocky
+            version: "9"
+            scenario: with-xvfb
+            dockerfile: rocky-with-xvfb.dockerfile
+          
+          # CentOS Stream scenarios (upstream RHEL)
+          - distro: centos-stream
+            version: "9"
+            scenario: clean
+            dockerfile: centos-stream-clean.dockerfile
+          - distro: centos-stream
+            version: "9"
+            scenario: with-xvfb
+            dockerfile: centos-stream-with-xvfb.dockerfile
+          
+          # Arch Linux scenarios
+          - distro: arch
+            version: "latest"
+            scenario: clean
+            dockerfile: arch-clean.dockerfile
+          - distro: arch
+            version: "latest"
+            scenario: with-xvfb
+            dockerfile: arch-with-xvfb.dockerfile
+          
+          # SUSE scenarios
+          - distro: suse
+            version: "15.6"
+            scenario: clean
+            dockerfile: suse-clean.dockerfile
+          - distro: suse
+            version: "15.6"
+            scenario: with-xvfb
+            dockerfile: suse-with-xvfb.dockerfile
 
     name: "XVFB E2E: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
     
@@ -79,8 +129,7 @@ jobs:
             -e NODE_ENV=test \
             xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
             bash -c "
-              # Install dependencies in container
-              npm install -g pnpm
+              # Install dependencies in container (pnpm already installed in Docker image)
               pnpm install --frozen-lockfile
               
               # Run the appropriate E2E test based on scenario
