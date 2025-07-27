@@ -1,4 +1,4 @@
-import { spawn, fork } from 'node:child_process'
+import { spawn, fork, execSync } from 'node:child_process'
 import type {
     ChildProcess,
     SpawnOptions,
@@ -34,7 +34,7 @@ export class ProcessFactory implements ProcessCreator {
     ): ChildProcess {
         const { cwd, env, execArgv = [], stdio } = options
 
-        if (this.#xvfbManager.shouldRun()) {
+        if (this.#xvfbManager.shouldRun() && this.#isXvfbRunAvailable()) {
             log.debug('Creating worker process with xvfb-run wrapper')
 
             // Use spawn with xvfb-run wrapper
@@ -59,5 +59,18 @@ export class ProcessFactory implements ProcessCreator {
             execArgv,
             stdio,
         } as ForkOptions)
+    }
+
+    /**
+     * Check if xvfb-run is actually available on the system
+     */
+    #isXvfbRunAvailable(): boolean {
+        try {
+            execSync('which xvfb-run', { stdio: 'ignore' })
+            return true
+        } catch {
+            log.debug('xvfb-run not found, falling back to regular fork')
+            return false
+        }
     }
 }
