@@ -46,6 +46,11 @@ export const config: WebdriverIO.Config = {
     runner: 'local',
 
     /**
+     * Disable automatic xvfb initialization so tests can control it manually
+     */
+    disableAutoXvfb: true,
+
+    /**
      * Reporters
      */
     reporters: ['spec'],
