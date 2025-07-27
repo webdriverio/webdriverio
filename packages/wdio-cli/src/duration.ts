@@ -28,7 +28,7 @@ class DurationTracker {
             `complete ${formatDuration(complete)}`
         ].join(', ')
 
-        return `Duration: ${chalk.green(formatDuration(total))} (${breakdown})`
+        return `${chalk.green(formatDuration(total))} (${breakdown})`
     }
 
     reset(): void {
@@ -37,18 +37,10 @@ class DurationTracker {
     }
 }
 
-function formatDuration(ms: number): string {
+export function formatDuration(ms: number): string {
     if (ms >= 60000) {return `${(ms / 60000).toFixed(1)}m`}
     if (ms >= 1000) {return `${(ms / 1000).toFixed(1)}s`}
     return `${ms}ms`
 }
 
-const defaultTracker = new DurationTracker()
-
-export default {
-    start: defaultTracker.start.bind(defaultTracker),
-    end: defaultTracker.end.bind(defaultTracker),
-    getSummary: defaultTracker.getSummary.bind(defaultTracker),
-    reset: defaultTracker.reset.bind(defaultTracker),
-    formatDuration
-}
+export default new DurationTracker()

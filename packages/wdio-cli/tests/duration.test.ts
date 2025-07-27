@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import duration from '../src/duration.js'
+import duration, { formatDuration } from '../src/duration.js'
 
 describe('duration', () => {
     beforeEach(() => {
@@ -9,21 +9,21 @@ describe('duration', () => {
 
     describe('formatDuration', () => {
         it('should format milliseconds correctly', () => {
-            expect(duration.formatDuration(0)).toBe('0ms')
-            expect(duration.formatDuration(50)).toBe('50ms')
-            expect(duration.formatDuration(999)).toBe('999ms')
+            expect(formatDuration(0)).toBe('0ms')
+            expect(formatDuration(50)).toBe('50ms')
+            expect(formatDuration(999)).toBe('999ms')
         })
 
         it('should format seconds correctly', () => {
-            expect(duration.formatDuration(1000)).toBe('1.0s')
-            expect(duration.formatDuration(1500)).toBe('1.5s')
-            expect(duration.formatDuration(12000)).toBe('12.0s')
+            expect(formatDuration(1000)).toBe('1.0s')
+            expect(formatDuration(1500)).toBe('1.5s')
+            expect(formatDuration(12000)).toBe('12.0s')
         })
 
         it('should format minutes correctly', () => {
-            expect(duration.formatDuration(60000)).toBe('1.0m')
-            expect(duration.formatDuration(90000)).toBe('1.5m')
-            expect(duration.formatDuration(125000)).toBe('2.1m')
+            expect(formatDuration(60000)).toBe('1.0m')
+            expect(formatDuration(90000)).toBe('1.5m')
+            expect(formatDuration(125000)).toBe('2.1m')
         })
     })
 

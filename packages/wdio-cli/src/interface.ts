@@ -357,11 +357,11 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         return this.log(
-            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in',
+            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`,
             this.#hasShard()
                 ? `\nShard:\t\t ${this._config.shard!.current} / ${this._config.shard!.total}`
                 : '',
-            `\n${duration.getSummary()}`
+            `\nDuration:\t ${duration.getSummary()}`
         )
     }
 
