@@ -12,6 +12,7 @@ import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { RunCommandArguments } from './types.js'
+import duration from './duration.js'
 const log = logger('@wdio/cli:launcher')
 
 interface Schedule {
@@ -65,10 +66,12 @@ class Launcher {
     }
 
     /**
-     * run sequence
-     * @return  {Promise}  that only gets resolved with either an exitCode or an error
-     */
+    * run sequence
+    * @return  {Promise}  that only gets resolved with either an exitCode or an error
+    */
     async run(): Promise<undefined | number> {
+        duration.end('setup')
+
         await this.initialize()
         const config = this.configParser.getConfig()
 
@@ -115,6 +118,7 @@ class Launcher {
         const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
 
         try {
+            duration.start('prepare')
             const { ignoredWorkerServices, launcherServices } = await initializeLauncherService(config, caps)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
@@ -140,12 +144,20 @@ class Launcher {
                 setupBrowser(config, caps)
             ])
 
+            duration.end('prepare')
+            duration.start('execute')
+
             exitCode = await this._runMode(config, caps)
+
+            duration.end('execute')
+
             await logger.waitForBuffer()
             this.interface.finalise()
         } catch (err) {
             error = err as HookError
         } finally {
+            duration.start('complete')
+
             if (!this._hasTriggeredExitRoutine) {
                 this._hasTriggeredExitRoutine = true
                 const passesCodeCoverage = await this.runner.shutdown()
@@ -155,6 +167,8 @@ class Launcher {
             }
 
             exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
+
+            duration.end('complete')
         }
 
         if (error) {

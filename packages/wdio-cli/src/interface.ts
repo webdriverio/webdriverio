@@ -7,6 +7,7 @@ import type { Workers } from '@wdio/types'
 
 import { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'
+import duration from './duration.js'
 
 const log = logger('@wdio/cli')
 const EVENT_FILTER = ['sessionStarted', 'sessionEnded', 'finishedCommand', 'ready', 'workerResponse', 'workerEvent']
@@ -329,7 +330,6 @@ export default class WDIOCLInterface extends EventEmitter {
 
     printSummary() {
         const totalJobs = this.totalWorkerCnt - this.result.retries
-        const elapsed = (new Date(Date.now() - this._start.getTime())).toUTCString().match(/(\d\d:\d\d:\d\d)/)![0]
         const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
         const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
         const skipped = this._skippedSpecs > 0 ? chalk.gray(this._skippedSpecs, 'skipped') + ', ' : ''
@@ -357,11 +357,11 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         return this.log(
-            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
+            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in',
             this.#hasShard()
                 ? `\nShard:\t\t ${this._config.shard!.current} / ${this._config.shard!.total}`
                 : '',
-            '\n'
+            `\n${duration.getSummary()}`
         )
     }
 
