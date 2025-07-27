@@ -327,6 +327,11 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * Shard tests and execute only the selected shard. Specify in the one-based form like `{ total: 5, current: 2 }`.
      */
     shard?: ShardOptions
+    /**
+     * Disable automatic Xvfb initialization in local runner.
+     * When enabled, tests need to manually call xvfb.init() if needed.
+     */
+    disableAutoXvfb?: boolean
     // framework options
     /**
      * Mocha specific options
