@@ -32,6 +32,12 @@ export default class LocalRunner {
      * initialize local runner environment
      */
     async initialize() {
+        // Skip Xvfb initialization if explicitly disabled
+        if (this._config.disableAutoXvfb) {
+            log.info('Skipping automatic Xvfb initialization (disabled by config)')
+            return
+        }
+
         // Initialize Xvfb if needed for headless testing
         try {
             const xvfbInitialized = await xvfb.init()
