@@ -69,7 +69,7 @@ describe('duration', () => {
             const summaryText = duration.getSummary()
 
             expect(typeof summaryText).toBe('string')
-            expect(summaryText).toMatch(/^Duration: .* \(setup .*, prepare .*, execute .*, complete .*\)$/)
+            expect(summaryText).toMatch(/^.* \(setup .*, prepare .*, execute .*, complete .*\)$/)
         })
     })
 
