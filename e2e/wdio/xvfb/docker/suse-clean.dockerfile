@@ -29,7 +29,7 @@ RUN groupadd testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 # Ensure clean environment by removing any xvfb packages (do this at the very end)
-RUN zypper remove -y xorg-x11-server-Xvfb xorg-x11-apps xorg-x11 || true && \
+RUN zypper remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps xorg-x11 || true && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
     zypper clean -a
 
