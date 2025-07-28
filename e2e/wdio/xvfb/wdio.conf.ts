@@ -28,6 +28,8 @@ export const config: WebdriverIO.Config = {
                 '--disable-backgrounding-occluded-windows',
                 '--disable-renderer-backgrounding'
             ],
+            // Handle Alpine Linux with chromium-browser
+            ...(process.env.CHROME_BIN && { binary: process.env.CHROME_BIN })
         }
     }],
 
