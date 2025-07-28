@@ -45,10 +45,13 @@ export class XvfbManager {
      * @returns Promise<boolean> - true if xvfb-run is ready, false if not needed
      */
     public async init(): Promise<boolean> {
+        this.log.info('XvfbManager.init() called')
+
         if (!this.shouldRun()) {
             this.log.info('Xvfb not needed on current platform')
             return false
         }
+        this.log.info('Xvfb should run, checking if setup is needed')
 
         try {
             await this.ensureXvfbRunAvailable()
@@ -64,6 +67,7 @@ export class XvfbManager {
      * Ensure xvfb-run is available, installing if necessary
      */
     private async ensureXvfbRunAvailable(): Promise<void> {
+        this.log.info('Checking if xvfb-run is available...')
         try {
             // Check if xvfb-run is already available
             await execAsync('which xvfb-run')
@@ -74,12 +78,17 @@ export class XvfbManager {
         }
 
         // Install packages that include xvfb-run
+        this.log.info('Starting xvfb package installation...')
         await this.installXvfbPackages()
+        this.log.info('Package installation completed')
 
         // Verify xvfb-run is now available
+        this.log.info('Verifying xvfb-run installation...')
         try {
             const { stdout } = await execAsync('which xvfb-run')
-            this.log.info(`Successfully installed xvfb-run at: ${stdout.trim()}`)
+            this.log.info(
+                `Successfully installed xvfb-run at: ${stdout.trim()}`
+            )
         } catch (error) {
             this.log.error('Failed to install xvfb-run:', error)
             throw new Error(
@@ -95,7 +104,7 @@ export class XvfbManager {
             { command: 'yum', name: 'yum' },
             { command: 'zypper', name: 'zypper' },
             { command: 'pacman', name: 'pacman' },
-            { command: 'apk', name: 'apk' }
+            { command: 'apk', name: 'apk' },
         ]
 
         for (const { command, name } of packageManagers) {
@@ -111,7 +120,9 @@ export class XvfbManager {
     }
 
     private async installXvfbPackages(): Promise<void> {
+        this.log.info('Detecting package manager...')
         const packageManager = await this.detectPackageManager()
+        this.log.info(`Detected package manager: ${packageManager}`)
 
         const installCommands: Record<string, string> = {
             apt: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
@@ -129,12 +140,18 @@ export class XvfbManager {
             )
         }
 
-        this.log.info(
-            `Detected ${packageManager} package manager, installing xvfb packages...`
-        )
-        await execAsync(command)
-    }
+        this.log.info(`Installing xvfb packages using command: ${command}`)
 
+        try {
+            await execAsync(command, { timeout: 120000 }) // 2 minute timeout
+            this.log.info(
+                'Package installation command completed successfully'
+            )
+        } catch (error) {
+            this.log.error('Package installation command failed:', error)
+            throw error
+        }
+    }
 }
 
 // Export a default instance for convenience
