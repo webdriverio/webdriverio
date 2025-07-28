@@ -3,6 +3,13 @@ FROM alpine:3.20
 # Set environment variables
 ENV CI=true
 
+# Add latest repositories
+RUN echo @latest https://dl-cdn.alpinelinux.org/alpine/latest-stable/main >> /etc/apk/repositories && \
+    echo @latest https://dl-cdn.alpinelinux.org/alpine/latest-stable/community >> /etc/apk/repositories
+
+# Update apk index
+RUN apk update
+
 # Install basic requirements but explicitly NOT xvfb
 RUN apk add --no-cache \
         curl \
@@ -20,7 +27,7 @@ RUN apk add --no-cache \
 RUN npm install -g pnpm
 
 # Install Chrome for testing
-RUN apk add --no-cache chromium
+RUN apk add --no-cache chromium@latest
 
 # Set Chrome binary path for Alpine (uses chromium)
 ENV CHROME_BIN=/usr/bin/chromium
