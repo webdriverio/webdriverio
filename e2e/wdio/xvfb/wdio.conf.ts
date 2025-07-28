@@ -60,7 +60,7 @@ export const config: WebdriverIO.Config = {
      */
     mochaOpts: {
         ui: 'bdd',
-        timeout: 60000,
+        timeout: 180000, // 3 minutes to allow for package installation
         require: []
     },
 
