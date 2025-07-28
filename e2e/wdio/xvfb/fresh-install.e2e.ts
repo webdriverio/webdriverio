@@ -83,13 +83,11 @@ describe('xvfb fresh installation', () => {
     })
 
     it('should handle installation failures gracefully', async () => {
-        // Create a manager that will fail installation by simulating unsupported package manager
-        const failingManager = new (class extends XvfbManager {
-            // Override detectPackageManager to return unsupported package manager
-            protected async detectPackageManager(): Promise<string> {
-                return 'unsupported-manager'
-            }
-        })()
+        // Create a manager with an unsupported package manager, forcing installation
+        const failingManager = new XvfbManager({
+            packageManager: 'unsupported-manager',
+            forceInstall: true
+        })
 
         // Should throw error for unsupported package manager
         await expect(failingManager.init()).rejects.toThrow('Unsupported package manager: unsupported-manager')
