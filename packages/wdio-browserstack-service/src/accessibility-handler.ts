@@ -167,6 +167,7 @@ class _AccessibilityHandler {
                     accessibilityScanStarted : true
                 }
             }
+            await this._setAnnotation('Accessibility scanning was triggered manually')
             return results
         }
 
