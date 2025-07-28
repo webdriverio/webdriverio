@@ -22,8 +22,8 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 18 (current LTS)
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+# Install Node.js 22 (latest LTS)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs
 
 # Install pnpm globally as root

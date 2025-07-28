@@ -13,7 +13,7 @@ RUN dnf update -y && \
     dnf clean all
 
 # Install Node.js 18 from NodeSource
-RUN curl -fsSL https://rpm.nodesource.com/setup_18.x | bash - && \
+RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
     dnf install -y nodejs
 
 # Install pnpm globally as root

@@ -12,7 +12,7 @@ RUN dnf update -y && \
     dnf clean all
 
 # Install Node.js 18 from NodeSource
-RUN curl -fsSL https://rpm.nodesource.com/setup_18.x | bash - && \
+RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
     dnf install -y nodejs
 
 # Install pnpm globally as root
@@ -38,7 +38,7 @@ RUN dnf remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps || true && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
     dnf clean all
 
-# Verify xvfb-run is NOT available  
+# Verify xvfb-run is NOT available
 RUN ! which xvfb-run || exit 1
 
 WORKDIR /app

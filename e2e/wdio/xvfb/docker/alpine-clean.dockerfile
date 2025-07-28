@@ -15,7 +15,7 @@ RUN apk add --no-cache \
         curl \
         ca-certificates \
         sudo \
-        nodejs \
+        nodejs-current \
         npm \
         bash \
         which \
