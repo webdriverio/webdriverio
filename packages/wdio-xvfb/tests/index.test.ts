@@ -181,14 +181,20 @@ describe('XvfbManager', () => {
 
         it('should install xvfb when xvfb-run is not available', async () => {
             mockExecAsync.mockImplementation((cmd: string) => {
-                if (cmd === 'which xvfb-run' && mockExecAsync.mock.calls.length <= 1) {
-                    return Promise.reject(new Error('not found'))
-                }
-                if (cmd === 'which xvfb-run' && mockExecAsync.mock.calls.length > 1) {
+                if (cmd === 'which xvfb-run') {
+                    // First call fails (not available), final call succeeds (after installation)
+                    const callCount = mockExecAsync.mock.calls.filter(call => call[0] === 'which xvfb-run').length
+                    if (callCount === 1) {
+                        return Promise.reject(new Error('not found'))
+                    }
                     return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
-                if (cmd === 'cat /etc/os-release') {
-                    return Promise.resolve({ stdout: 'NAME="Ubuntu 20.04 LTS"', stderr: '' })
+                if (cmd === 'which apt-get') {
+                    return Promise.resolve({ stdout: '/usr/bin/apt-get', stderr: '' })
+                }
+                if (cmd.startsWith('which ')) {
+                    // Other package managers not found
+                    return Promise.reject(new Error('not found'))
                 }
                 if (cmd.includes('apt-get install')) {
                     return Promise.resolve({ stdout: 'Packages installed', stderr: '' })
@@ -200,7 +206,10 @@ describe('XvfbManager', () => {
             const result = await manager.init()
 
             expect(result).toBe(true)
-            expect(mockExecAsync).toHaveBeenCalledWith('sudo apt-get update -qq && sudo apt-get install -y xvfb')
+            expect(mockExecAsync).toHaveBeenCalledWith(
+                'sudo apt-get update -qq && sudo apt-get install -y xvfb',
+                { timeout: 120000 }
+            )
         })
     })
 
@@ -210,20 +219,24 @@ describe('XvfbManager', () => {
         })
 
         it('should detect Ubuntu distribution', async () => {
-            let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
-                callCount++
-                if (cmd === 'which xvfb-run' && callCount === 1) {
-                    return Promise.reject(new Error('not found'))
+                if (cmd === 'which xvfb-run') {
+                    // First call fails (not available), final call succeeds (after installation)
+                    const callCount = mockExecAsync.mock.calls.filter(call => call[0] === 'which xvfb-run').length
+                    if (callCount === 1) {
+                        return Promise.reject(new Error('not found'))
+                    }
+                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
-                if (cmd === 'cat /etc/os-release') {
-                    return Promise.resolve({ stdout: 'NAME="Ubuntu 20.04 LTS"', stderr: '' })
+                if (cmd === 'which apt-get') {
+                    return Promise.resolve({ stdout: '/usr/bin/apt-get', stderr: '' })
+                }
+                if (cmd.startsWith('which ')) {
+                    // Other package managers not found
+                    return Promise.reject(new Error('not found'))
                 }
                 if (cmd === 'sudo apt-get update -qq && sudo apt-get install -y xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
-                }
-                if (cmd === 'which xvfb-run' && callCount > 1) {
-                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
             })
@@ -232,16 +245,20 @@ describe('XvfbManager', () => {
             await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo apt-get update -qq && sudo apt-get install -y xvfb'
+                'sudo apt-get update -qq && sudo apt-get install -y xvfb',
+                { timeout: 120000 }
             )
         })
 
         it('should detect dnf package manager', async () => {
-            let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
-                callCount++
-                if (cmd === 'which xvfb-run' && callCount === 1) {
-                    return Promise.reject(new Error('not found'))
+                if (cmd === 'which xvfb-run') {
+                    // First call fails (not available), final call succeeds (after installation)
+                    const callCount = mockExecAsync.mock.calls.filter(call => call[0] === 'which xvfb-run').length
+                    if (callCount === 1) {
+                        return Promise.reject(new Error('not found'))
+                    }
+                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 if (cmd === 'which apt-get') {
                     return Promise.reject(new Error('not found'))
@@ -249,11 +266,12 @@ describe('XvfbManager', () => {
                 if (cmd === 'which dnf') {
                     return Promise.resolve({ stdout: '/usr/bin/dnf', stderr: '' })
                 }
+                if (cmd.startsWith('which ')) {
+                    // Other package managers not found
+                    return Promise.reject(new Error('not found'))
+                }
                 if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
-                }
-                if (cmd === 'which xvfb-run' && callCount > 1) {
-                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
             })
@@ -262,28 +280,30 @@ describe('XvfbManager', () => {
             await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo dnf install -y xorg-x11-server-Xvfb'
+                'sudo dnf install -y xorg-x11-server-Xvfb',
+                { timeout: 120000 }
             )
         })
 
         it('should detect pacman package manager', async () => {
-            let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
-                callCount++
-                if (cmd === 'which xvfb-run' && callCount === 1) {
-                    return Promise.reject(new Error('not found'))
-                }
-                if (cmd === 'which apt-get' || cmd === 'which dnf' || cmd === 'which yum' || cmd === 'which zypper') {
-                    return Promise.reject(new Error('not found'))
+                if (cmd === 'which xvfb-run') {
+                    // First call fails (not available), final call succeeds (after installation)
+                    const callCount = mockExecAsync.mock.calls.filter(call => call[0] === 'which xvfb-run').length
+                    if (callCount === 1) {
+                        return Promise.reject(new Error('not found'))
+                    }
+                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 if (cmd === 'which pacman') {
                     return Promise.resolve({ stdout: '/usr/bin/pacman', stderr: '' })
                 }
+                if (cmd.startsWith('which ')) {
+                    // Other package managers not found
+                    return Promise.reject(new Error('not found'))
+                }
                 if (cmd === 'sudo pacman -S --noconfirm xorg-server-xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
-                }
-                if (cmd === 'which xvfb-run' && callCount > 1) {
-                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
             })
@@ -292,16 +312,20 @@ describe('XvfbManager', () => {
             await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo pacman -S --noconfirm xorg-server-xvfb'
+                'sudo pacman -S --noconfirm xorg-server-xvfb',
+                { timeout: 120000 }
             )
         })
 
         it('should detect dnf when apt-get is not available', async () => {
-            let callCount = 0
             mockExecAsync.mockImplementation((cmd: string) => {
-                callCount++
-                if (cmd === 'which xvfb-run' && callCount === 1) {
-                    return Promise.reject(new Error('not found'))
+                if (cmd === 'which xvfb-run') {
+                    // First call fails (not available), final call succeeds (after installation)
+                    const callCount = mockExecAsync.mock.calls.filter(call => call[0] === 'which xvfb-run').length
+                    if (callCount === 1) {
+                        return Promise.reject(new Error('not found'))
+                    }
+                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 if (cmd === 'which apt-get') {
                     return Promise.reject(new Error('no apt-get'))
@@ -309,11 +333,12 @@ describe('XvfbManager', () => {
                 if (cmd === 'which dnf') {
                     return Promise.resolve({ stdout: '/usr/bin/dnf', stderr: '' })
                 }
+                if (cmd.startsWith('which ')) {
+                    // Other package managers not found
+                    return Promise.reject(new Error('not found'))
+                }
                 if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
-                }
-                if (cmd === 'which xvfb-run' && callCount > 1) {
-                    return Promise.resolve({ stdout: '/usr/bin/xvfb-run', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
             })
@@ -322,7 +347,8 @@ describe('XvfbManager', () => {
             await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo dnf install -y xorg-x11-server-Xvfb'
+                'sudo dnf install -y xorg-x11-server-Xvfb',
+                { timeout: 120000 }
             )
         })
 
