@@ -34,8 +34,13 @@ export class ProcessFactory implements ProcessCreator {
     ): ChildProcess {
         const { cwd, env, execArgv = [], stdio } = options
 
-        if (this.#xvfbManager.shouldRun() && this.#isXvfbRunAvailable()) {
-            log.debug('Creating worker process with xvfb-run wrapper')
+        const shouldRun = this.#xvfbManager.shouldRun()
+        const isAvailable = this.#isXvfbRunAvailable()
+
+        log.info(`ProcessFactory: shouldRun=${shouldRun}, isAvailable=${isAvailable}`)
+
+        if (shouldRun && isAvailable) {
+            log.info('Creating worker process with xvfb-run wrapper')
 
             // Use spawn with xvfb-run wrapper
             const nodeArgs = [...execArgv, scriptPath, ...args]
@@ -50,7 +55,7 @@ export class ProcessFactory implements ProcessCreator {
                 } as SpawnOptions
             )
         }
-        log.debug('Creating worker process with regular fork')
+        log.info('Creating worker process with regular fork')
 
         // Use regular fork
         return fork(scriptPath, args, {
@@ -67,9 +72,10 @@ export class ProcessFactory implements ProcessCreator {
     #isXvfbRunAvailable(): boolean {
         try {
             execSync('which xvfb-run', { stdio: 'ignore' })
+            log.info('xvfb-run found in PATH')
             return true
         } catch {
-            log.debug('xvfb-run not found, falling back to regular fork')
+            log.info('xvfb-run not found, falling back to regular fork')
             return false
         }
     }

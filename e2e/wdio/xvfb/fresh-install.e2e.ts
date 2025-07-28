@@ -10,6 +10,8 @@ describe('xvfb fresh installation', () => {
     })
 
     it('should detect missing xvfb and install it automatically', async () => {
+        console.log('🔍 Test body starting - checking environment...')
+
         // Verify we're running on Linux in CI
         expect(process.platform).toBe('linux')
         expect(process.env.CI).toBeDefined()
