@@ -167,7 +167,8 @@ export class XvfbManager {
         this.log.info(`Installing xvfb packages using command: ${command}`)
 
         try {
-            await execAsync(command, { timeout: 120000 }) // 2 minute timeout
+            this.log.info('Starting package installation command execution...')
+            await execAsync(command, { timeout: 240000 }) // 4 minute timeout
             this.log.info(
                 'Package installation command completed successfully'
             )
