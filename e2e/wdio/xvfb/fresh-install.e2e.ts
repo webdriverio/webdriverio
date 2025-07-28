@@ -303,47 +303,22 @@ describe('xvfb fresh installation', () => {
         }
 
         // Check what Chrome processes are actually running
+        let chromeProcessCount = '0'
         try {
-            const chromeProcs = execSync('ps aux | grep -E "(chrome|chromium)" | grep -v grep | wc -l', { encoding: 'utf8' })
-            console.log(`🌐 Chrome processes count: ${chromeProcs.trim()}`)
-        } catch {
-            console.log('🌐 Could not count Chrome processes')
-        }
-
-        // Try gentle cleanup first - check if processes exist before killing
-        try {
-            const chromeExists = execSync('pgrep -f chrome > /dev/null 2>&1; echo $?', { encoding: 'utf8' }).trim()
-            if (chromeExists === '0') {
-                console.log('🔫 Chrome processes found, attempting gentle cleanup...')
-                execSync('pkill -TERM -f chrome 2>/dev/null || true', { stdio: 'pipe' })
-                // Give processes time to terminate gracefully
-                await new Promise(resolve => setTimeout(resolve, 1000))
-
-                // Check if any are still running
-                const stillRunning = execSync('pgrep -f chrome > /dev/null 2>&1; echo $?', { encoding: 'utf8' }).trim()
-                if (stillRunning === '0') {
-                    console.log('🔫 Chrome processes still running, using SIGKILL...')
-                    execSync('pkill -KILL -f chrome 2>/dev/null || true', { stdio: 'pipe' })
-                }
-            } else {
-                console.log('✅ No Chrome processes found to clean up')
-            }
+            chromeProcessCount = execSync('ps aux | grep -E "(chrome|chromium)" | grep -v grep | wc -l', { encoding: 'utf8' }).trim()
+            console.log(`🌐 Chrome processes count: ${chromeProcessCount}`)
         } catch (error) {
-            console.log('⚠️ Chrome cleanup error:', error)
+            console.log(error)
+            console.log('🌐 Could not count Chrome processes (ps command likely missing like in Rocky)')
+            console.log('⏩ This will skip process cleanup and prevent SIGTERM')
+            chromeProcessCount = '0'
         }
 
-        // Clean up xvfb processes similarly
-        try {
-            const xvfbExists = execSync('pgrep -f xvfb > /dev/null 2>&1; echo $?', { encoding: 'utf8' }).trim()
-            if (xvfbExists === '0') {
-                console.log('🔫 Xvfb processes found, cleaning up...')
-                execSync('pkill -TERM -f xvfb 2>/dev/null || true', { stdio: 'pipe' })
-            } else {
-                console.log('✅ No Xvfb processes found to clean up')
-            }
-        } catch (error) {
-            console.log('⚠️ Xvfb cleanup error:', error)
-        }
+        // EXPERIMENT: Skip ALL process cleanup to test if pkill is the real issue
+        console.log('🧪 EXPERIMENT: Skipping ALL Chrome and Xvfb process cleanup')
+        console.log('📊 This will test if pkill commands are the actual cause of SIGTERM')
+        console.log('🔍 If this fixes the issue, then pkill was the problem')
+        console.log('❌ If this still fails, then something else is causing SIGTERM')
 
         // Wait for cleanup to complete
         console.log('⏱️ Waiting for process cleanup...')
