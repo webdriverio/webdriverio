@@ -250,27 +250,112 @@ describe('xvfb fresh installation', () => {
     afterEach(async () => {
         console.log('🧹 Starting afterEach cleanup...')
 
-        // Clean up Chrome/Chromium processes more aggressively
+        // Log distribution info to understand differences
         try {
-            console.log('🔫 Killing Chrome processes...')
-            execSync('pkill -f chrome || true', { stdio: 'ignore' })
-            execSync('pkill -f chromium || true', { stdio: 'ignore' })
-            execSync('pkill -f google-chrome || true', { stdio: 'ignore' })
-        } catch (error) {
-            console.log('⚠️ Chrome cleanup error (expected):', error)
+            const osInfo = execSync('cat /etc/os-release | grep "^NAME\\|^VERSION_ID"', { encoding: 'utf8' })
+            console.log('🐧 Distribution during cleanup:', osInfo.trim())
+        } catch {
+            console.log('🐧 Could not determine distribution during cleanup')
         }
 
-        // Clean up xvfb processes
+        // Check Chrome/Chromedriver versions and system dependencies
         try {
-            console.log('🔫 Killing xvfb processes...')
-            execSync('pkill -f xvfb || true', { stdio: 'ignore' })
+            const chromeVersion = execSync('/tmp/chrome/linux-*/chrome-linux64/chrome --version 2>/dev/null || echo "Chrome version unknown"', { encoding: 'utf8' })
+            console.log(`🌐 Chrome version: ${chromeVersion.trim()}`)
+        } catch {
+            console.log('🌐 Could not determine Chrome version')
+        }
+
+        try {
+            const chromedriverVersion = execSync('/tmp/chromedriver/linux-*/chromedriver-linux64/chromedriver --version 2>/dev/null || echo "Chromedriver version unknown"', { encoding: 'utf8' })
+            console.log(`🚗 Chromedriver version: ${chromedriverVersion.trim()}`)
+        } catch {
+            console.log('🚗 Could not determine Chromedriver version')
+        }
+
+        // Check for missing system libraries that could cause Chrome crashes
+        const requiredLibs = ['libnss3', 'libatk-bridge2.0-0', 'libx11-xcb1', 'libxcomposite1', 'libxcursor1', 'libxdamage1', 'libxi6', 'libxrandr2', 'libgbm1', 'libasound2']
+        console.log('📚 Checking system libraries:')
+        for (const lib of requiredLibs) {
+            try {
+                execSync(`ldconfig -p | grep -q ${lib}`, { stdio: 'pipe' })
+                console.log(`  ✅ ${lib}: available`)
+            } catch {
+                console.log(`  ❌ ${lib}: missing`)
+            }
+        }
+
+        // Check for resource limits and OOM killer activity
+        try {
+            const meminfo = execSync('cat /proc/meminfo | grep -E "MemTotal|MemAvailable"', { encoding: 'utf8' })
+            console.log('💾 Memory info:')
+            console.log(meminfo.trim())
+        } catch {
+            console.log('💾 Could not get memory info')
+        }
+
+        try {
+            const oomKiller = execSync('dmesg | grep -i "killed process" | tail -5 || echo "No OOM killer activity"', { encoding: 'utf8' })
+            console.log('💀 Recent OOM killer activity:')
+            console.log(oomKiller.trim() || 'None found')
+        } catch {
+            console.log('💀 Could not check OOM killer logs')
+        }
+
+        // Check what Chrome processes are actually running
+        try {
+            const chromeProcs = execSync('ps aux | grep -E "(chrome|chromium)" | grep -v grep | wc -l', { encoding: 'utf8' })
+            console.log(`🌐 Chrome processes count: ${chromeProcs.trim()}`)
+        } catch {
+            console.log('🌐 Could not count Chrome processes')
+        }
+
+        // Try gentle cleanup first - check if processes exist before killing
+        try {
+            const chromeExists = execSync('pgrep -f chrome > /dev/null 2>&1; echo $?', { encoding: 'utf8' }).trim()
+            if (chromeExists === '0') {
+                console.log('🔫 Chrome processes found, attempting gentle cleanup...')
+                execSync('pkill -TERM -f chrome 2>/dev/null || true', { stdio: 'pipe' })
+                // Give processes time to terminate gracefully
+                await new Promise(resolve => setTimeout(resolve, 1000))
+
+                // Check if any are still running
+                const stillRunning = execSync('pgrep -f chrome > /dev/null 2>&1; echo $?', { encoding: 'utf8' }).trim()
+                if (stillRunning === '0') {
+                    console.log('🔫 Chrome processes still running, using SIGKILL...')
+                    execSync('pkill -KILL -f chrome 2>/dev/null || true', { stdio: 'pipe' })
+                }
+            } else {
+                console.log('✅ No Chrome processes found to clean up')
+            }
         } catch (error) {
-            console.log('⚠️ Xvfb cleanup error (expected):', error)
+            console.log('⚠️ Chrome cleanup error:', error)
+        }
+
+        // Clean up xvfb processes similarly
+        try {
+            const xvfbExists = execSync('pgrep -f xvfb > /dev/null 2>&1; echo $?', { encoding: 'utf8' }).trim()
+            if (xvfbExists === '0') {
+                console.log('🔫 Xvfb processes found, cleaning up...')
+                execSync('pkill -TERM -f xvfb 2>/dev/null || true', { stdio: 'pipe' })
+            } else {
+                console.log('✅ No Xvfb processes found to clean up')
+            }
+        } catch (error) {
+            console.log('⚠️ Xvfb cleanup error:', error)
         }
 
         // Wait for cleanup to complete
         console.log('⏱️ Waiting for process cleanup...')
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        // Log final process count
+        try {
+            const finalCount = execSync('ps aux | grep -E "(chrome|chromium)" | grep -v grep | wc -l', { encoding: 'utf8' })
+            console.log(`🌐 Chrome processes after cleanup: ${finalCount.trim()}`)
+        } catch {
+            console.log('🌐 Could not count final Chrome processes')
+        }
 
         // Log post-cleanup diagnostics
         console.log('📊 Post-cleanup diagnostics:')
