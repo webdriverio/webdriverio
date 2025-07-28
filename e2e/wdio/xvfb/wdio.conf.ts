@@ -28,8 +28,6 @@ export const config: WebdriverIO.Config = {
                 '--disable-backgrounding-occluded-windows',
                 '--disable-renderer-backgrounding'
             ],
-            // Handle Alpine Linux with chromium-browser
-            ...(process.env.CHROME_BIN && { binary: process.env.CHROME_BIN })
         }
     }],
 
@@ -67,20 +65,4 @@ export const config: WebdriverIO.Config = {
     /**
      * Hooks
      */
-    before: async () => {
-        // Ensure we're in the right environment
-        console.log('Platform:', process.platform)
-        console.log('CI:', process.env.CI)
-        console.log('Node version:', process.version)
-    },
-
-    beforeTest: async () => {
-        // Log test environment
-        console.log('Starting xvfb E2E test...')
-    },
-
-    afterTest: async () => {
-        // Cleanup after each test
-        console.log('Xvfb E2E test completed')
-    }
 }
