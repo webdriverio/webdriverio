@@ -208,7 +208,7 @@ describe('XvfbManager', () => {
             expect(result).toBe(true)
             expect(mockExecAsync).toHaveBeenCalledWith(
                 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
-                { timeout: 120000 }
+                { timeout: 240000 }
             )
         })
     })
@@ -246,7 +246,7 @@ describe('XvfbManager', () => {
 
             expect(mockExecAsync).toHaveBeenCalledWith(
                 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
-                { timeout: 120000 }
+                { timeout: 240000 }
             )
         })
 
@@ -281,7 +281,7 @@ describe('XvfbManager', () => {
 
             expect(mockExecAsync).toHaveBeenCalledWith(
                 'sudo dnf install -y xorg-x11-server-Xvfb',
-                { timeout: 120000 }
+                { timeout: 240000 }
             )
         })
 
@@ -313,7 +313,7 @@ describe('XvfbManager', () => {
 
             expect(mockExecAsync).toHaveBeenCalledWith(
                 'sudo pacman -S --noconfirm xorg-server-xvfb',
-                { timeout: 120000 }
+                { timeout: 240000 }
             )
         })
 
@@ -348,7 +348,7 @@ describe('XvfbManager', () => {
 
             expect(mockExecAsync).toHaveBeenCalledWith(
                 'sudo dnf install -y xorg-x11-server-Xvfb',
-                { timeout: 120000 }
+                { timeout: 240000 }
             )
         })
 
