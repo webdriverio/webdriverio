@@ -9,16 +9,28 @@ export interface XvfbOptions {
      * Force Xvfb to run even on non-Linux systems (for testing)
      */
     force?: boolean;
+    /**
+     * Override package manager detection (for testing)
+     */
+    packageManager?: string;
+    /**
+     * Skip xvfb-run availability check and force installation (for testing)
+     */
+    forceInstall?: boolean;
 }
 
 const execAsync = promisify(exec)
 
 export class XvfbManager {
     private force: boolean
+    private packageManagerOverride?: string
+    private forceInstall: boolean
     private log: ReturnType<typeof logger>
 
     constructor(options: XvfbOptions = {}) {
         this.force = options.force ?? false
+        this.packageManagerOverride = options.packageManager
+        this.forceInstall = options.forceInstall ?? false
         this.log = logger('@wdio/xvfb')
     }
 
@@ -68,13 +80,18 @@ export class XvfbManager {
      */
     private async ensureXvfbRunAvailable(): Promise<void> {
         this.log.info('Checking if xvfb-run is available...')
-        try {
-            // Check if xvfb-run is already available
-            await execAsync('which xvfb-run')
-            this.log.info('xvfb-run found in PATH')
-            return
-        } catch {
-            this.log.info('xvfb-run not found, installing xvfb packages...')
+
+        if (!this.forceInstall) {
+            try {
+                // Check if xvfb-run is already available
+                await execAsync('which xvfb-run')
+                this.log.info('xvfb-run found in PATH')
+                return
+            } catch {
+                this.log.info('xvfb-run not found, installing xvfb packages...')
+            }
+        } else {
+            this.log.info('Force install enabled, skipping availability check')
         }
 
         // Install packages that include xvfb-run
@@ -82,22 +99,29 @@ export class XvfbManager {
         await this.installXvfbPackages()
         this.log.info('Package installation completed')
 
-        // Verify xvfb-run is now available
-        this.log.info('Verifying xvfb-run installation...')
-        try {
-            const { stdout } = await execAsync('which xvfb-run')
-            this.log.info(
-                `Successfully installed xvfb-run at: ${stdout.trim()}`
-            )
-        } catch (error) {
-            this.log.error('Failed to install xvfb-run:', error)
-            throw new Error(
-                "xvfb-run is not available after installation. Please install it manually using your distribution's package manager."
-            )
+        // Verify xvfb-run is now available (skip if force install to allow error testing)
+        if (!this.forceInstall) {
+            this.log.info('Verifying xvfb-run installation...')
+            try {
+                const { stdout } = await execAsync('which xvfb-run')
+                this.log.info(
+                    `Successfully installed xvfb-run at: ${stdout.trim()}`
+                )
+            } catch (error) {
+                this.log.error('Failed to install xvfb-run:', error)
+                throw new Error(
+                    "xvfb-run is not available after installation. Please install it manually using your distribution's package manager."
+                )
+            }
         }
     }
 
     protected async detectPackageManager(): Promise<string> {
+        // Use override if provided (for testing)
+        if (this.packageManagerOverride) {
+            return this.packageManagerOverride
+        }
+
         const packageManagers = [
             { command: 'apt-get', name: 'apt' },
             { command: 'dnf', name: 'dnf' },
