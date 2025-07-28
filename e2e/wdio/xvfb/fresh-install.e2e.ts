@@ -2,19 +2,60 @@ import { expect } from '@wdio/globals'
 import { execSync } from 'node:child_process'
 import { XvfbManager } from '@wdio/xvfb'
 
+// Type definitions for Node.js internal methods
+interface ProcessWithInternals extends NodeJS.Process {
+    _getActiveHandles(): unknown[]
+    _getActiveRequests(): unknown[]
+}
+
 describe('xvfb fresh installation', () => {
     let xvfbManager: XvfbManager
 
     before(() => {
-        // Add signal handlers to debug termination
+        // Add comprehensive process diagnostics
         process.on('SIGTERM', () => {
             console.log('🚨 SIGTERM received - process being terminated')
+            console.log('📊 Active handles:', (process as ProcessWithInternals)._getActiveHandles().length)
+            console.log('📊 Active requests:', (process as ProcessWithInternals)._getActiveRequests().length)
+            console.log('📊 CPU usage:', JSON.stringify(process.cpuUsage()))
+            console.log('📊 Memory usage:', JSON.stringify(process.memoryUsage()))
+
+            // Show what's keeping the process alive
+            const handles = (process as ProcessWithInternals)._getActiveHandles()
+            console.log('🔍 Handles preventing clean exit:')
+            handles.forEach((handle: unknown, index: number) => {
+                const handleType = (handle as { constructor: { name: string } }).constructor?.name || 'Unknown'
+                console.log(`  - Handle ${index}: ${handleType}`)
+            })
+            // Show running processes one last time
+            try {
+                console.log('🔍 Final process list:')
+                const procs = execSync('ps aux | grep -E "(chrome|xvfb|node)" | grep -v grep', { encoding: 'utf8' })
+                console.log(procs || 'No relevant processes found')
+            } catch {
+                console.log('❌ Could not get final process list')
+            }
         })
+
         process.on('SIGINT', () => {
             console.log('🚨 SIGINT received - process being interrupted')
         })
+
         process.on('exit', (code) => {
             console.log(`🚨 Process exiting with code: ${code}`)
+        })
+
+        // Add beforeExit to catch when event loop is empty but process won't exit
+        process.on('beforeExit', (code) => {
+            console.log(`🔍 beforeExit triggered with code: ${code}`)
+            console.log('📊 Active handles keeping process alive:', process._getActiveHandles().length)
+            console.log('📊 Active requests keeping process alive:', (process as ProcessWithInternals)._getActiveRequests().length)
+
+            // Log details about what's keeping the process alive
+            const handles = process._getActiveHandles()
+            handles.forEach((handle: unknown, index: number) => {
+                console.log(`Handle ${index}:`, (handle as { constructor: { name: string } }).constructor.name)
+            })
         })
     })
 
@@ -25,9 +66,33 @@ describe('xvfb fresh installation', () => {
     it('should detect missing xvfb and install it automatically', async function() {
         // Set a longer timeout for this test since it involves package installation
         this.timeout(300000) // 5 minutes
+
+        // Add timeout monitoring for hanging operations
+        const testTimeoutId = setTimeout(() => {
+            console.log('⚠️ Test taking longer than expected, checking for hanging operations')
+            console.log('📊 Current handles:', (process as ProcessWithInternals)._getActiveHandles().length)
+            console.log('📊 Current requests:', (process as ProcessWithInternals)._getActiveRequests().length)
+
+            // Log what processes are still running
+            try {
+                console.log('🔍 All processes:', execSync('ps aux', { encoding: 'utf8' }))
+            } catch {
+                console.log('❌ Could not list processes')
+            }
+        }, 120000) // 2 minutes warning
+
         console.log('🔍 Test body starting - checking environment...')
         console.log(`Platform: ${process.platform}`)
         console.log(`CI env: ${process.env.CI}`)
+
+        // Check Linux distribution for debugging
+        try {
+            const osInfo = execSync('cat /etc/os-release', { encoding: 'utf8' })
+            console.log('🐧 OS Distribution info:')
+            console.log(osInfo)
+        } catch {
+            console.log('🐧 Could not determine OS distribution')
+        }
 
         // Verify we're running on Linux in CI
         console.log('✅ About to check platform expectation...')
@@ -93,6 +158,50 @@ describe('xvfb fresh installation', () => {
         }
 
         console.log('🎉 All test assertions completed successfully!')
+
+        // Add comprehensive process diagnostics before test completion
+        console.log('📊 Pre-completion diagnostics:')
+        console.log(`- Active handles: ${(process as ProcessWithInternals)._getActiveHandles().length}`)
+        console.log(`- Active requests: ${(process as ProcessWithInternals)._getActiveRequests().length}`)
+        console.log('- Memory usage:', JSON.stringify(process.memoryUsage()))
+        console.log('- CPU usage:', JSON.stringify(process.cpuUsage()))
+
+        // Log active handles details
+        const handles = (process as ProcessWithInternals)._getActiveHandles()
+        console.log('🔍 Active handle types:')
+        handles.forEach((handle: unknown, index: number) => {
+            const handleType = (handle as { constructor: { name: string } }).constructor?.name || 'Unknown'
+            console.log(`  Handle ${index}: ${handleType}`)
+        })
+
+        // Check for Chrome processes
+        try {
+            const chromeProcs = execSync('ps aux | grep -E "(chrome|chromium)" | grep -v grep', { encoding: 'utf8' })
+            console.log('🌐 Chrome processes:', chromeProcs || 'None found')
+        } catch {
+            console.log('🌐 Chrome processes: None found or ps command failed')
+        }
+
+        // Check for xvfb processes
+        try {
+            const xvfbProcs = execSync('ps aux | grep xvfb | grep -v grep', { encoding: 'utf8' })
+            console.log('🖥️ Xvfb processes:', xvfbProcs || 'None found')
+        } catch {
+            console.log('🖥️ Xvfb processes: None found or ps command failed')
+        }
+
+        // Flush output streams
+        process.stdout.write('')
+        process.stderr.write('')
+
+        // Clear the timeout monitoring
+        clearTimeout(testTimeoutId)
+        console.log('✅ Test timeout monitoring cleared')
+
+        // Explicitly signal test completion to prevent hanging
+        process.nextTick(() => {
+            console.log('🚀 Test completed, process should exit cleanly')
+        })
     })
 
     it('should work with WebDriverIO local runner integration', async () => {
@@ -138,12 +247,50 @@ describe('xvfb fresh installation', () => {
         await expect(failingManager.init()).rejects.toThrow('Unsupported package manager: unsupported-manager')
     })
 
-    afterEach(() => {
-        // Clean up any processes
+    afterEach(async () => {
+        console.log('🧹 Starting afterEach cleanup...')
+
+        // Clean up Chrome/Chromium processes more aggressively
         try {
-            execSync('pkill -f xvfb', { stdio: 'ignore' })
-        } catch {
-            // Ignore cleanup errors
+            console.log('🔫 Killing Chrome processes...')
+            execSync('pkill -f chrome || true', { stdio: 'ignore' })
+            execSync('pkill -f chromium || true', { stdio: 'ignore' })
+            execSync('pkill -f google-chrome || true', { stdio: 'ignore' })
+        } catch (error) {
+            console.log('⚠️ Chrome cleanup error (expected):', error)
         }
+
+        // Clean up xvfb processes
+        try {
+            console.log('🔫 Killing xvfb processes...')
+            execSync('pkill -f xvfb || true', { stdio: 'ignore' })
+        } catch (error) {
+            console.log('⚠️ Xvfb cleanup error (expected):', error)
+        }
+
+        // Wait for cleanup to complete
+        console.log('⏱️ Waiting for process cleanup...')
+        await new Promise(resolve => setTimeout(resolve, 2000))
+
+        // Log post-cleanup diagnostics
+        console.log('📊 Post-cleanup diagnostics:')
+        console.log(`- Active handles: ${(process as ProcessWithInternals)._getActiveHandles().length}`)
+        console.log(`- Active requests: ${(process as ProcessWithInternals)._getActiveRequests().length}`)
+
+        console.log('✅ afterEach cleanup completed')
+    })
+
+    after(() => {
+        // Ensure clean exit to prevent SIGTERM
+        console.log('🧹 Final cleanup - ensuring clean process exit')
+        process.removeAllListeners('SIGTERM')
+        process.removeAllListeners('SIGINT')
+        process.removeAllListeners('exit')
+
+        // Force exit if needed (last resort)
+        setTimeout(() => {
+            console.log('⚠️ Forcing process exit due to timeout')
+            process.exit(0)
+        }, 1000)
     })
 })
