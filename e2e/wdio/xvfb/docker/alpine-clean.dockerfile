@@ -11,7 +11,10 @@ RUN apk add --no-cache \
         nodejs \
         npm \
         bash \
-        which
+        which \
+        unzip \
+        libc6-compat \
+        libstdc++
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
@@ -20,7 +23,7 @@ RUN npm install -g pnpm
 RUN apk add --no-cache chromium
 
 # Set Chrome binary path for Alpine (uses chromium)
-ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV CHROME_BIN=/usr/bin/chromium
 
 # Create test user with sudo access
 RUN adduser -D -s /bin/bash testuser && \
