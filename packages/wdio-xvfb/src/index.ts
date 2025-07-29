@@ -38,7 +38,7 @@ export class XvfbManager {
     /**
      * Check if Xvfb should run on this system
      */
-    shouldRun(capabilities?: Capabilities.RemoteCapabilities | Capabilities.RemoteCapabilities[]): boolean {
+    shouldRun(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): boolean {
         if (this.force) {
             return true
         }
@@ -62,7 +62,7 @@ export class XvfbManager {
      * Initialize xvfb-run for use
      * @returns Promise<boolean> - true if xvfb-run is ready, false if not needed
      */
-    public async init(capabilities?: Capabilities.RemoteCapabilities | Capabilities.RemoteCapabilities[]): Promise<boolean> {
+    public async init(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): Promise<boolean> {
         this.log.info('XvfbManager.init() called')
 
         if (!this.shouldRun(capabilities)) {
@@ -125,48 +125,105 @@ export class XvfbManager {
     /**
      * Detect if headless mode is enabled in Chrome/Chromium capabilities
      */
-    private detectHeadlessMode(capabilities?: Capabilities.RemoteCapabilities | Capabilities.RemoteCapabilities[]): boolean {
+    private detectHeadlessMode(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): boolean {
         if (!capabilities) {
             return false
         }
 
-        // Handle array of capabilities (multiremote scenarios)
-        const capsArray = Array.isArray(capabilities) ? capabilities : [capabilities]
+        // Handle both single and multiremote capabilities
+        const caps = capabilities as WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>
 
-        for (const caps of capsArray) {
-            // Check Chrome options
-            const chromeOptions = caps['goog:chromeOptions'] || caps.chromeOptions
-            if (chromeOptions?.args) {
-                const hasHeadless = chromeOptions.args.some((arg: string) => arg === '--headless' || arg.startsWith('--headless='))
-                if (hasHeadless) {
-                    this.log.info('Detected headless Chrome flag, forcing XVFB usage')
+        // Check if it's a single capability object (has browser-specific options)
+        if (this.isSingleCapability(caps)) {
+            return this.checkCapabilityForHeadless(caps)
+        }
+
+        // Handle multiremote scenario
+        if (this.isMultiRemoteCapability(caps)) {
+            for (const [, browserConfig] of Object.entries(caps)) {
+                const browserCaps = this.extractCapabilitiesFromBrowserConfig(browserConfig)
+                if (this.checkCapabilityForHeadless(browserCaps)) {
                     return true
                 }
             }
-
-            // Check Edge options (Chromium-based, uses same flags as Chrome)
-            const edgeOptions = caps['ms:edgeOptions'] || caps['msedge:options'] || caps.edgeOptions
-            if (edgeOptions?.args) {
-                const hasHeadless = edgeOptions.args.some((arg: string) => arg === '--headless' || arg.startsWith('--headless='))
-                if (hasHeadless) {
-                    this.log.info('Detected headless Edge flag, forcing XVFB usage')
-                    return true
-                }
-            }
-
-            // Check Firefox options
-            const firefoxOptions = caps['moz:firefoxOptions']
-            if (firefoxOptions?.args) {
-                const hasHeadless = firefoxOptions.args.some((arg: string) => arg === '--headless' || arg === '-headless')
-                if (hasHeadless) {
-                    this.log.info('Detected headless Firefox flag, forcing XVFB usage')
-                    return true
-                }
-            }
-
         }
 
         return false
+    }
+
+    /**
+     * Check if the capabilities object is a single capability (not multiremote)
+     */
+    private isSingleCapability(caps: WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>): caps is WebdriverIO.Capabilities {
+        return Boolean(
+            caps['goog:chromeOptions'] ||
+            caps['ms:edgeOptions'] ||
+            caps['moz:firefoxOptions']
+        )
+    }
+
+    /**
+     * Check if the capabilities object is multiremote
+     */
+    private isMultiRemoteCapability(caps: WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>): caps is Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }> {
+        return !this.isSingleCapability(caps) && typeof caps === 'object' && caps !== null
+    }
+
+    /**
+     * Extract capabilities from browser config (handles both nested and direct formats)
+     */
+    private extractCapabilitiesFromBrowserConfig(browserConfig: { capabilities: WebdriverIO.Capabilities } | WebdriverIO.Capabilities): WebdriverIO.Capabilities {
+        if (browserConfig && typeof browserConfig === 'object' && 'capabilities' in browserConfig && browserConfig.capabilities) {
+            return browserConfig.capabilities
+        }
+        return browserConfig as WebdriverIO.Capabilities
+    }
+
+    /**
+     * Check a single capability object for headless flags
+     */
+    private checkCapabilityForHeadless(caps: WebdriverIO.Capabilities): boolean {
+        if (!caps || typeof caps !== 'object') {
+            return false
+        }
+
+        // Check Chrome options
+        if (this.hasHeadlessFlag(caps['goog:chromeOptions'], ['--headless'])) {
+            this.log.info('Detected headless Chrome flag, forcing XVFB usage')
+            return true
+        }
+
+        // Check Edge options (Chromium-based, uses same flags as Chrome)
+        if (this.hasHeadlessFlag(caps['ms:edgeOptions'], ['--headless'])) {
+            this.log.info('Detected headless Edge flag, forcing XVFB usage')
+            return true
+        }
+
+        // Check Firefox options
+        if (this.hasHeadlessFlag(caps['moz:firefoxOptions'], ['--headless', '-headless'])) {
+            this.log.info('Detected headless Firefox flag, forcing XVFB usage')
+            return true
+        }
+
+        return false
+    }
+
+    /**
+     * Check if browser options contain headless flags
+     */
+    private hasHeadlessFlag(options: { args?: string[] } | undefined, headlessFlags: string[]): boolean {
+        if (!options?.args || !Array.isArray(options.args)) {
+            return false
+        }
+
+        return options.args.some((arg: string) => {
+            if (typeof arg !== 'string') {
+                return false
+            }
+            return headlessFlags.some(flag =>
+                arg === flag || (flag === '--headless' && arg.startsWith('--headless='))
+            )
+        })
     }
 
     protected async detectPackageManager(): Promise<string> {
