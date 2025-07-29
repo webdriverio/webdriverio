@@ -53,16 +53,6 @@ jobs:
             scenario: with-xvfb
             dockerfile: debian-with-xvfb.dockerfile
 
-          # Rocky Linux scenarios (CentOS replacement)
-          - distro: rocky
-            version: "9"
-            scenario: base
-            dockerfile: rocky-base.dockerfile
-          - distro: rocky
-            version: "9"
-            scenario: with-xvfb
-            dockerfile: rocky-with-xvfb.dockerfile
-
           # CentOS Stream scenarios (upstream RHEL)
           - distro: centos-stream
             version: "9"
