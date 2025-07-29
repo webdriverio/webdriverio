@@ -154,6 +154,210 @@ describe('XvfbManager', () => {
 
             expect(manager.shouldRun()).toBe(false)
         })
+
+        it('should return true when Chrome headless flag is detected', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'goog:chromeOptions': {
+                    args: ['--headless', '--no-sandbox']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
+        it('should return true when Chrome headless=new flag is detected', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'goog:chromeOptions': {
+                    args: ['--headless=new', '--no-sandbox']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
+        it('should return true when Chrome headless=old flag is detected', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'goog:chromeOptions': {
+                    args: ['--headless=old', '--disable-gpu']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
+        it('should return true when Firefox headless flag is detected', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'moz:firefoxOptions': {
+                    args: ['--headless']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
+        it('should return true when Firefox -headless flag is detected', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'moz:firefoxOptions': {
+                    args: ['-headless']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
+        it('should handle legacy chromeOptions format', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                chromeOptions: {
+                    args: ['--headless', '--disable-web-security']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
+        it('should handle array of capabilities (multiremote)', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = [
+                {
+                    'goog:chromeOptions': {
+                        args: ['--no-sandbox']
+                    }
+                },
+                {
+                    'goog:chromeOptions': {
+                        args: ['--headless', '--disable-gpu']
+                    }
+                }
+            ]
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
+        it('should return false when no headless flags in capabilities', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'goog:chromeOptions': {
+                    args: ['--no-sandbox', '--disable-gpu']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(false)
+        })
+
+        it('should handle capabilities without args', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'goog:chromeOptions': {}
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(false)
+        })
+
+        it('should handle empty capabilities', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            expect(manager.shouldRun({})).toBe(false)
+        })
+
+        it('should handle undefined capabilities', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            expect(manager.shouldRun(undefined)).toBe(false)
+        })
+
+        it('should return true when Edge headless flag is detected (ms:edgeOptions)', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'ms:edgeOptions': {
+                    args: ['--headless', '--no-sandbox']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
+        it('should return true when Edge headless flag is detected (msedge:options)', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'msedge:options': {
+                    args: ['--headless=new', '--disable-gpu']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
+        it('should return true when Edge headless flag is detected (legacy edgeOptions)', () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                edgeOptions: {
+                    args: ['--headless=old', '--disable-web-security']
+                }
+            }
+
+            expect(manager.shouldRun(capabilities)).toBe(true)
+        })
+
     })
 
     describe('init', () => {
@@ -177,6 +381,24 @@ describe('XvfbManager', () => {
             const result = await manager.init()
 
             expect(result).toBe(false)
+        })
+
+        it('should setup xvfb-run when headless capabilities are provided', async () => {
+            manager = new XvfbManager()
+            mockPlatform.mockReturnValue('linux')
+            mockIsCI.value = false
+            process.env.DISPLAY = ':0'
+
+            const capabilities = {
+                'goog:chromeOptions': {
+                    args: ['--headless', '--no-sandbox']
+                }
+            }
+
+            const result = await manager.init(capabilities)
+
+            expect(result).toBe(true)
+            expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
         })
 
         it('should install xvfb when xvfb-run is not available', async () => {

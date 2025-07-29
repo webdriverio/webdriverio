@@ -3,6 +3,7 @@ import { exec } from 'node:child_process'
 import os from 'node:os'
 import isCI from 'is-ci'
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 
 export interface XvfbOptions {
     /**
@@ -37,7 +38,7 @@ export class XvfbManager {
     /**
      * Check if Xvfb should run on this system
      */
-    shouldRun(): boolean {
+    shouldRun(capabilities?: Capabilities.RemoteCapabilities | Capabilities.RemoteCapabilities[]): boolean {
         if (this.force) {
             return true
         }
@@ -49,17 +50,22 @@ export class XvfbManager {
 
         // Check if we're in a headless environment (no DISPLAY set or in CI)
         const hasDisplay = process.env.DISPLAY
-        return !hasDisplay || isCI
+        const inHeadlessEnvironment = !hasDisplay || isCI
+
+        // Force XVFB if headless Chrome flags are detected
+        const hasHeadlessFlag = this.detectHeadlessMode(capabilities)
+
+        return inHeadlessEnvironment || hasHeadlessFlag
     }
 
     /**
      * Initialize xvfb-run for use
      * @returns Promise<boolean> - true if xvfb-run is ready, false if not needed
      */
-    public async init(): Promise<boolean> {
+    public async init(capabilities?: Capabilities.RemoteCapabilities | Capabilities.RemoteCapabilities[]): Promise<boolean> {
         this.log.info('XvfbManager.init() called')
 
-        if (!this.shouldRun()) {
+        if (!this.shouldRun(capabilities)) {
             this.log.info('Xvfb not needed on current platform')
             return false
         }
@@ -114,6 +120,53 @@ export class XvfbManager {
                 )
             }
         }
+    }
+
+    /**
+     * Detect if headless mode is enabled in Chrome/Chromium capabilities
+     */
+    private detectHeadlessMode(capabilities?: Capabilities.RemoteCapabilities | Capabilities.RemoteCapabilities[]): boolean {
+        if (!capabilities) {
+            return false
+        }
+
+        // Handle array of capabilities (multiremote scenarios)
+        const capsArray = Array.isArray(capabilities) ? capabilities : [capabilities]
+
+        for (const caps of capsArray) {
+            // Check Chrome options
+            const chromeOptions = caps['goog:chromeOptions'] || caps.chromeOptions
+            if (chromeOptions?.args) {
+                const hasHeadless = chromeOptions.args.some((arg: string) => arg === '--headless' || arg.startsWith('--headless='))
+                if (hasHeadless) {
+                    this.log.info('Detected headless Chrome flag, forcing XVFB usage')
+                    return true
+                }
+            }
+
+            // Check Edge options (Chromium-based, uses same flags as Chrome)
+            const edgeOptions = caps['ms:edgeOptions'] || caps['msedge:options'] || caps.edgeOptions
+            if (edgeOptions?.args) {
+                const hasHeadless = edgeOptions.args.some((arg: string) => arg === '--headless' || arg.startsWith('--headless='))
+                if (hasHeadless) {
+                    this.log.info('Detected headless Edge flag, forcing XVFB usage')
+                    return true
+                }
+            }
+
+            // Check Firefox options
+            const firefoxOptions = caps['moz:firefoxOptions']
+            if (firefoxOptions?.args) {
+                const hasHeadless = firefoxOptions.args.some((arg: string) => arg === '--headless' || arg === '-headless')
+                if (hasHeadless) {
+                    this.log.info('Detected headless Firefox flag, forcing XVFB usage')
+                    return true
+                }
+            }
+
+        }
+
+        return false
     }
 
     protected async detectPackageManager(): Promise<string> {
