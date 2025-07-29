@@ -30,7 +30,7 @@ RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 # Ensure clean environment by removing any xvfb packages (do this at the very end)
-RUN xbps-remove -y xvfb xorg-server-xvfb || true && \
+RUN xbps-remove -y xvfb-run || true && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run
 
 # Verify xvfb-run is NOT available

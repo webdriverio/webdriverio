@@ -32,7 +32,7 @@ RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 # Ensure clean environment by removing any xvfb packages (do this at the very end)
-RUN dnf remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps || true && \
+RUN dnf remove -y xorg-x11-server-Xvfb || true && \
     dnf autoremove -y && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
     dnf clean all

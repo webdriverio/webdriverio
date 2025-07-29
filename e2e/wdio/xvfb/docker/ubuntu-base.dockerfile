@@ -35,7 +35,7 @@ RUN useradd -m -s /bin/bash testuser && \
 
 # Ensure clean environment by removing any xvfb packages (do this at the very end)
 RUN apt-get update -qq && \
-    apt-get remove -y xvfb xvfb-run xserver-xorg-video-dummy xserver-xorg-core xorg || true && \
+    apt-get remove -y xvfb || true && \
     apt-get autoremove -y && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
     apt-get clean && \
