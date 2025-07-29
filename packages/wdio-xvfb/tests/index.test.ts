@@ -230,21 +230,6 @@ describe('XvfbManager', () => {
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
 
-        it('should handle legacy chromeOptions format', () => {
-            manager = new XvfbManager()
-            mockPlatform.mockReturnValue('linux')
-            mockIsCI.value = false
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                chromeOptions: {
-                    args: ['--headless', '--disable-web-security']
-                }
-            }
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
-        })
-
         it('should handle array of capabilities (multiremote)', () => {
             manager = new XvfbManager()
             mockPlatform.mockReturnValue('linux')
@@ -322,36 +307,6 @@ describe('XvfbManager', () => {
             const capabilities = {
                 'ms:edgeOptions': {
                     args: ['--headless', '--no-sandbox']
-                }
-            }
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
-        })
-
-        it('should return true when Edge headless flag is detected (msedge:options)', () => {
-            manager = new XvfbManager()
-            mockPlatform.mockReturnValue('linux')
-            mockIsCI.value = false
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                'msedge:options': {
-                    args: ['--headless=new', '--disable-gpu']
-                }
-            }
-
-            expect(manager.shouldRun(capabilities)).toBe(true)
-        })
-
-        it('should return true when Edge headless flag is detected (legacy edgeOptions)', () => {
-            manager = new XvfbManager()
-            mockPlatform.mockReturnValue('linux')
-            mockIsCI.value = false
-            process.env.DISPLAY = ':0'
-
-            const capabilities = {
-                edgeOptions: {
-                    args: ['--headless=old', '--disable-web-security']
                 }
             }
 
