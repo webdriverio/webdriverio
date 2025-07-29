@@ -266,7 +266,7 @@ export class XvfbManager {
             zypper: 'sudo zypper install -y xorg-x11-server-Xvfb xvfb-run',
             pacman: 'sudo pacman -S --noconfirm xorg-server-xvfb',
             apk: 'sudo apk add --no-cache xvfb-run',
-            xbps: 'sudo xbps-install -S xvfb-run',
+            xbps: 'sudo xbps-install -Sy xvfb-run',
         }
 
         const command = installCommands[packageManager]
