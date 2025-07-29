@@ -129,6 +129,7 @@ export class XvfbManager {
             { command: 'zypper', name: 'zypper' },
             { command: 'pacman', name: 'pacman' },
             { command: 'apk', name: 'apk' },
+            { command: 'xbps-install', name: 'xbps' },
         ]
 
         for (const { command, name } of packageManagers) {
@@ -155,6 +156,7 @@ export class XvfbManager {
             zypper: 'sudo zypper install -y xorg-x11-server-Xvfb xvfb-run',
             pacman: 'sudo pacman -S --noconfirm xorg-server-xvfb',
             apk: 'sudo apk add --no-cache xvfb-run',
+            xbps: 'sudo xbps-install -S xvfb',
         }
 
         const command = installCommands[packageManager]

@@ -92,7 +92,7 @@ The utility automatically detects when Xvfb is needed:
 ## Features
 
 -   **Conditional execution**: Only runs on Linux systems in headless environments
--   **Cross-distro support**: Works on Ubuntu, Debian, Fedora, CentOS, RHEL, SUSE, Arch, and Alpine
+-   **Cross-distro support**: Works on Ubuntu, Debian, Fedora, CentOS, RHEL, SUSE, Arch, Alpine, and Void Linux
 -   **Automatic setup**: Installs required packages if not present using the appropriate package manager
 -   **Command execution**: Execute commands under Xvfb using `xvfb-run`
 -   **Graceful cleanup**: Automatic cleanup when commands complete
@@ -119,6 +119,7 @@ The utility automatically detects and supports package installation on:
 -   **SUSE**: Uses `zypper` to install `xvfb`
 -   **Arch Linux**: Uses `pacman` to install `xorg-server-xvfb`
 -   **Alpine**: Uses `apk` to install `xvfb`
+-   **Void Linux**: Uses `xbps-install` to install `xvfb`
 
 ## Examples
 
