@@ -447,7 +447,7 @@ describe('XvfbManager', () => {
                     // Other package managers not found
                     return Promise.reject(new Error('not found'))
                 }
-                if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb') {
+                if (cmd === 'sudo dnf makecache && sudo dnf install -y xorg-x11-server-Xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
@@ -457,7 +457,7 @@ describe('XvfbManager', () => {
             await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo dnf install -y xorg-x11-server-Xvfb',
+                'sudo dnf makecache && sudo dnf install -y xorg-x11-server-Xvfb',
                 { timeout: 240000 }
             )
         })
@@ -479,7 +479,7 @@ describe('XvfbManager', () => {
                     // Other package managers not found
                     return Promise.reject(new Error('not found'))
                 }
-                if (cmd === 'sudo pacman -S --noconfirm xorg-server-xvfb') {
+                if (cmd === 'sudo pacman -Sy --noconfirm xorg-server-xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
@@ -489,7 +489,7 @@ describe('XvfbManager', () => {
             await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo pacman -S --noconfirm xorg-server-xvfb',
+                'sudo pacman -Sy --noconfirm xorg-server-xvfb',
                 { timeout: 240000 }
             )
         })
@@ -514,7 +514,7 @@ describe('XvfbManager', () => {
                     // Other package managers not found
                     return Promise.reject(new Error('not found'))
                 }
-                if (cmd === 'sudo dnf install -y xorg-x11-server-Xvfb') {
+                if (cmd === 'sudo dnf makecache && sudo dnf install -y xorg-x11-server-Xvfb') {
                     return Promise.resolve({ stdout: '', stderr: '' })
                 }
                 return Promise.resolve({ stdout: '', stderr: '' })
@@ -524,7 +524,7 @@ describe('XvfbManager', () => {
             await manager.init()
 
             expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo dnf install -y xorg-x11-server-Xvfb',
+                'sudo dnf makecache && sudo dnf install -y xorg-x11-server-Xvfb',
                 { timeout: 240000 }
             )
         })

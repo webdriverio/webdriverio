@@ -261,11 +261,11 @@ export class XvfbManager {
 
         const installCommands: Record<string, string> = {
             apt: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
-            dnf: 'sudo dnf install -y xorg-x11-server-Xvfb',
-            yum: 'sudo yum install -y xorg-x11-server-Xvfb',
-            zypper: 'sudo zypper install -y xorg-x11-server-Xvfb xvfb-run',
-            pacman: 'sudo pacman -S --noconfirm xorg-server-xvfb',
-            apk: 'sudo apk add --no-cache xvfb-run',
+            dnf: 'sudo dnf makecache && sudo dnf install -y xorg-x11-server-Xvfb',
+            yum: 'sudo yum makecache && sudo yum install -y xorg-x11-server-Xvfb',
+            zypper: 'sudo zypper refresh && sudo zypper install -y xorg-x11-server-Xvfb xvfb-run',
+            pacman: 'sudo pacman -Sy --noconfirm xorg-server-xvfb',
+            apk: 'sudo apk update && sudo apk add --no-cache xvfb-run',
             xbps: 'sudo xbps-install -Sy xvfb-run',
         }
 
