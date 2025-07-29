@@ -19,6 +19,7 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
+    private xvfbInitialized = false
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -32,24 +33,7 @@ export default class LocalRunner {
      * initialize local runner environment
      */
     async initialize() {
-        // Skip Xvfb initialization if explicitly disabled
-        if (this._config.disableAutoXvfb) {
-            log.info('Skipping automatic Xvfb initialization (disabled by config)')
-            return
-        }
-
-        // Initialize Xvfb if needed for headless testing
-        try {
-            const xvfbInitialized = await xvfb.init()
-            if (xvfbInitialized) {
-                log.info('Xvfb is ready for use')
-            }
-        } catch (error) {
-            log.warn(
-                'Failed to initialize Xvfb, continuing without virtual display:',
-                error
-            )
-        }
+        // XVFB initialization is handled lazily during first worker creation, to access capabilities for headless detection
     }
 
     getWorkerCount() {
@@ -57,6 +41,12 @@ export default class LocalRunner {
     }
 
     async run({ command, args, ...workerOptions }: RunArgs) {
+        // Initialize XVFB lazily on first worker creation
+        if (!this.xvfbInitialized) {
+            await this.initializeXvfb(workerOptions)
+            this.xvfbInitialized = true
+        }
+
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */
@@ -75,6 +65,31 @@ export default class LocalRunner {
         this.workerPool[workerOptions.cid] = worker
         worker.postMessage(command, args)
         return worker
+    }
+
+    /**
+     * Initialize XVFB with capability-aware detection
+     */
+    private async initializeXvfb(workerOptions: Workers.WorkerRunPayload) {
+        // Skip Xvfb initialization if explicitly disabled
+        if (this._config.disableAutoXvfb) {
+            log.info('Skipping automatic Xvfb initialization (disabled by config)')
+            return
+        }
+
+        // Initialize Xvfb if needed for headless testing
+        try {
+            const capabilities = workerOptions.caps
+            const xvfbInitialized = await xvfb.init(capabilities)
+            if (xvfbInitialized) {
+                log.info('Xvfb is ready for use')
+            }
+        } catch (error) {
+            log.warn(
+                'Failed to initialize Xvfb, continuing without virtual display:',
+                error
+            )
+        }
     }
 
     /**

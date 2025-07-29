@@ -257,18 +257,33 @@ test('should avoid shutting down if worker is not busy', async () => {
     expect(await runner.initialize()).toBe(undefined)
 })
 
-test('should initialize xvfb during initialization when needed', async () => {
+test('should initialize xvfb lazily during first run when needed', async () => {
     const { xvfb } = await import('@wdio/xvfb')
     vi.mocked(xvfb.shouldRun).mockReturnValue(true)
     vi.mocked(xvfb.init).mockResolvedValue(true)
 
     const runner = new LocalRunner(undefined as never, {} as any)
-    await runner.initialize()
 
-    expect(xvfb.init).toHaveBeenCalled()
+    // Initialize should not call xvfb.init
+    await runner.initialize()
+    expect(xvfb.init).not.toHaveBeenCalled()
+
+    // First run should initialize xvfb
+    await runner.run({
+        cid: '0-1',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: { 'goog:chromeOptions': { args: ['--headless'] } },
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(xvfb.init).toHaveBeenCalledWith({ 'goog:chromeOptions': { args: ['--headless'] } })
 })
 
-test('should not initialize xvfb during initialization when not needed', async () => {
+test('should not initialize xvfb during run when not needed', async () => {
     const { xvfb } = await import('@wdio/xvfb')
     vi.mocked(xvfb.shouldRun).mockReturnValue(false)
     vi.mocked(xvfb.init).mockResolvedValue(false)
@@ -276,22 +291,21 @@ test('should not initialize xvfb during initialization when not needed', async (
     const runner = new LocalRunner(undefined as never, {} as any)
     await runner.initialize()
 
+    await runner.run({
+        cid: '0-2',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
     expect(xvfb.init).toHaveBeenCalled()
     // Verify that xvfb didn't actually initialize (returned false)
     const initResult = await vi.mocked(xvfb.init).mock.results[0].value
     expect(initResult).toBe(false)
-})
-
-test('should handle xvfb during shutdown', async () => {
-    const { xvfb } = await import('@wdio/xvfb')
-    vi.mocked(xvfb.shouldRun).mockReturnValue(true)
-    vi.mocked(xvfb.init).mockResolvedValue(true)
-
-    const runner = new LocalRunner(undefined as never, {} as any)
-    await runner.initialize()
-    await runner.shutdown()
-
-    expect(xvfb.init).toHaveBeenCalled()
 })
 
 test('should handle xvfb initialization failure gracefully', async () => {
@@ -301,20 +315,52 @@ test('should handle xvfb initialization failure gracefully', async () => {
 
     const runner = new LocalRunner(undefined as never, {} as any)
 
-    // Should not throw, just log the error
-    await expect(runner.initialize()).resolves.toBeUndefined()
+    // Should not throw during run, just log the error
+    await expect(runner.run({
+        cid: '0-3',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })).resolves.toBeDefined()
     expect(xvfb.init).toHaveBeenCalled()
 })
 
-test('should setup xvfb when needed', async () => {
+test('should only initialize xvfb once across multiple runs', async () => {
     const { xvfb } = await import('@wdio/xvfb')
     vi.mocked(xvfb.shouldRun).mockReturnValue(true)
     vi.mocked(xvfb.init).mockResolvedValue(true)
 
     const runner = new LocalRunner(undefined as never, {} as any)
-    await runner.initialize()
 
-    expect(xvfb.init).toHaveBeenCalled()
+    // First run should initialize xvfb
+    await runner.run({
+        cid: '0-4',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar1.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    // Second run should not initialize xvfb again
+    await runner.run({
+        cid: '0-5',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar2.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(xvfb.init).toHaveBeenCalledTimes(1)
 })
 
 test('should handle xvfb operations with existing workers', async () => {
@@ -330,9 +376,7 @@ test('should handle xvfb operations with existing workers', async () => {
         } as any
     )
 
-    await runner.initialize()
-
-    // Start a worker
+    // Start a worker (should initialize xvfb)
     const worker = await runner.run({
         cid: '0-9',
         command: 'run',
@@ -352,4 +396,28 @@ test('should handle xvfb operations with existing workers', async () => {
     await runner.shutdown()
 
     expect(xvfb.init).toHaveBeenCalled()
+})
+
+test('should skip xvfb initialization when disabled in config', async () => {
+    const { xvfb } = await import('@wdio/xvfb')
+    vi.mocked(xvfb.shouldRun).mockReturnValue(true)
+    vi.mocked(xvfb.init).mockResolvedValue(true)
+
+    const runner = new LocalRunner(
+        undefined as never,
+        { disableAutoXvfb: true } as any
+    )
+
+    await runner.run({
+        cid: '0-10',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(xvfb.init).not.toHaveBeenCalled()
 })
