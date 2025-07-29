@@ -20,13 +20,8 @@ export const config: WebdriverIO.Config = {
         'goog:chromeOptions': {
             args: [
                 '--headless=new',
-                '--disable-gpu',
                 '--no-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-extensions',
-                '--disable-background-timer-throttling',
-                '--disable-backgrounding-occluded-windows',
-                '--disable-renderer-backgrounding'
+                '--disable-dev-shm-usage'
             ],
             // Handle Alpine Linux with chromium-browser
             ...(process.env.CHROME_BIN && { binary: process.env.CHROME_BIN })
@@ -63,8 +58,4 @@ export const config: WebdriverIO.Config = {
         timeout: 300000, // 5 minutes to allow for package installation
         require: []
     },
-
-    /**
-     * Hooks
-     */
 }
