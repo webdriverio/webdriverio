@@ -1510,6 +1510,9 @@ importers:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.5
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
 
   packages/webdriver:
     dependencies:
