@@ -40,6 +40,7 @@ vi.mock('@wdio/logger', () => ({
 
 // Import after mocking
 import XvfbManager, { xvfb } from '../src/index.js'
+import type { ResolvedTestrunnerCapabilities } from '../../wdio-types/build/Capabilities.js'
 
 describe('XvfbManager', () => {
     let manager: XvfbManager
@@ -247,7 +248,7 @@ describe('XvfbManager', () => {
                         args: ['--headless', '--disable-gpu']
                     }
                 }
-            ]
+            ] as ResolvedTestrunnerCapabilities
 
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
