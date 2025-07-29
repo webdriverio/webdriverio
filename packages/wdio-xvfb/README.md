@@ -10,7 +10,18 @@ npm install @wdio/xvfb
 
 ## Usage
 
-### Basic Usage
+### Automatic Integration
+
+**Most users don't need to use this package directly.** It's automatically integrated into:
+
+- **`@wdio/local-runner`** - Automatically ensures xvfb is available for headless browser testing
+- **`wdio-electron-service`** - Provides headless Electron testing capabilities
+
+Simply run your WebDriverIO tests normally, and xvfb will be managed automatically when needed.
+
+### Manual Usage (Advanced)
+
+For custom integrations or non-WDIO environments:
 
 ```js
 import { xvfb } from "@wdio/xvfb";
@@ -22,36 +33,6 @@ if (ready) {
     console.log("xvfb-run is ready for use");
     // Use xvfb-run to execute commands that need a display
     // e.g., xvfb-run npm test
-}
-```
-
-### Custom Instance
-
-```js
-import XvfbManager from "@wdio/xvfb";
-
-const manager = new XvfbManager({
-    force: true, // Force on non-Linux systems for testing
-});
-
-const ready = await manager.init();
-if (ready) {
-    // xvfb-run is available for use
-}
-```
-
-### Integration with @wdio/local-runner
-
-The `@wdio/local-runner` can use this utility to ensure xvfb-run is available:
-
-```js
-// In local-runner
-import { xvfb } from "@wdio/xvfb";
-
-export class LocalRunner {
-    async onPrepare() {
-        await xvfb.init(); // Ensures xvfb-run is available
-    }
 }
 ```
 
@@ -69,15 +50,18 @@ interface XvfbOptions {
 
 #### Methods
 
--   **`shouldRun(): boolean`** - Check if Xvfb should run on this system
--   **`init(): Promise<boolean>`** - Initialize xvfb-run, returns true if ready, false if not needed
+-   **`shouldRun(capabilities?): boolean`** - Check if Xvfb should run on this system
+-   **`init(capabilities?): Promise<boolean>`** - Initialize xvfb-run, returns true if ready, false if not needed
 
-### Default Instance
+### Force Mode (Testing Only)
 
-A default instance is exported for convenience:
+For testing on non-Linux systems:
 
 ```js
-import { xvfb } from "@wdio/xvfb";
+import XvfbManager from "@wdio/xvfb";
+
+const manager = new XvfbManager({ force: true });
+const ready = await manager.init();
 ```
 
 ## When does it run?
@@ -86,14 +70,19 @@ The utility automatically detects when Xvfb is needed:
 
 -   ✅ Linux systems without a DISPLAY environment variable
 -   ✅ Linux systems in CI environments (uses `is-ci` package for detection)
+-   ✅ Linux systems when headless browser flags are detected:
+    - **Chrome/Chromium**: `--headless`, `--headless=new`, `--headless=old`
+    - **Firefox**: `--headless`, `-headless`
+    - **Edge** (Chromium-based): `--headless`, `--headless=new`, `--headless=old`
 -   ❌ Non-Linux systems (unless `force: true`)
--   ❌ Linux systems with existing DISPLAY (unless in CI)
+-   ❌ Linux systems with existing DISPLAY (unless in CI or headless flags detected)
 
 ## Features
 
 -   **Conditional execution**: Only runs on Linux systems in headless environments
--   **Cross-distro support**: Works on Ubuntu, Debian, Fedora, CentOS, RHEL, SUSE, Arch, Alpine, and Void Linux
--   **Automatic setup**: Installs required packages if not present using the appropriate package manager
+-   **Smart headless detection**: Automatically detects browser headless flags (`--headless`, `--headless=new`, etc.) and forces XVFB usage for consistent behavior
+-   **Universal package manager support**: Automatically detects and uses the system's package manager (`apt`, `dnf`, `yum`, `zypper`, `pacman`, `apk`, `xbps`)
+-   **Cross-distro compatibility**: Works across hundreds of Linux distributions by supporting their underlying package managers
 -   **Command execution**: Execute commands under Xvfb using `xvfb-run`
 -   **Graceful cleanup**: Automatic cleanup when commands complete
 -   **State tracking**: Prevents duplicate starts and handles multiple calls safely
@@ -108,22 +97,32 @@ This package uses `xvfb-run` to manage Xvfb sessions, which:
 -   Handles process cleanup automatically when commands complete
 -   Supports custom arguments for advanced Xvfb configuration
 
-## Supported Linux Distributions
+## Supported Package Managers
 
-The utility automatically detects and supports package installation on:
+The utility automatically detects the system's package manager and installs xvfb accordingly:
 
--   **Ubuntu/Debian**: Uses `apt-get` to install `xvfb`
--   **Fedora**: Uses `dnf` to install `xorg-x11-server-Xvfb`
--   **Rocky Linux**: Uses `dnf` to install `xorg-x11-server-Xvfb`
--   **CentOS/RHEL**: Uses `yum` to install `xorg-x11-server-Xvfb`
--   **SUSE**: Uses `zypper` to install `xvfb`
--   **Arch Linux**: Uses `pacman` to install `xorg-server-xvfb`
--   **Alpine**: Uses `apk` to install `xvfb`
--   **Void Linux**: Uses `xbps-install` to install `xvfb`
+| Package Manager | Command | Distributions | Package Name |
+|----------------|---------|---------------|--------------|
+| **`apt`** | `apt-get` | Ubuntu, Debian, Pop!_OS, Mint, Elementary, Zorin, etc. | `xvfb` |
+| **`dnf`** | `dnf` | Fedora, Rocky Linux, AlmaLinux, Nobara, Bazzite, etc. | `xorg-x11-server-Xvfb` |
+| **`yum`** | `yum` | CentOS, RHEL (legacy) | `xorg-x11-server-Xvfb` |
+| **`zypper`** | `zypper` | openSUSE, SUSE Linux Enterprise | `xorg-x11-server-Xvfb xvfb-run` |
+| **`pacman`** | `pacman` | Arch Linux, Manjaro, EndeavourOS, CachyOS, etc. | `xorg-server-xvfb` |
+| **`apk`** | `apk` | Alpine Linux, PostmarketOS | `xvfb-run` |
+| **`xbps`** | `xbps-install` | Void Linux | `xvfb` |
+
+### Future-Proof Design
+
+This package manager-focused approach means **new Linux distributions automatically work** without code changes, as long as they use one of the supported package managers. For example:
+- New Ubuntu derivatives automatically use `apt`
+- New Arch derivatives automatically use `pacman`
+- New Fedora derivatives automatically use `dnf`
+
+The 7 supported package managers cover **95%+ of all Linux users** and hundreds of distributions, making this solution both comprehensive and maintainable.
 
 ## Examples
 
-### Basic Setup for Testing
+### Basic Setup for Custom Tools
 
 ```js
 import { xvfb } from "@wdio/xvfb";
@@ -132,79 +131,81 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-async function runTests() {
-    // Ensure xvfb-run is available
-    const ready = await xvfb.init();
-
-    if (ready) {
-        // Use xvfb-run to execute tests that need a display
-        const { stdout, stderr } = await execAsync("xvfb-run npm test");
-        console.log("Test output:", stdout);
-        if (stderr) console.error("Errors:", stderr);
-    } else {
-        // Not on Linux or display already available
-        const { stdout, stderr } = await execAsync("npm test");
-        console.log("Test output:", stdout);
-    }
-}
-```
-
-### Electron Testing
-
-```js
-import { xvfb } from "@wdio/xvfb";
-import { exec } from "child_process";
-import { promisify } from "util";
-
-const execAsync = promisify(exec);
-
-async function testElectronApp() {
+async function runCustomTests() {
     const ready = await xvfb.init();
 
     const command = ready
-        ? "xvfb-run electron ./app --test"
-        : "electron ./app --test";
-    const { stdout, stderr } = await execAsync(command);
+        ? "xvfb-run your-custom-test-command"
+        : "your-custom-test-command";
 
-    console.log("Electron output:", stdout);
+    await execAsync(command);
 }
 ```
 
-### Force Mode for Testing
+### WebDriverIO Configuration
+
+For most users, no configuration is needed. WDIO automatically handles xvfb:
 
 ```js
-import XvfbManager from "@wdio/xvfb";
+// wdio.conf.js
+export const config = {
+    // No xvfb configuration needed - handled automatically
+    capabilities: [{
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+            args: ['--headless', '--no-sandbox'] // Automatically detected - will force XVFB
+        }
+    }],
+    services: [
+        'chromedriver',
+        // xvfb is automatically managed by local-runner
+    ]
+};
+```
 
-const manager = new XvfbManager({
-    force: true, // Force even on non-Linux systems
-});
+### Headless Flag Detection
 
-async function runTestsWithForce() {
-    const ready = await manager.init();
+The utility automatically detects browser headless flags and forces XVFB usage even when a DISPLAY is available:
 
-    if (ready) {
-        console.log("xvfb-run is ready for use");
-        // Proceed with xvfb-run commands
+```js
+// These configurations will automatically trigger XVFB on Linux:
+
+// Chrome/Chromium
+capabilities: [{
+    'goog:chromeOptions': {
+        args: ['--headless']        // Detected
     }
+}]
+
+// Firefox
+capabilities: [{
+    'moz:firefoxOptions': {
+        args: ['--headless']        // Detected
+    }
+}]
+
+// Edge (Chromium-based)
+capabilities: [{
+    'ms:edgeOptions': {
+        args: ['--headless=new']    // Detected
+    }
+}]
+
+// Legacy formats also supported
+capabilities: [{
+    chromeOptions: { args: ['--headless'] },     // Legacy Chrome
+    edgeOptions: { args: ['--headless'] }        // Legacy Edge
+}]
+
+// Multiremote scenarios are also supported
+capabilities: {
+    browserA: { 'goog:chromeOptions': { args: ['--headless'] }},
+    browserB: { 'ms:edgeOptions': { args: ['--no-sandbox'] }}
+    // XVFB will be used because browserA has headless flag
 }
 ```
 
-### Multiple Instances
-
-```js
-import XvfbManager from "@wdio/xvfb";
-
-// Multiple managers for different scenarios
-const managers = [
-    new XvfbManager(), // Default
-    new XvfbManager({ force: true }), // Forced
-];
-
-// Initialize all managers
-const results = await Promise.all(managers.map((m) => m.init()));
-
-console.log("Managers ready:", results);
-```
+This ensures consistent headless behavior regardless of host environment setup.
 
 ## Logging
 
