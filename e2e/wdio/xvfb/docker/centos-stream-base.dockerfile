@@ -1,4 +1,4 @@
-FROM rockylinux:9
+FROM quay.io/centos/centos:stream9
 
 # Set environment variables
 ENV CI=true
@@ -11,7 +11,7 @@ RUN dnf update -y && \
         which && \
     dnf clean all
 
-# Install Node.js 18 from NodeSource
+# Install Node.js from NodeSource
 RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
     dnf install -y nodejs
 
@@ -28,11 +28,7 @@ RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \
     dnf install -y google-chrome-stable && \
     dnf clean all
 
-# Create test user with sudo access
-RUN useradd -m -s /bin/bash testuser && \
-    echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-
-# Ensure clean environment by removing any xvfb packages (do this at the very end)
+# Ensure clean environment by removing any xvfb packages
 RUN dnf remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps || true && \
     dnf autoremove -y && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
@@ -40,6 +36,10 @@ RUN dnf remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps || true && \
 
 # Verify xvfb-run is NOT available
 RUN ! which xvfb-run || exit 1
+
+# Create test user with sudo access
+RUN useradd -m -s /bin/bash testuser && \
+    echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 WORKDIR /app
 USER testuser

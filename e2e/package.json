@@ -34,7 +34,7 @@
     "test:customReporter": "wdio ./custom-reporter/wdio.conf.js",
     "test:customService": "wdio ./custom-service/wdio.conf.js",
     "test:xvfb": "wdio ./wdio/xvfb/wdio.conf.ts",
-    "test:xvfb:fresh": "wdio ./wdio/xvfb/wdio.conf.ts --spec fresh-install.e2e.ts",
+    "test:xvfb:base": "wdio ./wdio/xvfb/wdio.conf.ts --spec base-install.e2e.ts",
     "test:xvfb:existing": "wdio ./wdio/xvfb/wdio.conf.ts --spec existing-xvfb.e2e.ts",
     "verifyCoverage": "test -d ./browser-runner/coverage"
   },

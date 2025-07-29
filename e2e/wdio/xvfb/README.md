@@ -6,8 +6,8 @@ This directory contains end-to-end tests for the WebDriverIO xvfb integration fu
 
 ### Test Scenarios
 
-1. **Fresh Install Test** (`fresh-install.e2e.ts`)
-   - Tests xvfb auto-installation on clean systems
+1. **Base Install Test** (`base-install.e2e.ts`)
+   - Tests xvfb auto-installation on base systems
    - Verifies package manager detection and installation
    - Confirms xvfb-run becomes available after installation
 
@@ -20,14 +20,14 @@ This directory contains end-to-end tests for the WebDriverIO xvfb integration fu
 
 Each test scenario runs in multiple Linux distributions:
 
-- **Ubuntu 24.04**: Clean and with-xvfb variants
-- **Debian 12**: Clean and with-xvfb variants
-- **Fedora 40**: Clean and with-xvfb variants
-- **Rocky Linux 9**: Clean and with-xvfb variants (CentOS replacement)
-- **CentOS Stream 9**: Clean and with-xvfb variants (upstream RHEL)
-- **Arch Linux**: Clean and with-xvfb variants
-- **SUSE Leap 15.6**: Clean and with-xvfb variants
-- **Alpine 3.20**: Clean and with-xvfb variants
+- **Ubuntu 24.04**: Base and with-xvfb variants
+- **Debian 12**: Base and with-xvfb variants
+- **Fedora 40**: Base and with-xvfb variants
+- **Rocky Linux 9**: Base and with-xvfb variants (CentOS replacement)
+- **CentOS Stream 9**: Base and with-xvfb variants (upstream RHEL)
+- **Arch Linux**: Base and with-xvfb variants
+- **SUSE Leap 15.6**: Base and with-xvfb variants
+- **Alpine 3.20**: Base and with-xvfb variants
 
 ### Configuration
 
@@ -45,7 +45,7 @@ cd e2e
 pnpm test:xvfb
 
 # Run specific scenario
-pnpm test:xvfb:fresh    # Fresh installation test
+pnpm test:xvfb:base     # Base installation test
 pnpm test:xvfb:existing # Existing installation test
 ```
 
@@ -59,7 +59,7 @@ The workflow creates Docker containers for each distribution/scenario combinatio
 
 ## Test Matrix
 
-| Distribution    | Version | Clean System | With XVFB |
+| Distribution    | Version | Base System  | With XVFB |
 |----------------|---------|--------------|-----------|
 | Ubuntu         | 24.04   | ✅           | ✅        |
 | Debian         | 12      | ✅           | ✅        |
@@ -72,7 +72,7 @@ The workflow creates Docker containers for each distribution/scenario combinatio
 
 ## What These Tests Verify
 
-### Fresh Installation Scenario
+### Base Installation Scenario
 - ✅ Platform detection works correctly
 - ✅ `xvfb.shouldRun()` returns `true` on Linux
 - ✅ `xvfb-run` is initially not available

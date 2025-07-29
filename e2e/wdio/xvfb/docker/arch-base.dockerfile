@@ -31,7 +31,7 @@ RUN useradd -m -s /bin/bash testuser && \
 RUN pacman -R --noconfirm xorg-server-xvfb xvfb-run xorg-apps || true && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run
 
-# Verify xvfb-run is NOT available  
+# Verify xvfb-run is NOT available
 RUN ! which xvfb-run || exit 1
 
 WORKDIR /app

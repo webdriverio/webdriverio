@@ -12,7 +12,7 @@ RUN dnf update -y && \
         xorg-x11-server-Xvfb && \
     dnf clean all
 
-# Install Node.js 18 from NodeSource
+# Install Node.js from NodeSource
 RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
     dnf install -y nodejs
 

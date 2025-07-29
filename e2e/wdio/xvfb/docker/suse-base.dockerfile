@@ -33,7 +33,7 @@ RUN zypper remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps xorg-x11 || tru
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
     zypper clean -a
 
-# Verify xvfb-run is NOT available  
+# Verify xvfb-run is NOT available
 RUN ! which xvfb-run || exit 1
 
 WORKDIR /app

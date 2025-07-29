@@ -1,4 +1,4 @@
-FROM fedora:40
+FROM rockylinux:9
 
 # Set environment variables
 ENV CI=true
@@ -6,13 +6,14 @@ ENV CI=true
 # Install basic requirements but explicitly NOT xvfb
 RUN dnf update -y && \
     dnf install -y \
-        curl \
         ca-certificates \
         sudo \
-        nodejs \
-        npm \
         which && \
     dnf clean all
+
+# Install Node.js from NodeSource
+RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
+    dnf install -y nodejs
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
@@ -37,7 +38,7 @@ RUN dnf remove -y xorg-x11-server-Xvfb xvfb-run xorg-x11-apps || true && \
     rm -f /usr/bin/xvfb-run /usr/local/bin/xvfb-run && \
     dnf clean all
 
-# Verify xvfb-run is NOT available  
+# Verify xvfb-run is NOT available
 RUN ! which xvfb-run || exit 1
 
 WORKDIR /app
