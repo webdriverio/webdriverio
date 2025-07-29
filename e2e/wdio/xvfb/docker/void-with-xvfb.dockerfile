@@ -3,27 +3,25 @@ FROM voidlinux/voidlinux:latest
 # Set environment variables
 ENV CI=true
 
-# Update package index
-RUN xbps-install -Su
-
-# Install requirements including xvfb
-RUN xbps-install -y \
+# Fix repository configuration, update XBPS, and install packages in one step
+RUN echo 'repository=https://repo-default.voidlinux.org/current' > /etc/xbps.d/00-repository-main.conf && \
+    xbps-install -Sy && \
+    xbps-install -yu xbps && \
+    xbps-install -Sy && \
+    xbps-install -y \
         curl \
         ca-certificates \
         sudo \
-        nodejs22 \
-        npm \
+        nodejs \
         bash \
         which \
-        xvfb \
+        xvfb-run \
         unzip \
-        glibc
+        glibc \
+        chromium
 
 # Install pnpm globally as root
 RUN npm install -g pnpm
-
-# Install Chromium for testing
-RUN xbps-install -y chromium
 
 # Set Chrome binary path for Void (uses chromium)
 ENV CHROME_BIN=/usr/bin/chromium
