@@ -93,6 +93,16 @@ jobs:
             scenario: with-xvfb
             dockerfile: suse-with-xvfb.dockerfile
 
+          # Void Linux scenarios
+          - distro: void
+            version: "latest"
+            scenario: base
+            dockerfile: void-base.dockerfile
+          - distro: void
+            version: "latest"
+            scenario: with-xvfb
+            dockerfile: void-with-xvfb.dockerfile
+
     name: "XVFB E2E: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
 
     steps:
