@@ -142,33 +142,32 @@ jobs:
 
               # Run the appropriate E2E test based on scenario
               if [ '${{ matrix.scenario }}' = 'clean' ]; then
-                cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec fresh-install.e2e.ts 2>&1 | tee /workspace/e2e/wdio/xvfb/test-output.log
+                cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec fresh-install.e2e.ts
               else
-                cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec existing-xvfb.e2e.ts 2>&1 | tee /workspace/e2e/wdio/xvfb/test-output.log
-              fi
-
-              # Display logs for debugging
-              if [ -f /workspace/e2e/wdio/xvfb/test-output.log ]; then
-                echo '=== WDIO Test Output ==='
-                cat /workspace/e2e/wdio/xvfb/test-output.log
-              fi
-
-              # Show WDIO-generated log files
-              if [ -f /workspace/e2e/wdio/xvfb/logs/wdio.log ]; then
-                echo '=== WDIO Main Log ==='
-                cat /workspace/e2e/wdio/xvfb/logs/wdio.log
-              fi
-
-              if [ -f /workspace/e2e/wdio/xvfb/logs/wdio-0-0.log ]; then
-                echo '=== WDIO Worker Log ==='
-                cat /workspace/e2e/wdio/xvfb/logs/wdio-0-0.log
-              fi
-
-              if [ -f /workspace/e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log ]; then
-                echo '=== Chromedriver Log ==='
-                cat /workspace/e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log
+                cd e2e && pnpm exec wdio ./wdio/xvfb/wdio.conf.ts --spec existing-xvfb.e2e.ts
               fi
             "
+
+      - name: Display logs on failure
+        if: failure()
+        run: |
+          echo "=== Test failed, displaying diagnostic logs ==="
+
+          # Show WDIO-generated log files
+          if [ -f e2e/wdio/xvfb/logs/wdio.log ]; then
+            echo "=== WDIO Main Log ==="
+            cat e2e/wdio/xvfb/logs/wdio.log
+          fi
+
+          if [ -f e2e/wdio/xvfb/logs/wdio-0-0.log ]; then
+            echo "=== WDIO Worker Log ==="
+            cat e2e/wdio/xvfb/logs/wdio-0-0.log
+          fi
+
+          if [ -f e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log ]; then
+            echo "=== Chromedriver Log ==="
+            cat e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log
+          fi
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
@@ -177,5 +176,4 @@ jobs:
           path: |
             e2e/wdio/xvfb/logs/
             e2e/wdio/xvfb/screenshots/
-            e2e/wdio/xvfb/test-output.log
 
