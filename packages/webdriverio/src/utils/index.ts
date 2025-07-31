@@ -327,6 +327,39 @@ export async function findDeepElement(
         : (this as WebdriverIO.Element).elementId
             ? [{ sharedId: (this as WebdriverIO.Element).elementId }]
             : undefined
+
+    // Finds elements when aria label is received by other elements with aria-labelledby or aria-describedby
+    // originally implemented as a xpath query, but it was slow.
+    // See: https://github.com/webdriverio/webdriverio/issues/14662
+    // https://www.w3.org/TR/accname-1.1/#step2B
+    const ARIA_SELECTOR = 'aria/' // TODO: import
+    const selectorString = selector.toString()
+    const isAriaSelector = selectorString.startsWith(ARIA_SELECTOR)
+    if (isAriaSelector) {
+        const label = selectorString.slice(ARIA_SELECTOR.length)
+
+        const matchingElementId = await browser.execute((labelText) => {
+            const elements = Array.from(document.querySelectorAll('[id]'))
+            const match = elements.find(el => el.textContent?.trim() === labelText)
+            return match?.id || null
+        }, label)
+
+        if (matchingElementId) {
+            let foundElement
+            try {
+                foundElement = await browser.$( // TODO: perhaps use browser.findElement?
+                    `[aria-labelledby="${matchingElementId}"],[aria-describedby="${matchingElementId}"]`
+                )
+            } catch (error) {
+                console.warn(error)
+            }
+            if (foundElement && !foundElement.error) {
+                console.log({ foundElement })
+                console.log(`Element, with aria label "${label}", found with id: ${matchingElementId}`)
+            }
+        }
+    }
+
     const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
         let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
             [ELEMENT_KEY]: node.sharedId as string,
