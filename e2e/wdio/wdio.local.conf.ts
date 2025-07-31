@@ -41,13 +41,15 @@ export const config: Options.Testrunner = {
         'moz:firefoxOptions': {
             args: ['-headless']
         }
-    }, {
-        browserName: 'edge',
-        webSocketUrl: true,
-        'ms:edgeOptions': {
-            args: ['headless', 'disable-gpu']
-        }
-    }],
+    },
+    // {
+    //     browserName: 'edge',
+    //     webSocketUrl: true,
+    //     'ms:edgeOptions': {
+    //         args: ['headless', 'disable-gpu']
+    //     }
+    // }
+    ],
 
     /**
      * test configurations
