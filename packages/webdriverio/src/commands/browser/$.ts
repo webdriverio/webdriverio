@@ -107,9 +107,70 @@ export async function $ (
         // replaces selector with a fn we have to bake the label into the
         // function so that it can be used in the browser context
         const fn = function() {
-            const elements = Array.from(document.querySelectorAll('[id]'))
-            const match = elements.find(el => el.textContent?.trim() === '##LABEL##')
-            return match as HTMLElement // TODO: return actual HTMLElement
+            /* eslint-disable */
+            // @ts-ignore
+            // TODO: import? but how? used in the browser context
+            const getComputedLabel = (element) => {
+                if (element) {
+                    // The element's `aria-labelledby
+                    const ariaLabelledby = element.getAttribute("aria-labelledby");
+                    if (ariaLabelledby) {
+                        const ariaLabelledbyElement = document.getElementById(ariaLabelledby);
+                        if (ariaLabelledbyElement) {
+                            const ariaLabelledbyElementText = ariaLabelledbyElement.innerText;
+                            if (ariaLabelledbyElementText) return ariaLabelledbyElementText;
+                        }
+                    }
+
+                    // The element's `aria-label`
+                    const ariaLabel = element.getAttribute("aria-label");
+                    if (ariaLabel) return ariaLabel;
+
+                    // If it's an image/etc., alternate text
+                    // Even if it's an empty alt attribute alt=""
+                    if (
+                    element.tagName === "APPLET" ||
+                    element.tagName === "AREA" ||
+                    element.tagName === "IMG" ||
+                    element.tagName === "INPUT"
+                    ) {
+                        const altText = element.getAttribute("alt");
+                        if (typeof altText === "string") return altText;
+                    }
+
+                    // <desc> for SVGs
+                    if (element.tagName === "SVG") {
+                        const descElt = element.querySelector("desc");
+                        if (descElt) {
+                            const descText =
+                                descElt.innerText || descElt.innerHTML;
+                            if (descText) return descText;
+                        }
+                    }
+
+                    // The value of the element
+                    const innerText = element.innerText;
+                    if (innerText) return innerText;
+                }
+            };
+            const allElements = Array.from(document.querySelectorAll('*')).filter(el => {
+                // Skip labels
+                if (el.tagName.toLowerCase() === 'label') {
+                    return false
+                }
+
+                // Get text from direct text nodes only
+                const textNodes = Array.from(el.childNodes).filter(n => n.nodeType === Node.TEXT_NODE);
+                const combinedText = textNodes.map(n => n.textContent?.trim()).join('').trim();
+
+                return Boolean(combinedText);
+            })
+            const allLabels = allElements.map(getComputedLabel)
+            const matchIdx = allLabels.findIndex(labelText => labelText === '##LABEL##')
+            if (matchIdx > -1) {
+                return allElements[matchIdx]
+            }
+            /* eslint-enable */
         }.toString().replace('##LABEL##', label)
 
         selector = new Function(`return (${fn})`)() as Selector
