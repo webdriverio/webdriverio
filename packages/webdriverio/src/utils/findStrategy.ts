@@ -162,6 +162,12 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     case 'aria': {
         const label = stringSelector.slice(ARIA_SELECTOR.length)
         const conditions = [
+            // aria label is recevied by other element with aria-labelledBy
+            // https://www.w3.org/TR/accname-1.1/#step2B
+            `.//*[@aria-labelledby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
+            // aria label is recevied by other element with aria-labelledBy
+            // https://www.w3.org/TR/accname-1.1/#step2B
+            `.//*[@aria-describedby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
             // element has direct aria label
             // https://www.w3.org/TR/accname-1.1/#step2C
             `.//*[@aria-label = "${label}"]`,
