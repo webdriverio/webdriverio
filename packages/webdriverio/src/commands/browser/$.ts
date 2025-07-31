@@ -109,8 +109,9 @@ export async function $ (
         const fn = function() {
             /* eslint-disable */
             // @ts-ignore
-            // TODO: import? but how? used in the browser context
-            const getComputedLabel = (element) => {
+            //// TODO: import? but how? used in the browser context
+            const getComputedLabel = (element, cleanLabelText) => {
+                cleanLabelText = cleanLabelText || false
                 if (element) {
                     // The element's `aria-labelledby
                     const ariaLabelledby = element.getAttribute("aria-labelledby");
@@ -129,10 +130,10 @@ export async function $ (
                     // If it's an image/etc., alternate text
                     // Even if it's an empty alt attribute alt=""
                     if (
-                    element.tagName === "APPLET" ||
-                    element.tagName === "AREA" ||
-                    element.tagName === "IMG" ||
-                    element.tagName === "INPUT"
+                        element.tagName === "APPLET" ||
+                        element.tagName === "AREA" ||
+                        element.tagName === "IMG" ||
+                        element.tagName === "INPUT"
                     ) {
                         const altText = element.getAttribute("alt");
                         if (typeof altText === "string") return altText;
@@ -150,27 +151,60 @@ export async function $ (
 
                     // The value of the element
                     const innerText = element.innerText;
-                    if (innerText) return innerText;
+                    if (innerText) {
+                        if (cleanLabelText) {
+                            return innerText.replace(/[\n\r\s]+/g, ' ').trim();
+                        }
+                        return innerText;
+                    }
                 }
             };
+
+            // @ts-ignore
+            function indexFirstUniques(array) {
+                const seen = new Set();
+                // @ts-ignore
+                const result = [];
+
+                // @ts-ignore
+                array.forEach((value, index) => {
+                    if (!seen.has(value)) {
+                        seen.add(value);
+                        result.push({ index, value });
+                    }
+                });
+
+                // @ts-ignore
+                return result;
+            }
+
             const allElements = Array.from(document.querySelectorAll('*')).filter(el => {
                 // Skip labels
-                if (el.tagName.toLowerCase() === 'label') {
-                    return false
-                }
+                if (el.tagName.toLowerCase() === 'label') return false;
+
+                if (el.getAttribute('aria-hidden') === 'true') return false;
+
+                // Skip elements with no text content
+                const elementsToIgnore = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'META', 'LINK', 'HEAD', 'TITLE'];
+                if (elementsToIgnore.includes(el.nodeName)) return false;
+
+                if (el.getAttribute('aria-label')) return true;
 
                 // Get text from direct text nodes only
                 const textNodes = Array.from(el.childNodes).filter(n => n.nodeType === Node.TEXT_NODE);
                 const combinedText = textNodes.map(n => n.textContent?.trim()).join('').trim();
 
                 return Boolean(combinedText);
-            })
-            const allLabels = allElements.map(getComputedLabel)
-            const matchIdx = allLabels.findIndex(labelText => labelText === '##LABEL##')
-            if (matchIdx > -1) {
-                return allElements[matchIdx]
+            });
+
+            const allLabels = allElements.map(el => getComputedLabel(el, true))
+            const uniqLabels = indexFirstUniques(allLabels);
+            const match = uniqLabels.find(ar => ar.value === '##LABEL##');
+
+            if (match) {
+                const found = allElements[match.index];
+                return found;
             }
-            /* eslint-enable */
         }.toString().replace('##LABEL##', label)
 
         selector = new Function(`return (${fn})`)() as Selector
