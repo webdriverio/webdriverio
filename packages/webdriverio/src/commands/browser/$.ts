@@ -1,7 +1,7 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
-import { DEEP_SELECTOR } from '../../constants.js'
+import { ARIA_SELECTOR, DEEP_SELECTOR } from '../../constants.js'
 import { findElement } from '../../utils/index.js'
 import { getElement } from '../../utils/getElementObject.js'
 import type { Selector } from '../../types.js'
@@ -93,6 +93,121 @@ export async function $ (
         if (typeof elementRef[ELEMENT_KEY] === 'string') {
             return getElement.call(this, undefined, elementRef)
         }
+    }
+
+    /**
+     * Finds elements when aria label is received by other elements with aria-labelledby or aria-describedby
+     * originally implemented as a xpath query, but it was slow.
+     * See: https://github.com/webdriverio/webdriverio/issues/14662
+     * https://www.w3.org/TR/accname-1.1/#step2B
+     */
+    if (typeof selector === 'string' && selector.startsWith(ARIA_SELECTOR)) {
+        const label = selector.slice(ARIA_SELECTOR.length)
+
+        // replaces selector with a fn we have to bake the label into the
+        // function so that it can be used in the browser context
+        const fn = function() {
+            /* eslint-disable */
+            // @ts-ignore
+            //// TODO: import? but how? used in the browser context
+            const getComputedLabel = (element, cleanLabelText) => {
+                cleanLabelText = cleanLabelText || false
+                if (element) {
+                    // The element's `aria-labelledby
+                    const ariaLabelledby = element.getAttribute("aria-labelledby");
+                    if (ariaLabelledby) {
+                        const ariaLabelledbyElement = document.getElementById(ariaLabelledby);
+                        if (ariaLabelledbyElement) {
+                            const ariaLabelledbyElementText = ariaLabelledbyElement.innerText;
+                            if (ariaLabelledbyElementText) return ariaLabelledbyElementText;
+                        }
+                    }
+
+                    // The element's `aria-label`
+                    const ariaLabel = element.getAttribute("aria-label");
+                    if (ariaLabel) return ariaLabel;
+
+                    // If it's an image/etc., alternate text
+                    // Even if it's an empty alt attribute alt=""
+                    if (
+                        element.tagName === "APPLET" ||
+                        element.tagName === "AREA" ||
+                        element.tagName === "IMG" ||
+                        element.tagName === "INPUT"
+                    ) {
+                        const altText = element.getAttribute("alt");
+                        if (typeof altText === "string") return altText;
+                    }
+
+                    // <desc> for SVGs
+                    if (element.tagName === "SVG") {
+                        const descElt = element.querySelector("desc");
+                        if (descElt) {
+                            const descText =
+                                descElt.innerText || descElt.innerHTML;
+                            if (descText) return descText;
+                        }
+                    }
+
+                    // The value of the element
+                    const innerText = element.innerText;
+                    if (innerText) {
+                        if (cleanLabelText) {
+                            return innerText.replace(/[\n\r\s]+/g, ' ').trim();
+                        }
+                        return innerText;
+                    }
+                }
+            };
+
+            // @ts-ignore
+            function indexFirstUniques(array) {
+                const seen = new Set();
+                // @ts-ignore
+                const result = [];
+
+                // @ts-ignore
+                array.forEach((value, index) => {
+                    if (!seen.has(value)) {
+                        seen.add(value);
+                        result.push({ index, value });
+                    }
+                });
+
+                // @ts-ignore
+                return result;
+            }
+
+            const allElements = Array.from(document.querySelectorAll('*')).filter(el => {
+                // Skip labels
+                if (el.tagName.toLowerCase() === 'label') return false;
+
+                if (el.getAttribute('aria-hidden') === 'true') return false;
+
+                // Skip elements with no text content
+                const elementsToIgnore = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'META', 'LINK', 'HEAD', 'TITLE'];
+                if (elementsToIgnore.includes(el.nodeName)) return false;
+
+                if (el.getAttribute('aria-label')) return true;
+
+                // Get text from direct text nodes only
+                const textNodes = Array.from(el.childNodes).filter(n => n.nodeType === Node.TEXT_NODE);
+                const combinedText = textNodes.map(n => n.textContent?.trim()).join('').trim();
+
+                return Boolean(combinedText);
+            });
+
+            const allLabels = allElements.map(el => getComputedLabel(el, true))
+            const uniqLabels = indexFirstUniques(allLabels);
+            const match = uniqLabels.find(ar => ar.value === '##LABEL##');
+
+            if (match) {
+                const found = allElements[match.index];
+                return found;
+            }
+        }.toString().replace('##LABEL##', label)
+
+        selector = new Function(`return (${fn})`)() as Selector
     }
 
     const res = await findElement.call(this, selector)
