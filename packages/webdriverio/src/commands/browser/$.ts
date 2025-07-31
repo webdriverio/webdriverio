@@ -1,7 +1,7 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
-import { DEEP_SELECTOR } from '../../constants.js'
+import { ARIA_SELECTOR, DEEP_SELECTOR } from '../../constants.js'
 import { findElement } from '../../utils/index.js'
 import { getElement } from '../../utils/getElementObject.js'
 import type { Selector } from '../../types.js'
@@ -93,6 +93,26 @@ export async function $ (
         if (typeof elementRef[ELEMENT_KEY] === 'string') {
             return getElement.call(this, undefined, elementRef)
         }
+    }
+
+    /**
+     * Finds elements when aria label is received by other elements with aria-labelledby or aria-describedby
+     * originally implemented as a xpath query, but it was slow.
+     * See: https://github.com/webdriverio/webdriverio/issues/14662
+     * https://www.w3.org/TR/accname-1.1/#step2B
+     */
+    if (typeof selector === 'string' && selector.startsWith(ARIA_SELECTOR)) {
+        const label = selector.slice(ARIA_SELECTOR.length)
+
+        // replaces selector with a fn we have to bake the label into the
+        // function so that it can be used in the browser context
+        const fn = function() {
+            const elements = Array.from(document.querySelectorAll('[id]'))
+            const match = elements.find(el => el.textContent?.trim() === '##LABEL##')
+            return match as HTMLElement // TODO: return actual HTMLElement
+        }.toString().replace('##LABEL##', label)
+
+        selector = new Function(`return (${fn})`)() as Selector
     }
 
     const res = await findElement.call(this, selector)
