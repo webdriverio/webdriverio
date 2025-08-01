@@ -483,6 +483,33 @@ const cucumberFileOption = async () => {
 }
 
 /**
+ * Cucumber @skip() tag
+ */
+const cucumberSkipTag = async () => {
+    for (const browserName of ['chrome', 'firefox']) {
+        const { skippedSpecs } = await launch(
+            'cucumberTestrunner',
+            path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+            {
+                capabilities: [{ browserName }],
+                specs: [
+                    path.resolve(__dirname, 'cucumber', 'test.feature'),
+                    path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
+                ],
+                cucumberOpts: {
+                    tags: '(not @SKIPPED_TAG)',
+                    ignoreUndefinedDefinitions: true,
+                    retry: 1,
+                    retryTagFilter: '@retry',
+                    scenarioLevelReporter: true
+                }
+            }
+        )
+        assert.strictEqual(skippedSpecs, 1)
+    }
+}
+
+/**
  * wdio test run with custom service
  */
 const customService = async () => {
@@ -1136,6 +1163,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberPendingTest,
         cucumberReporter,
         cucumberFileOption,
+        cucumberSkipTag,
         standaloneTest,
         mochaAsyncTestrunner,
         customService,
