@@ -17,14 +17,7 @@ vi.mock(
     () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger'))
 )
 
-vi.mock('@wdio/xvfb', () => ({
-    xvfb: {
-        init: vi.fn().mockResolvedValue(true),
-        shouldRun: vi.fn().mockReturnValue(true),
-    },
-}))
-
-vi.mock('../src/processFactory.js', () => {
+vi.mock('@wdio/xvfb', () => {
     const childProcessMock = {
         on: vi.fn(),
         send: vi.fn(),
@@ -32,9 +25,15 @@ vi.mock('../src/processFactory.js', () => {
     }
 
     return {
+        xvfb: {
+            init: vi.fn().mockResolvedValue(true),
+            shouldRun: vi.fn().mockReturnValue(true),
+        },
         ProcessFactory: vi.fn().mockImplementation(() => ({
             createWorkerProcess: vi.fn().mockReturnValue(childProcessMock)
-        }))
+        })),
+        XvfbManager: vi.fn(),
+        default: vi.fn()
     }
 })
 

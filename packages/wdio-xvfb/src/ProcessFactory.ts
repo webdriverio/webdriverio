@@ -4,10 +4,8 @@ import type {
     SpawnOptions,
     ForkOptions,
 } from 'node:child_process'
-import { xvfb } from '@wdio/xvfb'
 import logger from '@wdio/logger'
-
-const log = logger('@wdio/local-runner:ProcessFactory')
+import { XvfbManager } from './XvfbManager.js'
 
 export interface ProcessCreator {
     createWorkerProcess(
@@ -25,7 +23,12 @@ export interface ProcessCreationOptions {
 }
 
 export class ProcessFactory implements ProcessCreator {
-    #xvfbManager = xvfb
+    #xvfbManager: XvfbManager
+    #log = logger('@wdio/xvfb:ProcessFactory')
+
+    constructor(xvfbManager?: XvfbManager) {
+        this.#xvfbManager = xvfbManager || new XvfbManager()
+    }
 
     createWorkerProcess(
         scriptPath: string,
@@ -37,10 +40,10 @@ export class ProcessFactory implements ProcessCreator {
         const shouldRun = this.#xvfbManager.shouldRun()
         const isAvailable = this.#isXvfbRunAvailable()
 
-        log.info(`ProcessFactory: shouldRun=${shouldRun}, isAvailable=${isAvailable}`)
+        this.#log.info(`ProcessFactory: shouldRun=${shouldRun}, isAvailable=${isAvailable}`)
 
         if (shouldRun && isAvailable) {
-            log.info('Creating worker process with xvfb-run wrapper')
+            this.#log.info('Creating worker process with xvfb-run wrapper')
 
             // Use spawn with xvfb-run wrapper
             const nodeArgs = [...execArgv, scriptPath, ...args]
@@ -55,7 +58,7 @@ export class ProcessFactory implements ProcessCreator {
                 } as SpawnOptions
             )
         }
-        log.info('Creating worker process with regular fork')
+        this.#log.info('Creating worker process with regular fork')
 
         // Use regular fork
         return fork(scriptPath, args, {
@@ -72,10 +75,10 @@ export class ProcessFactory implements ProcessCreator {
     #isXvfbRunAvailable(): boolean {
         try {
             execSync('which xvfb-run', { stdio: 'ignore' })
-            log.info('xvfb-run found in PATH')
+            this.#log.info('xvfb-run found in PATH')
             return true
         } catch {
-            log.info('xvfb-run not found, falling back to regular fork')
+            this.#log.info('xvfb-run not found, falling back to regular fork')
             return false
         }
     }

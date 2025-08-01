@@ -45,7 +45,7 @@ describe('xvfb existing installation', () => {
         await xvfbManager.init()
 
         // Import and test ProcessFactory integration
-        const { ProcessFactory } = await import('@wdio/local-runner')
+        const { ProcessFactory } = await import('@wdio/xvfb')
         const processFactory = new ProcessFactory()
 
         // Verify that shouldRun() returns true (indicating xvfb should be used)

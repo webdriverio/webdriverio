@@ -3,6 +3,7 @@ import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
+import { ProcessFactory } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
 
@@ -11,7 +12,6 @@ import logger from '@wdio/logger'
 import runnerTransformStream from './transformStream.js'
 import ReplQueue from './replQueue.js'
 import RunnerStream from './stdStream.js'
-import { ProcessFactory } from './processFactory.js'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()

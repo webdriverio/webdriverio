@@ -49,7 +49,7 @@ describe('xvfb fresh installation', () => {
         await xvfbManager.init()
 
         // Import ProcessFactory and test its behavior
-        const { ProcessFactory } = await import('@wdio/local-runner')
+        const { ProcessFactory } = await import('@wdio/xvfb')
         const processFactory = new ProcessFactory()
 
         // Create a mock worker process
