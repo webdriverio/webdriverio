@@ -1,9 +1,9 @@
 import url from 'node:url'
 import path from 'node:path'
-import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
+import { ProcessFactory } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
 
@@ -45,6 +45,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     sessionId?: string
     server?: Record<string, string>
     logsAggregator: string[] = []
+    #processFactory = new ProcessFactory()
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -112,12 +113,18 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
-        const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
-            cwd: process.cwd(),
-            env: runnerEnv,
-            execArgv,
-            stdio: ['inherit', 'pipe', 'pipe', 'ipc']
-        })
+
+        // Use ProcessFactory to create the appropriate process
+        const childProcess = this.childProcess = this.#processFactory.createWorkerProcess(
+            path.join(__dirname, 'run.js'),
+            argv,
+            {
+                cwd: process.cwd(),
+                env: runnerEnv,
+                execArgv,
+                stdio: ['inherit', 'pipe', 'pipe', 'ipc']
+            }
+        )
 
         childProcess.on('message', this._handleMessage.bind(this))
         childProcess.on('error', this._handleError.bind(this))

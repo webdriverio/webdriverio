@@ -1,0 +1,179 @@
+name: XVFB E2E Tests
+
+on:
+  workflow_call:
+    # Make this a reusable workflow, no value needed
+    # https://docs.github.com/en/actions/using-workflows/reusing-workflows
+
+jobs:
+  xvfb-e2e-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ubuntu scenarios
+          - distro: ubuntu
+            version: "24.04"
+            scenario: base
+            dockerfile: ubuntu-base.dockerfile
+          - distro: ubuntu
+            version: "24.04"
+            scenario: with-xvfb
+            dockerfile: ubuntu-with-xvfb.dockerfile
+
+          # Fedora scenarios
+          - distro: fedora
+            version: "40"
+            scenario: base
+            dockerfile: fedora-base.dockerfile
+          - distro: fedora
+            version: "40"
+            scenario: with-xvfb
+            dockerfile: fedora-with-xvfb.dockerfile
+
+          # Alpine scenarios
+          - distro: alpine
+            version: "3.20"
+            scenario: base
+            dockerfile: alpine-base.dockerfile
+          - distro: alpine
+            version: "3.20"
+            scenario: with-xvfb
+            dockerfile: alpine-with-xvfb.dockerfile
+
+          # Debian scenarios
+          - distro: debian
+            version: "12"
+            scenario: base
+            dockerfile: debian-base.dockerfile
+          - distro: debian
+            version: "12"
+            scenario: with-xvfb
+            dockerfile: debian-with-xvfb.dockerfile
+
+          # CentOS Stream scenarios (upstream RHEL)
+          - distro: centos-stream
+            version: "9"
+            scenario: base
+            dockerfile: centos-stream-base.dockerfile
+          - distro: centos-stream
+            version: "9"
+            scenario: with-xvfb
+            dockerfile: centos-stream-with-xvfb.dockerfile
+
+          # Arch Linux scenarios
+          - distro: arch
+            version: "latest"
+            scenario: base
+            dockerfile: arch-base.dockerfile
+          - distro: arch
+            version: "latest"
+            scenario: with-xvfb
+            dockerfile: arch-with-xvfb.dockerfile
+
+          # SUSE scenarios
+          - distro: suse
+            version: "15.6"
+            scenario: base
+            dockerfile: suse-base.dockerfile
+          - distro: suse
+            version: "15.6"
+            scenario: with-xvfb
+            dockerfile: suse-with-xvfb.dockerfile
+
+          # Void Linux scenarios
+          - distro: void
+            version: "latest"
+            scenario: base
+            dockerfile: void-base.dockerfile
+          - distro: void
+            version: "latest"
+            scenario: with-xvfb
+            dockerfile: void-with-xvfb.dockerfile
+
+    name: "XVFB E2E: ${{ matrix.distro }}:${{ matrix.version }} (${{ matrix.scenario }})"
+
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test container
+        run: |
+          docker build \
+            -f e2e/wdio/xvfb/docker/${{ matrix.dockerfile }} \
+            -t xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
+            e2e/wdio/xvfb/docker/
+
+      - name: Run XVFB E2E tests in container
+        run: |
+          # Copy built packages and test files to container
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            -e CI=true \
+            -e NODE_ENV=test \
+            -e WDIO_LOG_LEVEL=debug \
+            xvfb-test:${{ matrix.distro }}-${{ matrix.scenario }} \
+            bash -c "
+              set -e
+              set -o pipefail
+
+              # Fix permissions for testuser to access workspace
+              sudo chown -R testuser:testuser /workspace/
+              sudo chmod -R 755 /workspace/
+
+              # Install dependencies in container (pnpm already installed in Docker image)
+              pnpm install --frozen-lockfile
+
+              # Run the appropriate E2E test based on scenario
+              if [ '${{ matrix.scenario }}' = 'base' ]; then
+                cd e2e && pnpm test:xvfb:base
+              else
+                cd e2e && pnpm test:xvfb:existing
+              fi
+            "
+
+      - name: Display logs on failure
+        if: failure()
+        run: |
+          echo "=== Test failed, displaying diagnostic logs ==="
+
+          # Show WDIO-generated log files
+          if [ -f e2e/wdio/xvfb/logs/wdio.log ]; then
+            echo "=== WDIO Main Log ==="
+            cat e2e/wdio/xvfb/logs/wdio.log
+          fi
+
+          if [ -f e2e/wdio/xvfb/logs/wdio-0-0.log ]; then
+            echo "=== WDIO Worker Log ==="
+            cat e2e/wdio/xvfb/logs/wdio-0-0.log
+          fi
+
+          if [ -f e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log ]; then
+            echo "=== Chromedriver Log ==="
+            cat e2e/wdio/xvfb/logs/wdio-0-0-chromedriver.log
+          fi
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: failure()
+        with:
+          name: xvfb-e2e-logs-${{ matrix.distro }}-${{ matrix.version }}-${{ matrix.scenario }}
+          path: |
+            e2e/wdio/xvfb/logs/
+            e2e/wdio/xvfb/screenshots/
+
