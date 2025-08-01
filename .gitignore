@@ -122,4 +122,4 @@ website/i18n/*
 !website/i18n/en
 
 # Extra
-!pack-browser-runner-with-resolved-deps.mjs
+!pack-runner-with-resolved-deps.mjs

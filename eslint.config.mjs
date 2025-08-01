@@ -16,7 +16,7 @@ export default wdioEslint.config([
             'packages/wdio-protocols/src/protocols/webdriverBidi.ts',
             'packages/webdriverio/third_party/fake-timers.js',
             'packages/wdio-protocols/src/commands',
-            'pack-browser-runner-with-resolved-deps.mjs'
+            'pack-runner-with-resolved-deps.mjs'
         ],
     },
     {
