@@ -1,13 +1,13 @@
 import { EventEmitter } from 'node:events'
 import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
+import { duration } from '@wdio/utils'
 import { SnapshotManager } from '@vitest/snapshot/manager'
 import type { SnapshotResult } from '@vitest/snapshot'
 import type { Workers } from '@wdio/types'
 
 import { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'
-import duration from './duration.js'
 
 const log = logger('@wdio/cli')
 const EVENT_FILTER = ['sessionStarted', 'sessionEnded', 'finishedCommand', 'ready', 'workerResponse', 'workerEvent']
@@ -330,6 +330,7 @@ export default class WDIOCLInterface extends EventEmitter {
 
     printSummary() {
         const totalJobs = this.totalWorkerCnt - this.result.retries
+        const elapsed = (new Date(Date.now() - this._start.getTime())).toUTCString().match(/(\d\d:\d\d:\d\d)/)![0]
         const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
         const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
         const skipped = this._skippedSpecs > 0 ? chalk.gray(this._skippedSpecs, 'skipped') + ', ' : ''
@@ -356,12 +357,13 @@ export default class WDIOCLInterface extends EventEmitter {
             snapshotNotes.forEach((note) => this.log(note))
         }
 
+        log.info('Duration:\t', chalk.green(duration.getSummary()))
         return this.log(
-            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`,
+            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
             this.#hasShard()
                 ? `\nShard:\t\t ${this._config.shard!.current} / ${this._config.shard!.total}`
                 : '',
-            `\nDuration:\t ${duration.getSummary()}`
+            '\n'
         )
     }
 

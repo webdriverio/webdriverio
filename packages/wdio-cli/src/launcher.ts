@@ -2,6 +2,7 @@ import exitHook from 'async-exit-hook'
 import { resolve } from 'import-meta-resolve'
 
 import logger from '@wdio/logger'
+import { duration } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
@@ -12,7 +13,7 @@ import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
 import { TESTRUNNER_DEFAULTS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { RunCommandArguments } from './types.js'
-import duration from './duration.js'
+
 const log = logger('@wdio/cli:launcher')
 
 interface Schedule {
@@ -150,7 +151,7 @@ class Launcher {
             exitCode = await this._runMode(config, caps)
 
             duration.end('execute')
-
+            log.info('TEST INFO - should be visible')
             await logger.waitForBuffer()
             this.interface.finalise()
         } catch (err) {

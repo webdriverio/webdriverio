@@ -9,7 +9,7 @@ import { coerceOptsFor,  } from '../utils.js'
 import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 import { config } from 'create-wdio/config/cli'
-import duration from '../duration.js'
+import { duration } from '@wdio/utils'
 
 export const command = 'run <configPath>'
 
