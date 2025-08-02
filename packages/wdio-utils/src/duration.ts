@@ -9,7 +9,7 @@ class DurationTracker {
     }
 
     end(phase: string): number {
-        if (!this.timers[phase]) {return 0}
+        if (!this.timers[phase]) { return 0 }
         const duration = Math.round(performance.now() - this.timers[phase])
         delete this.timers[phase]
 
