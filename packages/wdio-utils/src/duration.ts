@@ -1,5 +1,3 @@
-import chalk from 'chalk'
-
 class DurationTracker {
     private timers: Record<string, number> = {}
     private durations: Record<string, number> = {}
@@ -28,7 +26,7 @@ class DurationTracker {
             `complete ${formatDuration(complete)}`
         ].join(', ')
 
-        return `${chalk.green(formatDuration(total))} (${breakdown})`
+        return `${formatDuration(total)} (${breakdown})`
     }
 
     reset(): void {
