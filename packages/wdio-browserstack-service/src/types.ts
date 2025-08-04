@@ -41,6 +41,15 @@ export interface TestObservabilityOptions {
     key?: string
 }
 
+// Add new interface that's identical but with new name
+export interface TestReportingOptions {
+    buildName?: string,
+    projectName?: string,
+    buildTag?: string[],
+    user?: string,
+    key?: string
+}
+
 export interface BrowserstackOptions extends Options.Testrunner {
     selfHeal?: boolean;
 }
@@ -54,17 +63,31 @@ export interface BrowserstackConfig {
      */
      buildIdentifier?: string;
     /**
-     * Set this to true to enable BrowserStack Test Observability which will collect test related data
+     * Set this to true to enable BrowserStack Test Reporting and Analytics which will collect test related data
      * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
-     * and show all the data in a meaningful manner in BrowserStack Test Observability dashboards for faster test debugging and better insights.
+     * and show all the data in a meaningful manner in BrowserStack Test Reporting and Analytics dashboards for faster test debugging and better insights.
      * @default true
+     * @deprecated Use testReporting instead
      */
     testObservability?: boolean;
     /**
-     * Set the Test Observability related config options under this key.
+     * Set this to true to enable BrowserStack Test Reporting and Analytics which will collect test related data
+     * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
+     * and show all the data in a meaningful manner in BrowserStack Test Reporting and Analytics dashboards for faster test debugging and better insights.
+     * @default true
+     */
+    testReporting?: boolean;
+    /**
+     * Set the Test Reporting and Analytics related config options under this key.
      * For e.g. buildName, projectName, BrowserStack access credentials, etc.
+     * @deprecated Use testReportingOptions instead
      */
     testObservabilityOptions?: TestObservabilityOptions;
+    /**
+     * Set the Test Reporting and Analytics related config options under this key.
+     * For e.g. buildName, projectName, BrowserStack access credentials, etc.
+     */
+    testReportingOptions?: TestReportingOptions;
     /**
      * Set this to true to enable BrowserStack Percy which will take screenshots
      * and snapshots for your tests run on Browserstack

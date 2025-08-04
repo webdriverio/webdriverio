@@ -40,6 +40,13 @@ import {
     TESTOPS_BUILD_COMPLETED_ENV,
     BROWSERSTACK_TESTHUB_JWT,
     BROWSERSTACK_OBSERVABILITY,
+    BROWSERSTACK_TEST_REPORTING,
+    TEST_REPORTING_BUILD_TAG,
+    TEST_REPORTING_BUILD_NAME,
+    TEST_REPORTING_PROJECT_NAME,
+    TEST_OBSERVABILITY_BUILD_TAG,
+    TEST_OBSERVABILITY_BUILD_NAME,
+    TEST_OBSERVABILITY_PROJECT_NAME,
     BROWSERSTACK_ACCESSIBILITY,
     MAX_GIT_META_DATA_SIZE_IN_BYTES,
     GIT_META_DATA_TRUNCATED,
@@ -347,7 +354,8 @@ export const  processAccessibilityResponse = (response: LaunchResponse, options:
 }
 
 export const processLaunchBuildResponse = (response: LaunchResponse, options: BrowserstackConfig & Options.Testrunner) => {
-    if (options.testObservability) {
+    const reportingConfig = getTestReportingConfig(options)
+    if (reportingConfig.enabled) {
         processTestObservabilityResponse(response)
     }
     processAccessibilityResponse(response, options)
@@ -378,7 +386,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         accessibility: {
             settings: options.accessibilityOptions
         },
-        browserstackAutomation: shouldAddServiceVersion(config, options.testObservability),
+        browserstackAutomation: shouldAddServiceVersion(config, getTestReportingConfig(options).enabled),
         framework_details: {
             frameworkName: 'WebdriverIO-' + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,
@@ -1172,7 +1180,11 @@ export function getBrowserStackUserAndKey(config: Options.Testrunner, options: O
 }
 
 export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean, caps?: Capabilities.BrowserStackCapabilities): boolean {
-    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false) || !isBrowserstackInfra(config, caps)) {
+    const options = config as BrowserstackConfig & Options.Testrunner
+    const reportingConfig = getTestReportingConfig(options)
+    const isTestReportingEnabled = testObservability ?? reportingConfig.enabled
+
+    if ((config.services && config.services.toString().includes('chromedriver') && isTestReportingEnabled !== false) || !isBrowserstackInfra(config, caps)) {
         return false
     }
     return true
@@ -1204,8 +1216,40 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         }).json()
         BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
     } catch (error) {
-        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST Reporting and Analytics : ${error}`)
         throw new Error('Exception in request ' + error)
+    }
+}
+
+// Update environment variable handling to support both sets
+// Update environment variable handling to support both sets
+export function setupEnvironmentVariables(options: BrowserstackConfig & Options.Testrunner) {
+    const reportingConfig = getTestReportingConfig(options)
+
+    // Set both legacy and new environment variables for compatibility
+    if (reportingConfig.enabled) {
+        process.env[BROWSERSTACK_OBSERVABILITY] = 'true'
+        process.env[BROWSERSTACK_TEST_REPORTING] = 'true'
+    } else {
+        process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
+        process.env[BROWSERSTACK_TEST_REPORTING] = 'false'
+    }
+}
+
+// Add helper function to resolve test reporting config
+export function getTestReportingConfig(options: BrowserstackConfig & Options.Testrunner) {
+    // New flags take precedence
+    if (options.testReporting !== undefined) {
+        return {
+            enabled: options.testReporting,
+            options: options.testReportingOptions || options.testObservabilityOptions || {}
+        }
+    }
+
+    // Fallback to legacy flags
+    return {
+        enabled: options.testObservability ?? true,
+        options: options.testObservabilityOptions || {}
     }
 }
 
@@ -1213,9 +1257,12 @@ export function getObservabilityUser(options: BrowserstackConfig & Options.Testr
     if (process.env.BROWSERSTACK_USERNAME) {
         return process.env.BROWSERSTACK_USERNAME
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.user) {
-        return options.testObservabilityOptions.user
+
+    const reportingConfig = getTestReportingConfig(options)
+    if (reportingConfig.options && reportingConfig.options.user) {
+        return reportingConfig.options.user
     }
+
     return config.user
 }
 
@@ -1223,39 +1270,66 @@ export function getObservabilityKey(options: BrowserstackConfig & Options.Testru
     if (process.env.BROWSERSTACK_ACCESS_KEY) {
         return process.env.BROWSERSTACK_ACCESS_KEY
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.key) {
-        return options.testObservabilityOptions.key
+
+    const reportingConfig = getTestReportingConfig(options)
+    if (reportingConfig.options && reportingConfig.options.key) {
+        return reportingConfig.options.key
     }
+
     return config.key
 }
 
 export function getObservabilityProject(options: BrowserstackConfig & Options.Testrunner, bstackProjectName?: string) {
+    // Check new env var first
+    if (process.env.TEST_REPORTING_PROJECT_NAME) {
+        return process.env.TEST_REPORTING_PROJECT_NAME
+    }
+    // Fallback to legacy env var
     if (process.env.TEST_OBSERVABILITY_PROJECT_NAME) {
         return process.env.TEST_OBSERVABILITY_PROJECT_NAME
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.projectName) {
-        return options.testObservabilityOptions.projectName
+
+    const reportingConfig = getTestReportingConfig(options)
+    if (reportingConfig.options && reportingConfig.options.projectName) {
+        return reportingConfig.options.projectName
     }
+
     return bstackProjectName
 }
 
 export function getObservabilityBuild(options: BrowserstackConfig & Options.Testrunner, bstackBuildName?: string) {
+    // Check new env var first
+    if (process.env.TEST_REPORTING_BUILD_NAME) {
+        return process.env.TEST_REPORTING_BUILD_NAME
+    }
+    // Fallback to legacy env var
     if (process.env.TEST_OBSERVABILITY_BUILD_NAME) {
         return process.env.TEST_OBSERVABILITY_BUILD_NAME
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.buildName) {
-        return options.testObservabilityOptions.buildName
+
+    const reportingConfig = getTestReportingConfig(options)
+    if (reportingConfig.options && reportingConfig.options.buildName) {
+        return reportingConfig.options.buildName
     }
+
     return bstackBuildName || path.basename(path.resolve(process.cwd()))
 }
 
 export function getObservabilityBuildTags(options: BrowserstackConfig & Options.Testrunner, bstackBuildTag?: string): string[] {
+    // Check new env var first
+    if (process.env.TEST_REPORTING_BUILD_TAG) {
+        return process.env.TEST_REPORTING_BUILD_TAG.split(',')
+    }
+    // Fallback to legacy env var
     if (process.env.TEST_OBSERVABILITY_BUILD_TAG) {
         return process.env.TEST_OBSERVABILITY_BUILD_TAG.split(',')
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.buildTag) {
-        return options.testObservabilityOptions.buildTag
+
+    const reportingConfig = getTestReportingConfig(options)
+    if (reportingConfig.options && reportingConfig.options.buildTag) {
+        return reportingConfig.options.buildTag
     }
+
     if (bstackBuildTag) {
         return [bstackBuildTag]
     }

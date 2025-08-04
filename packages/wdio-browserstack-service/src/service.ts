@@ -10,7 +10,9 @@ import {
     isBrowserstackSession,
     patchConsoleLogs,
     shouldAddServiceVersion,
-    isTrue
+    isTrue,
+    getTestReportingConfig,
+    setupEnvironmentVariables
 } from './util.js'
 import type { BrowserstackConfig, BrowserstackOptions, MultiRemoteAction, SessionResponse, TurboScaleSessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter, CucumberHook } from './cucumber-types.js'
@@ -58,7 +60,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = this._options)
-        this._observability = this._options.testObservability
+
+        // Use helper function to resolve reporting config
+        const reportingConfig = getTestReportingConfig(this._options)
+        this._observability = reportingConfig.enabled
+
+        // Set environment variables for both naming conventions
+        setupEnvironmentVariables(this._options)
+
         this._accessibility = this._options.accessibility
         this._percy = isTrue(process.env.BROWSERSTACK_PERCY)
         this._percyCaptureMode = process.env.BROWSERSTACK_PERCY_CAPTURE_MODE
@@ -101,7 +110,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
         // will fail
-        const testObservabilityOptions = this._options.testObservabilityOptions
+
+        // Support both testObservabilityOptions and testReportingOptions
+        const reportingConfig = getTestReportingConfig(this._options)
+        const testObservabilityOptions = reportingConfig.options
+
         if (!config.user && !(testObservabilityOptions && testObservabilityOptions.user)) {
             config.user = 'NotSetUser'
         }

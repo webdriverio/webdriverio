@@ -22,7 +22,8 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     VALID_APP_EXTENSION,
     BROWSERSTACK_PERCY,
-    BROWSERSTACK_OBSERVABILITY
+    BROWSERSTACK_OBSERVABILITY,
+    BROWSERSTACK_TEST_REPORTING
 } from './constants.js'
 import {
     launchTestSession,
@@ -40,7 +41,8 @@ import {
     isValidCapsForHealing,
     getBooleanValueFromString,
     validateCapsWithNonBstackA11y,
-    mergeChromeOptions
+    mergeChromeOptions,
+    getTestReportingConfig
 } from './util.js'
 import { getProductMap } from './testHub/utils.js'
 import CrashReporter from './crash-reporter.js'
@@ -173,7 +175,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         // by default observability will be true unless specified as false
         this._options.testObservability = this._options.testObservability !== false
 
-        if (this._options.testObservability
+        // Get resolved reporting config
+        const reportingConfig = getTestReportingConfig(this._options)
+
+        if (reportingConfig.enabled
             &&
             // update files to run if it's a rerun
             process.env[RERUN_ENV] && process.env[RERUN_TESTS_ENV]
@@ -283,7 +288,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
 
         let buildStartResponse = null
-        if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
+        const reportingConfig = getTestReportingConfig(this._options)
+        const shouldLaunchTestSession = this._accessibilityAutomation || reportingConfig.enabled || shouldSetupPercy
+
+        if (shouldLaunchTestSession) {
             BStackLogger.debug('Sending launch start event')
 
             buildStartResponse = await launchTestSession(this._options, this._config, {
@@ -403,8 +411,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         BStackLogger.debug('Sending stop launch event')
         await stopBuildUpstream()
-        if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
-            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
+
+        // Update to use new URL and terminology - check both old and new env vars
+        if ((process.env[BROWSERSTACK_OBSERVABILITY] || process.env[BROWSERSTACK_TEST_REPORTING]) && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+            console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
         this.browserStackConfig.testObservability.buildStopped = true
 
