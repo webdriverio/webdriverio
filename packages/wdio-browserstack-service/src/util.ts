@@ -21,7 +21,7 @@ import * as PERFORMANCE_SDK_EVENTS from './instrumentation/performance/constants
 import { logBuildError, handleErrorForObservability, handleErrorForAccessibility, getProductMapForBuildStartCall } from './testHub/utils.js'
 import type BrowserStackConfig from './config.js'
 import type { Errors } from './testHub/utils.js'
-import type { UserConfig, UploadType, BrowserstackConfig, BrowserstackOptions, LaunchResponse } from './types.js'
+import type { UserConfig, UploadType, BrowserstackConfig, BrowserstackOptions, LaunchResponse, TestObservabilityOptions, TestReportingOptions } from './types.js'
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import {
     BROWSER_DESCRIPTION,
@@ -32,6 +32,7 @@ import {
     TESTOPS_BUILD_COMPLETED_ENV,
     BROWSERSTACK_TESTHUB_JWT,
     BROWSERSTACK_OBSERVABILITY,
+    BROWSERSTACK_TEST_REPORTING,
     BROWSERSTACK_ACCESSIBILITY,
     TESTOPS_SCREENSHOT_ENV,
     BROWSERSTACK_TESTHUB_UUID,
@@ -41,7 +42,7 @@ import {
     GIT_META_DATA_TRUNCATED,
     APP_ALLY_ENDPOINT,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
-    APP_ALLY_ISSUES_ENDPOINT,
+    APP_ALLY_ISSUES_ENDPOINT
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -87,6 +88,36 @@ export const COLORS: Record<string, ColorName> = {
     debug: 'green',
     trace: 'cyan',
     progress: 'magenta'
+}
+
+// Helper function to determine if test reporting/observability is enabled
+export function isTestReportingEnabled(options: BrowserstackConfig): boolean {
+    // Check environment variables first
+    if (process.env.BROWSERSTACK_TEST_REPORTING !== undefined) {
+        return process.env.BROWSERSTACK_TEST_REPORTING === 'true'
+    }
+    if (process.env.BROWSERSTACK_OBSERVABILITY !== undefined) {
+        return process.env.BROWSERSTACK_OBSERVABILITY === 'true'
+    }
+
+    // Check new flag first, then fall back to legacy flag
+    if (options.testReporting !== undefined) {
+        return options.testReporting
+    }
+    if (options.testObservability !== undefined) {
+        // Handle legacy object format { enabled: boolean }
+        if (typeof options.testObservability === 'object' && options.testObservability !== null) {
+            return options.testObservability.enabled || false
+        }
+        return Boolean(options.testObservability)
+    }
+    return true // Default value
+}
+
+// Helper function to get test reporting options (supports both old and new)
+export function getTestReportingOptions(options: BrowserstackConfig): TestReportingOptions | TestObservabilityOptions | undefined {
+    // Prefer new options, fall back to legacy
+    return options.testReportingOptions || options.testObservabilityOptions
 }
 
 /**
@@ -293,7 +324,9 @@ export const processTestObservabilityResponse = (response: LaunchResponse) => {
         handleErrorForObservability(response.observability as Errors)
         return
     }
+    // Set both environment variables for backward compatibility
     process.env[BROWSERSTACK_OBSERVABILITY] = 'true'
+    process.env[BROWSERSTACK_TEST_REPORTING] = 'true'
     if (response.observability.options.allow_screenshots) {
         process.env[TESTOPS_SCREENSHOT_ENV] = response.observability.options.allow_screenshots.toString()
     }
@@ -355,7 +388,7 @@ export const  processAccessibilityResponse = (response: LaunchResponse, options:
 }
 
 export const processLaunchBuildResponse = (response: LaunchResponse, options: BrowserstackConfig & Options.Testrunner) => {
-    if (options.testObservability) {
+    if (isTestReportingEnabled(options)) {
         processTestObservabilityResponse(response)
     }
     processAccessibilityResponse(response, options)
@@ -386,7 +419,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         accessibility: {
             settings: options.accessibilityOptions
         },
-        browserstackAutomation: shouldAddServiceVersion(config, options.testObservability),
+        browserstackAutomation: shouldAddServiceVersion(config, isTestReportingEnabled(options)),
         framework_details: {
             frameworkName: 'WebdriverIO-' + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,
@@ -1211,7 +1244,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         })
         BStackLogger.debug(`[${kind}] Success response: ${JSON.stringify(await response.json())}`)
     } catch (error) {
-        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+        BStackLogger.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST REPORTING AND ANALYTICS : ${error}`)
         throw new Error('Exception in request ' + error)
     }
 }
@@ -1220,8 +1253,9 @@ export function getObservabilityUser(options: BrowserstackConfig & Options.Testr
     if (process.env.BROWSERSTACK_USERNAME) {
         return process.env.BROWSERSTACK_USERNAME
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.user) {
-        return options.testObservabilityOptions.user
+    const reportingOptions = getTestReportingOptions(options)
+    if (reportingOptions && reportingOptions.user) {
+        return reportingOptions.user
     }
     return config.user
 }
@@ -1230,38 +1264,57 @@ export function getObservabilityKey(options: BrowserstackConfig & Options.Testru
     if (process.env.BROWSERSTACK_ACCESS_KEY) {
         return process.env.BROWSERSTACK_ACCESS_KEY
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.key) {
-        return options.testObservabilityOptions.key
+    const reportingOptions = getTestReportingOptions(options)
+    if (reportingOptions && reportingOptions.key) {
+        return reportingOptions.key
     }
     return config.key
 }
 
 export function getObservabilityProject(options: BrowserstackConfig & Options.Testrunner, bstackProjectName?: string) {
+    // Check new environment variable first
+    if (process.env.TEST_REPORTING_PROJECT_NAME) {
+        return process.env.TEST_REPORTING_PROJECT_NAME
+    }
+    // Fall back to legacy environment variable
     if (process.env.TEST_OBSERVABILITY_PROJECT_NAME) {
         return process.env.TEST_OBSERVABILITY_PROJECT_NAME
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.projectName) {
-        return options.testObservabilityOptions.projectName
+    const reportingOptions = getTestReportingOptions(options)
+    if (reportingOptions && reportingOptions.projectName) {
+        return reportingOptions.projectName
     }
     return bstackProjectName
 }
 
 export function getObservabilityBuild(options: BrowserstackConfig & Options.Testrunner, bstackBuildName?: string) {
+    // Check new environment variable first
+    if (process.env.TEST_REPORTING_BUILD_NAME) {
+        return process.env.TEST_REPORTING_BUILD_NAME
+    }
+    // Fall back to legacy environment variable
     if (process.env.TEST_OBSERVABILITY_BUILD_NAME) {
         return process.env.TEST_OBSERVABILITY_BUILD_NAME
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.buildName) {
-        return options.testObservabilityOptions.buildName
+    const reportingOptions = getTestReportingOptions(options)
+    if (reportingOptions && reportingOptions.buildName) {
+        return reportingOptions.buildName
     }
     return bstackBuildName || path.basename(path.resolve(process.cwd()))
 }
 
 export function getObservabilityBuildTags(options: BrowserstackConfig & Options.Testrunner, bstackBuildTag?: string): string[] {
+    // Check new environment variable first
+    if (process.env.TEST_REPORTING_BUILD_TAG) {
+        return process.env.TEST_REPORTING_BUILD_TAG.split(',')
+    }
+    // Fall back to legacy environment variable
     if (process.env.TEST_OBSERVABILITY_BUILD_TAG) {
         return process.env.TEST_OBSERVABILITY_BUILD_TAG.split(',')
     }
-    if (options.testObservabilityOptions && options.testObservabilityOptions.buildTag) {
-        return options.testObservabilityOptions.buildTag
+    const reportingOptions = getTestReportingOptions(options)
+    if (reportingOptions && reportingOptions.buildTag) {
+        return reportingOptions.buildTag
     }
     if (bstackBuildTag) {
         return [bstackBuildTag]

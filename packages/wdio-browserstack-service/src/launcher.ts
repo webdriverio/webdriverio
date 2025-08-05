@@ -22,7 +22,8 @@ import {
     BROWSERSTACK_TESTHUB_UUID,
     VALID_APP_EXTENSION,
     BROWSERSTACK_PERCY,
-    BROWSERSTACK_OBSERVABILITY
+    BROWSERSTACK_OBSERVABILITY,
+    BROWSERSTACK_TEST_REPORTING
 } from './constants.js'
 import {
     launchTestSession,
@@ -40,7 +41,8 @@ import {
     isValidCapsForHealing,
     getBooleanValueFromString,
     validateCapsWithNonBstackA11y,
-    mergeChromeOptions
+    mergeChromeOptions,
+    isTestReportingEnabled
 } from './util.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -108,12 +110,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                                 } else if (isTrue(this._options.accessibility)) {
                                     capability['bstack:options'].accessibility = true
                                 }
-                            } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                            } else if (shouldAddServiceVersion(this._config, isTestReportingEnabled(this._options))) {
                                 capability['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
                             }
                         }
 
-                        // Need this details for sending data to Observability
+                        // Need this details for sending data to Test Reporting and Analytics
                         this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                         // @ts-expect-error ToDo: fix invalid cap
                         this._buildName = capability.build?.toString()
@@ -143,7 +145,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             } else if (isTrue(this._options.accessibility)) {
                                 (caps.capabilities as WebdriverIO.Capabilities)['bstack:options'] = { wdioService: BSTACK_SERVICE_VERSION, accessibility: (isTrue(this._options.accessibility)) }
                             }
-                        } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                        } else if (shouldAddServiceVersion(this._config, isTestReportingEnabled(this._options))) {
                             (caps.capabilities as WebdriverIO.Capabilities)['browserstack.wdioService'] = BSTACK_SERVICE_VERSION
                         }
                     }
@@ -174,10 +176,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
         this._options.accessibility = this._accessibilityAutomation as boolean
 
-        // by default observability will be true unless specified as false
-        this._options.testObservability = this._options.testObservability !== false
+        // Support both testReporting and testObservability flags for backward compatibility
+        // Default is true unless explicitly set to false
+        const testReportingEnabled = isTestReportingEnabled(this._options)
+        this._options.testObservability = testReportingEnabled
 
-        if (this._options.testObservability
+        // Set the new flag as well for consistency
+        if (this._options.testReporting === undefined && this._options.testObservability !== undefined) {
+            this._options.testReporting = this._options.testObservability
+        } else if (this._options.testReporting !== undefined && this._options.testObservability === undefined) {
+            this._options.testObservability = this._options.testReporting
+        }
+
+        if (testReportingEnabled
             &&
             // update files to run if it's a rerun
             process.env[RERUN_ENV] && process.env[RERUN_TESTS_ENV]
@@ -211,7 +222,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         await sendStart(this.browserStackConfig)
 
         // Setting up healing for those sessions where we don't add the service version capability as it indicates that the session is not being run on BrowserStack
-        if (!shouldAddServiceVersion(this._config, this._options.testObservability, capabilities as Capabilities.BrowserStackCapabilities)) {
+        if (!shouldAddServiceVersion(this._config, isTestReportingEnabled(this._options), capabilities as Capabilities.BrowserStackCapabilities)) {
             try {
                 if ((capabilities as Capabilities.BrowserStackCapabilities).browserName) {
                     capabilities = await AiHandler.setup(this._config, this.browserStackConfig, this._options, capabilities as WebdriverIO.Capabilities, false)
@@ -286,7 +297,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         const shouldSetupPercy = this._options.percy || (isUndefined(this._options.percy) && this._options.app)
 
         let buildStartResponse = null
-        if (this._options.testObservability || this._accessibilityAutomation || shouldSetupPercy) {
+        if (isTestReportingEnabled(this._options) || this._accessibilityAutomation || shouldSetupPercy) {
             BStackLogger.debug('Sending launch start event')
 
             buildStartResponse = await launchTestSession(this._options, this._config, {
@@ -299,7 +310,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         //added checks for Accessibility running on non-bstack infra
-        if (isAccessibilityAutomationSession(this._accessibilityAutomation) && (process.env.BROWSERSTACK_TURBOSCALE || !shouldAddServiceVersion(this._config, this._options.testObservability))){
+        if (isAccessibilityAutomationSession(this._accessibilityAutomation) && (process.env.BROWSERSTACK_TURBOSCALE || !shouldAddServiceVersion(this._config, isTestReportingEnabled(this._options)))){
             const overrideOptions: Partial<Capabilities.ChromeOptions> = accessibilityScripts.ChromeExtension
             this._updateObjectTypeCaps(capabilities, 'goog:chromeOptions', overrideOptions)
         }
@@ -405,8 +416,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         BStackLogger.debug('Sending stop launch event')
         await stopBuildUpstream()
-        if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
-            console.log(`\nVisit https://observability.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
+        if ((process.env[BROWSERSTACK_OBSERVABILITY] || process.env[BROWSERSTACK_TEST_REPORTING]) && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+            console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
         this.browserStackConfig.testObservability.buildStopped = true
 
