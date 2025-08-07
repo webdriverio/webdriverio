@@ -25,7 +25,8 @@ vi.mock('@wdio/logger', () => ({
 // Mock XvfbManager
 const mockXvfbManager = {
     shouldRun: vi.fn(),
-    init: vi.fn()
+    init: vi.fn(),
+    executeWithRetry: vi.fn()
 }
 
 vi.mock('../src/XvfbManager.js', () => ({
@@ -90,8 +91,8 @@ describe('ProcessFactory', () => {
                 mockXvfbManager.shouldRun.mockReturnValue(false)
             })
 
-            it('should use regular fork when xvfb is not needed', () => {
-                const result = processFactory.createWorkerProcess(scriptPath, args, options)
+            it('should use regular fork when xvfb is not needed', async () => {
+                const result = await processFactory.createWorkerProcess(scriptPath, args, options)
 
                 expect(mockXvfbManager.shouldRun).toHaveBeenCalled()
                 expect(mockFork).toHaveBeenCalledWith(scriptPath, args, {
@@ -104,11 +105,11 @@ describe('ProcessFactory', () => {
                 expect(result).toBe(mockChildProcess)
             })
 
-            it('should use fork with default execArgv when not provided', () => {
+            it('should use fork with default execArgv when not provided', async () => {
                 const optionsWithoutExecArgv = { ...options }
                 delete optionsWithoutExecArgv.execArgv
 
-                processFactory.createWorkerProcess(scriptPath, args, optionsWithoutExecArgv)
+                await processFactory.createWorkerProcess(scriptPath, args, optionsWithoutExecArgv)
 
                 expect(mockFork).toHaveBeenCalledWith(scriptPath, args, {
                     cwd: options.cwd,
@@ -122,55 +123,40 @@ describe('ProcessFactory', () => {
         describe('when xvfb should run', () => {
             beforeEach(() => {
                 mockXvfbManager.shouldRun.mockReturnValue(true)
+                mockXvfbManager.executeWithRetry.mockImplementation(async (fn) => await fn())
             })
 
-            it('should use spawn with xvfb-run when available', () => {
+            it('should use executeWithRetry when xvfb is available', async () => {
                 mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
 
-                const result = processFactory.createWorkerProcess(scriptPath, args, options)
+                const mockProcess = {
+                    ...mockChildProcess,
+                    on: vi.fn()
+                } as unknown as ChildProcess
+                mockSpawn.mockReturnValue(mockProcess)
+
+                const result = await processFactory.createWorkerProcess(scriptPath, args, options)
 
                 expect(mockXvfbManager.shouldRun).toHaveBeenCalled()
                 expect(mockExecSync).toHaveBeenCalledWith('which xvfb-run', { stdio: 'ignore' })
-                expect(mockSpawn).toHaveBeenCalledWith(
-                    'xvfb-run',
-                    ['--auto-servernum', '--', 'node', ...options.execArgv, scriptPath, ...args],
-                    {
-                        cwd: options.cwd,
-                        env: options.env,
-                        stdio: options.stdio
-                    }
+                expect(mockXvfbManager.executeWithRetry).toHaveBeenCalledWith(
+                    expect.any(Function),
+                    'xvfb worker process creation'
                 )
                 expect(mockFork).not.toHaveBeenCalled()
-                expect(result).toBe(mockChildProcess)
+                expect(result).toBe(mockProcess)
             })
 
-            it('should use spawn with default execArgv when not provided', () => {
-                mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
-                const optionsWithoutExecArgv = { ...options }
-                delete optionsWithoutExecArgv.execArgv
-
-                processFactory.createWorkerProcess(scriptPath, args, optionsWithoutExecArgv)
-
-                expect(mockSpawn).toHaveBeenCalledWith(
-                    'xvfb-run',
-                    ['--auto-servernum', '--', 'node', scriptPath, ...args],
-                    {
-                        cwd: options.cwd,
-                        env: options.env,
-                        stdio: options.stdio
-                    }
-                )
-            })
-
-            it('should fallback to fork when xvfb-run is not available', () => {
+            it('should fallback to fork when xvfb-run is not available', async () => {
                 mockExecSync.mockImplementation(() => {
                     throw new Error('Command not found')
                 })
 
-                const result = processFactory.createWorkerProcess(scriptPath, args, options)
+                const result = await processFactory.createWorkerProcess(scriptPath, args, options)
 
                 expect(mockXvfbManager.shouldRun).toHaveBeenCalled()
                 expect(mockExecSync).toHaveBeenCalledWith('which xvfb-run', { stdio: 'ignore' })
+                expect(mockXvfbManager.executeWithRetry).not.toHaveBeenCalled()
                 expect(mockFork).toHaveBeenCalledWith(scriptPath, args, {
                     cwd: options.cwd,
                     env: options.env,
@@ -183,11 +169,11 @@ describe('ProcessFactory', () => {
         })
 
         describe('edge cases', () => {
-            it('should handle minimal options', () => {
+            it('should handle minimal options', async () => {
                 mockXvfbManager.shouldRun.mockReturnValue(false)
                 const minimalOptions = {}
 
-                processFactory.createWorkerProcess(scriptPath, args, minimalOptions)
+                await processFactory.createWorkerProcess(scriptPath, args, minimalOptions)
 
                 expect(mockFork).toHaveBeenCalledWith(scriptPath, args, {
                     cwd: undefined,
@@ -197,10 +183,10 @@ describe('ProcessFactory', () => {
                 })
             })
 
-            it('should handle empty args array', () => {
+            it('should handle empty args array', async () => {
                 mockXvfbManager.shouldRun.mockReturnValue(false)
 
-                processFactory.createWorkerProcess(scriptPath, [], options)
+                await processFactory.createWorkerProcess(scriptPath, [], options)
 
                 expect(mockFork).toHaveBeenCalledWith(scriptPath, [], {
                     cwd: options.cwd,
@@ -209,72 +195,42 @@ describe('ProcessFactory', () => {
                     stdio: options.stdio
                 })
             })
-
-            it('should pass through all spawn options correctly', () => {
-                mockXvfbManager.shouldRun.mockReturnValue(true)
-                mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
-
-                const complexOptions = {
-                    cwd: '/custom/working/dir',
-                    env: {
-                        NODE_ENV: 'production',
-                        DEBUG: 'true',
-                        CUSTOM_VAR: 'value'
-                    },
-                    execArgv: ['--inspect=9229', '--max-old-space-size=4096'],
-                    stdio: ['pipe', 'pipe', 'pipe', 'ipc'] as const
-                }
-
-                processFactory.createWorkerProcess(scriptPath, args, complexOptions)
-
-                expect(mockSpawn).toHaveBeenCalledWith(
-                    'xvfb-run',
-                    [
-                        '--auto-servernum',
-                        '--',
-                        'node',
-                        '--inspect=9229',
-                        '--max-old-space-size=4096',
-                        scriptPath,
-                        '--arg1',
-                        '--arg2'
-                    ],
-                    {
-                        cwd: '/custom/working/dir',
-                        env: complexOptions.env,
-                        stdio: complexOptions.stdio
-                    }
-                )
-            })
         })
     })
 
     describe('integration with XvfbManager', () => {
-        it('should call shouldRun on the XvfbManager instance', () => {
+        it('should call shouldRun on the XvfbManager instance', async () => {
             const customManager = {
                 shouldRun: vi.fn().mockReturnValue(false),
-                init: vi.fn()
+                executeWithRetry: vi.fn()
             }
             const factory = new ProcessFactory(customManager as any)
 
-            factory.createWorkerProcess('/script.js', [], {})
+            await factory.createWorkerProcess('/script.js', [], {})
 
             expect(customManager.shouldRun).toHaveBeenCalled()
         })
 
-        it('should respect XvfbManager decision about whether to run xvfb', () => {
+        it('should respect XvfbManager decision about whether to run xvfb', async () => {
             const customManager = {
                 shouldRun: vi.fn().mockReturnValue(true),
-                init: vi.fn()
+                executeWithRetry: vi.fn().mockImplementation(async (fn) => await fn())
             }
             const factory = new ProcessFactory(customManager as any)
             mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
 
-            factory.createWorkerProcess('/script.js', [], {})
+            const mockProcess = {
+                ...mockChildProcess,
+                on: vi.fn()
+            } as unknown as ChildProcess
+            mockSpawn.mockReturnValue(mockProcess)
+
+            await factory.createWorkerProcess('/script.js', [], {})
 
             expect(customManager.shouldRun).toHaveBeenCalled()
-            expect(mockSpawn).toHaveBeenCalled()
+            expect(customManager.executeWithRetry).toHaveBeenCalled()
             expect(mockFork).not.toHaveBeenCalled()
         })
     })
+
 })

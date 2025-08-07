@@ -61,7 +61,12 @@ describe('XvfbManager', () => {
         })
 
         it('should create instance with custom options', () => {
-            const manager = new XvfbManager({ force: true, packageManager: 'apt' })
+            const manager = new XvfbManager({
+                force: true,
+                packageManager: 'apt',
+                xvfbMaxRetries: 5,
+                xvfbRetryDelay: 2000
+            })
             expect(manager).toBeInstanceOf(XvfbManager)
         })
     })
@@ -422,4 +427,92 @@ describe('XvfbManager', () => {
             )
         })
     })
+
+    describe('executeWithRetry', () => {
+        beforeEach(() => {
+            mockPlatform.mockReturnValue('linux')
+        })
+
+        it('should succeed on first attempt', async () => {
+            const mockFn = vi.fn().mockResolvedValue('success')
+
+            const result = await manager.executeWithRetry(mockFn, 'test operation')
+
+            expect(result).toBe('success')
+            expect(mockFn).toHaveBeenCalledTimes(1)
+        })
+
+        it('should retry on xvfb-related errors', async () => {
+            const manager = new XvfbManager({ xvfbMaxRetries: 2, xvfbRetryDelay: 10 })
+            const mockFn = vi.fn()
+                .mockRejectedValueOnce(new Error('xvfb-run: error: Xvfb failed to start'))
+                .mockResolvedValueOnce('success')
+
+            const result = await manager.executeWithRetry(mockFn, 'test operation')
+
+            expect(result).toBe('success')
+            expect(mockFn).toHaveBeenCalledTimes(2)
+        })
+
+        it('should retry with progressive delay', async () => {
+            const manager = new XvfbManager({ xvfbMaxRetries: 3, xvfbRetryDelay: 100 })
+            const mockFn = vi.fn()
+                .mockRejectedValueOnce(new Error('Xvfb failed to start'))
+                .mockRejectedValueOnce(new Error('xvfb-run: error:'))
+                .mockResolvedValueOnce('success')
+
+            const startTime = Date.now()
+            const result = await manager.executeWithRetry(mockFn, 'test operation')
+            const endTime = Date.now()
+
+            expect(result).toBe('success')
+            expect(mockFn).toHaveBeenCalledTimes(3)
+            // Should have waited at least 100ms + 200ms = 300ms for two retries
+            expect(endTime - startTime).toBeGreaterThan(280)
+        })
+
+        it('should not retry on non-xvfb errors', async () => {
+            const mockFn = vi.fn().mockRejectedValue(new Error('Regular error'))
+
+            await expect(manager.executeWithRetry(mockFn, 'test operation')).rejects.toThrow('Regular error')
+            expect(mockFn).toHaveBeenCalledTimes(1)
+        })
+
+        it('should exhaust retries and throw last error', async () => {
+            const manager = new XvfbManager({ xvfbMaxRetries: 2, xvfbRetryDelay: 10 })
+            const mockFn = vi.fn()
+                .mockRejectedValueOnce(new Error('xvfb-run: error: Xvfb failed to start'))
+                .mockRejectedValueOnce(new Error('X server died'))
+
+            await expect(manager.executeWithRetry(mockFn, 'test operation')).rejects.toThrow('X server died')
+            expect(mockFn).toHaveBeenCalledTimes(2)
+        })
+
+        it('should detect various xvfb error patterns', async () => {
+            const manager = new XvfbManager({ xvfbMaxRetries: 1, xvfbRetryDelay: 10 })
+
+            const errorPatterns = [
+                'xvfb-run: error: Xvfb failed to start',
+                'Xvfb failed to start',
+                'xvfb-run: error: something else',
+                'X server died'
+            ]
+
+            for (const errorMessage of errorPatterns) {
+                const mockFn = vi.fn().mockRejectedValue(new Error(errorMessage))
+
+                await expect(manager.executeWithRetry(mockFn, 'test')).rejects.toThrow(errorMessage)
+                expect(mockFn).toHaveBeenCalledTimes(1)
+            }
+        })
+
+        it('should handle case insensitive error matching', async () => {
+            const manager = new XvfbManager({ xvfbMaxRetries: 1, xvfbRetryDelay: 10 })
+            const mockFn = vi.fn().mockRejectedValue(new Error('XVFB-RUN: ERROR: XVFB FAILED TO START'))
+
+            await expect(manager.executeWithRetry(mockFn, 'test')).rejects.toThrow('XVFB-RUN: ERROR: XVFB FAILED TO START')
+            expect(mockFn).toHaveBeenCalledTimes(1)
+        })
+    })
+
 })

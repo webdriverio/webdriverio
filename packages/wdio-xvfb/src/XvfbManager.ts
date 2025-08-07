@@ -18,6 +18,15 @@ export interface XvfbOptions {
      * Skip xvfb-run availability check and force installation (for testing)
      */
     forceInstall?: boolean;
+    /**
+     * Number of retry attempts for xvfb process failures (default: 3)
+     */
+    xvfbMaxRetries?: number;
+    /**
+     * Base delay between retries in milliseconds (default: 1000)
+     * Progressive delay will be: baseDelay * attemptNumber
+     */
+    xvfbRetryDelay?: number;
 }
 
 const execAsync = promisify(exec)
@@ -26,12 +35,16 @@ export class XvfbManager {
     private force: boolean
     private packageManagerOverride?: string
     private forceInstall: boolean
+    private maxRetries: number
+    private retryDelay: number
     private log: ReturnType<typeof logger>
 
     constructor(options: XvfbOptions = {}) {
         this.force = options.force ?? false
         this.packageManagerOverride = options.packageManager
         this.forceInstall = options.forceInstall ?? false
+        this.maxRetries = options.xvfbMaxRetries ?? 3
+        this.retryDelay = options.xvfbRetryDelay ?? 1000
         this.log = logger('@wdio/xvfb')
     }
 
@@ -288,5 +301,70 @@ export class XvfbManager {
             this.log.error('Package installation command failed:', error)
             throw error
         }
+    }
+
+    /**
+     * Execute a command with retry logic for xvfb failures
+     */
+    public async executeWithRetry<T>(
+        commandFn: () => Promise<T>,
+        context: string = 'xvfb operation'
+    ): Promise<T> {
+        let lastError: Error | unknown = null
+
+        for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+            try {
+                if (attempt === 1) {
+                    this.log.info(`🚀 Executing ${context}`)
+                } else {
+                    this.log.info(`🔄 Retry attempt ${attempt}/${this.maxRetries}: ${context}`)
+                }
+
+                const result = await commandFn()
+
+                if (attempt > 1) {
+                    this.log.info(`✅ Success on attempt ${attempt}/${this.maxRetries}`)
+                }
+                return result
+            } catch (error: unknown) {
+                this.log.info(`❌ Attempt ${attempt}/${this.maxRetries} failed: ${error}`)
+                lastError = error
+
+                // Check if this is an xvfb-related error that we should retry
+                const errorMessage = error instanceof Error ? error.message : String(error)
+                const isXvfbError = this.isXvfbError(errorMessage)
+
+                if (!isXvfbError) {
+                    this.log.info('Non-xvfb error detected, not retrying')
+                    throw error
+                }
+
+                if (attempt < this.maxRetries) {
+                    const delay = this.retryDelay * attempt
+                    this.log.info(`⏳ Waiting ${delay}ms before retry...`)
+                    await new Promise(resolve => setTimeout(resolve, delay))
+                } else {
+                    this.log.info(`❌ All ${this.maxRetries} attempts failed`)
+                }
+            }
+        }
+
+        throw lastError
+    }
+
+    /**
+     * Check if an error is related to xvfb failures
+     */
+    private isXvfbError(errorMessage: string): boolean {
+        const xvfbErrorPatterns = [
+            'xvfb-run: error: Xvfb failed to start',
+            'Xvfb failed to start',
+            'xvfb-run: error:',
+            'X server died'
+        ]
+
+        return xvfbErrorPatterns.some(pattern =>
+            errorMessage.toLowerCase().includes(pattern.toLowerCase())
+        )
     }
 }

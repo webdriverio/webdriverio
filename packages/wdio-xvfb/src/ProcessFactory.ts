@@ -12,7 +12,7 @@ export interface ProcessCreator {
         scriptPath: string,
         args: string[],
         options: ProcessCreationOptions
-    ): ChildProcess;
+    ): Promise<ChildProcess>;
 }
 
 export interface ProcessCreationOptions {
@@ -30,25 +30,42 @@ export class ProcessFactory implements ProcessCreator {
         this.#xvfbManager = xvfbManager || new XvfbManager()
     }
 
-    createWorkerProcess(
+    async createWorkerProcess(
         scriptPath: string,
         args: string[],
         options: ProcessCreationOptions
-    ): ChildProcess {
-        const { cwd, env, execArgv = [], stdio } = options
-
+    ): Promise<ChildProcess> {
         const shouldRun = this.#xvfbManager.shouldRun()
         const isAvailable = this.#isXvfbRunAvailable()
 
         this.#log.info(`ProcessFactory: shouldRun=${shouldRun}, isAvailable=${isAvailable}`)
 
         if (shouldRun && isAvailable) {
-            this.#log.info('Creating worker process with xvfb-run wrapper')
+            this.#log.info('Creating worker process with xvfb-run wrapper and retry logic')
 
-            // Use spawn with xvfb-run wrapper
+            return await this.#xvfbManager.executeWithRetry(
+                () => this.#createXvfbProcess(scriptPath, args, options),
+                'xvfb worker process creation'
+            )
+        }
+
+        this.#log.info('Creating worker process with regular fork')
+        return this.#createRegularProcess(scriptPath, args, options)
+    }
+
+    /**
+     * Create process with xvfb-run wrapper
+     */
+    #createXvfbProcess(
+        scriptPath: string,
+        args: string[],
+        options: ProcessCreationOptions
+    ): Promise<ChildProcess> {
+        return new Promise((resolve, reject) => {
+            const { cwd, env, execArgv = [], stdio } = options
             const nodeArgs = [...execArgv, scriptPath, ...args]
 
-            return spawn(
+            const childProcess = spawn(
                 'xvfb-run',
                 ['--auto-servernum', '--', 'node', ...nodeArgs],
                 {
@@ -57,10 +74,43 @@ export class ProcessFactory implements ProcessCreator {
                     stdio,
                 } as SpawnOptions
             )
-        }
-        this.#log.info('Creating worker process with regular fork')
 
-        // Use regular fork
+            // Check for immediate startup failures
+            let resolved = false
+            const startupTimeout = setTimeout(() => {
+                if (!resolved) {
+                    resolved = true
+                    resolve(childProcess)
+                }
+            }, 100) // Short timeout to detect immediate failures
+
+            childProcess.on('error', (error) => {
+                if (!resolved) {
+                    resolved = true
+                    clearTimeout(startupTimeout)
+                    reject(error)
+                }
+            })
+
+            childProcess.on('exit', (code, signal) => {
+                if (!resolved && code !== 0) {
+                    resolved = true
+                    clearTimeout(startupTimeout)
+                    reject(new Error(`xvfb-run process exited with code ${code} and signal ${signal}`))
+                }
+            })
+        })
+    }
+
+    /**
+     * Create regular process without xvfb
+     */
+    #createRegularProcess(
+        scriptPath: string,
+        args: string[],
+        options: ProcessCreationOptions
+    ): ChildProcess {
+        const { cwd, env, execArgv = [], stdio } = options
         return fork(scriptPath, args, {
             cwd,
             env,
