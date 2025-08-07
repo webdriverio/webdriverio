@@ -1,9 +1,0 @@
-version: v2
-modules:
-  - path: src/proto/browserstack/sdk/v1
-breaking:
-  use:
-    - FILE
-lint:
-  use:
-    - DEFAULT
