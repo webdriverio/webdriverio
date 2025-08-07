@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import { xvfb } from '@wdio/xvfb'
+import { XvfbManager } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
@@ -18,14 +18,21 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
     private xvfbInitialized = false
+    private xvfbManager: XvfbManager
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
 
     constructor(
         private _options: never,
-        protected _config: WebdriverIO.Config
-    ) {}
+        protected config: WebdriverIO.Config
+    ) {
+        // Initialize XvfbManager
+        this.xvfbManager = new XvfbManager({
+            xvfbMaxRetries: this.config.xvfbMaxRetries,
+            xvfbRetryDelay: this.config.xvfbRetryDelay
+        })
+    }
 
     /**
      * initialize local runner environment
@@ -55,13 +62,14 @@ export default class LocalRunner {
         }
 
         const worker = new WorkerInstance(
-            this._config,
+            this.config,
             workerOptions,
             this.stdout,
-            this.stderr
+            this.stderr,
+            this.xvfbManager
         )
         this.workerPool[workerOptions.cid] = worker
-        worker.postMessage(command, args)
+        await worker.postMessage(command, args)
         return worker
     }
 
@@ -69,8 +77,8 @@ export default class LocalRunner {
      * Initialize XVFB with capability-aware detection
      */
     private async initializeXvfb(workerOptions: Workers.WorkerRunPayload) {
-        // Skip Xvfb initialization if explicitly disabled
-        if (this._config.disableAutoXvfb) {
+        // Skip Xvfb initialization if disabled
+        if (this.config.autoXvfb === false) {
             log.info('Skipping automatic Xvfb initialization (disabled by config)')
             return
         }
@@ -78,7 +86,7 @@ export default class LocalRunner {
         // Initialize Xvfb if needed for headless testing
         try {
             const capabilities = workerOptions.caps
-            const xvfbInitialized = await xvfb.init(capabilities)
+            const xvfbInitialized = await this.xvfbManager.init(capabilities)
             if (xvfbInitialized) {
                 log.info('Xvfb is ready for use')
             }
@@ -127,7 +135,7 @@ export default class LocalRunner {
                 continue
             }
 
-            worker.postMessage('endSession', payload)
+            await worker.postMessage('endSession', payload)
         }
 
         const shutdownResult = await new Promise<boolean>((resolve) => {
@@ -148,7 +156,7 @@ export default class LocalRunner {
         })
 
         // Xvfb cleanup is handled automatically by xvfb-run
-        if (xvfb.shouldRun()) {
+        if (this.xvfbManager.shouldRun()) {
             log.info('Xvfb cleanup handled automatically by xvfb-run')
         }
 

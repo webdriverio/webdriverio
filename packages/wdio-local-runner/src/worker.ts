@@ -3,7 +3,7 @@ import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import { ProcessFactory } from '@wdio/xvfb'
+import { ProcessFactory, type XvfbManager } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 import type { ReplConfig } from '@wdio/repl'
 
@@ -45,7 +45,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     sessionId?: string
     server?: Record<string, string>
     logsAggregator: string[] = []
-    #processFactory = new ProcessFactory()
+    #processFactory: ProcessFactory
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean
@@ -66,12 +66,14 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  {string[]} specs       list of paths to test files to run in this worker
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
+     * @param  {XvfbManager} xvfbManager configured XvfbManager instance
      */
     constructor(
         config: WebdriverIO.Config,
         { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
-        stderr: WritableStreamBuffer
+        stderr: WritableStreamBuffer,
+        xvfbManager: XvfbManager
     ) {
         super()
         this.cid = cid
@@ -84,6 +86,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.retries = retries
         this.stdout = stdout
         this.stderr = stderr
+        this.#processFactory = new ProcessFactory(xvfbManager)
 
         this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
         this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
@@ -92,7 +95,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     /**
      * spawns process to kick of wdio-runner
      */
-    startProcess() {
+    async startProcess() {
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
@@ -115,7 +118,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 
         // Use ProcessFactory to create the appropriate process
-        const childProcess = this.childProcess = this.#processFactory.createWorkerProcess(
+        const childProcess = this.childProcess = await this.#processFactory.createWorkerProcess(
             path.join(__dirname, 'run.js'),
             argv,
             {
@@ -233,7 +236,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  command  method to run in wdio-runner
      * @param  args     arguments for functions to call
      */
-    postMessage (command: string, args: Workers.WorkerMessageArgs, requiresSetup = false): void {
+    async postMessage (command: string, args: Workers.WorkerMessageArgs, requiresSetup = false): Promise<void> {
         const { cid, configFile, capabilities, specs, retries, isBusy } = this
 
         if (isBusy && !ACCEPTABLE_BUSY_COMMANDS.includes(command)) {
@@ -245,7 +248,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
          * closes after running its job
          */
         if (!this.childProcess) {
-            this.childProcess = this.startProcess()
+            this.childProcess = await this.startProcess()
         }
 
         const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps: capabilities, specs, retries }
