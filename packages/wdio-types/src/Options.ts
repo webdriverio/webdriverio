@@ -328,10 +328,22 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     shard?: ShardOptions
     /**
-     * Disable automatic Xvfb initialization in local runner.
-     * When enabled, tests need to manually call xvfb.init() if needed.
+     * Enable automatic Xvfb initialization in local runner for headless testing on Linux.
+     * When disabled, tests should manually call xvfb.init() if needed.
+     * @default true
      */
-    disableAutoXvfb?: boolean
+    autoXvfb?: boolean
+    /**
+     * Number of retry attempts for xvfb process failures.
+     * @default 3
+     */
+    xvfbMaxRetries?: number
+    /**
+     * Base delay between retries in milliseconds for xvfb process failures.
+     * Progressive delay will be: xvfbRetryDelay * attemptNumber
+     * @default 1000
+     */
+    xvfbRetryDelay?: number
     // framework options
     /**
      * Mocha specific options
