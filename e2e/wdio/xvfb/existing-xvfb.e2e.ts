@@ -46,13 +46,13 @@ describe('xvfb existing installation', () => {
 
         // Import and test ProcessFactory integration
         const { ProcessFactory } = await import('@wdio/xvfb')
-        const processFactory = new ProcessFactory()
+        const processFactory = new ProcessFactory(xvfbManager)
 
         // Verify that shouldRun() returns true (indicating xvfb should be used)
         expect(xvfbManager.shouldRun()).toBe(true)
 
         // Create a test process - this should use the spawn path with xvfb-run
-        const mockProcess = processFactory.createWorkerProcess(
+        const mockProcess = await processFactory.createWorkerProcess(
             '/mock/path/run.js',
             ['--test'],
             {

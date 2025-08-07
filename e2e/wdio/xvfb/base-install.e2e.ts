@@ -50,10 +50,10 @@ describe('xvfb fresh installation', () => {
 
         // Import ProcessFactory and test its behavior
         const { ProcessFactory } = await import('@wdio/xvfb')
-        const processFactory = new ProcessFactory()
+        const processFactory = new ProcessFactory(xvfbManager)
 
         // Create a mock worker process
-        const mockProcess = processFactory.createWorkerProcess(
+        const mockProcess = await processFactory.createWorkerProcess(
             '/mock/path/run.js',
             ['--test'],
             {
