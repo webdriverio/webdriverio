@@ -16,7 +16,6 @@ export const config: WebdriverIO.Config = {
      */
     capabilities: [{
         browserName: 'chrome',
-        browserVersion: 'stable',
         'goog:chromeOptions': {
             args: [
                 '--headless=new',
