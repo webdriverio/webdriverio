@@ -82,6 +82,7 @@
     "@wdio/runner": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
+    "@wdio/rpc": "workspace:*",
     "deepmerge-ts": "^7.0.3",
     "expect": "30.0.4",
     "get-port": "^7.1.0",

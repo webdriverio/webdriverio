@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import safeStringify from 'safe-stringify'
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
-
+import type { AnyWSMessage, WSMessage, WSMessageValue } from '@wdio/types'
+import { WS_MESSAGE_TYPES } from '@wdio/types'
 import { getCID, filterTestArgument } from '../utils.js'
 import { EVENTS, WDIO_EVENT_NAME } from '../../constants.js'
+import { isWSMessage } from '@wdio/utils'
 
 const startTime = Date.now()
 
@@ -177,13 +178,13 @@ export class MochaFramework extends HTMLElement {
         console.log(`[WDIO] Finished test suite in ${Date.now() - startTime}ms`)
     }
 
-    #handleSocketMessage (message: Workers.SocketMessage) {
-        if (message.type === MESSAGE_TYPES.hookResultMessage) {
+    #handleSocketMessage (message: AnyWSMessage) {
+        if (isWSMessage(message, WS_MESSAGE_TYPES.hookResultMessage)) {
             return this.#handleHookResult(message.value)
         }
     }
 
-    #handleHookResult (result: Workers.HookResultEvent) {
+    #handleHookResult (result: WSMessageValue[WS_MESSAGE_TYPES.hookResultMessage]) {
         const resolver = this.#hookResolver.get(result.id)
         if (!resolver) {
             return console.warn(`[WDIO] couldn't find resolve for id "${result.id}"`)
@@ -247,16 +248,17 @@ export class MochaFramework extends HTMLElement {
         })
     }
 
-    #hookTrigger (value: Workers.HookTriggerEvent): Workers.SocketMessage {
+    #hookTrigger (value: WSMessageValue[WS_MESSAGE_TYPES.hookTriggerMessage])
+    : WSMessage<WS_MESSAGE_TYPES.hookTriggerMessage> {
         return {
-            type: MESSAGE_TYPES.hookTriggerMessage,
+            type: WS_MESSAGE_TYPES.hookTriggerMessage,
             value: JSON.parse(safeStringify(value))
         }
     }
 
-    #sendTestReport (value: Workers.BrowserTestResults) {
+    #sendTestReport (value: WSMessageValue[WS_MESSAGE_TYPES.browserTestResult]) {
         import.meta.hot?.send(WDIO_EVENT_NAME, {
-            type: MESSAGE_TYPES.browserTestResult,
+            type: WS_MESSAGE_TYPES.browserTestResult,
             value: JSON.parse(safeStringify(value))
         })
     }

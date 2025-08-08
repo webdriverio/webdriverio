@@ -1,6 +1,7 @@
+import mitt from 'mitt'
+import type { Emitter } from 'mitt'
 import logger from '@wdio/logger'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
-import _mitt from 'mitt'
+import { WS_MESSAGE_TYPES, type Workers } from '@wdio/types'
 
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
@@ -9,10 +10,6 @@ const SCOPE_TYPES: Record<string, Function> = {
     element: /* istanbul ignore next */ function Element() { }
 }
 
-/**
- * @see https://github.com/developit/mitt/issues/191
- */
-const mitt = _mitt as unknown as typeof _mitt.default
 const EVENTHANDLER_FUNCTIONS = ['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners'] as const
 
 interface PropertiesObject {
@@ -31,30 +28,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
     const prototype = Object.create(scopeType.prototype)
     const log = logger('webdriver')
 
-    const mittInstance = mitt()
-
-    // Create EventEmitter-compatible interface
-    const eventHandler = {
-        on: mittInstance.on.bind(mittInstance),
-        off: mittInstance.off.bind(mittInstance),
-        emit: mittInstance.emit.bind(mittInstance),
-        once: (type: string, handler: Function) => {
-            const onceWrapper = (...args: unknown[]) => {
-                mittInstance.off(type, onceWrapper)
-                handler(...args)
-            }
-            mittInstance.on(type, onceWrapper)
-        },
-        removeListener: mittInstance.off.bind(mittInstance),
-        removeAllListeners: (type?: string) => {
-            if (type) {
-                mittInstance.off(type)
-            } else {
-                // Clear all event handlers by creating new mitt instance
-                Object.assign(mittInstance, mitt())
-            }
-        }
-    }
+    let eventHandler: Emitter<Record<string, unknown>> = (mitt as unknown as () => Emitter<Record<string, unknown>>)()
 
     /**
      * WebDriver monad
@@ -150,7 +124,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
                     origin: 'worker',
                     name: 'workerEvent',
                     args: {
-                        type: MESSAGE_TYPES.customCommand,
+                        type: WS_MESSAGE_TYPES.customCommand,
                         value: {
                             commandName: name,
                             cid: process.env.WDIO_WORKER_ID,
@@ -265,20 +239,6 @@ export default function WebDriver(options: object, modifier?: Function, properti
      */
     for (const eventCommand of EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [unknown, unknown]) {
-            /**
-             * Emit an event when a dialog listener is registered or unregistered.
-             * This is used in `packages/webdriverio/src/dialog.ts`
-             * to decide whether to propagate a `dialog` event to
-             * the user or automatically accept or dismiss the dialog.
-             */
-            if (eventCommand === 'on' && args[0] === 'dialog') {
-                eventHandler.emit('_dialogListenerRegistered')
-            }
-            if (eventCommand === 'off' && args[0] === 'dialog') {
-                eventHandler.emit('_dialogListenerRemoved')
-            }
-
-            // Call the appropriate method based on eventCommand
             switch (eventCommand) {
             case 'on':
                 eventHandler.on(args[0] as string, args[1] as (event: unknown) => void)
@@ -290,11 +250,20 @@ export default function WebDriver(options: object, modifier?: Function, properti
             case 'emit':
                 eventHandler.emit(args[0] as string, args[1])
                 break
-            case 'once':
-                eventHandler.once(args[0] as string, args[1] as (event: unknown) => void)
+            case 'once': {
+                // mitt does not support once natively, so we polyfill it
+                const handler = (...eventArgs: unknown[]) => {
+                    eventHandler.off(args[0] as string, handler)
+                    if (typeof args[1] === 'function') {
+                        (args[1] as (...args: unknown[]) => void)(...(eventArgs as unknown[]))
+                    }
+                }
+                eventHandler.on(args[0] as string, handler)
                 break
+            }
             case 'removeAllListeners':
-                eventHandler.removeAllListeners(args[0] as string)
+                // mitt does not support removeAllListeners, so we re-instantiate
+                eventHandler = (mitt as unknown as () => Emitter<Record<string, unknown>>)()
                 break
             }
             return this

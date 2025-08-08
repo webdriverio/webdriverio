@@ -3,8 +3,10 @@
 import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars, initiateBidi, parseBidiMessage } from 'webdriver'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { WS_MESSAGE_TYPES } from '@wdio/types'
+import type { WSMessage, WSMessageValue, AnyWSMessage } from '@wdio/types'
 import safeStringify from 'safe-stringify'
+import { isWSMessage } from '@wdio/utils'
 
 /**
  * this is a polyfill to use event emitter in browser
@@ -47,7 +49,7 @@ export default class ProxyDriver {
         /**
          * listen on socket events from testrunner
          */
-        import.meta.hot?.on(WDIO_EVENT_NAME, (payload: Workers.SocketMessage) => {
+        import.meta.hot?.on(WDIO_EVENT_NAME, (payload: AnyWSMessage) => {
             try {
                 this.#handleServerMessage(payload)
             } catch (err) {
@@ -153,7 +155,7 @@ export default class ProxyDriver {
          * the time we get a response for this message.
          */
         import.meta.hot?.send(WDIO_EVENT_NAME, {
-            type: MESSAGE_TYPES.initiateBrowserStateRequest,
+            type: WS_MESSAGE_TYPES.initiateBrowserStateRequest,
             value: { cid }
         })
 
@@ -208,16 +210,18 @@ export default class ProxyDriver {
         }
     }
 
-    static #handleServerMessage (payload: Workers.SocketMessage) {
-        if (payload.type === MESSAGE_TYPES.commandResponseMessage) {
+    static #handleServerMessage (payload: AnyWSMessage) {
+        if (isWSMessage(payload, WS_MESSAGE_TYPES.commandResponseMessage)) {
             return this.#handleCommandResponse(payload.value)
         }
-        if (payload.type === MESSAGE_TYPES.initiateBrowserStateResponse) {
+        if (isWSMessage(payload, WS_MESSAGE_TYPES.initiateBrowserStateResponse)) {
             return this.#handleBrowserInitiation(payload.value)
         }
     }
 
-    static #handleCommandResponse (value: Workers.CommandResponseEvent) {
+    static #handleCommandResponse (
+        value: WSMessageValue[WS_MESSAGE_TYPES.commandResponseMessage]
+    ) {
         if (!value.id) {
             return console.error(`Message without id: ${JSON.stringify(value)}`)
         }
@@ -250,7 +254,9 @@ export default class ProxyDriver {
      * within the browser so the instance is aware of it and can translate the command
      * request back to the worker process
      */
-    static #handleBrowserInitiation (value: Workers.BrowserState) {
+    static #handleBrowserInitiation (
+        value: WSMessageValue[WS_MESSAGE_TYPES.initiateBrowserStateResponse]
+    ) {
         const cid = getCID()
         if (!cid) {
             return
@@ -280,16 +286,20 @@ export default class ProxyDriver {
         }
     }
 
-    static #commandRequest (value: Workers.CommandRequestEvent): Workers.SocketMessage {
+    static #commandRequest(
+        value: WSMessageValue[WS_MESSAGE_TYPES.commandRequestMessage]
+    ): WSMessage<WS_MESSAGE_TYPES.commandRequestMessage> {
         return {
-            type: MESSAGE_TYPES.commandRequestMessage,
+            type: WS_MESSAGE_TYPES.commandRequestMessage,
             value
         }
     }
 
-    static #consoleMessage (value: Workers.ConsoleEvent): Workers.SocketMessage {
+    static #consoleMessage (
+        value: WSMessageValue[WS_MESSAGE_TYPES.consoleMessage])
+    : WSMessage<WS_MESSAGE_TYPES.consoleMessage> {
         return {
-            type: MESSAGE_TYPES.consoleMessage,
+            type: WS_MESSAGE_TYPES.consoleMessage,
             value
         }
     }

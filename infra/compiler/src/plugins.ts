@@ -6,6 +6,7 @@ import { rimraf } from 'rimraf'
 import { copy } from 'esbuild-plugin-copy'
 import type { Plugin, BuildOptions } from 'esbuild'
 import type { PackageJson } from 'type-fest'
+import fs from 'node:fs/promises'
 
 const MAX_RETRIES = 3
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -71,7 +72,21 @@ export function clear(config: BuildOptions): Plugin {
  * @param {number} [retry=MAX_RETRIES] - The number of retries.
  * @return {Promise<void>} A promise that resolves when the types are generated.
  */
-function generateTypes(cwd: string, pkg: PackageJson, retry = MAX_RETRIES): Promise<void> {
+async function generateTypes(cwd: string, pkg: PackageJson, retry = MAX_RETRIES): Promise<void> {
+    // Check if declaration files already exist
+    const buildDir = path.join(cwd, 'build')
+    try {
+        const buildFiles = await fs.readdir(buildDir)
+        const hasDeclarationFiles = buildFiles.some(file => file.endsWith('.d.ts'))
+
+        if (hasDeclarationFiles) {
+            console.log(`${l.name(pkg.name)} ⏭️ Skipping type generation - declaration files already exist`)
+            return
+        }
+    } catch {
+        // Build directory doesn't exist, continue with generation
+    }
+
     return new Promise<void>((resolve, reject) => {
         const child = cp.spawn('node', [tscPath, '--emitDeclarationOnly'], { cwd })
         let stdout = ''

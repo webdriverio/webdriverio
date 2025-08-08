@@ -8,11 +8,9 @@ import type * as Frameworks from './Frameworks.js'
 import type * as Workers from './Workers.js'
 import type * as Network from './Network.js'
 
-/**
- * exported constant values
- */
-export { MESSAGE_TYPES } from './Workers.js'
-
+export type { Event, TestState, LogMessage, WDIOErrorEvent, BrowserData } from './Runner.js'
+export { IPC_MESSAGE_TYPES, type IPCMessage, type AnyIPCMessage, type IPCMessageValue } from './ipc/messages.js'
+export { WS_MESSAGE_TYPES, type WSMessage, type AnyWSMessage, type WSMessageValue } from './ws/messages.js'
 export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers }
 
 export type JsonPrimitive = string | number | boolean | null
@@ -74,9 +72,10 @@ declare global {
         /**
          * types to be extended by ecosystem framework adapters
          */
-        interface MochaOpts { [key: string]: any }
-        interface JasmineOpts { [key: string]: any }
-        interface CucumberOpts { [key: string]: any }
+        interface SharedFrameworkOpts { [key: string]: any }
+        interface MochaOpts extends SharedFrameworkOpts {}
+        interface JasmineOpts extends SharedFrameworkOpts {}
+        interface CucumberOpts extends SharedFrameworkOpts {}
         interface Config extends Options.Testrunner, Capabilities.WithRequestedTestrunnerCapabilities {}
         interface RemoteConfig extends Options.WebdriverIO, Capabilities.WithRequestedCapabilities {}
         interface MultiremoteConfig extends Options.Testrunner, Capabilities.WithRequestedMultiremoteCapabilities {}
