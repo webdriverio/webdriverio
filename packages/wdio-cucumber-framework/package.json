@@ -39,14 +39,14 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@cucumber/cucumber": "^10.3.1",
-    "@cucumber/gherkin": "29.0.0",
-    "@cucumber/messages": "26.0.1",
+    "@cucumber/cucumber": "^12.1.0",
+    "@cucumber/gherkin": "33.1.0",
+    "@cucumber/messages": "28.1.0",
     "@types/node": "^20.1.0",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "glob": "^10.2.2",
+    "glob": "^11.0.3",
     "import-meta-resolve": "^4.1.0",
     "is-glob": "^4.0.0"
   },
