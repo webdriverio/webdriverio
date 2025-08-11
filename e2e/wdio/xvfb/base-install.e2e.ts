@@ -3,6 +3,63 @@ import { execSync } from 'node:child_process'
 import { XvfbManager } from '@wdio/xvfb'
 
 describe('xvfb fresh installation', () => {
+    describe('autoInstall disabled', () => {
+        let xvfbManager: XvfbManager
+
+        beforeEach(() => {
+            xvfbManager = new XvfbManager()
+        })
+
+        it('should not install or wrap when autoInstall is disabled', async () => {
+            // Ensure Linux in CI baseline
+            expect(process.platform).toBe('linux')
+            expect(process.env.CI).toBeDefined()
+
+            // Sanity: xvfb-run should not be present in this base image
+            let xvfbRunExists = false
+            try {
+                execSync('which xvfb-run', { stdio: 'ignore' })
+                xvfbRunExists = true
+            } catch {
+                // intentionally ignore - absence is expected
+            }
+            expect(xvfbRunExists).toBe(false)
+
+            // Init should skip installation and return false
+            const initResult = await xvfbManager.init()
+            expect(initResult).toBe(false)
+
+            // Verify createWorkerProcess falls back to regular fork (not xvfb-run)
+            const { ProcessFactory } = await import('@wdio/xvfb')
+            const processFactory = new ProcessFactory(xvfbManager)
+            const mockProcess = await processFactory.createWorkerProcess(
+                '/mock/path/run.js',
+                ['--test'],
+                {
+                    cwd: process.cwd(),
+                    env: process.env as Record<string, string>,
+                    execArgv: [],
+                    stdio: ['inherit', 'pipe', 'pipe', 'ipc']
+                }
+            )
+            // Should not have been spawned via 'xvfb-run'
+            expect(mockProcess.spawnfile).not.toBe('xvfb-run')
+            mockProcess.kill('SIGTERM')
+        })
+
+        it('should skip install even with headless capabilities when autoInstall is disabled', async () => {
+            // Headless Chrome capabilities
+            const caps: WebdriverIO.Capabilities = {
+                'goog:chromeOptions': {
+                    args: ['--headless=new']
+                }
+            }
+
+            const result = await xvfbManager.init(caps)
+            expect(result).toBe(false)
+        })
+    })
+
     describe('autoInstall enabled', () => {
         let xvfbManager: XvfbManager
 
@@ -72,63 +129,6 @@ describe('xvfb fresh installation', () => {
 
             // Clean up
             mockProcess.kill('SIGTERM')
-        })
-    })
-
-    describe('autoInstall disabled', () => {
-        let xvfbManager: XvfbManager
-
-        beforeEach(() => {
-            xvfbManager = new XvfbManager()
-        })
-
-        it('should not install or wrap when autoInstall is disabled', async () => {
-            // Ensure Linux in CI baseline
-            expect(process.platform).toBe('linux')
-            expect(process.env.CI).toBeDefined()
-
-            // Sanity: xvfb-run should not be present in this base image
-            let xvfbRunExists = false
-            try {
-                execSync('which xvfb-run', { stdio: 'ignore' })
-                xvfbRunExists = true
-            } catch {
-                // intentionally ignore - absence is expected
-            }
-            expect(xvfbRunExists).toBe(false)
-
-            // Init should skip installation and return false
-            const initResult = await xvfbManager.init()
-            expect(initResult).toBe(false)
-
-            // Verify createWorkerProcess falls back to regular fork (not xvfb-run)
-            const { ProcessFactory } = await import('@wdio/xvfb')
-            const processFactory = new ProcessFactory(xvfbManager)
-            const mockProcess = await processFactory.createWorkerProcess(
-                '/mock/path/run.js',
-                ['--test'],
-                {
-                    cwd: process.cwd(),
-                    env: process.env as Record<string, string>,
-                    execArgv: [],
-                    stdio: ['inherit', 'pipe', 'pipe', 'ipc']
-                }
-            )
-            // Should not have been spawned via 'xvfb-run'
-            expect(mockProcess.spawnfile).not.toBe('xvfb-run')
-            mockProcess.kill('SIGTERM')
-        })
-
-        it('should skip install even with headless capabilities when autoInstall is disabled', async () => {
-            // Headless Chrome capabilities
-            const caps: WebdriverIO.Capabilities = {
-                'goog:chromeOptions': {
-                    args: ['--headless=new']
-                }
-            }
-
-            const result = await xvfbManager.init(caps)
-            expect(result).toBe(false)
         })
     })
 
