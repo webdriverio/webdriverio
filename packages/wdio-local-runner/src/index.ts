@@ -11,8 +11,8 @@ const log = logger('@wdio/local-runner')
 export type { WorkerInstance }
 
 export interface RunArgs extends Workers.WorkerRunPayload {
-    command: string;
-    args: Workers.WorkerMessageArgs;
+    command: string
+    args: Workers.WorkerMessageArgs
 }
 
 export default class LocalRunner {
