@@ -27,7 +27,7 @@ describe('xvfb existing installation', () => {
         expect(xvfbRunPath).toContain('xvfb-run')
         expect(xvfbRunPath.length).toBeGreaterThan(0)
 
-        // Initialize xvfb - should detect existing installation
+        // Initialize xvfb - should detect existing installation and return true
         const initResult = await xvfbManager.init()
         expect(initResult).toBe(true)
 
@@ -38,6 +38,13 @@ describe('xvfb existing installation', () => {
         } catch (error) {
             throw new Error(`xvfb-run execution failed: ${error}`)
         }
+    })
+
+    it('should still detect existing xvfb when autoInstall is disabled', async () => {
+        // reuse the default manager (autoInstall not set)
+        expect(xvfbManager.shouldRun()).toBe(true)
+        const initResult = await xvfbManager.init()
+        expect(initResult).toBe(true)
     })
 
     it('should integrate correctly with ProcessFactory', async () => {
@@ -67,6 +74,14 @@ describe('xvfb existing installation', () => {
         expect(mockProcess).toBeDefined()
         expect(typeof mockProcess.on).toBe('function')
         expect(typeof mockProcess.kill).toBe('function')
+
+        // Optional: stronger assertion that xvfb-run is in use
+        // Not all platforms expose spawnfile consistently, so check argv0 if available
+        const procMeta = mockProcess as unknown as { spawnfile?: string, argv0?: string }
+        const argv0 = procMeta.spawnfile || procMeta.argv0
+        if (typeof argv0 === 'string') {
+            expect(argv0.includes('xvfb-run') || argv0 === 'xvfb-run').toBe(true)
+        }
 
         // Clean up
         mockProcess.kill('SIGTERM')
