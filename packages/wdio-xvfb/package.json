@@ -1,6 +1,6 @@
 {
   "name": "@wdio/xvfb",
-  "version": "9.18.4",
+  "version": "9.19.0",
   "description": "A standalone utility to manage Xvfb (X Virtual Framebuffer) for headless testing",
   "author": "WebdriverIO Team",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-xvfb",
@@ -42,9 +42,9 @@
     "is-ci": "^4.1.0"
   },
   "devDependencies": {
-    "@wdio/types": "workspace:*",
+    "@types/is-ci": "^3.0.4",
     "@types/node": "^20.0.0",
-    "@types/is-ci": "^3.0.4"
+    "@wdio/types": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

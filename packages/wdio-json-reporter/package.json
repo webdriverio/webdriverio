@@ -1,6 +1,6 @@
 {
   "name": "@wdio/json-reporter",
-  "version": "9.18.0",
+  "version": "9.19.0",
   "description": "A WebdriverIO plugin to report results in json format.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-json-reporter",
