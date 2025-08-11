@@ -1,0 +1,52 @@
+{
+  "name": "@wdio/xvfb",
+  "version": "9.19.0",
+  "description": "A standalone utility to manage Xvfb (X Virtual Framebuffer) for headless testing",
+  "author": "WebdriverIO Team",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-xvfb",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-xvfb"
+  },
+  "keywords": [
+    "xvfb",
+    "headless",
+    "display",
+    "linux",
+    "testing",
+    "x11",
+    "virtual-framebuffer",
+    "electron",
+    "browser-testing"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@wdio/logger": "workspace:*",
+    "is-ci": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/is-ci": "^3.0.4",
+    "@types/node": "^20.0.0",
+    "@wdio/types": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

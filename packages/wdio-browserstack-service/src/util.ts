@@ -1295,6 +1295,10 @@ export function isTrue(value?: unknown) {
     return (value + '').toLowerCase() === 'true'
 }
 
+export function isFalse(value?: unknown) {
+    return (value + '').toLowerCase() === 'false'
+}
+
 export function frameworkSupportsHook(hook: string, framework?: string) {
     if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
         return true
