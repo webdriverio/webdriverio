@@ -3,7 +3,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import * as utils from '../../src/testHub/utils.js'
 import * as bstackLogger from '../../src/bstackLogger.js'
-import { BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBILITY, BROWSERSTACK_TEST_REPORTING } from '../../src/constants.js'
+import { BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBILITY } from '../../src/constants.js'
 
 describe('getProductMap', () => {
     let config = {}
@@ -36,17 +36,11 @@ describe('getProductMap', () => {
 describe('shouldProcessEventForTesthub', () => {
     beforeEach(() => {
         delete process.env['BROWSERSTACK_OBSERVABILITY']
-        delete process.env['BROWSERSTACK_TEST_REPORTING']
         delete process.env['BROWSERSTACK_ACCESSIBILITY']
         delete process.env['BROWSERSTACK_PERCY']
     })
 
-    it('should return true when only test reporting is true', () => {
-        process.env['BROWSERSTACK_TEST_REPORTING'] = 'true'
-        expect(utils.shouldProcessEventForTesthub('')).to.equal(true)
-    })
-
-    it('should return true when only legacy observability is true', () => {
+    it('should return true when only observability is', () => {
         process.env['BROWSERSTACK_OBSERVABILITY'] = 'true'
         expect(utils.shouldProcessEventForTesthub('')).to.equal(true)
     })
@@ -158,7 +152,6 @@ describe('logBuildError', () => {
         }
         utils.handleErrorForObservability(errorJson)
         expect(process.env[BROWSERSTACK_OBSERVABILITY]).toEqual('false')
-        expect(process.env[BROWSERSTACK_TEST_REPORTING]).toEqual('false')
     })
 
     it('handleErrorForAccessibility', () => {

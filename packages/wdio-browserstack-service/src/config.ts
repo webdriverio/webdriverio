@@ -2,7 +2,7 @@ import type { AppConfig, BrowserstackConfig } from './types.js'
 import type { Options } from '@wdio/types'
 import { v4 as uuidv4 } from 'uuid'
 import TestOpsConfig from './testOps/testOpsConfig.js'
-import { isUndefined, isTestReportingEnabled } from './util.js'
+import { isUndefined } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 
 class BrowserStackConfig {
@@ -35,11 +35,7 @@ class BrowserStackConfig {
         this.framework = config.framework
         this.userName = config.user
         this.accessKey = config.key
-
-        // Support both old and new flag names
-        const testReportingEnabled = isTestReportingEnabled(options)
-        this.testObservability = new TestOpsConfig(testReportingEnabled, !isUndefined(options.testObservability) || !isUndefined(options.testReporting))
-
+        this.testObservability = new TestOpsConfig(options.testObservability !== false, !isUndefined(options.testObservability))
         this.percy = options.percy || false
         this.accessibility = options.accessibility !== undefined ? options.accessibility : null
         this.app = options.app

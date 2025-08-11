@@ -76,7 +76,7 @@ export const config = {
 };
 ```
 
-You can explore all the features of Test Reporting and Analytics in [this sandbox](https://automation.browserstack.com/) or read more about it [here](https://www.browserstack.com/docs/test-observability/overview/what-is-test-observability).
+You can explore all the features of Test Reporting and Analytics in [this sandbox](https://automation.browserstack.com/) or read more about it [here](https://www.browserstack.com/docs/test-reporting-and-analytics/overview/what-is-test-observability).
 
 ### browserstackLocal
 Set this to true to enable routing connections from BrowserStack cloud through your computer.

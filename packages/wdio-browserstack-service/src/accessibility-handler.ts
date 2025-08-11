@@ -26,8 +26,7 @@ import {
     isTrue,
     validateCapsWithAppA11y,
     getAppA11yResults,
-    executeAccessibilityScript,
-    isTestReportingEnabled
+    executeAccessibilityScript
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
@@ -122,7 +121,7 @@ class _AccessibilityHandler {
             isAccessibilityAutomationSession(this._accessibility) &&
             (
                 this._turboscale ||
-                !shouldAddServiceVersion(this._config, isTestReportingEnabled(this._options))
+                !shouldAddServiceVersion(this._config, this._options.testObservability)
             ) &&
             validateCapsWithNonBstackA11y(
                 this._platformA11yMeta.browser_name as string,

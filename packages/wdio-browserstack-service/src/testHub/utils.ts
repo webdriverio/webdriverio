@@ -1,5 +1,5 @@
 
-import { BROWSERSTACK_PERCY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBILITY, BROWSERSTACK_TEST_REPORTING } from '../constants.js'
+import { BROWSERSTACK_PERCY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_ACCESSIBILITY } from '../constants.js'
 import type BrowserStackConfig from '../config.js'
 import { BStackLogger } from '../bstackLogger.js'
 import { isTrue } from '../util.js'
@@ -24,7 +24,7 @@ export const getProductMap = (config: BrowserStackConfig): { [key: string]: bool
 }
 
 export const shouldProcessEventForTesthub = (eventType: string): boolean => {
-    if (isTrue(process.env[BROWSERSTACK_OBSERVABILITY]) || isTrue(process.env[BROWSERSTACK_TEST_REPORTING])) {
+    if (isTrue(process.env[BROWSERSTACK_OBSERVABILITY])) {
         return true
     }
     if (isTrue(process.env[BROWSERSTACK_ACCESSIBILITY])) {
@@ -33,12 +33,11 @@ export const shouldProcessEventForTesthub = (eventType: string): boolean => {
     if (isTrue(process.env[BROWSERSTACK_PERCY]) && eventType) {
         return false
     }
-    return Boolean(process.env[BROWSERSTACK_ACCESSIBILITY] || process.env[BROWSERSTACK_OBSERVABILITY] || process.env[BROWSERSTACK_TEST_REPORTING] || process.env[BROWSERSTACK_PERCY])!
+    return Boolean(process.env[BROWSERSTACK_ACCESSIBILITY] || process.env[BROWSERSTACK_OBSERVABILITY] || process.env[BROWSERSTACK_PERCY])!
 }
 
 export const handleErrorForObservability = (error: Errors | null): void => {
     process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
-    process.env[BROWSERSTACK_TEST_REPORTING] = 'false'
     logBuildError(error, 'Test Reporting and Analytics')
 }
 

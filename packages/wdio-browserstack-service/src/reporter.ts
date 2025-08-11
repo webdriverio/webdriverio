@@ -17,8 +17,7 @@ import {
     getHookType,
     getPlatformVersion,
     isObjectEmpty,
-    generateHashCodeFromFields,
-    isTestReportingEnabled
+    generateHashCodeFromFields
 } from './util.js'
 import { BStackLogger } from './bstackLogger.js'
 import type { Capabilities } from '@wdio/types'
@@ -46,7 +45,7 @@ class _TestReporter extends WDIOReporter {
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
         if (typeof this._config.testObservability !== 'undefined') {
-            this._observability = isTestReportingEnabled(this._config)
+            this._observability = this._config.testObservability
         }
         await this.configureGit()
         this.registerListeners()

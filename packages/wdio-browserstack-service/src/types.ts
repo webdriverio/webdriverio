@@ -57,7 +57,7 @@ export interface BrowserstackConfig {
      * @default true
      * @deprecated Use testReporting instead
      */
-    testObservability?: boolean | { enabled: boolean };
+    testObservability?: boolean;
     /**
      * Set this to true to enable BrowserStack Test Reporting and Analytics which will collect test related data
      * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.

@@ -3,7 +3,7 @@ import { BStackLogger } from './bstackLogger.js'
 import fs from 'node:fs'
 import util from 'node:util'
 import { fireFunnelRequest } from './instrumentation/funnelInstrumentation.js'
-import { BROWSERSTACK_TESTHUB_UUID, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_TEST_REPORTING } from './constants.js'
+import { BROWSERSTACK_TESTHUB_UUID, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_OBSERVABILITY } from './constants.js'
 import type { FunnelData } from './types.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
 
@@ -46,7 +46,7 @@ export default class BStackCleanup {
         BStackLogger.debug('Executing Test Reporting and Analytics cleanup')
         try {
             const result = await stopBuildUpstream()
-            if ((process.env[BROWSERSTACK_OBSERVABILITY] || process.env[BROWSERSTACK_TEST_REPORTING]) && process.env[BROWSERSTACK_TESTHUB_UUID]) {
+            if ((process.env[BROWSERSTACK_OBSERVABILITY]) && process.env[BROWSERSTACK_TESTHUB_UUID]) {
                 BStackLogger.info(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
             }
             const status = (result && result.status) || 'failed'

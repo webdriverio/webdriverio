@@ -31,9 +31,6 @@ import {
     getObservabilityBuild,
     getObservabilityProject,
     getObservabilityBuildTags,
-    // Add new function imports that exist
-    isTestReportingEnabled,
-    getTestReportingOptions,
     o11yErrorHandler,
     frameworkSupportsHook,
     getFailureObject,
@@ -60,7 +57,7 @@ import {
     mergeChromeOptions
 } from '../src/util.js'
 import * as bstackLogger from '../src/bstackLogger.js'
-import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY, BROWSERSTACK_TEST_REPORTING } from '../src/constants.js'
+import { BROWSERSTACK_OBSERVABILITY, TESTOPS_BUILD_COMPLETED_ENV, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_ACCESSIBILITY } from '../src/constants.js'
 import * as testHubUtils from '../src/testHub/utils.js'
 import * as fs from 'node:fs/promises'
 import * as os from 'node:os'
@@ -2625,73 +2622,3 @@ describe('getAppA11yResultsSummary', () => {
         expect(result).toEqual({ })
     })
 })
-
-describe('isTestReportingEnabled', () => {
-    beforeEach(() => {
-        delete process.env.BROWSERSTACK_TEST_REPORTING
-        delete process.env.BROWSERSTACK_OBSERVABILITY
-    })
-
-    it('should return true when new testReporting option is true', () => {
-        expect(isTestReportingEnabled({ testReporting: true } as any)).toEqual(true)
-    })
-
-    it('should return true when legacy testObservability option is enabled', () => {
-        expect(isTestReportingEnabled({ testObservability: { enabled: true } } as any)).toEqual(true)
-    })
-
-    it('should return true when new env var is set', () => {
-        process.env.BROWSERSTACK_TEST_REPORTING = 'true'
-        expect(isTestReportingEnabled({} as any)).toEqual(true)
-    })
-
-    it('should return true when legacy env var is set', () => {
-        process.env.BROWSERSTACK_OBSERVABILITY = 'true'
-        expect(isTestReportingEnabled({} as any)).toEqual(true)
-    })
-
-    it('should prioritize new option over legacy', () => {
-        expect(isTestReportingEnabled({
-            testReporting: false,
-            testObservability: { enabled: true }
-        } as any)).toEqual(false)
-    })
-
-    it('should return false when all are false', () => {
-        expect(isTestReportingEnabled({
-            testReporting: false,
-            testObservability: { enabled: false }
-        } as any)).toEqual(false)
-    })
-})
-
-describe('getTestReportingOptions', () => {
-    beforeEach(() => {
-        delete process.env.BROWSERSTACK_TEST_REPORTING_DEBUG
-        delete process.env.BROWSERSTACK_OBSERVABILITY_DEBUG
-    })
-
-    it('should return new testReportingOptions when available', () => {
-        const options = { user: 'new_user', key: 'new_key' }
-        expect(getTestReportingOptions({ testReportingOptions: options } as any)).toEqual(options)
-    })
-
-    it('should fallback to legacy testObservabilityOptions', () => {
-        const options = { user: 'legacy_user', key: 'legacy_key' }
-        expect(getTestReportingOptions({ testObservabilityOptions: options } as any)).toEqual(options)
-    })
-
-    it('should prioritize new options over legacy', () => {
-        const newOptions = { user: 'new_user', key: 'new_key' }
-        const legacyOptions = { user: 'legacy_user', key: 'legacy_key' }
-        expect(getTestReportingOptions({
-            testReportingOptions: newOptions,
-            testObservabilityOptions: legacyOptions
-        } as any)).toEqual(newOptions)
-    })
-
-    it('should return undefined when no options provided', () => {
-        expect(getTestReportingOptions({} as any)).toEqual(undefined)
-    })
-})
-
