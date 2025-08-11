@@ -327,12 +327,13 @@ class JunitReporter extends WDIOReporter {
              * Cucumber and Mocha generate the same Junit report for empty suites. Otherwise, Cucumber reporter
              * would generate two <testsuite>.
              */
-            if (this.runnerStat?.error) {
-                if (!isCucumberFrameworkRunner || (isCucumberFrameworkRunner && type === 'feature')) {
-                    return builder.testSuite().testCase().className('').name('').failure(error)
+            if (!isCucumberFrameworkRunner || (isCucumberFrameworkRunner && type === 'feature')){
+                if (this.runnerStat?.error) {
+                    return builder.testSuite().testCase().className('').name('').failure(this.runnerStat?.error)
                 }
-            } else {
-                return builder.testSuite().testCase().className('').name('').skipped('No tests found')
+                else {
+                    return builder.testSuite().testCase().className('').name('').skipped('No tests found')
+                }
             }
         }
 
