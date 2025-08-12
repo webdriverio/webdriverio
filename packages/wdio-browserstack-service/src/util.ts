@@ -1241,11 +1241,9 @@ export function getObservabilityUser(options: BrowserstackConfig & Options.Testr
     if (process.env.BROWSERSTACK_USERNAME) {
         return process.env.BROWSERSTACK_USERNAME
     }
-
     if (options.testObservabilityOptions && options.testObservabilityOptions.user) {
         return options.testObservabilityOptions.user
     }
-
     return config.user
 }
 
@@ -1253,11 +1251,9 @@ export function getObservabilityKey(options: BrowserstackConfig & Options.Testru
     if (process.env.BROWSERSTACK_ACCESS_KEY) {
         return process.env.BROWSERSTACK_ACCESS_KEY
     }
-
     if (options.testObservabilityOptions && options.testObservabilityOptions.key) {
         return options.testObservabilityOptions.key
     }
-
     return config.key
 }
 
@@ -1265,11 +1261,9 @@ export function getObservabilityProject(options: BrowserstackConfig & Options.Te
     if (process.env.TEST_OBSERVABILITY_PROJECT_NAME) {
         return process.env.TEST_OBSERVABILITY_PROJECT_NAME
     }
-
     if (options.testObservabilityOptions && options.testObservabilityOptions.projectName) {
         return options.testObservabilityOptions.projectName
     }
-
     return bstackProjectName
 }
 
@@ -1277,11 +1271,9 @@ export function getObservabilityBuild(options: BrowserstackConfig & Options.Test
     if (process.env.TEST_OBSERVABILITY_BUILD_NAME) {
         return process.env.TEST_OBSERVABILITY_BUILD_NAME
     }
-
     if (options.testObservabilityOptions && options.testObservabilityOptions.buildName) {
         return options.testObservabilityOptions.buildName
     }
-
     return bstackBuildName || path.basename(path.resolve(process.cwd()))
 }
 
@@ -1289,11 +1281,9 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
     if (process.env.TEST_OBSERVABILITY_BUILD_TAG) {
         return process.env.TEST_OBSERVABILITY_BUILD_TAG.split(',')
     }
-
     if (options.testObservabilityOptions && options.testObservabilityOptions.buildTag) {
         return options.testObservabilityOptions.buildTag
     }
-
     if (bstackBuildTag) {
         return [bstackBuildTag]
     }

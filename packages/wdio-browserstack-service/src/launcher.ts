@@ -409,7 +409,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         BStackLogger.debug('Sending stop launch event')
         await stopBuildUpstream()
-
         if (process.env[BROWSERSTACK_OBSERVABILITY] && process.env[BROWSERSTACK_TESTHUB_UUID]) {
             console.log(`\nVisit https://automation.browserstack.com/builds/${process.env[BROWSERSTACK_TESTHUB_UUID]} to view build report, insights, and many more debugging information all at one place!\n`)
         }
