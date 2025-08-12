@@ -694,6 +694,54 @@ describe('XvfbManager', () => {
                     { timeout: 240000 }
                 )
             })
+
+            it('should handle object format with array commands', async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
+                    .mockResolvedValueOnce({ stdout: 'array command ok', stderr: '' }) // install
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
+
+                // Mock getuid to return non-root (1000) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(1000)
+
+                const manager = new XvfbManager({
+                    autoInstall: {
+                        mode: 'sudo',
+                        command: ['custom', 'install', 'command']
+                    }
+                })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(true)
+                expect(mockExecAsync).toHaveBeenCalledWith(
+                    'custom install command',
+                    { timeout: 240000 }
+                )
+            })
+
+            it('should handle object format with mode only (defaults to sudo behavior)', async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
+                    .mockRejectedValueOnce(new Error('apt-get not found')) // which apt-get
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' }) // which dnf
+                    .mockResolvedValueOnce({ stdout: 'dnf install ok', stderr: '' }) // install
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
+
+                // Mock getuid to return non-root (1000) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(1000)
+
+                const manager = new XvfbManager({ autoInstall: { mode: 'sudo' } })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(true)
+                expect(mockExecAsync).toHaveBeenCalledWith('which sudo')
+            })
         })
     })
 
