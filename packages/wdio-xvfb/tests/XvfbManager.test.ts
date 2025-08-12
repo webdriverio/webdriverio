@@ -92,20 +92,28 @@ describe('XvfbManager', () => {
             expect(manager.shouldRun()).toBe(true)
         })
 
-        it('should return true on Linux in CI environment', () => {
+        it('should return false on Linux when DISPLAY is set', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
             mockIsCI.value = true
 
-            expect(manager.shouldRun()).toBe(true)
+            expect(manager.shouldRun()).toBe(false)
         })
 
-        it('should return false on Linux with existing DISPLAY (not in CI)', () => {
+        it('should return false on Linux with existing DISPLAY', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
             mockIsCI.value = false
 
             expect(manager.shouldRun()).toBe(false)
+        })
+
+        it('should return false when disabled via enabled:false', () => {
+            const disabledManager = new XvfbManager({ enabled: false })
+            mockPlatform.mockReturnValue('linux')
+            delete process.env.DISPLAY
+
+            expect(disabledManager.shouldRun()).toBe(false)
         })
 
         it('should return true when Chrome headless flag is detected', () => {
@@ -117,7 +125,7 @@ describe('XvfbManager', () => {
                 'goog:chromeOptions': {
                     args: ['--headless']
                 }
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
@@ -131,7 +139,7 @@ describe('XvfbManager', () => {
                 'goog:chromeOptions': {
                     args: ['--headless=new']
                 }
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
@@ -145,7 +153,7 @@ describe('XvfbManager', () => {
                 'goog:chromeOptions': {
                     args: ['--headless=old']
                 }
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
@@ -159,7 +167,7 @@ describe('XvfbManager', () => {
                 'moz:firefoxOptions': {
                     args: ['--headless']
                 }
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
@@ -173,7 +181,7 @@ describe('XvfbManager', () => {
                 'moz:firefoxOptions': {
                     args: ['-headless']
                 }
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
@@ -198,7 +206,7 @@ describe('XvfbManager', () => {
                         }
                     }
                 }
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
@@ -212,7 +220,7 @@ describe('XvfbManager', () => {
                 'goog:chromeOptions': {
                     args: ['--disable-gpu']
                 }
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(false)
         })
@@ -224,7 +232,7 @@ describe('XvfbManager', () => {
 
             const capabilities = {
                 'goog:chromeOptions': {}
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(false)
         })
@@ -234,7 +242,7 @@ describe('XvfbManager', () => {
             process.env.DISPLAY = ':0'
             mockIsCI.value = false
 
-            expect(manager.shouldRun({})).toBe(false)
+            expect(manager.shouldRun(undefined)).toBe(false)
         })
 
         it('should handle undefined capabilities', () => {
@@ -254,7 +262,7 @@ describe('XvfbManager', () => {
                 'ms:edgeOptions': {
                     args: ['--headless']
                 }
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
@@ -291,11 +299,21 @@ describe('XvfbManager', () => {
                 'goog:chromeOptions': {
                     args: ['--headless']
                 }
-            }
+            } as unknown as WebdriverIO.Config['capabilities']
 
             const result = await manager.init(capabilities)
 
             expect(result).toBe(true)
+        })
+
+        it('should return false and skip setup when disabled via enabled:false', async () => {
+            const disabledManager = new XvfbManager({ enabled: false })
+            mockPlatform.mockReturnValue('linux')
+            delete process.env.DISPLAY
+
+            const result = await disabledManager.init()
+            expect(result).toBe(false)
+            expect(mockExecAsync).not.toHaveBeenCalled()
         })
 
         describe('autoInstall', () => {
