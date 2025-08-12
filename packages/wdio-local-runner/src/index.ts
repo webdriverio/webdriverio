@@ -13,6 +13,7 @@ export type { WorkerInstance }
 export interface RunArgs extends Workers.WorkerRunPayload {
     command: string
     args: Workers.WorkerMessageArgs
+    cid: string
 }
 
 export default class LocalRunner {
