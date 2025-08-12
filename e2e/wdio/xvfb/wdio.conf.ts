@@ -43,6 +43,10 @@ export const config: WebdriverIO.Config = {
      * Disable automatic xvfb initialization so tests can control it manually
      */
     autoXvfb: false,
+    /**
+     * Do not auto-install xvfb by default; tests will enable it when needed
+     */
+    xvfbAutoInstall: false,
 
     /**
      * Reporters

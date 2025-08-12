@@ -19,6 +19,10 @@ export interface XvfbOptions {
      */
     forceInstall?: boolean;
     /**
+     * Enable automatic installation of Xvfb packages if `xvfb-run` is missing (default: false)
+     */
+    autoInstall?: boolean;
+    /**
      * Number of retry attempts for xvfb process failures (default: 3)
      */
     xvfbMaxRetries?: number;
@@ -35,6 +39,7 @@ export class XvfbManager {
     private force: boolean
     private packageManagerOverride?: string
     private forceInstall: boolean
+    private autoInstall: boolean
     private maxRetries: number
     private retryDelay: number
     private log: ReturnType<typeof logger>
@@ -43,6 +48,7 @@ export class XvfbManager {
         this.force = options.force ?? false
         this.packageManagerOverride = options.packageManager
         this.forceInstall = options.forceInstall ?? false
+        this.autoInstall = options.autoInstall ?? false
         this.maxRetries = options.xvfbMaxRetries ?? 3
         this.retryDelay = options.xvfbRetryDelay ?? 1000
         this.log = logger('@wdio/xvfb')
@@ -85,9 +91,14 @@ export class XvfbManager {
         this.log.info('Xvfb should run, checking if setup is needed')
 
         try {
-            await this.ensureXvfbRunAvailable()
-            this.log.info('xvfb-run is ready for use')
-            return true
+            const isReady = await this.ensureXvfbRunAvailable()
+
+            if (isReady) {
+                this.log.info('xvfb-run is ready for use')
+                return true
+            }
+            this.log.warn('xvfb-run not available; continuing without virtual display')
+            return false
         } catch (error) {
             this.log.error('Failed to setup xvfb-run:', error)
             throw error
@@ -97,7 +108,7 @@ export class XvfbManager {
     /**
      * Ensure xvfb-run is available, installing if necessary
      */
-    private async ensureXvfbRunAvailable(): Promise<void> {
+    private async ensureXvfbRunAvailable(): Promise<boolean> {
         this.log.info('Checking if xvfb-run is available...')
 
         if (!this.forceInstall) {
@@ -105,9 +116,18 @@ export class XvfbManager {
                 // Check if xvfb-run is already available
                 await execAsync('which xvfb-run')
                 this.log.info('xvfb-run found in PATH')
-                return
+                return true
             } catch {
-                this.log.info('xvfb-run not found, installing xvfb packages...')
+                if (!this.autoInstall) {
+                    this.log.warn(
+                        "xvfb-run not found. Skipping automatic installation. To enable auto-install, set 'xvfbAutoInstall: true' in your WDIO config."
+                    )
+                    this.log.warn(
+                        "Hint: you can also install it manually via your distro's package manager (e.g., 'sudo apt-get install xvfb', 'sudo dnf install xorg-x11-server-Xvfb')."
+                    )
+                    return false
+                }
+                this.log.info('xvfb-run not found, installing xvfb packages (xvfbAutoInstall enabled)...')
             }
         } else {
             this.log.info('Force install enabled, skipping availability check')
@@ -126,6 +146,7 @@ export class XvfbManager {
                 this.log.info(
                     `Successfully installed xvfb-run at: ${stdout.trim()}`
                 )
+                return true
             } catch (error) {
                 this.log.error('Failed to install xvfb-run:', error)
                 throw new Error(
@@ -133,6 +154,7 @@ export class XvfbManager {
                 )
             }
         }
+        return true
     }
 
     /**

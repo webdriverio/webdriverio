@@ -334,6 +334,12 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      */
     autoXvfb?: boolean
     /**
+     * Enable automatic installation of Xvfb packages on Linux if `xvfb-run` is missing.
+     * When false, the runner will warn and continue without installing.
+     * @default false
+     */
+    xvfbAutoInstall?: boolean
+    /**
      * Number of retry attempts for xvfb process failures.
      * @default 3
      */
