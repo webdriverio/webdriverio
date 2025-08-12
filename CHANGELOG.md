@@ -23,6 +23,16 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v9.19.1 (2025-08-12)
+
+#### :nail_care: Polish
+* `wdio-local-runner`, `wdio-types`, `wdio-xvfb`
+  * [#14696](https://github.com/webdriverio/webdriverio/pull/14696) feat(wdio-xvfb): add `xvfbAutoInstall` option ([@goosewobbler](https://github.com/goosewobbler))
+
+#### Committers: 1
+- [@goosewobbler](https://github.com/goosewobbler)
+
+
 ## v9.19.0 (2025-08-11)
 
 #### :rocket: New Feature
