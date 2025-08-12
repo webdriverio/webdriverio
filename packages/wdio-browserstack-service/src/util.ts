@@ -46,7 +46,8 @@ import {
     GIT_META_DATA_TRUNCATED,
     APP_ALLY_ENDPOINT,
     APP_ALLY_ISSUES_SUMMARY_ENDPOINT,
-    APP_ALLY_ISSUES_ENDPOINT
+    APP_ALLY_ISSUES_ENDPOINT,
+    TEST_REPORTING_PROJECT_NAME
 } from './constants.js'
 import CrashReporter from './crash-reporter.js'
 import { BStackLogger } from './bstackLogger.js'
@@ -348,8 +349,7 @@ export const  processAccessibilityResponse = (response: LaunchResponse, options:
 }
 
 export const processLaunchBuildResponse = (response: LaunchResponse, options: BrowserstackConfig & Options.Testrunner) => {
-    const reportingConfig = getTestReportingConfig(options)
-    if (reportingConfig.enabled) {
+    if (options.testObservability) {
         processTestObservabilityResponse(response)
     }
     processAccessibilityResponse(response, options)
@@ -380,7 +380,7 @@ export const launchTestSession = PerformanceTester.measureWrapper(PERFORMANCE_SD
         accessibility: {
             settings: options.accessibilityOptions
         },
-        browserstackAutomation: shouldAddServiceVersion(config, getTestReportingConfig(options).enabled),
+        browserstackAutomation: shouldAddServiceVersion(config, options.testObservability),
         framework_details: {
             frameworkName: 'WebdriverIO-' + config.framework,
             frameworkVersion: bsConfig.bstackServiceVersion,
@@ -1174,11 +1174,7 @@ export function getBrowserStackUserAndKey(config: Options.Testrunner, options: O
 }
 
 export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean, caps?: Capabilities.BrowserStackCapabilities): boolean {
-    const options = config as BrowserstackConfig & Options.Testrunner
-    const reportingConfig = getTestReportingConfig(options)
-    const isTestReportingEnabled = testObservability ?? reportingConfig.enabled
-
-    if ((config.services && config.services.toString().includes('chromedriver') && isTestReportingEnabled !== false) || !isBrowserstackInfra(config, caps)) {
+    if ((config.services && config.services.toString().includes('chromedriver') && testObservability !== false) || !isBrowserstackInfra(config, caps)) {
         return false
     }
     return true
@@ -1215,36 +1211,30 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
     }
 }
 
-// Update environment variable handling to support both sets
-// Update environment variable handling to support both sets
-export function setupEnvironmentVariables(options: BrowserstackConfig & Options.Testrunner) {
-    const reportingConfig = getTestReportingConfig(options)
+export function normalizeTestReportingConfig(_options: BrowserstackConfig & Options.Testrunner){
+    if (!isUndefined(_options.testReporting)){
+        _options.testObservability = _options.testReporting
+    }
 
-    // Set both legacy and new environment variables for compatibility
-    if (reportingConfig.enabled) {
-        process.env[BROWSERSTACK_OBSERVABILITY] = 'true'
-        process.env[BROWSERSTACK_TEST_REPORTING] = 'true'
-    } else {
-        process.env[BROWSERSTACK_OBSERVABILITY] = 'false'
-        process.env[BROWSERSTACK_TEST_REPORTING] = 'false'
+    if (!isUndefined(_options.testReportingOptions)){
+        _options.testObservabilityOptions = _options.testReportingOptions
     }
 }
 
-// Add helper function to resolve test reporting config
-export function getTestReportingConfig(options: BrowserstackConfig & Options.Testrunner) {
-    // New flags take precedence
-    if (options.testReporting !== undefined) {
-        return {
-            enabled: options.testReporting,
-            options: options.testReportingOptions || options.testObservabilityOptions || {}
-        }
+export function normalizeTestReportingEnvVariables(){
+    if (!isUndefined(process.env[BROWSERSTACK_TEST_REPORTING])){
+        process.env[BROWSERSTACK_OBSERVABILITY] = process.env[BROWSERSTACK_TEST_REPORTING]
+    }
+    if (!isUndefined(process.env[TEST_REPORTING_PROJECT_NAME])){
+        process.env.TEST_OBSERVABILITY_PROJECT_NAME = process.env[TEST_REPORTING_PROJECT_NAME]
+    }
+    if (!isUndefined(process.env.TEST_REPORTING_BUILD_NAME)) {
+        process.env.TEST_OBSERVABILITY_BUILD_NAME = process.env.TEST_REPORTING_BUILD_NAME
+    }
+    if (!isUndefined(process.env.TEST_REPORTING_BUILD_TAG)) {
+        process.env.TEST_OBSERVABILITY_BUILD_TAG = process.env.TEST_REPORTING_BUILD_TAG
     }
 
-    // Fallback to legacy flags
-    return {
-        enabled: options.testObservability ?? true,
-        options: options.testObservabilityOptions || {}
-    }
 }
 
 export function getObservabilityUser(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
@@ -1252,9 +1242,8 @@ export function getObservabilityUser(options: BrowserstackConfig & Options.Testr
         return process.env.BROWSERSTACK_USERNAME
     }
 
-    const reportingConfig = getTestReportingConfig(options)
-    if (reportingConfig.options && reportingConfig.options.user) {
-        return reportingConfig.options.user
+    if (options.testObservabilityOptions && options.testObservabilityOptions.user) {
+        return options.testObservabilityOptions.user
     }
 
     return config.user
@@ -1265,63 +1254,44 @@ export function getObservabilityKey(options: BrowserstackConfig & Options.Testru
         return process.env.BROWSERSTACK_ACCESS_KEY
     }
 
-    const reportingConfig = getTestReportingConfig(options)
-    if (reportingConfig.options && reportingConfig.options.key) {
-        return reportingConfig.options.key
+    if (options.testObservabilityOptions && options.testObservabilityOptions.key) {
+        return options.testObservabilityOptions.key
     }
 
     return config.key
 }
 
 export function getObservabilityProject(options: BrowserstackConfig & Options.Testrunner, bstackProjectName?: string) {
-    // Check new env var first
-    if (process.env.TEST_REPORTING_PROJECT_NAME) {
-        return process.env.TEST_REPORTING_PROJECT_NAME
-    }
-    // Fallback to legacy env var
     if (process.env.TEST_OBSERVABILITY_PROJECT_NAME) {
         return process.env.TEST_OBSERVABILITY_PROJECT_NAME
     }
 
-    const reportingConfig = getTestReportingConfig(options)
-    if (reportingConfig.options && reportingConfig.options.projectName) {
-        return reportingConfig.options.projectName
+    if (options.testObservabilityOptions && options.testObservabilityOptions.projectName) {
+        return options.testObservabilityOptions.projectName
     }
 
     return bstackProjectName
 }
 
 export function getObservabilityBuild(options: BrowserstackConfig & Options.Testrunner, bstackBuildName?: string) {
-    // Check new env var first
-    if (process.env.TEST_REPORTING_BUILD_NAME) {
-        return process.env.TEST_REPORTING_BUILD_NAME
-    }
-    // Fallback to legacy env var
     if (process.env.TEST_OBSERVABILITY_BUILD_NAME) {
         return process.env.TEST_OBSERVABILITY_BUILD_NAME
     }
 
-    const reportingConfig = getTestReportingConfig(options)
-    if (reportingConfig.options && reportingConfig.options.buildName) {
-        return reportingConfig.options.buildName
+    if (options.testObservabilityOptions && options.testObservabilityOptions.buildName) {
+        return options.testObservabilityOptions.buildName
     }
 
     return bstackBuildName || path.basename(path.resolve(process.cwd()))
 }
 
 export function getObservabilityBuildTags(options: BrowserstackConfig & Options.Testrunner, bstackBuildTag?: string): string[] {
-    // Check new env var first
-    if (process.env.TEST_REPORTING_BUILD_TAG) {
-        return process.env.TEST_REPORTING_BUILD_TAG.split(',')
-    }
-    // Fallback to legacy env var
     if (process.env.TEST_OBSERVABILITY_BUILD_TAG) {
         return process.env.TEST_OBSERVABILITY_BUILD_TAG.split(',')
     }
 
-    const reportingConfig = getTestReportingConfig(options)
-    if (reportingConfig.options && reportingConfig.options.buildTag) {
-        return reportingConfig.options.buildTag
+    if (options.testObservabilityOptions && options.testObservabilityOptions.buildTag) {
+        return options.testObservabilityOptions.buildTag
     }
 
     if (bstackBuildTag) {

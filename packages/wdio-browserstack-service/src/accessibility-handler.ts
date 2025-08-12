@@ -25,8 +25,7 @@ import {
     validateCapsWithNonBstackA11y,
     isTrue,
     validateCapsWithAppA11y,
-    getAppA11yResults,
-    getTestReportingConfig
+    getAppA11yResults
 } from './util.js'
 import accessibilityScripts from './scripts/accessibility-scripts.js'
 import PerformanceTester from './instrumentation/performance/performance-tester.js'
@@ -116,8 +115,7 @@ class _AccessibilityHandler {
         this._accessibility = isTrue(this._getCapabilityValue(this._caps, 'accessibility', 'browserstack.accessibility'))
 
         //checks for running ALLY on non-bstack infra
-        const reportingConfig = getTestReportingConfig(this._options)
-        if (isAccessibilityAutomationSession(this._accessibility) && (this._turboscale || !shouldAddServiceVersion(this._config, reportingConfig.enabled))){
+        if (isAccessibilityAutomationSession(this._accessibility) && (this._turboscale || !shouldAddServiceVersion(this._config, this._options.testObservability))){
             if (validateCapsWithNonBstackA11y(this._platformA11yMeta.browser_name as string, this._platformA11yMeta?.browser_version as string)){
                 this._accessibility = true
             }

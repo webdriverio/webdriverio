@@ -1306,7 +1306,7 @@ describe('setAnnotation', () => {
                 keyword: 'Given ',
             }
             await service.beforeStep(step)
-            expect(browser.execute).toBeCalledTimes(4)
+            expect(browser.execute).toBeCalledTimes(3)
             expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Feature: Feature1","level":"info"}}')
             expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Scenario: foobar","level":"info"}}')
             expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Step: Given I am a step","level":"info"}}')
@@ -1318,7 +1318,7 @@ describe('setAnnotation', () => {
             await service.before(service['_config'] as any, [], browser)
             await service.beforeSuite({ title: jasmineSuiteTitle } as any)
             await service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
-            expect(browser.execute).toBeCalledTimes(2)
+            expect(browser.execute).toBeCalledTimes(1)
             expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: foo bar baz","level":"info"}}')
         })
     })
@@ -1328,7 +1328,7 @@ describe('setAnnotation', () => {
             await service.before(service['_config'] as any, [], browser)
             await service.beforeSuite({ title: 'My Feature' } as any)
             await service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
-            expect(browser.execute).toBeCalledTimes(2)
+            expect(browser.execute).toBeCalledTimes(1)
             expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: Test Title","level":"info"}}')
         })
     })
