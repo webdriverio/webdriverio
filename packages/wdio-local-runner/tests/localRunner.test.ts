@@ -33,6 +33,51 @@ vi.mock('@wdio/xvfb', () => {
     }
 })
 
+test("should pass xvfbAutoInstall:'sudo' to XvfbManager", async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        undefined as never,
+        { xvfbAutoInstall: 'sudo' } as any
+    )
+
+    await runner.run({
+        cid: 'auto-3',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    } as any)
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ autoInstall: 'sudo' })
+    )
+})
+
+test('should pass object-form xvfbAutoInstall to XvfbManager', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        undefined as never,
+        { xvfbAutoInstall: { mode: 'sudo', command: 'echo install' } } as any
+    )
+
+    await runner.run({
+        cid: 'auto-4',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    } as any)
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ autoInstall: { mode: 'sudo', command: 'echo install' } })
+    )
+})
 test('should fork a new process', async () => {
     const runner = new LocalRunner(
         undefined as never,
