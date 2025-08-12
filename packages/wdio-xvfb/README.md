@@ -232,7 +232,7 @@ export const config = {
 
 #### Advanced WDIO Configuration
 
-You can customize xvfb behavior and retry settings:
+You can customize xvfb behavior and retry settings in your WDIO config file:
 
 ```js
 // wdio.conf.js - Custom xvfb configuration
@@ -252,7 +252,7 @@ export const config = {
 };
 ```
 
-**Configuration Options:**
+**WDIO Testrunner Configuration Options:**
 
 - **`autoXvfb`** *(boolean, default: true)*: Authoritative usage toggle – if `false`, Xvfb is never used
 - **`xvfbAutoInstall`** *(boolean, default: false)*: Install `xvfb` packages automatically if `xvfb-run` is missing
