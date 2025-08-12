@@ -22,9 +22,13 @@ export interface XvfbOptions {
      */
     forceInstall?: boolean;
     /**
-     * Enable automatic installation of Xvfb packages if `xvfb-run` is missing (default: false)
+     * Control automatic installation of `xvfb-run` if missing.
+     * - false (default): never install; warn and continue without Xvfb
+     * - true: install only if running as root (no sudo)
+     * - 'sudo': install if root or via non-interactive sudo (`sudo -n`) if available
+     * - { mode?: 'root' | 'sudo', command?: string | string[] }: advanced control, optional custom command
      */
-    autoInstall?: boolean;
+    autoInstall?: false | true | 'sudo' | { mode?: 'root' | 'sudo', command?: string | string[] };
     /**
      * Number of retry attempts for xvfb process failures (default: 3)
      */
@@ -39,34 +43,34 @@ export interface XvfbOptions {
 const execAsync = promisify(exec)
 
 export class XvfbManager {
-    private force: boolean
-    private packageManagerOverride?: string
-    private forceInstall: boolean
-    private autoInstall: boolean
-    private enabled: boolean
-    private maxRetries: number
-    private retryDelay: number
-    private log: ReturnType<typeof logger>
+    #force: boolean
+    #packageManagerOverride?: string
+    #forceInstall: boolean
+    #autoInstallSetting: false | true | 'sudo' | { mode?: 'root' | 'sudo', command?: string | string[] }
+    #enabled: boolean
+    #maxRetries: number
+    #retryDelay: number
+    #log: ReturnType<typeof logger>
 
     constructor(options: XvfbOptions = {}) {
-        this.force = options.force ?? false
-        this.packageManagerOverride = options.packageManager
-        this.forceInstall = options.forceInstall ?? false
-        this.autoInstall = options.autoInstall ?? false
-        this.enabled = options.enabled ?? true
-        this.maxRetries = options.xvfbMaxRetries ?? 3
-        this.retryDelay = options.xvfbRetryDelay ?? 1000
-        this.log = logger('@wdio/xvfb')
+        this.#force = options.force ?? false
+        this.#packageManagerOverride = options.packageManager
+        this.#forceInstall = options.forceInstall ?? false
+        this.#autoInstallSetting = options.autoInstall ?? false
+        this.#enabled = options.enabled ?? true
+        this.#maxRetries = options.xvfbMaxRetries ?? 3
+        this.#retryDelay = options.xvfbRetryDelay ?? 1000
+        this.#log = logger('@wdio/xvfb')
     }
 
     /**
      * Check if Xvfb should run on this system
      */
     shouldRun(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): boolean {
-        if (!this.enabled) {
+        if (!this.#enabled) {
             return false
         }
-        if (this.force) {
+        if (this.#force) {
             return true
         }
 
@@ -80,7 +84,7 @@ export class XvfbManager {
         const inHeadlessEnvironment = !hasDisplay
 
         // Force XVFB if headless Chrome flags are detected
-        const hasHeadlessFlag = this.detectHeadlessMode(capabilities as unknown as WebdriverIO.Config['capabilities'])
+        const hasHeadlessFlag = this.#detectHeadlessMode(capabilities as unknown as WebdriverIO.Config['capabilities'])
 
         return inHeadlessEnvironment || hasHeadlessFlag
     }
@@ -90,25 +94,25 @@ export class XvfbManager {
      * @returns Promise<boolean> - true if xvfb-run is ready, false if not needed
      */
     public async init(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): Promise<boolean> {
-        this.log.info('XvfbManager.init() called')
+        this.#log.info('XvfbManager.init() called')
 
         if (!this.shouldRun(capabilities)) {
-            this.log.info('Xvfb not needed on current platform')
+            this.#log.info('Xvfb not needed on current platform')
             return false
         }
-        this.log.info('Xvfb should run, checking if setup is needed')
+        this.#log.info('Xvfb should run, checking if setup is needed')
 
         try {
-            const isReady = await this.ensureXvfbRunAvailable()
+            const isReady = await this.#ensureXvfbRunAvailable()
 
             if (isReady) {
-                this.log.info('xvfb-run is ready for use')
+                this.#log.info('xvfb-run is ready for use')
                 return true
             }
-            this.log.warn('xvfb-run not available; continuing without virtual display')
+            this.#log.warn('xvfb-run not available; continuing without virtual display')
             return false
         } catch (error) {
-            this.log.error('Failed to setup xvfb-run:', error)
+            this.#log.error('Failed to setup xvfb-run:', error)
             throw error
         }
     }
@@ -116,47 +120,51 @@ export class XvfbManager {
     /**
      * Ensure xvfb-run is available, installing if necessary
      */
-    private async ensureXvfbRunAvailable(): Promise<boolean> {
-        this.log.info('Checking if xvfb-run is available...')
+    async #ensureXvfbRunAvailable(): Promise<boolean> {
+        this.#log.info('Checking if xvfb-run is available...')
 
-        if (!this.forceInstall) {
+        if (!this.#forceInstall) {
             try {
                 // Check if xvfb-run is already available
                 await execAsync('which xvfb-run')
-                this.log.info('xvfb-run found in PATH')
+                this.#log.info('xvfb-run found in PATH')
                 return true
             } catch {
-                if (!this.autoInstall) {
-                    this.log.warn(
+                if (!this.#autoInstallSetting) {
+                    this.#log.warn(
                         "xvfb-run not found. Skipping automatic installation. To enable auto-install, set 'xvfbAutoInstall: true' in your WDIO config."
                     )
-                    this.log.warn(
+                    this.#log.warn(
                         "Hint: you can also install it manually via your distro's package manager (e.g., 'sudo apt-get install xvfb', 'sudo dnf install xorg-x11-server-Xvfb')."
                     )
                     return false
                 }
-                this.log.info('xvfb-run not found, installing xvfb packages (xvfbAutoInstall enabled)...')
+                this.#log.info('xvfb-run not found, installing xvfb packages (xvfbAutoInstall enabled)...')
             }
         } else {
-            this.log.info('Force install enabled, skipping availability check')
+            this.#log.info('Force install enabled, skipping availability check')
         }
 
         // Install packages that include xvfb-run
-        this.log.info('Starting xvfb package installation...')
-        await this.installXvfbPackages()
-        this.log.info('Package installation completed')
+        this.#log.info('Starting xvfb package installation...')
+        const attempted = await this.installXvfbPackages()
+        if (!attempted) {
+            this.#log.warn('Insufficient privileges to install xvfb packages automatically. Please install manually.')
+            return false
+        }
+        this.#log.info('Package installation completed')
 
         // Verify xvfb-run is now available (skip if force install to allow error testing)
-        if (!this.forceInstall) {
-            this.log.info('Verifying xvfb-run installation...')
+        if (!this.#forceInstall) {
+            this.#log.info('Verifying xvfb-run installation...')
             try {
                 const { stdout } = await execAsync('which xvfb-run')
-                this.log.info(
+                this.#log.info(
                     `Successfully installed xvfb-run at: ${stdout.trim()}`
                 )
                 return true
             } catch (error) {
-                this.log.error('Failed to install xvfb-run:', error)
+                this.#log.error('Failed to install xvfb-run:', error)
                 throw new Error(
                     "xvfb-run is not available after installation. Please install it manually using your distribution's package manager."
                 )
@@ -168,7 +176,7 @@ export class XvfbManager {
     /**
      * Detect if headless mode is enabled in Chrome/Chromium capabilities
      */
-    private detectHeadlessMode(capabilities?: WebdriverIO.Config['capabilities']): boolean {
+    #detectHeadlessMode(capabilities?: WebdriverIO.Config['capabilities']): boolean {
         if (!capabilities) {
             return false
         }
@@ -232,19 +240,19 @@ export class XvfbManager {
 
         // Check Chrome options
         if (this.hasHeadlessFlag(caps['goog:chromeOptions'], ['--headless'])) {
-            this.log.info('Detected headless Chrome flag, forcing XVFB usage')
+            this.#log.info('Detected headless Chrome flag, forcing XVFB usage')
             return true
         }
 
         // Check Edge options (Chromium-based, uses same flags as Chrome)
         if (this.hasHeadlessFlag(caps['ms:edgeOptions'], ['--headless'])) {
-            this.log.info('Detected headless Edge flag, forcing XVFB usage')
+            this.#log.info('Detected headless Edge flag, forcing XVFB usage')
             return true
         }
 
         // Check Firefox options
         if (this.hasHeadlessFlag(caps['moz:firefoxOptions'], ['--headless', '-headless'])) {
-            this.log.info('Detected headless Firefox flag, forcing XVFB usage')
+            this.#log.info('Detected headless Firefox flag, forcing XVFB usage')
             return true
         }
 
@@ -271,8 +279,8 @@ export class XvfbManager {
 
     protected async detectPackageManager(): Promise<string> {
         // Use override if provided (for testing)
-        if (this.packageManagerOverride) {
-            return this.packageManagerOverride
+        if (this.#packageManagerOverride) {
+            return this.#packageManagerOverride
         }
 
         const packageManagers = [
@@ -297,40 +305,97 @@ export class XvfbManager {
         return 'unknown'
     }
 
-    private async installXvfbPackages(): Promise<void> {
-        this.log.info('Detecting package manager...')
-        const packageManager = await this.detectPackageManager()
-        this.log.info(`Detected package manager: ${packageManager}`)
+    #prefixSudoNonInteractive(cmd: string): string {
+        // Prefix each sub-command (split by &&) with sudo -n
+        return cmd
+            .split('&&')
+            .map((part) => {
+                const p = part.trim()
+                if (p.length === 0) {
+                    return p
+                }
+                return `sudo -n ${p}`
+            })
+            .join(' && ')
+    }
 
-        const installCommands: Record<string, string> = {
-            apt: 'sudo apt-get update -qq && sudo apt-get install -y xvfb',
-            dnf: 'sudo dnf makecache && sudo dnf install -y xorg-x11-server-Xvfb',
-            yum: 'sudo yum makecache && sudo yum install -y xorg-x11-server-Xvfb',
-            zypper: 'sudo zypper refresh && sudo zypper install -y xvfb-run',
-            pacman: 'sudo pacman -Sy --noconfirm xorg-server-xvfb',
-            apk: 'sudo apk update && sudo apk add --no-cache xvfb-run',
-            xbps: 'sudo xbps-install -Sy xvfb-run',
+    #getInstallMode(): 'root' | 'sudo' {
+        const configured = this.#autoInstallSetting && typeof this.#autoInstallSetting === 'object' ? this.#autoInstallSetting : undefined
+        const mode = (this.#autoInstallSetting === 'sudo' || configured?.mode === 'sudo') ? 'sudo' : 'root'
+        return mode
+    }
+
+    private async installXvfbPackages(): Promise<boolean> {
+        // Determine privileges
+        const isRoot = typeof process.getuid === 'function' ? process.getuid() === 0 : false
+        let hasSudo = false
+        if (!isRoot && this.#autoInstallSetting === 'sudo') {
+            try {
+                await execAsync('which sudo')
+                hasSudo = true
+            } catch {
+                hasSudo = false
+            }
+        }
+        const command = await this.#getInstallCommand(isRoot, hasSudo)
+        const mode = this.#getInstallMode()
+
+        if (!isRoot && mode !== 'sudo') {
+            this.#log.warn('Not running as root (sudo mode disabled); skipping auto-install')
+            return false
         }
 
-        const command = installCommands[packageManager]
-        if (!command) {
+        if (!isRoot && mode === 'sudo' && !hasSudo) {
+            this.#log.warn('Not running as root and sudo is not allowed or not available; skipping auto-install')
+            return false
+        }
+
+        this.#log.info(`Installing xvfb packages using command: ${command}`)
+
+        try {
+            this.#log.info('Starting package installation command execution...')
+            await execAsync(command, { timeout: 240000 }) // 4 minute timeout
+            this.#log.info(
+                'Package installation command completed successfully'
+            )
+            return true
+        } catch (error) {
+            this.#log.error('Package installation command failed:', error)
+            throw error
+        }
+    }
+
+    async #getInstallCommand(isRoot: boolean, hasSudo: boolean): Promise<string> {
+        const configured = this.#autoInstallSetting && typeof this.#autoInstallSetting === 'object' ? this.#autoInstallSetting : undefined
+        const customInstallCommand = configured?.command
+            ? (Array.isArray(configured.command) ? configured.command.join(' ') : configured.command)
+            : undefined
+
+        if (customInstallCommand) {
+            return customInstallCommand
+        }
+
+        this.#log.info('Detecting package manager...')
+        const packageManager = await this.detectPackageManager()
+        this.#log.info(`Detected package manager: ${packageManager}`)
+
+        const installCommands: Record<string, string> = {
+            apt: 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
+            dnf: 'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb',
+            yum: 'yum -y makecache && yum -y install xorg-x11-server-Xvfb',
+            zypper: 'zypper --non-interactive refresh && zypper --non-interactive install -y xvfb-run',
+            pacman: 'pacman -Sy --noconfirm xorg-server-xvfb',
+            apk: 'apk update && apk add --no-cache xvfb-run',
+            xbps: 'xbps-install -Sy xvfb-run',
+        }
+
+        if (!installCommands[packageManager]) {
             throw new Error(
                 `Unsupported package manager: ${packageManager}. Please install Xvfb manually.`
             )
         }
 
-        this.log.info(`Installing xvfb packages using command: ${command}`)
-
-        try {
-            this.log.info('Starting package installation command execution...')
-            await execAsync(command, { timeout: 240000 }) // 4 minute timeout
-            this.log.info(
-                'Package installation command completed successfully'
-            )
-        } catch (error) {
-            this.log.error('Package installation command failed:', error)
-            throw error
-        }
+        return !isRoot && hasSudo ? this.#prefixSudoNonInteractive(installCommands[packageManager]) : installCommands[packageManager]
     }
 
     /**
@@ -342,22 +407,22 @@ export class XvfbManager {
     ): Promise<T> {
         let lastError: Error | unknown = null
 
-        for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+        for (let attempt = 1; attempt <= this.#maxRetries; attempt++) {
             try {
                 if (attempt === 1) {
-                    this.log.info(`🚀 Executing ${context}`)
+                    this.#log.info(`🚀 Executing ${context}`)
                 } else {
-                    this.log.info(`🔄 Retry attempt ${attempt}/${this.maxRetries}: ${context}`)
+                    this.#log.info(`🔄 Retry attempt ${attempt}/${this.#maxRetries}: ${context}`)
                 }
 
                 const result = await commandFn()
 
                 if (attempt > 1) {
-                    this.log.info(`✅ Success on attempt ${attempt}/${this.maxRetries}`)
+                    this.#log.info(`✅ Success on attempt ${attempt}/${this.#maxRetries}`)
                 }
                 return result
             } catch (error: unknown) {
-                this.log.info(`❌ Attempt ${attempt}/${this.maxRetries} failed: ${error}`)
+                this.#log.info(`❌ Attempt ${attempt}/${this.#maxRetries} failed: ${error}`)
                 lastError = error
 
                 // Check if this is an xvfb-related error that we should retry
@@ -365,16 +430,16 @@ export class XvfbManager {
                 const isXvfbError = this.isXvfbError(errorMessage)
 
                 if (!isXvfbError) {
-                    this.log.info('Non-xvfb error detected, not retrying')
+                    this.#log.info('Non-xvfb error detected, not retrying')
                     throw error
                 }
 
-                if (attempt < this.maxRetries) {
-                    const delay = this.retryDelay * attempt
-                    this.log.info(`⏳ Waiting ${delay}ms before retry...`)
+                if (attempt < this.#maxRetries) {
+                    const delay = this.#retryDelay * attempt
+                    this.#log.info(`⏳ Waiting ${delay}ms before retry...`)
                     await new Promise(resolve => setTimeout(resolve, delay))
                 } else {
-                    this.log.info(`❌ All ${this.maxRetries} attempts failed`)
+                    this.#log.info(`❌ All ${this.#maxRetries} attempts failed`)
                 }
             }
         }
