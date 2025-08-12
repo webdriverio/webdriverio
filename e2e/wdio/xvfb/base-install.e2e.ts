@@ -58,6 +58,30 @@ describe('xvfb fresh installation', () => {
             const result = await xvfbManager.init(caps)
             expect(result).toBe(false)
         })
+
+        it('should honor existing DISPLAY and skip Xvfb usage', async () => {
+            // Simulate an existing X server
+            process.env.DISPLAY = ':0'
+
+            const result = await xvfbManager.init()
+            expect(result).toBe(false)
+
+            // ProcessFactory should use regular fork
+            const { ProcessFactory } = await import('@wdio/xvfb')
+            const processFactory = new ProcessFactory(xvfbManager)
+            const mockProcess = await processFactory.createWorkerProcess(
+                '/mock/path/run.js',
+                ['--test'],
+                {
+                    cwd: process.cwd(),
+                    env: process.env as Record<string, string>,
+                    execArgv: [],
+                    stdio: ['inherit', 'pipe', 'pipe', 'ipc']
+                }
+            )
+            expect(mockProcess.spawnfile).not.toBe('xvfb-run')
+            mockProcess.kill('SIGTERM')
+        })
     })
 
     describe('autoInstall enabled', () => {
