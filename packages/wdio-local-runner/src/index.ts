@@ -29,6 +29,7 @@ export default class LocalRunner {
     ) {
         // Initialize XvfbManager
         this.xvfbManager = new XvfbManager({
+            enabled: this.config.autoXvfb !== false,
             autoInstall: this.config.xvfbAutoInstall,
             xvfbMaxRetries: this.config.xvfbMaxRetries,
             xvfbRetryDelay: this.config.xvfbRetryDelay
