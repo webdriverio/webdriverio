@@ -298,133 +298,161 @@ describe('XvfbManager', () => {
             expect(result).toBe(true)
         })
 
-        it('should install xvfb when xvfb-run is not available', async () => {
-            // Mock xvfb-run not found first, then found after installation
-            mockExecAsync
-                .mockRejectedValueOnce(new Error('Command not found'))
-                .mockResolvedValueOnce({ stdout: '', stderr: '' })
-                .mockResolvedValueOnce({ stdout: '/usr/bin/which', stderr: '' })
-                .mockResolvedValueOnce({ stdout: 'apt-get install success', stderr: '' })
-                .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
+        describe('autoInstall', () => {
+            it('should install xvfb when xvfb-run is not available and autoInstall is enabled', async () => {
+                // Mock xvfb-run not found first, then found after installation
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found'))
+                    .mockResolvedValueOnce({ stdout: '', stderr: '' })
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/which', stderr: '' })
+                    .mockResolvedValueOnce({ stdout: 'apt-get install success', stderr: '' })
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-            const manager = new XvfbManager()
+                const manager = new XvfbManager({ autoInstall: true })
 
-            // Mock platform and environment
-            mockPlatform.mockReturnValue('linux')
-            delete process.env.DISPLAY
+                // Mock platform and environment
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
 
-            const result = await manager.init()
+                const result = await manager.init()
 
-            expect(result).toBe(true)
-            expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
-            expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
-            expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo apt-get update -qq && sudo apt-get install -y xvfb',
-                { timeout: 240000 }
-            )
-        })
-    })
+                expect(result).toBe(true)
+                expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
+                expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
+                expect(mockExecAsync).toHaveBeenCalledWith(
+                    'sudo apt-get update -qq && sudo apt-get install -y xvfb',
+                    { timeout: 240000 }
+                )
+            })
 
-    describe('cross-distribution support', () => {
-        beforeEach(() => {
-            mockPlatform.mockReturnValue('linux')
-        })
+            it('should not install and return false when xvfb-run is not available and autoInstall is disabled', async () => {
+                // Mock xvfb-run not found
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found'))
 
-        it('should detect Ubuntu distribution', async () => {
-            // Mock xvfb-run not found, then package manager detection
-            mockExecAsync
-                .mockRejectedValueOnce(new Error('Command not found'))
-                .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' })
-                .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
-                .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
+                const manager = new XvfbManager()
 
-            const manager = new XvfbManager()
-            delete process.env.DISPLAY
+                // Mock platform and environment
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
 
-            await manager.init()
+                const result = await manager.init()
 
-            expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
-            expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo apt-get update -qq && sudo apt-get install -y xvfb',
-                { timeout: 240000 }
-            )
-        })
+                expect(result).toBe(false)
+                // Should only check for xvfb-run
+                expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
+                // And should not attempt any package manager detection or install
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which apt-get')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which dnf')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which yum')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which zypper')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which pacman')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which apk')
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which xbps-install')
+            })
 
-        it('should detect dnf package manager', async () => {
-            // Mock xvfb-run not found, then package manager detection
-            mockExecAsync
-                .mockRejectedValueOnce(new Error('Command not found'))
-                .mockRejectedValueOnce(new Error('apt-get not found'))
-                .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' })
-                .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
-                .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
+            describe('cross-distribution support', () => {
+                beforeEach(() => {
+                    mockPlatform.mockReturnValue('linux')
+                })
 
-            const manager = new XvfbManager()
-            delete process.env.DISPLAY
+                it('should detect Ubuntu distribution', async () => {
+                    // Mock xvfb-run not found, then package manager detection
+                    mockExecAsync
+                        .mockRejectedValueOnce(new Error('Command not found'))
+                        .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' })
+                        .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
+                        .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-            await manager.init()
+                    const manager = new XvfbManager({ autoInstall: true })
+                    delete process.env.DISPLAY
 
-            expect(mockExecAsync).toHaveBeenCalledWith('which dnf')
-            expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo dnf makecache && sudo dnf install -y xorg-x11-server-Xvfb',
-                { timeout: 240000 }
-            )
-        })
+                    await manager.init()
 
-        it('should detect pacman package manager', async () => {
-            // Mock xvfb-run not found, then package manager detection
-            mockExecAsync
-                .mockRejectedValueOnce(new Error('Command not found'))
-                .mockRejectedValueOnce(new Error('apt-get not found'))
-                .mockRejectedValueOnce(new Error('dnf not found'))
-                .mockRejectedValueOnce(new Error('yum not found'))
-                .mockRejectedValueOnce(new Error('zypper not found'))
-                .mockResolvedValueOnce({ stdout: '/usr/bin/pacman', stderr: '' })
-                .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
-                .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
+                    expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
+                    expect(mockExecAsync).toHaveBeenCalledWith(
+                        'sudo apt-get update -qq && sudo apt-get install -y xvfb',
+                        { timeout: 240000 }
+                    )
+                })
 
-            const manager = new XvfbManager()
-            delete process.env.DISPLAY
+                it('should detect dnf package manager', async () => {
+                    // Mock xvfb-run not found, then package manager detection
+                    mockExecAsync
+                        .mockRejectedValueOnce(new Error('Command not found'))
+                        .mockRejectedValueOnce(new Error('apt-get not found'))
+                        .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' })
+                        .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
+                        .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-            await manager.init()
+                    const manager = new XvfbManager({ autoInstall: true })
+                    delete process.env.DISPLAY
 
-            expect(mockExecAsync).toHaveBeenCalledWith('which pacman')
-            expect(mockExecAsync).toHaveBeenCalledWith(
-                'sudo pacman -Sy --noconfirm xorg-server-xvfb',
-                { timeout: 240000 }
-            )
-        })
+                    await manager.init()
 
-        it('should detect dnf when apt-get is not available', async () => {
-            // Mock xvfb-run not found, then package manager detection
-            mockExecAsync
-                .mockRejectedValueOnce(new Error('Command not found'))
-                .mockRejectedValueOnce(new Error('apt-get not found'))
-                .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' })
-                .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
-                .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
+                    expect(mockExecAsync).toHaveBeenCalledWith('which dnf')
+                    expect(mockExecAsync).toHaveBeenCalledWith(
+                        'sudo dnf makecache && sudo dnf install -y xorg-x11-server-Xvfb',
+                        { timeout: 240000 }
+                    )
+                })
 
-            const manager = new XvfbManager()
-            delete process.env.DISPLAY
+                it('should detect pacman package manager', async () => {
+                    // Mock xvfb-run not found, then package manager detection
+                    mockExecAsync
+                        .mockRejectedValueOnce(new Error('Command not found'))
+                        .mockRejectedValueOnce(new Error('apt-get not found'))
+                        .mockRejectedValueOnce(new Error('dnf not found'))
+                        .mockRejectedValueOnce(new Error('yum not found'))
+                        .mockRejectedValueOnce(new Error('zypper not found'))
+                        .mockResolvedValueOnce({ stdout: '/usr/bin/pacman', stderr: '' })
+                        .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
+                        .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-            await manager.init()
+                    const manager = new XvfbManager({ autoInstall: true })
+                    delete process.env.DISPLAY
 
-            expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
-            expect(mockExecAsync).toHaveBeenCalledWith('which dnf')
-        })
+                    await manager.init()
 
-        it('should handle unsupported package managers gracefully', async () => {
-            // Mock all package managers as not found
-            mockExecAsync
-                .mockRejectedValueOnce(new Error('Command not found'))
-                .mockRejectedValue(new Error('Package manager not found'))
+                    expect(mockExecAsync).toHaveBeenCalledWith('which pacman')
+                    expect(mockExecAsync).toHaveBeenCalledWith(
+                        'sudo pacman -Sy --noconfirm xorg-server-xvfb',
+                        { timeout: 240000 }
+                    )
+                })
 
-            const manager = new XvfbManager()
-            delete process.env.DISPLAY
+                it('should detect dnf when apt-get is not available', async () => {
+                    // Mock xvfb-run not found, then package manager detection
+                    mockExecAsync
+                        .mockRejectedValueOnce(new Error('Command not found'))
+                        .mockRejectedValueOnce(new Error('apt-get not found'))
+                        .mockResolvedValueOnce({ stdout: '/usr/bin/dnf', stderr: '' })
+                        .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
+                        .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-            await expect(manager.init()).rejects.toThrow(
-                'Unsupported package manager: unknown. Please install Xvfb manually.'
-            )
+                    const manager = new XvfbManager({ autoInstall: true })
+                    delete process.env.DISPLAY
+
+                    await manager.init()
+
+                    expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
+                    expect(mockExecAsync).toHaveBeenCalledWith('which dnf')
+                })
+
+                it('should handle unsupported package managers gracefully', async () => {
+                    // Mock all package managers as not found
+                    mockExecAsync
+                        .mockRejectedValueOnce(new Error('Command not found'))
+                        .mockRejectedValue(new Error('Package manager not found'))
+
+                    const manager = new XvfbManager({ autoInstall: true })
+                    delete process.env.DISPLAY
+
+                    await expect(manager.init()).rejects.toThrow(
+                        'Unsupported package manager: unknown. Please install Xvfb manually.'
+                    )
+                })
+            })
         })
     })
 

@@ -65,7 +65,7 @@ For testing on non-Linux systems:
 ```js
 import { XvfbManager } from "@wdio/xvfb";
 
-const manager = new XvfbManager({ 
+const manager = new XvfbManager({
     force: true,
     xvfbMaxRetries: 3,
     xvfbRetryDelay: 1000
@@ -238,9 +238,10 @@ You can customize xvfb behavior and retry settings:
 export const config = {
     // Xvfb configuration options (all optional)
     autoXvfb: true,              // Enable automatic xvfb (default: true)
+    xvfbAutoInstall: false,      // Enable auto-install of xvfb if missing (default: false)
     xvfbMaxRetries: 5,           // Max retry attempts for xvfb failures (default: 3)
     xvfbRetryDelay: 2000,        // Base delay between retries in ms (default: 1000)
-    
+
     capabilities: [{
         browserName: 'chrome',
         'goog:chromeOptions': {
@@ -253,6 +254,7 @@ export const config = {
 **Configuration Options:**
 
 - **`autoXvfb`** *(boolean, default: true)*: Enable/disable automatic xvfb initialization
+- **`xvfbAutoInstall`** *(boolean, default: false)*: Install `xvfb` packages automatically if `xvfb-run` is missing
 - **`xvfbMaxRetries`** *(number, default: 3)*: Number of retry attempts when xvfb process fails
 - **`xvfbRetryDelay`** *(number, default: 1000)*: Base delay between retries in milliseconds. Uses progressive delay (delay × attempt number)
 
