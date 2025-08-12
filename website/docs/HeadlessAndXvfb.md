@@ -26,9 +26,11 @@ Two runner options control Xvfb behavior:
   - Authoritative toggle for usage. If `false`, the runner never uses Xvfb.
   - If `true`, the runner may use Xvfb when needed.
 
-- `xvfbAutoInstall` (boolean, default: false)
-  - Opt-in package installation. If `true` and `xvfb-run` is missing, the runner attempts to install it via the system package manager.
-  - If `false` and `xvfb-run` is missing, the runner warns and continues without Xvfb.
+- `xvfbAutoInstall` (false | true | 'sudo' | { mode?: 'root' | 'sudo', command?: string | string[] }, default: false)
+  - false: never install; warn and continue without Xvfb
+  - true: root-only, non-interactive install (no sudo)
+  - 'sudo': allow non-interactive sudo (`sudo -n`) if not root; skip if sudo missing
+  - object: advanced control with optional `mode` and optional custom `command` (executed as-is)
 
 Example:
 
@@ -59,6 +61,7 @@ export const config: WebdriverIO.Config = {
 Notes:
 - `autoXvfb: false` disables Xvfb usage entirely (no wrapping with `xvfb-run`).
 - `xvfbAutoInstall` only affects installation if `xvfb-run` is missing; it does not turn usage on/off.
+- Built-in package installs are always non-interactive. Root-only unless you opt into 'sudo' mode.
 
 ## Using an existing DISPLAY in CI
 
@@ -82,7 +85,7 @@ GitHub Actions (virtual display via Xvfb if missing and opted in):
 // wdio.conf.ts
 export const config = {
   autoXvfb: true,
-  xvfbAutoInstall: true
+  xvfbAutoInstall: 'sudo'
 }
 ```
 
@@ -92,11 +95,11 @@ Docker (Ubuntu/Debian example – preinstall xvfb to avoid auto-install):
 RUN apt-get update -qq && apt-get install -y xvfb
 ```
 
-For other distributions, adjust the package manager and package name accordingly (e.g., `dnf install xorg-x11-server-Xvfb` on Fedora/RHEL-based, `zypper install xvfb` on openSUSE/SLE).
+For other distributions, adjust the package manager and package name accordingly (e.g., `dnf install xorg-x11-server-Xvfb` on Fedora/RHEL-based, `zypper install xvfb-run` on openSUSE/SLE).
 
 ## Automatic installation support (xvfbAutoInstall)
 
-When `xvfbAutoInstall: true` is enabled, WebdriverIO attempts to install `xvfb` using your system package manager. The following managers and packages are supported:
+When `xvfbAutoInstall` is enabled, WebdriverIO attempts to install `xvfb` using your system package manager. The following managers and packages are supported:
 
 | Package Manager | Command         | Distributions (examples)                                   | Package Name(s)                 |
 |-----------------|-----------------|-------------------------------------------------------------|----------------------------------|
