@@ -326,9 +326,8 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // which xvfb-run (verify)
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
-                }
+                // Mock getuid to return non-root (1000) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(1000)
 
                 const manager = new XvfbManager({ autoInstall: 'sudo' })
 
@@ -386,9 +385,8 @@ describe('XvfbManager', () => {
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-                    if ((process as any).getuid) {
-                        vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
-                    }
+                    // Mock getuid to return root (0) - works on all platforms
+                    ;(process as any).getuid = vi.fn().mockReturnValue(0)
 
                     const manager = new XvfbManager({ autoInstall: true })
                     delete process.env.DISPLAY
@@ -411,9 +409,8 @@ describe('XvfbManager', () => {
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-                    if ((process as any).getuid) {
-                        vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
-                    }
+                    // Mock getuid to return root (0) - works on all platforms
+                    ;(process as any).getuid = vi.fn().mockReturnValue(0)
 
                     const manager = new XvfbManager({ autoInstall: true })
                     delete process.env.DISPLAY
@@ -439,9 +436,8 @@ describe('XvfbManager', () => {
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-                    if ((process as any).getuid) {
-                        vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
-                    }
+                    // Mock getuid to return root (0) - works on all platforms
+                    ;(process as any).getuid = vi.fn().mockReturnValue(0)
 
                     const manager = new XvfbManager({ autoInstall: true })
                     delete process.env.DISPLAY
@@ -465,9 +461,8 @@ describe('XvfbManager', () => {
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // dnf install
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify which xvfb-run
 
-                    if ((process as any).getuid) {
-                        vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
-                    }
+                    // Mock getuid to return non-root (1000) - works on all platforms
+                    ;(process as any).getuid = vi.fn().mockReturnValue(1000)
 
                     const manager = new XvfbManager({ autoInstall: 'sudo' })
                     delete process.env.DISPLAY
@@ -493,9 +488,8 @@ describe('XvfbManager', () => {
                         .mockRejectedValueOnce(new Error('xbps-install not found')) // which xbps-install
 
                     // Mock as root so installation is attempted
-                    if ((process as any).getuid) {
-                        vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
-                    }
+                    // Mock getuid to return root (0) - works on all platforms
+                    ;(process as any).getuid = vi.fn().mockReturnValue(0)
 
                     const manager = new XvfbManager({ autoInstall: true })
                     delete process.env.DISPLAY
@@ -512,9 +506,8 @@ describe('XvfbManager', () => {
                     .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
                     .mockRejectedValueOnce(new Error('sudo not found')) // which sudo
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
-                }
+                // Mock getuid to return non-root (1000) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(1000)
 
                 const manager = new XvfbManager({ autoInstall: 'sudo' })
                 mockPlatform.mockReturnValue('linux')
@@ -537,9 +530,8 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
-                }
+                // Mock getuid to return root (0) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(0)
 
                 const manager = new XvfbManager({ autoInstall: {} })
                 mockPlatform.mockReturnValue('linux')
@@ -558,9 +550,8 @@ describe('XvfbManager', () => {
                     .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
                     .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
-                }
+                // Mock getuid to return non-root (1000) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(1000)
 
                 const manager = new XvfbManager({ autoInstall: {} })
                 mockPlatform.mockReturnValue('linux')
@@ -579,9 +570,8 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
-                }
+                // Mock getuid to return root (0) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(0)
 
                 const manager = new XvfbManager({ autoInstall: 'sudo' })
                 mockPlatform.mockReturnValue('linux')
@@ -603,9 +593,8 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // run custom
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
-                }
+                // Mock getuid to return non-root (1000) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(1000)
 
                 const manager = new XvfbManager({ autoInstall: { mode: 'sudo', command: 'echo install' } })
                 mockPlatform.mockReturnValue('linux')
@@ -627,9 +616,8 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
-                }
+                // Mock getuid to return root (0) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(0)
 
                 const manager = new XvfbManager({ autoInstall: true })
                 mockPlatform.mockReturnValue('linux')
@@ -648,9 +636,8 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                 // no post-verify since forceInstall skips it
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
-                }
+                // Mock getuid to return root (0) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(0)
 
                 const manager = new XvfbManager({ autoInstall: true, forceInstall: true })
                 mockPlatform.mockReturnValue('linux')
@@ -670,9 +657,8 @@ describe('XvfbManager', () => {
                 mockExecAsync
                     .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run (initial)
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
-                }
+                // Mock getuid to return non-root (1000) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(1000)
 
                 const manager = new XvfbManager({ autoInstall: true })
                 mockPlatform.mockReturnValue('linux')
@@ -694,9 +680,8 @@ describe('XvfbManager', () => {
                     .mockResolvedValueOnce({ stdout: 'custom ok', stderr: '' }) // install
                     .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
 
-                if ((process as any).getuid) {
-                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
-                }
+                // Mock getuid to return non-root (1000) - works on all platforms
+                ;(process as any).getuid = vi.fn().mockReturnValue(1000)
 
                 const manager = new XvfbManager({ autoInstall: { mode: 'sudo', command: 'my-custom-install' } })
                 mockPlatform.mockReturnValue('linux')
