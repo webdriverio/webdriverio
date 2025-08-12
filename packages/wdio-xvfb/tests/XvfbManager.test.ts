@@ -317,18 +317,21 @@ describe('XvfbManager', () => {
         })
 
         describe('autoInstall', () => {
-            it('should install xvfb when xvfb-run is not available and autoInstall is enabled', async () => {
-                // Mock xvfb-run not found first, then found after installation
+            it('should install xvfb with sudo -n when allowed and available (non-root, apt)', async () => {
+                // Sequence: which xvfb-run -> which apt-get -> which sudo -> run install -> which xvfb-run (verify)
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found'))
-                    .mockResolvedValueOnce({ stdout: '', stderr: '' })
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/which', stderr: '' })
-                    .mockResolvedValueOnce({ stdout: 'apt-get install success', stderr: '' })
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run (initial)
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
+                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // which xvfb-run (verify)
 
-                const manager = new XvfbManager({ autoInstall: true })
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
+                }
 
-                // Mock platform and environment
+                const manager = new XvfbManager({ autoInstall: 'sudo' })
+
                 mockPlatform.mockReturnValue('linux')
                 delete process.env.DISPLAY
 
@@ -337,8 +340,9 @@ describe('XvfbManager', () => {
                 expect(result).toBe(true)
                 expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
                 expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
+                expect(mockExecAsync).toHaveBeenCalledWith('which sudo')
                 expect(mockExecAsync).toHaveBeenCalledWith(
-                    'sudo apt-get update -qq && sudo apt-get install -y xvfb',
+                    'sudo -n DEBIAN_FRONTEND=noninteractive apt-get update -qq && sudo -n DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
                     { timeout: 240000 }
                 )
             })
@@ -374,13 +378,17 @@ describe('XvfbManager', () => {
                     mockPlatform.mockReturnValue('linux')
                 })
 
-                it('should detect Ubuntu distribution', async () => {
+                it('should detect Ubuntu distribution and install without sudo when running as root', async () => {
                     // Mock xvfb-run not found, then package manager detection
                     mockExecAsync
                         .mockRejectedValueOnce(new Error('Command not found'))
                         .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' })
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
+
+                    if ((process as any).getuid) {
+                        vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
+                    }
 
                     const manager = new XvfbManager({ autoInstall: true })
                     delete process.env.DISPLAY
@@ -389,7 +397,7 @@ describe('XvfbManager', () => {
 
                     expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
                     expect(mockExecAsync).toHaveBeenCalledWith(
-                        'sudo apt-get update -qq && sudo apt-get install -y xvfb',
+                        'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
                         { timeout: 240000 }
                     )
                 })
@@ -403,6 +411,10 @@ describe('XvfbManager', () => {
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
+                    if ((process as any).getuid) {
+                        vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
+                    }
+
                     const manager = new XvfbManager({ autoInstall: true })
                     delete process.env.DISPLAY
 
@@ -410,7 +422,7 @@ describe('XvfbManager', () => {
 
                     expect(mockExecAsync).toHaveBeenCalledWith('which dnf')
                     expect(mockExecAsync).toHaveBeenCalledWith(
-                        'sudo dnf makecache && sudo dnf install -y xorg-x11-server-Xvfb',
+                        'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb',
                         { timeout: 240000 }
                     )
                 })
@@ -427,6 +439,10 @@ describe('XvfbManager', () => {
                         .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
                         .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
 
+                    if ((process as any).getuid) {
+                        vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
+                    }
+
                     const manager = new XvfbManager({ autoInstall: true })
                     delete process.env.DISPLAY
 
@@ -434,7 +450,7 @@ describe('XvfbManager', () => {
 
                     expect(mockExecAsync).toHaveBeenCalledWith('which pacman')
                     expect(mockExecAsync).toHaveBeenCalledWith(
-                        'sudo pacman -Sy --noconfirm xorg-server-xvfb',
+                        'pacman -Sy --noconfirm xorg-server-xvfb',
                         { timeout: 240000 }
                     )
                 })
@@ -470,6 +486,207 @@ describe('XvfbManager', () => {
                         'Unsupported package manager: unknown. Please install Xvfb manually.'
                     )
                 })
+            })
+
+            it("should skip install in 'sudo' mode when sudo is not present (non-root)", async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
+                    .mockRejectedValueOnce(new Error('sudo not found')) // which sudo
+
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
+                }
+
+                const manager = new XvfbManager({ autoInstall: 'sudo' })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(false)
+                expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
+                expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
+                expect(mockExecAsync).toHaveBeenCalledWith('which sudo')
+            })
+
+            it('should treat empty object form as root-only: installs when root', async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
+                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
+
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
+                }
+
+                const manager = new XvfbManager({ autoInstall: {} })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(true)
+                expect(mockExecAsync).toHaveBeenCalledWith(
+                    'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
+                    { timeout: 240000 }
+                )
+            })
+
+            it('should treat empty object form as root-only: skips when not root', async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
+
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
+                }
+
+                const manager = new XvfbManager({ autoInstall: {} })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(false)
+                // no sudo check, no install
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which sudo')
+            })
+
+            it("should not use sudo prefix when in 'sudo' mode but running as root", async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
+                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
+
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
+                }
+
+                const manager = new XvfbManager({ autoInstall: 'sudo' })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(true)
+                expect(mockExecAsync).toHaveBeenCalledWith(
+                    'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
+                    { timeout: 240000 }
+                )
+            })
+
+            it("should check for sudo even with custom command in 'sudo' mode (non-root)", async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // PM detection
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
+                    .mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // run custom
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
+
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
+                }
+
+                const manager = new XvfbManager({ autoInstall: { mode: 'sudo', command: 'echo install' } })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(true)
+                expect(mockExecAsync).toHaveBeenCalledWith('which sudo')
+                expect(mockExecAsync).toHaveBeenCalledWith('echo install', { timeout: 240000 })
+            })
+
+            it('should handle zypper install flags (root)', async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run
+                    .mockRejectedValueOnce(new Error('apt-get not found'))
+                    .mockRejectedValueOnce(new Error('dnf not found'))
+                    .mockRejectedValueOnce(new Error('yum not found'))
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/zypper', stderr: '' }) // zypper
+                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
+
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
+                }
+
+                const manager = new XvfbManager({ autoInstall: true })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                await manager.init()
+                expect(mockExecAsync).toHaveBeenCalledWith(
+                    'zypper --non-interactive refresh && zypper --non-interactive install -y xvfb-run',
+                    { timeout: 240000 }
+                )
+            })
+
+            it('should skip availability check when forceInstall is true and perform install', async () => {
+                mockExecAsync
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
+                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
+                // no post-verify since forceInstall skips it
+
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(0 as unknown as number)
+                }
+
+                const manager = new XvfbManager({ autoInstall: true, forceInstall: true })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(true)
+                // ensure no initial which xvfb-run call
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which xvfb-run')
+                // but install was performed
+                expect(mockExecAsync).toHaveBeenCalledWith(
+                    'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb',
+                    { timeout: 240000 }
+                )
+            })
+            it('should skip installation when not root and sudo is not allowed', async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run (initial)
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
+
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
+                }
+
+                const manager = new XvfbManager({ autoInstall: true })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(false)
+                expect(mockExecAsync).toHaveBeenCalledWith('which xvfb-run')
+                expect(mockExecAsync).toHaveBeenCalledWith('which apt-get')
+                // should not check sudo
+                expect(mockExecAsync).not.toHaveBeenCalledWith('which sudo')
+            })
+
+            it('should use custom install command as-is (no sudo prefix)', async () => {
+                mockExecAsync
+                    .mockRejectedValueOnce(new Error('Command not found')) // which xvfb-run (initial)
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // PM detection still runs
+                    .mockResolvedValueOnce({ stdout: 'custom ok', stderr: '' }) // install
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/xvfb-run\n', stderr: '' }) // verify
+
+                if ((process as any).getuid) {
+                    vi.spyOn(process as any, 'getuid').mockReturnValue(1000 as unknown as number)
+                }
+
+                const manager = new XvfbManager({ autoInstall: { mode: 'sudo', command: 'my-custom-install' } })
+                mockPlatform.mockReturnValue('linux')
+                delete process.env.DISPLAY
+
+                const result = await manager.init()
+                expect(result).toBe(true)
+                expect(mockExecAsync).toHaveBeenCalledWith(
+                    'my-custom-install',
+                    { timeout: 240000 }
+                )
             })
         })
     })
