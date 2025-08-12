@@ -1,11 +1,13 @@
 import { promisify } from 'node:util'
 import { exec } from 'node:child_process'
 import os from 'node:os'
-import isCI from 'is-ci'
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
 
 export interface XvfbOptions {
+    /**
+     * Explicitly enable / disable Xvfb usage. If false, `shouldRun()` returns false.
+     */
+    enabled?: boolean;
     /**
      * Force Xvfb to run even on non-Linux systems (for testing)
      */
@@ -40,6 +42,7 @@ export class XvfbManager {
     private packageManagerOverride?: string
     private forceInstall: boolean
     private autoInstall: boolean
+    private enabled: boolean
     private maxRetries: number
     private retryDelay: number
     private log: ReturnType<typeof logger>
@@ -49,6 +52,7 @@ export class XvfbManager {
         this.packageManagerOverride = options.packageManager
         this.forceInstall = options.forceInstall ?? false
         this.autoInstall = options.autoInstall ?? false
+        this.enabled = options.enabled ?? true
         this.maxRetries = options.xvfbMaxRetries ?? 3
         this.retryDelay = options.xvfbRetryDelay ?? 1000
         this.log = logger('@wdio/xvfb')
@@ -57,7 +61,10 @@ export class XvfbManager {
     /**
      * Check if Xvfb should run on this system
      */
-    shouldRun(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): boolean {
+    shouldRun(capabilities?: WebdriverIO.Config['capabilities']): boolean {
+        if (!this.enabled) {
+            return false
+        }
         if (this.force) {
             return true
         }
@@ -67,9 +74,9 @@ export class XvfbManager {
             return false
         }
 
-        // Check if we're in a headless environment (no DISPLAY set or in CI)
+        // Check if we're in a headless environment (no DISPLAY set)
         const hasDisplay = process.env.DISPLAY
-        const inHeadlessEnvironment = !hasDisplay || isCI
+        const inHeadlessEnvironment = !hasDisplay
 
         // Force XVFB if headless Chrome flags are detected
         const hasHeadlessFlag = this.detectHeadlessMode(capabilities)
@@ -81,7 +88,7 @@ export class XvfbManager {
      * Initialize xvfb-run for use
      * @returns Promise<boolean> - true if xvfb-run is ready, false if not needed
      */
-    public async init(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): Promise<boolean> {
+    public async init(capabilities?: WebdriverIO.Config['capabilities']): Promise<boolean> {
         this.log.info('XvfbManager.init() called')
 
         if (!this.shouldRun(capabilities)) {
@@ -160,7 +167,7 @@ export class XvfbManager {
     /**
      * Detect if headless mode is enabled in Chrome/Chromium capabilities
      */
-    private detectHeadlessMode(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): boolean {
+    private detectHeadlessMode(capabilities?: WebdriverIO.Config['capabilities']): boolean {
         if (!capabilities) {
             return false
         }
