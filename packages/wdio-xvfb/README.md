@@ -46,7 +46,7 @@ if (ready) {
 interface XvfbOptions {
     enabled?: boolean;         // Authoritative usage toggle (default: true). If false, never uses Xvfb
     force?: boolean;           // Force Xvfb even on non-Linux systems (for testing)
-    autoInstall?: boolean;     // Opt-in package install if `xvfb-run` is missing (default: false)
+    autoInstall?: false | true | 'sudo' | { mode?: 'root' | 'sudo', command?: string | string[] } // Opt-in package install if `xvfb-run` is missing (default: false)
     xvfbMaxRetries?: number;   // Number of retry attempts for xvfb failures (default: 3)
     xvfbRetryDelay?: number;   // Base delay between retries in milliseconds (default: 1000)
 }
@@ -239,7 +239,7 @@ You can customize xvfb behavior and retry settings in your WDIO config file:
 export const config = {
     // Xvfb configuration options (all optional)
     autoXvfb: true,              // Authoritative usage toggle (default: true). If false, never uses Xvfb
-    xvfbAutoInstall: false,      // Opt-in install of xvfb packages if missing (default: false)
+    xvfbAutoInstall: false,      // false | true | 'sudo' | { mode?: 'root' | 'sudo', command?: string | string[] }
     xvfbMaxRetries: 5,           // Max retry attempts for xvfb failures (default: 3)
     xvfbRetryDelay: 2000,        // Base delay between retries in ms (default: 1000)
 
@@ -255,7 +255,11 @@ export const config = {
 **WDIO Testrunner Configuration Options:**
 
 - **`autoXvfb`** *(boolean, default: true)*: Authoritative usage toggle – if `false`, Xvfb is never used
-- **`xvfbAutoInstall`** *(boolean, default: false)*: Install `xvfb` packages automatically if `xvfb-run` is missing
+- **`xvfbAutoInstall`** *(false | true | 'sudo' | { mode?: 'root' | 'sudo', command?: string | string[] }, default: false)*: Control auto installation when `xvfb-run` is missing
+  - false: never install; warn and continue
+  - true: install only if running as root (no sudo)
+  - 'sudo': allow non-interactive sudo (`sudo -n`) when not root; skip if sudo not present
+  - object form: optional `mode`, and optional `command` executed as-is
 - **`xvfbMaxRetries`** *(number, default: 3)*: Number of retry attempts when xvfb process fails
 - **`xvfbRetryDelay`** *(number, default: 1000)*: Base delay between retries in milliseconds. Uses progressive delay (delay × attempt number)
 
