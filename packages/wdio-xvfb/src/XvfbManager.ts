@@ -80,7 +80,7 @@ export class XvfbManager {
         const inHeadlessEnvironment = !hasDisplay
 
         // Force XVFB if headless Chrome flags are detected
-        const hasHeadlessFlag = this.detectHeadlessMode(capabilities)
+        const hasHeadlessFlag = this.detectHeadlessMode(capabilities as unknown as WebdriverIO.Config['capabilities'])
 
         return inHeadlessEnvironment || hasHeadlessFlag
     }
