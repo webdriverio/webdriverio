@@ -418,3 +418,99 @@ test('should skip xvfb initialization when disabled in config', async () => {
 
     expect(mockInit).not.toHaveBeenCalled()
 })
+
+test('should pass xvfbAutoInstall:true to XvfbManager', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        undefined as never,
+        { xvfbAutoInstall: true } as any
+    )
+
+    // Trigger lazy init to ensure constructor ran
+    await runner.run({
+        cid: 'auto-1',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ autoInstall: true })
+    )
+})
+
+test('should pass xvfbAutoInstall:false to XvfbManager', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        undefined as never,
+        { xvfbAutoInstall: false } as any
+    )
+
+    await runner.run({
+        cid: 'auto-2',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ autoInstall: false })
+    )
+})
+
+test('should pass enabled:true to XvfbManager by default', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        undefined as never,
+        {} as any
+    )
+
+    await runner.run({
+        cid: 'en-1',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true })
+    )
+})
+
+test('should pass enabled:false to XvfbManager when autoXvfb is false', async () => {
+    const xvfb = await import('@wdio/xvfb')
+    const runner = new LocalRunner(
+        undefined as never,
+        { autoXvfb: false } as any
+    )
+
+    await runner.run({
+        cid: 'en-2',
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {},
+        caps: {},
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0,
+    })
+
+    expect(vi.mocked(xvfb.XvfbManager)).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true })
+    )
+    // first call was default in module mock creation, assert last call
+    const calls = vi.mocked(xvfb.XvfbManager).mock.calls
+    expect(calls[calls.length - 1][0]).toEqual(expect.objectContaining({ enabled: false }))
+})
