@@ -44,7 +44,9 @@ if (ready) {
 
 ```ts
 interface XvfbOptions {
+    enabled?: boolean;         // Authoritative usage toggle (default: true). If false, never uses Xvfb
     force?: boolean;           // Force Xvfb even on non-Linux systems (for testing)
+    autoInstall?: boolean;     // Opt-in package install if `xvfb-run` is missing (default: false)
     xvfbMaxRetries?: number;   // Number of retry attempts for xvfb failures (default: 3)
     xvfbRetryDelay?: number;   // Base delay between retries in milliseconds (default: 1000)
 }
@@ -96,13 +98,12 @@ const result = await manager.executeWithRetry(async () => {
 The utility automatically detects when Xvfb is needed:
 
 -   ✅ Linux systems without a DISPLAY environment variable
--   ✅ Linux systems in CI environments (uses `is-ci` package for detection)
 -   ✅ Linux systems when headless browser flags are detected:
     - **Chrome/Chromium**: `--headless`, `--headless=new`, `--headless=old`
     - **Firefox**: `--headless`, `-headless`
     - **Edge** (Chromium-based): `--headless`, `--headless=new`, `--headless=old`
 -   ❌ Non-Linux systems (unless `force: true`)
--   ❌ Linux systems with existing DISPLAY (unless in CI or headless flags detected)
+-   ❌ Linux systems with existing DISPLAY (unless headless flags are detected)
 
 ## Features
 
@@ -172,7 +173,7 @@ The utility automatically detects the system's package manager and installs xvfb
 | **`apt`** | `apt-get` | Ubuntu, Debian, Pop!_OS, Mint, Elementary, Zorin, etc. | `xvfb` |
 | **`dnf`** | `dnf` | Fedora, Rocky Linux, AlmaLinux, Nobara, Bazzite, etc. | `xorg-x11-server-Xvfb` |
 | **`yum`** | `yum` | CentOS, RHEL (legacy) | `xorg-x11-server-Xvfb` |
-| **`zypper`** | `zypper` | openSUSE, SUSE Linux Enterprise | `xorg-x11-server-Xvfb xvfb-run` |
+| **`zypper`** | `zypper` | openSUSE, SUSE Linux Enterprise | `xvfb-run` |
 | **`pacman`** | `pacman` | Arch Linux, Manjaro, EndeavourOS, CachyOS, etc. | `xorg-server-xvfb` |
 | **`apk`** | `apk` | Alpine Linux, PostmarketOS | `xvfb-run` |
 | **`xbps`** | `xbps-install` | Void Linux | `xvfb` |
@@ -237,8 +238,8 @@ You can customize xvfb behavior and retry settings:
 // wdio.conf.js - Custom xvfb configuration
 export const config = {
     // Xvfb configuration options (all optional)
-    autoXvfb: true,              // Enable automatic xvfb (default: true)
-    xvfbAutoInstall: false,      // Enable auto-install of xvfb if missing (default: false)
+    autoXvfb: true,              // Authoritative usage toggle (default: true). If false, never uses Xvfb
+    xvfbAutoInstall: false,      // Opt-in install of xvfb packages if missing (default: false)
     xvfbMaxRetries: 5,           // Max retry attempts for xvfb failures (default: 3)
     xvfbRetryDelay: 2000,        // Base delay between retries in ms (default: 1000)
 
@@ -253,7 +254,7 @@ export const config = {
 
 **Configuration Options:**
 
-- **`autoXvfb`** *(boolean, default: true)*: Enable/disable automatic xvfb initialization
+- **`autoXvfb`** *(boolean, default: true)*: Authoritative usage toggle – if `false`, Xvfb is never used
 - **`xvfbAutoInstall`** *(boolean, default: false)*: Install `xvfb` packages automatically if `xvfb-run` is missing
 - **`xvfbMaxRetries`** *(number, default: 3)*: Number of retry attempts when xvfb process fails
 - **`xvfbRetryDelay`** *(number, default: 1000)*: Base delay between retries in milliseconds. Uses progressive delay (delay × attempt number)
