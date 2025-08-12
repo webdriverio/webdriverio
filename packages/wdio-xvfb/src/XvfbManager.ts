@@ -2,6 +2,7 @@ import { promisify } from 'node:util'
 import { exec } from 'node:child_process'
 import os from 'node:os'
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 
 export interface XvfbOptions {
     /**
@@ -61,7 +62,7 @@ export class XvfbManager {
     /**
      * Check if Xvfb should run on this system
      */
-    shouldRun(capabilities?: WebdriverIO.Config['capabilities']): boolean {
+    shouldRun(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): boolean {
         if (!this.enabled) {
             return false
         }
@@ -88,7 +89,7 @@ export class XvfbManager {
      * Initialize xvfb-run for use
      * @returns Promise<boolean> - true if xvfb-run is ready, false if not needed
      */
-    public async init(capabilities?: WebdriverIO.Config['capabilities']): Promise<boolean> {
+    public async init(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): Promise<boolean> {
         this.log.info('XvfbManager.init() called')
 
         if (!this.shouldRun(capabilities)) {
