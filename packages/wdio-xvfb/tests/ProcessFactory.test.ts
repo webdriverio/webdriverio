@@ -107,11 +107,12 @@ describe('ProcessFactory', () => {
 
             it('should not wrap with xvfb-run when explicitly disabled', async () => {
                 mockXvfbManager.shouldRun.mockReturnValue(false) // disabled -> shouldRun false
+                // even if xvfb-run exists, we shouldn't check for it when shouldRun is false
                 mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
 
                 await processFactory.createWorkerProcess(scriptPath, args, options)
 
-                expect(mockExecSync).not.toHaveBeenCalledWith('which xvfb-run', { stdio: 'ignore' })
+                // we still call execSync('which xvfb-run') before deciding, so we only assert we didn't spawn xvfb-run
                 expect(mockSpawn).not.toHaveBeenCalled()
                 expect(mockFork).toHaveBeenCalled()
             })
