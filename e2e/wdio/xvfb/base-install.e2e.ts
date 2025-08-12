@@ -88,7 +88,9 @@ describe('xvfb fresh installation', () => {
         let xvfbManager: XvfbManager
 
         beforeEach(() => {
-            xvfbManager = new XvfbManager({ autoInstall: true })
+            // Ensure clean environment for these tests
+            delete process.env.DISPLAY
+            xvfbManager = new XvfbManager({ autoInstall: 'sudo' })
         })
 
         it('should detect missing xvfb and install it automatically when opted-in', async function(this: Mocha.Context) {
@@ -160,7 +162,8 @@ describe('xvfb fresh installation', () => {
         // Create a manager with an unsupported package manager, forcing installation
         const failingManager = new XvfbManager({
             packageManager: 'unsupported-manager',
-            forceInstall: true
+            forceInstall: true,
+            autoInstall: 'sudo'
         })
 
         // Should throw error for unsupported package manager
@@ -168,6 +171,8 @@ describe('xvfb fresh installation', () => {
     })
 
     afterEach(async () => {
+        // Clean up environment variables
+        delete process.env.DISPLAY
         // Skip process cleanup to prevent SIGTERM
         await new Promise(resolve => setTimeout(resolve, 100))
     })
