@@ -147,7 +147,7 @@ export class XvfbManager {
 
         // Install packages that include xvfb-run
         this.#log.info('Starting xvfb package installation...')
-        const attempted = await this.installXvfbPackages()
+        const attempted = await this.#installXvfbPackages()
         if (!attempted) {
             this.#log.warn('Insufficient privileges to install xvfb packages automatically. Please install manually.')
             return false
@@ -325,11 +325,33 @@ export class XvfbManager {
         return mode
     }
 
-    private async installXvfbPackages(): Promise<boolean> {
-        // Determine privileges
+    #shouldSkipAutoInstall(isRoot: boolean, mode: 'root' | 'sudo', hasSudo: boolean, hasCustomCommand: boolean): boolean {
+        if (hasCustomCommand) {
+            return false
+        }
+
+        if (!isRoot && mode !== 'sudo') {
+            this.#log.warn('Not running as root and sudo mode disabled; skipping auto-install')
+            return true
+        }
+
+        if (!isRoot && mode === 'sudo' && !hasSudo) {
+            this.#log.warn('Not running as root and sudo is not available; skipping auto-install')
+            return true
+        }
+
+        return false
+    }
+
+    async #installXvfbPackages(): Promise<boolean> {
+        // Determine privileges and desired mode
         const isRoot = typeof process.getuid === 'function' ? process.getuid() === 0 : false
+        const mode = this.#getInstallMode()
+        const configured = this.#autoInstallSetting && typeof this.#autoInstallSetting === 'object' ? this.#autoInstallSetting : undefined
+        const hasCustomCommand = Boolean(configured?.command)
+
         let hasSudo = false
-        if (!isRoot && this.#autoInstallSetting === 'sudo') {
+        if (!isRoot && mode === 'sudo') {
             try {
                 await execAsync('which sudo')
                 hasSudo = true
@@ -337,18 +359,12 @@ export class XvfbManager {
                 hasSudo = false
             }
         }
+
+        if (this.#shouldSkipAutoInstall(isRoot, mode, hasSudo, hasCustomCommand)) {
+            return false
+        }
+
         const command = await this.#getInstallCommand(isRoot, hasSudo)
-        const mode = this.#getInstallMode()
-
-        if (!isRoot && mode !== 'sudo') {
-            this.#log.warn('Not running as root (sudo mode disabled); skipping auto-install')
-            return false
-        }
-
-        if (!isRoot && mode === 'sudo' && !hasSudo) {
-            this.#log.warn('Not running as root and sudo is not allowed or not available; skipping auto-install')
-            return false
-        }
 
         this.#log.info(`Installing xvfb packages using command: ${command}`)
 
