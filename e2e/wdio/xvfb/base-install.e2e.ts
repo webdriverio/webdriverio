@@ -158,6 +158,71 @@ describe('xvfb fresh installation', () => {
         })
     })
 
+    describe('advanced autoInstall configurations', () => {
+        it('should handle object format with mode specification', async function(this: Mocha.Context) {
+            this.timeout(300000) // 5 minutes
+
+            // Test object format with explicit sudo mode
+            const manager = new XvfbManager({
+                autoInstall: { mode: 'sudo' }
+            })
+
+            delete process.env.DISPLAY
+            expect(manager.shouldRun()).toBe(true)
+
+            const result = await manager.init()
+            expect(result).toBe(true)
+        })
+
+        it('should support custom install commands', async function(this: Mocha.Context) {
+            this.timeout(300000) // 5 minutes
+
+            // Use a custom command that should work (basic package manager command)
+            const manager = new XvfbManager({
+                autoInstall: {
+                    mode: 'sudo',
+                    command: 'sudo apt-get update -qq && sudo apt-get install -y xvfb'
+                },
+                forceInstall: true // Skip initial availability check
+            })
+
+            delete process.env.DISPLAY
+            const result = await manager.init()
+            expect(result).toBe(true)
+        })
+
+        it('should support custom install commands as array', async function(this: Mocha.Context) {
+            this.timeout(300000) // 5 minutes
+
+            // Test array format for custom commands
+            const manager = new XvfbManager({
+                autoInstall: {
+                    mode: 'sudo',
+                    command: ['sudo', 'apt-get', 'install', '-y', 'xvfb']
+                },
+                forceInstall: true // Skip initial availability check
+            })
+
+            delete process.env.DISPLAY
+            const result = await manager.init()
+            expect(result).toBe(true)
+        })
+
+        it('should handle custom command failures gracefully', async () => {
+            // Test with a custom command that will fail
+            const failingManager = new XvfbManager({
+                autoInstall: {
+                    mode: 'sudo',
+                    command: 'false' // Command that always fails
+                },
+                forceInstall: true
+            })
+
+            delete process.env.DISPLAY
+            await expect(failingManager.init()).rejects.toThrow()
+        })
+    })
+
     it('should handle installation failures gracefully', async () => {
         // Create a manager with an unsupported package manager, forcing installation
         const failingManager = new XvfbManager({
