@@ -44,7 +44,7 @@ export const config = {
 
 In order to authorize to the BrowserStack service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
-### testObservability
+### testReporting
 
 Test Observability is an advanced test reporting tool that gives insights to improve your automation tests and helps you debug faster. It’s enabled by default by setting the testObservability​ flag as true for all users of browserstack-service. You can disable this by setting the testObservability​ flag to false.
 
