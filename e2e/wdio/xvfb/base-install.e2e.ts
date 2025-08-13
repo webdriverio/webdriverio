@@ -249,9 +249,19 @@ describe('xvfb fresh installation', () => {
             }
 
             // Test array command format with verifiable side effects
+            // Use a simple command that doesn't require special privileges
+            // Check what environment we're in and adjust accordingly
+            let isRoot = false
+            try {
+                const uid = execSync('id -u', { encoding: 'utf8' }).trim()
+                isRoot = uid === '0'
+            } catch {
+                // Ignore if command fails
+            }
+
             const testManager = new XvfbManager({
                 autoInstall: {
-                    mode: 'sudo',
+                    mode: isRoot ? 'root' : 'sudo',
                     command: ['sh', '-c', `echo "${testContent}" > ${testMarkerFile} && echo "Array command completed"`]
                 },
                 forceInstall: true
@@ -264,15 +274,37 @@ describe('xvfb fresh installation', () => {
                 await testManager.init()
             } catch (error) {
                 // Expected to fail because the command doesn't actually install xvfb-run
-                expect(error.message).toContain('xvfb-run is not available after installation')
+                expect((error as Error).message).toContain('xvfb-run is not available after installation')
             }
 
             // Verify the array command was executed by checking the marker file content
             let fileContent = ''
+            let fileExists = false
             try {
                 fileContent = execSync(`cat ${testMarkerFile}`, { encoding: 'utf8' }).trim()
+                fileExists = true
+            } catch (catError) {
+                // Check if file exists but can't be read
+                try {
+                    execSync(`test -f ${testMarkerFile}`, { stdio: 'ignore' })
+                    fileExists = true
+                    console.log(`File exists but couldn't read it: ${catError}`)
+                } catch {
+                    fileExists = false
+                    console.log(`File does not exist: ${testMarkerFile}`)
+                }
+            }
+
+            // Debug information
+            console.log(`File exists: ${fileExists}, Content: "${fileContent}"`)
+
+            // Also check what user we're running as
+            try {
+                const whoami = execSync('whoami', { encoding: 'utf8' }).trim()
+                const uid = execSync('id -u', { encoding: 'utf8' }).trim()
+                console.log(`Running as user: ${whoami}, UID: ${uid}`)
             } catch {
-                // Ignore if file doesn't exist or can't be read
+                // Ignore if commands fail
             }
 
             expect(fileContent).toBe(testContent)
