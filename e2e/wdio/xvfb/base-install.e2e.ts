@@ -259,10 +259,11 @@ describe('xvfb fresh installation', () => {
                 // Ignore if command fails
             }
 
+            // Test array format - write to a file directly
             const testManager = new XvfbManager({
                 autoInstall: {
                     mode: isRoot ? 'root' : 'sudo',
-                    command: ['sh', '-c', `echo "${testContent}" > ${testMarkerFile} && echo "Array command completed"`]
+                    command: ['/bin/sh', '-c', `echo "${testContent}" > ${testMarkerFile}`]
                 },
                 forceInstall: true
             })
