@@ -58,13 +58,39 @@ describe('xvfb fresh installation', () => {
             const result = await xvfbManager.init(caps)
             expect(result).toBe(false)
         })
+
+        it('should honor existing DISPLAY and skip Xvfb usage', async () => {
+            // Simulate an existing X server
+            process.env.DISPLAY = ':0'
+
+            const result = await xvfbManager.init()
+            expect(result).toBe(false)
+
+            // ProcessFactory should use regular fork
+            const { ProcessFactory } = await import('@wdio/xvfb')
+            const processFactory = new ProcessFactory(xvfbManager)
+            const mockProcess = await processFactory.createWorkerProcess(
+                '/mock/path/run.js',
+                ['--test'],
+                {
+                    cwd: process.cwd(),
+                    env: process.env as Record<string, string>,
+                    execArgv: [],
+                    stdio: ['inherit', 'pipe', 'pipe', 'ipc']
+                }
+            )
+            expect(mockProcess.spawnfile).not.toBe('xvfb-run')
+            mockProcess.kill('SIGTERM')
+        })
     })
 
     describe('autoInstall enabled', () => {
         let xvfbManager: XvfbManager
 
         beforeEach(() => {
-            xvfbManager = new XvfbManager({ autoInstall: true })
+            // Ensure clean environment for these tests
+            delete process.env.DISPLAY
+            xvfbManager = new XvfbManager({ autoInstall: 'sudo' })
         })
 
         it('should detect missing xvfb and install it automatically when opted-in', async function(this: Mocha.Context) {
@@ -132,11 +158,231 @@ describe('xvfb fresh installation', () => {
         })
     })
 
+    describe('advanced autoInstall configurations', () => {
+        it('should handle object format with mode specification', async function(this: Mocha.Context) {
+            this.timeout(300000) // 5 minutes
+
+            // Test object format with explicit sudo mode
+            const manager = new XvfbManager({
+                autoInstall: { mode: 'sudo' }
+            })
+
+            delete process.env.DISPLAY
+            expect(manager.shouldRun()).toBe(true)
+
+            const result = await manager.init()
+            expect(result).toBe(true)
+        })
+
+        it('should support custom install commands', async function(this: Mocha.Context) {
+            this.timeout(300000) // 5 minutes
+
+            const testMarkerFile = '/tmp/xvfb-custom-command-test'
+
+            // Clean up any existing marker file
+            try {
+                execSync(`rm -f ${testMarkerFile}`, { stdio: 'ignore' })
+            } catch {
+                // Ignore if file doesn't exist
+            }
+
+            // Test custom command functionality with a verifiable side effect
+            const manager = new XvfbManager({
+                autoInstall: {
+                    mode: 'sudo',
+                    command: `echo "Custom command executed" && touch ${testMarkerFile} && echo "Marker file created"`
+                },
+                forceInstall: true // Skip initial availability check
+            })
+
+            delete process.env.DISPLAY
+
+            try {
+                await manager.init()
+                // If it succeeds, great! But likely will fail due to no actual xvfb installation
+            } catch (error) {
+                // Expected to fail because custom command doesn't install xvfb-run
+                expect(error.message).toContain('xvfb-run is not available after installation')
+            }
+
+            // Verify the custom command was actually executed by checking for the marker file
+            let markerFileExists = false
+            try {
+                execSync(`test -f ${testMarkerFile}`, { stdio: 'ignore' })
+                markerFileExists = true
+            } catch {
+                // Ignore if file doesn't exist
+            }
+
+            expect(markerFileExists).toBe(true)
+
+            // Clean up
+            try {
+                execSync(`rm -f ${testMarkerFile}`, { stdio: 'ignore' })
+            } catch {
+                // Ignore cleanup errors
+            }
+        })
+
+        it('should support automatic package manager detection', async function(this: Mocha.Context) {
+            this.timeout(300000) // 5 minutes
+
+            // Test that object format works with automatic package manager detection
+            const manager = new XvfbManager({
+                autoInstall: { mode: 'sudo' } // Use built-in package manager detection
+            })
+
+            delete process.env.DISPLAY
+            const result = await manager.init()
+            expect(result).toBe(true)
+        })
+
+        it('should support custom install commands as array format', async () => {
+            const testMarkerFile = '/tmp/xvfb-array-command-test'
+            const testContent = 'Array command executed successfully'
+
+            // Clean up any existing marker file
+            try {
+                execSync(`rm -f ${testMarkerFile}`, { stdio: 'ignore' })
+            } catch {
+                // Ignore if file doesn't exist
+            }
+
+            // Test array command format with verifiable side effects
+            // Use a simple command that doesn't require special privileges
+            // Check what environment we're in and adjust accordingly
+            let isRoot = false
+            try {
+                const uid = execSync('id -u', { encoding: 'utf8' }).trim()
+                isRoot = uid === '0'
+            } catch {
+                // Ignore if command fails
+            }
+
+            // Test array format - write to a file directly
+            const testManager = new XvfbManager({
+                autoInstall: {
+                    mode: isRoot ? 'root' : 'sudo',
+                    command: ['/bin/sh', '-c', `echo "${testContent}" > ${testMarkerFile}`]
+                },
+                forceInstall: true
+            })
+
+            delete process.env.DISPLAY
+
+            // This will execute the array command but fail verification since it doesn't install xvfb
+            try {
+                await testManager.init()
+            } catch (error) {
+                // Expected to fail because the command doesn't actually install xvfb-run
+                expect((error as Error).message).toContain('xvfb-run is not available after installation')
+            }
+
+            // Verify the array command was executed by checking the marker file content
+            let fileContent = ''
+            let fileExists = false
+            try {
+                fileContent = execSync(`cat ${testMarkerFile}`, { encoding: 'utf8' }).trim()
+                fileExists = true
+            } catch (catError) {
+                // Check if file exists but can't be read
+                try {
+                    execSync(`test -f ${testMarkerFile}`, { stdio: 'ignore' })
+                    fileExists = true
+                    console.log(`File exists but couldn't read it: ${catError}`)
+                } catch {
+                    fileExists = false
+                    console.log(`File does not exist: ${testMarkerFile}`)
+                }
+            }
+
+            // Debug information
+            console.log(`File exists: ${fileExists}, Content: "${fileContent}"`)
+
+            // Also check what user we're running as
+            try {
+                const whoami = execSync('whoami', { encoding: 'utf8' }).trim()
+                const uid = execSync('id -u', { encoding: 'utf8' }).trim()
+                console.log(`Running as user: ${whoami}, UID: ${uid}`)
+            } catch {
+                // Ignore if commands fail
+            }
+
+            expect(fileContent).toBe(testContent)
+
+            // Clean up
+            try {
+                execSync(`rm -f ${testMarkerFile}`, { stdio: 'ignore' })
+            } catch {
+                // Ignore cleanup errors
+            }
+        })
+
+        it('should use custom commands instead of built-in package manager detection', async function(this: Mocha.Context) {
+            this.timeout(300000) // 5 minutes
+
+            const testMarkerFile = '/tmp/xvfb-custom-vs-builtin-test'
+
+            // Clean up any existing marker file
+            try {
+                execSync(`rm -f ${testMarkerFile}`, { stdio: 'ignore' })
+            } catch {
+                // Ignore if file doesn't exist
+            }
+
+            // Create a custom command that actually installs xvfb but with a marker
+            // This tests that custom commands override built-in detection
+            const manager = new XvfbManager({
+                autoInstall: {
+                    mode: 'sudo',
+                    command: `echo "Using custom command instead of built-in" > ${testMarkerFile} && which xvfb-run >/dev/null 2>&1 && echo "xvfb already installed" || { echo "Installing xvfb via custom command"; if command -v apt-get >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y xvfb; elif command -v dnf >/dev/null; then sudo dnf install -y xorg-x11-server-Xvfb; elif command -v yum >/dev/null; then sudo yum install -y xorg-x11-server-Xvfb; elif command -v zypper >/dev/null; then sudo zypper --non-interactive install -y xvfb-run; elif command -v pacman >/dev/null; then sudo pacman -S --noconfirm xorg-server-xvfb; elif command -v apk >/dev/null; then sudo apk add --no-cache xvfb-run; else echo "No package manager found"; fi; }`
+                },
+                forceInstall: true
+            })
+
+            delete process.env.DISPLAY
+            const result = await manager.init()
+            expect(result).toBe(true)
+
+            // Verify the custom command was used by checking our marker
+            let markerContent = ''
+            try {
+                markerContent = execSync(`cat ${testMarkerFile}`, { encoding: 'utf8' }).trim()
+            } catch {
+                // Ignore if file doesn't exist
+            }
+
+            expect(markerContent).toBe('Using custom command instead of built-in')
+
+            // Clean up
+            try {
+                execSync(`rm -f ${testMarkerFile}`, { stdio: 'ignore' })
+            } catch {
+                // Ignore cleanup errors
+            }
+        })
+
+        it('should handle custom command failures gracefully', async () => {
+            // Test with a custom command that will fail
+            const failingManager = new XvfbManager({
+                autoInstall: {
+                    mode: 'sudo',
+                    command: 'false' // Command that always fails
+                },
+                forceInstall: true
+            })
+
+            delete process.env.DISPLAY
+            await expect(failingManager.init()).rejects.toThrow()
+        })
+    })
+
     it('should handle installation failures gracefully', async () => {
         // Create a manager with an unsupported package manager, forcing installation
         const failingManager = new XvfbManager({
             packageManager: 'unsupported-manager',
-            forceInstall: true
+            forceInstall: true,
+            autoInstall: 'sudo'
         })
 
         // Should throw error for unsupported package manager
@@ -144,6 +390,8 @@ describe('xvfb fresh installation', () => {
     })
 
     afterEach(async () => {
+        // Clean up environment variables
+        delete process.env.DISPLAY
         // Skip process cleanup to prevent SIGTERM
         await new Promise(resolve => setTimeout(resolve, 100))
     })

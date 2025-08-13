@@ -107,7 +107,8 @@ describe('xvfb existing installation', () => {
     it('should work on different platforms appropriately', async () => {
         // Test platform detection logic
         if (process.platform === 'linux') {
-            // On Linux, should always return true in CI
+            // On Linux with preinstalled xvfb, should return true when no DISPLAY is set
+            delete process.env.DISPLAY
             expect(xvfbManager.shouldRun()).toBe(true)
         } else {
             // On non-Linux platforms, should return false
