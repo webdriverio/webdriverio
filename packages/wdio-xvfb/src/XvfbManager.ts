@@ -319,6 +319,20 @@ export class XvfbManager {
             .join(' && ')
     }
 
+    #shellEscapeArray(args: string[]): string {
+        // Properly escape shell arguments and join them
+        return args
+            .map(arg => {
+                // If arg contains spaces or special characters, wrap in quotes
+                if (/[\\$`"'\s]/.test(arg)) {
+                    // Escape existing quotes and wrap in double quotes
+                    return `"${arg.replace(/["\\$`]/g, '\\$&')}"`
+                }
+                return arg
+            })
+            .join(' ')
+    }
+
     #getInstallMode(): 'root' | 'sudo' {
         const configured = this.#autoInstallSetting && typeof this.#autoInstallSetting === 'object' ? this.#autoInstallSetting : undefined
         const mode = (this.#autoInstallSetting === 'sudo' || configured?.mode === 'sudo') ? 'sudo' : 'root'
@@ -384,7 +398,7 @@ export class XvfbManager {
     async #getInstallCommand(isRoot: boolean, hasSudo: boolean): Promise<string> {
         const configured = this.#autoInstallSetting && typeof this.#autoInstallSetting === 'object' ? this.#autoInstallSetting : undefined
         const customInstallCommand = configured?.command
-            ? (Array.isArray(configured.command) ? configured.command.join(' ') : configured.command)
+            ? (Array.isArray(configured.command) ? this.#shellEscapeArray(configured.command) : configured.command)
             : undefined
 
         if (customInstallCommand) {
