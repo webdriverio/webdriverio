@@ -9,7 +9,7 @@ import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkCon
 import { GrpcClient } from '../grpcClient.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
 // eslint-disable-next-line camelcase
-import type { LogCreatedEventRequest, LogCreatedEventRequest_LogEntry, TestFrameworkEventRequest, TestSessionEventRequest, AutomationSession } from 'browserstack-proto'
+import type { LogCreatedEventRequest, LogCreatedEventRequest_LogEntry, TestFrameworkEventRequest, TestSessionEventRequest, AutomationSession } from '@browserstack/wdio-browserstack-service'
 import type { Frameworks } from '@wdio/types'
 import WdioMochaTestFramework from '../frameworks/wdioMochaTestFramework.js'
 import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'

@@ -24,7 +24,6 @@
     "copy": "cd packages/wdio-cli && npm run copy && cd ../../",
     "generate": "run-s generate:*",
     "generate:bidi": "node --loader ts-node/esm ./scripts/bidi/index.ts",
-    "generate:browserstack-proto": "cd ../browserstack-proto && npm install && npm run build && cd ../webdriverio",
     "generate:typings": "node --loader ts-node/esm ./scripts/type-generation/generate-all-typings.ts",
     "link": "node --loader ts-node/esm ./scripts/link.ts",
     "pushReleaseTag": "node --loader ts-node/esm ./scripts/pushTags.ts",
@@ -112,6 +111,7 @@
     "eslint-plugin-unicorn": "^55.0.0",
     "eslint-plugin-wdio": "^8.24.12",
     "eta": "^3.2.0",
+    "geckodriver": "^5.0.0",
     "glob": "^10.3.10",
     "husky": "^9.0.11",
     "inquirer": "^9.2.12",
@@ -119,6 +119,7 @@
     "lerna": "^8.1.2",
     "lerna-changelog": "^2.2.0",
     "mime-types": "^2.1.35",
+    "nock": "^14.0.10",
     "npm-run-all": "^4.1.5",
     "read-pkg-up": "10.0.0",
     "recursive-readdir": "^2.2.3",
@@ -131,6 +132,7 @@
     "ts-proto": "^2.7.5",
     "typescript": "^5.3.3",
     "unzipper": "^0.12.1",
+    "vite-plugin-istanbul": "^7.1.0",
     "vitest": "^1.2.2"
   }
 }

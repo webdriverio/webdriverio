@@ -13,11 +13,12 @@ import {
     TestSessionEventRequestConstructor,
     ExecutionContextConstructor,
     LogCreatedEventRequestConstructor,
+    // eslint-disable-next-line camelcase
     LogCreatedEventRequest_LogEntryConstructor,
     AutomationSessionConstructor,
     DriverInitRequestConstructor,
     FetchDriverExecuteParamsEventRequestConstructor
-} from 'browserstack-proto'
+} from '@browserstack/wdio-browserstack-service'
 
 // Type imports
 import type {
@@ -36,7 +37,7 @@ import type {
     LogCreatedEventResponse,
     DriverInitResponse,
     FetchDriverExecuteParamsEventResponse
-} from 'browserstack-proto'
+} from '@browserstack/wdio-browserstack-service'
 
 import PerformanceTester from '../instrumentation/performance/performance-tester.js'
 import { EVENTS as PerformanceEvents } from '../instrumentation/performance/constants.js'
