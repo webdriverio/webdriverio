@@ -54,6 +54,7 @@ class _InsightsHandler {
         steps: []
     }
     private _userCaps?: Capabilities.ResolvedTestrunnerCapabilities = {}
+    private _options?: BrowserstackConfig & BrowserstackOptions
     private listener = Listener.getInstance()
     public currentTestId: string | undefined
     public cbtQueue: Array<CBTData> = []
@@ -63,6 +64,7 @@ class _InsightsHandler {
         const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 
         this._userCaps = _userCaps
+        this._options = _options
 
         this._platformMeta = {
             browserName: caps.browserName,
@@ -584,6 +586,26 @@ class _InsightsHandler {
      * private methods
      */
 
+    /**
+     * Check if any test steps failed (excluding hook failures)
+     * This is used when ignoreHooksStatus is true to determine test status based only on test steps
+     */
+    public hasTestStepFailures(world: ITestCaseHookParameter): boolean {
+        if (!world?.pickle) {
+            return false
+        }
+
+        const uniqueId = getUniqueIdentifierForCucumber(world)
+        const testMetaData = this._tests[uniqueId]
+
+        if (!testMetaData?.steps) {
+            return false
+        }
+
+        // Check if any step failed
+        return testMetaData.steps.some(step => step.result === 'FAILED')
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private attachHookData (context: any, hookId: string): void {
         if (context.currentTest && context.currentTest.parent) {
@@ -823,6 +845,18 @@ class _InsightsHandler {
             if (result !== 'passed' && result !== 'failed') {
                 result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
             }
+
+            // Handle ignoreHooksStatus: when enabled and scenario failed, check if it's due to hook failures only
+            const ignoreHooksStatus = this._options?.testObservabilityOptions?.ignoreHooksStatus === true
+            if (ignoreHooksStatus && result === 'failed' && world) {
+                // Check if any test steps failed (excluding hook failures)
+                const hasTestStepFailures = this.hasTestStepFailures(world)
+                if (!hasTestStepFailures) {
+                    // Only hooks failed, override result to passed for Test Observability
+                    result = 'passed'
+                }
+            }
+
             testData.finished_at = (new Date()).toISOString()
             testData.result = result
             testData.duration_in_ms = world.result.duration.seconds * 1000 + world.result.duration.nanos / 1000000 // send duration in ms

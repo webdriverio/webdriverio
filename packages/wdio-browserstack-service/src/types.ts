@@ -26,7 +26,14 @@ export interface TestObservabilityOptions {
     projectName?: string,
     buildTag?: string[],
     user?: string,
-    key?: string
+    key?: string,
+    /**
+     * When set to true, hook failures will not influence the test status.
+     * Tests will be marked as "passed" if all test steps pass, even if hooks fail.
+     * When set to false or not set (default), hook failures will mark tests as "failed".
+     * @default false
+     */
+    ignoreHooksStatus?: boolean
 }
 
 // New interface for Test Reporting and Analytics (same structure as TestObservabilityOptions for backward compatibility)
