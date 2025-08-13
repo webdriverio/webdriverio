@@ -30,17 +30,32 @@ Two runner options control Xvfb behavior:
   - false: never install; warn and continue without Xvfb
   - true: root-only, non-interactive install (no sudo)
   - 'sudo': allow non-interactive sudo (`sudo -n`) if not root; skip if sudo missing
-  - object: advanced control with optional `mode` and optional custom `command` (executed as-is)
+  - object: advanced control with optional `mode` (default: 'root') and optional custom `command` (executed as-is)
 
-Example:
+Examples:
 
 ```ts
 export const config: WebdriverIO.Config = {
   // Use Xvfb when needed
   autoXvfb: true,
 
-  // Do not auto-install OS packages by default
-  xvfbAutoInstall: false,
+  // Auto-install Xvfb packages using sudo
+  xvfbAutoInstall: 'sudo',
+
+  capabilities: [{
+    browserName: 'chrome',
+    'goog:chromeOptions': { args: ['--headless=new', '--no-sandbox'] }
+  }]
+}
+```
+
+```ts
+export const config: WebdriverIO.Config = {
+  // Use Xvfb when needed
+  autoXvfb: true,
+
+  // Auto-install Xvfb packages using a custom command and sudo
+  xvfbAutoInstall: { mode: 'sudo', command: 'curl -L https://github.com/X11/xvfb/releases/download/v1.20.14/xvfb-linux-x64.tar.gz | tar -xz -C /usr/local/bin/' },
 
   capabilities: [{
     browserName: 'chrome',
@@ -103,7 +118,7 @@ When `xvfbAutoInstall` is enabled, WebdriverIO attempts to install `xvfb` using 
 
 | Package Manager | Command         | Distributions (examples)                                   | Package Name(s)                 |
 |-----------------|-----------------|-------------------------------------------------------------|----------------------------------|
-| apt             | `apt-get`       | Ubuntu, Debian, Pop!_OS, Mint, Elementary, Zorin, etc.     | `xvfb`                           |
+| apt             | `apt-get`       | Ubuntu, Debian, Pop!_OS, Mint, Elementary, Zorin, etc.      | `xvfb`                           |
 | dnf             | `dnf`           | Fedora, Rocky Linux, AlmaLinux, Nobara, Bazzite, etc.       | `xorg-x11-server-Xvfb`           |
 | yum             | `yum`           | CentOS, RHEL (legacy)                                       | `xorg-x11-server-Xvfb`           |
 | zypper          | `zypper`        | openSUSE, SUSE Linux Enterprise                             | `xvfb-run`                       |
@@ -112,7 +127,7 @@ When `xvfbAutoInstall` is enabled, WebdriverIO attempts to install `xvfb` using 
 | xbps-install    | `xbps-install`  | Void Linux                                                  | `xvfb`                           |
 
 Notes:
-- If your environment uses a different package manager, the install will fail with an error; install `xvfb` manually.
+- If your environment uses a different package manager, the install will fail with an error; install `xvfb` manually or using the `xvfbAutoInstall` command option.
 - Package names are distro-specific; the table reflects the common names per family.
 
 ## Troubleshooting
