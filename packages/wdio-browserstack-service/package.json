@@ -31,7 +31,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@browserstack/ai-sdk-node": "1.5.17",
-    "@browserstack/wdio-browserstack-service": "/Users/shubhamgarg/Desktop/SDK_CLI_DEV_SETUP/SDK-3773-WDIO-Proto/wdio-browserstack-service/browserstack-wdio-browserstack-service-2.0.0.tgz",
+    "@browserstack/wdio-browserstack-service": "^2.0.0",
     "@percy/appium-app": "^2.0.1",
     "@percy/selenium-webdriver": "^2.0.3",
     "@wdio/logger": "8.38.0",
