@@ -31,16 +31,13 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@browserstack/ai-sdk-node": "1.5.17",
+    "@browserstack/wdio-browserstack-service": "/Users/shubhamgarg/Desktop/SDK_CLI_DEV_SETUP/SDK-3773-WDIO-Proto/wdio-browserstack-service/browserstack-wdio-browserstack-service-2.0.0.tgz",
     "@percy/appium-app": "^2.0.1",
-    "@bufbuild/protobuf": "^2.4.0",
-    "@grpc/grpc-js": "^1.13.3",
     "@percy/selenium-webdriver": "^2.0.3",
-    "@types/gitconfiglocal": "^2.0.1",
     "@wdio/logger": "8.38.0",
     "@wdio/reporter": "8.43.0",
     "@wdio/types": "8.41.0",
     "browserstack-local": "^1.5.1",
-    "@browserstack/wdio-browserstack-service": "/Users/shubhamgarg/Desktop/SDK_CLI_DEV_SETUP/SDK-3773-WDIO-Proto/wdio-browserstack-service/browserstack-wdio-browserstack-service-2.0.0.tgz",
     "chalk": "^5.3.0",
     "csv-writer": "^1.6.0",
     "formdata-node": "5.0.1",
@@ -57,7 +54,9 @@
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
   },
   "devDependencies": {
+    "@types/gitconfiglocal": "^2.0.3",
     "@types/node": "^22.2.0",
+    "@types/tar": "^6.1.13",
     "@wdio/globals": "8.45.0"
   },
   "publishConfig": {
