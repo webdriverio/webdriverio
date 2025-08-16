@@ -151,7 +151,6 @@ class Launcher {
             exitCode = await this._runMode(config, caps)
 
             duration.end('execute')
-            log.info('TEST INFO - should be visible')
             await logger.waitForBuffer()
             this.interface.finalise()
         } catch (err) {
