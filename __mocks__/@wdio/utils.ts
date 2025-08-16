@@ -16,9 +16,9 @@ import {
 import { UNICODE_CHARACTERS as UNICODE_CHARACTERS_ORIG, HOOK_DEFINITION as HOOK_DEFINITION_ORIG } from '../../packages/wdio-utils/src/constants.js'
 
 class DotReporter {
-    options: any
-    emit: any
-    constructor (options: any) {
+    options: unknown
+    emit: ReturnType<typeof vi.fn>
+    constructor (options: unknown) {
         this.options = options
         this.emit = vi.fn()
     }
@@ -70,7 +70,7 @@ const pluginMocks = {
 
 export const initializePlugin = vi.fn().mockImplementation(
     async (name: keyof typeof frameworkMocks, type: keyof typeof pluginMocks) => (
-        { default: (pluginMocks[type] as any)[name] }
+        { default: (pluginMocks[type] as Record<string, unknown>)[name] }
     )
 )
 export const initializeWorkerService = vi.fn().mockReturnValue([])
@@ -90,11 +90,11 @@ export const getArgumentType = getArgumentTypeOrig
  */
 export const executeSync = vi.fn()
 export const executeAsync = vi.fn()
-export const wrapCommand = (_: any, origFn: any) => origFn
+export const wrapCommand = <T>(_: string, origFn: (...args: unknown[]) => T): ((...args: unknown[]) => T) => origFn
 export const wrapGlobalTestMethod = vi.fn().mockReturnValue(vi.fn())
 export const executeHooksWithArgs = vi.fn()
-export const runFnInFiberContext = vi.fn().mockImplementation((fn) => {
-    return function (this: unknown, ...args: any[]) {
+export const runFnInFiberContext = vi.fn().mockImplementation((fn: (...args: unknown[]) => unknown) => {
+    return function (this: unknown, ...args: unknown[]) {
         return Promise.resolve(fn.apply(this, args))
     }
 })
@@ -120,3 +120,10 @@ export const startWebDriver = vi.fn((params) => {
 export const setupBrowser = vi.fn()
 export const setupDriver = vi.fn()
 export const enableFileLogging = vi.fn()
+
+export const duration = {
+    start: vi.fn(),
+    end: vi.fn().mockReturnValue(100),
+    getSummary: vi.fn().mockReturnValue('1.2s (setup 100ms, prepare 200ms, execute 800ms, complete 100ms)'),
+    reset: vi.fn()
+}
