@@ -357,7 +357,7 @@ export default class WDIOCLInterface extends EventEmitter {
             snapshotNotes.forEach((note) => this.log(note))
         }
 
-        log.info('Duration:\t', chalk.green(duration.getSummary()))
+        log.info('Duration:', chalk.green(duration.getSummary()))
         return this.log(
             '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
             this.#hasShard()
