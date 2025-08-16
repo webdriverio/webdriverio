@@ -18,6 +18,7 @@ Feature: Example feature
         Then  I should fail once but pass on the second run
 
     @skip(browserName="chrome")
+    @skip(browserName=["firefox","safari"])
     Scenario: Skipped... should never be executed
         Then  this test should fail
 

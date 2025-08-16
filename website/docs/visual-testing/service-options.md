@@ -442,7 +442,7 @@ The way tabbable elements are selected is based on the module [tabbable](https:/
 
 -   **Type:** `object`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The options that can be changed for the lines and dots if you use the `{save|check}Tabbable`-methods. The options are explained below.
@@ -451,7 +451,7 @@ The options that can be changed for the lines and dots if you use the `{save|che
 
 -   **Type:** `object`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The options to change the circle.
@@ -460,7 +460,7 @@ The options to change the circle.
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The background color of the circle.
@@ -469,7 +469,7 @@ The background color of the circle.
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The border color of the circle.
@@ -478,7 +478,7 @@ The border color of the circle.
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The border width of the circle.
@@ -487,7 +487,7 @@ The border width of the circle.
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The color of the font of the text in the circle. This will only be shown if [`showNumber`](./#tabbableoptionscircleshownumber) is set to `true`.
@@ -496,7 +496,7 @@ The color of the font of the text in the circle. This will only be shown if [`sh
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The family of the font of the text in the circle. This will only be shown if [`showNumber`](./#tabbableoptionscircleshownumber) is set to `true`.
@@ -507,7 +507,7 @@ Make sure to set fonts that are supported by the browsers.
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The size of the font of the text in the circle. This will only be shown if [`showNumber`](./#tabbableoptionscircleshownumber) is set to `true`.
@@ -516,7 +516,7 @@ The size of the font of the text in the circle. This will only be shown if [`sho
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The size of the circle.
@@ -525,7 +525,7 @@ The size of the circle.
 
 -   **Type:** `showNumber`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 Show the tab sequence number in the circle.
@@ -534,7 +534,7 @@ Show the tab sequence number in the circle.
 
 -   **Type:** `object`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The options to change the line.
@@ -543,7 +543,7 @@ The options to change the line.
 
 -   **Type:** `string`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The color of the line.
@@ -552,7 +552,7 @@ The color of the line.
 
 -   **Type:** `number`
 -   **Mandatory:** No
--   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/b7d66afadc88f03f09646c28806a687d2ae46000/packages/webdriver-image-comparison/src/helpers/options.ts#L6-L68) for all default values
+-   **Default:** See [here](https://github.com/webdriverio/visual-testing/blob/%40wdio/image-comparison-core%401.0.0/packages/image-comparison-core/src/helpers/options.ts#L27-L86) for all default values
 -   **Supported:** Web
 
 The width of the line.

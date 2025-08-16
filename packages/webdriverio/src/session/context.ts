@@ -115,7 +115,7 @@ export class ContextManager extends SessionManager {
          *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
          */
         if (event.command === 'closeWindow') {
-            const windowHandles = (event.result as { value: string[] }).value
+            const windowHandles = (event.result as { value?: string[] }).value || []
             if (windowHandles.length === 0) {
                 throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
             }

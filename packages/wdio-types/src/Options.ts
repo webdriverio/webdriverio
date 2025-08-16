@@ -327,6 +327,29 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * Shard tests and execute only the selected shard. Specify in the one-based form like `{ total: 5, current: 2 }`.
      */
     shard?: ShardOptions
+    /**
+     * Enable automatic Xvfb initialization in local runner for headless testing on Linux.
+     * When disabled, tests should manually call xvfb.init() if needed.
+     * @default true
+     */
+    autoXvfb?: boolean
+    /**
+     * Enable automatic installation of Xvfb packages on Linux if `xvfb-run` is missing.
+     * When false, the runner will warn and continue without installing.
+     * @default false
+     */
+    xvfbAutoInstall?: boolean
+    /**
+     * Number of retry attempts for xvfb process failures.
+     * @default 3
+     */
+    xvfbMaxRetries?: number
+    /**
+     * Base delay between retries in milliseconds for xvfb process failures.
+     * Progressive delay will be: xvfbRetryDelay * attemptNumber
+     * @default 1000
+     */
+    xvfbRetryDelay?: number
     // framework options
     /**
      * Mocha specific options

@@ -1,8 +1,4 @@
-import type { Capabilities } from '@wdio/types'
 import type { PinchAndZoomOptions } from '../types.js'
-
-const appiumKeys = ['app', 'bundleId', 'appPackage', 'appActivity', 'appWaitActivity', 'appWaitPackage'] as const
-type AppiumKeysType = typeof appiumKeys[number]
 
 export function getNativeContext({ capabilities, isMobile }:
 { capabilities: WebdriverIO.Capabilities, isMobile: boolean }
@@ -11,13 +7,6 @@ export function getNativeContext({ capabilities, isMobile }:
         return false
     }
 
-    const isAppiumAppCapPresent = (capabilities: Capabilities.RequestedStandaloneCapabilities) => {
-        return appiumKeys.some((key) => (
-            (capabilities as Capabilities.AppiumCapabilities)[key as keyof Capabilities.AppiumCapabilities] !== undefined ||
-            (capabilities as WebdriverIO.Capabilities)['appium:options']?.[key as AppiumKeysType] !== undefined ||
-            (capabilities as WebdriverIO.Capabilities)['lt:options']?.[key as AppiumKeysType] !== undefined
-        ))
-    }
     const isBrowserNameFalse = !!capabilities?.browserName === false
     const isAutoWebviewFalse = !(
         // @ts-expect-error
@@ -27,7 +16,7 @@ export function getNativeContext({ capabilities, isMobile }:
         capabilities['lt:options']?.autoWebview === true
     )
 
-    return isBrowserNameFalse && isAppiumAppCapPresent(capabilities) && isAutoWebviewFalse
+    return isBrowserNameFalse && isMobile && isAutoWebviewFalse
 }
 
 export function getMobileContext({ capabilities, isAndroid, isNativeContext }:

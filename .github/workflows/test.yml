@@ -78,3 +78,8 @@ jobs:
     name: E2E Tests
     needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
     uses: ./.github/workflows/test-standalone.yml
+
+  xvfb_tests:
+    name: XVFB E2E Tests
+    needs: [smoke_tests, component_tests, unit_tests, interop_tests, typing_tests]
+    uses: ./.github/workflows/test-xvfb-e2e.yml

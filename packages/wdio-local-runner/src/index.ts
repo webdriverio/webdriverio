@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
+import { XvfbManager } from '@wdio/xvfb'
 import type { Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
@@ -16,25 +17,42 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
+    private xvfbInitialized = false
+    private xvfbManager: XvfbManager
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
 
-    constructor (
+    constructor(
         private _options: never,
-        protected _config: WebdriverIO.Config
-    ) {}
+        protected config: WebdriverIO.Config
+    ) {
+        // Initialize XvfbManager
+        this.xvfbManager = new XvfbManager({
+            autoInstall: this.config.xvfbAutoInstall,
+            xvfbMaxRetries: this.config.xvfbMaxRetries,
+            xvfbRetryDelay: this.config.xvfbRetryDelay
+        })
+    }
 
     /**
-     * nothing to initialize when running locally
+     * initialize local runner environment
      */
-    initialize () {}
+    async initialize() {
+        // XVFB initialization is handled lazily during first worker creation, to access capabilities for headless detection
+    }
 
-    getWorkerCount () {
+    getWorkerCount() {
         return Object.keys(this.workerPool).length
     }
 
-    async run ({ command, args, ...workerOptions }: RunArgs) {
+    async run({ command, args, ...workerOptions }: RunArgs) {
+        // Initialize XVFB lazily on first worker creation
+        if (!this.xvfbInitialized) {
+            await this.initializeXvfb(workerOptions)
+            this.xvfbInitialized = true
+        }
+
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */
@@ -44,10 +62,41 @@ export default class LocalRunner {
             process.stderr.setMaxListeners(workerCnt + 2)
         }
 
-        const worker = new WorkerInstance(this._config, workerOptions, this.stdout, this.stderr)
+        const worker = new WorkerInstance(
+            this.config,
+            workerOptions,
+            this.stdout,
+            this.stderr,
+            this.xvfbManager
+        )
         this.workerPool[workerOptions.cid] = worker
-        worker.postMessage(command, args)
+        await worker.postMessage(command, args)
         return worker
+    }
+
+    /**
+     * Initialize XVFB with capability-aware detection
+     */
+    private async initializeXvfb(workerOptions: Workers.WorkerRunPayload) {
+        // Skip Xvfb initialization if disabled
+        if (this.config.autoXvfb === false) {
+            log.info('Skipping automatic Xvfb initialization (disabled by config)')
+            return
+        }
+
+        // Initialize Xvfb if needed for headless testing
+        try {
+            const capabilities = workerOptions.caps
+            const xvfbInitialized = await this.xvfbManager.init(capabilities)
+            if (xvfbInitialized) {
+                log.info('Xvfb is ready for use')
+            }
+        } catch (error) {
+            log.warn(
+                'Failed to initialize Xvfb, continuing without virtual display:',
+                error
+            )
+        }
     }
 
     /**
@@ -56,11 +105,18 @@ export default class LocalRunner {
      * @return {Promise}  resolves when all worker have been shutdown or
      *                    a timeout was reached
      */
-    shutdown () {
+    async shutdown() {
         log.info('Shutting down spawned worker')
 
         for (const [cid, worker] of Object.entries(this.workerPool)) {
-            const { capabilities, server, sessionId, config, isMultiremote, instances } = worker
+            const {
+                capabilities,
+                server,
+                sessionId,
+                config,
+                isMultiremote,
+                instances,
+            } = worker
             let payload: Partial<Workers.WorkerMessageArgs> = {}
 
             /**
@@ -73,21 +129,22 @@ export default class LocalRunner {
                     capabilities,
                     watch: true,
                     isMultiremote,
-                    instances
+                    instances,
                 } as unknown as Workers.WorkerMessageArgs
             } else if (!worker.isBusy) {
                 delete this.workerPool[cid]
                 continue
             }
 
-            worker.postMessage('endSession', payload)
+            await worker.postMessage('endSession', payload)
         }
 
-        return new Promise<boolean>((resolve) => {
+        const shutdownResult = await new Promise<boolean>((resolve) => {
             const timeout = setTimeout(resolve, SHUTDOWN_TIMEOUT)
             const interval = setInterval(() => {
-                const busyWorker = Object.entries(this.workerPool)
-                    .filter(([, worker]) => worker.isBusy).length
+                const busyWorker = Object.entries(this.workerPool).filter(
+                    ([, worker]) => worker.isBusy
+                ).length
 
                 log.info(`Waiting for ${busyWorker} to shut down gracefully`)
                 if (busyWorker === 0) {
@@ -98,5 +155,12 @@ export default class LocalRunner {
                 }
             }, 250)
         })
+
+        // Xvfb cleanup is handled automatically by xvfb-run
+        if (this.xvfbManager.shouldRun()) {
+            log.info('Xvfb cleanup handled automatically by xvfb-run')
+        }
+
+        return shutdownResult
     }
 }

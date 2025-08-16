@@ -306,7 +306,7 @@ export function transformClassicToBidiSelector (using: string, value: string): r
 export async function findDeepElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
-): Promise<ElementReference | Error> {
+): Promise<ElementReference | undefined> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
     const contextManager = getContextManager(browser)
@@ -349,7 +349,7 @@ export async function findDeepElement(
                 node as unknown as HTMLElement
             )
             return [isIn, node]
-        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem))
+        })).then((elems) => elems.filter(([isIn]) => isIn).map(([, elem]) => elem)) as ExtendedElementReference[]
 
         return scopedNodes[0]
     }, (err) => {
@@ -359,11 +359,7 @@ export async function findDeepElement(
             : browser.findElement(using, value)
     })
 
-    if (!deepElementResult) {
-        return new Error(`Couldn't find element with selector "${selector}"`)
-    }
-
-    return deepElementResult as ElementReference
+    return deepElementResult
 }
 
 /**
@@ -459,7 +455,9 @@ export async function findElement(
      * - and we are not in an iframe (because it is currently not supported to locate nodes in an iframe via Bidi)
      */
     if (this.isBidi && typeof selector === 'string' && !selector.startsWith(DEEP_SELECTOR) && !shadowRootManager.isWithinFrame()) {
-        return findDeepElement.call(this, selector)
+        const notFoundError = new Error(`Couldn't find element with selector "${selector}"`)
+        const elem = await findDeepElement.call(this, selector)
+        return getElementFromResponse(elem) ? elem : notFoundError
     }
 
     /**
