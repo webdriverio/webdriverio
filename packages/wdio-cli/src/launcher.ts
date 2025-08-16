@@ -67,9 +67,9 @@ class Launcher {
     }
 
     /**
-    * run sequence
-    * @return  {Promise}  that only gets resolved with either an exitCode or an error
-    */
+     * run sequence
+     * @return  {Promise}  that only gets resolved with either an exitCode or an error
+     */
     async run(): Promise<undefined | number> {
         duration.end('setup')
 
