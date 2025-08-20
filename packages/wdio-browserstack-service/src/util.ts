@@ -1129,7 +1129,7 @@ export function isBrowserstackInfra(config: BrowserstackConfig & Options.Testrun
     // In case hostname is not present anywhere in the config, it returns true by default as hostname is not a mandatory parameter in the config
 
     const isBrowserstack = (str: string ): boolean => {
-        return str.includes('browserstack.com')
+        return str === 'browserstack.com' || str.endsWith('.browserstack.com')
     }
 
     if ((config.hostname) && !isBrowserstack(config.hostname)) {
@@ -1293,6 +1293,10 @@ export function isUndefined(value: unknown) {
 
 export function isTrue(value?: unknown) {
     return (value + '').toLowerCase() === 'true'
+}
+
+export function isFalse(value?: unknown) {
+    return (value + '').toLowerCase() === 'false'
 }
 
 export function frameworkSupportsHook(hook: string, framework?: string) {
@@ -1652,12 +1656,27 @@ export function getBooleanValueFromString(value: string | undefined): boolean {
     return ['true'].includes(value.trim().toLowerCase())
 }
 
+/**
+ * Checks if a key is safe to use for object property assignment to prevent prototype pollution
+ * @param key - The key to check
+ * @returns true if the key is safe, false otherwise
+ */
+function isSafeKey(key: string): boolean {
+    const dangerousKeys = ['__proto__', 'constructor', 'prototype']
+    return !dangerousKeys.includes(key)
+}
+
 export function mergeDeep(target: Record<string, any>, ...sources: any[]): Record<string, any> {
     if (!sources.length) {return target}
     const source = sources.shift()
 
     if (isObject(target) && isObject(source)) {
         for (const key in source) {
+            // Skip dangerous keys that could lead to prototype pollution
+            if (!isSafeKey(key)) {
+                continue
+            }
+
             const sourceValue = source[key]
             const targetValue = target[key]
 

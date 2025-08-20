@@ -1,5 +1,5 @@
 import dns from 'node:dns'
-import { fetch, Agent, type RequestInit as UndiciRequestInit, ProxyAgent, type Dispatcher } from 'undici'
+import { fetch, Agent, type RequestInit as UndiciRequestInit, ProxyAgent, type Dispatcher, getGlobalDispatcher } from 'undici'
 
 import { environment } from '../environment.js'
 import { WebDriverRequest } from './request.js'
@@ -35,6 +35,28 @@ export class FetchRequest extends WebDriverRequest {
         }
 
         /**
+         * First check if a global dispatcher has been set (e.g. via setGlobalDispatcher)
+         */
+        try {
+            const globalDispatcher = getGlobalDispatcher()
+
+            // Check if the global dispatcher appears to be customized
+            // The default dispatcher is typically an Agent, but we check if it's
+            // a ProxyAgent or has proxy-specific properties
+            if (globalDispatcher && (
+                globalDispatcher.constructor.name === 'ProxyAgent' ||
+                'proxy' in globalDispatcher ||
+                // Also check for other custom dispatcher types
+                (globalDispatcher.constructor.name !== 'Agent' && globalDispatcher.constructor.name !== 'MockAgent')
+            )) {
+                return globalDispatcher
+            }
+        } catch {
+            // If getGlobalDispatcher fails for any reason, fall back to env vars
+        }
+
+        /**
+         * Fall back to creating a dispatcher based on environment variables
          * Use a proxy agent if we have a proxy url set
          */
         const { PROXY_URL, NO_PROXY } = environment.value.variables

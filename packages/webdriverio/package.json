@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "9.16.2",
+  "version": "9.19.1",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -66,12 +66,12 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
-    "@sinonjs/fake-timers": "^13.0.1",
+    "@sinonjs/fake-timers": "^14.0.0",
     "@types/archiver": "^6.0.2",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/lodash.zip": "^4.2.9",
-    "puppeteer-core": "^23.0.2",
+    "puppeteer-core": "^24.12.1",
     "safe-stable-stringify": "^2.4.3"
   },
   "dependencies": {
@@ -89,7 +89,7 @@
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "grapheme-splitter": "^1.0.4",
-    "htmlfy": "^0.6.0",
+    "htmlfy": "^0.8.1",
     "is-plain-obj": "^4.1.0",
     "jszip": "^3.10.1",
     "lodash.clonedeep": "^4.5.0",
@@ -97,7 +97,7 @@
     "query-selector-shadow-dom": "^1.0.1",
     "resq": "^1.11.0",
     "rgb2hex": "0.2.5",
-    "serialize-error": "^11.0.3",
+    "serialize-error": "^12.0.0",
     "urlpattern-polyfill": "^10.0.0",
     "webdriver": "workspace:*"
   },

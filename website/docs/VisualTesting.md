@@ -246,8 +246,7 @@ the `checkTabbablePage` will first create the _actual_ image and then compare it
 
 ##### Options
 
-Both methods use the same options as the [`saveFullPageScreen`](https://github.com/wswebcreation/webdriver-image-comparison/blob/master/docs/OPTIONS.md#savefullpagescreen-or-savetabbablepage) or the
-[`compareFullPageScreen`](https://github.com/wswebcreation/webdriver-image-comparison/blob/master/docs/OPTIONS.md#comparefullpagescreen-or-comparetabbablepage).
+Both methods use the same options as the `saveFullPageScreen` or the `compareFullPageScreen`.
 
 #### Example
 

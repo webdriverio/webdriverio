@@ -1,6 +1,6 @@
 {
   "name": "@wdio/logger",
-  "version": "9.16.2",
+  "version": "9.18.0",
   "description": "A helper utility for logging of WebdriverIO packages",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger",
@@ -40,6 +40,7 @@
     "chalk": "^5.1.2",
     "loglevel": "^1.6.0",
     "loglevel-plugin-prefix": "^0.8.4",
+    "safe-regex2": "^5.0.0",
     "strip-ansi": "^7.1.0"
   },
   "publishConfig": {

@@ -1,10 +1,12 @@
 import os from 'node:os'
 import ws from 'ws'
+import type { Options } from '@wdio/types'
 
 import WebDriver from './index.js'
 import { FetchRequest } from './request/node.js'
 import { FetchRequest as WebFetchRequest } from './request/web.js'
 import { createBidiConnection } from './node/bidi.js'
+import { killDriverProcess } from './node/utils.js'
 import type { BrowserSocket } from './bidi/socket.js'
 
 export default WebDriver
@@ -29,7 +31,10 @@ environment.value = {
     ) ? WebFetchRequest : FetchRequest,
     Socket: ws as unknown as typeof BrowserSocket,
     createBidiConnection,
+    killDriverProcess,
     variables: {
+        WDIO_LOG_LEVEL: process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined,
+        WDIO_UNIT_TESTS: process.env.WDIO_UNIT_TESTS,
         WEBDRIVER_CACHE_DIR: process.env.WEBDRIVER_CACHE_DIR || os.tmpdir(),
         PROXY_URL: process.env.HTTP_PROXY || process.env.HTTPS_PROXY,
         NO_PROXY: process.env.NO_PROXY && process.env.NO_PROXY.trim()

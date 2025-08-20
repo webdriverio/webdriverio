@@ -38,8 +38,9 @@ Boilerplate project to run WebdriverIO tests on a minimal Electron application.
 - Features
     - Electron API mocking
 
-## [amiya-pattnaik/gherkin-to-webdriverIO-test-generator](https://github.com/amiya-pattnaik/gherkin-to-webdriverIO-test-generator)
-Automatically generate WebdriverIO Page Object classes and Mocha test specs from Gherkin .feature files — reducing manual effort, improving consistency, and speeding up QA automation. This project not only produces codes compatible with webdriver.io but also enhances all functionalities of webdriver.io.
+## [amiya-pattnaik/wdio-testgen-from-gherkin-js](https://github.com/amiya-pattnaik/wdio-testgen-from-gherkin-js)
+## [amiya-pattnaik/wdio-testgen-from-gherkin-ts](https://github.com/amiya-pattnaik/wdio-testgen-from-gherkin-ts)
+Automatically generate WebdriverIO Page Object classes and Mocha test specs from Gherkin .feature files — reducing manual effort, improving consistency, and speeding up QA automation. This project not only produces codes compatible with webdriver.io but also enhances all functionalities of webdriver.io. We have created two flavours one for JavaScript uses and other for TypeScript users. But both project works in the smae way.
 
 ***How It Works?***
 - The process follows a two-step automation:
@@ -57,19 +58,25 @@ Automatically generate WebdriverIO Page Object classes and Mocha test specs 
   - Generate a base page.js class with shared methods and browser.url() setup.
   - Generate WebdriverIO-compatible Page Object Model (POM) classes per feature inside test/pageobjects/.
   - Generate Mocha-based test specs.
-- Directory Structure
+- Example of Directory Structure for JavaScript / TypeScript. Below is for JS version, TS version has smae structure as well.
 ```
 project-root/
-├── features/               # Input Gherkin feature files
-├── stepMaps/               # Generated step maps (JSON)
-├── test/
-│   ├── pageobjects/        # Generated base Page class, Page Object classes
-│   └── specs/              # Generated test specs
-├── generateStepMap.js      # StepMap generator script
-├── generateTestsFromMap.js # PageObject + test spec generator script
-├── package.json
-├── README.md
-└── wdio.conf.js
+├── features/                   # Gherkin .feature files (user input / source file)
+├── stepMaps/                   # Auto-generated .stepMap.json files
+├── test/                 
+│   ├── pageobjects/            # Auto-generated WebdriverIO tests Page Object Model classes
+│   └── specs/                  # Auto-generated Mocha test specs
+├── src/
+│   ├── cli.js                  # Main CLI logic
+│   ├── generateStepsMap.js     # Feature-to-stepMap generator
+│   ├── generateTestsFromMap.js # stepMap-to-page/spec generator
+│   ├── utils.js                # Helper methods
+│   └── config.js               # Paths, fallback selectors, aliases
+│   └── __tests__/              # Unit tests (Vitest)
+├── testgen.js                  # CLI entry point
+│── wdio.config.js              # WebdriverIO configuration
+├── package.json                # Scripts and dependencies
+├── selector-aliases.json       # Optional user-defined selector overrides the primary selector
 ```
 ---
 # v8 Boilerplate Projects

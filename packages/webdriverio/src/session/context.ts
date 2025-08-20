@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 
 import { SessionManager } from './session.js'
 import { getMobileContext, getNativeContext } from '../utils/mobile.js'
+import { environment } from '../environment.js'
 
 const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
@@ -114,7 +115,7 @@ export class ContextManager extends SessionManager {
          *   > the result of running the remote end steps for the Get Window Handles command, with session, URL variables and parameters.
          */
         if (event.command === 'closeWindow') {
-            const windowHandles = (event.result as { value: string[] }).value
+            const windowHandles = (event.result as { value?: string[] }).value || []
             if (windowHandles.length === 0) {
                 throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
             }
@@ -187,7 +188,7 @@ export class ContextManager extends SessionManager {
         /**
          * don't run this in unit tests
          */
-        if (process.env.WDIO_UNIT_TESTS) {
+        if (environment.value.variables.WDIO_UNIT_TESTS) {
             return ''
         }
 

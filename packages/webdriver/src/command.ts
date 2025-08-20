@@ -50,7 +50,10 @@ export default function (
          * internally where we don't want to have the message shown to the user. In these cases we
          * use the `DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS` env variable to suppress the message.
          */
-        if (typeof deprecated === 'string' && !process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS) {
+        const DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS = globalThis.process && globalThis.process.env
+            ? globalThis.process.env.DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS
+            : undefined
+        if (typeof deprecated === 'string' && !DISABLE_WEBDRIVERIO_DEPRECATION_WARNINGS) {
             const warning = deprecated.replace('This command', `The "${command}" command`)
             log.warn(warning)
             console.warn(`⚠️ [WEBDRIVERIO DEPRECATION NOTICE] ${warning}`)
@@ -191,38 +194,16 @@ export default function (
                 const browser = this as { _bidiHandler?: BidiHandler }
                 browser._bidiHandler?.close()
 
-                const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
                 /**
                  * kill driver process if there is one
                  */
-                if (shutdownDriver && 'wdio:driverPID' in this.capabilities && this.capabilities['wdio:driverPID']) {
-                    log.info(`Kill driver process with PID ${this.capabilities['wdio:driverPID']}`)
-                    try {
-                        const killedSuccessfully = process.kill(this.capabilities['wdio:driverPID'], 'SIGKILL')
-                        if (!killedSuccessfully) {
-                            log.warn('Failed to kill driver process, manually clean-up might be required')
-                        }
-                    } catch (err) {
-                        log.warn('Failed to kill driver process', err)
-                    }
-
-                    setTimeout(() => {
-                        /**
-                         * clear up potential leaked TLS Socket handles
-                         * see https://github.com/puppeteer/puppeteer/pull/10667
-                         */
-                        for (const handle of process._getActiveHandles()) {
-                            if (handle.servername && handle.servername.includes('edgedl.me')) {
-                                handle.destroy()
-                            }
-                        }
-                    }, 10)
-                }
+                const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
+                environment.value.killDriverProcess(this.capabilities, shutdownDriver)
 
                 /**
                  * clear logger stream if session has been terminated
                  */
-                if (!process.env.WDIO_WORKER_ID) {
+                if (!environment.value.variables.WDIO_WORKER_ID) {
                     logger.clearLogger()
                 }
             }

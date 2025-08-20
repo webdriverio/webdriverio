@@ -1,6 +1,6 @@
 {
   "name": "webdriver",
-  "version": "9.16.2",
+  "version": "9.19.1",
   "description": "A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
@@ -44,7 +44,8 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^7.0.3",
-    "undici": "^6.20.1",
+    "https-proxy-agent": "^7.0.6",
+    "undici": "^6.21.3",
     "ws": "^8.8.0"
   }
 }

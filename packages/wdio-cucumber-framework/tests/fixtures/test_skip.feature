@@ -4,7 +4,8 @@ Feature: Test Feature
     Given a step passes
     When a step passes
 
-  @skip(browserName="chrome") 
+  @skip(browserName="chrome")
+  @skip(browserName=["firefox","safari"])
   Scenario: Scenario #1
     Given a step passes
     When a step passes

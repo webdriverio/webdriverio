@@ -1,5 +1,6 @@
 /// <reference types="@wdio/lighthouse-service" />
 
+import fs from 'node:fs/promises'
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
@@ -16,7 +17,7 @@ describe('main suite 1', () => {
         await expect($('.findme')).toMatchSnapshot()
         await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
-  
+
     it('should support input value with sensitive information', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
@@ -632,7 +633,8 @@ describe('main suite 1', () => {
 
                 const screenshotPath = path.resolve(__dirname, 'iframe.png')
                 await browser.saveScreenshot(screenshotPath)
-                const dimensions = imageSize(screenshotPath) as { width: number, height: number }
+                const image = await fs.readFile(screenshotPath)
+                const dimensions = imageSize(image) as { width: number, height: number }
                 console.log(`Screenshot dimensions: ${JSON.stringify(dimensions)}`)
 
                 expect(dimensions.width).toBeGreaterThanOrEqual(170)
@@ -663,6 +665,30 @@ describe('main suite 1', () => {
                 })
             })
         })
+
+        describe('switchFrame with iframe in shadow DOM', () => {
+            beforeEach(async () => {
+                await browser.url('https://guinea-pig.webdriver.io/iframeInShadowDom.html')
+            })
+
+            it('should switch to iframe inside shadow root via element', async () => {
+                const host = await browser.$('#wrapper')
+                const iframe = await host.shadow$('iframe')
+
+                // Switch to the iframe inside the shadow DOM
+                await browser.switchFrame(await browser.$(iframe))
+
+                const [title, url] = await browser.execute(() => [document.title, document.URL])
+                expect(title).toBe('Iframe Target')
+                expect(url).toContain('iframeTarget.html')
+            })
+
+            it('should work when using the url', async () => {
+                await browser.switchFrame('https://guinea-pig.webdriver.io/iframeTarget.html')
+                await expect($('h1')).toHaveText('Iframe Target')
+            })
+        })
+
     })
 
     describe('open resources with different protocols', () => {

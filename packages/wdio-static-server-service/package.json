@@ -1,6 +1,6 @@
 {
   "name": "@wdio/static-server-service",
-  "version": "9.16.2",
+  "version": "9.19.1",
   "description": "A WebdriverIO service that can serve your static websites",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-static-server-service",
@@ -38,7 +38,7 @@
   "dependencies": {
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
-    "express": "^4.14.0",
+    "express": "^5.1.0",
     "morgan": "^1.7.0"
   },
   "devDependencies": {

@@ -4,10 +4,12 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
+import { getGlobalDispatcher, ProxyAgent, Agent } from 'undici'
 
 import '../src/browser.js'
 import { FetchRequest as WebFetchRequest } from '../src/request/web.js'
 import { FetchRequest, SESSION_DISPATCHERS } from '../src/request/node.js'
+import { environment } from '../src/environment.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fetch')
@@ -16,6 +18,8 @@ vi.mock('undici', () => {
         fetch: vi.fn(async () => ({ ok: true, status: 200, json: async () => ({}) })),
         Agent: vi.fn().mockImplementation(() => ({ close: vi.fn() })),
         ProxyAgent: vi.fn().mockImplementation(() => ({ close: vi.fn() })),
+        getGlobalDispatcher: vi.fn(),
+        setGlobalDispatcher: vi.fn()
     }
 })
 
@@ -25,14 +29,23 @@ const webdriverPath = '/session'
 const defaultOptions = {
     protocol: 'http',
     hostname: 'localhost',
-    port: 4444
+    port: 4444,
+    connectionRetryTimeout: 10000
 }
 const baseUrl = `${defaultOptions.protocol}://${defaultOptions.hostname}:${defaultOptions.port}`
 
 describe('webdriver request', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.mocked(fetch).mockClear()
         SESSION_DISPATCHERS.clear()
+        // Reset environment variables
+        environment.value.variables.PROXY_URL = undefined
+        environment.value.variables.NO_PROXY = []
+        // Clear all mocks from undici
+        const { getGlobalDispatcher, ProxyAgent, Agent } = vi.mocked(await import('undici'))
+        vi.mocked(getGlobalDispatcher).mockClear()
+        vi.mocked(ProxyAgent).mockClear()
+        vi.mocked(Agent).mockClear()
     })
 
     it('should have some default options', () => {
@@ -440,7 +453,6 @@ describe('webdriver request', () => {
         }, 20_000)
 
         it('should throw if request error is unknown', async () => {
-            console.log('TESTING', AbortSignal)
             const req = new WebFetchRequest('POST', '/sumoerror', {}, undefined, true)
             const result = await req.makeRequest({
                 protocol: 'https',
@@ -514,6 +526,117 @@ describe('webdriver request', () => {
         })
     })
 
+    describe('proxy configuration', () => {
+        beforeEach(() => {
+            // Reset environment variables before each test
+            environment.value.variables.PROXY_URL = undefined
+            environment.value.variables.NO_PROXY = []
+            vi.mocked(getGlobalDispatcher).mockReturnValue({
+                close: vi.fn(),
+                constructor: { name: 'ProxyAgent' }
+            } as any)
+        })
+
+        it('should use global dispatcher if set', async () => {
+            const { getGlobalDispatcher, ProxyAgent } = await import('undici')
+            const customDispatcher = { type: 'custom-proxy', close: vi.fn() }
+
+            // Mock getGlobalDispatcher to return a custom dispatcher
+            vi.mocked(getGlobalDispatcher).mockReturnValue(customDispatcher as any)
+
+            const req = new FetchRequest('GET', '/test', {})
+            const { requestOptions } = await req.createOptions(defaultOptions) as { requestOptions: any }
+
+            expect(requestOptions.dispatcher).toBe(customDispatcher)
+            expect(ProxyAgent).not.toHaveBeenCalled()
+        })
+
+        it('should fall back to environment variables if no global dispatcher is set', async () => {
+            // Mock getGlobalDispatcher to return a default Agent (meaning no custom global dispatcher)
+            const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
+            vi.mocked(Agent).mockReturnValue(defaultAgent as any)
+            vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
+
+            // Set proxy environment variable
+            environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
+
+            const req = new FetchRequest('GET', '/test', {})
+            await req.createOptions(defaultOptions)
+
+            expect(ProxyAgent).toHaveBeenCalledWith({
+                uri: 'http://proxy.example.com:8080',
+                connectTimeout: defaultOptions.connectionRetryTimeout,
+                headersTimeout: defaultOptions.connectionRetryTimeout,
+                bodyTimeout: defaultOptions.connectionRetryTimeout,
+            })
+        })
+
+        it('should use environment proxy unless excluded by NO_PROXY', async () => {
+            // Mock getGlobalDispatcher to return a default Agent
+            const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
+            vi.mocked(Agent).mockReturnValue(defaultAgent as any)
+            vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
+
+            environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
+            environment.value.variables.NO_PROXY = ['localhost', '.internal.com']
+
+            const req = new FetchRequest('GET', '/test', {})
+
+            // Reset mocks before tests
+            vi.mocked(ProxyAgent).mockClear()
+            vi.mocked(Agent).mockClear()
+
+            // Should use proxy for external host
+            await req.createOptions({ ...defaultOptions, hostname: 'external.com' })
+            expect(ProxyAgent).toHaveBeenCalledTimes(1)
+            expect(Agent).toHaveBeenCalledTimes(0)
+
+            vi.mocked(ProxyAgent).mockClear()
+            vi.mocked(Agent).mockClear()
+
+            // Should not use proxy for excluded host
+            await req.createOptions({ ...defaultOptions, hostname: 'api.internal.com' })
+            expect(ProxyAgent).not.toHaveBeenCalled()
+            expect(Agent).toHaveBeenCalledTimes(1) // Once for global dispatcher mock, once for actual dispatcher
+        })
+
+        it('should handle getGlobalDispatcher errors gracefully', async () => {
+            // Mock getGlobalDispatcher to throw an error
+            vi.mocked(getGlobalDispatcher).mockImplementation(() => {
+                throw new Error('getGlobalDispatcher not available')
+            })
+
+            environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
+
+            const req = new FetchRequest('GET', '/test', {})
+            await req.createOptions(defaultOptions)
+
+            // Should fall back to environment variables
+            expect(ProxyAgent).toHaveBeenCalledWith({
+                uri: 'http://proxy.example.com:8080',
+                connectTimeout: defaultOptions.connectionRetryTimeout,
+                headersTimeout: defaultOptions.connectionRetryTimeout,
+                bodyTimeout: defaultOptions.connectionRetryTimeout,
+            })
+        })
+
+        it('should not use proxy if neither global dispatcher nor env vars are set', async () => {
+            // Mock getGlobalDispatcher to return a default Agent
+            const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
+            vi.mocked(Agent).mockReturnValue(defaultAgent as any)
+            vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
+
+            // Ensure no proxy environment variables are set
+            environment.value.variables.PROXY_URL = undefined
+
+            const req = new FetchRequest('GET', '/test', {})
+            await req.createOptions(defaultOptions)
+
+            expect(ProxyAgent).not.toHaveBeenCalled()
+            expect(Agent).toHaveBeenCalledTimes(1)
+        })
+    })
+
     afterEach(() => {
         // @ts-ignore
         vi.mocked(fetch).retryCnt = 0
@@ -523,5 +646,9 @@ describe('webdriver request', () => {
         vi.mocked(error).mockClear()
 
         SESSION_DISPATCHERS.clear()
+
+        // Reset environment variables
+        environment.value.variables.PROXY_URL = undefined
+        environment.value.variables.NO_PROXY = []
     })
 })

@@ -1,12 +1,35 @@
-import crypto from 'node:crypto'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 import { isBase64Safe } from '../src/bidi/utils.js'
 
+function getRandomBytes(length: number): Uint8Array {
+    const MAX_CHUNK = 65536
+    const result = new Uint8Array(length)
+
+    for (let i = 0; i < length; i += MAX_CHUNK) {
+        const chunkSize = Math.min(MAX_CHUNK, length - i)
+        const chunk = crypto.getRandomValues(new Uint8Array(chunkSize))
+        result.set(chunk, i)
+    }
+
+    return result
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+    // Avoid stack overflows by processing in chunks
+    let binary = ''
+    const CHUNK_SIZE = 8192
+    for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+        const chunk = bytes.subarray(i, i + CHUNK_SIZE)
+        binary += String.fromCharCode.apply(null, chunk as unknown as number[])
+    }
+    return btoa(binary)
+}
+
 // Helper functions for the tests
 const generateBase64 = (length: number): string => {
-    const randomBytes = crypto.randomBytes(length)
-    return Buffer.from(randomBytes).toString('base64')
+    const randomBytes = getRandomBytes(length)
+    return bytesToBase64(randomBytes)
 }
 
 const generateInvalidBase64 = (length: number): string => {
@@ -138,7 +161,9 @@ describe('bidi utils', () => {
             expect(isBase64Safe(invalidAtMiddleExact)).toBe(false)
         })
 
-        it('should validate random valid base64 strings of various lengths', () => {
+        it('should validate random valid base64 strings of various lengths', {
+            timeout: 300_000 // this can be a potential long test
+        }, () => {
             // Test valid strings
             for (let i = 0; i < 10000; i++) {
                 // Generate random length between 0 and 1000000
@@ -156,7 +181,9 @@ describe('bidi utils', () => {
             }
         })
 
-        it('should identify random invalid base64 strings of various lengths', () => {
+        it('should identify random invalid base64 strings of various lengths', {
+            timeout: 300_000 // this can be a potential long test
+        }, () => {
             // Test invalid strings
             for (let i = 0; i < 10000; i++) {
                 // Generate random length between 1 and 1000000

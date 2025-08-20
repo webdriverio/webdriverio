@@ -376,7 +376,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
             '\nIf you use a grid server ' + w3cCapMessage
     }
 
-    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && params.hostname?.endsWith('saucelabs.com')) {
+    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && (params.hostname === 'saucelabs.com' || params.hostname?.endsWith('.saucelabs.com'))) {
         return 'Session request was not authorized because you either did provide a wrong access key or tried to run ' +
             'in a region that has not been enabled for your user. If have registered a free trial account it is connected ' +
             'to a specific region. Ensure this region is set in your configuration (https://webdriver.io/docs/options.html#region).'
@@ -400,7 +400,7 @@ export function initiateBidi (
     /**
      * don't connect and stale unit tests when the websocket url is set to a dummy value
      */
-    const isUnitTesting = process.env.WDIO_UNIT_TESTS
+    const isUnitTesting = environment.value.variables.WDIO_UNIT_TESTS
     if (isUnitTesting) {
         log.info('Skip connecting to WebDriver Bidi interface due to unit tests')
         return {
@@ -443,7 +443,7 @@ export function initiateBidi (
     }
 }
 
-export function parseBidiMessage (this: EventEmitter, data: Buffer) {
+export function parseBidiMessage (this: EventEmitter, data: ArrayBuffer) {
     try {
         const payload: Event = JSON.parse(data.toString())
         if (payload.type !== 'event') {

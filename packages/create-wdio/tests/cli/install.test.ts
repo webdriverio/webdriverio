@@ -1,11 +1,10 @@
 import fs from 'node:fs/promises'
-import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
 
-import * as installCmd from '../../src/commands/install.js'
-import * as configCmd from '../../src/commands/config.js'
+import * as installCmd from '../../src/cli/install.js'
+import * as configCmd from '../../src/cli/config.js'
 import * as utils from '../../src/utils.js'
 import { installPackages } from '../../src/install.js'
 
@@ -18,7 +17,6 @@ vi.mock('node:fs/promises', async (orig) => ({
         writeFile: vi.fn().mockResolvedValue({})
     }
 }))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../src/install', () => ({
     installPackages: vi.fn(),
     getInstallCommand: vi.fn().mockReturnValue('npm install foo bar --save-dev')
@@ -36,7 +34,7 @@ const findInConfigMock = vi.spyOn(utils, 'findInConfig')
 describe('Command: install', () => {
     beforeEach(() => {
         vi.spyOn(console, 'log')
-        vi.spyOn(process, 'exit').mockImplementation((code?: number): never => code as never)
+        vi.spyOn(process, 'exit').mockImplementation(((code?: number): never => code as never) as any)
         vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.resolve() as any)
         vi.spyOn(utils, 'addServiceDeps')
         vi.spyOn(utils, 'replaceConfig').mockReturnValueOnce({ foo: 123 } as any)
@@ -67,7 +65,7 @@ describe('Command: install', () => {
     })
 
     it('should prompt missing configuration', async () => {
-        vi.spyOn(configCmd, 'formatConfigFilePaths').mockReturnValue({ fullPath: '/absolute/path/to/wdio.conf.js', fullPathNoExtension: '/absolute/path/to/wdio.conf' } as any)
+        vi.spyOn(utils, 'formatConfigFilePaths').mockReturnValue({ fullPath: '/absolute/path/to/wdio.conf.js', fullPathNoExtension: '/absolute/path/to/wdio.conf' } as any)
         vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
         vi.mocked(fs.access).mockRejectedValue(new Error('Doesn\'t exist'))
 

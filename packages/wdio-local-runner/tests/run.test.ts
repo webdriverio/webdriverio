@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { beforeAll, expect, test, afterAll, vi } from 'vitest'
+import { afterAll, beforeAll, expect, test, vi } from 'vitest'
 
 // @ts-ignore mock exports instances, package doesn't
 import { instances } from '@wdio/runner'
@@ -13,12 +13,16 @@ const exitHookMock = vi.fn((callback: Function) => {
     return () => {} // return unsubscribe function
 })
 
+const gracefulExitMock = vi.fn()
+
 vi.mock('exit-hook', () => ({
-    default: exitHookMock
+    default: exitHookMock,
+    asyncExitHook: exitHookMock,
+    gracefulExit: gracefulExitMock
 }))
 
 vi.mock('../src/constants', () => ({
-    SHUTDOWN_TIMEOUT: 1
+    SHUTDOWN_TIMEOUT: 10
 }))
 
 const sleep = (ms = 100) => new Promise(
@@ -83,33 +87,47 @@ test('should exit process if failing to execute', async () => {
 
 })
 
-test('exitHook should set sigintWasCalled when triggered', async () => {
-    expect(runner.sigintWasCalled).toBe(undefined)
-
-    // Trigger the exit hook callback
-    if (exitHookCallback) {
-        const promise = exitHookCallback()
-        expect(runner.sigintWasCalled).toBe(true)
-
-        // The callback should return a promise that resolves after SHUTDOWN_TIMEOUT
-        expect(promise).toBeInstanceOf(Promise)
-        await promise
-    }
+test('should call gracefulExit with exit code on exit', () => {
+    const exitListener = instances[0].on.mock.calls.find(([event]: [string]) => event === 'exit')?.[1]
+    expect(exitListener).toBeDefined()
+    exitListener?.(5)
+    expect(gracefulExitMock).toHaveBeenCalledWith(5)
 })
 
-test('exitHook should wait for shutdown timeout', async () => {
-    if (exitHookCallback) {
-        const startTime = Date.now()
-        await exitHookCallback()
-        const endTime = Date.now()
+test('should call gracefulExit(130) and set sigintWasCalled on SIGINT', () => {
+    // Find SIGINT listener
+    const sigintListener = vi.mocked(process.on).mock.calls.find(([event]) => event === 'SIGINT')?.[1]
+    expect(sigintListener).toBeDefined()
+    sigintListener?.()
+    expect(runner.sigintWasCalled).toBe(true)
+    expect(gracefulExitMock).toHaveBeenCalledWith(130)
+})
 
-        // Should wait at least SHUTDOWN_TIMEOUT (1ms in test due to mock)
-        expect(endTime - startTime).toBeGreaterThanOrEqual(1)
-    }
+test('should delay shutdown in exitHook if SIGINT was received', async () => {
+    runner.sigintWasCalled = true
+    const startTime = process.hrtime.bigint()
+    await exitHookCallback?.()
+    const endTime = process.hrtime.bigint()
+    // Should wait at least SHUTDOWN_TIMEOUT (10ms in test due to mock)
+    // Use nanosecond precision and allow for 9ms minimum to account for timing variance
+    const elapsedMs = Number(endTime - startTime) / 1_000_000
+    expect(elapsedMs).toBeGreaterThanOrEqual(9)
+})
+
+test('should not delay in exitHook if SIGINT was not received', async () => {
+    runner.sigintWasCalled = false
+    const startTime = process.hrtime.bigint()
+    await exitHookCallback?.()
+    const endTime = process.hrtime.bigint()
+    // Should not wait (almost immediate) when sigintWasCalled = false
+    // Allow up to 5ms for normal async overhead
+    const elapsedMs = Number(endTime - startTime) / 1_000_000
+    expect(elapsedMs).toBeLessThan(5)
 })
 
 afterAll(() => {
     vi.mocked(process.on).mockRestore()
     vi.mocked(process.send)!.mockRestore()
+    gracefulExitMock.mockReset()
     process.exit = origExit
 })

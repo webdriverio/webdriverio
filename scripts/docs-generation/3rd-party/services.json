@@ -90,6 +90,13 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-slack-service"
   },
   {
+    "packageName": "@tvlabs/wdio-service",
+    "title": "TV Labs",
+    "branch": "main",
+    "githubUrl": "https://github.com/tv-labs/wdio-tvlabs-service/",
+    "npmUrl": "https://www.npmjs.com/package/@tvlabs/wdio-service"
+  },
+  {
     "packageName": "wdio-lambdatest-service",
     "title": "LambdaTest",
     "branch": "master",
@@ -212,5 +219,11 @@
     "title": "QUnit",
     "githubUrl": "https://github.com/mauriciolauffer/wdio-qunit-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-qunit-service"
+  },
+  {
+    "packageName": "wdio-obsidian-service",
+    "title": "Obsidian Plugin Testing",
+    "githubUrl": "https://github.com/jesse-r-s-hines/wdio-obsidian-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-obsidian-service"
   }
 ]

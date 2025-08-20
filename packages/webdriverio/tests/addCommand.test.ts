@@ -356,6 +356,35 @@ describe('addCommand', () => {
             // @ts-ignore uses expect-webdriverio
             expect.assertions(2)
         })
+
+        describe('when browser custom command is a function', () => {
+            test('should return result when running custom command as a function', async () => {
+                const browser = await remote(remoteConfig)
+                browser.addCommand(
+                    'press1',
+                    () => 'command result'
+                )
+
+                // @ts-expect-error undefined custom command
+                expect(await browser.press1()).toEqual('command result')
+            })
+        })
+
+        describe('when element custom command is a function', () => {
+            test('should return result when running custom command as a function', async () => {
+                const browser = await remote(remoteConfig)
+                browser.addCommand(
+                    'press2',
+                    () => {return 'command result'},
+                    true
+                )
+
+                const element = await browser.$('.someRandomElement')
+
+                // @ts-expect-error undefined custom command
+                expect(await element.press2()).toEqual('command result')
+            })
+        })
     })
 
     describe('multiremote', () => {

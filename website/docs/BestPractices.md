@@ -92,7 +92,7 @@ await expect(button).toBeDisplayed()
 
 ## Lazy loading and promise chaining
 
-WebdriverIO has some tricks up it's sleeve when it comes to writing clean code as it can lazy load the element which allows you to chain your promises and reduces the amount of `await`. This also allows you to pass the element as a ChainablePromiseElement instead of an Element and for easier use with page objects.
+WebdriverIO has some tricks up its sleeve when it comes to writing clean code as it can lazy load the element which allows you to chain your promises and reduces the amount of `await`. This also allows you to pass the element as a ChainablePromiseElement instead of an Element and for easier use with page objects.
 
 So when do you have to use `await`?
 You should always use `await` with the exception of the `$` and `$$` command.
@@ -131,7 +131,7 @@ await expect(button).toBeDisplayed()
 await expect(button).toBeDisplayed()
 ```
 
-No need to wait for an element to exist or be displayed when interacting or when asserting something like it's text unless the element can explicitly be invisible (opacity: 0 for example) or can explicitly be disabled (disabled attribute for example) in which case waiting for the element to be displayed makes sense.
+No need to wait for an element to exist or be displayed when interacting or when asserting something like its text unless the element can explicitly be invisible (opacity: 0 for example) or can explicitly be disabled (disabled attribute for example) in which case waiting for the element to be displayed makes sense.
 
 ```js
 // 👎
@@ -165,7 +165,7 @@ Using eslint to lint your code you can potentially catch errors early, use our [
 
 ## Don't pause
 
-It can be tempting to use the pause command but using this is a bad idea as it isn't resilient and will only cause for flaky tests in the long run.
+It can be tempting to use the pause command but using this is a bad idea as it isn't resilient and will only cause flaky tests in the long run.
 
 ```js
 // 👎
@@ -184,11 +184,11 @@ await submitFormButton.click()
 When you have some asynchronous code that you want to repeat, it is important to know that not all loops can do this.
 For example, the Array's forEach function does not allow for asynchronous callbacks as can be read over on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach).
 
-__Note:__ You can still use these when you do not need the operation to be synchronous like in shown in this example `console.log(await $$('h1').map((h1) => h1.getText()))`.
+__Note:__ You can still use these when you do not need the operation to be asynchronous like in shown in this example `console.log(await $$('h1').map((h1) => h1.getText()))`.
 
 Below are some examples of what this means.
 
-The following will not work as asynchronous callback are not supported.
+The following will not work as asynchronous callbacks are not supported.
 
 ```js
 // 👎
