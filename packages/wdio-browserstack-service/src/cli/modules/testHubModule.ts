@@ -9,7 +9,7 @@ import { TestFrameworkConstants } from '../frameworks/constants/testFrameworkCon
 import { GrpcClient } from '../grpcClient.js'
 import type TestFrameworkInstance from '../instances/testFrameworkInstance.js'
 // eslint-disable-next-line camelcase
-import type { LogCreatedEventRequest, LogCreatedEventRequest_LogEntry, TestFrameworkEventRequest, TestSessionEventRequest, TestSessionEventRequest_AutomationSession } from '../../proto/sdk-messages.js'
+import type { LogCreatedEventRequest, LogCreatedEventRequest_LogEntry, TestFrameworkEventRequest, TestSessionEventRequest, AutomationSession } from '@browserstack/wdio-browserstack-service'
 import type { Frameworks } from '@wdio/types'
 import WdioMochaTestFramework from '../frameworks/wdioMochaTestFramework.js'
 import type AutomationFrameworkInstance from '../instances/automationFrameworkInstance.js'
@@ -189,7 +189,7 @@ export default class TestHubModule extends BaseModule {
                     : 'unknown_grid'
 
                 // eslint-disable-next-line camelcase
-                const automationSession: TestSessionEventRequest_AutomationSession = {
+                const automationSession: AutomationSession = {
                     provider: sessionProvider,
                     ref: autoInstance.getRef(),
                     hubUrl: this.config.hubUrl as string,

@@ -10,7 +10,7 @@ import AutomateModule from './modules/automateModule.js'
 import TestHubModule from './modules/testHubModule.js'
 
 import type { ChildProcess } from 'node:child_process'
-import type { StartBinSessionResponse } from '../proto/sdk-messages.js'
+import type { StartBinSessionResponse } from '@browserstack/wdio-browserstack-service'
 import type BaseModule from './modules/baseModule.js'
 import { BROWSERSTACK_ACCESSIBILITY, BROWSERSTACK_OBSERVABILITY, BROWSERSTACK_TESTHUB_JWT, BROWSERSTACK_TESTHUB_UUID, CLI_STOP_TIMEOUT, TESTOPS_BUILD_COMPLETED_ENV, TESTOPS_SCREENSHOT_ENV } from '../constants.js'
 import type { Options } from '@wdio/types'

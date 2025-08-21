@@ -1,7 +1,0 @@
-version: v2
-plugins:
-  - local: protoc-gen-ts_proto
-    out: src/proto
-    opt:
-      - importSuffix=.js
-      - outputServices=grpc-js
