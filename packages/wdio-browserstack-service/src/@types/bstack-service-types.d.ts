@@ -1,3 +1,5 @@
+import type { Options, Capabilities } from '@wdio/types'
+
 declare namespace WebdriverIO {
     interface Browser {
         getAccessibilityResultsSummary: () => Promise<{ [key: string]: any; }>,
@@ -27,8 +29,8 @@ interface TestContextOptions {
     sessionNameOmitTestTitle: boolean,
     sessionNamePrependTopLevelSuiteTitle: boolean,
     sessionNameFormat: (
-        config: Partial<import('@wdio/types').Options.Testrunner>,
-        capabilities: Partial<import('@wdio/types').Capabilities.RemoteCapability>,
+        config: Partial<Options.Testrunner>,
+        capabilities: Partial<Capabilities.RemoteCapability>,
         suiteTitle: string,
         testTitle?: string
     ) => string
