@@ -20,7 +20,7 @@ This page explains how the WebdriverIO testrunner supports headless execution on
 
 ## Configuration
 
-Two runner options control Xvfb behavior:
+Four runner options control Xvfb behavior:
 
 - `autoXvfb` (boolean, default: true)
   - Authoritative toggle for usage. If `false`, the runner never uses Xvfb.
@@ -31,6 +31,14 @@ Two runner options control Xvfb behavior:
   - true: root-only, non-interactive install (no sudo)
   - 'sudo': allow non-interactive sudo (`sudo -n`) if not root; skip if sudo missing
   - object: advanced control with optional `mode` (default: 'root') and optional custom `command` (executed as-is)
+
+- `xvfbMaxRetries` (number, default: 3)
+  - Number of retry attempts for xvfb process failures.
+  - Useful for flaky CI environments where Xvfb startup may occasionally fail.
+
+- `xvfbRetryDelay` (number, default: 1000)
+  - Base delay between retries in milliseconds for xvfb process failures.
+  - Uses progressive delay: delay × attempt number (e.g., 1000ms, 2000ms, 3000ms, etc.).
 
 Examples:
 
@@ -64,6 +72,25 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
+```ts
+export const config: WebdriverIO.Config = {
+  // Use Xvfb when needed
+  autoXvfb: true,
+
+  // Auto-install Xvfb packages using sudo
+  xvfbAutoInstall: 'sudo',
+
+  // Configure retry behavior for flaky CI environments
+  xvfbMaxRetries: 5,
+  xvfbRetryDelay: 1500,
+
+  capabilities: [{
+    browserName: 'chrome',
+    'goog:chromeOptions': { args: ['--headless=new', '--no-sandbox'] }
+  }]
+}
+```
+
 ## Detection logic
 
 - The runner considers Xvfb when:
@@ -77,6 +104,7 @@ Notes:
 - `autoXvfb: false` disables Xvfb usage entirely (no wrapping with `xvfb-run`).
 - `xvfbAutoInstall` only affects installation if `xvfb-run` is missing; it does not turn usage on/off.
 - Built-in package installs are always non-interactive. Root-only unless you opt into 'sudo' mode.
+- The retry mechanism uses progressive delays: `xvfbRetryDelay × attempt number` (e.g., 1000ms, 2000ms, 3000ms, etc.).
 
 ## Using an existing DISPLAY in CI
 
@@ -104,7 +132,7 @@ export const config = {
 }
 ```
 
-Docker (Ubuntu/Debian example – preinstall xvfb to avoid auto-install):
+Docker (Ubuntu/Debian example – preinstall xvfb):
 
 ```Dockerfile
 RUN apt-get update -qq && apt-get install -y xvfb
@@ -127,13 +155,13 @@ When `xvfbAutoInstall` is enabled, WebdriverIO attempts to install `xvfb` using 
 | xbps-install    | `xbps-install`  | Void Linux                                                  | `xvfb`                           |
 
 Notes:
-- If your environment uses a different package manager, the install will fail with an error; install `xvfb` manually or using the `xvfbAutoInstall` command option.
+- If your environment uses a different package manager, the install will fail with an error; install `xvfb` manually.
 - Package names are distro-specific; the table reflects the common names per family.
 
 ## Troubleshooting
 
 - “xvfb-run failed to start”
-  - The runner retries Xvfb-related failures with backoff. Ensure sufficient system packages are present (e.g., `xorg-x11-server-Xvfb` on RPM-based distros).
+  - The runner automatically retries Xvfb-related failures with progressive backoff. If failures persist, increase `xvfbMaxRetries` and `xvfbRetryDelay` for flaky environments.
 
 - Xvfb wrapped unexpectedly in CI
   - If you have a custom `DISPLAY` / WM setup, set `autoXvfb: false` or ensure `DISPLAY` is exported before the runner starts.
@@ -141,8 +169,11 @@ Notes:
 - Missing `xvfb-run`
   - Keep `xvfbAutoInstall: false` to avoid modifying the environment; install via your base image or set `xvfbAutoInstall: true` to opt in.
 
+- Frequent Xvfb startup failures in CI
+  - Increase `xvfbMaxRetries` (e.g., to 5-10) and `xvfbRetryDelay` (e.g., to 2000ms) for more resilient behavior in unstable environments.
+
 ## Advanced
 
-- The runner creates processes via a factory that may wrap the node worker with `xvfb-run` if Xvfb is needed and available.
+- The runner creates processes via a factory that wraps the node worker with `xvfb-run` if Xvfb is needed and available.
 - Headless browser flags (Chrome/Edge/Firefox) signal headless usage and can trigger Xvfb in environments without a `DISPLAY`.
 
