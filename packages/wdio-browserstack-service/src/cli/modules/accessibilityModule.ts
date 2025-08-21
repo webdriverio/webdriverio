@@ -1,3 +1,4 @@
+/// <reference path="../../@types/bstack-service-types.d.ts" />
 import BaseModule from './baseModule.js'
 import { BStackLogger } from '../cliLogger.js'
 import TestFramework from '../frameworks/testFramework.js'
@@ -85,7 +86,7 @@ export default class AccessibilityModule extends BaseModule {
             }
 
             //patching getA11yResultsSummary
-            browser.getAccessibilityResultsSummary = async () => {
+            (browser as any).getAccessibilityResultsSummary = async () => {
                 if (this.isAppAccessibility) {
                     return await getAppA11yResultsSummary(true, browser, isBrowserstackSession, this.accessibility, sessionId)
                 }
@@ -93,7 +94,7 @@ export default class AccessibilityModule extends BaseModule {
             }
 
             //patching getA11yResults
-            browser.getAccessibilityResults = async () => {
+            (browser as any).getAccessibilityResults = async () => {
                 if (this.isAppAccessibility) {
                     return await getAppA11yResults(true, browser, isBrowserstackSession, this.accessibility, sessionId)
                 }
@@ -101,7 +102,7 @@ export default class AccessibilityModule extends BaseModule {
             }
 
             //patching performScan
-            browser.performScan = async () => {
+            (browser as any).performScan = async () => {
                 return await this.performScanCli(browser)
             }
 

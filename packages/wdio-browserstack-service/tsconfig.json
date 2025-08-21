@@ -8,6 +8,10 @@
   },
   "include": [
     "src/**/*",
-    "../../@types"
+    "../../@types",
+    "src/@types/**/*"
+  ],
+  "exclude": [
+    "src/proto/**/*"
   ]
 }

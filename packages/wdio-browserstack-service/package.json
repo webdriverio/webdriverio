@@ -34,6 +34,7 @@
     "@browserstack/wdio-browserstack-service": "^2.0.0",
     "@percy/appium-app": "^2.0.1",
     "@percy/selenium-webdriver": "^2.0.3",
+    "@types/gitconfiglocal": "^2.0.1",
     "@wdio/logger": "8.38.0",
     "@wdio/reporter": "8.43.0",
     "@wdio/types": "8.41.0",
@@ -54,7 +55,6 @@
     "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
   },
   "devDependencies": {
-    "@types/gitconfiglocal": "^2.0.3",
     "@types/node": "^22.2.0",
     "@types/tar": "^6.1.13",
     "@wdio/globals": "8.46.0"
