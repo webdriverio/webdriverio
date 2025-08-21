@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.46.0 (2025-08-11)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#14665](https://github.com/webdriverio/webdriverio/pull/14665) Add ignore hooks support for v8 ([@xxshubhamxx](https://github.com/xxshubhamxx))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#14676](https://github.com/webdriverio/webdriverio/pull/14676) A11y targeted scans v8 ([@xxshubhamxx](https://github.com/xxshubhamxx))
+* `wdio-utils`
+  * [#14635](https://github.com/webdriverio/webdriverio/pull/14635) feat: do not attach prefs when debuggerAddress is specified (v8) ([@uladhsi](https://github.com/uladhsi))
+
+#### Committers: 2
+- Shubham Garg ([@xxshubhamxx](https://github.com/xxshubhamxx))
+- [@uladhsi](https://github.com/uladhsi)
+
+
 ## v8.45.0 (2025-06-12)
 
 #### :rocket: New Feature
