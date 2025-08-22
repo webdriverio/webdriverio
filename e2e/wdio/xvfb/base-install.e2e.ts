@@ -220,8 +220,7 @@ describe('xvfb fresh installation', () => {
                 force: true,
                 autoInstall: true,
                 autoInstallMode: 'sudo',
-                autoInstallCommand: `echo "Custom command executed" && touch ${testMarkerFile} && echo "Marker file created"`,
-                forceInstall: true // Skip initial availability check
+                autoInstallCommand: `echo "Custom command executed" && touch ${testMarkerFile} && echo "Marker file created"`
             })
 
             delete process.env.DISPLAY
@@ -311,8 +310,7 @@ describe('xvfb fresh installation', () => {
                 force: true,
                 autoInstall: true,
                 autoInstallMode: isRoot ? 'root' : 'sudo',
-                autoInstallCommand: ['/bin/sh', '-c', `echo "${testContent}" > ${testMarkerFile}`],
-                forceInstall: true
+                autoInstallCommand: ['/bin/sh', '-c', `echo "${testContent}" > ${testMarkerFile}`]
             })
 
             delete process.env.DISPLAY
